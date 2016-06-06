@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4BF77085-D5EA-4759-A0C6-2B22C7A46712}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Troschuetz.Random</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Troschuetz.Random</RootNamespace>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <OldToolsVersion>2.0</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>bin\Debug\Troschuetz.Random.xml</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Release\Troschuetz.Random.xml</DocumentationFile>
+    <DebugSymbols>false</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ContinuousRNDs\StudentsTDistribution.cs" />
+    <Compile Include="ContinuousRNDs\WeibullDistribution.cs" />
+    <Compile Include="DiscreteRNDs\BernoulliDistribution.cs" />
+    <Compile Include="DiscreteRNDs\BinomialDistribution.cs" />
+    <Compile Include="ContinuousRNDs\ErlangDistribution.cs" />
+    <Compile Include="ContinuousRNDs\BetaPrimeDistribution.cs" />
+    <Compile Include="ContinuousRNDs\ChiSquareDistribution.cs" />
+    <Compile Include="ContinuousRNDs\ChiDistribution.cs" />
+    <Compile Include="ContinuousRNDs\FisherSnedecorDistribution.cs" />
+    <Compile Include="ContinuousRNDs\FisherTippettDistribution.cs" />
+    <Compile Include="ContinuousRNDs\LaplaceDistribution.cs" />
+    <Compile Include="ContinuousRNDs\RayleighDistribution.cs" />
+    <Compile Include="Resources\ExceptionMessages.de.Designer.cs">
+      <DependentUpon>ExceptionMessages.de.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ContinuousRNDs\BetaDistribution.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ContinuousRNDs\CauchyDistribution.cs" />
+    <Compile Include="ContinuousRNDs\ContinuousUniformDistribution.cs" />
+    <Compile Include="DiscreteRNDs\DiscreteUniformDistribution.cs" />
+    <Compile Include="ContinuousRNDs\ExponentialDistribution.cs" />
+    <Compile Include="ContinuousRNDs\GammaDistribution.cs" />
+    <Compile Include="DiscreteRNDs\GeometricDistribution.cs" />
+    <Compile Include="ContinuousRNDs\LognormalDistribution.cs" />
+    <Compile Include="ContinuousRNDs\NormalDistribution.cs" />
+    <Compile Include="ContinuousRNDs\ParetoDistribution.cs" />
+    <Compile Include="DiscreteRNDs\PoissonDistribution.cs" />
+    <Compile Include="ContinuousRNDs\PowerDistribution.cs" />
+    <Compile Include="ContinuousRNDs\TriangularDistribution.cs" />
+    <Compile Include="PseudoRNGs\ALFGenerator.cs" />
+    <Compile Include="PseudoRNGs\XorShift128Generator.cs" />
+    <Compile Include="PseudoRNGs\MT19937Generator.cs" />
+    <Compile Include="PseudoRNGs\StandardGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Distribution.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Generator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Resources\ExceptionMessages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\ExceptionMessages.es.Designer.cs">
+      <DependentUpon>ExceptionMessages.es.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Resources\ExceptionMessages.fr.Designer.cs">
+      <DependentUpon>ExceptionMessages.fr.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LGPL.rtf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ExceptionMessages.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExceptionMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ExceptionMessages.de.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExceptionMessages.de.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ExceptionMessages.es.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExceptionMessages.es.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ExceptionMessages.fr.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExceptionMessages.fr.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
