@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Matrices", "IS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Solvers", "ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj", "{0883B2F7-198A-4404-B13D-22100BF90A31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Analyzers", "ISAAR.MSolve.StructuralProblem\ISAAR.MSolve.Analyzers.csproj", "{5811FDB6-9B63-48ED-A153-47A673A3CC6F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Analyzers", "ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj", "{5811FDB6-9B63-48ED-A153-47A673A3CC6F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Logging", "ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj", "{8CC2C512-2F07-4E6F-8E04-FC62F1B04186}"
 EndProject
