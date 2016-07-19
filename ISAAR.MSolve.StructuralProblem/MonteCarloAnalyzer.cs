@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Logging.Interfaces;
@@ -9,8 +10,7 @@ using ISAAR.MSolve.PreProcessor.Stochastic;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.Matrices.Interfaces;
-using Troschuetz.Random;
-using System.IO;
+using Troschuetz.Random.Distributions.Continuous;
 
 namespace ISAAR.MSolve.Analyzers
 {

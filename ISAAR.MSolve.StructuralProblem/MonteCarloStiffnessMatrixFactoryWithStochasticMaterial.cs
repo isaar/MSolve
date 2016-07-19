@@ -7,7 +7,7 @@ using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.PreProcessor.Stochastic;
 using ISAAR.MSolve.Matrices.Interfaces;
-using Troschuetz.Random;
+using Troschuetz.Random.Distributions.Continuous;
 
 namespace ISAAR.MSolve.Analyzers
 {
