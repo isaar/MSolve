@@ -66,7 +66,7 @@
       <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
       <Name>ISAAR.MSolve.Solvers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.StructuralProblem\ISAAR.MSolve.Analyzers.csproj">
+    <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj">
       <Project>{5811fdb6-9b63-48ed-a153-47a673a3cc6f}</Project>
       <Name>ISAAR.MSolve.Analyzers</Name>
     </ProjectReference>
