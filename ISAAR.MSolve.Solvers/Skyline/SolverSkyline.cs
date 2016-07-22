@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
     //        else
     //            return d;
     //    }
-    //}
+    //} 
 
     public class SolverSkyline : ISolver
     {
