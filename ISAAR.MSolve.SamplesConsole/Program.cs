@@ -34,6 +34,27 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
         }
 
+        private static void SolveBuildingInNoSoilSmallDynamic()
+        {
+            VectorExtensions.AssignTotalAffinityCount();
+            Model model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
+                model.ElementsDictionary.Count + 1, 1, 4, false, false);
+            model.ConnectDataStructures();
+
+            SolverSkyline solver = new SolverSkyline(model);
+            ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
+            LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
+            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, solver.SubdomainsDictionary, 0.5, 0.25, 0.01, 0.1);
+
+            analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 420 });
+
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+        }
+
 
         static void Main(string[] args)
         {
