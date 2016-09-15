@@ -20,6 +20,7 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
             BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
                 model.ElementsDictionary.Count + 1, 1, 4, false, false);
+            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
             model.ConnectDataStructures();
 
             SolverSkyline solver = new SolverSkyline(model);
@@ -46,7 +47,7 @@ namespace ISAAR.MSolve.SamplesConsole
             SolverSkyline solver = new SolverSkyline(model);
             ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
             LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, solver.SubdomainsDictionary);
+            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, solver.SubdomainsDictionary, 0.5, 0.25, 0.01, 0.1);
 
             analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 420 });
 
