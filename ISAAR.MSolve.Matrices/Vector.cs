@@ -235,7 +235,8 @@ namespace ISAAR.MSolve.Matrices
 
         public void SortDescending()
         {
-            throw new NotImplementedException();
+            Array.Sort(data);
+            Array.Reverse(data);
         }
 
         #endregion
