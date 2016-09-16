@@ -31,5 +31,25 @@ namespace MatricesTests
 
         }
 
+        [TestMethod]
+        public void SortAscendingTest2()
+        {
+            Vector<double> vector2 = new Vector<double>(3);
+            vector2[0] = 8;
+            vector2[0] = 9;
+            vector2[0] = 7;
+            vector2.SortAscending();
+
+            Vector<double> expectedVector = new Vector<double>(3);
+            expectedVector[0] = 7;
+            expectedVector[1] = 8;
+            expectedVector[2] = 9;
+
+            Assert.AreEqual(vector2[0], expectedVector[0]);
+            Assert.AreEqual(vector2[1], expectedVector[1]);
+            Assert.AreEqual(vector2[2], expectedVector[2]);
+
+        }
+
     }
 }
