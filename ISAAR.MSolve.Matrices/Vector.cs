@@ -220,7 +220,35 @@ namespace ISAAR.MSolve.Matrices
 
         public Vector<double> FindUnionWithVector(Vector<double> vector)
         {
-            throw new NotImplementedException();
+            if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
+            double[] mData = data as double[];
+
+            HashSet<Double> set = new HashSet<Double>();
+            double[] jointVector = new double[mData.Length + vector.Length];
+            int counter = 0;
+
+            for (int i = 0; i < mData.Length; i++)
+            {
+                if (set.Add(mData[i]) == true)
+                {
+                    jointVector[counter] = mData[i];
+                    counter++;
+                }
+            }
+            for (int i = 0; i < vector.Length; i++)
+            {
+                if (set.Add(vector[i]) == true)
+                {
+                    jointVector[counter] = vector[i];
+                    counter++;
+                }
+            }
+            Vector<double> unionVector = new Vector<double>(counter);
+            for (int i = 0; i < counter; i++)
+            {
+                unionVector[i]=jointVector[i];
+            }
+            return unionVector;
         }
 
         public Vector<double> FindIntersectionWithVector(Vector<double> vector)
