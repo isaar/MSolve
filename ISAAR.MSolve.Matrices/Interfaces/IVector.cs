@@ -14,5 +14,10 @@ namespace ISAAR.MSolve.Matrices.Interfaces
         void CopyTo(Array array, int index);
         void Clear();
         void WriteToFile(string name);
+        Vector<double>[] RemoveDuplicatesFindMultiplicity();
+        Vector<double> FindUnionWithVector(Vector<double> vector);
+        Vector<double> FindIntersectionWithVector(Vector<double> vector);
+        void SortAscending();
+        void SortDescending();
     }
 }
