@@ -213,6 +213,31 @@ namespace ISAAR.MSolve.Matrices
             sw.Close();
         }
 
+        public Vector<double>[] RemoveDuplicatesFindMultiplicity()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector<double> FindUnionWithVector(Vector<double> vector)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector<double> FindIntersectionWithVector(Vector<double> vector)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortAscending()
+        {
+            Array.Sort(data);
+        }
+
+        public void SortDescending()
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
