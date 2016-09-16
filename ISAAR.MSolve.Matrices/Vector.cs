@@ -225,7 +225,27 @@ namespace ISAAR.MSolve.Matrices
 
         public Vector<double> FindIntersectionWithVector(Vector<double> vector)
         {
-            throw new NotImplementedException();
+            if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
+            double[] mData = data as double[];
+
+            List<Double> list = new List<Double>();
+            for (int i = 0; i < mData.Length; i++)
+            {
+                for (int j = 0; j < vector.Length; j++)
+                {
+                    if (mData[i] == vector[j])
+                    {
+                        list.Add(mData[i]);
+                    }
+                }
+            }
+
+            Vector<double> intersectionVector = new Vector<double>(list.Count);
+            for (int i = 0; i < list.Count; i++)
+            {
+                intersectionVector[i]=list[i];
+            }
+            return intersectionVector;
         }
 
         public void SortAscending()
