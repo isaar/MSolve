@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.PreProcessor", "ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj", "{C30E5A92-8060-46EB-8249-4FE4F603DE18}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Problems", "ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj", "{D4C27DC8-5A58-4BF0-8423-0F3C1FB47B8F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.SamplesConsole", "ISAAR.MSolve.SamplesConsole\ISAAR.MSolve.SamplesConsole.csproj", "{D9DD38A2-0CB4-43D7-8754-06251DD37D63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatricesTests", "MatricesTests\MatricesTests.csproj", "{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{D9DD38A2-0CB4-43D7-8754-06251DD37D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9DD38A2-0CB4-43D7-8754-06251DD37D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9DD38A2-0CB4-43D7-8754-06251DD37D63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
