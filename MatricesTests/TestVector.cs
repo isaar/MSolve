@@ -298,5 +298,27 @@ namespace MatricesTests
 
             Assert.AreEqual(expectedVector[0], resultVector[0]);
         }
+
+        [Test]
+        public void FindIntersectionWithVectorTest2()
+        {
+            Vector<double> vector1 = new Vector<double>(2);
+            vector1[0] = 1;
+            vector1[1] = 2;
+
+            Vector<double> vector2 = new Vector<double>(2);
+            vector2[0] = 2;
+            vector2[1] = 3;
+
+            Vector<double> resultVector = vector1.FindIntersectionWithVector(vector2);
+
+            Vector<double> expectedVector = new Vector<double>(1);
+            expectedVector[0] = 2;
+
+            Assert.AreEqual(expectedVector.Length, resultVector.Length);
+
+            Assert.AreEqual(expectedVector[0], resultVector[0]);
+        }
+
     }
 }
