@@ -106,5 +106,20 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector[2], vector5[2]);
         }
 
+        [Test]
+        public void SortAscendingNullTest()
+        {
+            Vector<double> vector5 = null;
+
+            try
+            {
+                vector5.SortAscending();
+                Assert.Fail("Should have thrown an exception!");
+            } catch (Exception e)
+            {
+                Assert.IsTrue(true);
+            }
+        }
+
     }
 }
