@@ -441,6 +441,20 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector[1][3], resultVector[1][3]);
         }
 
+        [Test]
+        public void RemoveDuplicatesFindMultiplicityTestNull()
+        {
+            Vector<double> vector = null;
 
+            try
+            {
+                Vector<double>[] resultVector = vector.RemoveDuplicatesFindMultiplicity();
+                Assert.Fail("Should have thrown an exception!");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(true);
+            }
+        }
     }
 }
