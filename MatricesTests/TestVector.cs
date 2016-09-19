@@ -74,5 +74,18 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector[3], vector3[3]);
         }
 
+        [Test]
+        public void SortAscendingTest4()
+        {
+            Vector<double> vector4 = new Vector<double>(1);
+            vector4[0] = 1;
+            vector4.SortAscending();
+
+            Vector<double> expectedVector = new Vector<double>(1);
+            expectedVector[0] = 1;
+
+            Assert.AreEqual(expectedVector[0], vector4[0]);
+        }
+
     }
 }
