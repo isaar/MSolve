@@ -399,7 +399,48 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector[1][3], resultVector[1][3]);
         }
 
-        
+        [Test]
+        public void RemoveDuplicatesFindMultiplicityTest2()
+        {
+            Vector<double> vector = new Vector<double>(9);
+            vector[0] = 0;
+            vector[1] = 0;
+            vector[2] = 0;
+            vector[3] = 1;
+            vector[4] = 1;
+            vector[5] = 2;
+            vector[6] = 3;
+            vector[7] = 3;
+            vector[8] = 3;
+
+            Vector<double>[] resultVector = vector.RemoveDuplicatesFindMultiplicity();
+
+            Vector<double>[] expectedVector = new Vector<double>[2];
+
+            expectedVector[0] = new Vector<double>(4);
+            expectedVector[1] = new Vector<double>(4);
+
+            expectedVector[0][0] = 0;
+            expectedVector[0][1] = 1;
+            expectedVector[0][2] = 2;
+            expectedVector[0][3] = 3;
+
+            expectedVector[1][0] = 0;
+            expectedVector[1][1] = 2;
+            expectedVector[1][2] = 3;
+            expectedVector[1][3] = 3;
+
+            Assert.AreEqual(expectedVector[0][0], resultVector[0][0]);
+            Assert.AreEqual(expectedVector[0][1], resultVector[0][1]);
+            Assert.AreEqual(expectedVector[0][2], resultVector[0][2]);
+            Assert.AreEqual(expectedVector[0][3], resultVector[0][3]);
+
+            Assert.AreEqual(expectedVector[1][0], resultVector[1][0]);
+            Assert.AreEqual(expectedVector[1][1], resultVector[1][1]);
+            Assert.AreEqual(expectedVector[1][2], resultVector[1][2]);
+            Assert.AreEqual(expectedVector[1][3], resultVector[1][3]);
+        }
+
 
     }
 }
