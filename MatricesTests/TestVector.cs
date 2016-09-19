@@ -338,5 +338,26 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector.Length, resultVector.Length);
         }
 
+        [Test]
+        public void FindIntersectionWithVectorTestNull()
+        {
+            Vector<double> vector1 = new Vector<double>(2);
+            vector1[0] = 1;
+            vector1[1] = 2;
+
+            Vector<double> vector2 = null;
+
+            try
+            {
+                Vector<double> resultVector = vector1.FindIntersectionWithVector(vector2);
+                Assert.Fail("Should have thrown an exception!");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(true);
+            }
+        }
+
+
     }
 }
