@@ -255,5 +255,29 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector[3], resultVector[3]);
             Assert.AreEqual(expectedVector[4], resultVector[4]);
         }
+
+        [Test]
+        public void FindUnionWithVectorNullTest()
+        {
+            Vector<double> vector1 = new Vector<double>(5);
+            vector1[0] = 5;
+            vector1[1] = 1;
+            vector1[2] = 7;
+            vector1[3] = 2;
+            vector1[4] = 4;
+
+            Vector<double> vector2 = null;
+            
+            try
+            {
+                Vector<double> resultVector = vector1.FindUnionWithVector(vector2);
+                Assert.Fail("Should have thrown an exception!");
+            }
+            catch (Exception e)
+            {
+                Assert.IsTrue(true);
+            }
+
+        }
     }
 }
