@@ -164,5 +164,32 @@ namespace MatricesTests
             Assert.AreEqual(expectedVector[1], resultVector[1]);
             Assert.AreEqual(expectedVector[2], resultVector[2]);
         }
+
+        [Test]
+        public void FindUnionWithVectorTest3()
+        {
+            Vector<double> vector1 = new Vector<double>(4);
+            vector1[0] = 1;
+            vector1[1] = 2;
+            vector1[2] = 5;
+            vector1[3] = 2;
+
+            Vector<double> vector2 = new Vector<double>(1);
+            vector2[0] = 1;
+
+            Vector<double> resultVector = vector1.FindUnionWithVector(vector2);
+
+
+            Vector<double> expectedVector = new Vector<double>(3);
+            expectedVector[0] = 1;
+            expectedVector[1] = 2;
+            expectedVector[2] = 5;
+
+            Assert.AreEqual(expectedVector.Length, resultVector.Length);
+
+            Assert.AreEqual(expectedVector[0], resultVector[0]);
+            Assert.AreEqual(expectedVector[1], resultVector[1]);
+            Assert.AreEqual(expectedVector[2], resultVector[2]);
+        }
     }
 }
