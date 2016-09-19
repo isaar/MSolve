@@ -121,5 +121,22 @@ namespace MatricesTests
             }
         }
 
+        [Test]
+        public void FindUnionWithVectorTest1()
+        {
+            Vector<double> vector1 = new Vector<double>(1);
+            vector1[0] = 0;
+
+            Vector<double> vector2 = new Vector<double>(1);
+            vector2[0] = 0;
+
+            Vector<double> resultVector=vector1.FindUnionWithVector(vector2);
+
+
+            Vector<double> expectedVector = new Vector<double>(1);
+            expectedVector[0] = 0;
+
+            Assert.AreEqual(expectedVector[0], resultVector[0]);
+        }
     }
 }
