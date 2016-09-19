@@ -213,6 +213,11 @@ namespace ISAAR.MSolve.Matrices
             sw.Close();
         }
 
+        /// <summary>
+        /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
+        /// the requested Knot. The multiplicity of a single Knot can be derived using the exported multiplicity vector.
+        /// </summary>
+        /// <returns></returns>
         public Vector<double>[] RemoveDuplicatesFindMultiplicity()
         {
             if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
