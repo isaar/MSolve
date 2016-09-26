@@ -41,12 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Readers\IGAModelReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Elements\" />
     <Folder Include="Interfaces\" />
     <Folder Include="Providers\" />
-    <Folder Include="Readers\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
