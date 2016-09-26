@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace ISSAR.MSolve.IGAPreProcessor.Readers
 {
-    class IGAModelReader
+    public static class IGAModelReader
     {
+        
+        public static void CreateModelFromFile(IGAModel Model, string fileName)
+        {
+
+        }
     }
 }
