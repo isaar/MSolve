@@ -145,7 +145,22 @@ namespace ISSAR.MSolve.IGAPreProcessor
 
         private void CreateModelData2D(Matrix2D<double> cpCoordinates)
         {
-            
+            Vector<double> parametricCoordinatesKsi = FindParametricCoordinates(this.degreeKsi, this.knotValueVectorKsi);
+            Vector<double> parametricCoordinatesHeta = FindParametricCoordinates(this.degreeHeta, this.knotValueVectorHeta);
+
+            int id = 0;
+
+            for (int i = 0; i < this.numberOfCPKsi; i++)
+            {
+                for (int j = 0; j < this.numberOfCPHeta; j++)
+                {
+                    ControlPoint controlPoint = new ControlPoint(id,cpCoordinates[id,0], cpCoordinates[id, 1], 0.0, parametricCoordinatesKsi[i], parametricCoordinatesHeta[j],0.0,cpCoordinates[id,3]);
+                    id++;
+                    this.controlPoints.Add(controlPoint);
+                }
+            }
+
+
         }
 
         private void CreateModelData3D(Matrix2D<double> cpCoordinates)

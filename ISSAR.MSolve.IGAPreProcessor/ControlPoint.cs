@@ -8,13 +8,25 @@ namespace ISSAR.MSolve.IGAPreProcessor
 {
     class ControlPoint
     {
-        public int ID { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
-        public double Ksi { get; set; }
-        public double Heta { get; set; }
-        public double Zeta { get; set; }
+        private int ID { get; }
+        private double X { get; }
+        private double Y { get; }
+        private double Z { get; }
+        private double Ksi { get; }
+        private double Heta { get; }
+        private double Zeta { get; }
+        private double Weight { get; }
 
+        public ControlPoint(int id, double x, double y, double z, double ksi, double heta, double zeta, double weight)
+        {
+            this.ID = id;
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
+            this.Ksi = ksi;
+            this.Heta = Heta;
+            this.Zeta = zeta;
+            this.Weight = weight;
+        }
     }
 }
