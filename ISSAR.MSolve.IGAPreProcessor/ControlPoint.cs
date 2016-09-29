@@ -6,7 +6,15 @@ using System.Threading.Tasks;
 
 namespace ISSAR.MSolve.IGAPreProcessor
 {
-    class ControlPoint
+    public enum DOFType
+    {
+        Unknown = 0,
+        X = 1,
+        Y = 2,
+        Z = 3
+    }
+
+    public class ControlPoint
     {
         private int ID { get; }
         private double X { get; }
