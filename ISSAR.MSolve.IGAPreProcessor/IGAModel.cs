@@ -160,6 +160,9 @@ namespace ISSAR.MSolve.IGAPreProcessor
                 }
             }
 
+            Vector<double> singleKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> singleKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+
 
         }
 
