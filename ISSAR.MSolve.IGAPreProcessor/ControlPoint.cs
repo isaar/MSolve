@@ -8,5 +8,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
 {
     class ControlPoint
     {
+
+
     }
 }

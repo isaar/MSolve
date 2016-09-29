@@ -131,5 +131,52 @@ namespace ISSAR.MSolve.IGAPreProcessor
             this.elements.Clear();
 
         }
+
+        public void CreateModelData(Matrix2D<double> cpCoordinates)
+        {
+            if (this.numberOfDimensions == 2)
+            {
+                CreateModelData2D(cpCoordinates);
+            }else
+            {
+                CreateModelData3D(cpCoordinates);
+            }
+        }
+
+        private void CreateModelData2D(Matrix2D<double> cpCoordinates)
+        {
+
+        }
+
+        private void CreateModelData3D(Matrix2D<double> cpCoordinates)
+        {
+
+        }
+
+        private Vector<double> FindParametricCoordinates(int degree, Vector<double> knotValueVector)
+        {
+            if (degree <= 0)
+            {
+                throw new NotSupportedException("Negative Degree.");
+            } else if (knotValueVector == null)
+            {
+                throw new ArgumentNullException("Knot Value Vector is null.");
+            }
+
+            int numberOfControlPoints = knotValueVector.Length - degree - 1;
+
+            Vector<double> parametricCoordinates = new Vector<double>(numberOfControlPoints);
+
+            for (int i = 0; i < numberOfControlPoints; i++)
+            {
+                int leftID = (int)Math.Floor(i + (degree + 1) / 2.0);
+                int rightID = (int)Math.Ceiling(i + (degree + 1) / 2.0);
+
+                parametricCoordinates[i] = (knotValueVector[leftID] + knotValueVector[rightID]) / 2.0;
+            }
+
+            return parametricCoordinates;
+
+        }
     }
 }

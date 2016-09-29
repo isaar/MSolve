@@ -116,7 +116,7 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
                                 cpCoordinates[j, 1] = Double.Parse(line[1]);
                                 cpCoordinates[j, 2] = Double.Parse(line[2]);
                             }
-                            // model.CreateModelData();
+                            model.CreateModelData(cpCoordinates);
                         }
                         else
                         {
@@ -134,21 +134,13 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
                                 cpCoordinates[j, 2] = Double.Parse(line[2]);
                                 cpCoordinates[j, 2] = Double.Parse(line[3]);
                             }
-                            // model.CreateModelData();
+                            model.CreateModelData(cpCoordinates);
                         }
                         break;
                     case Attributes.end:
                         return;
                 }
-                    
-
             }
         }
-
-
-
-
-
-
     }
 }
