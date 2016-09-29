@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ControlPoint.cs" />
+    <Compile Include="IGAElement.cs" />
     <Compile Include="IGAModel.cs" />
     <Compile Include="Interfaces\IIsogeometricElement.cs" />
     <Compile Include="Interfaces\IIsogeometricStructuralElement.cs" />
