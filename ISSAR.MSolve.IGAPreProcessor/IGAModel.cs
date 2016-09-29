@@ -145,7 +145,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
 
         private void CreateModelData2D(Matrix2D<double> cpCoordinates)
         {
-
+            
         }
 
         private void CreateModelData3D(Matrix2D<double> cpCoordinates)
