@@ -42,13 +42,13 @@
   <ItemGroup>
     <Compile Include="ControlPoint.cs" />
     <Compile Include="IGAModel.cs" />
+    <Compile Include="Interfaces\IIsogeometricElement.cs" />
     <Compile Include="Knot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Readers\IGAModelReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Elements\" />
-    <Folder Include="Interfaces\" />
     <Folder Include="Providers\" />
   </ItemGroup>
   <ItemGroup>

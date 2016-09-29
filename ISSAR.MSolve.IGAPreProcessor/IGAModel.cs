@@ -149,7 +149,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
             CreateKnots2D();
 
             Vector<double> singlesKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
-            Vector<double> singlesKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+            Vector<double> singlesKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
 
             int numberOfElementsKsi = singlesKnotValuesKsi.Length - 1;
             int numberOfElementsHeta = singlesKnotValuesHeta.Length - 1;
