@@ -145,6 +145,40 @@ namespace ISSAR.MSolve.IGAPreProcessor
 
         private void CreateModelData2D(Matrix2D<double> cpCoordinates)
         {
+            CreateControlPoints2D(cpCoordinates);
+            CreateKnots2D();
+
+            Vector<double> singlesKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> singlesKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+
+            int numberOfElementsKsi = singlesKnotValuesKsi.Length - 1;
+            int numberOfElementsHeta = singlesKnotValuesHeta.Length - 1;
+            if (numberOfElementsKsi * numberOfElementsHeta == 0)
+            {
+                throw new NullReferenceException("Number of Elements should be defined before Element Connectivity");
+            }
+
+        }
+
+        private void CreateKnots2D()
+        {
+            Vector<double> singleKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> singleKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+
+            int id = 0;
+            for (int i = 0; i < singleKnotValuesKsi.Length; i++)
+            {
+                for (int j = 0; j < singleKnotValuesHeta.Length; j++)
+                {
+                    Knot knot = new Knot(id, singleKnotValuesKsi[i], singleKnotValuesHeta[j], 0.0);
+                    id++;
+                    this.knots.Add(knot);
+                }
+            }
+        }
+
+        private void CreateControlPoints2D(Matrix2D<double> cpCoordinates)
+        {
             Vector<double> parametricCoordinatesKsi = FindParametricCoordinates(this.degreeKsi, this.knotValueVectorKsi);
             Vector<double> parametricCoordinatesHeta = FindParametricCoordinates(this.degreeHeta, this.knotValueVectorHeta);
 
@@ -154,16 +188,11 @@ namespace ISSAR.MSolve.IGAPreProcessor
             {
                 for (int j = 0; j < this.numberOfCPHeta; j++)
                 {
-                    ControlPoint controlPoint = new ControlPoint(id,cpCoordinates[id,0], cpCoordinates[id, 1], 0.0, parametricCoordinatesKsi[i], parametricCoordinatesHeta[j],0.0,cpCoordinates[id,3]);
+                    ControlPoint controlPoint = new ControlPoint(id, cpCoordinates[id, 0], cpCoordinates[id, 1], 0.0, parametricCoordinatesKsi[i], parametricCoordinatesHeta[j], 0.0, cpCoordinates[id, 3]);
                     id++;
                     this.controlPoints.Add(controlPoint);
                 }
             }
-
-            Vector<double> singleKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
-            Vector<double> singleKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
-
-
         }
 
         private void CreateModelData3D(Matrix2D<double> cpCoordinates)

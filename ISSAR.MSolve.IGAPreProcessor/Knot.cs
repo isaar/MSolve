@@ -9,11 +9,11 @@ namespace ISSAR.MSolve.IGAPreProcessor
     class Knot
     {
         private int ID { get; }
-        private int Ksi { get; }
-        private int Heta { get; }
-        private int Zeta { get; }
+        private double Ksi { get; }
+        private double Heta { get; }
+        private double Zeta { get; }
 
-        public Knot(int id, int ksi, int heta, int zeta)
+        public Knot(int id, double ksi, double heta, double zeta)
         {
             this.ID = id;
             this.Ksi = ksi;
