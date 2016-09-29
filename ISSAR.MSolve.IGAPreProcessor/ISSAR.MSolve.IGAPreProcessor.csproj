@@ -43,6 +43,7 @@
     <Compile Include="ControlPoint.cs" />
     <Compile Include="IGAModel.cs" />
     <Compile Include="Interfaces\IIsogeometricElement.cs" />
+    <Compile Include="Interfaces\IIsogeometricStructuralElement.cs" />
     <Compile Include="Knot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Readers\IGAModelReader.cs" />
