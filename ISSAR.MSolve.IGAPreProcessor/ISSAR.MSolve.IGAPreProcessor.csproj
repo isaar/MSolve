@@ -41,7 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ControlPoint.cs" />
+    <Compile Include="Elements\NURBSElement2D.cs" />
     <Compile Include="IGAElement.cs" />
+    <Compile Include="IGALoad.cs" />
     <Compile Include="IGAModel.cs" />
     <Compile Include="Interfaces\IIsogeometricElement.cs" />
     <Compile Include="Interfaces\IIsogeometricStructuralElement.cs" />
@@ -50,7 +52,6 @@
     <Compile Include="Readers\IGAModelReader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Elements\" />
     <Folder Include="Providers\" />
   </ItemGroup>
   <ItemGroup>

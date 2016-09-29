@@ -25,7 +25,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
         private Vector<double> knotValueVectorZeta;
         private readonly IList<ControlPoint> controlPoints = new List<ControlPoint>();
         private readonly IList<Knot> knots = new List<Knot>();
-        private readonly IList<Element> elements = new List<Element>();
+        private readonly IList<IGAElement> elements = new List<IGAElement>();
         private readonly IList<IGALoad> loads = new List<IGALoad>();
 
         #region Properties
@@ -105,7 +105,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
             get { return knots; }
         }
 
-        public IList<Element> Elements
+        public IList<IGAElement> Elements
         {
             get { return elements; }
         }

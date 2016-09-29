@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISSAR.MSolve.IGAPreProcessor
+namespace ISSAR.MSolve.IGAPreProcessor.Elements
 {
-    public class IGAElement
+    public class NURBSElement2D
     {
     }
 }

@@ -24,6 +24,5 @@ namespace ISSAR.MSolve.IGAPreProcessor.Interfaces
         Tuple<double[], double[]> CalculateStresses(IGAElement element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(IGAElement element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForcesForLogging(IGAElement element, double[] localDisplacements);
-
     }
 }

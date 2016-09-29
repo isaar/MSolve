@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISSAR.MSolve.IGAPreProcessor
 {
-    class Knot
+    public class Knot
     {
         private int ID { get; }
         private double Ksi { get; }

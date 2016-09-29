@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISSAR.MSolve.IGAPreProcessor
 {
-    public class IGAElement
+    public class IGALoad
     {
     }
 }
