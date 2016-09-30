@@ -239,7 +239,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
             {
                 for (int j = 0; j < this.numberOfCPHeta; j++)
                 {
-                    ControlPoint controlPoint = new ControlPoint(id, cpCoordinates[id, 0], cpCoordinates[id, 1], 0.0, parametricCoordinatesKsi[i], parametricCoordinatesHeta[j], 0.0, cpCoordinates[id, 3]);
+                    ControlPoint controlPoint = new ControlPoint(id, cpCoordinates[id, 0], cpCoordinates[id, 1], 0.0, parametricCoordinatesKsi[i], parametricCoordinatesHeta[j], 0.0, cpCoordinates[id, 2]);
                     id++;
                     this.controlPoints.Add(controlPoint);
                 }
@@ -248,7 +248,54 @@ namespace ISSAR.MSolve.IGAPreProcessor
 
         private void CreateModelData3D(Matrix2D<double> cpCoordinates)
         {
+            CreateControlPoints3D(cpCoordinates);
+            CreateKnots3D();
 
+        }
+
+        private void CreateKnots3D()
+        {
+            Vector<double> singleKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> singleKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> singleKnotValuesZeta = knotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+
+            int id = 0;
+            for (int i = 0; i < singleKnotValuesKsi.Length; i++)
+            {
+                for (int j = 0; j < singleKnotValuesHeta.Length; j++)
+                {
+                    for (int k = 0; k < singleKnotValuesZeta.Length; k++)
+                    {
+                        Knot knot = new Knot(id, singleKnotValuesKsi[i], singleKnotValuesHeta[j], singleKnotValuesZeta[k]);
+                        id++;
+                        this.knots.Add(knot);
+                    }
+
+                }
+            }
+        }
+
+        private void CreateControlPoints3D(Matrix2D<double> cpCoordinates)
+        {
+            Vector<double> parametricCoordinatesKsi = FindParametricCoordinates(this.degreeKsi, this.knotValueVectorKsi);
+            Vector<double> parametricCoordinatesHeta = FindParametricCoordinates(this.degreeHeta, this.knotValueVectorHeta);
+            Vector<double> parametricCoordinatesZeta = FindParametricCoordinates(this.degreeZeta, this.knotValueVectorZeta);
+
+            int id = 0;
+
+            for (int i = 0; i < this.numberOfCPKsi; i++)
+            {
+                for (int j = 0; j < this.numberOfCPHeta; j++)
+                {
+                    for (int k = 0; k < this.numberOfCPZeta; k++)
+                    {
+                        ControlPoint controlPoint = new ControlPoint(id, cpCoordinates[id, 0], cpCoordinates[id, 1], cpCoordinates[id, 2], parametricCoordinatesKsi[i], parametricCoordinatesHeta[j], parametricCoordinatesZeta[k], cpCoordinates[id, 3]);
+                        id++;
+                        this.controlPoints.Add(controlPoint);
+                    }
+
+                }
+            }
         }
 
         private Vector<double> FindParametricCoordinates(int degree, Vector<double> knotValueVector)
