@@ -250,7 +250,92 @@ namespace ISSAR.MSolve.IGAPreProcessor
         {
             CreateControlPoints3D(cpCoordinates);
             CreateKnots3D();
+            CreateNURBSElements3D();
+        }
 
+        private void CreateNURBSElements3D()
+        {
+            Vector<double> singlesKnotValuesKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> multiplicityKsi = knotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+            Vector<double> singlesKnotValuesHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> multiplicityHeta = knotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+            Vector<double> singlesKnotValuesZeta = knotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+            Vector<double> multiplicityZeta = knotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[1];
+
+            int numberOfElementsKsi = singlesKnotValuesKsi.Length - 1;
+            int numberOfElementsHeta = singlesKnotValuesHeta.Length - 1;
+            int numberOfElementsZeta = singlesKnotValuesZeta.Length - 1;
+
+            if (numberOfElementsKsi * numberOfElementsHeta * numberOfElementsZeta == 0)
+            {
+                throw new NullReferenceException("Number of Elements should be defined before Element Connectivity");
+            }
+
+            for (int i = 0; i < numberOfElementsKsi; i++)
+            {
+                for (int j = 0; j < numberOfElementsHeta; j++)
+                {
+                    for (int k = 0; k < numberOfElementsZeta; k++)
+                    {
+                        IList<Knot> knotsOfElement = new List<Knot>();
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k + 1]);
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k + 1]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k + 1]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k + 1]);
+
+                        int multiplicityElementKsi = 0;
+                        if (multiplicityKsi[i + 1] - this.degreeKsi > 0)
+                        {
+                            multiplicityElementKsi = (int)multiplicityKsi[i + 1] - degreeKsi;
+                        }
+
+                        int multiplicityElementHeta = 0;
+                        if (multiplicityHeta[j + 1] - this.degreeHeta > 0)
+                        {
+                            multiplicityElementHeta = (int)multiplicityHeta[j + 1] - this.degreeHeta;
+                        }
+
+                        int multiplicityElementZeta = 0;
+                        if (multiplicityZeta[j + 1] - this.degreeZeta > 0)
+                        {
+                            multiplicityElementZeta = (int)multiplicityZeta[j + 1] - this.degreeZeta;
+                        }
+
+                        int nurbsSupportKsi = this.degreeKsi + 1;
+                        int nurbsSupportHeta = this.degreeHeta + 1;
+                        int nurbsSupportZeta = this.degreeZeta + 1;
+
+                        Vector<int> connectivity = new Vector<int>(nurbsSupportKsi * nurbsSupportHeta * nurbsSupportZeta);
+                        int index = 0;
+
+                        for (int l = 0; l < nurbsSupportKsi; l++)
+                        {
+                            for (int m = 0; m < nurbsSupportHeta; m++)
+                            {
+                                for (int n = 0; n < nurbsSupportZeta; n++)
+                                {
+
+                                }
+                                connectivity[index] = (i + multiplicityElementKsi) * numberOfCPHeta * numberOfCPZeta +
+                                    (j + multiplicityElementHeta) * numberOfCPZeta + (k + multiplicityElementZeta) +
+                                    l * numberOfCPHeta * numberOfCPZeta + m * numberOfCPZeta + numberOfElementsZeta;
+                                index++;
+                            }
+                        }
+
+                        int elementID = i * numberOfElementsHeta * numberOfElementsZeta + j * numberOfElementsZeta + k;
+                        NURBSElement2D nurbsElement = new NURBSElement3D(elementID, knotsOfElement, connectivity);
+
+                        this.elements.Add(nurbsElement);
+
+
+                    }
+                }
+            }
         }
 
         private void CreateKnots3D()
