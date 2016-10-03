@@ -4,6 +4,8 @@ using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Skyline;
+using ISSAR.MSolve.IGAPreProcessor;
+using ISSAR.MSolve.IGAPreProcessor.Readers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
             BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
                 model.ElementsDictionary.Count + 1, 1, 4, false, false);
-            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = PreProcessor.DOFType.X });
             model.ConnectDataStructures();
 
             SolverSkyline solver = new SolverSkyline(model);
@@ -56,9 +58,15 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
         }
 
+        private static void SolveIsogeometricModelExample()
+        {
+            IGAModel model = new IGAModel();
+            IGAModelReader.CreateModelFromFile(model, @"C:\Users\Dimitris\Source\Repos\MSolve\ISSAR.MSolve.IGAPreProcessor\InputFiles\Cantilever2D biquadratic.txt");
+        }
+
         static void Main(string[] args)
         {
-            SolveBuildingInNoSoilSmall();
+            SolveIsogeometricModelExample();
         }
     }
 }

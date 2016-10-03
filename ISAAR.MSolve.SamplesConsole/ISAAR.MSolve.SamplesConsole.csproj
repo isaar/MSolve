@@ -70,6 +70,10 @@
       <Project>{5811fdb6-9b63-48ed-a153-47a673a3cc6f}</Project>
       <Name>ISAAR.MSolve.Analyzers</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ISSAR.MSolve.IGAPreProcessor\ISSAR.MSolve.IGAPreProcessor.csproj">
+      <Project>{34ab9b87-f2cb-443c-8b77-06dbd35f90bd}</Project>
+      <Name>ISSAR.MSolve.IGAPreProcessor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

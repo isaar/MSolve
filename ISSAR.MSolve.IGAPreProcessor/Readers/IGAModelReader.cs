@@ -1,6 +1,7 @@
 ﻿using ISAAR.MSolve.Matrices;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,22 +25,21 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
 
         public static void CreateModelFromFile(IGAModel model, string fileName)
         {
-            char[] delimeters = { ' ', '=' };
+            char[] delimeters = { ' ', '=' ,'\t'};
+            Attributes? name=null;
 
             String[] text = System.IO.File.ReadAllLines(fileName);
 
             for (int i = 0; i < text.Length; i++)
             {
-                String[] line = text[i].Split(delimeters);
-                Attributes name;
-                if (line[i] == null)
+                String[] line = text[i].Split(delimeters, StringSplitOptions.RemoveEmptyEntries);
+                if (line.Length == 0)
                 {
-                    i++;
                     continue;
                 }
                 try
                 {
-                    name = (Attributes)Enum.Parse(typeof(Attributes), line[0]);
+                    name = (Attributes)Enum.Parse(typeof(Attributes), line[0].ToLower());
                 }catch (Exception e)
                 {
                     throw new KeyNotFoundException("Variable name is not found " + line[0]);
@@ -76,7 +76,7 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
                         model.KnotValueVectorKsi = new Vector<double>(model.NumberOfCPKsi + model.DegreeKsi + 1);
                         for (int j = 0; j < model.NumberOfCPKsi + model.DegreeKsi + 1; j++)
                         {
-                            model.KnotValueVectorKsi[j] = Double.Parse(line[j + 1]);
+                            model.KnotValueVectorKsi[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
                         }
                         break;
                     case Attributes.knotvaluevectorheta:
@@ -87,7 +87,7 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
                         model.KnotValueVectorHeta = new Vector<double>(model.NumberOfCPHeta + model.DegreeHeta + 1);
                         for (int j = 0; j < model.NumberOfCPHeta + model.DegreeHeta + 1; j++)
                         {
-                            model.KnotValueVectorHeta[j] = Double.Parse(line[j + 1]);
+                            model.KnotValueVectorHeta[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
                         }
                         break;
                     case Attributes.knotvaluevectorzeta:
@@ -98,41 +98,41 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
                         model.KnotValueVectorZeta = new Vector<double>(model.NumberOfCPZeta + model.DegreeZeta + 1);
                         for (int j = 0; j < model.NumberOfCPZeta + model.DegreeZeta + 1; j++)
                         {
-                            model.KnotValueVectorZeta[j] = Double.Parse(line[j + 1]);
+                            model.KnotValueVectorZeta[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
                         }
                         break;
                     case Attributes.cpcoord:
                         if (model.NumberOfDimensions == 2)
                         {
                             Matrix2D<double> cpCoordinates = new Matrix2D<double>(model.NumberOfCPKsi*model.NumberOfCPHeta,3);
-                            cpCoordinates[0, 0] = Double.Parse(line[1]);
-                            cpCoordinates[0, 1] = Double.Parse(line[2]);
-                            cpCoordinates[0, 2] = Double.Parse(line[3]);
+                            cpCoordinates[0, 0] = Double.Parse(line[1], CultureInfo.InvariantCulture);
+                            cpCoordinates[0, 1] = Double.Parse(line[2], CultureInfo.InvariantCulture);
+                            cpCoordinates[0, 2] = Double.Parse(line[3], CultureInfo.InvariantCulture);
                             for (int j=1; j< model.NumberOfCPKsi * model.NumberOfCPHeta; j++)
                             {
                                 i++;
                                 line = text[i].Split(delimeters);
-                                cpCoordinates[j, 0] = Double.Parse(line[0]);
-                                cpCoordinates[j, 1] = Double.Parse(line[1]);
-                                cpCoordinates[j, 2] = Double.Parse(line[2]);
+                                cpCoordinates[j, 0] = Double.Parse(line[0], CultureInfo.InvariantCulture);
+                                cpCoordinates[j, 1] = Double.Parse(line[1], CultureInfo.InvariantCulture);
+                                cpCoordinates[j, 2] = Double.Parse(line[2], CultureInfo.InvariantCulture);
                             }
                             model.CreateModelData(cpCoordinates);
                         }
                         else
                         {
                             Matrix2D<double> cpCoordinates = new Matrix2D<double>(model.NumberOfCPKsi * model.NumberOfCPHeta* model.NumberOfCPZeta, 4);
-                            cpCoordinates[0, 0] = Double.Parse(line[1]);
-                            cpCoordinates[0, 1] = Double.Parse(line[2]);
-                            cpCoordinates[0, 2] = Double.Parse(line[3]);
-                            cpCoordinates[0, 3] = Double.Parse(line[4]);
+                            cpCoordinates[0, 0] = Double.Parse(line[1], CultureInfo.InvariantCulture);
+                            cpCoordinates[0, 1] = Double.Parse(line[2], CultureInfo.InvariantCulture);
+                            cpCoordinates[0, 2] = Double.Parse(line[3], CultureInfo.InvariantCulture);
+                            cpCoordinates[0, 3] = Double.Parse(line[4], CultureInfo.InvariantCulture);
                             for (int j = 1; j < model.NumberOfCPKsi * model.NumberOfCPHeta* model.NumberOfCPZeta; j++)
                             {
                                 i++;
                                 line = text[i].Split(delimeters);
-                                cpCoordinates[j, 0] = Double.Parse(line[0]);
-                                cpCoordinates[j, 1] = Double.Parse(line[1]);
-                                cpCoordinates[j, 2] = Double.Parse(line[2]);
-                                cpCoordinates[j, 2] = Double.Parse(line[3]);
+                                cpCoordinates[j, 0] = Double.Parse(line[0], CultureInfo.InvariantCulture);
+                                cpCoordinates[j, 1] = Double.Parse(line[1], CultureInfo.InvariantCulture);
+                                cpCoordinates[j, 2] = Double.Parse(line[2], CultureInfo.InvariantCulture);
+                                cpCoordinates[j, 2] = Double.Parse(line[3], CultureInfo.InvariantCulture);
                             }
                             model.CreateModelData(cpCoordinates);
                         }
