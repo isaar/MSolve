@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISSAR.MSolve.IGAPreProcessor.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,7 @@ namespace ISSAR.MSolve.IGAPreProcessor
 {
     public class IGAElement
     {
+
+        public IIsogeometricElement ElementType { get; set; }
     }
 }

@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ControlPoint.cs" />
     <Compile Include="Elements\NURBSElement2D.cs" />
+    <Compile Include="Elements\NURBSElement3D.cs" />
     <Compile Include="IGAElement.cs" />
     <Compile Include="IGALoad.cs" />
     <Compile Include="IGAModel.cs" />

@@ -121,17 +121,10 @@ namespace ISSAR.MSolve.IGAPreProcessor
         #region Data Creation Routines
         public void CreateDataStructures()
         {
+            throw new NotImplementedException();
 
         }
-        #endregion
-
-        public void Clear()
-        {
-            this.controlPoints.Clear();
-            this.knots.Clear();
-            this.elements.Clear();
-
-        }
+        
 
         public void CreateModelData(Matrix2D<double> cpCoordinates)
         {
@@ -203,9 +196,9 @@ namespace ISSAR.MSolve.IGAPreProcessor
                         }
                     }
                     int elementID = i * numberOfElementsHeta + j;
-                    NURBSElement2D nurbsElement = new NURBSElement2D(elementID, knotsOfElement, connectivity);
-
-                    this.elements.Add(nurbsElement);
+                    IGAElement element = new IGAElement() {ElementType= new NURBSElement2D(elementID, knotsOfElement, connectivity)};
+                    //NURBSElement2D nurbsElement = new NURBSElement2D(elementID, knotsOfElement, connectivity);
+                    this.elements.Add(element);
 
                 }
             }
@@ -328,11 +321,11 @@ namespace ISSAR.MSolve.IGAPreProcessor
                         }
 
                         int elementID = i * numberOfElementsHeta * numberOfElementsZeta + j * numberOfElementsZeta + k;
-                        NURBSElement2D nurbsElement = new NURBSElement3D(elementID, knotsOfElement, connectivity);
+                        IGAElement element = new IGAElement() { ElementType = new NURBSElement3D(elementID, knotsOfElement, connectivity) };
+                        //NURBSElement2D nurbsElement = new NURBSElement3D(elementID, knotsOfElement, connectivity);
 
-                        this.elements.Add(nurbsElement);
-
-
+                        this.elements.Add(element);
+                        
                     }
                 }
             }
@@ -408,5 +401,15 @@ namespace ISSAR.MSolve.IGAPreProcessor
             return parametricCoordinates;
 
         }
+
+        #endregion
+
+        public void Clear()
+        {
+            this.controlPoints.Clear();
+            this.knots.Clear();
+            this.elements.Clear();
+        }
+
     }
 }
