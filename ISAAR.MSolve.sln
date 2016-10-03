@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.PreProcessor", "ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj", "{C30E5A92-8060-46EB-8249-4FE4F603DE18}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatricesTests", "MatricesTests\MatricesTests.csproj", "{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISSAR.MSolve.IGAPreProcessor", "ISSAR.MSolve.IGAPreProcessor\ISSAR.MSolve.IGAPreProcessor.csproj", "{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISSAR.MSolve.IGASamplesConsole", "ISSAR.MSolve.IGASamplesConsole\ISSAR.MSolve.IGASamplesConsole.csproj", "{B2881CED-C445-4B83-B03B-AC17C3F939C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2881CED-C445-4B83-B03B-AC17C3F939C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2881CED-C445-4B83-B03B-AC17C3F939C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2881CED-C445-4B83-B03B-AC17C3F939C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2881CED-C445-4B83-B03B-AC17C3F939C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

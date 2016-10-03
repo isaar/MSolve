@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}</ProjectGuid>
+    <ProjectGuid>{B2881CED-C445-4B83-B03B-AC17C3F939C3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ISSAR.MSolve.IGAPreProcessor</RootNamespace>
-    <AssemblyName>ISSAR.MSolve.IGAPreProcessor</AssemblyName>
+    <RootNamespace>ISSAR.MSolve.IGASamplesConsole</RootNamespace>
+    <AssemblyName>ISSAR.MSolve.IGASamplesConsole</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,26 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControlPoint.cs" />
-    <Compile Include="Elements\NURBSElement2D.cs" />
-    <Compile Include="Elements\NURBSElement3D.cs" />
-    <Compile Include="IGAElement.cs" />
-    <Compile Include="IGALoad.cs" />
-    <Compile Include="IGAModel.cs" />
-    <Compile Include="Interfaces\IIsogeometricElement.cs" />
-    <Compile Include="Interfaces\IIsogeometricStructuralElement.cs" />
-    <Compile Include="Knot.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Readers\IGAModelReader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="InputFiles\" />
-    <Folder Include="Providers\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
+    <ProjectReference Include="..\ISSAR.MSolve.IGAPreProcessor\ISSAR.MSolve.IGAPreProcessor.csproj">
+      <Project>{34ab9b87-f2cb-443c-8b77-06dbd35f90bd}</Project>
+      <Name>ISSAR.MSolve.IGAPreProcessor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

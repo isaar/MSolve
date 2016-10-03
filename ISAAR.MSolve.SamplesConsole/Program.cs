@@ -56,7 +56,6 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
         }
 
-
         static void Main(string[] args)
         {
             SolveBuildingInNoSoilSmall();
