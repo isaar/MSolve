@@ -10,11 +10,23 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
 {
     class NURBSElement3D : IIsogeometricStructuralElement
     {
+        private int id;
+        private IList<Knot> knots;
+        private IVector<int> connectivity;
+
+        public NURBSElement3D(int id, IList<Knot> knots, IVector<int> connectivity)
+        {
+            this.id = id;
+            this.knots = knots;
+            this.connectivity = connectivity;
+        }
+
+        #region IISogeometricStructuralElement
         public ElementDimensions ElementDimensions
         {
             get
             {
-                throw new NotImplementedException();
+               return ElementDimensions.ThreeD;
             }
         }
 
@@ -22,7 +34,7 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
         {
             get
             {
-                throw new NotImplementedException();
+                return this.id;
             }
         }
 
@@ -45,5 +57,6 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
         {
             throw new NotImplementedException();
         }
+        #endregion
     }
 }
