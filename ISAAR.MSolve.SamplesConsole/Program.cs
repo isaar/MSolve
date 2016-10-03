@@ -58,15 +58,21 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
         }
 
-        private static void SolveIsogeometricModelExample()
+        private static void ReadIsogeometricModel2D()
         {
             IGAModel model = new IGAModel();
             IGAModelReader.CreateModelFromFile(model, @"C:\Users\Dimitris\Source\Repos\MSolve\ISSAR.MSolve.IGAPreProcessor\InputFiles\Cantilever2D biquadratic.txt");
         }
 
+        private static void ReadIsogeometricModel3D()
+        {
+            IGAModel model = new IGAModel();
+            IGAModelReader.CreateModelFromFile(model, @"C:\Users\Dimitris\Source\Repos\MSolve\ISSAR.MSolve.IGAPreProcessor\InputFiles\Cantilever3D.txt");
+        }
+
         static void Main(string[] args)
         {
-            SolveIsogeometricModelExample();
+            ReadIsogeometricModel3D();
         }
     }
 }

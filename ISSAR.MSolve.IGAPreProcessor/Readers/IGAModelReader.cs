@@ -132,7 +132,7 @@ namespace ISSAR.MSolve.IGAPreProcessor.Readers
                                 cpCoordinates[j, 0] = Double.Parse(line[0], CultureInfo.InvariantCulture);
                                 cpCoordinates[j, 1] = Double.Parse(line[1], CultureInfo.InvariantCulture);
                                 cpCoordinates[j, 2] = Double.Parse(line[2], CultureInfo.InvariantCulture);
-                                cpCoordinates[j, 2] = Double.Parse(line[3], CultureInfo.InvariantCulture);
+                                cpCoordinates[j, 3] = Double.Parse(line[3], CultureInfo.InvariantCulture);
                             }
                             model.CreateModelData(cpCoordinates);
                         }
