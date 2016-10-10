@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
         static void Main(string[] args)
         {
-            ReadIsogeometricModel3D();
+            ReadIsogeometricModel2D();
         }
     }
 }
