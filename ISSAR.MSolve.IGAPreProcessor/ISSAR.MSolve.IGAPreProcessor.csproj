@@ -47,6 +47,9 @@
     <Compile Include="IGAElement.cs" />
     <Compile Include="IGALoad.cs" />
     <Compile Include="IGAModel.cs" />
+    <Compile Include="Integration\BSPLines1D.cs" />
+    <Compile Include="Integration\ShapeNURBS2D.cs" />
+    <Compile Include="Integration\ShapeNURBS3D.cs" />
     <Compile Include="Interfaces\IIsogeometricElement.cs" />
     <Compile Include="Interfaces\IIsogeometricStructuralElement.cs" />
     <Compile Include="Knot.cs" />
@@ -61,6 +64,10 @@
     <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
       <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
       <Name>ISAAR.MSolve.Matrices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
+      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
+      <Name>ISAAR.MSolve.PreProcessor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

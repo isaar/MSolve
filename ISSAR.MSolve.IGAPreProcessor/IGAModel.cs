@@ -293,9 +293,9 @@ namespace ISSAR.MSolve.IGAPreProcessor
                         }
 
                         int multiplicityElementZeta = 0;
-                        if (multiplicityZeta[j + 1] - this.degreeZeta > 0)
+                        if (multiplicityZeta[k + 1] - this.degreeZeta > 0)
                         {
-                            multiplicityElementZeta = (int)multiplicityZeta[j + 1] - this.degreeZeta;
+                            multiplicityElementZeta = (int)multiplicityZeta[k + 1] - this.degreeZeta;
                         }
 
                         int nurbsSupportKsi = this.degreeKsi + 1;
@@ -311,12 +311,11 @@ namespace ISSAR.MSolve.IGAPreProcessor
                             {
                                 for (int n = 0; n < nurbsSupportZeta; n++)
                                 {
-
-                                }
-                                connectivity[index] = (i + multiplicityElementKsi) * numberOfCPHeta * numberOfCPZeta +
+                                    connectivity[index] = (i + multiplicityElementKsi) * numberOfCPHeta * numberOfCPZeta +
                                     (j + multiplicityElementHeta) * numberOfCPZeta + (k + multiplicityElementZeta) +
-                                    l * numberOfCPHeta * numberOfCPZeta + m * numberOfCPZeta + numberOfElementsZeta;
-                                index++;
+                                    l * numberOfCPHeta * numberOfCPZeta + m * numberOfCPZeta + n;
+                                    index++;
+                                }                                
                             }
                         }
 
