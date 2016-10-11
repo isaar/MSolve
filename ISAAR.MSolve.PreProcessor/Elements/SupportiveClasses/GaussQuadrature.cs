@@ -3,6 +3,7 @@
     #region
 
     using System;
+    using Matrices.Interfaces;
 
     #endregion
 
@@ -19,6 +20,18 @@
 
     public class GaussLegendrePoint3D
     {
+        private IMatrix2D<double> B;
+        private double Ksi;
+        private double Heta;
+
+        public GaussLegendrePoint3D(double ksi, double heta, double zeta, IMatrix2D<double> deformationMatrix, double weightFactor)
+        {
+            this.Ksi = ksi;
+            this.Heta = heta;
+            this.Zeta = zeta;
+            this.B = deformationMatrix;
+            WeightFactor = weightFactor;
+        }
         #region Constructors and Destructors
 
         public GaussLegendrePoint3D(
