@@ -96,57 +96,49 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
 
             ShapeNURBS2D nurbs = new ShapeNURBS2D(this, model, coordinatesKsi, coordinatesHeta, controlPointsElement);
 
-            for (int i = 0; i < gaussPointsPerAxisKsi.Length; i++)
+            for (int j = 0; j < gaussPointsPerAxisHeta.Length* gaussPointsPerAxisKsi.Length; j++)
             {
-                for (int j = 0; j < gaussPointsPerAxisHeta.Length; j++)
+                IMatrix2D<double> jacobianMatrix = new Matrix2D<double>(2, 2);
+
+                for (int k = 0; k < controlPointsElement.Count; k++)
                 {
-                    IMatrix2D<double> jacobianMatrix = new Matrix2D<double>(2, 2);
+                    jacobianMatrix[0, 0] += nurbs.nurbsDerivativeValuesKsi[k, j] * controlPointsElement[k].X;
+                    jacobianMatrix[0, 1] += nurbs.nurbsDerivativeValuesKsi[k, j] * controlPointsElement[k].Y;
+                    jacobianMatrix[1, 0] += nurbs.nurbsDerivativeValuesHeta[k, j] * controlPointsElement[k].X;
+                    jacobianMatrix[1, 1] += nurbs.nurbsDerivativeValuesHeta[k, j] * controlPointsElement[k].Y;
+                }
 
-                    for (int k = 0; k < controlPointsElement.Count; k++)
-                    {
-                        jacobianMatrix[0, 0] += nurbs.nurbsDerivativeValuesKsi[k, j] * controlPointsElement[k].X;
-                        jacobianMatrix[0, 1] += nurbs.nurbsDerivativeValuesKsi[k, j] * controlPointsElement[k].Y;
-                        jacobianMatrix[1, 0] += nurbs.nurbsDerivativeValuesHeta[k, j] * controlPointsElement[k].X;
-                        jacobianMatrix[1, 1] += nurbs.nurbsDerivativeValuesHeta[k, j] * controlPointsElement[k].Y;
-                    }
-
-                    double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
+                double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
                     - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
 
 
-                    Matrix2D<double> B1 = new Matrix2D<double>(3, 4);
+                Matrix2D<double> B1 = new Matrix2D<double>(3, 4);
 
-                    B1[0, 0] += jacobianMatrix[1, 1] / jacdet;
-                    B1[0, 1] += -jacobianMatrix[0, 1] / jacdet;
-                    B1[1, 2] += -jacobianMatrix[1, 0] / jacdet;
-                    B1[1, 3] += jacobianMatrix[0, 0] / jacdet;
-                    B1[2, 0] += -jacobianMatrix[1, 0] / jacdet;
-                    B1[2, 1] += jacobianMatrix[0, 0] / jacdet;
-                    B1[2, 2] += jacobianMatrix[1, 1] / jacdet;
-                    B1[2, 3] += -jacobianMatrix[0, 1] / jacdet;
+                B1[0, 0] += jacobianMatrix[1, 1] / jacdet;
+                B1[0, 1] += -jacobianMatrix[0, 1] / jacdet;
+                B1[1, 2] += -jacobianMatrix[1, 0] / jacdet;
+                B1[1, 3] += jacobianMatrix[0, 0] / jacdet;
+                B1[2, 0] += -jacobianMatrix[1, 0] / jacdet;
+                B1[2, 1] += jacobianMatrix[0, 0] / jacdet;
+                B1[2, 2] += jacobianMatrix[1, 1] / jacdet;
+                B1[2, 3] += -jacobianMatrix[0, 1] / jacdet;
 
-                    Matrix2D<double> B2 = new Matrix2D<double>(4, 2 * controlPointsElement.Count);
+                Matrix2D<double> B2 = new Matrix2D<double>(4, 2 * controlPointsElement.Count);
 
-                    for (int column = 0; column < 2*controlPointsElement.Count; column+=2)
-                    {
-                        B2[0, column] += nurbs.nurbsDerivativeValuesKsi[column / 2, j];
-                        B2[1, column] += nurbs.nurbsDerivativeValuesHeta[column / 2, j];
-                        B2[2, column + 1] += nurbs.nurbsDerivativeValuesKsi[column / 2, j];
-                        B2[3, column + 1] += nurbs.nurbsDerivativeValuesHeta[column / 2, j];
-                    }
-
-                    IMatrix2D<double> B = B1 * B2;
-
-
-                    double weightFactor = gaussPointsPerAxisKsi[i].WeightFactor * gaussPointsPerAxisHeta[i].WeightFactor * jacdet;
-                    this.gaussPoints.Add(new GaussLegendrePoint3D(gaussPointsPerAxisKsi[i].Coordinate, gaussPointsPerAxisHeta[j].Coordinate, 0.0,B, weightFactor));
+                for (int column = 0; column < 2*controlPointsElement.Count; column+=2)
+                {
+                    B2[0, column] += nurbs.nurbsDerivativeValuesKsi[column / 2, j];
+                    B2[1, column] += nurbs.nurbsDerivativeValuesHeta[column / 2, j];
+                    B2[2, column + 1] += nurbs.nurbsDerivativeValuesKsi[column / 2, j];
+                    B2[3, column + 1] += nurbs.nurbsDerivativeValuesHeta[column / 2, j];
                 }
+
+                IMatrix2D<double> B = B1 * B2;
+
+
+                double weightFactor = gaussPointsPerAxisKsi[j/gaussPointsPerAxisHeta.Length].WeightFactor * gaussPointsPerAxisHeta[j % gaussPointsPerAxisHeta.Length].WeightFactor * jacdet;
+                this.gaussPoints.Add(new GaussLegendrePoint3D(gaussPointsPerAxisKsi[j / gaussPointsPerAxisHeta.Length].Coordinate, gaussPointsPerAxisHeta[j % gaussPointsPerAxisHeta.Length].Coordinate, 0.0,B, weightFactor));
             }
-            
-
-
-
         }
-
     }
 }
