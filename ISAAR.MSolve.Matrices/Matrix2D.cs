@@ -172,6 +172,18 @@ namespace ISAAR.MSolve.Matrices
             return new Vector<double>(c);
         }
 
+        public static Matrix2D<double> operator *(Matrix2D<T> A, double b)
+        {
+            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
+
+            Matrix2D<double> AA = new Matrix2D<double>(A.data as double[,]);
+            for (int i = 0; i < A.Rows; i++)
+                for (int j = 0; j < A.Columns; j++)
+                    AA[i, j] = AA[i, j] * b;
+            return AA;
+
+        }
+
         public void SVD(double[] w, double[,] v)
         {
             //      double precision a(nm,n),w(n),u(nm,n),v(nm,n),rv1(n)
