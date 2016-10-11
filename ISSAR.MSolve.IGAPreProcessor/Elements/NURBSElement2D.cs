@@ -1,12 +1,10 @@
-﻿using ISSAR.MSolve.IGAPreProcessor.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.PreProcessor.Elements.SupportiveClasses;
 using ISAAR.MSolve.Matrices;
+using ISSAR.MSolve.IGAPreProcessor.Integration;
+using ISSAR.MSolve.IGAPreProcessor.Interfaces;
 
 namespace ISSAR.MSolve.IGAPreProcessor.Elements
 {
@@ -14,9 +12,9 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
     {
         private int id;
         private IList<Knot> knots;
-        private IVector<int> connectivity;
+        public IVector<int> connectivity { get; }
         private IGAModel model;
-        private IList<GaussLegendrePoint3D> gaussPoints;
+        public IList<GaussLegendrePoint3D> gaussPoints { get; }
         
         public NURBSElement2D(int id,IGAModel model, IList<Knot> knots, IVector<int> connectivity)
         {
@@ -25,7 +23,7 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
             this.connectivity = connectivity;
             this.model = model;
 
-            
+            this.CreateElementGaussPoints();
         }
         #region IISogeometricStructuralElement
         public int ID
@@ -90,12 +88,65 @@ namespace ISSAR.MSolve.IGAPreProcessor.Elements
                 weightsHeta[indexHeta] = 0.5 * ((knots[2].Heta - knots[0].Heta) * gaussPointsPerAxisHeta[indexHeta].WeightFactor);
             }
 
+            IList<ControlPoint> controlPointsElement = new List<ControlPoint>();
+            for (int k = 0; k < (model.DegreeKsi+1)*(model.DegreeHeta+1); k++)
+            {
+                controlPointsElement.Add(model.ControlPoints[this.connectivity[k]]);
+            }
+
+            ShapeNURBS2D nurbs = new ShapeNURBS2D(this, model, coordinatesKsi, coordinatesHeta, controlPointsElement);
+
+            for (int i = 0; i < gaussPointsPerAxisKsi.Length; i++)
+            {
+                for (int j = 0; j < gaussPointsPerAxisHeta.Length; j++)
+                {
+                    IMatrix2D<double> jacobianMatrix = new Matrix2D<double>(2, 2);
+
+                    for (int k = 0; k < controlPointsElement.Count; k++)
+                    {
+                        jacobianMatrix[0, 0] += nurbs.nurbsDerivativeValuesKsi[k, j] * controlPointsElement[k].X;
+                        jacobianMatrix[0, 1] += nurbs.nurbsDerivativeValuesKsi[k, j] * controlPointsElement[k].Y;
+                        jacobianMatrix[1, 0] += nurbs.nurbsDerivativeValuesHeta[k, j] * controlPointsElement[k].X;
+                        jacobianMatrix[1, 1] += nurbs.nurbsDerivativeValuesHeta[k, j] * controlPointsElement[k].Y;
+                    }
+
+                    double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
+                    - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
 
 
+                    Matrix2D<double> B1 = new Matrix2D<double>(3, 4);
+
+                    B1[0, 0] += jacobianMatrix[1, 1] / jacdet;
+                    B1[0, 1] += -jacobianMatrix[0, 1] / jacdet;
+                    B1[1, 2] += -jacobianMatrix[1, 0] / jacdet;
+                    B1[1, 3] += jacobianMatrix[0, 0] / jacdet;
+                    B1[2, 0] += -jacobianMatrix[1, 0] / jacdet;
+                    B1[2, 1] += jacobianMatrix[0, 0] / jacdet;
+                    B1[2, 2] += jacobianMatrix[1, 1] / jacdet;
+                    B1[2, 3] += -jacobianMatrix[0, 1] / jacdet;
+
+                    Matrix2D<double> B2 = new Matrix2D<double>(4, 2 * controlPointsElement.Count);
+
+                    for (int column = 0; column < 2*controlPointsElement.Count; column+=2)
+                    {
+                        B2[0, column] += nurbs.nurbsDerivativeValuesKsi[column / 2, j];
+                        B2[1, column] += nurbs.nurbsDerivativeValuesHeta[column / 2, j];
+                        B2[2, column + 1] += nurbs.nurbsDerivativeValuesKsi[column / 2, j];
+                        B2[3, column + 1] += nurbs.nurbsDerivativeValuesHeta[column / 2, j];
+                    }
+
+                    IMatrix2D<double> B = B1 * B2;
+
+
+                    double weightFactor = gaussPointsPerAxisKsi[i].WeightFactor * gaussPointsPerAxisHeta[i].WeightFactor * jacdet;
+                    this.gaussPoints.Add(new GaussLegendrePoint3D(gaussPointsPerAxisKsi[i].Coordinate, gaussPointsPerAxisHeta[j].Coordinate, 0.0,B, weightFactor));
+                }
+            }
             
 
 
 
         }
+
     }
 }

@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.SamplesConsole
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatricesTests", "MatricesTests\MatricesTests.csproj", "{4BFA129B-D169-4BEF-8341-D5E90C2D71D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISSAR.MSolve.IGAPreProcessor", "ISSAR.MSolve.IGAPreProcessor\ISSAR.MSolve.IGAPreProcessor.csproj", "{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.IGAPreProcessor", "ISSAR.MSolve.IGAPreProcessor\ISAAR.MSolve.IGAPreProcessor.csproj", "{34AB9B87-F2CB-443C-8B77-06DBD35F90BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
