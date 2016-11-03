@@ -2,33 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System.IO;
 using System.Globalization;
+using ISAAR.MSolve.Numerical.Interfaces;
 
-namespace ISAAR.MSolve.Matrices
+namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class SkylineMatrix2D<T> : IMatrix2D<T>, ICloneable
+    public class SkylineMatrix2D : IMatrix2D, ICloneable, ILinearlyCombinable<SkylineMatrix2D>, ISolveable, IFileReadable, IFileWriteable
     {
         private bool isFactorized;
-        private T[] data;
+        private double[] data;
         private int[] rowIndex;
-        private T nullT;
+        private double nullT = 0;
 
         public SkylineMatrix2D(int[] rowIndex)
         {
             this.rowIndex = rowIndex;
-            data = rowIndex.Length > 0 ? new T[rowIndex[rowIndex.Length - 1]] : new T[0];
+            data = rowIndex.Length > 0 ? new double[rowIndex[rowIndex.Length - 1]] : new double[0];
         }
 
-        public SkylineMatrix2D(T[,] matrix)
+        public SkylineMatrix2D(double[,] matrix)
         {
             int rows = matrix.GetLength(0);
-            if (matrix.GetLength(1) != rows) throw new InvalidOperationException("Matrix must be square.");
+            if (matrix.GetLength(1) != rows) throw new ArgumentException("Matrix must be square.");
 
             rowIndex = new int[rows + 1];
             for (int i = 0; i < rows; i++) rowIndex[i + 1] = rowIndex[i] + i + 1;
-            data = new T[rowIndex[rowIndex.Length - 1]];
+            data = new double[rowIndex[rowIndex.Length - 1]];
 
             int pos = 0;
             for (int j = 0; j < rows; j++)
@@ -39,10 +40,10 @@ namespace ISAAR.MSolve.Matrices
                 }
         }
 
-        public static SkylineMatrix2D<T> Empty(int rows)
+        public static SkylineMatrix2D Empty(int rows)
         {
             int[] rowIndex = new int[rows + 1];
-            return new SkylineMatrix2D<T>(rowIndex);
+            return new SkylineMatrix2D(rowIndex);
         }
 
         public int[] RowIndex
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.Matrices
             get { return rowIndex; }
         }
 
-        public T[] Data
+        public double[] Data
         {
             get { return data; }
         }
@@ -60,11 +61,11 @@ namespace ISAAR.MSolve.Matrices
             get { return isFactorized; }
         }
 
-        public void Factorize(double tolerance, List<Vector<double>> zems, List<int> zemCols)
+        public void Factorize(double tolerance, List<IVector> zems, List<int> zemCols)
         {
-            if (isFactorized) return;
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("");
-            double[] d = data as double[];
+            if (isFactorized)
+                throw new InvalidOperationException("Matrix is already factorized.");
+            double[] d = data;
 
             int kFix = 0;
             for (int n = 0; n < Rows; n++)
@@ -118,7 +119,7 @@ namespace ISAAR.MSolve.Matrices
                     d[KN] = 1;
                     zemCols.Add(n);
                     int j1 = n;
-                    zems.Add(new Vector<double>(Rows));
+                    zems.Add(new Vector(Rows));
                     zems[kFix][j1] = 1;
                     for (int i1 = KN + 1; i1 <= KU; i1++)
                     {
@@ -158,14 +159,13 @@ namespace ISAAR.MSolve.Matrices
             }
         }
 
-        public void Solve(IVector<double> f, double[] result)
+        public void Solve(IVector f, double[] result)
         {
             //var e = DateTime.Now;
-            SkylineMatrix2D<T> K = this;
+            SkylineMatrix2D K = this;
             if (!K.isFactorized) throw new InvalidOperationException("Cannot solve if matrix is not factorized.");
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot solve for types other than double");
-            if (K.Rows != f.Length) throw new InvalidOperationException("Matrix and vector size mismatch.");
-            double[] d = K.Data as double[];
+            if (K.Rows != f.Length) throw new ArgumentException("Matrix and vector size mismatch.");
+            double[] d = K.Data;
             //double[] result = new double[K.Rows];
             f.CopyTo(result, 0);
 
@@ -211,17 +211,16 @@ namespace ISAAR.MSolve.Matrices
             //x.Add(DateTime.Now - e);
         }
 
-        public static double[] operator /(SkylineMatrix2D<T> K, IVector<double> f)
+        public static double[] operator /(SkylineMatrix2D K, IVector f)
         {
             if (!K.isFactorized) throw new InvalidOperationException("Cannot solve if matrix is not factorized.");
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot solve for types other than double");
-            if (K.Rows != f.Length) throw new InvalidOperationException("Matrix and vector size mismatch.");
+            if (K.Rows != f.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             double[] result = new double[K.Rows];
             K.Solve(f, result);
             return result;
         }
 
-        public void Multiply(IVector<double> vIn, double[] vOut, double scaleFactor, int vInStartIndex, int vOutStartIndex, bool clearvOut)
+        public void Multiply(IVector vIn, double[] vOut, double scaleFactor, int vInStartIndex, int vOutStartIndex, bool clearvOut)
         {
             //if (isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
             //if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
@@ -246,7 +245,6 @@ namespace ISAAR.MSolve.Matrices
             //}
 
 //            if (isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
             //if (Rows < vIn.Length - vInStartIndex) throw new InvalidOperationException("Matrix and vector size mismatch.");
 
             if (clearvOut) Array.Clear(vOut, 0, vOut.Length);
@@ -285,38 +283,36 @@ namespace ISAAR.MSolve.Matrices
             //end Do
         }
 
-        public void Multiply(IVector<double> vIn, double[] vOut)
+        public void Multiply(IVector vIn, double[] vOut)
         {
             Multiply(vIn, vOut, 1.0, 0, 0, true);
         }
 
         public void Scale(double scale)
         {
-            if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
-            double[] mData = data as double[];
+            double[] mData = data;
             for (int i = 0; i < mData.Length; i++) mData[i] *= scale;
         }
 
-        public static double[] operator *(SkylineMatrix2D<T> K, IVector<double> v)
+        public static double[] operator *(SkylineMatrix2D K, IVector v)
         {
             if (K.isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot solve for types other than double");
-            if (K.Rows != v.Length) throw new InvalidOperationException("Matrix and vector size mismatch.");
+            if (K.Rows != v.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             double[] result = new double[K.Rows];
             K.Multiply(v, result);
             return result;
         }
 
-        private void LinearCombinationInternal(IList<double> coefficients, IList<SkylineMatrix2D<double>> matrices)
+        private void LinearCombinationInternal(IList<double> coefficients, IList<SkylineMatrix2D> matrices)
         {
-            foreach (SkylineMatrix2D<double> matrix in matrices)
+            foreach (var matrix in matrices)
                 if (matrix.Rows != this.Rows)
-                    throw new InvalidOperationException("Matrices do not have the same size.");
+                    throw new ArgumentException("Matrices do not have the same size.");
 
             for (int i = 0; i < rowIndex.Length - 1; i++)
             {
                 int currentMaxHeight = 0;
-                foreach (SkylineMatrix2D<double> matrix in matrices)
+                foreach (var matrix in matrices)
                     currentMaxHeight = Math.Max(currentMaxHeight, matrix.RowIndex[i + 1] - matrix.RowIndex[i]);
                 if (currentMaxHeight > rowIndex[i + 1] - rowIndex[i])
                     throw new InvalidOperationException("Current matrix does not have enough storage capacity for the requested linear combination.");
@@ -359,7 +355,7 @@ namespace ISAAR.MSolve.Matrices
             get { return rowIndex.Length - 1; }
         }
 
-        public T this[int x, int y]
+        public double this[int x, int y]
         {
             get
             {
@@ -413,20 +409,16 @@ namespace ISAAR.MSolve.Matrices
             }
         }
 
-        public void LinearCombination(IList<T> coefficients, IList<IMatrix2D<T>> matrices)
+        public void LinearCombination(IList<double> coefficients, IList<SkylineMatrix2D> matrices)
         {
-            //if (this.isFactorized) throw new InvalidOperationException("Cannot linearly combine if matrix is factorized.");
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot linearly combine for types other than double.");
-
             this.isFactorized = false;
-            List<SkylineMatrix2D<double>> m = new List<SkylineMatrix2D<double>>(matrices.Count);
-            foreach (IMatrix2D<T> matrix in matrices) m.Add((SkylineMatrix2D<double>)matrix);
+            List<SkylineMatrix2D> m = new List<SkylineMatrix2D>(matrices.Count);
+            foreach (var matrix in matrices) m.Add(matrix);
             LinearCombinationInternal((IList<double>)coefficients, m);
         }
 
         public void WriteToFile(string name)
         {
-            if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
             double[] mData = data as double[];
 
             string path = Path.GetDirectoryName(name);
@@ -461,8 +453,6 @@ namespace ISAAR.MSolve.Matrices
 
         public void ReadFromFile(string name)
         {
-            if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
-
             isFactorized = false;
             string path = Path.GetDirectoryName(name);
             string nameOnly = Path.GetFileNameWithoutExtension(name);
@@ -480,7 +470,7 @@ namespace ISAAR.MSolve.Matrices
             fs = File.OpenRead(path + "\\" + nameOnly + "-Data" + ext);
             bw = new BinaryReader(fs);
             length = bw.ReadInt32();
-            data = new T[length];
+            data = new double[length];
             double[] mData = data as double[];
             for (int i = 0; i < mData.Length; i++) mData[i] = bw.ReadDouble();
             bw.Close();
@@ -502,7 +492,7 @@ namespace ISAAR.MSolve.Matrices
 
         public object Clone()
         {
-            SkylineMatrix2D<T> clone = new SkylineMatrix2D<T>(this.rowIndex);
+            SkylineMatrix2D clone = new SkylineMatrix2D(this.rowIndex);
             this.data.CopyTo(clone.Data, 0);
             return clone;
         }

@@ -2,31 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.Matrices
+namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class Matrix2D<T> : IMatrix2D<T>
+    public class Matrix2D : IMatrix2D
     {
         private bool isTransposed = false;
         private int rows, columns;
-        private T[,] data;
+        private double[,] data;
 
         public Matrix2D(int rows, int columns)
         {
             this.rows = rows;
             this.columns = columns;
-            data = new T[rows,columns];
+            data = new double[rows,columns];
         }
 
-        public Matrix2D(T[,] data)
+        public Matrix2D(double[,] data)
         {
             this.rows = data.GetLength(0);
             this.columns = data.GetLength(1);
             this.data = data;
         }
 
-        public T[,] Data
+        public double[,] Data
         {
             get { return data; }
         }
@@ -35,28 +35,19 @@ namespace ISAAR.MSolve.Matrices
 
         public int Rows
         {
-            get 
-            {
-                if (isTransposed) return columns;
-                return rows; 
-            }
+            get { return isTransposed ? columns : rows; }
         }
 
         public int Columns
         {
-            get 
-            {
-                if (isTransposed) return rows;
-                return columns; 
-            }
+            get { return isTransposed ? rows : columns; }
         }
 
-        public T this[int x, int y]
+        public double this[int x, int y]
         {
             get 
             {
-                if (isTransposed) return data[y, x];
-                return data[x, y]; 
+                return isTransposed ? data[y, x] : data[x, y]; 
             }
             set 
             {
@@ -67,18 +58,17 @@ namespace ISAAR.MSolve.Matrices
             }
         }
 
-        public void Multiply(IVector<double> vIn, double[] vOut)
+        public void Multiply(IVector vIn, double[] vOut)
         {
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
             if (isTransposed == false)
                 MultiplyNormal(vIn, vOut);
             else
                 MultiplyTranspose(vIn, vOut);
         }
 
-        private void MultiplyNormal(IVector<double> vIn, double[] vOut)
+        private void MultiplyNormal(IVector vIn, double[] vOut)
         {
-            Matrix2D<double> AA = new Matrix2D<double>(data as double[,]);
+            Matrix2D AA = new Matrix2D(data);
             for (int i = 0; i < rows; i++)
             {
                 vOut[i] = 0;
@@ -87,9 +77,9 @@ namespace ISAAR.MSolve.Matrices
             }
         }
 
-        private void MultiplyTranspose(IVector<double> vIn, double[] vOut)
+        private void MultiplyTranspose(IVector vIn, double[] vOut)
         {
-            Matrix2D<double> AA = new Matrix2D<double>(data as double[,]);
+            Matrix2D AA = new Matrix2D(data);
             for (int i = 0; i < columns; i++)
             {
                 vOut[i] = 0;
@@ -98,20 +88,9 @@ namespace ISAAR.MSolve.Matrices
             }
         }
 
-        public void Solve(IVector<double> f, double[] result)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void LinearCombination(IList<T> coefficients, IList<IMatrix2D<T>> matrices)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Scale(double scale)
         {
-            if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
-            double[,] mData = data as double[,];
+            double[,] mData = data;
             for (int i = 0; i < mData.GetLength(0); i++)
                 for (int j = 0; j < mData.GetLength(1); j++)
                     mData[i, j] *= scale;
@@ -124,20 +103,19 @@ namespace ISAAR.MSolve.Matrices
             Array.Clear(data, 0, data.Length);
         }
 
-        public Matrix2D<T> Transpose()
+        public Matrix2D Transpose()
         {
-            Matrix2D<T> m = new Matrix2D<T>(this.data);
+            var m = new Matrix2D(this.data);
             m.isTransposed = true;
             return m;
         }
 
-        public static Matrix2D<double> operator *(Matrix2D<T> A, Matrix2D<double> B)
+        public static Matrix2D operator *(Matrix2D A, Matrix2D B)
         {
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
-            if (A.Columns != B.Rows) throw new InvalidOperationException("Matrix sizes mismatch.");
+            if (A.Columns != B.Rows) throw new ArgumentException("Matrix sizes mismatch.");
 
             double[,] c = new double[A.Rows, B.Columns];
-            Matrix2D<double> AA = new Matrix2D<double>(A.data as double[,]);
+            Matrix2D AA = new Matrix2D(A.data);
             AA.isTransposed = A.isTransposed;
 
             for (int i = 0; i < A.Rows; i++)
@@ -154,22 +132,21 @@ namespace ISAAR.MSolve.Matrices
             //    sw.WriteLine(s);
             //}
             //sw.Close();
-            return new Matrix2D<double>(c);
+            return new Matrix2D(c);
         }
 
-        public static Vector<double> operator *(Matrix2D<T> A, Vector<double> b)
+        public static Vector operator *(Matrix2D A, Vector b)
         {
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
-            if (A.Columns != b.Length) throw new InvalidOperationException("Matrix sizes mismatch.");
+            if (A.Columns != b.Length) throw new ArgumentException("Matrix sizes mismatch.");
 
             double[] c = new double[A.Rows];
-            Matrix2D<double> AA = new Matrix2D<double>(A.data as double[,]);
+            Matrix2D AA = new Matrix2D(A.data);
             AA.isTransposed = A.isTransposed;
 
             for (int i = 0; i < A.Rows; i++)
                 for (int j = 0; j < A.Columns; j++)
                     c[i] += AA[i, j] * b[j];
-            return new Vector<double>(c);
+            return new Vector(c);
         }
 
         public void SVD(double[] w, double[,] v)
@@ -550,18 +527,5 @@ namespace ISAAR.MSolve.Matrices
             //  } 
         }
 
-        #region IMatrix2D<T> Members
-
-        public void WriteToFile(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ReadFromFile(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

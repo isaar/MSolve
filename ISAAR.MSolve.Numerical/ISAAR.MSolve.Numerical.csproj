@@ -8,8 +8,8 @@
     <ProjectGuid>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ISAAR.MSolve.Matrices</RootNamespace>
-    <AssemblyName>ISAAR.MSolve.Matrices</AssemblyName>
+    <RootNamespace>ISAAR.MSolve.Numerical</RootNamespace>
+    <AssemblyName>ISAAR.MSolve.Numerical</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -90,14 +90,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Matrix2D.cs" />
-    <Compile Include="Interfaces\IMatrix2D.cs" />
-    <Compile Include="Interfaces\IVector.cs" />
-    <Compile Include="SkylineMatrix2D.cs" />
+    <Compile Include="Interfaces\IFileReadable.cs" />
+    <Compile Include="Interfaces\IFileWriteable.cs" />
+    <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
+    <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
+    <Compile Include="LinearAlgebra\Matrix2D.cs" />
+    <Compile Include="LinearAlgebra\Interfaces\IMatrix2D.cs" />
+    <Compile Include="LinearAlgebra\Interfaces\IVector.cs" />
+    <Compile Include="LinearAlgebra\SkylineMatrix2D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sparse2D.cs" />
-    <Compile Include="SymmetricMatrix2D.cs" />
-    <Compile Include="Vector.cs" />
+    <Compile Include="LinearAlgebra\Sparse2D.cs" />
+    <Compile Include="LinearAlgebra\SymmetricMatrix2D.cs" />
+    <Compile Include="LinearAlgebra\Vector.cs" />
+    <Compile Include="LinearAlgebra\VectorExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -2,33 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.Matrices
+namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class Sparse2D<T> : IMatrix2D<T>
+    public class Sparse2D : IMatrix2D
     {
         private int rows, columns;
         private readonly Dictionary<int, Dictionary<int, int>> rowColDataPositions;
-        private readonly List<T> data;
+        private readonly List<double> data;
 
         public Sparse2D(int rows, int columns)
         {
             this.rows = rows;
             this.columns = columns;
             rowColDataPositions = new Dictionary<int, Dictionary<int, int>>(rows);
-            data = new List<T>(rows);
+            data = new List<double>(rows);
         }
 
-        private T GetValueFromRowCol(int row, int col)
+        private double GetValueFromRowCol(int row, int col)
         {
-            T value = default(T);
-            if (rowColDataPositions.ContainsKey(row))
-                if (rowColDataPositions[row].ContainsKey(col)) value = data[rowColDataPositions[row][col]];
-            return value;
+            return rowColDataPositions.ContainsKey(row) && rowColDataPositions[row].ContainsKey(col) ? data[rowColDataPositions[row][col]] : 0;
+            //double value = 0;
+            //if (rowColDataPositions.ContainsKey(row))
+            //    if (rowColDataPositions[row].ContainsKey(col)) value = data[rowColDataPositions[row][col]];
+            //return value;
         }
 
-        private void SetValueAtRowCol(int row, int col, T value)
+        private void SetValueAtRowCol(int row, int col, double value)
         {
             int pos = data.Count;
             if (rowColDataPositions.ContainsKey(row))
@@ -61,7 +62,7 @@ namespace ISAAR.MSolve.Matrices
             get { return columns; }
         }
 
-        public T this[int x, int y]
+        public double this[int x, int y]
         {
             get { return GetValueFromRowCol(x, y); }
             set { SetValueAtRowCol(x, y, value); }
@@ -72,36 +73,15 @@ namespace ISAAR.MSolve.Matrices
             throw new NotImplementedException();
         }
 
-        public void Multiply(IVector<double> vIn, double[] vOut)
+        public void Multiply(IVector vIn, double[] vOut)
         {
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
-            if (Rows != vIn.Length) throw new InvalidOperationException("Matrix and vector size mismatch.");
+            if (Rows != vIn.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             Array.Clear(vOut, 0, vOut.Length);
             List<double> d = data as List<double>;
 
             foreach (int row in rowColDataPositions.Keys)
                 foreach (int col in rowColDataPositions[row].Keys)
                     vOut[row] += d[rowColDataPositions[row][col]] * vIn[col];
-        }
-
-        public void LinearCombination(IList<T> coefficients, IList<IMatrix2D<T>> matrices)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Solve(IVector<double> f, double[] result)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void WriteToFile(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ReadFromFile(string name)
-        {
-            throw new NotImplementedException();
         }
 
         #endregion
