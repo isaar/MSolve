@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.Solvers.PCG
 {
     public class SolverPCGReorthogonalizationSearchVectorCalculator : IPCGSearchVectorCalculator
     {
-        private readonly List<Vector<double>> p = new List<Vector<double>>();
-        private readonly List<Vector<double>> q = new List<Vector<double>>();
+        private readonly List<IVector> p = new List<IVector>();
+        private readonly List<IVector> q = new List<IVector>();
 
         #region ISearchVectorCalculator Members
 
@@ -27,10 +24,9 @@ namespace ISAAR.MSolve.Solvers.PCG
             return SearchVectors.CalculateReorthogonalizedGradient(pcg.VectorP, pcg.VectorQ, pcg.VectorR, p, q);
         }
 
-        public bool InitializeStartingVectorFromSearchVectors(IVector<double> x, IVector<double> b)
+        public bool InitializeStartingVectorFromSearchVectors(IVector x, IVector b)
         {
-            return SearchVectors.InitializeStartingVectorFromReorthogonalizedSearchVectors(
-                (Vector<double>)x, (Vector<double>)b, p, q);
+            return SearchVectors.InitializeStartingVectorFromReorthogonalizedSearchVectors(x, b, p, q);
         }
 
         public void ClearSearchVectors(int vectorsToKeepFromTop)
@@ -42,8 +38,8 @@ namespace ISAAR.MSolve.Solvers.PCG
             }
             else
             {
-                var newps = new Vector<double>[vectorsToKeepFromTop];
-                var newqs = new Vector<double>[vectorsToKeepFromTop];
+                var newps = new IVector[vectorsToKeepFromTop];
+                var newqs = new IVector[vectorsToKeepFromTop];
                 for (int i = 0; i < vectorsToKeepFromTop; i++)
                 {
                     newps[i] = p[i];

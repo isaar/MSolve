@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
 using System.Diagnostics;
-using System.IO;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
@@ -57,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private string stringFormat;
         private int accuracyDigits;
         private readonly Model model;
-        private readonly Dictionary<int, ISolverSubdomain> subdomainsDictionary;
+        private readonly Dictionary<int, ILinearSystem> subdomainsDictionary;
         public int AccuracyDigits { get { return accuracyDigits; }
             set 
             { 
@@ -74,13 +72,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
         public SolverSkyline(Model model)
         {
             this.model = model;
-            subdomainsDictionary = new Dictionary<int, ISolverSubdomain>(model.SubdomainsDictionary.Count);
+            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
                 subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
             this.AccuracyDigits = -1;
         }
 
-        public Dictionary<int, ISolverSubdomain> SubdomainsDictionary
+        public Dictionary<int, ILinearSystem> SubdomainsDictionary
         {
             get { return subdomainsDictionary; }
         }
@@ -90,13 +88,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
         public void Initialize()
         {
             if (model.SubdomainsDictionary.Count != 1) throw new InvalidOperationException("Skyline solver operates on one subdomain only.");
-            foreach (ISolverSubdomain subdomain in subdomainsDictionary.Values)
+            foreach (ILinearSystem subdomain in subdomainsDictionary.Values)
             {
-                if (((SkylineMatrix2D<double>)subdomain.Matrix).IsFactorized) continue;
+                if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized) continue;
 
-                List<Vector<double>> zems = new List<Vector<double>>();
+                List<IVector> zems = new List<IVector>();
                 List<int> zemColumns = new List<int>();
-                SkylineMatrix2D<double> m = (SkylineMatrix2D<double>)subdomain.Matrix;
+                SkylineMatrix2D m = (SkylineMatrix2D)subdomain.Matrix;
 
                 //StreamWriter sw = File.CreateText(@"d:\KIx1M.txt");
                 //for (int i = 0; i < m.RowIndex.Length; i++)
@@ -114,7 +112,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
-                ((SkylineMatrix2D<double>)subdomain.Matrix).Factorize(1e-15, zems, zemColumns);
+                ((SkylineMatrix2D)subdomain.Matrix).Factorize(1e-15, zems, zemColumns);
                 stopWatch.Stop();
                 //StreamWriter sw = File.CreateText(@"c:\factorization.txt");
                 //sw.WriteLine(stopWatch.ElapsedMilliseconds.ToString());
@@ -133,7 +131,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         public void LessenAccuracy(double tolerance)
         {
             var valueDictionary = new SortedDictionary<double, List<int>>();
-            SkylineMatrix2D<double> k = ((SkylineMatrix2D<double>)subdomainsDictionary[1].Matrix);
+            SkylineMatrix2D k = ((SkylineMatrix2D)subdomainsDictionary[1].Matrix);
             for (int i = 0; i < k.Data.Length; i++)
             {
                 double difference = Double.MaxValue;
@@ -166,7 +164,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
                     }
         }
 
-        private void DestroyAccuracy(ISolverSubdomain subdomain)
+        private void DestroyAccuracy(ILinearSystem subdomain)
         {
             if (AccuracyDigits < 1) return;
 
@@ -181,21 +179,23 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public void Solve()
         {
-            foreach (ISolverSubdomain subdomain in subdomainsDictionary.Values)
+            foreach (ILinearSystem subdomain in subdomainsDictionary.Values)
             {
-                double[] x = ((Vector<double>)subdomain.Solution).Data;
-                SkylineMatrix2D<double> k = ((SkylineMatrix2D<double>)subdomain.Matrix);
+                //double[] x = ((Vector)subdomain.Solution).Data;
+                SkylineMatrix2D k = ((SkylineMatrix2D)subdomain.Matrix);
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
-                k.Solve(subdomain.RHS, x);
+                k.Solve(subdomain.RHS, subdomain.Solution);
                 stopWatch.Stop();
-                DestroyAccuracy(subdomain);
+                // ???
+                //DestroyAccuracy(subdomain);
 
-                x = new double[k.Rows];
-                //LessenAccuracy(1e-7);
-                k.Solve(subdomain.RHS, x);
-                var xVec = new Vector<double>(x);
-                var y = xVec.Norm;
+                //x = new double[k.Rows];
+                ////LessenAccuracy(1e-7);
+                //k.Solve(subdomain.RHS, x);
+                //var xVec = new Vector(x);
+                //var y = xVec.Norm;
+                // ???
 
                 //StreamWriter sw = File.CreateText(@"c:\fbsub.txt");
                 //sw.WriteLine(stopWatch.ElapsedMilliseconds.ToString());

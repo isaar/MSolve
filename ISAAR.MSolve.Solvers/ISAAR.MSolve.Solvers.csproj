@@ -96,7 +96,7 @@
     <Compile Include="Interfaces\ISolverPCGInitialization.cs" />
     <Compile Include="Interfaces\ISolverPCGMatrixCalculator.cs" />
     <Compile Include="Interfaces\ISearchVectorCalculator.cs" />
-    <Compile Include="Interfaces\ISolverSubdomain.cs" />
+    <Compile Include="Interfaces\ILinearSystem.cs" />
     <Compile Include="PCGSkyline\SolverPCGMatrixCalculator.cs" />
     <Compile Include="PCGSkyline\SolverPCGMatrixInitialization.cs" />
     <Compile Include="PCGSkyline\SolverPCGSkyline.cs" />
@@ -110,9 +110,9 @@
     <Compile Include="Skyline\SubdomainSkyline.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
+      <Name>ISAAR.MSolve.Numerical</Name>
     </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
       <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>

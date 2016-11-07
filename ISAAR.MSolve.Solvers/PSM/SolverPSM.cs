@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.Solvers.PSM
 {
     public class SolverPSM : IIterativeSolver
     {
         protected readonly Model model;
-        protected readonly Dictionary<int, IMatrix2D<double>> preconditionersDictionary, kiiDictionary;
-        private readonly Dictionary<int, ISolverSubdomain> subdomainsDictionary;
+        protected readonly Dictionary<int, IMatrix2D> preconditionersDictionary, kiiDictionary;
+        private readonly Dictionary<int, ILinearSystem> subdomainsDictionary;
         private readonly Dictionary<int, List<int>> boundaryDOFsDictionary, internalDOFsDictionary;
 
         public int CurrentIteration
@@ -25,9 +25,9 @@ namespace ISAAR.MSolve.Solvers.PSM
         public SolverPSM(Model model)
         {
             this.model = model;
-            preconditionersDictionary = new Dictionary<int, IMatrix2D<double>>(model.SubdomainsDictionary.Count);
-            kiiDictionary = new Dictionary<int, IMatrix2D<double>>(model.SubdomainsDictionary.Count);
-            subdomainsDictionary = new Dictionary<int, ISolverSubdomain>(model.SubdomainsDictionary.Count);
+            preconditionersDictionary = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
+            kiiDictionary = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
+            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             boundaryDOFsDictionary = new Dictionary<int, List<int>>(model.SubdomainsDictionary.Count);
             internalDOFsDictionary = new Dictionary<int, List<int>>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Solvers.PSM
             foreach (var subdomain in subdomainsDictionary)
             {
                 SubdomainSkyline s = (SubdomainSkyline)subdomain.Value;
-                SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)s.Matrix;
+                SkylineMatrix2D k = (SkylineMatrix2D)s.Matrix;
                 //var internalDOFs = model.Subdomains[s.ID].NodalDOFsDictionary.SelectMany(x => x.Value.Values).Except(boundaryDOFsDictionary[s.ID]).OrderBy(x => x).ToArray<int>();
                 var internalDOFs = internalDOFsDictionary[s.ID];
                 int[] kiiIx = new int[internalDOFs.Count + 1];
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.Solvers.PSM
                 }
                 kiiIx[internalDOFs.Count] = curIx;
 
-                SkylineMatrix2D<double> kii = new SkylineMatrix2D<double>(kiiIx);
+                SkylineMatrix2D kii = new SkylineMatrix2D(kiiIx);
                 curIx = 0;
                 for (int i = 0; i < internalDOFs.Count; i++)
                 {
@@ -107,14 +107,14 @@ namespace ISAAR.MSolve.Solvers.PSM
                     }
                 }
 
-                kii.Factorize(1e-8, new List<Vector<double>>(), new List<int>());
+                kii.Factorize(1e-8, new List<IVector>(), new List<int>());
                 kiiDictionary.Add(s.ID, kii);
             }
         }
 
         private void MultiplyKib(int subID, double[] vIn, double[] vOut)
         {
-            SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)subdomainsDictionary[subID].Matrix;
+            SkylineMatrix2D k = (SkylineMatrix2D)subdomainsDictionary[subID].Matrix;
             var outputDOFs = internalDOFsDictionary[subID];
             Array.Clear(vOut, 0, outputDOFs.Count);
             int pos = 0;
@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.Solvers.PSM
 
         private void MultiplyKbi(int subID, double[] vIn, double[] vOut)
         {
-            SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)subdomainsDictionary[subID].Matrix;
+            SkylineMatrix2D k = (SkylineMatrix2D)subdomainsDictionary[subID].Matrix;
             var outputDOFs = boundaryDOFsDictionary[subID];
             Array.Clear(vOut, 0, outputDOFs.Count);
             int pos = 0;
@@ -174,7 +174,7 @@ namespace ISAAR.MSolve.Solvers.PSM
             }
         }
 
-        public void Initialize(Matrices.Interfaces.IVector<double> x, Matrices.Interfaces.IVector<double> residual, double detf)
+        public void Initialize(IVector x, IVector residual, double detf)
         {
             throw new NotImplementedException();
         }

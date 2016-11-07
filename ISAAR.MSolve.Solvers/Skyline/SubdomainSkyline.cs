@@ -1,26 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
-    public class SubdomainSkyline : ISolverSubdomain
+    public class SubdomainSkyline : ILinearSystem
     {
         private readonly Subdomain subdomain;
-        private SkylineMatrix2D<double> stiffnessMatrix;
+        private SkylineMatrix2D stiffnessMatrix;
         // REMOVE
-        private SkylineMatrix2D<double> stiffnessMatrixCopy;
-        private Vector<double> solution;
+        private SkylineMatrix2D stiffnessMatrixCopy;
+        private Vector solution;
 
         public SubdomainSkyline(Subdomain subdomain)
         {
             this.subdomain = subdomain;
-            solution = new Vector<double>(subdomain.TotalDOFs);
+            solution = new Vector(subdomain.TotalDOFs);
         }
         
         #region ISolverSubdomain Members
@@ -30,24 +28,24 @@ namespace ISAAR.MSolve.Solvers.Skyline
             get { return subdomain.ID; }
         }
 
-        public IMatrix2D<double> Matrix
+        public IMatrix2D Matrix
         {
             get { return stiffnessMatrix; }
             set 
             { 
-                stiffnessMatrix = (SkylineMatrix2D<double>)value;
+                stiffnessMatrix = (SkylineMatrix2D)value;
             }
         }
 
-        public IVector<double> RHS
+        public IVector RHS
         {
-            get { return new Vector<double>(subdomain.Forces); }
+            get { return new Vector(subdomain.Forces); }
         }
 
-        public IVector<double> Solution
+        public IVector Solution
         {
             get { return solution; }
-            set { solution = (Vector<double>)value; }
+            set { solution = (Vector)value; }
         }
 
         //public void CloneMatrix()
@@ -55,14 +53,15 @@ namespace ISAAR.MSolve.Solvers.Skyline
         //    stiffnessMatrixCopy = (SkylineMatrix2D<double>)stiffnessMatrix.Clone();
         //}
 
-        public IVector<double> GetRHSFromSolution(IVector<double> solution, IVector<double> dSolution)
+        public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
         {
             //// REMOVE
             //var forces = new double[solution.Length];
             //stiffnessMatrixCopy.Multiply(solution, forces);
             //return new Vector<double>(forces);
 
-            return subdomain.GetRHSFromSolution(solution, dSolution);
+            //return subdomain.GetRHSFromSolution(solution, dSolution);
+            throw new NotImplementedException("Check commented line of code above.");
         }
 
         public void SaveMaterialState()

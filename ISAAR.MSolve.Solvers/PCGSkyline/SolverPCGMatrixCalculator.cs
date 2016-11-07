@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.PCGSkyline
 {
-    public class SolverPCGMatrixCalculator<T> : ISolverPCGMatrixCalculator where T : IMatrix2D<double>
+    public class SolverPCGMatrixCalculator<T> : ISolverPCGMatrixCalculator where T : IMatrix2D
     {
         #region ISolverPCGMatrixCalculator Members
 
@@ -28,12 +23,12 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             } 
         }
 
-        public void Precondition(IVector<double> vIn, IVector<double> vOut)
+        public void Precondition(IVector vIn, IVector vOut)
         {
             solver.Precondition(vIn, vOut);
         }
 
-        public void MultiplyWithMatrix(IVector<double> vIn, IVector<double> vOut)
+        public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
             solver.MultiplyWithMatrix(vIn, vOut);
         }

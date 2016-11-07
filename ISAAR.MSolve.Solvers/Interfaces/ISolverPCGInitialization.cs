@@ -1,12 +1,10 @@
-﻿using System;
+﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ISAAR.MSolve.Solvers.Interfaces
 {
     public interface ISolverPCGInitialization
     {
-        double InitializeAndGetResidual(IList<ISolverSubdomain> subdomains, double[] r, double[] x);
+        double InitializeAndGetResidual(IList<ILinearSystem> linearSystems, IVector r, IVector x);
     }
 }

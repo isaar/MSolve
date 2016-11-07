@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Solvers.PCG;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.Solvers.PCGSkyline
 {
-    public class SolverPCG<T> : IIterativeSolver where T : IMatrix2D<double>
+    public class SolverPCG<T> : IIterativeSolver where T : IMatrix2D
     {
         private readonly Model model;
-        private readonly Dictionary<int, ISolverSubdomain> subdomainsDictionary;
+        private readonly Dictionary<int, ILinearSystem> subdomainsDictionary;
         private readonly SolverPCG solverPCG;
         private readonly ISolverPCGMatrixCalculator matrixCalculator;
         private readonly ISolverPCGInitialization matrixInitialization;
         private readonly ISearchVectorCalculator searchVectorCalculator;
         //private Dictionary<int, Vector<double>> diagonalPreconditioner;
-        private Vector<double> x, r;
+        private IVector x, r;
         private double detf = 0;
 
-        public Vector<double> VectorX { get { return solverPCG.VectorX; } }
+        public IVector VectorX { get { return solverPCG.VectorX; } }
 
         public SolverPCG(Model model, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator, ISolverPCGInitialization matrixInitialization)
         {
@@ -32,7 +31,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             this.matrixInitialization = matrixInitialization;
             this.searchVectorCalculator = searchVectorCalculator;
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
-            subdomainsDictionary = new Dictionary<int, ISolverSubdomain>(model.SubdomainsDictionary.Count);
+            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
                 subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
         }
@@ -44,7 +43,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             this.matrixInitialization = new SolverPCGMatrixInitialization<T>(this);
             this.searchVectorCalculator = searchVectorCalculator;
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
-            subdomainsDictionary = new Dictionary<int, ISolverSubdomain>(model.SubdomainsDictionary.Count);
+            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
                 subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
         }
@@ -56,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             this.matrixInitialization = new SolverPCGMatrixInitialization<T>(this);
             this.searchVectorCalculator = searchVectorCalculator;
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
-            subdomainsDictionary = new Dictionary<int, ISolverSubdomain>(model.SubdomainsDictionary.Count);
+            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
                 subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
         }
@@ -65,7 +64,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
         {
         }
 
-        public Dictionary<int, ISolverSubdomain> SubdomainsDictionary
+        public Dictionary<int, ILinearSystem> SubdomainsDictionary
         {
             get { return subdomainsDictionary; }
         }
@@ -93,9 +92,9 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             //detf = Math.Sqrt(detf);
 
             int vectorLength = matrixCalculator.VectorSize;
-            x = new Vector<double>(vectorLength);
-            r = new Vector<double>(vectorLength);
-            detf = matrixInitialization.InitializeAndGetResidual(subdomainsDictionary.Select(s => s.Value).ToArray<ISolverSubdomain>(), r.Data, x.Data);
+            x = new Vector(vectorLength);
+            r = new Vector(vectorLength);
+            detf = matrixInitialization.InitializeAndGetResidual(subdomainsDictionary.Select(s => s.Value).ToArray<ILinearSystem>(), r, x);
             solverPCG.Initialize(x, r, detf);
         }
 
@@ -103,7 +102,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
         {
             Solve(20000, 1e-7);
 
-            foreach (ISolverSubdomain subdomain in subdomainsDictionary.Values)
+            foreach (ILinearSystem subdomain in subdomainsDictionary.Values)
                 subdomain.Solution = x;
         }
 
@@ -126,18 +125,20 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             get { return solverPCG.CurrentIteration; }
         }
 
-        public void Initialize(IVector<double> x0, IVector<double> residual, double detf)
+        public void Initialize(IVector x0, IVector residual, double detf)
         {
             //throw new InvalidOperationException("SolverPCG<T> solver cannot use this method.");
 
             int vectorLength = matrixCalculator.VectorSize;
             if (x == null)
-                x = new Vector<double>(vectorLength);
-            Array.Copy(((Vector<double>)x0).Data, x.Data, vectorLength);
+                x = new Vector(vectorLength);
+            x.CopyFrom(0, vectorLength, x0, 0);
+            //Array.Copy(((Vector<double>)x0).Data, x.Data, vectorLength);
 
             if (r == null)
-                r = new Vector<double>(vectorLength);
-            Array.Copy(((Vector<double>)residual).Data, r.Data, vectorLength);
+                r = new Vector(vectorLength);
+            r.CopyFrom(0, vectorLength, residual, 0);
+            //Array.Copy(((Vector<double>)residual).Data, r.Data, vectorLength);
 
             double calculatedDetf = 0;
             double temp = 0;
@@ -158,13 +159,13 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
 
         #endregion
 
-        public void Precondition(IVector<double> vIn, IVector<double> vOut)
+        public void Precondition(IVector vIn, IVector vOut)
         {
             matrixCalculator.Precondition(vIn, vOut);
             //for (int i = 0; i < vIn.Length; i++) vOut[i] = diagonalPreconditioner[i] * vIn[i];
         }
 
-        public void MultiplyWithMatrix(IVector<double> vIn, IVector<double> vOut)
+        public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
             matrixCalculator.MultiplyWithMatrix(vIn, vOut);
             //foreach (ISolverSubdomain subdomain in subdomainsDictionary.Values)
