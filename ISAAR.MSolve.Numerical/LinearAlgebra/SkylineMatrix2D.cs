@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        public void Solve(IVector f, double[] result)
+        public void Solve(IVector f, IVector result)
         {
             //var e = DateTime.Now;
             SkylineMatrix2D K = this;
@@ -167,7 +167,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             if (K.Rows != f.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             double[] d = K.Data;
             //double[] result = new double[K.Rows];
-            f.CopyTo(result, 0);
+            result.CopyFrom(0, f.Length, f, 0);
+           // f.CopyTo(result, 0);
 
             // RHS vector reduction
             int n;
@@ -211,14 +212,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //x.Add(DateTime.Now - e);
         }
 
-        public static double[] operator /(SkylineMatrix2D K, IVector f)
-        {
-            if (!K.isFactorized) throw new InvalidOperationException("Cannot solve if matrix is not factorized.");
-            if (K.Rows != f.Length) throw new ArgumentException("Matrix and vector size mismatch.");
-            double[] result = new double[K.Rows];
-            K.Solve(f, result);
-            return result;
-        }
+        //public static double[] operator /(SkylineMatrix2D K, IVector f)
+        //{
+        //    if (!K.isFactorized) throw new InvalidOperationException("Cannot solve if matrix is not factorized.");
+        //    if (K.Rows != f.Length) throw new ArgumentException("Matrix and vector size mismatch.");
+        //    double[] result = new double[K.Rows];
+        //    K.Solve(f, result);
+        //    return result;
+        //}
 
         public void Multiply(IVector vIn, double[] vOut, double scaleFactor, int vInStartIndex, int vOutStartIndex, bool clearvOut)
         {

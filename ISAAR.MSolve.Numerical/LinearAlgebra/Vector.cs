@@ -128,6 +128,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             set { data[x] = value; }
         }
 
+        public double DotProduct(IVector y)
+        {
+            double result = 0;
+            for (int i = 0; i < data.Length; i++)
+                result += data[i] * y[i];
+            return result;
+        }
+
         public void Multiply(double coefficient)
         {
             double[] vData = data as double[];
@@ -137,6 +145,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         public void CopyTo(Array array, int index)
         {
             data.CopyTo(array, index);
+        }
+
+        public void CopyFrom(int startIndex, int length, IVector fromVector, int fromStartIndex)
+        {
+            for (int i = 0; i < length; i++)
+                data[i + startIndex] = fromVector[i + fromStartIndex];
         }
 
         public void Clear()

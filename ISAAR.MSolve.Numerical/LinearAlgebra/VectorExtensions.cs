@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return GetVectorLimits(size, chunks);
         }
 
-        public static IEnumerable<Tuple<int, int, int>> PartitionLimits(this Vector vector, int chunks)
+        public static IEnumerable<Tuple<int, int, int>> PartitionLimits(this IVector vector, int chunks)
         {
             int size = vector.Length;
             return GetVectorLimits(size, chunks);
