@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.PreProcessor
 {

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Materials
 {
@@ -74,7 +71,7 @@ namespace ISAAR.MSolve.PreProcessor.Materials
 
         public double[] Stresses { get { return new double[6]; } }
         
-        public IMatrix2D<double> ConstitutiveMatrix
+        public IMatrix2D ConstitutiveMatrix
         {
             get
             {
@@ -124,9 +121,9 @@ namespace ISAAR.MSolve.PreProcessor.Materials
             set { coefficientsProvider = value; }
         }
 
-        public IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates)
+        public IMatrix2D GetConstitutiveMatrix(double[] coordinates)
         {
-            return new Matrix2D<double>(GetConstitutiveMatrixInternal(coordinates));
+            return new Matrix2D(GetConstitutiveMatrixInternal(coordinates));
         }
 
         #endregion

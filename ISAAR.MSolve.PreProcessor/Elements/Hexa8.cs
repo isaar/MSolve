@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.PreProcessor.Embedding;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
 using System.Runtime.InteropServices;
-using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.PreProcessor.Elements.SupportiveClasses;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -365,18 +365,18 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             return integrationPoints;
         }
 
-        public virtual IMatrix2D<double> StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(Element element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
 
-            SymmetricMatrix2D<double> stiffnessMatrix = new SymmetricMatrix2D<double>(24);
+            SymmetricMatrix2D stiffnessMatrix = new SymmetricMatrix2D(24);
 
             int pointId = -1;
             foreach (GaussLegendrePoint3D intPoint in integrationPoints)
             {
                 pointId++;
-                IMatrix2D<double> constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix;
+                IMatrix2D constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix;
                 double[,] b = intPoint.DeformationMatrix;
                 for (int i = 0; i < 24; i++)
                 {
@@ -400,12 +400,12 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             return stiffnessMatrix;
         }
 
-        public IMatrix2D<double> CalculateConsistentMass(Element element)
+        public IMatrix2D CalculateConsistentMass(Element element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
 
-            SymmetricMatrix2D<double> consistentMass = new SymmetricMatrix2D<double>(24);
+            SymmetricMatrix2D consistentMass = new SymmetricMatrix2D(24);
 
             foreach (GaussLegendrePoint3D intPoint in integrationPoints)
             {
@@ -436,15 +436,16 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         #endregion
 
-        public virtual IMatrix2D<double> MassMatrix(Element element)
+        public virtual IMatrix2D MassMatrix(Element element)
         {
             return CalculateConsistentMass(element);
         }
 
-        public virtual IMatrix2D<double> DampingMatrix(Element element)
+        public virtual IMatrix2D DampingMatrix(Element element)
         {
             var m = MassMatrix(element);
-            m.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D<double>[] { MassMatrix(element), StiffnessMatrix(element) });
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
             return m;
             //double[] faD = new double[300];
             //return new SymmetricMatrix2D<double>(faD);
@@ -511,8 +512,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector<double> accelerations = new Vector<double>(24);
-            IMatrix2D<double> massMatrix = MassMatrix(element);
+            Vector accelerations = new Vector(24);
+            IMatrix2D massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
             {

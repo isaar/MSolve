@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+﻿using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Materials
 {
@@ -37,7 +33,7 @@ namespace ISAAR.MSolve.PreProcessor.Materials
             afE[4, 4] = fE4;
             afE[5, 5] = fE4;
 
-            Vector<double> s = (new Matrix2D<double>(afE)) * (new Vector<double>(strains));
+            Vector s = (new Matrix2D(afE)) * (new Vector(strains));
             s.Data.CopyTo(stresses, 0);
 
             return afE;
@@ -65,12 +61,12 @@ namespace ISAAR.MSolve.PreProcessor.Materials
 
         public double[] Stresses { get { return stresses; } }
         
-        public IMatrix2D<double> ConstitutiveMatrix
+        public IMatrix2D ConstitutiveMatrix
         {
             get
             {
                 if (constitutiveMatrix == null) UpdateMaterial(new double[6]);
-                return new Matrix2D<double>(constitutiveMatrix);
+                return new Matrix2D(constitutiveMatrix);
             }
         }
 

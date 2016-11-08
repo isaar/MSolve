@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -76,12 +74,12 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IMatrix2D<double> StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(Element element)
         {
             double x = (springDirections == SpringDirections.X || springDirections == SpringDirections.XY || springDirections == SpringDirections.XZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
             double y = (springDirections == SpringDirections.Y || springDirections == SpringDirections.XY || springDirections == SpringDirections.YZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
             double z = (springDirections == SpringDirections.Z || springDirections == SpringDirections.XZ || springDirections == SpringDirections.YZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
-            return new SymmetricMatrix2D<double>(new double[] { x, 0, 0, -x, 0, 0,
+            return new SymmetricMatrix2D(new double[] { x, 0, 0, -x, 0, 0,
                 y, 0, 0, -y, 0, 
                 z, 0, 0, -z,
                 x, 0, 0,
@@ -90,9 +88,9 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             });
         }
 
-        public IMatrix2D<double> MassMatrix(Element element)
+        public IMatrix2D MassMatrix(Element element)
         {
-            return new SymmetricMatrix2D<double>(new double[] { 0, 0, 0, 0, 0, 0,
+            return new SymmetricMatrix2D(new double[] { 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 
                 0, 0, 0, 0,
                 0, 0, 0,
@@ -101,12 +99,12 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             });
         }
 
-        public IMatrix2D<double> DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(Element element)
         {
             double x = (dampingDirections == SpringDirections.X || dampingDirections == SpringDirections.XY || dampingDirections == SpringDirections.XZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
             double y = (dampingDirections == SpringDirections.Y || dampingDirections == SpringDirections.XY || dampingDirections == SpringDirections.YZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
             double z = (dampingDirections == SpringDirections.Z || dampingDirections == SpringDirections.XZ || dampingDirections == SpringDirections.YZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
-            return new SymmetricMatrix2D<double>(new double[] { x, 0, 0, -x, 0, 0,
+            return new SymmetricMatrix2D(new double[] { x, 0, 0, -x, 0, 0,
                 y, 0, 0, -y, 0, 
                 z, 0, 0, -z,
                 x, 0, 0,
@@ -131,8 +129,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
-            IMatrix2D<double> stiffnessMatrix = StiffnessMatrix(element);
-            Vector<double> disps = new Vector<double>(localDisplacements);
+            IMatrix2D stiffnessMatrix = StiffnessMatrix(element);
+            var disps = new Vector(localDisplacements);
             double[] forces = new double[localDisplacements.Length];
             stiffnessMatrix.Multiply(disps, forces);
             return forces;

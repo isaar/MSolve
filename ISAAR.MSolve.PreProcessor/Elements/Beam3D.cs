@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor.Embedding;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
 using System.IO;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -25,7 +24,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         private List<Element> hostElementList;
         private bool[] isNodeEmbedded;
         private readonly Node[][] rotNodes = new Node[2][];
-        private Matrix2D<double> rotTransformation;
+        private Matrix2D rotTransformation;
         private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
@@ -102,7 +101,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         {
             if (rotNodes[0] == null && rotNodes[1] == null)
             {
-                rotTransformation = new Matrix2D<double>(12, 12);
+                rotTransformation = new Matrix2D(12, 12);
                 for (int i = 0; i < 12; i++) rotTransformation[i, i] = 1;
                 return;
             }
@@ -133,7 +132,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             //else
             //    nonRotationalDOFs += 12;
 
-            rotTransformation = new Matrix2D<double>(12, nonRotationalDOFs + 6);
+            rotTransformation = new Matrix2D(12, nonRotationalDOFs + 6);
             rotTransformation[0, 0] = 1;
             rotTransformation[1, 1] = 1;
             rotTransformation[2, 2] = 1;
@@ -400,7 +399,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             return nodes;
         }
 
-        private IMatrix2D<double> StiffnessMatrixPure(Element element)
+        private IMatrix2D StiffnessMatrixPure(Element element)
         {
             var m = (material as IFiniteElementMaterial3D);
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
@@ -414,7 +413,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double EIz = m.YoungModulus * MomentOfInertiaZ;
             double GJL = m.YoungModulus * L * MomentOfInertiaPolar / (2 * (1 + m.PoissonRatio));
             double EAL = m.YoungModulus * SectionArea * L;
-            var stiffnessMatrix = new SymmetricMatrix2D<double>(new double[] { EAL, 0, 0, 0, 0, 0, -EAL, 0, 0, 0, 0, 0,
+            var stiffnessMatrix = new SymmetricMatrix2D(new double[] { EAL, 0, 0, 0, 0, 0, -EAL, 0, 0, 0, 0, 0,
                 12*EIz*L3, 0, 0, 0, 6*EIz*L2, 0, -12*EIz*L3, 0, 0, 0, 6*EIz*L2,
                 12*EIy*L3, 0, -6*EIy*L2, 0, 0, 0, -12*EIy*L3, 0, -6*EIy*L2, 0,
                 GJL, 0, 0, 0, 0, 0, -GJL, 0, 0,
@@ -429,7 +428,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             });
 
             var refx = new double[] { 1, 1, 1 };
-            var beamTransformation = new Matrix2D<double>(12, 12);
+            var beamTransformation = new Matrix2D(12, 12);
             beamTransformation[0, 0] = (element.Nodes[1].X - element.Nodes[0].X) * L;
             beamTransformation[0, 1] = (element.Nodes[1].Y - element.Nodes[0].Y) * L;
             beamTransformation[0, 2] = (element.Nodes[1].Z - element.Nodes[0].Z) * L;
@@ -460,7 +459,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
                     beamTransformation[i + 9, j + 9] = beamTransformation[i, j];      
                 }
 
-            return new SymmetricMatrix2D<double>(beamTransformation.Transpose() * stiffnessMatrix.ToMatrix2D() * beamTransformation);
+            return new SymmetricMatrix2D(beamTransformation.Transpose() * stiffnessMatrix.ToMatrix2D() * beamTransformation);
 
             ////if (element.Nodes.Count(n => n.EmbeddedInElement != null) == 0) return stiffnessMatrix;
             //stiffnessMatrix = new SymmetricMatrix2D<double>(beamTransformation.Transpose() * stiffnessMatrix.ToMatrix2D() * beamTransformation);
@@ -543,13 +542,13 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             //return transformedMatrix;
         }
 
-        public IMatrix2D<double> StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(Element element)
         {
             CalculateRotTranformation(element);
-            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(rotTransformation.Transpose() * ((SymmetricMatrix2D<double>)StiffnessMatrixPure(element)).ToMatrix2D() * rotTransformation));
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(rotTransformation.Transpose() * ((SymmetricMatrix2D)StiffnessMatrixPure(element)).ToMatrix2D() * rotTransformation));
         }
 
-        public IMatrix2D<double> MassMatrix(Element element)
+        public IMatrix2D MassMatrix(Element element)
         {
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
@@ -571,7 +570,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             //    halfMass
             //});
             double halfMass = Density * SectionArea / L / 6d;
-            var massMatrix = new SymmetricMatrix2D<double>(new double[] { halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            var massMatrix = new SymmetricMatrix2D(new double[] { halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -586,7 +585,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             });
 
             var refx = new double[] { 1, 1, 1 };
-            var beamTransformation = new Matrix2D<double>(12, 12);
+            var beamTransformation = new Matrix2D(12, 12);
             beamTransformation[0, 0] = (element.Nodes[1].X - element.Nodes[0].X) * L;
             beamTransformation[0, 1] = (element.Nodes[1].Y - element.Nodes[0].Y) * L;
             beamTransformation[0, 2] = (element.Nodes[1].Z - element.Nodes[0].Z) * L;
@@ -611,13 +610,14 @@ namespace ISAAR.MSolve.PreProcessor.Elements
                 }
             CalculateRotTranformation(element);
 
-            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(rotTransformation.Transpose() * beamTransformation.Transpose() * massMatrix.ToMatrix2D() * beamTransformation * rotTransformation));
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(rotTransformation.Transpose() * beamTransformation.Transpose() * massMatrix.ToMatrix2D() * beamTransformation * rotTransformation));
         }
 
-        public IMatrix2D<double> DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(Element element)
         {
             var m = MassMatrix(element);
-            m.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D<double>[] { MassMatrix(element), StiffnessMatrix(element) });
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
             return m;
         }
 
@@ -630,8 +630,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
         {
             CalculateRotTranformation(element);
-            IMatrix2D<double> stiffnessMatrix = StiffnessMatrixPure(element);
-            var disps = rotTransformation * new Vector<double>(localDisplacements);
+            IMatrix2D stiffnessMatrix = StiffnessMatrixPure(element);
+            var disps = rotTransformation * new Vector(localDisplacements);
             double[] forces = new double[disps.Length];
             stiffnessMatrix.Multiply(disps, forces);
             return forces;
@@ -639,8 +639,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
-            IMatrix2D<double> stiffnessMatrix = StiffnessMatrix(element);
-            Vector<double> disps = new Vector<double>(localDisplacements.Length);
+            IMatrix2D stiffnessMatrix = StiffnessMatrix(element);
+            Vector disps = new Vector(localDisplacements.Length);
             double[] forces = new double[localDisplacements.Length];
             for (int i = 0; i < localDisplacements.Length; i++)
                 //disps[i] = localDisplacements[i] + localdDisplacements[i];
@@ -651,8 +651,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector<double> accelerations = new Vector<double>(noOfDOFs);
-            IMatrix2D<double> massMatrix = MassMatrix(element);
+            Vector accelerations = new Vector(noOfDOFs);
+            IMatrix2D massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
             {

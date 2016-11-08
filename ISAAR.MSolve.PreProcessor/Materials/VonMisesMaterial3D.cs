@@ -6,19 +6,13 @@
 //   Class for 3D Von Mises materials.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
+using System;
+using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Materials
 {
-    #region
-
-    using System;
-
-    using MSolve.PreProcessor.Interfaces;
-    using MSolve.Matrices.Interfaces;
-    using MSolve.Matrices;
-
-    #endregion
-
     /// <summary>
     ///   Class for 3D Von Mises materials.
     /// </summary>
@@ -200,7 +194,7 @@ namespace ISAAR.MSolve.PreProcessor.Materials
         /// <value>
         ///   The constitutive matrix.
         /// </value>
-        public IMatrix2D<double> ConstitutiveMatrix
+        public IMatrix2D ConstitutiveMatrix
         {
             get
             {
@@ -209,7 +203,7 @@ namespace ISAAR.MSolve.PreProcessor.Materials
                     this.UpdateMaterial(new double[6]);
                 }
 
-                return new Matrix2D<double>(this.constitutiveMatrix);
+                return new Matrix2D(this.constitutiveMatrix);
             }
         }
 

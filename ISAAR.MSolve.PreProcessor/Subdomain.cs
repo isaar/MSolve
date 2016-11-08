@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor
 {
@@ -208,11 +208,11 @@ namespace ISAAR.MSolve.PreProcessor
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
         }
 
-        public double[] GetLocalVectorFromGlobal(Element element, double[] globalVector)
+        public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)
         {
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
-            double[] localVector = new double[localDOFs];
+            var localVector = new double[localDOFs];
 
             int pos = 0;
             for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
@@ -243,13 +243,13 @@ namespace ISAAR.MSolve.PreProcessor
             }
         }
 
-        public IVector<double> GetRHSFromSolution(IVector<double> solution, IVector<double> dSolution)
+        public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
         {
-            Vector<double> forces = new Vector<double>(TotalDOFs);
+            var forces = new Vector(TotalDOFs);
             foreach (Element element in elementsDictionary.Values)
             {
-                double[] localSolution = GetLocalVectorFromGlobal(element, ((Vector<double>)solution).Data);
-                double[] localdSolution = GetLocalVectorFromGlobal(element, ((Vector<double>)dSolution).Data);
+                var localSolution = GetLocalVectorFromGlobal(element, solution);
+                var localdSolution = GetLocalVectorFromGlobal(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified) 
                     element.Subdomain.MaterialsModified = true;

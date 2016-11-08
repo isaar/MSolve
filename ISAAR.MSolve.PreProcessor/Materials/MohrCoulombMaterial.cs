@@ -8,12 +8,9 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Materials
 {
@@ -35,9 +32,9 @@ namespace ISAAR.MSolve.PreProcessor.Materials
             get { return stressesNew; }
         }
 
-        public IMatrix2D<double> ConstitutiveMatrix
+        public IMatrix2D ConstitutiveMatrix
         {
-            get { return new Matrix2D<double>(constitutiveMatrix); }
+            get { return new Matrix2D(constitutiveMatrix); }
         }
 
         public void UpdateMaterial(double[] strainsIncrement)

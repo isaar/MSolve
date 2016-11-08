@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor.Materials;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -65,7 +63,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         //[ -c^2*E*A/L-12*s^2*E*I/L^3, -s*E*A/L*c+12*c*E*I/L^3*s,               6*E*I/L^2*s,  c^2*E*A/L+12*s^2*E*I/L^3,  s*E*A/L*c-12*c*E*I/L^3*s,               6*E*I/L^2*s]
         //[ -s*E*A/L*c+12*c*E*I/L^3*s, -s^2*E*A/L-12*c^2*E*I/L^3,              -6*E*I/L^2*c,  s*E*A/L*c-12*c*E*I/L^3*s,  s^2*E*A/L+12*c^2*E*I/L^3,              -6*E*I/L^2*c]
         //[              -6*E*I/L^2*s,               6*E*I/L^2*c,                   2*E*I/L,               6*E*I/L^2*s,              -6*E*I/L^2*c,                   4*E*I/L]
-        public IMatrix2D<double> StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(Element element)
         {
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
@@ -79,7 +77,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;
             double EIL3 = EIL2 / L;
-            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(new double[] { c2*EAL+12*s2*EIL3, c*s*EAL-12*c*s*EIL3, -6*s*EIL2, -c2*EAL-12*s2*EIL3, -c*s*EAL+12*c*s*EIL3, -6*s*EIL2,
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(new double[] { c2*EAL+12*s2*EIL3, c*s*EAL-12*c*s*EIL3, -6*s*EIL2, -c2*EAL-12*s2*EIL3, -c*s*EAL+12*c*s*EIL3, -6*s*EIL2,
                 s2*EAL+12*c2*EIL3, 6*c*EIL2, -s*c*EAL+12*c*s*EIL3, -s2*EAL-12*c2*EIL3, 6*c*EIL2,
                 4*EIL, 6*s*EIL2, -6*c*EIL2, 2*EIL,
                 c2*EAL+12*s2*EIL3, s*c*EAL-12*c*s*EIL3, 6*s*EIL2,
@@ -118,7 +116,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         //[   70*c^2+54*s^2,          16*c*s,         -13*s*L, 140*c^2+156*s^2,         -16*c*s,          22*s*L]
         //[          16*c*s,   70*s^2+54*c^2,          13*c*L,         -16*c*s, 140*s^2+156*c^2,         -22*c*L]
         //[          13*s*L,         -13*c*L,          -3*L^2,          22*s*L,         -22*c*L,           4*L^2]
-        public IMatrix2D<double> MassMatrix(Element element)
+        public IMatrix2D MassMatrix(Element element)
         {
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
@@ -134,7 +132,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double totalMassOfDiagonalTerms = 2*dAL420*(140*c2+156*s2) + 2*dAL420*(140*s2+156*c2);
             double scale = totalMass / totalMassOfDiagonalTerms;
 
-            return new SymmetricMatrix2D<double>(new double[] { dAL420*(140*c2+156*s2)*scale, 0, 0, 0, 0, 0,
+            return new SymmetricMatrix2D(new double[] { dAL420*(140*c2+156*s2)*scale, 0, 0, 0, 0, 0,
                 dAL420*(140*s2+156*c2)*scale, 0, 0, 0, 0,
                 0, 0, 0, 0,
                 dAL420*(140*c2+156*s2)*scale, 0, 0,
@@ -142,7 +140,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
                 0 });
         }
 
-        public IMatrix2D<double> DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(Element element)
         {
             throw new NotImplementedException();
         }
@@ -164,8 +162,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector<double> accelerations = new Vector<double>(6);
-            IMatrix2D<double> massMatrix = MassMatrix(element);
+            Vector accelerations = new Vector(6);
+            IMatrix2D massMatrix = MassMatrix(element);
 
             int index = 0;
             foreach (MassAccelerationLoad load in loads)

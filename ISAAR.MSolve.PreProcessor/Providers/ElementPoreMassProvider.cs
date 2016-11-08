@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Providers
 {
@@ -19,15 +16,15 @@ namespace ISAAR.MSolve.PreProcessor.Providers
             this.massCoefficient = massCoefficient;
         }
 
-        private IMatrix2D<double> PorousMatrix(Element element)
+        private IMatrix2D PorousMatrix(Element element)
         {
             IPorousFiniteElement elementType = (IPorousFiniteElement)element.ElementType;
             int dofs = 0;
             foreach (IList<DOFType> dofTypes in elementType.DOFEnumerator.GetDOFTypes(element))
                 foreach (DOFType dofType in dofTypes) dofs++;
-            SymmetricMatrix2D<double> poreMass = new SymmetricMatrix2D<double>(dofs);
+            SymmetricMatrix2D poreMass = new SymmetricMatrix2D(dofs);
 
-            IMatrix2D<double> mass = solidMassProvider.Matrix(element);
+            IMatrix2D mass = solidMassProvider.Matrix(element);
 
             int matrixRow = 0;
             int solidRow = 0;
@@ -60,13 +57,13 @@ namespace ISAAR.MSolve.PreProcessor.Providers
 
         #region IElementMatrixProvider Members
 
-        public IMatrix2D<double> Matrix(Element element)
+        public IMatrix2D Matrix(Element element)
         {
             if (element.ElementType is IPorousFiniteElement)
                 return PorousMatrix(element);
             else
             {
-                IMatrix2D<double> massMatrix = solidMassProvider.Matrix(element);
+                IMatrix2D massMatrix = solidMassProvider.Matrix(element);
                 massMatrix.Scale(massCoefficient);
                 return massMatrix;
             }

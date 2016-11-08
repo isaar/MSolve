@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
+﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Interfaces
 {
     public interface IPorousFiniteElement : IFiniteElement
     {
-        IMatrix2D<double> PermeabilityMatrix(Element element);
-        IMatrix2D<double> CouplingMatrix(Element element);
-        IMatrix2D<double> SaturationMatrix(Element element);
+        IMatrix2D PermeabilityMatrix(Element element);
+        IMatrix2D CouplingMatrix(Element element);
+        IMatrix2D SaturationMatrix(Element element);
     }
 }

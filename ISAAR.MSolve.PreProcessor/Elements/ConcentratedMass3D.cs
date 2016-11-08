@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -61,22 +59,22 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IMatrix2D<double> MassMatrix(Element element)
+        public IMatrix2D MassMatrix(Element element)
         {
-            return new SymmetricMatrix2D<double>(new double[] { massCoefficient, 0, 0,
+            return new SymmetricMatrix2D(new double[] { massCoefficient, 0, 0,
                 massCoefficient, 0,
                 massCoefficient
             });
         }
 
-        public IMatrix2D<double> StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(Element element)
         {
-            return new SymmetricMatrix2D<double>(new double[6]);
+            return new SymmetricMatrix2D(new double[6]);
         }
 
-        public IMatrix2D<double> DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(Element element)
         {
-            return new SymmetricMatrix2D<double>(new double[6]);
+            return new SymmetricMatrix2D(new double[6]);
         }
 
         public void ResetMaterialModified()
@@ -100,8 +98,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector<double> accelerations = new Vector<double>(3);
-            IMatrix2D<double> massMatrix = MassMatrix(element);
+            Vector accelerations = new Vector(3);
+            IMatrix2D massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
             {

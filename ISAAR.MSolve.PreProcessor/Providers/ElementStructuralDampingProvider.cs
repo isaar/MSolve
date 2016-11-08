@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Providers
 {
@@ -11,7 +7,7 @@ namespace ISAAR.MSolve.PreProcessor.Providers
     {
         #region IElementMatrixProvider Members
 
-        public IMatrix2D<double> Matrix(Element element)
+        public IMatrix2D Matrix(Element element)
         {
             //return element.M;
             return element.ElementType.DampingMatrix(element);

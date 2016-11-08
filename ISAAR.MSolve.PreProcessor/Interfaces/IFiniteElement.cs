@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Interfaces
 {
@@ -22,9 +19,9 @@ namespace ISAAR.MSolve.PreProcessor.Interfaces
         IFiniteElementDOFEnumerator DOFEnumerator { get; set; }
         IList<IList<DOFType>> GetElementDOFTypes(Element element);
         bool MaterialModified { get; }
-        IMatrix2D<double> StiffnessMatrix(Element element);
-        IMatrix2D<double> MassMatrix(Element element);
-        IMatrix2D<double> DampingMatrix(Element element);
+        IMatrix2D StiffnessMatrix(Element element);
+        IMatrix2D MassMatrix(Element element);
+        IMatrix2D DampingMatrix(Element element);
         void ResetMaterialModified();
         Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements);

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
-using System.IO;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Embedding
 {
@@ -54,7 +52,7 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
         private readonly IEmbeddedDOFInHostTransformationVector transformation;
         private readonly Dictionary<SuperElementDOF, int> superElementMap = new Dictionary<SuperElementDOF, int>();
         private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
-        private Matrix2D<double> transformationMatrix;
+        private Matrix2D transformationMatrix;
         //private bool isElementEmbedded = false;
 
         public ElementEmbedder(Model model, Element embeddedElement, IEmbeddedDOFInHostTransformationVector transformation)
@@ -185,7 +183,7 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
             //    sw.WriteLine(line);
             //}
             //sw.Close();
-            transformationMatrix = new Matrix2D<double>(matrix);
+            transformationMatrix = new Matrix2D(matrix);
         }
 
         private void Initialize()
@@ -198,14 +196,14 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
             CalculateTransformationMatrix();
         }
 
-        public IMatrix2D<double> GetTransformedMatrix(IMatrix2D<double> matrix)
+        public IMatrix2D GetTransformedMatrix(IMatrix2D matrix)
         {
             var e = embeddedElement.ElementType as IEmbeddedElement;
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return matrix;
             if (e.EmbeddedNodes.Count == 0) return matrix;
 
-            return transformationMatrix.Transpose() * ((SymmetricMatrix2D<double>)matrix).ToMatrix2D() * transformationMatrix;
+            return transformationMatrix.Transpose() * ((SymmetricMatrix2D)matrix).ToMatrix2D() * transformationMatrix;
         }
 
         public double[] GetTransformedVector(double[] vector)
@@ -215,7 +213,7 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            return (transformationMatrix * new Vector<double>(vector)).Data;
+            return (transformationMatrix * new Vector(vector)).Data;
         }
 
         public IList<IList<DOFType>> GetDOFTypes(Element element)

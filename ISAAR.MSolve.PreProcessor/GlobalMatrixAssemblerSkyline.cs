@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using System.IO;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor
 {
@@ -48,12 +45,12 @@ namespace ISAAR.MSolve.PreProcessor
         //    return CalculateRowIndex(subdomain, subdomain.NodalDOFsDictionary);
         //}
 
-        public static SkylineMatrix2D<double> CalculateGlobalMatrix(Subdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateGlobalMatrix(Subdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider)
         {
             // TODO: should encapsulate DOF logic into a separate entity that will manage things if embedded or not (should return element matrix and globaldofs correspondence list
             var times = new Dictionary<string, TimeSpan>();
             var totalStart = DateTime.Now;
-            SkylineMatrix2D<double> K = new SkylineMatrix2D<double>(GlobalMatrixAssemblerSkyline.CalculateRowIndex(subdomain, nodalDOFsDictionary));
+            SkylineMatrix2D K = new SkylineMatrix2D(GlobalMatrixAssemblerSkyline.CalculateRowIndex(subdomain, nodalDOFsDictionary));
             times.Add("rowIndexCalculation", DateTime.Now - totalStart);
             times.Add("element", TimeSpan.Zero);
             times.Add("addition", TimeSpan.Zero);
@@ -61,7 +58,7 @@ namespace ISAAR.MSolve.PreProcessor
             {
                 var isEmbeddedElement = element.ElementType is IEmbeddedElement;
                 var elStart = DateTime.Now;
-                IMatrix2D<double> ElementK = elementProvider.Matrix(element);
+                IMatrix2D ElementK = elementProvider.Matrix(element);
                 times["element"] += DateTime.Now - elStart;
 
                 elStart = DateTime.Now;
@@ -102,7 +99,7 @@ namespace ISAAR.MSolve.PreProcessor
             return K;
         }
 
-        public static SkylineMatrix2D<double> CalculateGlobalMatrix(Subdomain subdomain, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateGlobalMatrix(Subdomain subdomain, IElementMatrixProvider elementProvider)
         {
             return CalculateGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
         }

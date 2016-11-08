@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -168,13 +166,13 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             return element.Nodes;
         }
 
-        public virtual IMatrix2D<double> StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(Element element)
         {
             double[, ,] afE = new double[iInt3, 6, 6];
             for (int i = 0; i < iInt3; i++)
                 for (int j = 0; j < 6; j++)
                     for (int k = 0; k < 6; k++)
-                        afE[i, j, k] = ((Matrix2D<double>)materialsAtGaussPoints[i].ConstitutiveMatrix)[j, k];
+                        afE[i, j, k] = ((Matrix2D)materialsAtGaussPoints[i].ConstitutiveMatrix)[j, k];
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
             double[,] faS = new double[iInt3, 8];
@@ -185,10 +183,10 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double[] faK = new double[300];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH8K(ref iInt, afE, faB, faWeight, faK);
-            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(faK));
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(faK));
         }
 
-        public IMatrix2D<double> MassMatrix(Element element)
+        public IMatrix2D MassMatrix(Element element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -201,13 +199,14 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double fDensity = Density;
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH8MLumped(ref iInt, ref fDensity, faWeight, faM);
-            return new SymmetricMatrix2D<double>(faM);
+            return new SymmetricMatrix2D(faM);
         }
 
-        public IMatrix2D<double> DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(Element element)
         {
             var m = MassMatrix(element);
-            m.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D<double>[] { MassMatrix(element), StiffnessMatrix(element) });
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
             return m;
         }
 
@@ -364,13 +363,13 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
             // Changed! Check for errors...
             //Vector<double> fluidDisplacements = new Vector<double>(ExtractFluidVector(localDisplacements));
-            Vector<double> fluidDisplacements = new Vector<double>(ExtractFluidVector(localTotalDisplacements));
+            Vector fluidDisplacements = new Vector(ExtractFluidVector(localTotalDisplacements));
             
             //double[] solidAndFluidForces = solidForces;
             ////double[] solidAndFluidForces = q * fluidDisplacements + (new Vector<double>(solidForces));
             // H correction
             fluidDisplacements.Scale(-1);
-            double[] fluidDrags = (new SymmetricMatrix2D<double>(faH)) * fluidDisplacements;
+            double[] fluidDrags = (new SymmetricMatrix2D(faH)) * fluidDisplacements;
 
             double[] totalForces = new double[GetAllDOFs()];
             ScatterFromFluidVector(fluidDrags, totalForces);
@@ -380,7 +379,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector<double> accelerations = new Vector<double>(24);
+            Vector accelerations = new Vector(24);
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
                 switch (load.DOF)
@@ -458,8 +457,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         public double[] CalculateSolidForcesFromPorePressures(Element element, double[] porePressures)
         {
             double[] solidForces = new double[24];
-            Matrix2D<double> Q = ((Matrix2D<double>)CouplingMatrix(element)).Transpose();
-            Q.Multiply(new Vector<double>(porePressures), solidForces);
+            Matrix2D Q = ((Matrix2D)CouplingMatrix(element)).Transpose();
+            Q.Multiply(new Vector(porePressures), solidForces);
             return solidForces;
         }
 
@@ -502,7 +501,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         #region IPorousFiniteElement Members
 
-        public IMatrix2D<double> PermeabilityMatrix(Element element)
+        public IMatrix2D PermeabilityMatrix(Element element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -516,11 +515,11 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double[] faH = new double[36];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH20u8pH(ref iInt, faPermeability, faS, faB, faWeight, faH);
-            return new SymmetricMatrix2D<double>(faH);
+            return new SymmetricMatrix2D(faH);
         }
 
         // Rows are fluid DOFs and columns are solid DOFs
-        public IMatrix2D<double> CouplingMatrix(Element element)
+        public IMatrix2D CouplingMatrix(Element element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -535,10 +534,10 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double[,] faQ = new double[8, 24];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH8u8pQMinus(ref iInt, ref fPoreA, faXw, faB, faS, faWeight, faQ);
-            return new Matrix2D<double>(faQ);
+            return new Matrix2D(faQ);
         }
 
-        public IMatrix2D<double> SaturationMatrix(Element element)
+        public IMatrix2D SaturationMatrix(Element element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -552,7 +551,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double[] faSaturation = new double[36];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH20u8pS(ref iInt, faXwDivQ, faS, faWeight, faSaturation);
-            return new SymmetricMatrix2D<double>(faSaturation);
+            return new SymmetricMatrix2D(faSaturation);
         }
 
         #endregion

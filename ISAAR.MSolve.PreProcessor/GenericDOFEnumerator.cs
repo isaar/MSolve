@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor
 {
@@ -19,7 +16,7 @@ namespace ISAAR.MSolve.PreProcessor
             return element.ElementType.GetElementDOFTypes(element);
         }
 
-        public IMatrix2D<double> GetTransformedMatrix(IMatrix2D<double> matrix)
+        public IMatrix2D GetTransformedMatrix(IMatrix2D matrix)
         {
             return matrix;
         }

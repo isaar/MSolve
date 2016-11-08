@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -58,7 +56,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         //    this.coefficientsProvider = coefficientsProvider;
         //}
 
-        public override IMatrix2D<double> StiffnessMatrix(Element element)
+        public override IMatrix2D StiffnessMatrix(Element element)
         {
             double[, ,] afE = new double[iInt3, 6, 6];
             int iPos = 0;
@@ -67,7 +65,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
                     for (int i3 = 0; i3 < iInt; i3++)
                     {
                         iPos = i1 * iInt2 + i2 * iInt + i3;
-                        var e = ((Matrix2D<double>)materialsAtGaussPoints[iPos].GetConstitutiveMatrix(GetStochasticPoints(element, i1, i2, i3)));
+                        var e = ((Matrix2D)materialsAtGaussPoints[iPos].GetConstitutiveMatrix(GetStochasticPoints(element, i1, i2, i3)));
                         for (int j = 0; j < 6; j++)
                             for (int k = 0; k < 6; k++)
                                 afE[iPos, j, k] = e[j, k];
@@ -106,7 +104,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             }
             double[] faK = new double[300];
             CalcH8K(ref iInt, afE, faB, faWeight, faK);
-            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(faK));
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(faK));
         }
 
         private double[] GetStochasticPoints(Element element, int iX, int iY, int iZ)

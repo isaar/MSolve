@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+﻿using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Providers
 {
@@ -12,7 +7,7 @@ namespace ISAAR.MSolve.PreProcessor.Providers
     {
         #region IElementMatrixProvider Members
 
-        public IMatrix2D<double> Matrix(Element element)
+        public IMatrix2D Matrix(Element element)
         {
             ////return element.K;
             //foreach (var node in element.EmbeddedNodes)
