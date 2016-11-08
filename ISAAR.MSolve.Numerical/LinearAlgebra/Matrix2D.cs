@@ -6,7 +6,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class Matrix2D : IMatrix2D
+    public class Matrix2D : IMatrix2D, ILinearlyCombinable
     {
         private bool isTransposed = false;
         private int rows, columns;
@@ -525,6 +525,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //    for (i = 0; i < rows; i++) delete u[i];
             //    delete u;
             //  } 
+        }
+
+        public void LinearCombination(IList<double> coefficients, IList<IMatrix2D> matrices)
+        {
+            if (coefficients.Count != matrices.Count)
+                throw new ArgumentException(String.Format("Coefficients and matrices count mismatch ({0} <> {1}).", coefficients.Count, matrices.Count));
+            for (int i = 0; i < matrices.Count; i++)
+                if (matrices[i].Rows != rows)
+                    throw new ArgumentException(String.Format("Matrix at pos {0} has {1} rows instead of {2}.", i, matrices[i].Rows, rows));
+
+            var cs = (IList<double>)coefficients;
+            double[,] newData = new double[rows, columns];
+            for (int k = 0; k < matrices.Count; k++)
+            {
+                var m = matrices[k];
+                for (int i = 0; i < rows; i++)
+                    for (int j = 0; j < columns; j++)
+                        newData[i, j] += cs[i] * m[i, j];
+                //for (int j = 0; j < data.Length; j++)
+                //    newData[j] += cs[i] * m.Data[j];
+            }
+
+            Array.Copy(newData, data, data.Length);
         }
 
     }

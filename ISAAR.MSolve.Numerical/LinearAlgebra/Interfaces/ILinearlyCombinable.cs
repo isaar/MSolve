@@ -6,4 +6,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces
     {
         void LinearCombination(IList<double> coefficients, IList<T> matrices);
     }
+
+    public interface ILinearlyCombinable
+    {
+        void LinearCombination(IList<double> coefficients, IList<IMatrix2D> matrices);
+    }
 }

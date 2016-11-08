@@ -1,4 +1,6 @@
-﻿namespace ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces
+﻿using System.Collections.Generic;
+
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces
 {
     public interface IMatrix2D
     {

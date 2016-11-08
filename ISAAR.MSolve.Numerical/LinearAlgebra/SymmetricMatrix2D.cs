@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class SymmetricMatrix2D : IMatrix2D, ILinearlyCombinable<SymmetricMatrix2D>
+    public class SymmetricMatrix2D : IMatrix2D, ILinearlyCombinable, ILinearlyCombinable<SymmetricMatrix2D>
     {
         private int rows;
         private double[] data;
@@ -145,6 +145,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 var m = matrices[i];
                 for (int j = 0; j < data.Length; j++)
                     newData[j] += cs[i] * m.Data[j];
+            }
+
+            var d = data;
+            Array.Copy(newData, d, data.Length);
+        }
+
+        public void LinearCombination(IList<double> coefficients, IList<IMatrix2D> matrices)
+        {
+            if (coefficients.Count != matrices.Count)
+                throw new ArgumentException(String.Format("Coefficients and matrices count mismatch ({0} <> {1}).", coefficients.Count, matrices.Count));
+            for (int i = 0; i < matrices.Count; i++)
+                if (matrices[i].Rows != rows)
+                    throw new ArgumentException(String.Format("Matrix at pos {0} has {1} rows instead of {2}.", i, matrices[i].Rows, rows));
+
+            var cs = (IList<double>)coefficients;
+            double[] newData = new double[data.Length];
+            for (int k = 0; k < matrices.Count; k++)
+            {
+                var m = matrices[k];
+                int index = 0;
+                for (int i = 0; i < rows; i++)
+                    for (int j = i; j < rows; j++)
+                        newData[index++] += cs[i] * m[i,j];
+                //for (int j = 0; j < data.Length; j++)
+                //    newData[j] += cs[i] * m.Data[j];
             }
 
             var d = data;
