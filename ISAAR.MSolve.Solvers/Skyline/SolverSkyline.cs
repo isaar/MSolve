@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             this.model = model;
             subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
+                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
             this.AccuracyDigits = -1;
         }
 

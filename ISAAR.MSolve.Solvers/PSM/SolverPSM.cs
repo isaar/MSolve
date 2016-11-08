@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Solvers.PSM
             internalDOFsDictionary = new Dictionary<int, List<int>>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
             {
-                subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
+                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
                 boundaryDOFsDictionary.Add(subdomain.ID, new List<int>());
             }
         }
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Solvers.PSM
         {
             foreach (var subdomain in subdomainsDictionary)
             {
-                SubdomainSkyline s = (SubdomainSkyline)subdomain.Value;
+                SkylineLinearSystem s = (SkylineLinearSystem)subdomain.Value;
                 SkylineMatrix2D k = (SkylineMatrix2D)s.Matrix;
                 //var internalDOFs = model.Subdomains[s.ID].NodalDOFsDictionary.SelectMany(x => x.Value.Values).Except(boundaryDOFsDictionary[s.ID]).OrderBy(x => x).ToArray<int>();
                 var internalDOFs = internalDOFsDictionary[s.ID];

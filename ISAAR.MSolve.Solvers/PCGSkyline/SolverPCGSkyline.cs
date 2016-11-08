@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
             subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
+                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
         }
 
         public SolverPCG(Model model, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator)
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
             subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
+                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
         }
 
         public SolverPCG(Model model, ISearchVectorCalculator searchVectorCalculator)
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
             subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SubdomainSkyline(subdomain));
+                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
         }
 
         private void Initialize(Model model, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator)

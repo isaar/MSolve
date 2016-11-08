@@ -107,7 +107,7 @@
     <Compile Include="PSM\SolverPSM.cs" />
     <Compile Include="SearchVectors.cs" />
     <Compile Include="Skyline\SolverSkyline.cs" />
-    <Compile Include="Skyline\SubdomainSkyline.cs" />
+    <Compile Include="Skyline\SkylineLinearSystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">

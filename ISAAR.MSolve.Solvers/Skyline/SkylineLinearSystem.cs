@@ -7,7 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
-    public class SubdomainSkyline : ILinearSystem
+    public class SkylineLinearSystem : ILinearSystem
     {
         private readonly Subdomain subdomain;
         private SkylineMatrix2D stiffnessMatrix;
@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private SkylineMatrix2D stiffnessMatrixCopy;
         private Vector solution;
 
-        public SubdomainSkyline(Subdomain subdomain)
+        public SkylineLinearSystem(Subdomain subdomain)
         {
             this.subdomain = subdomain;
             solution = new Vector(subdomain.TotalDOFs);
