@@ -125,13 +125,13 @@
       <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
       <Name>ISAAR.MSolve.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
+      <Name>ISAAR.MSolve.Numerical</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
       <Project>{0883B2F7-198A-4404-B13D-22100BF90A31}</Project>
       <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
     </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
       <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>

@@ -9,6 +9,6 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
     public interface INonLinearProvider : IAnalyzerProvider
     {
         double RHSNorm(double[] rhs);
-        void ProcessInternalRHS(ISolverSubdomain subdomain, double[] rhs, double[] solution);
+        void ProcessInternalRHS(ILinearSystem subdomain, double[] rhs, double[] solution);
     }
 }

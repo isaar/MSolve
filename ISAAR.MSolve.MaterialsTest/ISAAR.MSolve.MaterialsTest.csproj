@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D9DD38A2-0CB4-43D7-8754-06251DD37D63}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{7AE1D753-3E72-4574-B841-A4F46E7A7244}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ISAAR.MSolve.SamplesConsole</RootNamespace>
-    <AssemblyName>ISAAR.MSolve.SamplesConsole</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <RootNamespace>ISAAR.MSolve.MaterialsTest</RootNamespace>
+    <AssemblyName>ISAAR.MSolve.MaterialsTest</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -38,38 +36,18 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BeamBuildingBuilder.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="ConstructorClass.cs" />
+    <Compile Include="ElementWithMaterial.cs" />
+    <Compile Include="ElementWithoutMaterial.cs" />
+    <Compile Include="IFiniteElement.cs" />
+    <Compile Include="IMaterialProperty.cs" />
+    <Compile Include="IMaterialState.cs" />
+    <Compile Include="AmbroseMaterialProperty.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
-      <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
-      <Name>ISAAR.MSolve.Logging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
-      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
-      <Name>ISAAR.MSolve.Numerical</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
-      <Project>{c30e5a92-8060-46eb-8249-4fe4f603de18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj">
-      <Project>{d4c27dc8-5a58-4bf0-8423-0f3c1fb47b8f}</Project>
-      <Name>ISAAR.MSolve.Problems</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
-      <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
-      <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj">
-      <Project>{5811fdb6-9b63-48ed-a153-47a673a3cc6f}</Project>
-      <Name>ISAAR.MSolve.Analyzers</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

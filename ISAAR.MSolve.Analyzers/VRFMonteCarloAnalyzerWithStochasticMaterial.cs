@@ -7,10 +7,11 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 using System.IO;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -22,10 +23,10 @@ namespace ISAAR.MSolve.Analyzers
         private readonly int simulations;
         private readonly int simulationStartFrom = 0;
         private readonly int randomFileSimulations = 50000;
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
+        private readonly IDictionary<int, ILinearSystem> subdomains;
         //private readonly IDictionary<int, IMatrix2D<double>> matrices;
-        private readonly IDictionary<int, IMatrix2D<double>>[] matrices;
-        private readonly IDictionary<int, SkylineMatrix2D<double>> factorizedMatrices = new Dictionary<int, SkylineMatrix2D<double>>();
+        private readonly IDictionary<int, IMatrix2D>[] matrices;
+        private readonly IDictionary<int, SkylineMatrix2D> factorizedMatrices = new Dictionary<int, SkylineMatrix2D>();
         private readonly Model model;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
         private readonly IAnalyzerProvider provider;
@@ -43,9 +44,9 @@ namespace ISAAR.MSolve.Analyzers
         private readonly List<double> matrixMagnitudes = new List<double>();
         private Dictionary<int, double[]> vrfs;
 
-        public IDictionary<int, SkylineMatrix2D<double>> FactorizedMatrices { get { return factorizedMatrices; } }
+        public IDictionary<int, SkylineMatrix2D> FactorizedMatrices { get { return factorizedMatrices; } }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider, int expansionOrder, int simulations)
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider, int expansionOrder, int simulations)
         {
             this.childAnalyzer = embeddedAnalyzer;
             this.provider = provider;
@@ -54,21 +55,21 @@ namespace ISAAR.MSolve.Analyzers
             this.expansionOrder = expansionOrder;
             this.childAnalyzer.ParentAnalyzer = this;
             //this.matrices = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
-            this.matrices = new Dictionary<int, IMatrix2D<double>>[expansionOrder + 1];
+            this.matrices = new Dictionary<int, IMatrix2D>[expansionOrder + 1];
             this.coefficientsProvider = coefficientsProvider;
             this.approximateCoefficientsProvider = approximateCoefficientsProvider;
             this.simulations = coefficientsProvider.NPhi * coefficientsProvider.NPtsVRF;
             //this.stochasticDomain = stochasticDomain;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
             int expansionOrder, int simulations, string fileNameForLogging)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations)
         {
             this.fileNameForLogging = fileNameForLogging;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
             int expansionOrder, int simulations, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations, fileNameForLogging)
         {
@@ -76,14 +77,14 @@ namespace ISAAR.MSolve.Analyzers
             //this.stiffnessMatrixProductionMode = stiffnessMatrixProductionMode;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
             int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {
             this.blockSize = blockSize;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
             int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName, 
             int simulationStartFrom)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations, blockSize, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
@@ -262,7 +263,7 @@ namespace ISAAR.MSolve.Analyzers
             return Math.Sqrt(sumOfSquares / (values.Length - 1));
         }
 
-        private string GetCSVText(IVector<double> iVector)
+        private string GetCSVText(IVector iVector)
         {
             var s = string.Empty;
             foreach (var val in model.Subdomains[0].GlobalNodalDOFsDictionary)
@@ -280,9 +281,9 @@ namespace ISAAR.MSolve.Analyzers
 
             foreach (var sub in subdomains)
             {
-                var m = new SkylineMatrix2D<double>(new int[0]);
+                var m = new SkylineMatrix2D(new int[0]);
                 m.ReadFromFile(String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, matrixNo));
-                m.Factorize(1e-8, new List<Vector<double>>(), new List<int>());
+                m.Factorize(1e-8, new List<IVector>(), new List<int>());
                 if (factorizedMatrices.ContainsKey(sub.Key))
                     factorizedMatrices[sub.Key] = m;
                 else
@@ -300,7 +301,7 @@ namespace ISAAR.MSolve.Analyzers
             string ext = Path.GetExtension(name);
 
             foreach (var sub in subdomains)
-                sub.Value.Matrix.WriteToFile(String.Format(@"{0}\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, simulation));
+                ((IFileWriteable)sub.Value.Matrix).WriteToFile(String.Format(@"{0}\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, simulation));
         }
 
         #endregion
