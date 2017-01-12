@@ -191,12 +191,11 @@ namespace ISAAR.MSolve.Analyzers
                 }
                 //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
                 Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);
-                provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);
+                provider.ProcessInternalRHS(subdomain.Matrix, internalRHS.Data, uPlusdu[subdomain.ID].Data);
                     //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
-                    internalRHS.Add(new Vector(parentAnalyzer.GetOtherRHSComponents(subdomain,
-                        uPlusdu[subdomain.ID])));
+                    internalRHS.Add(new Vector(parentAnalyzer.GetOtherRHSComponents(subdomain.Matrix, uPlusdu[subdomain.ID])));
                 //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
                 
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
