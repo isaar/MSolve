@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Analyzers
         private void InitalizeMatrices()
         {
             foreach (ILinearSystem subdomain in subdomains.Values)
-                provider.CalculateMatrix(subdomain.Matrix);
+                provider.CalculateMatrix(subdomain.ID);
             //provider.CalculateMatrices();
                 //subdomain.Matrix = provider.Ks[subdomain.ID];
         }
@@ -78,9 +78,9 @@ namespace ISAAR.MSolve.Analyzers
 
         #region INonLinearParentAnalyzer Members
 
-        public double[] GetOtherRHSComponents(IMatrix2D matrix, IVector currentSolution)
+        public double[] GetOtherRHSComponents(int id, IVector currentSolution)
         {
-            return new double[matrix.Rows];
+            return new double[currentSolution.Length];
         }
 
         #endregion
