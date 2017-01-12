@@ -99,18 +99,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VRFMonteCarloAnalyzerWithStochasticMaterial.cs" />
-    <Compile Include="PolynomialChaosAnalyzer.cs" />
-    <Compile Include="PolynomialChaosSolverPCGMatrixCalculator.cs" />
-    <Compile Include="MonteCarloSolverPCGDirectMatrixCalculator.cs" />
-    <Compile Include="MonteCarloStiffnessMatrixFactoryWithStochasticMaterial.cs" />
-    <Compile Include="MonteCarloAnalyzerWithStochasticMaterial.cs" />
+    <Compile Include="Interfaces\INonLinearSubdomainUpdater.cs" />
+    <Compile Include="Interfaces\ISubdomainGlobalMapping.cs" />
     <Compile Include="ImplicitIntegrationCoefficients.cs" />
     <Compile Include="Interfaces\INonLinearProvider.cs" />
     <Compile Include="Interfaces\INonLinearParentAnalyzer.cs" />
     <Compile Include="Interfaces\IAnalyzerProvider.cs" />
-    <Compile Include="MonteCarloAnalyzer.cs" />
-    <Compile Include="PowerSpectrumTargetEvaluator.cs" />
     <Compile Include="Interfaces\IStaticProvider.cs" />
     <Compile Include="Interfaces\IAnalyzer.cs" />
     <Compile Include="Interfaces\IImplicitIntegrationProvider.cs" />
@@ -132,10 +126,6 @@
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
       <Project>{0883B2F7-198A-4404-B13D-22100BF90A31}</Project>
       <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
-      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
