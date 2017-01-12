@@ -1,137 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor;
-using System.Diagnostics;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
-    //public class ScientificDouble
-    //{
-    //    public int Exponent { get; set; }
-    //    public double Mantissa { get; set; }
-    //    public bool IsNegative { get; set; }
-
-    //    public void ReduceAccuracy(int accuracy)
-    //    {
-    //        if (accuracy < 1) return;
-
-    //        Mantissa = Math.Truncate(Mantissa * Math.Pow(10, accuracy - 1)) * Math.Pow(10, 1 - accuracy);
-    //    }
-        
-    //    public static ScientificDouble GetScientificDouble(double number)
-    //    {
-    //        ScientificDouble s = new ScientificDouble();
-    //        if (number < 0) s.IsNegative = true;
-    //        double d = Math.Abs(number);
-    //        while (d >= 1)
-    //        {
-    //            d /= 10;
-    //            s.Exponent++;
-    //        }
-    //        while (d < 1)
-    //        {
-    //            d *= 10;
-    //            s.Exponent--;
-    //        }
-    //        s.Mantissa = d;
-    //        return s;
-    //    }
-
-    //    public static double GetDouble(ScientificDouble s)
-    //    {
-    //        double d = s.Mantissa * Math.Pow(10, s.Exponent);
-    //        if (s.IsNegative)
-    //            return -1.0 * d;
-    //        else
-    //            return d;
-    //    }
-    //}
-
     public class SolverSkyline : ISolver
     {
-        private string stringFormat;
-        private int accuracyDigits;
-        private readonly Model model;
-        private readonly Dictionary<int, ILinearSystem> subdomainsDictionary;
-        public int AccuracyDigits { get { return accuracyDigits; }
-            set 
-            { 
-                accuracyDigits = value; 
-                stringFormat = "";
-                if (accuracyDigits < 1) return;
+        private readonly ILinearSystem linearSystem;
 
-                for (int i = 0; i < accuracyDigits; i++) stringFormat += "#";
-                if (accuracyDigits > 1) stringFormat.Insert(1, ".");
-                stringFormat += "e+00";
-            }
-        }
-
-        public SolverSkyline(Model model)
+        public SolverSkyline(ILinearSystem linearSystem)
         {
-            this.model = model;
-            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
-            this.AccuracyDigits = -1;
-        }
-
-        public Dictionary<int, ILinearSystem> SubdomainsDictionary
-        {
-            get { return subdomainsDictionary; }
+            this.linearSystem = linearSystem;
         }
 
         #region ISolver Members
 
         public void Initialize()
         {
-            if (model.SubdomainsDictionary.Count != 1) throw new InvalidOperationException("Skyline solver operates on one subdomain only.");
-            foreach (ILinearSystem subdomain in subdomainsDictionary.Values)
-            {
-                if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized) continue;
+            ILinearSystem subdomain = linearSystem;
+            if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized) return;
 
-                List<IVector> zems = new List<IVector>();
-                List<int> zemColumns = new List<int>();
-                SkylineMatrix2D m = (SkylineMatrix2D)subdomain.Matrix;
+            List<IVector> zems = new List<IVector>();
+            List<int> zemColumns = new List<int>();
+            SkylineMatrix2D m = (SkylineMatrix2D)subdomain.Matrix;
 
-                //StreamWriter sw = File.CreateText(@"d:\KIx1M.txt");
-                //for (int i = 0; i < m.RowIndex.Length; i++)
-                //    sw.WriteLine(m.RowIndex[i]);
-                //sw.Close();
-                //sw = File.CreateText(@"d:\KData1M.txt");
-                //for (int i = 0; i < m.Data.Length; i++)
-                //    sw.WriteLine(m.Data[i]);
-                //sw.Close();
-                //sw = File.CreateText(@"d:\f1M.txt");
-                //for (int i = 0; i < subdomain.RHS.Length; i++)
-                //    sw.WriteLine(subdomain.RHS[i]);
-                //sw.Close();
-                //return;
-
-                Stopwatch stopWatch = new Stopwatch();
-                stopWatch.Start();
-                ((SkylineMatrix2D)subdomain.Matrix).Factorize(1e-15, zems, zemColumns);
-                stopWatch.Stop();
-                //StreamWriter sw = File.CreateText(@"c:\factorization.txt");
-                //sw.WriteLine(stopWatch.ElapsedMilliseconds.ToString());
-                //sw.Close();
-                if (zemColumns.Count > 0) throw new InvalidOperationException("Skyline solver does not operate on singular matrices.");
-            }
-
-            //using (var s = File.CreateText("dataFac.txt"))
-            //{
-            //    var m = (SkylineMatrix2D<double>)subdomainsDictionary[1].Matrix;
-            //    for (int i = 0; i < m.Data.Length; i++)
-            //        s.WriteLine(String.Format("{0:0.#################E+00}", m.Data[i]));
-            //}
+            ((SkylineMatrix2D)subdomain.Matrix).Factorize(1e-15, zems, zemColumns);
+            if (zemColumns.Count > 0) throw new InvalidOperationException("Skyline solver does not operate on singular matrices.");
         }
 
         public void LessenAccuracy(double tolerance)
         {
             var valueDictionary = new SortedDictionary<double, List<int>>();
-            SkylineMatrix2D k = ((SkylineMatrix2D)subdomainsDictionary[1].Matrix);
+            SkylineMatrix2D k = ((SkylineMatrix2D)linearSystem.Matrix);
             for (int i = 0; i < k.Data.Length; i++)
             {
                 double difference = Double.MaxValue;
@@ -164,43 +66,23 @@ namespace ISAAR.MSolve.Solvers.Skyline
                     }
         }
 
-        private void DestroyAccuracy(ILinearSystem subdomain)
-        {
-            if (AccuracyDigits < 1) return;
+        //private void DestroyAccuracy(ILinearSystem subdomain)
+        //{
+        //    if (AccuracyDigits < 1) return;
 
-            for (int i = 0; i < subdomain.RHS.Length; i++)
-            {
-                //ScientificDouble s = ScientificDouble.GetScientificDouble(subdomain.RHS[i]);
-                //s.ReduceAccuracy(AccuracyDigits);
-                //subdomain.RHS[i] = ScientificDouble.GetDouble(s);
-                subdomain.RHS[i] = Double.Parse(String.Format("{0:" + stringFormat + "}", subdomain.RHS[i]));
-            }
-        }
+        //    for (int i = 0; i < subdomain.RHS.Length; i++)
+        //    {
+        //        //ScientificDouble s = ScientificDouble.GetScientificDouble(subdomain.RHS[i]);
+        //        //s.ReduceAccuracy(AccuracyDigits);
+        //        //subdomain.RHS[i] = ScientificDouble.GetDouble(s);
+        //        subdomain.RHS[i] = Double.Parse(String.Format("{0:" + stringFormat + "}", subdomain.RHS[i]));
+        //    }
+        //}
 
         public void Solve()
         {
-            foreach (ILinearSystem subdomain in subdomainsDictionary.Values)
-            {
-                //double[] x = ((Vector)subdomain.Solution).Data;
-                SkylineMatrix2D k = ((SkylineMatrix2D)subdomain.Matrix);
-                Stopwatch stopWatch = new Stopwatch();
-                stopWatch.Start();
-                k.Solve(subdomain.RHS, subdomain.Solution);
-                stopWatch.Stop();
-                // ???
-                //DestroyAccuracy(subdomain);
-
-                //x = new double[k.Rows];
-                ////LessenAccuracy(1e-7);
-                //k.Solve(subdomain.RHS, x);
-                //var xVec = new Vector(x);
-                //var y = xVec.Norm;
-                // ???
-
-                //StreamWriter sw = File.CreateText(@"c:\fbsub.txt");
-                //sw.WriteLine(stopWatch.ElapsedMilliseconds.ToString());
-                //sw.Close();
-            }
+            SkylineMatrix2D k = ((SkylineMatrix2D)linearSystem.Matrix);
+            k.Solve(linearSystem.RHS, linearSystem.Solution);
         }
 
         #endregion

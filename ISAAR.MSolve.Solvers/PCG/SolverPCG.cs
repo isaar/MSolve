@@ -14,14 +14,19 @@ namespace ISAAR.MSolve.Solvers.PCG
         protected int iterations = 0;
         protected int currentIteration = 0;
         protected double detf;
-        protected ISolverPCGMatrixCalculator matrixCalculator;
+        protected IIterativeSolverInitializer initializer;
+        protected IIterativeSolverPreconditioner preconditioner;
+        protected IIterativeSolverMatrixCalculator matrixCalculator;
         protected ISearchVectorCalculator search;
         private IVector x, r, p, z, q;
         protected readonly List<double> errors = new List<double>();
 
-        public SolverPCG(ISolverPCGMatrixCalculator matrixCalculator, ISearchVectorCalculator search)
+        public SolverPCG(IIterativeSolverInitializer initializer, IIterativeSolverMatrixCalculator matrixCalculator, IIterativeSolverPreconditioner preconditioner,
+            ISearchVectorCalculator search)
         {
+            this.initializer = initializer;
             this.matrixCalculator = matrixCalculator;
+            this.preconditioner = preconditioner;
             this.search = search;
 
             StreamWriter sw = File.CreateText(String.Format(@"iterationsPCG-{0}.txt", Process.GetCurrentProcess().Id));
@@ -75,12 +80,12 @@ namespace ISAAR.MSolve.Solvers.PCG
         {
             this.x = x;
             this.r = residual;
-            this.detf = detf;
+            this.detf = initializer.InitializeAndGetResidual(this.r, this.x);
 
             if (!internalVectorsAllocated)
             {
-                //int iLagr = x.Length;
-                int iLagr = matrixCalculator.VectorSize;
+                int iLagr = x.Length;
+                //int iLagr = matrixCalculator.VectorSize;
                 p = new Vector(iLagr);
                 //w = new Vector<double>(iLagr);
                 z = new Vector(iLagr);
@@ -107,7 +112,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             //matrixCalculator.Projectz(z, y);
             if (r.Norm > 1e-25)
             {
-                matrixCalculator.Precondition(r, z);
+                preconditioner.Precondition(r, z);
 
                 errors.Clear();
                 for (currentIteration = 0; currentIteration < maxIterations; currentIteration++)
@@ -129,7 +134,7 @@ namespace ISAAR.MSolve.Solvers.PCG
                     //matrixCalculator.Projectr(r, w);
                     //matrixCalculator.Precondition(w, z);
                     //matrixCalculator.Projectz(z, y);
-                    matrixCalculator.Precondition(r, z);
+                    preconditioner.Precondition(r, z);
                 }
                 iterations = currentIteration;
             }

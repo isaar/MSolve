@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace ISAAR.MSolve.Solvers.Interfaces
 {
-    public interface ISolverPCGInitialization
+    public interface IIterativeSolverInitializer
     {
-        double InitializeAndGetResidual(IList<ILinearSystem> linearSystems, IVector r, IVector x);
+        double InitializeAndGetResidual(IVector r, IVector x);
     }
 }
