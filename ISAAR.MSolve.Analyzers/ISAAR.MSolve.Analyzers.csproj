@@ -111,9 +111,9 @@
       <Project>{eb9a7e5f-ce79-4d49-ac6c-cf9e62ea5692}</Project>
       <Name>ISAAR.MSolve.Analyzers.Interfaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
-      <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
-      <Name>ISAAR.MSolve.Logging</Name>
+    <ProjectReference Include="..\ISAAR.MSolve.Logging.Interfaces\ISAAR.MSolve.Logging.Interfaces.csproj">
+      <Project>{a996da85-a5ea-4c81-bdb9-969ea9512f29}</Project>
+      <Name>ISAAR.MSolve.Logging.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>

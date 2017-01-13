@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Logging.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
@@ -14,7 +12,7 @@ namespace ISAAR.MSolve.Analyzers
         private IAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
         private readonly IDictionary<int, ILinearSystem> subdomains;
-        private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
+        private readonly Dictionary<int, ILinearAnalyzerLogFactory> logFactories = new Dictionary<int, ILinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
         public LinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> subdomains)
@@ -36,7 +34,7 @@ namespace ISAAR.MSolve.Analyzers
                     l.StoreResults(start, end, subdomains[id].Solution);
         }
 
-        public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
+        public Dictionary<int, ILinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
         public ISolver Solver { get { return solver; } }
 
         #region IAnalyzer Members

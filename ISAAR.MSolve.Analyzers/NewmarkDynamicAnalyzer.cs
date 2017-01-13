@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.Analyzers
 		private Dictionary<int, Vector> v = new Dictionary<int,Vector>();
 		private Dictionary<int, Vector> v1 = new Dictionary<int,Vector>();
 		private Dictionary<int, Vector> v2 = new Dictionary<int,Vector>();
-        //private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
-        //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
-        private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages = 
-            new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
+        private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
+            new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
+        //private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages = 
+        //    new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
         private readonly IDictionary<int, ILinearSystem> subdomains;
         private readonly IImplicitIntegrationProvider provider;
         private IAnalyzer childAnalyzer;
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Analyzers
             this.childAnalyzer.ParentAnalyzer = this;
         }
 
-        public Dictionary<int, ImplicitIntegrationAnalyzerLog> ResultStorages { get { return resultStorages; } }
+        public Dictionary<int, IImplicitIntegrationAnalyzerLog> ResultStorages { get { return resultStorages; } }
 
         private void InitializeCoefficients()
         {
@@ -153,12 +153,12 @@ namespace ISAAR.MSolve.Analyzers
         {
             //TODO: See implementation of logging
 
-            //if (childAnalyzer == null) return;
-            //foreach (ILinearSystem subdomain in subdomains.Values)
-            //    if (resultStorages.ContainsKey(subdomain.ID))
-            //        if (resultStorages[subdomain.ID] != null)
-            //            foreach (var l in childAnalyzer.Logs[subdomain.ID])
-            //                resultStorages[subdomain.ID].StoreResults(start, end, l);
+            if (childAnalyzer == null) return;
+            foreach (ILinearSystem subdomain in subdomains.Values)
+                if (resultStorages.ContainsKey(subdomain.ID))
+                    if (resultStorages[subdomain.ID] != null)
+                        foreach (var l in childAnalyzer.Logs[subdomain.ID])
+                            resultStorages[subdomain.ID].StoreResults(start, end, l);
         }
 
         #region IAnalyzer Members

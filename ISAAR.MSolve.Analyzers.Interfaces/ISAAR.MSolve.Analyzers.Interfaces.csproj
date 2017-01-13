@@ -53,6 +53,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.Logging.Interfaces\ISAAR.MSolve.Logging.Interfaces.csproj">
+      <Project>{a996da85-a5ea-4c81-bdb9-969ea9512f29}</Project>
+      <Name>ISAAR.MSolve.Logging.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
       <Name>ISAAR.MSolve.Numerical</Name>

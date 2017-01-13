@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, Vector> du = new Dictionary<int, Vector>();
         private readonly Dictionary<int, Vector> uPlusdu = new Dictionary<int, Vector>();
         private readonly Vector globalRHS;
-        private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
+        private readonly Dictionary<int, ILinearAnalyzerLogFactory> logFactories = new Dictionary<int, ILinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
         public NewtonRaphsonNonLinearAnalyzer(ISolver solver, ILinearSystem[] linearSystems, INonLinearSubdomainUpdater[] subdomainUpdaters, ISubdomainGlobalMapping[] mappings,
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.Analyzers
                     l.StoreResults(start, end, linearSystems[id].Solution);
         }
 
-        public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
+        public Dictionary<int, ILinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
 
         #region IAnalyzer Members
 
