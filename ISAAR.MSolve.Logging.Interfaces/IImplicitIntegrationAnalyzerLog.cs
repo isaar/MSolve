@@ -5,7 +5,8 @@ using System.Text;
 
 namespace ISAAR.MSolve.Logging.Interfaces
 {
-    public interface IImplicitIntegrationAnalyzerLog : IAnalyzerLog
+    public interface IImplicitIntegrationAnalyzerLog
     {
+        void StoreResults(DateTime startTime, DateTime endTime, IAnalyzerLog log);
     }
 }
