@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Problems", "IS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.SamplesConsole", "ISAAR.MSolve.SamplesConsole\ISAAR.MSolve.SamplesConsole.csproj", "{D9DD38A2-0CB4-43D7-8754-06251DD37D63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.XFEM", "ISAAR.MSolve.XFEM\ISAAR.MSolve.XFEM.csproj", "{374031D0-16CD-4B11-BA88-D45145BBB2F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{D9DD38A2-0CB4-43D7-8754-06251DD37D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9DD38A2-0CB4-43D7-8754-06251DD37D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9DD38A2-0CB4-43D7-8754-06251DD37D63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
