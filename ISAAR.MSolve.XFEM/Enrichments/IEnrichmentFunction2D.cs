@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.XFEM
+namespace ISAAR.MSolve.XFEM.Enrichments
 {
-    interface IPoint2D
+    interface IEnrichmentFunction2D
     {
-        double X { get; }
-        double Y { get; }
     }
 }

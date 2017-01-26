@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Integration
+namespace ISAAR.MSolve.XFEM.Integration.ShapeFunctions
 {
     interface IShapeFunction2D
     {

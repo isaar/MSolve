@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Geometry;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
-    class Node2D : IPoint2D
+    class Node2D : IPoint2D, IComparable<Node2D>
     {
         public int ID
         {
@@ -31,6 +32,11 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.ID = id;
             this.X = x;
             this.Y = y;
+        }
+
+        public int CompareTo(Node2D other)
+        {
+            return other.ID - this.ID;
         }
     }
 }

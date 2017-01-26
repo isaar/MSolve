@@ -9,6 +9,7 @@ using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Integration.GaussPoints;
+using ISAAR.MSolve.XFEM.Integration.ShapeFunctions;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -30,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IsoparametricQuad4(Node2D[] nodes, IFiniteElementMaterial2D material)
         {
+            // TODO: Add checks here: order of nodes
             this.nodes = new List<Node2D>(nodes);
             this.gaussPoints = IntegrationRule2D.Order2x2.Points;
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Integration
+namespace ISAAR.MSolve.XFEM.Integration.ShapeFunctions
 {
     /// <summary>
     /// The shape functions of a 4-node quadrilateral finite element.
@@ -104,12 +104,12 @@ namespace ISAAR.MSolve.XFEM.Integration
         /// </summary>
         public static readonly IShapeFunction2D N4 = new TopLeft();
 
-        public static IShapeFunction2D[] All { get { return new IShapeFunction2D[] { N1, N2, N3, N4 }; } }
+        public static IShapeFunction2D[] AllFunctions { get { return new IShapeFunction2D[] { N1, N2, N3, N4 }; } }
 
         public static double[] AllValuesAt(double xi, double eta)
         {
             double[] values = new double[4];
-            IShapeFunction2D[] functions = All;
+            IShapeFunction2D[] functions = AllFunctions;
             for (int i = 0; i < 4; ++i)
             {
                 values[i] = functions[i].ValueAt(xi, eta);
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.XFEM.Integration
         public static Tuple<double, double>[] AllDerivativesAt(double xi, double eta)
         {
             var derivatives = new Tuple<double, double>[4];
-            IShapeFunction2D[] functions = All;
+            IShapeFunction2D[] functions = AllFunctions;
             for (int i = 0; i < 4; ++i)
             {
                 derivatives[i] = new Tuple<double, double>(

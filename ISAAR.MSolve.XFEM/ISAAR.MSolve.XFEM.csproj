@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ISAAR.MSolve.XFEM</RootNamespace>
     <AssemblyName>ISAAR.MSolve.XFEM</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -45,15 +46,26 @@
   <ItemGroup>
     <Compile Include="Elements\IFiniteElement2D.cs" />
     <Compile Include="Elements\IsoparametricQuad4.cs" />
+    <Compile Include="Enrichments\InterfaceEnrichment2D.cs" />
+    <Compile Include="Enrichments\IEnrichmentFunction2D.cs" />
+    <Compile Include="Enrichments\Jump\Heaviside.cs" />
+    <Compile Include="Enrichments\Jump\IJumpEnrichment.cs" />
+    <Compile Include="Enrichments\Jump\PolynomialSmoothedHeaviside.cs" />
+    <Compile Include="Enrichments\Tip\IsotropicBrittleEnrichments.cs" />
+    <Compile Include="Enrichments\Tip\ITipEnrichment.cs" />
+    <Compile Include="Entities\Element2D.cs" />
     <Compile Include="Entities\Node2D.cs" />
+    <Compile Include="Entities\XNode2D.cs" />
+    <Compile Include="Geometry\ICurve2D.cs" />
+    <Compile Include="Geometry\Line2D.cs" />
     <Compile Include="Integration\GaussPoints\GaussPoint1D.cs" />
     <Compile Include="Integration\GaussPoints\GaussPoint2D.cs" />
     <Compile Include="Integration\GaussPoints\IntegrationRules2D.cs" />
     <Compile Include="Integration\GaussPoints\IntegrationRules1D.cs" />
-    <Compile Include="Integration\IShapeFunction2D.cs" />
+    <Compile Include="Integration\ShapeFunctions\IShapeFunction2D.cs" />
     <Compile Include="Integration\Jacobian2D.cs" />
-    <Compile Include="Integration\Quad4ShapeFunctions.cs" />
-    <Compile Include="IPoint2D.cs" />
+    <Compile Include="Integration\ShapeFunctions\Quad4ShapeFunctions.cs" />
+    <Compile Include="Geometry\IPoint2D.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
     <Compile Include="Program.cs" />

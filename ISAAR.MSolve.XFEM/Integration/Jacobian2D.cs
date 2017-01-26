@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Integration
