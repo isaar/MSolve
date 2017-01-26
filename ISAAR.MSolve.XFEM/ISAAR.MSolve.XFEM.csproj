@@ -43,15 +43,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Elements\IFiniteElement2D.cs" />
+    <Compile Include="Elements\IsoparametricQuad4.cs" />
+    <Compile Include="Entities\Node2D.cs" />
+    <Compile Include="Integration\GaussPoints\GaussPoint1D.cs" />
+    <Compile Include="Integration\GaussPoints\GaussPoint2D.cs" />
+    <Compile Include="Integration\GaussPoints\IntegrationRules2D.cs" />
+    <Compile Include="Integration\GaussPoints\IntegrationRules1D.cs" />
+    <Compile Include="Integration\IShapeFunction2D.cs" />
+    <Compile Include="Integration\Jacobian2D.cs" />
+    <Compile Include="Integration\Quad4ShapeFunctions.cs" />
+    <Compile Include="IPoint2D.cs" />
+    <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
+    <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Vector2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Elements\" />
-    <Folder Include="Integration\" />
+    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
+      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
+      <Name>ISAAR.MSolve.Matrices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
+      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
+      <Name>ISAAR.MSolve.PreProcessor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
