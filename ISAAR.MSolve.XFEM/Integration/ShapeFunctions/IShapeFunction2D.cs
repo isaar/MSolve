@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Integration.ShapeFunctions
 {
     interface IShapeFunction2D
     {
-        double ValueAt(double xi, double eta);
-        double XiDerivativeAt(double xi, double eta);
-        double EtaDerivativeAt(double xi, double eta);
+        double ValueAt(double x, double eta);
+        double XiDerivativeAt(double x, double y);
+        double EtaDerivativeAt(double x, double y);
     }
 }

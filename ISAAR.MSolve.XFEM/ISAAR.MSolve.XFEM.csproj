@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ISAAR.MSolve.XFEM.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Elements\IFiniteElement2D.cs" />
     <Compile Include="Elements\IsoparametricQuad4.cs" />
+    <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Enrichments\InterfaceEnrichment2D.cs" />
     <Compile Include="Enrichments\IEnrichmentFunction2D.cs" />
     <Compile Include="Enrichments\Jump\Heaviside.cs" />
@@ -62,10 +66,12 @@
     <Compile Include="Integration\GaussPoints\GaussPoint2D.cs" />
     <Compile Include="Integration\GaussPoints\IntegrationRules2D.cs" />
     <Compile Include="Integration\GaussPoints\IntegrationRules1D.cs" />
-    <Compile Include="Integration\ShapeFunctions\IShapeFunction2D.cs" />
+    <Compile Include="Integration\ShapeFunctions\IIsoparametricShapeFunction2D.cs" />
     <Compile Include="Integration\Jacobian2D.cs" />
-    <Compile Include="Integration\ShapeFunctions\Quad4ShapeFunctions.cs" />
+    <Compile Include="Integration\ShapeFunctions\IShapeFunction2D.cs" />
+    <Compile Include="Integration\ShapeFunctions\IsoparametricQuad4ShapeFunctions.cs" />
     <Compile Include="Geometry\IPoint2D.cs" />
+    <Compile Include="Integration\ShapeFunctions\Quad4ShapeFunctions.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
     <Compile Include="Program.cs" />

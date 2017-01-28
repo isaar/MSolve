@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Integration
             return B1;
         }
 
-        private Matrix2D<double> CalculateJacobianMatrix(IReadOnlyList<IPoint2D> nodes, 
+        private static Matrix2D<double> CalculateJacobianMatrix(IReadOnlyList<IPoint2D> nodes, 
             Tuple<double, double>[] shapeFunctionNaturalDerivatives)
         {
             var J = new Matrix2D<double>(dimension, dimension);
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.XFEM.Integration
             return J;
         }
 
-        private double CalculateDeterminant(Matrix2D<double> jacobianMatrix)
+        private static double CalculateDeterminant(Matrix2D<double> jacobianMatrix)
         {
             return jacobianMatrix[0, 0] * jacobianMatrix[1, 1] - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
         }
