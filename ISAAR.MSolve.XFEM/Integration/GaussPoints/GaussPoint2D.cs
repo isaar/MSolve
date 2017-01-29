@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Geometry;
 
 namespace ISAAR.MSolve.XFEM.Integration.GaussPoints
 {
-    class GaussPoint2D
+    class GaussPoint2D: IPoint2D
     {
         public double X { get; }
         public double Y { get; }

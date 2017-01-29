@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         private Matrix2D<double> CalculateDeformationMatrix(GaussPoint2D gaussPoint)
         {
             var shapeFunctions = new Quad4ShapeFunctions(halfLengthX, halfLengthY);
-            Tuple<double, double>[] shapeFunctionDerivatives = 
+            Tuple<double, double>[] shapeFunctionDerivatives =
                 shapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
 
             var B = new Matrix2D<double>(3, DOFS_COUNT);
@@ -146,6 +146,30 @@ namespace ISAAR.MSolve.XFEM.Elements
                 B[2, col2] = Nx;
             }
             return B;
+
+            //var B = new Matrix2D<double>(3, DOFS_COUNT);
+
+            //B[0, 0] = gaussPoint.Y - halfLengthY;
+            //B[0, 2] = -gaussPoint.Y + halfLengthY;
+            //B[0, 4] = gaussPoint.Y + halfLengthY;
+            //B[0, 6] = -gaussPoint.Y - halfLengthY;
+
+            //B[1, 1] = gaussPoint.X - halfLengthX;
+            //B[1, 3] = -gaussPoint.X - halfLengthX;
+            //B[1, 5] = gaussPoint.X + halfLengthX;
+            //B[1, 7] = -gaussPoint.X + halfLengthX;
+
+            //B[2, 0] = gaussPoint.X - halfLengthX;
+            //B[2, 1] = gaussPoint.Y - halfLengthY;
+            //B[2, 2] = -gaussPoint.X - halfLengthX;
+            //B[2, 3] = -gaussPoint.Y + halfLengthY;
+            //B[2, 4] = gaussPoint.X + halfLengthX;
+            //B[2, 5] = gaussPoint.Y + halfLengthY;
+            //B[2, 6] = -gaussPoint.X + halfLengthX;
+            //B[2, 7] = -gaussPoint.Y - halfLengthY;
+
+            //B.Scale(1.0 / (4 * halfLengthX * halfLengthY));
+            //return B;
         }
     }
 }

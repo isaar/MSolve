@@ -50,6 +50,7 @@
     <Compile Include="Elements\IFiniteElement2D.cs" />
     <Compile Include="Elements\IsoparametricQuad4.cs" />
     <Compile Include="Elements\Quad4.cs" />
+    <Compile Include="Elements\Quad4WithCrack.cs" />
     <Compile Include="Enrichments\InterfaceEnrichment2D.cs" />
     <Compile Include="Enrichments\IEnrichmentFunction2D.cs" />
     <Compile Include="Enrichments\Jump\Heaviside.cs" />
