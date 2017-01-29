@@ -73,6 +73,7 @@
     <Compile Include="Integration\ShapeFunctions\IsoparametricQuad4ShapeFunctions.cs" />
     <Compile Include="Geometry\IPoint2D.cs" />
     <Compile Include="Integration\ShapeFunctions\Quad4ShapeFunctions.cs" />
+    <Compile Include="Materials\ElasticMaterial2DPlainStrain.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
     <Compile Include="Program.cs" />

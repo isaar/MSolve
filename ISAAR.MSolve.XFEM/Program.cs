@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM
             double E = 2e6;
             double v = 0.3;
             double t = 1.0;
-            var material = ElasticMaterial2DPlainStress.Create(E, v, t);
+            var material = ElasticMaterial2DPlainStrain.Create(E, v, t);
 
             var element = new Quad4(nodes, material);
             SymmetricMatrix2D<double> k = element.BuildStiffnessMatrix();
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.XFEM
             double E = 2e6;
             double v = 0.3;
             double t = 1.0;
-            var material = ElasticMaterial2DPlainStress.Create(E, v, t);
+            var material = ElasticMaterial2DPlainStrain.Create(E, v, t);
 
             var element = new IsoparametricQuad4(nodes, material);
             SymmetricMatrix2D<double> k = element.BuildStiffnessMatrix();
@@ -120,10 +120,10 @@ namespace ISAAR.MSolve.XFEM
 
         static void Main(string[] args)
         {
-            Quad4Test();
-            IsoparametricQuad4Test();
+            //Quad4Test();
+            //IsoparametricQuad4Test();
             //Quad4WithCrackTest();
-            //IsoparametricQuad4WithCrackTest();
+            IsoparametricQuad4WithCrackTest();
         }
     }
 }
