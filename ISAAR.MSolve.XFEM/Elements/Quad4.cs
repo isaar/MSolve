@@ -21,8 +21,6 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         private readonly double halfLengthX;
         private readonly double halfLengthY;
-        private readonly double centroidX;
-        private readonly double centroidY;
         private readonly IReadOnlyList<Node2D> nodes;
         private readonly IReadOnlyList<GaussPoint2D> gaussPoints;
         private readonly IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materials;
@@ -44,9 +42,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
 
             this.halfLengthX = 0.5 * (nodes[1].X - nodes[0].X);
-            this.centroidX = 0.5 * (nodes[0].X + nodes[1].X);
             this.halfLengthY = 0.5 * (nodes[3].Y - nodes[0].Y);
-            this.centroidY = 0.5 * (nodes[0].Y + nodes[3].Y);
 
             this.nodes = new List<Node2D>(nodes);
             this.gaussPoints = FindGaussPoints();
@@ -85,7 +81,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 double thickness = materials[gaussPoint].Thickness;
 
                 // Gauss integration at this point
-                Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
+                Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation;
                 partial.Scale(thickness * gaussPoint.Weight);
                 Debug.Assert(partial.Rows == DOFS_COUNT);
                 Debug.Assert(partial.Columns == DOFS_COUNT);
@@ -111,8 +107,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             var localGaussPoints = new List<GaussPoint2D>();
             foreach (var naturalGaussPoint in IntegrationRule2D.Order2x2.Points)
             {
-                double localX = naturalGaussPoint.X * halfLengthX + centroidX;
-                double localY = naturalGaussPoint.Y * halfLengthY + centroidY;
+                double localX = naturalGaussPoint.X * halfLengthX;
+                double localY = naturalGaussPoint.Y * halfLengthY;
                 double localWeight = naturalGaussPoint.Weight * halfLengthX * halfLengthY;
                 localGaussPoints.Add(new GaussPoint2D(localX, localY, localWeight));
             }
@@ -128,48 +124,48 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <returns>A 3x8 matrix</returns>
         private Matrix2D<double> CalculateDeformationMatrix(GaussPoint2D gaussPoint)
         {
-            var shapeFunctions = new Quad4ShapeFunctions(halfLengthX, halfLengthY);
-            Tuple<double, double>[] shapeFunctionDerivatives =
-                shapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
-
-            var B = new Matrix2D<double>(3, DOFS_COUNT);
-            for (int node = 0; node < 4; ++node)
-            {
-                int col1 = 2 * node;
-                int col2 = 2 * node + 1;
-                double Nx = shapeFunctionDerivatives[node].Item1;
-                double Ny = shapeFunctionDerivatives[node].Item2;
-
-                B[0, col1] = Nx;
-                B[1, col2] = Ny;
-                B[2, col1] = Ny;
-                B[2, col2] = Nx;
-            }
-            return B;
+            //var shapeFunctions = new Quad4ShapeFunctions(halfLengthX, halfLengthY);
+            //Tuple<double, double>[] shapeFunctionDerivatives =
+            //    shapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
 
             //var B = new Matrix2D<double>(3, DOFS_COUNT);
+            //for (int node = 0; node < 4; ++node)
+            //{
+            //    int col1 = 2 * node;
+            //    int col2 = 2 * node + 1;
+            //    double Nx = shapeFunctionDerivatives[node].Item1;
+            //    double Ny = shapeFunctionDerivatives[node].Item2;
 
-            //B[0, 0] = gaussPoint.Y - halfLengthY;
-            //B[0, 2] = -gaussPoint.Y + halfLengthY;
-            //B[0, 4] = gaussPoint.Y + halfLengthY;
-            //B[0, 6] = -gaussPoint.Y - halfLengthY;
-
-            //B[1, 1] = gaussPoint.X - halfLengthX;
-            //B[1, 3] = -gaussPoint.X - halfLengthX;
-            //B[1, 5] = gaussPoint.X + halfLengthX;
-            //B[1, 7] = -gaussPoint.X + halfLengthX;
-
-            //B[2, 0] = gaussPoint.X - halfLengthX;
-            //B[2, 1] = gaussPoint.Y - halfLengthY;
-            //B[2, 2] = -gaussPoint.X - halfLengthX;
-            //B[2, 3] = -gaussPoint.Y + halfLengthY;
-            //B[2, 4] = gaussPoint.X + halfLengthX;
-            //B[2, 5] = gaussPoint.Y + halfLengthY;
-            //B[2, 6] = -gaussPoint.X + halfLengthX;
-            //B[2, 7] = -gaussPoint.Y - halfLengthY;
-
-            //B.Scale(1.0 / (4 * halfLengthX * halfLengthY));
+            //    B[0, col1] = Nx;
+            //    B[1, col2] = Ny;
+            //    B[2, col1] = Ny;
+            //    B[2, col2] = Nx;
+            //}
             //return B;
+
+            var B = new Matrix2D<double>(3, DOFS_COUNT);
+
+            B[0, 0] = gaussPoint.Y - halfLengthY;
+            B[0, 2] = -gaussPoint.Y + halfLengthY;
+            B[0, 4] = gaussPoint.Y + halfLengthY;
+            B[0, 6] = -gaussPoint.Y - halfLengthY;
+
+            B[1, 1] = gaussPoint.X - halfLengthX;
+            B[1, 3] = -gaussPoint.X - halfLengthX;
+            B[1, 5] = gaussPoint.X + halfLengthX;
+            B[1, 7] = -gaussPoint.X + halfLengthX;
+
+            B[2, 0] = gaussPoint.X - halfLengthX;
+            B[2, 1] = gaussPoint.Y - halfLengthY;
+            B[2, 2] = -gaussPoint.X - halfLengthX;
+            B[2, 3] = -gaussPoint.Y + halfLengthY;
+            B[2, 4] = gaussPoint.X + halfLengthX;
+            B[2, 5] = gaussPoint.Y + halfLengthY;
+            B[2, 6] = -gaussPoint.X + halfLengthX;
+            B[2, 7] = -gaussPoint.Y - halfLengthY;
+
+            B.Scale(1.0 / (4 * halfLengthX * halfLengthY));
+            return B;
         }
     }
 }

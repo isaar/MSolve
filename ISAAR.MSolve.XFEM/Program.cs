@@ -17,15 +17,31 @@ namespace ISAAR.MSolve.XFEM
         private static void Quad4Test()
         {
             Node2D[] nodes = new Node2D[4];
-            nodes[0] = new Node2D(0, 0.0, 0.0);
-            nodes[1] = new Node2D(1, 4.0, 0.0);
-            nodes[2] = new Node2D(2, 4.0, 3.0);
-            nodes[3] = new Node2D(3, 0.0, 3.0);
 
             //nodes[0] = new Node2D(0, -1.0, -1.0);
             //nodes[1] = new Node2D(1, 1.0, -1.0);
             //nodes[2] = new Node2D(2, 1.0, 1.0);
             //nodes[3] = new Node2D(3, -1.0, 1.0);
+
+            //nodes[0] = new Node2D(0, -2.0, -2.0);
+            //nodes[1] = new Node2D(1, 2.0, -2.0);
+            //nodes[2] = new Node2D(2, 2.0, 2.0);
+            //nodes[3] = new Node2D(3, -2.0, 2.0);
+
+            //nodes[0] = new Node2D(0, 0.0, 0.0);
+            //nodes[1] = new Node2D(1, 2.0, 0.0);
+            //nodes[2] = new Node2D(2, 2.0, 2.0);
+            //nodes[3] = new Node2D(3, 0.0, 2.0);
+
+            //nodes[0] = new Node2D(0, 0.0, 0.0);
+            //nodes[1] = new Node2D(1, 4.0, 0.0);
+            //nodes[2] = new Node2D(2, 4.0, 4.0);
+            //nodes[3] = new Node2D(3, 0.0, 4.0);
+
+            nodes[0] = new Node2D(0, 0.0, 0.0);
+            nodes[1] = new Node2D(1, 4.0, 0.0);
+            nodes[2] = new Node2D(2, 4.0, 3.0);
+            nodes[3] = new Node2D(3, 0.0, 3.0);
 
             double E = 1.0;
             double v = 0.25;
@@ -41,15 +57,31 @@ namespace ISAAR.MSolve.XFEM
         private static void IsoparametricQuad4Test()
         {
             Node2D[] nodes = new Node2D[4];
-            nodes[0] = new Node2D(0, 0.0, 0.0);
-            nodes[1] = new Node2D(1, 4.0, 0.0);
-            nodes[2] = new Node2D(2, 4.0, 3.0);
-            nodes[3] = new Node2D(3, 0.0, 3.0);
 
             //nodes[0] = new Node2D(0, -1.0, -1.0);
             //nodes[1] = new Node2D(1, 1.0, -1.0);
             //nodes[2] = new Node2D(2, 1.0, 1.0);
             //nodes[3] = new Node2D(3, -1.0, 1.0);
+
+            //nodes[0] = new Node2D(0, -2.0, -2.0);
+            //nodes[1] = new Node2D(1, 2.0, -2.0);
+            //nodes[2] = new Node2D(2, 2.0, 2.0);
+            //nodes[3] = new Node2D(3, -2.0, 2.0);
+
+            //nodes[0] = new Node2D(0, 0.0, 0.0);
+            //nodes[1] = new Node2D(1, 2.0, 0.0);
+            //nodes[2] = new Node2D(2, 2.0, 2.0);
+            //nodes[3] = new Node2D(3, 0.0, 2.0);
+
+            //nodes[0] = new Node2D(0, 0.0, 0.0);
+            //nodes[1] = new Node2D(1, 4.0, 0.0);
+            //nodes[2] = new Node2D(2, 4.0, 4.0);
+            //nodes[3] = new Node2D(3, 0.0, 4.0);
+
+            nodes[0] = new Node2D(0, 0.0, 0.0);
+            nodes[1] = new Node2D(1, 4.0, 0.0);
+            nodes[2] = new Node2D(2, 4.0, 3.0);
+            nodes[3] = new Node2D(3, 0.0, 3.0);
 
             //nodes[0] = new Node2D(0, 0.2, 0.3);
             //nodes[1] = new Node2D(1, 2.2, 1.5);
@@ -181,10 +213,10 @@ namespace ISAAR.MSolve.XFEM
 
         static void Main(string[] args)
         {
-            //Quad4Test();
-            //IsoparametricQuad4Test();
+            Quad4Test();
+            IsoparametricQuad4Test();
             //Quad4WithCrackTest();
-            IsoparametricQuad4WithCrackTest();
+            //IsoparametricQuad4WithCrackTest();
             //IsoparametricQuad4BimaterialTest();
         }
     }
