@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Jump
 {
-    class Heaviside : IInterfaceEnrichment
+    class Ramp: IInterfaceEnrichment
     {
         public double ValueAt(double signedDistance)
         {
-            return (signedDistance >= 0) ? 1.0 : 0.0; // What should H(0) be? For now H(0) = 1.
+            return Math.Abs(signedDistance);
         }
 
         public double DerivativeAt(double signedDistance)
         {
-            return (signedDistance == 0) ? 1.0 : 0.0; // This is supposedly appropriate for integration
+
+            return Math.Sign(signedDistance);
         }
     }
 }

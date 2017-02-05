@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments
     class InterfaceEnrichment2D
     {
         private readonly ICurve2D curve;
-        public IJumpEnrichment EnrichmentFunction { get; }
+        public IInterfaceEnrichment EnrichmentFunction { get; }
         public IReadOnlyDictionary<Node2D, double> EnrichedNodalDistances { get; }
         public IReadOnlyList<Element2D> IntersectedElements { get; }
         
-        public InterfaceEnrichment2D(ICurve2D curve, IJumpEnrichment enrichmentFunction, 
+        public InterfaceEnrichment2D(ICurve2D curve, IInterfaceEnrichment enrichmentFunction, 
             IEnumerable<Element2D> intersectedElements)
         {
             this.curve = curve;

@@ -125,16 +125,18 @@ namespace ISAAR.MSolve.XFEM.Integration.ShapeFunctions
         /// <param name="xi"></param>
         /// <param name="eta"></param>
         /// <returns></returns>
-        public static Tuple<double, double>[] AllDerivativesAt(double xi, double eta)
+        public static ShapeFunctionDerivatives2D AllDerivativesAt(double xi, double eta)
         {
-            var derivatives = new Tuple<double, double>[4];
+            double[] xiDerivatives = new double[4];
+            double[] etaDerivatives = new double[4];
+
             IIsoparametricShapeFunction2D[] functions = AllFunctions;
             for (int i = 0; i < 4; ++i)
             {
-                derivatives[i] = new Tuple<double, double>(
-                    functions[i].XiDerivativeAt(xi, eta), functions[i].EtaDerivativeAt(xi, eta));
+                xiDerivatives[i] = functions[i].XiDerivativeAt(xi, eta);
+                etaDerivatives[i] = functions[i].EtaDerivativeAt(xi, eta);
             }
-            return derivatives;
+            return new ShapeFunctionDerivatives2D(xiDerivatives, etaDerivatives);
         }
     }
 }

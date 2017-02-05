@@ -10,29 +10,23 @@ using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Integration.GaussPoints;
 using ISAAR.MSolve.XFEM.Integration.ShapeFunctions;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
     class IsoparametricQuad4: IFiniteElement2D
     {
-        private const double DETERMINANT_TOLERANCE = 0.00000001;
         private const int DOFS_COUNT = 8;
 
         private readonly IReadOnlyList<Node2D> nodes;
         private readonly IReadOnlyList<GaussPoint2D> gaussPoints;
         private readonly IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materials;
 
-        //public IFiniteElementDOFEnumerator DOFEnumerator
-        //{
-        //    get { throw new NotImplementedException(); }
-        //    set { throw new NotImplementedException(); }
-        //}
-
         public IsoparametricQuad4(Node2D[] nodes, IFiniteElementMaterial2D material)
         {
             // TODO: Add checks here: order of nodes
             this.nodes = new List<Node2D>(nodes);
-            this.gaussPoints = IntegrationRule2D.Order2x2.Points;
+            this.gaussPoints = IntegrationRule2D.Order2x2.Points; // TODO: remove the integration logic from the element class
 
             var materialsDict = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
             foreach (var point in gaussPoints)
@@ -42,36 +36,15 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.materials = materialsDict;
         }
 
-        //public IList<IList<DOFType>> GetElementDOFTypes(Element element)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         public SymmetricMatrix2D<double> BuildStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(DOFS_COUNT);
-            foreach (var gaussPoint in gaussPoints) // TODO: remove the integration logic from the element class
+            foreach (var gaussPoint in gaussPoints)
             {
                 // Calculate the necessary quantities for the integration
-                Tuple<double, double>[] shapeFunctionDerivatives = 
+                ShapeFunctionDerivatives2D shapeFunctionDerivatives = 
                     IsoparametricQuad4ShapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
                 Jacobian2D jacobian = new Jacobian2D(nodes, shapeFunctionDerivatives);
-                if (jacobian.Determinant < DETERMINANT_TOLERANCE)
-                {
-                    throw new ArgumentException(String.Format(
-                        "Jacobian determinant is negative or under tolerance ({0} < {1}). Check the order of nodes or the element geometry.",
-                        jacobian.Determinant, DETERMINANT_TOLERANCE));
-                }
 
                 Matrix2D<double> deformation = CalculateDeformationMatrix(shapeFunctionDerivatives, jacobian);
                 Matrix2D<double> constitutive = materials[gaussPoint].CalculateConstitutiveMatrix();
@@ -82,24 +55,12 @@ namespace ISAAR.MSolve.XFEM.Elements
                 partial.Scale(thickness * jacobian.Determinant * gaussPoint.Weight);
                 Debug.Assert(partial.Rows == DOFS_COUNT);
                 Debug.Assert(partial.Columns == DOFS_COUNT);
-                AddPartialToSymmetricTotalMatrix(partial, stiffness);
+                MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);
             }
             return stiffness;
         }
 
-        private static void AddPartialToSymmetricTotalMatrix(Matrix2D<double> partialMatrix,
-            SymmetricMatrix2D<double> totalMatrix)
-        {
-            for (int row = 0; row < totalMatrix.Rows; ++row)
-            {
-                for (int col = row; col < totalMatrix.Columns; ++col)
-                {
-                    totalMatrix[row, col] += partialMatrix[row, col];
-                }
-            }
-        }
-
-        private Matrix2D<double> CalculateDeformationMatrix(Tuple<double, double>[] shapeFunctionDerivatives, 
+        private Matrix2D<double> CalculateDeformationMatrix(ShapeFunctionDerivatives2D shapeFunctionDerivatives, 
             Jacobian2D jacobian)
         {
             //Calculate B2 deformation matrix. Dimensions = 4x8.
@@ -107,12 +68,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             //the displacement field in respect to the natural axes: {dU/dXi} = [B2] * {d} => 
             //{u,xi u,eta v,xi, v,eta} = [B2] * {u1 v1 u2 v2 u3 v3 u4 v4}
             var B2 = new Matrix2D<double>(4, DOFS_COUNT);
-            for (int node = 0; node < 4; ++node)
+            for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex)
             {
-                int col1 = 2 * node;
-                int col2 = 2 * node + 1;
-                double Nxi = shapeFunctionDerivatives[node].Item1;
-                double Neta = shapeFunctionDerivatives[node].Item2;
+                int col1 = 2 * nodeIndex;
+                int col2 = 2 * nodeIndex + 1;
+                double Nxi = shapeFunctionDerivatives.XiDerivativeOfNode(nodeIndex);
+                double Neta = shapeFunctionDerivatives.EtaDerivativeOfNode(nodeIndex);
 
                 B2[0, col1] = Nxi;
                 B2[1, col1] = Neta;

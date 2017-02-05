@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Jump
 {
-    interface IJumpEnrichment
+    interface IInterfaceEnrichment
     {
         double ValueAt(double signedDistance);
         double DerivativeAt(double signedDistance);

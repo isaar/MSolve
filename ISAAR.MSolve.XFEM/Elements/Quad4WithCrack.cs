@@ -13,6 +13,7 @@ using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Integration.GaussPoints;
 using ISAAR.MSolve.XFEM.Integration.ShapeFunctions;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -55,12 +56,6 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         private Dictionary<Node2D, double> nodalEnrichmentValues; // mutable
 
-        //public IFiniteElementDOFEnumerator DOFEnumerator
-        //{
-        //    get { throw new NotImplementedException(); }
-        //    set { throw new NotImplementedException(); }
-        //}
-
         public Quad4WithCrack(Node2D[] nodes, IFiniteElementMaterial2D material, ICurve2D discontinuity)
         {
             // TODO: Add checks here
@@ -89,21 +84,6 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.enrichment = new Crack2D(discontinuity);
         }
 
-        //public IList<IList<DOFType>> GetElementDOFTypes(Element element)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         public SymmetricMatrix2D<double> BuildStdStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(8);
@@ -119,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 partial.Scale(thickness * gaussPoint.Weight);
                 Debug.Assert(partial.Rows == 8);
                 Debug.Assert(partial.Columns == 8);
-                AddPartialToSymmetricTotalMatrix(partial, stiffness);
+                MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);
             }
             return stiffness;
         }
@@ -142,48 +122,13 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Contributions of this gauss point to the element stiffness matrices
                 Matrix2D<double> Kse = (Bstd.Transpose() * constitutive) * Benr;  // standard-enriched part
                 Kse.Scale(thickness * gaussPoint.Weight);
-                AddPartialToTotalMatrix(Kse, stiffnessStdEnriched);
+                MatrixUtilities.AddPartialToTotalMatrix(Kse, stiffnessStdEnriched);
 
                 Matrix2D<double> Kee = (Benr.Transpose() * constitutive) * Benr;  // enriched-enriched part
                 Kee.Scale(thickness * gaussPoint.Weight);
-                AddPartialToSymmetricTotalMatrix(Kee, stiffnessEnriched);
+                MatrixUtilities.AddPartialToSymmetricTotalMatrix(Kee, stiffnessEnriched);
             }
         }
-
-        private static void AddPartialToTotalMatrix(Matrix2D<double> partialMatrix, Matrix2D<double> totalMatrix)
-        {
-            for (int row = 0; row < totalMatrix.Rows; ++row)
-            {
-                for (int col = 0; col < totalMatrix.Columns; ++col)
-                {
-                    totalMatrix[row, col] += partialMatrix[row, col];
-                }
-            }
-        }
-
-        private static void AddPartialToSymmetricTotalMatrix(Matrix2D<double> partialMatrix, 
-            SymmetricMatrix2D<double> totalMatrix)
-        {
-            for (int row = 0; row < totalMatrix.Rows; ++row)
-            {
-                for (int col = row; col < totalMatrix.Columns; ++col)
-                {
-                    totalMatrix[row, col] += partialMatrix[row, col];
-                }
-            }
-        }
-
-        //private static double InterpolateNodalLevelSetToPoint(double[] nodalLevelSetValuess, double[] shapeFunctionsAtPoint) // This procedure should be generally available in a utility interpolation class
-        //{
-        //    // TODO: Check that the input arrays are matching or ensure it with a BiList
-        //    Debug.Assert(nodalLevelSetValuess.Length == shapeFunctionsAtPoint.Length);
-        //    double enrichmentAtPoint = 0;
-        //    for (int nodeIndex = 0; nodeIndex < nodalLevelSetValuess.Length; ++nodeIndex)
-        //    {
-        //        enrichmentAtPoint += nodalLevelSetValuess[nodeIndex] * shapeFunctionsAtPoint[nodeIndex];
-        //    }
-        //    return enrichmentAtPoint;
-        //}
 
         private void CalculateNodalEnrichmentValues()
         {

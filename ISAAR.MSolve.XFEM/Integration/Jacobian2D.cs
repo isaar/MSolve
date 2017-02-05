@@ -12,14 +12,16 @@ namespace ISAAR.MSolve.XFEM.Integration
 {
     class Jacobian2D
     {
-        private static readonly int dimension = 2;
+        private const double DETERMINANT_TOLERANCE = 0.00000001;
+        private const int DIMENSION = 2;
+
         public double Determinant { get; }
         public Matrix2D<double> InverseJ { get; } // I need a Matrix view for this
         
-        public Jacobian2D(IReadOnlyList<IPoint2D> nodes, Tuple<double, double>[] shapeFunctionNaturalDerivatives) 
+        public Jacobian2D(IReadOnlyList<IPoint2D> nodes, ShapeFunctionDerivatives2D shapeFunctionNaturalDerivatives) 
         {
             //TODO: enforce nodes and gradients being the same length (e.g. using BiList)
-            if (nodes.Count != shapeFunctionNaturalDerivatives.Length)
+            if (nodes.Count != shapeFunctionNaturalDerivatives.NodesCount)
             {
                 throw new ArgumentException("The nodal corrdinates do not match the shape function derivatives.");
             }
@@ -27,6 +29,12 @@ namespace ISAAR.MSolve.XFEM.Integration
             // The original matrix is not stored. Only the inverse and the determinant
             Matrix2D<double> jacobianMatrix = CalculateJacobianMatrix(nodes, shapeFunctionNaturalDerivatives);
             Determinant = CalculateDeterminant(jacobianMatrix);
+            if (Determinant < DETERMINANT_TOLERANCE)
+            {
+                throw new ArgumentException(String.Format(
+                    "Jacobian determinant is negative or under tolerance ({0} < {1}). Check the order of nodes or the element geometry.",
+                    Determinant, DETERMINANT_TOLERANCE));
+            }
             InverseJ = CalculateInverseJacobian(jacobianMatrix);
         }
 
@@ -47,15 +55,15 @@ namespace ISAAR.MSolve.XFEM.Integration
         }
 
         private static Matrix2D<double> CalculateJacobianMatrix(IReadOnlyList<IPoint2D> nodes, 
-            Tuple<double, double>[] shapeFunctionNaturalDerivatives)
+            ShapeFunctionDerivatives2D shapeFunctionNaturalDerivatives)
         {
-            var J = new Matrix2D<double>(dimension, dimension);
-            for (int n = 0; n < nodes.Count; ++n)
+            var J = new Matrix2D<double>(DIMENSION, DIMENSION);
+            for (int nodeIndex = 0; nodeIndex < nodes.Count; ++nodeIndex)
             {
-                double x = nodes[n].X;
-                double y = nodes[n].Y;
-                double N_xi = shapeFunctionNaturalDerivatives[n].Item1;
-                double N_eta = shapeFunctionNaturalDerivatives[n].Item2;
+                double x = nodes[nodeIndex].X;
+                double y = nodes[nodeIndex].Y;
+                double N_xi = shapeFunctionNaturalDerivatives.XiDerivativeOfNode(nodeIndex);
+                double N_eta = shapeFunctionNaturalDerivatives.EtaDerivativeOfNode(nodeIndex);
 
                 J[0, 0] += N_xi * x;
                 J[0, 1] += N_xi * y;
@@ -72,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Integration
 
         private Matrix2D<double> CalculateInverseJacobian(Matrix2D<double> jacobianMatrix)
         {
-            var invJ = new Matrix2D<double>(dimension, dimension);
+            var invJ = new Matrix2D<double>(DIMENSION, DIMENSION);
             invJ[0, 0] = jacobianMatrix[1, 1] / Determinant;
             invJ[0, 1] = -jacobianMatrix[0, 1] / Determinant;
             invJ[1, 0] = -jacobianMatrix[1, 0] / Determinant;

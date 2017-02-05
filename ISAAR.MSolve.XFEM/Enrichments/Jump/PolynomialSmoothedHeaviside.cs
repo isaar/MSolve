@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Jump
 {
-    class PolynomialSmoothedHeaviside : IJumpEnrichment
+    class PolynomialSmoothedHeaviside : IInterfaceEnrichment
     {
         private readonly double e;
 
