@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments;
 using ISAAR.MSolve.XFEM.Enrichments.Jump;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
@@ -202,7 +203,48 @@ namespace ISAAR.MSolve.XFEM
             stiffnessStdEnr.Scale(1e-6);
             stiffnessEnr.Scale(1e-6);
 
-            Console.WriteLine("Quad4 standar-stdandard stiffness matrix = ");
+            Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
+            Console.WriteLine(stiffnessStd);
+            Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
+            Console.WriteLine(stiffnessStdEnr);
+            Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
+            Console.WriteLine(stiffnessEnr);
+        }
+
+        private static void EnrichedIsoparametricQuad4WithCrackTest()
+        {
+            Node2D[] nodes = new Node2D[4];
+
+            //nodes[0] = new Node2D(0, 0.0, 0.0);
+            //nodes[1] = new Node2D(1, 20.0, 0.0);
+            //nodes[2] = new Node2D(2, 20.0, 20.0);
+            //nodes[3] = new Node2D(3, 0.0, 20.0);
+
+            nodes[0] = new Node2D(0, 20.0, 0.0);
+            nodes[1] = new Node2D(1, 40.0, 0.0);
+            nodes[2] = new Node2D(2, 40.0, 20.0);
+            nodes[3] = new Node2D(3, 20.0, 20.0);
+
+            double E = 2e6;
+            double v = 0.3;
+            double t = 1.0;
+            var material = ElasticMaterial2DPlainStrain.Create(E, v, t);
+
+            ICurve2D discontinuity = new Line2D(new Point2D(30.0, 0.0), new Point2D(30.0, 20.0));
+            IEnrichmentFunction2D enrichmentFunction = new HeavisideEnrichment2D(discontinuity);
+
+            var element = new IsoparametricQuad4Enriched(nodes, material, enrichmentFunction);
+
+            SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
+            Matrix2D<double> stiffnessStdEnr;
+            SymmetricMatrix2D<double> stiffnessEnr;
+            element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
+
+            stiffnessStd.Scale(1e-6);
+            stiffnessStdEnr.Scale(1e-6);
+            stiffnessEnr.Scale(1e-6);
+
+            Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
             Console.WriteLine(stiffnessStd);
             Console.WriteLine("Quad4 stdandard-enriched stiffness matrix = ");
             Console.WriteLine(stiffnessStdEnr);
@@ -210,14 +252,59 @@ namespace ISAAR.MSolve.XFEM
             Console.WriteLine(stiffnessEnr);
         }
 
+        private static void EnrichedIsoparametricQuad4BimaterialTest()
+        {
+            Node2D[] nodes = new Node2D[4];
+
+            //nodes[0] = new Node2D(0, 0.0, 0.0);
+            //nodes[1] = new Node2D(1, 20.0, 0.0);
+            //nodes[2] = new Node2D(2, 20.0, 20.0);
+            //nodes[3] = new Node2D(3, 0.0, 20.0);
+
+            nodes[0] = new Node2D(0, 20.0, 0.0);
+            nodes[1] = new Node2D(1, 40.0, 0.0);
+            nodes[2] = new Node2D(2, 40.0, 20.0);
+            nodes[3] = new Node2D(3, 20.0, 20.0);
+
+            double E = 2e6;
+            double v = 0.3;
+            double t = 1.0;
+            var materialLeft = ElasticMaterial2DPlainStrain.Create(E, v, t); //TODO: need a way to supply materials with predicates concerning (x, y) or (ksi, eta)
+            var materialRight = ElasticMaterial2DPlainStrain.Create(E / 2.0, v, t);
+
+            ICurve2D discontinuity = new Line2D(new Point2D(30.0, 0.0), new Point2D(30.0, 20.0));
+            IEnrichmentFunction2D enrichmentFunction = new RampEnrichment2D(discontinuity);
+
+
+            var element = new IsoparametricQuad4Enriched(nodes, materialLeft, materialRight, enrichmentFunction);
+
+            SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
+            Matrix2D<double> stiffnessStdEnr;
+            SymmetricMatrix2D<double> stiffnessEnr;
+            element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
+
+            stiffnessStd.Scale(1e-6);
+            stiffnessStdEnr.Scale(1e-6);
+            stiffnessEnr.Scale(1e-6);
+
+            Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
+            Console.WriteLine(stiffnessStd);
+            Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
+            Console.WriteLine(stiffnessStdEnr);
+            Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
+            Console.WriteLine(stiffnessEnr);
+        }
 
         static void Main(string[] args)
         {
-            Quad4Test();
-            IsoparametricQuad4Test();
+            //Quad4Test();
+            //IsoparametricQuad4Test();
+
             //Quad4WithCrackTest();
             //IsoparametricQuad4WithCrackTest();
-            //IsoparametricQuad4BimaterialTest();
+            //EnrichedIsoparametricQuad4WithCrackTest();
+            IsoparametricQuad4BimaterialTest();
+            EnrichedIsoparametricQuad4BimaterialTest();
         }
     }
 }

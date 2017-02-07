@@ -10,5 +10,6 @@ namespace ISAAR.MSolve.XFEM.Geometry
     interface ICurve2D
     {
         double SignedDistanceOf(IPoint2D point);
+        Tuple<double, double> NormalVectorThrough(IPoint2D point);
     }
 }

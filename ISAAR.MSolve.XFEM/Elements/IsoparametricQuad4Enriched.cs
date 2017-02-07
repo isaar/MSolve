@@ -17,7 +17,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    class IsoparametricQuad4WithDiscontinuity
+    class IsoparametricQuad4Enriched
     {
         private const int NODES_COUNT = 4;
         private const int STD_DOFS_COUNT = 8;
@@ -26,16 +26,14 @@ namespace ISAAR.MSolve.XFEM.Elements
         private readonly IReadOnlyList<Node2D> nodes;
         private readonly IReadOnlyList<GaussPoint2D> gaussPoints;
         private readonly IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materials;
-        private readonly ICurve2D discontinuity;
-        private readonly IInterfaceEnrichment enrichmentFunction;
+        private readonly IEnrichmentFunction2D enrichmentFunction;
 
         // TODO: use dictionaries for the nodal values.
-        private double[] nodalLevelSetValues; // mutable
         private double[] nodalEnrichmentValues; // mutable
 
 
-        public IsoparametricQuad4WithDiscontinuity(Node2D[] nodes, IFiniteElementMaterial2D material, 
-            ICurve2D discontinuity, IInterfaceEnrichment enrichmentFunction)
+        public IsoparametricQuad4Enriched(Node2D[] nodes, IFiniteElementMaterial2D material, 
+            IEnrichmentFunction2D enrichmentFunction)
         {
             // TODO: Add checks here: order of nodes
             this.nodes = new List<Node2D>(nodes);
@@ -50,12 +48,11 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             this.materials = materialsDict;
 
-            this.discontinuity = discontinuity;
             this.enrichmentFunction = enrichmentFunction;
         }
 
-        public IsoparametricQuad4WithDiscontinuity(Node2D[] nodes, IFiniteElementMaterial2D materialLeft, IFiniteElementMaterial2D materialRight,
-            ICurve2D discontinuity, IInterfaceEnrichment enrichmentFunction)
+        public IsoparametricQuad4Enriched(Node2D[] nodes, IFiniteElementMaterial2D materialLeft, IFiniteElementMaterial2D materialRight,
+            IEnrichmentFunction2D enrichmentFunction)
         {
             // TODO: Add checks here: order of nodes
             this.nodes = new List<Node2D>(nodes);
@@ -71,19 +68,18 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             this.materials = materialsDict;
 
-            this.discontinuity = discontinuity;
             this.enrichmentFunction = enrichmentFunction;
         }
 
         public SymmetricMatrix2D<double> BuildStdStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(STD_DOFS_COUNT);
-            foreach (var gaussPoint in gaussPoints) 
+            foreach (var gaussPoint in gaussPoints)
             {
                 // Calculate the necessary quantities for the integration
                 ShapeFunctionDerivatives2D shapeFunctionDerivatives =
                     IsoparametricQuad4ShapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
-                Jacobian2D jacobian = new Jacobian2D(nodes, shapeFunctionDerivatives);
+                XJacobian2D jacobian = new XJacobian2D(nodes, shapeFunctionDerivatives);
 
                 Matrix2D<double> deformation = CalculateStdDeformationMatrix(shapeFunctionDerivatives, jacobian);
                 Matrix2D<double> constitutive = materials[gaussPoint].CalculateConstitutiveMatrix();
@@ -111,7 +107,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Calculate the necessary quantities for the integration
                 ShapeFunctionDerivatives2D shapeFunctionDerivatives =
                     IsoparametricQuad4ShapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
-                Jacobian2D jacobian = new Jacobian2D(nodes, shapeFunctionDerivatives);
+                XJacobian2D jacobian = new XJacobian2D(nodes, shapeFunctionDerivatives);
 
                 Matrix2D<double> Bstd = CalculateStdDeformationMatrix(shapeFunctionDerivatives, jacobian);
                 Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(gaussPoint, shapeFunctionDerivatives, jacobian);
@@ -132,24 +128,21 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         private void CalculateNodalEnrichments()
         {
-            nodalLevelSetValues = new double[NODES_COUNT];
             nodalEnrichmentValues = new double[NODES_COUNT];
             for (int nodeIndex = 0; nodeIndex < NODES_COUNT; ++nodeIndex)
             {
-                double signedDistance = discontinuity.SignedDistanceOf(nodes[nodeIndex]);
-                nodalLevelSetValues[nodeIndex] = signedDistance;
-                nodalEnrichmentValues[nodeIndex] = enrichmentFunction.ValueAt(signedDistance);
+                nodalEnrichmentValues[nodeIndex] = enrichmentFunction.ValueAt(nodes[nodeIndex]);
             }
         }
 
         private Matrix2D<double> CalculateStdDeformationMatrix(ShapeFunctionDerivatives2D shapeFunctionDerivatives,
-            Jacobian2D jacobian)
+            XJacobian2D jacobian)
         {
             //Calculate B2 deformation matrix. Dimensions = 4x8.
             //B2 is a linear transformation FROM the nodal values of the displacement field TO the the derivatives of
             //the displacement field in respect to the natural axes: {dU/dXi} = [B2] * {d} => 
             //{u,xi u,eta v,xi, v,eta} = [B2] * {u1 v1 u2 v2 u3 v3 u4 v4}
-            var B2 = new Matrix2D<double>(4,STD_DOFS_COUNT);
+            var B2 = new Matrix2D<double>(4, STD_DOFS_COUNT);
             for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex)
             {
                 int col1 = 2 * nodeIndex;
@@ -168,22 +161,22 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         private Matrix2D<double> CalculateEnrichedDeformationMatrix(GaussPoint2D gaussPoint,
-            ShapeFunctionDerivatives2D shapeFunctionDerivatives, Jacobian2D jacobian)
+            ShapeFunctionDerivatives2D shapeFunctionDerivatives, XJacobian2D jacobian)
         {
             // TODO: Evaluate the shape functions only ONCE and then pass the values, derivatives to the Bstd, Benr methods
             double[] shapeFunctionValues = IsoparametricQuad4ShapeFunctions.AllValuesAt(gaussPoint.X, gaussPoint.Y);
 
-            // Calculate the enrichment value and derivatives at this Gauss point by using the interpolated level set values and derivatives
-            double levelSetValue = InterpolationUtilities.InterpolateNodalValuesToPoint(nodalLevelSetValues, shapeFunctionValues);
-            double levelSetDerivativeXi = InterpolationUtilities.InterpolateNodalValuesToPoint(nodalLevelSetValues,
-                shapeFunctionDerivatives.XiDerivatives());
-            double levelSetDerivativeEta = InterpolationUtilities.InterpolateNodalValuesToPoint(nodalLevelSetValues,
-                shapeFunctionDerivatives.EtaDerivatives());
+            double x = InterpolationUtilities.InterpolateNodalValuesToPoint(NodalX, shapeFunctionValues);
+            double y = InterpolationUtilities.InterpolateNodalValuesToPoint(NodalY, shapeFunctionValues);
+            Point2D cartesianPoint = new Point2D(x, y);
 
-            double enrichmentValue = enrichmentFunction.ValueAt(levelSetValue);
-            double enrichmentDerivativeToLevelSet = enrichmentFunction.DerivativeAt(levelSetValue);
-            double enrichmentDerivativeXi = enrichmentDerivativeToLevelSet * levelSetDerivativeXi;
-            double enrichmentDerivativeEta = enrichmentDerivativeToLevelSet * levelSetDerivativeEta;
+            // Calculate the enrichment value and derivatives at this Gauss point
+            double enrichmentValue = enrichmentFunction.ValueAt(cartesianPoint);
+            var enrichmentDerivativesCartesian = enrichmentFunction.DerivativesAt(cartesianPoint);
+            double enrichmentDerivativeXi = enrichmentDerivativesCartesian.Item1 * jacobian.dXdXi + 
+                enrichmentDerivativesCartesian.Item2 * jacobian.dYdXi;
+            double enrichmentDerivativeEta = enrichmentDerivativesCartesian.Item1 * jacobian.dXdEta +
+                enrichmentDerivativesCartesian.Item2 * jacobian.dYdEta;
 
             var B2enr = new Matrix2D<double>(4, 8); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)
             for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex)
@@ -204,6 +197,26 @@ namespace ISAAR.MSolve.XFEM.Elements
                 B2enr[3, col2] = enrN_eta;
             }
             return jacobian.CalculateB1DeformationMatrix() * B2enr;
+        }
+
+        private double[] NodalX
+        {
+            get
+            {
+                double[] x = new double[NODES_COUNT];
+                for (int nodeId = 0; nodeId < NODES_COUNT; ++nodeId) x[nodeId] = nodes[nodeId].X;
+                return x;
+            }
+        }
+
+        private double[] NodalY
+        {
+            get
+            {
+                double[] y = new double[NODES_COUNT];
+                for (int nodeId = 0; nodeId < NODES_COUNT; ++nodeId) y[nodeId] = nodes[nodeId].Y;
+                return y;
+            }
         }
     }
 }

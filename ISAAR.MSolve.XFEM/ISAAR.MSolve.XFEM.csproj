@@ -49,8 +49,10 @@
   <ItemGroup>
     <Compile Include="Elements\IFiniteElement2D.cs" />
     <Compile Include="Elements\IsoparametricQuad4.cs" />
+    <Compile Include="Elements\IsoparametricQuad4Enriched.cs" />
     <Compile Include="Elements\IsoparametricQuad4WithDiscontinuity.cs" />
     <Compile Include="Elements\Quad4.cs" />
+    <Compile Include="Enrichments\HeavisideEnrichment2D.cs" />
     <Compile Include="Enrichments\InterfaceEnrichment2D.cs" />
     <Compile Include="Enrichments\IEnrichmentFunction2D.cs" />
     <Compile Include="Enrichments\Jump\Heaviside.cs" />
@@ -58,6 +60,7 @@
     <Compile Include="Enrichments\Jump\PolynomialSmoothedHeaviside.cs" />
     <Compile Include="Enrichments\Jump\Ramp.cs" />
     <Compile Include="Enrichments\Jump\Sign.cs" />
+    <Compile Include="Enrichments\RampEnrichment2D.cs" />
     <Compile Include="Enrichments\Tip\IsotropicBrittleEnrichments.cs" />
     <Compile Include="Enrichments\Tip\ITipEnrichment.cs" />
     <Compile Include="Entities\Element2D.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="Integration\ShapeFunctions\IsoparametricQuad4ShapeFunctions.cs" />
     <Compile Include="Geometry\IPoint2D.cs" />
     <Compile Include="Integration\ShapeFunctions\Quad4ShapeFunctions.cs" />
+    <Compile Include="Integration\XJacobian2D.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStrain.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
