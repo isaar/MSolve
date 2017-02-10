@@ -49,6 +49,21 @@ namespace ISAAR.MSolve.Analyzers
             InitializeInternalVectors();
         }
 
+        public NewtonRaphsonNonLinearAnalyzer(ISolver solver, ILinearSystem linearSystem, INonLinearSubdomainUpdater[] subdomainUpdaters, ISubdomainGlobalMapping[] mappings,
+            INonLinearProvider provider, int increments, int totalDOFs)
+        {
+            this.solver = solver;
+            this.subdomainUpdaters = subdomainUpdaters;
+            this.mappings = mappings;
+            this.linearSystems = new[] { linearSystem };
+            this.provider = provider;
+            this.increments = increments;
+            this.totalDOFs = totalDOFs;
+            this.globalRHS = new Vector(totalDOFs);
+
+            InitializeInternalVectors();
+        }
+
         private void InitializeLogs()
         {
             logs.Clear();

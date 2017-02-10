@@ -46,6 +46,20 @@ namespace ISAAR.MSolve.Analyzers
             this.childAnalyzer.ParentAnalyzer = this;
         }
 
+        public NewmarkDynamicAnalyzer(IImplicitIntegrationProvider provider, IAnalyzer embeddedAnalyzer, ILinearSystem subdomain,
+            double alpha, double delta, double timeStep, double totalTime)
+        {
+            this.provider = provider;
+            this.childAnalyzer = embeddedAnalyzer;
+            this.alpha = alpha;
+            this.delta = delta;
+            this.timeStep = timeStep;
+            this.totalTime = totalTime;
+            this.childAnalyzer.ParentAnalyzer = this;
+            this.subdomains = new Dictionary<int, ILinearSystem>();
+            this.subdomains.Add(subdomain.ID, subdomain);
+        }
+
         public Dictionary<int, IImplicitIntegrationAnalyzerLog> ResultStorages { get { return resultStorages; } }
 
         private void InitializeCoefficients()

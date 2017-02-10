@@ -15,6 +15,13 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, ILinearAnalyzerLogFactory> logFactories = new Dictionary<int, ILinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
+        public LinearAnalyzer(ISolver solver, ILinearSystem subdomain)
+        {
+            this.solver = solver;
+            this.subdomains = new Dictionary<int, ILinearSystem>();
+            this.subdomains.Add(subdomain.ID, subdomain);
+        }
+
         public LinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> subdomains)
         {
             this.solver = solver;

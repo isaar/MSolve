@@ -15,6 +15,15 @@ namespace ISAAR.MSolve.Analyzers
         private IAnalyzer parentAnalyzer = null;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
+        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, ILinearSystem subdomain)
+        {
+            this.provider = provider;
+            this.childAnalyzer = embeddedAnalyzer;
+            this.childAnalyzer.ParentAnalyzer = this;
+            this.subdomains = new Dictionary<int, ILinearSystem>();
+            this.subdomains.Add(subdomain.ID, subdomain);
+        }
+
         public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains)
         {
             this.provider = provider;
