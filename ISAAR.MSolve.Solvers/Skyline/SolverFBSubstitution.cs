@@ -6,11 +6,11 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
-    public class SolverSkyline : ISolver
+    public class SolverFBSubstitution : ISolver
     {
         private readonly ILinearSystem linearSystem;
 
-        public SolverSkyline(ILinearSystem linearSystem)
+        public SolverFBSubstitution(ILinearSystem linearSystem)
         {
             this.linearSystem = linearSystem;
         }

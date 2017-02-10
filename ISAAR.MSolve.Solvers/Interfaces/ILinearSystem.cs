@@ -8,13 +8,5 @@ namespace ISAAR.MSolve.Solvers.Interfaces
         IMatrix2D Matrix { get; set; }
         IVector RHS { get; }
         IVector Solution { get; set;  }
-        //IVector GetRHSFromSolution(IVector solution, IVector dSolution);
-        //void SubdomainToGlobalVector(double[] vIn, double[] vOut);
-        //void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut);
-        //void SplitGlobalVectorToSubdomain(double[] vIn, double[] vOut);
-        //void SaveMaterialState();
-        //void ClearMaterialStresses();
-        //// REMOVE
-        //void CloneMatrix();
     }
 }
