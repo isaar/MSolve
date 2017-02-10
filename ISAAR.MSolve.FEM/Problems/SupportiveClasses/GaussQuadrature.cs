@@ -1,28 +1,22 @@
-﻿namespace ISAAR.MSolve.FEM.Problems.SupportiveClasses
+﻿using System;
+
+namespace ISAAR.MSolve.FEM.Problems.SupportiveClasses
 {
-    #region
-
-    using System;
-
-    #endregion
-
     public class GaussLegendrePoint1D
     {
-        #region Properties
-
         public double Coordinate { get; set; }
-
         public double WeightFactor { get; set; }
-
-        #endregion
     }
 
     public class GaussLegendrePoint3D
     {
-        #region Constructors and Destructors
+        public double[,] DeformationMatrix { get; private set; }
+        public double Eta { get; private set; }
+        public double WeightFactor { get; private set; }
+        public double Xi { get; private set; }
+        public double Zeta { get; private set; }
 
-        public GaussLegendrePoint3D(
-            double xi, double eta, double zeta, double[,] deformationMatrix, double weightFactor)
+        public GaussLegendrePoint3D(double xi, double eta, double zeta, double[,] deformationMatrix, double weightFactor)
         {
             this.Xi = xi;
             this.Eta = eta;
@@ -30,23 +24,6 @@
             this.DeformationMatrix = deformationMatrix;
             this.WeightFactor = weightFactor;
         }
-
-        #endregion
-
-        #region Properties
-
-        public double[,] DeformationMatrix { get; private set; }
-
-        public double Eta { get; private set; }
-
-        // Perhaps should be Matrix 2D. 
-        public double WeightFactor { get; private set; }
-
-        public double Xi { get; private set; }
-
-        public double Zeta { get; private set; }
-
-        #endregion
     }
 
     public class GaussQuadrature
@@ -63,61 +40,55 @@
          * 0.3478548451375 = (18 - sqrt30)/36
          * 0.6521451548625 = (18 + sqrt30)/36
         */
-        #region Constants and Fields
-
         private static readonly GaussLegendrePoint1D GaussLegendrePoint1 = new GaussLegendrePoint1D
-            {
-               Coordinate = 0.0, WeightFactor = 2.0 
-            };
+        {
+            Coordinate = 0.0, WeightFactor = 2.0 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint2A = new GaussLegendrePoint1D
-            {
-               Coordinate = -0.5773502691896, WeightFactor = 1.0 
-            };
+        {
+            Coordinate = -0.5773502691896, WeightFactor = 1.0 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint2B = new GaussLegendrePoint1D
-            {
-               Coordinate = 0.5773502691896, WeightFactor = 1.0 
-            };
+        {
+            Coordinate = 0.5773502691896, WeightFactor = 1.0 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint3A = new GaussLegendrePoint1D
-            {
-               Coordinate = -0.7745966692415, WeightFactor = 0.5555555555556 
-            };
+        {
+            Coordinate = -0.7745966692415, WeightFactor = 0.5555555555556 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint3B = new GaussLegendrePoint1D
-            {
-               Coordinate = 0.0, WeightFactor = 0.8888888888889 
-            };
+        {
+            Coordinate = 0.0, WeightFactor = 0.8888888888889 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint3C = new GaussLegendrePoint1D
-            {
-               Coordinate = 0.7745966692415, WeightFactor = 0.5555555555556 
-            };
+        {
+            Coordinate = 0.7745966692415, WeightFactor = 0.5555555555556 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint4A = new GaussLegendrePoint1D
-            {
-               Coordinate = -0.86113631159416, WeightFactor = 0.3478548451375 
-            };
+        {
+            Coordinate = -0.86113631159416, WeightFactor = 0.3478548451375 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint4B = new GaussLegendrePoint1D
-            {
-               Coordinate = -0.3399810435849, WeightFactor = 0.6521451548625 
-            };
+        {
+            Coordinate = -0.3399810435849, WeightFactor = 0.6521451548625 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint4C = new GaussLegendrePoint1D
-            {
-               Coordinate = 0.3399810435849, WeightFactor = 0.6521451548625 
-            };
+        {
+            Coordinate = 0.3399810435849, WeightFactor = 0.6521451548625 
+        };
 
         private static readonly GaussLegendrePoint1D GaussLegendrePoint4D = new GaussLegendrePoint1D
-            {
-               Coordinate = 0.86113631159416, WeightFactor = 0.3478548451375 
-            };
-
-        #endregion
-
-        #region Public Methods
+        {
+            Coordinate = 0.86113631159416, WeightFactor = 0.3478548451375 
+        };
 
         public static GaussLegendrePoint1D[] GetGaussLegendrePoints(int integrationDegree)
         {
@@ -136,14 +107,12 @@
                     return new[] { GaussLegendrePoint3A, GaussLegendrePoint3B, GaussLegendrePoint3C };
                 case 4:
                     return new[]
-                        {
-                           GaussLegendrePoint4A, GaussLegendrePoint4B, GaussLegendrePoint4C, GaussLegendrePoint4D 
-                        };
+                    {
+                        GaussLegendrePoint4A, GaussLegendrePoint4B, GaussLegendrePoint4C, GaussLegendrePoint4D 
+                    };
                 default:
                     throw new NotImplementedException("Integration Degree higher than 4 is not implemented yet. ");
             }
         }
-
-        #endregion
     }
 }
