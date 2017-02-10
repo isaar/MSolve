@@ -1,13 +1,14 @@
 ﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.FEM.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Problems.Structural;
 using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -23,10 +24,11 @@ namespace ISAAR.MSolve.SamplesConsole
             model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
             model.ConnectDataStructures();
 
-            SolverSkyline solver = new SolverSkyline(model);
-            ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, solver.SubdomainsDictionary);
+            var linearSystem = new SkylineLinearSystem(1, model.SubdomainsDictionary[1].Forces);
+            SolverFBSubstitution solver = new SolverFBSubstitution(linearSystem);
+            ProblemStructural provider = new ProblemStructural(model);
+            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystem);
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystem);
 
             analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 420 });
 
@@ -44,10 +46,11 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.ElementsDictionary.Count + 1, 1, 4, false, false);
             model.ConnectDataStructures();
 
-            SolverSkyline solver = new SolverSkyline(model);
-            ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
-            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, solver.SubdomainsDictionary, 0.5, 0.25, 0.01, 0.1);
+            var linearSystem = new SkylineLinearSystem(1, model.SubdomainsDictionary[1].Forces);
+            SolverFBSubstitution solver = new SolverFBSubstitution(linearSystem);
+            ProblemStructural provider = new ProblemStructural(model);
+            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystem);
+            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystem, 0.5, 0.25, 0.01, 0.1);
 
             analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 420 });
 

@@ -1,6 +1,7 @@
-﻿using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.PreProcessor.Elements;
-using ISAAR.MSolve.PreProcessor.Materials;
+﻿using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Problems.Structural.Elements;
+using ISAAR.MSolve.FEM.Problems.Structural.Constitutive;
 using System;
 using System.Collections.Generic;
 using System.Linq;
