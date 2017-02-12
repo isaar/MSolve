@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Enrichments;
-using ISAAR.MSolve.XFEM.Enrichments.Jump;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Integration;
@@ -17,23 +16,31 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    class IsoparametricQuad4Enriched
+    // dofs = {u d1 d2 d3 d4}, where: 
+    // u =  {u1 v1 u2 v2 u3 v3 u4 v4} (8x1) are the standard displacement dofs
+    // d1...d4 are all the artificial dofs for the nodes 1...4 respectively. In more detail for the node k: 
+    // dk = {b1xk b1yk b2xk b2yk b3xk b3yk b4xk b4yk} (8x1), 
+    // where bixk is the x dof corresponding to the ith tip enrichment function that has the support of node k
+    // Total enriched dofs = 8 artificial dofs/node * 4 nodes = 32
+    class IsoparametricQuad4WithTip
     {
         private const int NODES_COUNT = 4;
+        private const int ENRICHMENT_FUNCTIONS_COUNT = 4;
         private const int STD_DOFS_COUNT = 8;
-        private const int ENRICHED_DOFS_COUNT = 8;
+        private const int ENRICHED_DOFS_COUNT = 32;
+        private const int ENRICHED_DOFS_PER_NODE = 8;
 
         private readonly IReadOnlyList<Node2D> nodes;
         private readonly IReadOnlyList<GaussPoint2D> gaussPoints;
         private readonly IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materials;
-        private readonly IEnrichmentFunction2D enrichmentFunction;
 
-        // TODO: use dictionaries for the nodal values.
-        private double[] nodalEnrichmentValues; // mutable
+        // TODO: use dictionaries for the nodal values and functions.
+        private readonly IEnrichmentFunction2D[] enrichmentFunctions;
+        private double[,] nodalEnrichmentValues; // mutable
 
 
-        public IsoparametricQuad4Enriched(Node2D[] nodes, IFiniteElementMaterial2D material, 
-            IEnrichmentFunction2D enrichmentFunction)
+        public IsoparametricQuad4WithTip(Node2D[] nodes, IFiniteElementMaterial2D material,
+            IEnrichmentFunction2D[] enrichmentFunctions)
         {
             // TODO: Add checks here: order of nodes
             this.nodes = new List<Node2D>(nodes);
@@ -48,27 +55,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             this.materials = materialsDict;
 
-            this.enrichmentFunction = enrichmentFunction;
-        }
-
-        public IsoparametricQuad4Enriched(Node2D[] nodes, IFiniteElementMaterial2D materialLeft, IFiniteElementMaterial2D materialRight,
-            IEnrichmentFunction2D enrichmentFunction)
-        {
-            // TODO: Add checks here: order of nodes
-            this.nodes = new List<Node2D>(nodes);
-            //this.gaussPoints = IntegrationRule2D.Order10x10.Points; // TODO: remove the integration logic from the element class
-            var integration = new SubgridIntegration(2, IntegrationRule2D.Order2x2);
-            this.gaussPoints = integration.GeneratePoints();
-
-            var materialsDict = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
-            foreach (var point in gaussPoints)
-            {
-                if (point.X < 0) materialsDict[point] = materialLeft.Clone();
-                else materialsDict[point] = materialRight.Clone();
-            }
-            this.materials = materialsDict;
-
-            this.enrichmentFunction = enrichmentFunction;
+            this.enrichmentFunctions = enrichmentFunctions;
         }
 
         public SymmetricMatrix2D<double> BuildStdStiffnessMatrix()
@@ -128,10 +115,14 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         private void CalculateNodalEnrichments()
         {
-            nodalEnrichmentValues = new double[NODES_COUNT];
-            for (int nodeIndex = 0; nodeIndex < NODES_COUNT; ++nodeIndex)
+            nodalEnrichmentValues = new double[NODES_COUNT, ENRICHMENT_FUNCTIONS_COUNT];
+            for (int nodeIdx = 0; nodeIdx < NODES_COUNT; ++nodeIdx)
             {
-                nodalEnrichmentValues[nodeIndex] = enrichmentFunction.ValueAt(nodes[nodeIndex]);
+                for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
+                {
+                    nodalEnrichmentValues[nodeIdx, enrichmentIdx] = 
+                        enrichmentFunctions[enrichmentIdx].ValueAt(nodes[nodeIdx]);
+                }
             }
         }
 
@@ -170,38 +161,52 @@ namespace ISAAR.MSolve.XFEM.Elements
             double y = InterpolationUtilities.InterpolateNodalValuesToPoint(NodalY, shapeFunctionValues);
             Point2D cartesianPoint = new Point2D(x, y);
 
-            // Calculate the enrichment value and derivatives at this Gauss point
-            double enrichmentValue = enrichmentFunction.ValueAt(cartesianPoint);
-            Tuple<double, double> enrichmentDerivativesCartesian = enrichmentFunction.DerivativesAt(cartesianPoint);
-            double enrichmentDerivativeXi = enrichmentDerivativesCartesian.Item1 * jacobian.dXdXi + 
-                enrichmentDerivativesCartesian.Item2 * jacobian.dYdXi;
-            double enrichmentDerivativeEta = enrichmentDerivativesCartesian.Item1 * jacobian.dXdEta +
-                enrichmentDerivativesCartesian.Item2 * jacobian.dYdEta;
-
-            // Build the deformation matrix per node
-            var B2enr = new Matrix2D<double>(4, 8); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)
-            for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex)
+            // Calculate the enrichment values and derivatives at this Gauss point. 
+            // TODO: If the enrichment functions are separate for each node, their common parts must be calculated only
+            // once. This is probably the step to do it.
+            double[] enrichmentValues = new double[ENRICHMENT_FUNCTIONS_COUNT];
+            double[,] enrichmentDerivatives = new double[ENRICHMENT_FUNCTIONS_COUNT, 2]; //col1: d/dXi, col2: d/dEta
+            for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
             {
-                double N = shapeFunctionValues[nodeIndex];
-                double Nxi = shapeFunctionDerivatives.XiDerivativeOfNode(nodeIndex);
-                double Neta = shapeFunctionDerivatives.EtaDerivativeOfNode(nodeIndex);
-                double nodalEnrichment = nodalEnrichmentValues[nodeIndex];
+                enrichmentValues[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].ValueAt(cartesianPoint);
+                var enrichmentDerivativesCartesian = enrichmentFunctions[enrichmentIdx].DerivativesAt(cartesianPoint);
+                enrichmentDerivatives[enrichmentIdx, 0] = enrichmentDerivativesCartesian.Item1 * jacobian.dXdXi +
+                    enrichmentDerivativesCartesian.Item2 * jacobian.dYdXi;
+                enrichmentDerivatives[enrichmentIdx, 1] = enrichmentDerivativesCartesian.Item1 * jacobian.dXdEta +
+                    enrichmentDerivativesCartesian.Item2 * jacobian.dYdEta;
+            }
 
-                double enrN_xi = Nxi * (enrichmentValue - nodalEnrichment) + N * enrichmentDerivativeXi;
-                double enrN_eta = Neta * (enrichmentValue - nodalEnrichment) + N * enrichmentDerivativeEta;
+            // Build the deformation matrix per node.
+            var B2enr = new Matrix2D<double>(4, ENRICHED_DOFS_COUNT); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)
+            for (int nodeIdx = 0; nodeIdx < 4; ++nodeIdx)
+            {
+                double N = shapeFunctionValues[nodeIdx];
+                double Nxi = shapeFunctionDerivatives.XiDerivativeOfNode(nodeIdx);
+                double Neta = shapeFunctionDerivatives.EtaDerivativeOfNode(nodeIdx);
 
-                int col1 = 2 * nodeIndex;
-                int col2 = 2 * nodeIndex + 1;
-                B2enr[0, col1] = enrN_xi;
-                B2enr[1, col1] = enrN_eta;
-                B2enr[2, col2] = enrN_xi;
-                B2enr[3, col2] = enrN_eta;
+                for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
+                {
+                    double nodalEnrichment = nodalEnrichmentValues[nodeIdx, enrichmentIdx];
+                    double enrichmentValue = enrichmentValues[enrichmentIdx];
+                    double enrichmentDerivativeXi = enrichmentDerivatives[enrichmentIdx, 0];
+                    double enrichmentDerivativeEta = enrichmentDerivatives[enrichmentIdx, 1];
+
+                    double enrN_xi = Nxi * (enrichmentValue - nodalEnrichment) + N * enrichmentDerivativeXi;
+                    double enrN_eta = Neta * (enrichmentValue - nodalEnrichment) + N * enrichmentDerivativeEta;
+
+                    // This depends on the convention: node major or enrichment major. The following is node major
+                    int col1 = ENRICHED_DOFS_PER_NODE * nodeIdx + 2 * enrichmentIdx;
+                    int col2 = ENRICHED_DOFS_PER_NODE * nodeIdx + 2 * enrichmentIdx + 1;
+
+                    B2enr[0, col1] = enrN_xi;
+                    B2enr[1, col1] = enrN_eta;
+                    B2enr[2, col2] = enrN_xi;
+                    B2enr[3, col2] = enrN_eta;
+                }
+
             }
             return jacobian.CalculateB1DeformationMatrix() * B2enr;
         }
-
-        //protected Point2D NaturalToCartesian(Point2D naturalPoint) // TODO: have the shape functions as a field, 
-        //but do not recompute anything. WARNING: These shape functions are not the same as the ones in the enrichments
 
         private double[] NodalX
         {

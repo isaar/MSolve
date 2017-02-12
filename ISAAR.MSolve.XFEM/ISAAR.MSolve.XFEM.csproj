@@ -51,6 +51,7 @@
     <Compile Include="Elements\IsoparametricQuad4.cs" />
     <Compile Include="Elements\IsoparametricQuad4Enriched.cs" />
     <Compile Include="Elements\IsoparametricQuad4WithDiscontinuity.cs" />
+    <Compile Include="Elements\IsoparametricQuad4WithTip.cs" />
     <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Enrichments\HeavisideEnrichment2D.cs" />
     <Compile Include="Enrichments\InterfaceEnrichment2D.cs" />
