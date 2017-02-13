@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments;
-using ISAAR.MSolve.XFEM.Enrichments.Jump;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Materials;
