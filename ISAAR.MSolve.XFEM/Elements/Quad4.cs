@@ -6,10 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Integration;
-using ISAAR.MSolve.XFEM.Integration.GaussPoints;
-using ISAAR.MSolve.XFEM.Integration.ShapeFunctions;
+using ISAAR.MSolve.XFEM.Integration.Points;
+using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Elements
@@ -105,7 +104,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         private IReadOnlyList<GaussPoint2D> FindGaussPoints()
         {
             var localGaussPoints = new List<GaussPoint2D>();
-            foreach (var naturalGaussPoint in IntegrationRule2D.Order2x2.Points)
+            foreach (var naturalGaussPoint in GaussQuadrature2D.Order2x2.GenerateIntegrationPoints())
             {
                 double localX = naturalGaussPoint.X * halfLengthX;
                 double localY = naturalGaussPoint.Y * halfLengthY;
@@ -124,25 +123,6 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <returns>A 3x8 matrix</returns>
         private Matrix2D<double> CalculateDeformationMatrix(GaussPoint2D gaussPoint)
         {
-            //var shapeFunctions = new Quad4ShapeFunctions(halfLengthX, halfLengthY);
-            //Tuple<double, double>[] shapeFunctionDerivatives =
-            //    shapeFunctions.AllDerivativesAt(gaussPoint.X, gaussPoint.Y);
-
-            //var B = new Matrix2D<double>(3, DOFS_COUNT);
-            //for (int node = 0; node < 4; ++node)
-            //{
-            //    int col1 = 2 * node;
-            //    int col2 = 2 * node + 1;
-            //    double Nx = shapeFunctionDerivatives[node].Item1;
-            //    double Ny = shapeFunctionDerivatives[node].Item2;
-
-            //    B[0, col1] = Nx;
-            //    B[1, col2] = Ny;
-            //    B[2, col1] = Ny;
-            //    B[2, col2] = Nx;
-            //}
-            //return B;
-
             var B = new Matrix2D<double>(3, DOFS_COUNT);
 
             B[0, 0] = gaussPoint.Y - halfLengthY;

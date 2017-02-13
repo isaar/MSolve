@@ -3,27 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Integration.Points;
 
-namespace ISAAR.MSolve.XFEM.Integration.GaussPoints
+namespace ISAAR.MSolve.XFEM.Integration.Rules
 {
-    class SubgridIntegration
+    class SubgridIntegration2D: IIntegrationRule2D
     {
         private readonly int subgridsPerAxis;
-        private readonly IntegrationRule2D gaussQuadrature;
+        private readonly GaussQuadrature2D gaussQuadrature;
 
-        public SubgridIntegration(int subgridsPerAxis)
+        public SubgridIntegration2D(int subgridsPerAxis)
         {
             this.subgridsPerAxis = subgridsPerAxis;
-            this.gaussQuadrature = IntegrationRule2D.Order2x2;
+            this.gaussQuadrature = GaussQuadrature2D.Order2x2;
         }
 
-        public SubgridIntegration(int subgridsPerAxis, IntegrationRule2D gaussQuadrature)
+        public SubgridIntegration2D(int subgridsPerAxis, GaussQuadrature2D gaussQuadrature)
         {
             this.subgridsPerAxis = subgridsPerAxis;
             this.gaussQuadrature = gaussQuadrature;
         }
 
-        public IReadOnlyList<GaussPoint2D> GeneratePoints()
+        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints()
         {
             var points = new List<GaussPoint2D>();
             double length = 2.0 / subgridsPerAxis;
@@ -37,7 +38,7 @@ namespace ISAAR.MSolve.XFEM.Integration.GaussPoints
                     double etaMin = -1.0 + length * j;
                     double etaMax = -1.0 + length * (j + 1);
 
-                    foreach(var subgridPoint in gaussQuadrature.Points)
+                    foreach(var subgridPoint in gaussQuadrature.GenerateIntegrationPoints())
                     {
                         // Transformation from the system of the subrectangle to the natural system of the element
                         double naturalXi = subgridPoint.X * (xiMax - xiMin) / 2.0 + (xiMin + xiMax) / 2.0;

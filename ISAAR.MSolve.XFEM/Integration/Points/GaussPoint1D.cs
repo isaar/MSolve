@@ -3,20 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry;
 
-namespace ISAAR.MSolve.XFEM.Integration.GaussPoints
+namespace ISAAR.MSolve.XFEM.Integration.Points
 {
-    class GaussPoint2D: IPoint2D
+    class GaussPoint1D
     {
         public double X { get; }
-        public double Y { get; }
         public double Weight { get; }
 
-        public GaussPoint2D(double x, double y, double weight)
+        public GaussPoint1D(double x, double weight)
         {
             this.X = x;
-            this.Y = y;
             this.Weight = weight;
         }
     }
