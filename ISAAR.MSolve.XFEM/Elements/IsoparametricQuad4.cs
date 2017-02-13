@@ -20,41 +20,57 @@ namespace ISAAR.MSolve.XFEM.Elements
         private const int DOFS_COUNT = 8;
 
         private readonly IReadOnlyList<Node2D> nodes;
-        private readonly IReadOnlyList<GaussPoint2D> gaussPoints;
-        private readonly IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materials;
         private readonly IsoparametricInterpolation2D interpolation;
 
-        public IsoparametricQuad4(Node2D[] nodes, IFiniteElementMaterial2D material)
+        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; }
+
+        public static IsoparametricQuad4 CreateHomogeneous(Node2D[] nodes, IFiniteElementMaterial2D material)
         {
-            // TODO: Add checks here: order of nodes
-            this.nodes = new List<Node2D>(nodes);
-            this.gaussPoints = GaussQuadrature2D.Order2x2.GenerateIntegrationPoints(); // TODO: remove the integration logic from the element class
+            var nodesCopy = new Node2D[nodes.Length];
+            nodes.CopyTo(nodesCopy, 0);
 
-            var materialsDict = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
-            foreach (var point in gaussPoints)
+            var gpToMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
+            foreach (var point in GaussQuadrature2D.Order2x2.GenerateIntegrationPoints()) // TODO: remove the integration logic from the element class
             {
-                materialsDict[point] = material.Clone();
+                gpToMaterials[point] = material.Clone();
             }
-            this.materials = materialsDict;
 
+            return new IsoparametricQuad4(nodesCopy, gpToMaterials);
+        }
+
+        /// <summary>
+        /// Parameters passed to this constructor will not be copied. The static factory methods are more robust.
+        /// </summary>
+        /// <param name="nodes">Is not deep copied.</param>
+        /// <param name="materialsOfGaussPoints">Is not deep copied</param>
+        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes, 
+            IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints)
+        {
+            // TODO: Add checks here: order of nodes and suitability of gauss points. 
+            // Or add checks in the callers (in this class and in enriched elements)?
+            this.nodes = nodes;
             this.interpolation = new IsoparametricInterpolation2D(this.nodes, NaturalShapeFunctions2D.Quad4);
+            this.MaterialsOfGaussPoints = materialsOfGaussPoints;
         }
 
         public SymmetricMatrix2D<double> BuildStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(DOFS_COUNT);
-            foreach (var gaussPoint in gaussPoints)
+            foreach (var entry in MaterialsOfGaussPoints)
             {
+                GaussPoint2D gaussPoint = entry.Key;
+                IFiniteElementMaterial2D material = entry.Value;
+
                 // Calculate the necessary quantities for the integration
-                Interpolation.ShapeFunctionDerivatives2D interpolationDerivatives = 
+                ShapeFunctionDerivatives2D interpolationDerivatives = 
                     this.interpolation.EvaluateDerivativesAt(gaussPoint.X, gaussPoint.Y);
                 Matrix2D<double> deformation = CalculateDeformationMatrix(interpolationDerivatives);
-                Matrix2D<double> constitutive = materials[gaussPoint].CalculateConstitutiveMatrix();
-                double thickness = materials[gaussPoint].Thickness;
+                Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
+                double thickness = material.Thickness;
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(thickness * interpolationDerivatives.Jacobian.Determinant * gaussPoint.Weight);
+                partial.Scale(material.Thickness * interpolationDerivatives.Jacobian.Determinant * gaussPoint.Weight);
                 Debug.Assert(partial.Rows == DOFS_COUNT);
                 Debug.Assert(partial.Columns == DOFS_COUNT);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);
@@ -72,7 +88,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="shapeFunctionDerivatives">The shape function derivatives calculated at a specific 
         ///     integration point</param>
         /// <returns></returns>
-        private Matrix2D<double> CalculateDeformationMatrix(ShapeFunctionDerivatives2D shapeFunctionDerivatives)
+        public Matrix2D<double> CalculateDeformationMatrix(ShapeFunctionDerivatives2D shapeFunctionDerivatives)
         {
             var deformationMatrix = new Matrix2D<double>(3, DOFS_COUNT);
             for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex)

@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.XFEM
             double t = 1.0;
             var material = ElasticMaterial2DPlainStress.Create(E, v, t);
 
-            var element = new IsoparametricQuad4(nodes, material);
+            var element = IsoparametricQuad4.CreateHomogeneous(nodes, material);
             SymmetricMatrix2D<double> k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
             Console.WriteLine(k);
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.XFEM
             ICurve2D discontinuity = new Line2D(new Point2D(30.0, 0.0), new Point2D(30.0, 20.0));
             IEnrichmentFunction2D enrichmentFunction = new HeavisideEnrichment2D(discontinuity);
 
-            var element = new IsoparametricQuad4WithDiscontinuity(nodes, material, enrichmentFunction);
+            var element = IsoparametricQuad4WithDiscontinuity.CreateHomogeneous(nodes, enrichmentFunction, material);
 
             SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
@@ -124,14 +124,17 @@ namespace ISAAR.MSolve.XFEM
             double E = 2e6;
             double v = 0.3;
             double t = 1.0;
-            var materialLeft = ElasticMaterial2DPlainStrain.Create(E, v, t); //TODO: need a way to supply materials with predicates concerning (x, y) or (ksi, eta)
+
+            //TODO: need a way to supply materials with predicates concerning (x, y) or (ksi, eta)
+            var materialLeft = ElasticMaterial2DPlainStrain.Create(E, v, t); 
             var materialRight = ElasticMaterial2DPlainStrain.Create(E / 2.0, v, t);
 
             ICurve2D discontinuity = new Line2D(new Point2D(30.0, 0.0), new Point2D(30.0, 20.0));
             IEnrichmentFunction2D enrichmentFunction = new RampEnrichment2D(discontinuity);
 
 
-            var element = new IsoparametricQuad4WithDiscontinuity(nodes, materialLeft, materialRight, enrichmentFunction);
+            var element = IsoparametricQuad4WithDiscontinuity.CreateBimaterial(
+                nodes, enrichmentFunction, materialLeft, materialRight);
 
             SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
@@ -156,7 +159,7 @@ namespace ISAAR.MSolve.XFEM
             //IsoparametricQuad4Test(nodeSet1);
 
             IsoparametricQuad4WithCrackTest(nodeSet7);
-            //IsoparametricQuad4BimaterialTest(nodeSet7);
+            IsoparametricQuad4BimaterialTest(nodeSet7);
         }
     }
 }
