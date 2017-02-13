@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Materials
             this.Thickness = thickness;
         }
         
-        public Matrix2D<double> CalculateConstitutiveMatrix()
+        public Matrix2D<double> CalculateConstitutiveMatrix() //This needs to be stored and passed as a MatrixView
         {
             var matrix = new Matrix2D<double>(3, 3);
             double scalar = YoungModulus / (1 - PoissonRatio * PoissonRatio);
@@ -51,7 +51,8 @@ namespace ISAAR.MSolve.XFEM.Materials
 
         public IFiniteElementMaterial2D Clone()
         {
-            return new ElasticMaterial2DPlainStress(YoungModulus, PoissonRatio, Thickness);
+            return this; // For now it is immutable otherwise:
+            //return new ElasticMaterial2DPlainStress(YoungModulus, PoissonRatio, Thickness);
         }
 
     }
