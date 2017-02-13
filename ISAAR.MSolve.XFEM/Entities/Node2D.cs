@@ -9,22 +9,11 @@ namespace ISAAR.MSolve.XFEM.Entities
 {
     class Node2D : IPoint2D, IComparable<Node2D>
     {
-        public int ID
-        {
-            get;
-        }
+        public int ID { get; }
 
-        public double X
-        {
-            get;
-            protected set;
-        }
+        public double X { get; }
 
-        public double Y
-        {
-            get;
-            protected set;
-        }
+        public double Y { get; }
 
         public Node2D(int id, double x, double y)
         {

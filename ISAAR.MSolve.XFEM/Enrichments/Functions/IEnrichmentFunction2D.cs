@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Geometry;
 
-namespace ISAAR.MSolve.XFEM.Enrichments
+namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
     interface IEnrichmentFunction2D
     {
