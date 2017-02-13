@@ -133,7 +133,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
 
             // Build the deformation matrix per node.
-            var deformationMatrix = new Matrix2D<double>(4, ENRICHED_DOFS_COUNT); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)
+            var deformationMatrix = new Matrix2D<double>(3, ENRICHED_DOFS_COUNT); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)
             for (int nodeIdx = 0; nodeIdx < 4; ++nodeIdx)
             {
                 double N = shapeFunctionValues[nodeIdx];
