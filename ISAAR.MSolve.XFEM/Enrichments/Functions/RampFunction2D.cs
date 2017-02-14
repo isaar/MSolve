@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
@@ -24,16 +25,25 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             this.enrichmentItem = enrichmentItem;
         }
 
-        public double ValueAt(IPoint2D point)
+        public double EvalueAt(IPoint2D cartesianPoint)
         {
-            return Math.Abs(enrichmentItem.Geometry.SignedDistanceOf(point));
+            return Math.Abs(enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint));
         }
 
-        public Tuple<double, double> DerivativesAt(IPoint2D point)
+        public Tuple<double, double> EvaluateDerivativesAt(IPoint2D cartesianPoint)
         {
-            int sign = Math.Sign(enrichmentItem.Geometry.SignedDistanceOf(point));
-            Tuple<double, double> normal = enrichmentItem.Geometry.NormalVectorThrough(point);
+            int sign = Math.Sign(enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint));
+            Tuple<double, double> normal = enrichmentItem.Geometry.NormalVectorThrough(cartesianPoint);
             return new Tuple<double, double>(sign * normal.Item1, sign * normal.Item2);
+        }
+
+        public EvaluatedFunction2D EvaluateAllAt(IPoint2D cartesianPoint)
+        {
+            double signedDistance = enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint);
+            int sign = Math.Sign(signedDistance);
+            Tuple<double, double> normal = enrichmentItem.Geometry.NormalVectorThrough(cartesianPoint);
+            return new EvaluatedFunction2D(Math.Abs(signedDistance), 
+                new Tuple<double, double>(sign * normal.Item1, sign * normal.Item2));
         }
     }
 }

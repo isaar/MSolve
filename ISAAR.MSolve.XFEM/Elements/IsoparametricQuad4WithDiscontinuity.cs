@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             nodalEnrichmentValues = new double[NODES_COUNT];
             for (int nodeIndex = 0; nodeIndex < NODES_COUNT; ++nodeIndex)
             {
-                nodalEnrichmentValues[nodeIndex] = enrichmentFunction.ValueAt(nodes[nodeIndex]);
+                nodalEnrichmentValues[nodeIndex] = enrichmentFunction.EvalueAt(nodes[nodeIndex]);
             }
         }
 
@@ -122,8 +122,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             IPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
 
             // Calculate the enrichment value and derivatives at this Gauss point. Denote the enrichment function as H
-            double H = enrichmentFunction.ValueAt(cartesianPoint);
-            Tuple<double, double> dHdx = enrichmentFunction.DerivativesAt(cartesianPoint);
+            double H = enrichmentFunction.EvalueAt(cartesianPoint);
+            Tuple<double, double> dHdx = enrichmentFunction.EvaluateDerivativesAt(cartesianPoint);
             
             // Build the deformation matrix per node
             var deformationMatrix = new Matrix2D<double>(3, 8); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)

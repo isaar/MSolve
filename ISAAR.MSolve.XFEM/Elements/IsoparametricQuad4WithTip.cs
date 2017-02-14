@@ -109,7 +109,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
                 {
                     nodalEnrichmentValues[nodeIdx, enrichmentIdx] = 
-                        enrichmentFunctions[enrichmentIdx].ValueAt(nodes[nodeIdx]);
+                        enrichmentFunctions[enrichmentIdx].EvalueAt(nodes[nodeIdx]);
                 }
             }
         }
@@ -126,8 +126,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             var enrichmentDerivatives = new Tuple<double, double>[ENRICHMENT_FUNCTIONS_COUNT];
             for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
             {
-                enrichmentValues[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].ValueAt(cartesianPoint);
-                enrichmentDerivatives[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].DerivativesAt(cartesianPoint);
+                enrichmentValues[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].EvalueAt(cartesianPoint);
+                enrichmentDerivatives[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].EvaluateDerivativesAt(cartesianPoint);
             }
 
             // Build the deformation matrix per node.

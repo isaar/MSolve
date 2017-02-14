@@ -53,6 +53,7 @@
     <Compile Include="Elements\IsoparametricQuad4WithTip.cs" />
     <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Elements\XIsoparametricQuad4.cs" />
+    <Compile Include="Utilities\EvaluatedFunction2D.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
     <Compile Include="Enrichments\Functions\SignFunction2D.cs" />
     <Compile Include="Enrichments\Functions\IEnrichmentFunction2D.cs" />

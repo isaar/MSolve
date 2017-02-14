@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Integration.Points;
@@ -19,12 +20,6 @@ namespace ISAAR.MSolve.XFEM.Elements
     // TODO: It still uses the same nodes for the std and enriched part. 
     class XIsoparametricQuad4
     {
-        //private const int NODES_COUNT = 4;
-        //private const int ENRICHMENT_FUNCTIONS_COUNT = 4;
-        //private const int STD_DOFS_COUNT = 8;
-        //private const int ENRICHED_DOFS_COUNT = 32;
-        //private const int ENRICHED_DOFS_PER_NODE = 8;
-
         // Copy of the nodes list in the std FE? Or only the enrichment interpolation nodes? Should I use the list stored in the enrichment interpolation?
         public IReadOnlyList<XNode2D> Nodes { get; } 
         private readonly IsoparametricQuad4 stdFiniteElement;
@@ -111,19 +106,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             IPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
+            var uniqueFunctions = new Dictionary<IEnrichmentFunction2D, EvaluatedFunction2D>();
 
-            // Calculate the enrichment values and derivatives at this Gauss point. 
-            // TODO: If the enrichment functions are separate for each node, their common parts must be calculated only
-            // once. This is probably the step to do it.
-            //double[] enrichmentValues = new double[ENRICHMENT_FUNCTIONS_COUNT];
-            //var enrichmentDerivatives = new Tuple<double, double>[ENRICHMENT_FUNCTIONS_COUNT];
-            //for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
-            //{
-            //    enrichmentValues[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].ValueAt(cartesianPoint);
-            //    enrichmentDerivatives[enrichmentIdx] = enrichmentFunctions[enrichmentIdx].DerivativesAt(cartesianPoint);
-            //}
-
-            // Build the deformation matrix per node.
             var deformationMatrix = new Matrix2D<double>(3, artificialDofsCount);
             int currentColumn = 0;
             foreach (XNode2D node in Nodes)
@@ -133,17 +117,26 @@ namespace ISAAR.MSolve.XFEM.Elements
 
                 foreach (var enrichment in node.EnrichmentFunctions)
                 {
-                    // Denote the enrichment function as H
-                    double H = enrichment.Item1.ValueAt(cartesianPoint); // TODO: Calculate the values and derivatives of all unique enrichment functions only once, instead of once per associated node.
-                    Tuple<double, double> dHdx = enrichment.Item1.DerivativesAt(cartesianPoint);
-                    double nodalH = enrichment.Item2;
+                    IEnrichmentFunction2D enrichmentFunction = enrichment.Item1;
+                    double nodalEnrichmentValue = enrichment.Item2;
+                    
+                    // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
+                    EvaluatedFunction2D evaluatedEnrichment;
+                    if (!(uniqueFunctions.TryGetValue(enrichmentFunction, out evaluatedEnrichment))) //Only search once
+                    {
+                        evaluatedEnrichment = enrichmentFunction.EvaluateAllAt(cartesianPoint);
+                        uniqueFunctions[enrichmentFunction] = evaluatedEnrichment;
+                    }
 
-                    // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives are:
-                    // Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y). Similarly for By
-                    double Bx = dNdx.Item1 * (H - nodalH) + N * dHdx.Item1;
-                    double By = dNdx.Item2 * (H - nodalH) + N * dHdx.Item2;
+                    // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
+                    // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
+                    // function
+                    double Bx = dNdx.Item1 * (evaluatedEnrichment.Value - nodalEnrichmentValue) 
+                        + N * evaluatedEnrichment.CartesianDerivatives.Item1;
+                    double By = dNdx.Item2 * (evaluatedEnrichment.Value - nodalEnrichmentValue) 
+                        + N * evaluatedEnrichment.CartesianDerivatives.Item2;
 
-                    // This depends on the convention: node major or enrichment major. The following is node major
+                    // This depends on the convention: node major or enrichment major. The following is node major.
                     int col1 = currentColumn++;
                     int col2 = currentColumn++;
 

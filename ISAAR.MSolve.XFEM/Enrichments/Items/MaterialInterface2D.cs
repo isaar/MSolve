@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 foreach (var enrichmentFunction in EnrichmentFunctions)
                 {
                     allEnrichments[enrichmentCounter] =
-                        new Tuple<IEnrichmentFunction2D, double>(enrichmentFunction, enrichmentFunction.ValueAt(node));
+                        new Tuple<IEnrichmentFunction2D, double>(enrichmentFunction, enrichmentFunction.EvalueAt(node));
                     ++enrichmentCounter;
                 }
                 node.EnrichmentFunctions = allEnrichments;
