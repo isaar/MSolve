@@ -84,14 +84,13 @@ namespace ISAAR.MSolve.XFEM.Elements
                 IFiniteElementMaterial2D material = entry.Value;
 
                 // Calculate the necessary quantities for the integration
-                ShapeFunctionDerivatives2D interpolationDerivatives =
-                    this.enrichedInterpolation.EvaluateDerivativesAt(gaussPoint.X, gaussPoint.Y);
-                Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(interpolationDerivatives);
-                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(gaussPoint, interpolationDerivatives);
+                EvaluatedInterpolation2D evaluatedInterpolation = this.enrichedInterpolation.EvaluateAt(gaussPoint);
+                Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
+                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(gaussPoint, evaluatedInterpolation);
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
 
                 // Contributions of this gauss point to the element stiffness matrices
-                double dVolume = material.Thickness * interpolationDerivatives.Jacobian.Determinant * gaussPoint.Weight;
+                double dVolume = material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
                 Matrix2D<double> Kse = (Bstd.Transpose() * constitutive) * Benr;  // standard-enriched part
                 Kse.Scale(dVolume);
                 MatrixUtilities.AddPartialToTotalMatrix(Kse, stiffnessStdEnriched);
@@ -116,10 +115,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         private Matrix2D<double> CalculateEnrichedDeformationMatrix(GaussPoint2D gaussPoint,
-            ShapeFunctionDerivatives2D shapeFunctionDerivatives)
+            EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            ShapeFunctionValues2D shapeFunctionValues = enrichedInterpolation.EvaluateAt(gaussPoint.X, gaussPoint.Y);
-            IPoint2D cartesianPoint = shapeFunctionValues.TransformNaturalToCartesian(gaussPoint);
+            IPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
 
             // Calculate the enrichment values and derivatives at this Gauss point. 
             // TODO: If the enrichment functions are separate for each node, their common parts must be calculated only
@@ -136,8 +134,10 @@ namespace ISAAR.MSolve.XFEM.Elements
             var deformationMatrix = new Matrix2D<double>(3, ENRICHED_DOFS_COUNT); //TODO: Abstract the number of enriched dofs (8 here and the 2*node+1 afterwards)
             for (int nodeIdx = 0; nodeIdx < 4; ++nodeIdx)
             {
-                double N = shapeFunctionValues[nodeIdx];
-                var dNdx = shapeFunctionDerivatives.CartesianDerivativesOfNode(nodeIdx);
+                Node2D node = nodes[nodeIdx];
+
+                double N = evaluatedInterpolation.GetValueOf(node);
+                Tuple<double, double> dNdx = evaluatedInterpolation.GetCartesianDerivativesOf(node);
 
                 for (int enrichmentIdx = 0; enrichmentIdx < ENRICHMENT_FUNCTIONS_COUNT; ++enrichmentIdx)
                 {

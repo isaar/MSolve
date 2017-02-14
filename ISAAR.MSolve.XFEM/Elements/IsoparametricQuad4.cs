@@ -61,15 +61,13 @@ namespace ISAAR.MSolve.XFEM.Elements
                 IFiniteElementMaterial2D material = entry.Value;
 
                 // Calculate the necessary quantities for the integration
-                ShapeFunctionDerivatives2D interpolationDerivatives = 
-                    this.interpolation.EvaluateDerivativesAt(gaussPoint.X, gaussPoint.Y);
-                Matrix2D<double> deformation = CalculateDeformationMatrix(interpolationDerivatives);
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
-                double thickness = material.Thickness;
+                EvaluatedInterpolation2D evaluatedInterpolation = interpolation.EvaluateOnlyDerivativesAt(gaussPoint);
+                Matrix2D<double> deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(material.Thickness * interpolationDerivatives.Jacobian.Determinant * gaussPoint.Weight);
+                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight);
                 Debug.Assert(partial.Rows == DOFS_COUNT);
                 Debug.Assert(partial.Columns == DOFS_COUNT);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);
@@ -84,17 +82,17 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// {u,x v,y u,y, v,x} = [... Bk ...] * {u1 v1 u2 v2 u3 v3 u4 v4}, where k = 1, ... nodesCount is a node and
         /// Bk = [dNk/dx 0; 0 dNk/dY; dNk/dy dNk/dx] (3x2)
         /// </summary>
-        /// <param name="shapeFunctionDerivatives">The shape function derivatives calculated at a specific 
+        /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
         ///     integration point</param>
         /// <returns></returns>
-        public Matrix2D<double> CalculateDeformationMatrix(ShapeFunctionDerivatives2D shapeFunctionDerivatives)
+        public Matrix2D<double> CalculateDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
         {
             var deformationMatrix = new Matrix2D<double>(3, DOFS_COUNT);
             for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex)
             {
                 int col1 = 2 * nodeIndex;
                 int col2 = 2 * nodeIndex + 1;
-                Tuple<double, double> dNdX = shapeFunctionDerivatives.CartesianDerivativesOfNode(nodeIndex);
+                Tuple<double, double> dNdX = evaluatedInterpolation.GetCartesianDerivativesOf(nodes[nodeIndex]);
 
                 deformationMatrix[0, col1] = dNdX.Item1;
                 deformationMatrix[1, col2] = dNdX.Item2;

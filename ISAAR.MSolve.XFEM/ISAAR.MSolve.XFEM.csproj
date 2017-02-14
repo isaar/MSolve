@@ -73,11 +73,10 @@
     <Compile Include="Integration\Rules\GaussQuadrature1D.cs" />
     <Compile Include="Integration\Rules\SubgridIntegration2D.cs" />
     <Compile Include="Geometry\IPoint2D.cs" />
-    <Compile Include="Interpolation\ShapeFunctionDerivatives2D.cs" />
+    <Compile Include="Interpolation\EvaluatedInterpolation2D.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Interpolation\Jacobian2D.cs" />
     <Compile Include="Interpolation\ShapeFunctions\NaturalShapeFunctions2D.cs" />
-    <Compile Include="Interpolation\ShapeFunctionValues2D.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStrain.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />

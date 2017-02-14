@@ -162,7 +162,7 @@ namespace ISAAR.MSolve.XFEM
             //IsoparametricQuad4Test(nodeSet1);
 
             IsoparametricQuad4WithCrackTest(nodeSet7);
-            IsoparametricQuad4BimaterialTest(nodeSet7);
+            //IsoparametricQuad4BimaterialTest(nodeSet7);
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Integration.Points;
@@ -90,14 +89,14 @@ namespace ISAAR.MSolve.XFEM.Elements
                 IFiniteElementMaterial2D material = entry.Value;
 
                 // Calculate the necessary quantities for the integration
-                ShapeFunctionDerivatives2D interpolationDerivatives =
-                    this.enrichmentInterpolation.EvaluateDerivativesAt(gaussPoint.X, gaussPoint.Y);
-                Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(interpolationDerivatives);
-                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(gaussPoint, interpolationDerivatives, artificialDofsCount);
-                Matrix2D <double> constitutive = material.CalculateConstitutiveMatrix();
+                Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
+                EvaluatedInterpolation2D evaluatedInterpolation = enrichmentInterpolation.EvaluateAt(gaussPoint);
+                Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
+                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount, 
+                    gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices
-                double dVolume = material.Thickness * interpolationDerivatives.Jacobian.Determinant * gaussPoint.Weight;
+                double dVolume = material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
                 Matrix2D<double> Kse = (Bstd.Transpose() * constitutive) * Benr;  // standard-enriched part
                 Kse.Scale(dVolume);
                 MatrixUtilities.AddPartialToTotalMatrix(Kse, stiffnessStdEnriched);
@@ -108,11 +107,10 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
         }
 
-        private Matrix2D<double> CalculateEnrichedDeformationMatrix(GaussPoint2D gaussPoint,
-            ShapeFunctionDerivatives2D shapeFunctionDerivatives, int artificialDofsCount)
+        private Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount, 
+            GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            ShapeFunctionValues2D shapeFunctionValues = enrichmentInterpolation.EvaluateAt(gaussPoint.X, gaussPoint.Y);
-            IPoint2D cartesianPoint = shapeFunctionValues.TransformNaturalToCartesian(gaussPoint);
+            IPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
 
             // Calculate the enrichment values and derivatives at this Gauss point. 
             // TODO: If the enrichment functions are separate for each node, their common parts must be calculated only
@@ -128,12 +126,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             // Build the deformation matrix per node.
             var deformationMatrix = new Matrix2D<double>(3, artificialDofsCount);
             int currentColumn = 0;
-            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
+            foreach (XNode2D node in Nodes)
             {
-                double N = shapeFunctionValues[nodeIdx];
-                var dNdx = shapeFunctionDerivatives.CartesianDerivativesOfNode(nodeIdx);
+                double N = evaluatedInterpolation.GetValueOf(node);
+                var dNdx = evaluatedInterpolation.GetCartesianDerivativesOf(node);
 
-                foreach (var enrichment in Nodes[nodeIdx].EnrichmentFunctions)
+                foreach (var enrichment in node.EnrichmentFunctions)
                 {
                     // Denote the enrichment function as H
                     double H = enrichment.Item1.ValueAt(cartesianPoint); // TODO: Calculate the values and derivatives of all unique enrichment functions only once, instead of once per associated node.

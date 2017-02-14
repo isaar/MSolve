@@ -28,15 +28,21 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             this.shapeFunctions = shapeFunctions;
         }
 
-        public ShapeFunctionValues2D EvaluateAt(double xi, double eta)
+        public EvaluatedInterpolation2D EvaluateAt(IPoint2D naturalPoint)
         {
-            return new ShapeFunctionValues2D(shapeFunctions.EvaluateAt(xi, eta), Nodes);
+            double xi = naturalPoint.X;
+            double eta = naturalPoint.Y;
+            double[,] naturalDerivatives = shapeFunctions.EvaluateDerivativesAt(xi, eta);
+            // TODO: perhaps check that the nodes match the values and derivatives
+            return new EvaluatedInterpolation2D(Nodes, shapeFunctions.EvaluateAt(xi, eta), 
+                naturalDerivatives, new Jacobian2D(Nodes, naturalDerivatives));
         }
 
-        public ShapeFunctionDerivatives2D EvaluateDerivativesAt(double xi, double eta)
+        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IPoint2D naturalPoint)
         {
-            double[,] naturalDerivatives = shapeFunctions.EvaluateDerivativesAt(xi, eta);
-            return new ShapeFunctionDerivatives2D(naturalDerivatives, new Jacobian2D(Nodes, naturalDerivatives));
+            double[,] naturalDerivatives = shapeFunctions.EvaluateDerivativesAt(naturalPoint.X, naturalPoint.Y);
+            // TODO: perhaps check that the nodes match the values and derivatives
+            return new EvaluatedInterpolation2D(Nodes, naturalDerivatives, new Jacobian2D(Nodes, naturalDerivatives));
         }
     }
 }
