@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
     //      may be costly. Also the normal vector through a point and that point's signed distance may have common 
     //      costly calculations. It seems that the curve should somehow remember (and clear) the various geometric 
     //      values associated each point.
-    class RampFunction2D
+    class RampFunction2D: IEnrichmentFunction2D
     {
         private readonly IEnrichmentItem2D enrichmentItem;
 

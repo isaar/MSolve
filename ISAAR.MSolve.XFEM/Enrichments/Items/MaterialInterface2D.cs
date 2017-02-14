@@ -10,7 +10,7 @@ using ISAAR.MSolve.XFEM.Geometry;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
-    class CrackBody2D : IEnrichmentItem2D
+    class MaterialInterface2D : IEnrichmentItem2D
     {
         private List<XIsoparametricQuad4> splitElements;
 
@@ -18,14 +18,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         public IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
         public IReadOnlyList<XIsoparametricQuad4> AffectedElements { get { return splitElements; } }
 
-        //TODO: allow the user to specify which Heaviside function to pass. 
-        // First specialize IEnrichmentFunction2D into IDiscontinuityFunction2D to allow only Heaviside, Sign or 
-        // Heaviside approximation functions.
-        public CrackBody2D(ICurve2D geometry) 
+        public MaterialInterface2D(ICurve2D geometry)
         {
             this.splitElements = new List<XIsoparametricQuad4>();
             this.Geometry = geometry;
-            this.EnrichmentFunctions = new IEnrichmentFunction2D[] { new SignFunction2D(this) };
+            this.EnrichmentFunctions = new IEnrichmentFunction2D[] { new RampFunction2D(this) };
         }
 
         public void AffectElement(XIsoparametricQuad4 element)
@@ -40,14 +37,14 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             // Find all unique affected nodes.
             HashSet<XNode2D> nodes = new HashSet<XNode2D>();
             foreach (var element in AffectedElements) nodes.UnionWith(element.Nodes);
-            
+
             foreach (var node in nodes)
             {
                 var allEnrichments = new Tuple<IEnrichmentFunction2D, double>[EnrichmentFunctions.Count];
                 int enrichmentCounter = 0;
                 foreach (var enrichmentFunction in EnrichmentFunctions)
                 {
-                    allEnrichments[enrichmentCounter] = 
+                    allEnrichments[enrichmentCounter] =
                         new Tuple<IEnrichmentFunction2D, double>(enrichmentFunction, enrichmentFunction.ValueAt(node));
                     ++enrichmentCounter;
                 }

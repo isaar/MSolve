@@ -52,13 +52,13 @@
     <Compile Include="Elements\IsoparametricQuad4WithDiscontinuity.cs" />
     <Compile Include="Elements\IsoparametricQuad4WithTip.cs" />
     <Compile Include="Elements\Quad4.cs" />
+    <Compile Include="Elements\XIsoparametricQuad4.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
     <Compile Include="Enrichments\Functions\SignFunction2D.cs" />
-    <Compile Include="Enrichments\HeavisideEnrichment2D.cs" />
     <Compile Include="Enrichments\Functions\IEnrichmentFunction2D.cs" />
     <Compile Include="Enrichments\Items\CrackBody2D.cs" />
     <Compile Include="Enrichments\Items\IEnrichmentItem2D.cs" />
-    <Compile Include="Enrichments\RampEnrichment2D.cs" />
+    <Compile Include="Enrichments\Items\MaterialInterface2D.cs" />
     <Compile Include="Entities\Element2D.cs" />
     <Compile Include="Entities\Node2D.cs" />
     <Compile Include="Entities\XNode2D.cs" />

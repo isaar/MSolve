@@ -7,6 +7,7 @@ using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Materials;
@@ -15,56 +16,56 @@ namespace ISAAR.MSolve.XFEM
 {
     class Program
     {
-        private static Node2D[] nodeSet1 = {
-            new Node2D(0, -1.0, -1.0),
-            new Node2D(1, 1.0, -1.0),
-            new Node2D(2, 1.0, 1.0),
-            new Node2D(3, -1.0, 1.0)
+        private static XNode2D[] nodeSet1 = {
+            new XNode2D(0, -1.0, -1.0),
+            new XNode2D(1, 1.0, -1.0),
+            new XNode2D(2, 1.0, 1.0),
+            new XNode2D(3, -1.0, 1.0)
         };
 
-        private static Node2D[] nodeSet2 = {
-            new Node2D(0, -2.0, -2.0),
-            new Node2D(1, 2.0, -2.0),
-            new Node2D(2, 2.0, 2.0),
-            new Node2D(3, -2.0, 2.0)
+        private static XNode2D[] nodeSet2 = {
+            new XNode2D(0, -2.0, -2.0),
+            new XNode2D(1, 2.0, -2.0),
+            new XNode2D(2, 2.0, 2.0),
+            new XNode2D(3, -2.0, 2.0)
         };
 
-        private static Node2D[] nodeSet3 = {
-            new Node2D(0, 0.0, 0.0),
-            new Node2D(1, 2.0, 0.0),
-            new Node2D(2, 2.0, 2.0),
-            new Node2D(3, 0.0, 2.0)
+        private static XNode2D[] nodeSet3 = {
+            new XNode2D(0, 0.0, 0.0),
+            new XNode2D(1, 2.0, 0.0),
+            new XNode2D(2, 2.0, 2.0),
+            new XNode2D(3, 0.0, 2.0)
         };
 
-        private static Node2D[] nodeSet4 = {
-            new Node2D(0, 0.0, 0.0),
-            new Node2D(1, 4.0, 0.0),
-            new Node2D(2, 4.0, 4.0),
-            new Node2D(3, 0.0, 4.0)
+        private static XNode2D[] nodeSet4 = {
+            new XNode2D(0, 0.0, 0.0),
+            new XNode2D(1, 4.0, 0.0),
+            new XNode2D(2, 4.0, 4.0),
+            new XNode2D(3, 0.0, 4.0)
         };
 
-        private static Node2D[] nodeSet5 = {
-            new Node2D(0, 0.0, 0.0),
-            new Node2D(1, 4.0, 0.0),
-            new Node2D(2, 4.0, 3.0),
-            new Node2D(3, 0.0, 3.0)
+        private static XNode2D[] nodeSet5 = {
+            new XNode2D(0, 0.0, 0.0),
+            new XNode2D(1, 4.0, 0.0),
+            new XNode2D(2, 4.0, 3.0),
+            new XNode2D(3, 0.0, 3.0)
         };
 
-        private static Node2D[] nodeSet6 = {
-            new Node2D(0, 0.2, 0.3),
-            new Node2D(1, 2.2, 1.5),
-            new Node2D(2, 3.0, 2.7),
-            new Node2D(3, 0.7, 2.0)
+        private static XNode2D[] nodeSet6 = {
+            new XNode2D(0, 0.2, 0.3),
+            new XNode2D(1, 2.2, 1.5),
+            new XNode2D(2, 3.0, 2.7),
+            new XNode2D(3, 0.7, 2.0)
         };
 
-        private static Node2D[] nodeSet7 = {
-            new Node2D(0, 20.0, 0.0),
-            new Node2D(1, 40.0, 0.0),
-            new Node2D(2, 40.0, 20.0),
-            new Node2D(3, 20.0, 20.0)
+        private static XNode2D[] nodeSet7 = {
+            new XNode2D(0, 20.0, 0.0),
+            new XNode2D(1, 40.0, 0.0),
+            new XNode2D(2, 40.0, 20.0),
+            new XNode2D(3, 20.0, 20.0)
         };
 
-        private static void Quad4Test(Node2D[] nodes)
+        private static void Quad4Test(XNode2D[] nodes)
         {
             double E = 1.0;
             double v = 0.25;
@@ -77,7 +78,7 @@ namespace ISAAR.MSolve.XFEM
             Console.WriteLine(k);
         }
 
-        private static void IsoparametricQuad4Test(Node2D[] nodes)
+        private static void IsoparametricQuad4Test(XNode2D[] nodes)
         {
             double E = 1;
             double v = 0.25;
@@ -90,7 +91,7 @@ namespace ISAAR.MSolve.XFEM
             Console.WriteLine(k);
         }
 
-        private static void IsoparametricQuad4WithCrackTest(Node2D[] nodes)
+        private static void IsoparametricQuad4WithCrackTest(XNode2D[] nodes)
         {
             double E = 2e6;
             double v = 0.3;
@@ -98,9 +99,12 @@ namespace ISAAR.MSolve.XFEM
             var material = ElasticMaterial2DPlainStrain.Create(E, v, t);
 
             ICurve2D discontinuity = new Line2D(new Point2D(30.0, 0.0), new Point2D(30.0, 20.0));
-            IEnrichmentFunction2D enrichmentFunction = new HeavisideEnrichment2D(discontinuity);
+            IEnrichmentItem2D enrichmentItem = new CrackBody2D(discontinuity);
 
-            var element = IsoparametricQuad4WithDiscontinuity.CreateHomogeneous(nodes, enrichmentFunction, material);
+            var element = XIsoparametricQuad4.CreateHomogeneous(nodes, material);
+
+            enrichmentItem.AffectElement(element);
+            enrichmentItem.EnrichNodes();
 
             SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
@@ -113,28 +117,27 @@ namespace ISAAR.MSolve.XFEM
 
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
             Console.WriteLine(stiffnessStd);
-            Console.WriteLine("Quad4 stdandard-enriched stiffness matrix = ");
+            Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
             Console.WriteLine(stiffnessStdEnr);
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
             Console.WriteLine(stiffnessEnr);
         }
 
-        private static void IsoparametricQuad4BimaterialTest(Node2D[] nodes)
+        private static void IsoparametricQuad4BimaterialTest(XNode2D[] nodes)
         {
             double E = 2e6;
             double v = 0.3;
             double t = 1.0;
-
-            //TODO: need a way to supply materials with predicates concerning (x, y) or (ksi, eta)
-            var materialLeft = ElasticMaterial2DPlainStrain.Create(E, v, t); 
+            var materialLeft = ElasticMaterial2DPlainStrain.Create(E, v, t);
             var materialRight = ElasticMaterial2DPlainStrain.Create(E / 2.0, v, t);
 
             ICurve2D discontinuity = new Line2D(new Point2D(30.0, 0.0), new Point2D(30.0, 20.0));
-            IEnrichmentFunction2D enrichmentFunction = new RampEnrichment2D(discontinuity);
+            IEnrichmentItem2D enrichmentItem = new MaterialInterface2D(discontinuity);
 
+            var element = XIsoparametricQuad4.CreateBimaterial(nodes, materialLeft, materialRight);
 
-            var element = IsoparametricQuad4WithDiscontinuity.CreateBimaterial(
-                nodes, enrichmentFunction, materialLeft, materialRight);
+            enrichmentItem.AffectElement(element);
+            enrichmentItem.EnrichNodes();
 
             SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;

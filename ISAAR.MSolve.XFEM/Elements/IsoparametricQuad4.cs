@@ -17,8 +17,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 {
     class IsoparametricQuad4: IFiniteElement2D
     {
-        private const int DOFS_COUNT = 8;
-
+        public readonly int DOFS_COUNT = 8;
         private readonly IReadOnlyList<Node2D> nodes;
         private readonly IsoparametricInterpolation2D interpolation;
 
