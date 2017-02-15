@@ -1,0 +1,136 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry;
+
+namespace ISAAR.MSolve.XFEM.Interpolation
+{
+
+    abstract class IsoparamatricInterpolation2D
+    {
+        #region enum values
+        public static readonly IsoparamatricInterpolation2D Quad4 = new Quad4ShapeFunctions();
+        public static readonly IsoparamatricInterpolation2D Quad9 = new Quad9ShapeFunctions();
+        #endregion
+
+        #region implemented members
+        // Prevents non-nested derived classes. What happens if the class gets too big?
+        // i) Use an interface and many similar (and interchangeable) enum classes (e.g. 1 for quads, 1 for triangles).
+        // ii) Relax the requirement that derived classes must be nested. 
+        // iii) Keep the nested requirement but use partial class
+        private IsoparamatricInterpolation2D(int functionsCount) { this.FunctionsCount = functionsCount; }
+
+        public int FunctionsCount { get; }
+
+        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<Node2D> nodes, IPoint2D naturalPoint)
+        {
+            double xi = naturalPoint.X;
+            double eta = naturalPoint.Y;
+            double[,] naturalDerivatives = EvaluateDerivativesAt(xi, eta);
+            // TODO: perhaps check that the nodes match the values and derivatives
+            return new EvaluatedInterpolation2D(nodes, EvaluateAt(xi, eta),
+                naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
+        }
+
+        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<Node2D> nodes, IPoint2D naturalPoint)
+        {
+            double[,] naturalDerivatives = EvaluateDerivativesAt(naturalPoint.X, naturalPoint.Y);
+            // TODO: perhaps check that the nodes match the values and derivatives
+            return new EvaluatedInterpolation2D(nodes, naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
+        }
+        #endregion
+
+        #region abstract members
+        protected abstract double[] EvaluateAt(double xi, double eta);
+        protected abstract double[,] EvaluateDerivativesAt(double xi, double eta);
+        #endregion
+
+        #region concrete (private) classes
+        private class Quad4ShapeFunctions : IsoparamatricInterpolation2D
+        {
+            public Quad4ShapeFunctions() : base(4) { }
+
+            protected override sealed double[] EvaluateAt(double xi, double eta)
+            {
+                double[] values = new double[4];
+                values[0] = 0.25 * (1 - xi) * (1 - eta);
+                values[1] = 0.25 * (1 + xi) * (1 - eta);
+                values[2] = 0.25 * (1 + xi) * (1 + eta);
+                values[3] = 0.25 * (1 - xi) * (1 + eta);
+                return values;
+            }
+
+            protected override sealed double[,] EvaluateDerivativesAt(double xi, double eta)
+            {
+                double[,] derivatives = new double[4, 2];
+                derivatives[0, 0] = -0.25 * (1 - eta);
+                derivatives[0, 1] = -0.25 * (1 - xi);
+                derivatives[1, 0] = 0.25 * (1 - eta);
+                derivatives[1, 1] = -0.25 * (1 + xi);
+                derivatives[2, 0] = 0.25 * (1 + eta);
+                derivatives[2, 1] = 0.25 * (1 + xi);
+                derivatives[3, 0] = -0.25 * (1 + eta);
+                derivatives[3, 1] = 0.25 * (1 - xi);
+                return derivatives;
+            }
+        }
+
+        private class Quad9ShapeFunctions : IsoparamatricInterpolation2D
+        {
+            public Quad9ShapeFunctions() : base(9) { }
+
+            protected override sealed double[] EvaluateAt(double xi, double eta)
+            {
+                double xiEtaOver4 = 0.25 * xi * eta;
+                double xi_2 = xi * xi;
+                double eta_2 = eta * eta;
+
+                double[] values = new double[9];
+                values[0] = xiEtaOver4 * (1 - xi) * (1 - eta);
+                values[1] = -xiEtaOver4 * (1 + xi) * (1 - eta);
+                values[2] = xiEtaOver4 * (1 + xi) * (1 + eta);
+                values[3] = -xiEtaOver4 * (1 - xi) * (1 + eta);
+                values[4] = -0.5 * eta * (1 - xi_2) * (1 - eta);
+                values[5] = 0.5 * xi * (1 + xi) * (1 - eta_2);
+                values[6] = 0.5 * eta * (1 - xi_2) * (1 + eta);
+                values[7] = -0.5 * xi * (1 - xi) * (1 - eta_2);
+                values[8] = (1 - xi_2) * (1 - eta_2);
+                return values;
+            }
+
+            protected override sealed double[,] EvaluateDerivativesAt(double xi, double eta)
+            {
+                double xi2 = xi * 2.0;
+                double eta2 = eta * 2.0;
+                double xi_2 = xi * xi;
+                double eta_2 = eta * eta;
+                double xiEta = xi * eta;
+
+                double[,] derivatives = new double[9, 2];
+                derivatives[0, 0] = 0.25 * eta * (1 - xi2) * (1 - eta);
+                derivatives[0, 1] = 0.25 * xi * (1 - xi) * (1 - eta2);
+                derivatives[1, 0] = -0.25 * eta * (1 + xi2) * (1 - eta);
+                derivatives[1, 1] = -0.25 * xi * (1 + xi) * (1 - eta2);
+                derivatives[2, 0] = 0.25 * eta * (1 + xi2) * (1 + eta);
+                derivatives[2, 1] = 0.25 * xi * (1 + xi) * (1 + eta2);
+                derivatives[3, 0] = -0.25 * eta * (1 - xi2) * (1 + eta);
+                derivatives[3, 1] = 0.25 * xi * (1 - xi) * (1 + eta2);
+                derivatives[4, 1] = xiEta * (1 - eta);
+                derivatives[4, 2] = -0.5 * (1 - xi_2) * (1 - eta2);
+                derivatives[5, 1] = 0.5 * (1 + xi2) * (1 - eta_2);
+                derivatives[5, 2] = -xiEta * (1 + xi);
+                derivatives[6, 1] = -xiEta * (1 + eta);
+                derivatives[6, 2] = 0.5 * (1 - xi_2) * (1 + eta2);
+                derivatives[7, 1] = -0.5 * (1 - xi2) * (1 - eta_2);
+                derivatives[7, 2] = xiEta * (1 - xi);
+                derivatives[8, 1] = -2 * xi * (1 - eta_2);
+                derivatives[8, 2] = -2 * eta * (1 - xi_2);
+                return derivatives;
+            }
+        }
+        #endregion
+    }
+}

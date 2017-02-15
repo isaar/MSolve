@@ -9,7 +9,6 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.XFEM.Interpolation.ShapeFunctions;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -19,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     {
         public readonly int DOFS_COUNT = 8;
         private readonly IReadOnlyList<Node2D> nodes;
-        private readonly IsoparametricInterpolation2D interpolation;
+        private IsoparamatricInterpolation2D Interpolation { get { return IsoparamatricInterpolation2D.Quad4; } }
 
         public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; }
 
@@ -48,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             // TODO: Add checks here: order of nodes and suitability of gauss points. 
             // Or add checks in the callers (in this class and in enriched elements)?
             this.nodes = nodes;
-            this.interpolation = new IsoparametricInterpolation2D(this.nodes, NaturalShapeFunctions2D.Quad4);
+            //this.interpolation = new IsoparametricInterpolation2D(this.nodes, NaturalShapeFunctions2D.Quad4);
             this.MaterialsOfGaussPoints = materialsOfGaussPoints;
         }
 
@@ -62,7 +61,8 @@ namespace ISAAR.MSolve.XFEM.Elements
 
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
-                EvaluatedInterpolation2D evaluatedInterpolation = interpolation.EvaluateOnlyDerivativesAt(gaussPoint);
+                EvaluatedInterpolation2D evaluatedInterpolation = 
+                    Interpolation.EvaluateOnlyDerivativesAt(nodes, gaussPoint);
                 Matrix2D<double> deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix

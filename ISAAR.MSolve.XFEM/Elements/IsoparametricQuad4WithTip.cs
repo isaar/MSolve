@@ -11,7 +11,6 @@ using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.XFEM.Interpolation.ShapeFunctions;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -37,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         // I could store the materials and gauss points here (like the nodes), instead of pulling them from the std FE.
         //public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; } 
 
-        private readonly IsoparametricInterpolation2D enrichedInterpolation;
+        private readonly IsoparamatricInterpolation2D enrichedInterpolation;
         // TODO: use dictionaries for the nodal values and functions.
         private readonly IEnrichmentFunction2D[] enrichmentFunctions;
         private double[,] nodalEnrichmentValues; // mutable
@@ -62,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.nodes = nodesCopy;
             // Checking the nodes and gauss points is done by the standard Finite Element
             this.stdFiniteElement = new IsoparametricQuad4(this.nodes, materialsOfGaussPoints);
-            this.enrichedInterpolation = new IsoparametricInterpolation2D(this.nodes, NaturalShapeFunctions2D.Quad4);
+            this.enrichedInterpolation = IsoparamatricInterpolation2D.Quad4;
             this.enrichmentFunctions = enrichmentFunctions;
         }
 
@@ -84,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 IFiniteElementMaterial2D material = entry.Value;
 
                 // Calculate the necessary quantities for the integration
-                EvaluatedInterpolation2D evaluatedInterpolation = this.enrichedInterpolation.EvaluateAt(gaussPoint);
+                EvaluatedInterpolation2D evaluatedInterpolation = enrichedInterpolation.EvaluateAt(nodes, gaussPoint);
                 Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
                 Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(gaussPoint, evaluatedInterpolation);
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();

@@ -53,6 +53,7 @@
     <Compile Include="Elements\IsoparametricQuad4WithTip.cs" />
     <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Elements\XIsoparametricQuad4.cs" />
+    <Compile Include="Interpolation\IsoparamatricInterpolation2D.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
     <Compile Include="Enrichments\Functions\SignFunction2D.cs" />
@@ -75,9 +76,7 @@
     <Compile Include="Integration\Rules\SubgridIntegration2D.cs" />
     <Compile Include="Geometry\IPoint2D.cs" />
     <Compile Include="Interpolation\EvaluatedInterpolation2D.cs" />
-    <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Interpolation\Jacobian2D.cs" />
-    <Compile Include="Interpolation\ShapeFunctions\NaturalShapeFunctions2D.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStrain.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStress.cs" />
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
