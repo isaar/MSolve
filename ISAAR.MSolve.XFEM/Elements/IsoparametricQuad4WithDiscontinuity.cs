@@ -23,9 +23,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         private const int ENRICHED_DOFS_COUNT = 8;
 
         private readonly IReadOnlyList<Node2D> nodes; // Copy of the nodes list in the std FE
-        private readonly IsoparametricQuad4 stdFiniteElement;
+        private readonly IsoparametricQuad4_OLD stdFiniteElement;
         
-        private readonly IsoparamatricInterpolation2D enrichedInterpolation;
+        private readonly IsoparametricInterpolation2D enrichedInterpolation;
         private readonly IEnrichmentFunction2D enrichmentFunction;
 
         // I could store the materials and gauss points here (like the nodes), instead of pulling them from the std FE.
@@ -66,8 +66,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             nodes.CopyTo(nodesCopy, 0);
             this.nodes = nodesCopy;
             // Checking the nodes and gauss points is done by the standard Finite Element
-            this.stdFiniteElement = new IsoparametricQuad4(this.nodes, materialsOfGaussPoints); 
-            this.enrichedInterpolation = IsoparamatricInterpolation2D.Quad4;
+            this.stdFiniteElement = new IsoparametricQuad4_OLD(this.nodes, materialsOfGaussPoints); 
+            this.enrichedInterpolation = IsoparametricInterpolation2D.Quad4;
             this.enrichmentFunction = enrichmentFunction;
         }
 

@@ -21,12 +21,12 @@ namespace ISAAR.MSolve.XFEM.Elements
     {
         // Copy of the nodes list in the std FE? Or only the enrichment interpolation nodes? Should I use the list stored in the enrichment interpolation?
         public IReadOnlyList<XNode2D> Nodes { get; } 
-        private readonly IsoparametricQuad4 stdFiniteElement;
+        private readonly IsoparametricQuad4_OLD stdFiniteElement;
 
         // I could store the materials and gauss points here (like the nodes), instead of pulling them from the std FE.
         //public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; } 
 
-        private readonly IsoparamatricInterpolation2D enrichmentInterpolation;
+        private readonly IsoparametricInterpolation2D enrichmentInterpolation;
         
 
         public static XIsoparametricQuad4 CreateHomogeneous(XNode2D[] nodes, IFiniteElementMaterial2D material)
@@ -62,8 +62,8 @@ namespace ISAAR.MSolve.XFEM.Elements
 
             // Checking the nodes and gauss points is done by the standard Finite Element
             // As it is, the same nodes are used for both the std FE and the enriched FE.
-            this.stdFiniteElement = new IsoparametricQuad4(this.Nodes, materialsOfGaussPoints);
-            this.enrichmentInterpolation = IsoparamatricInterpolation2D.Quad4;
+            this.stdFiniteElement = new IsoparametricQuad4_OLD(this.Nodes, materialsOfGaussPoints);
+            this.enrichmentInterpolation = IsoparametricInterpolation2D.Quad4;
         }
 
         public SymmetricMatrix2D<double> BuildStdStiffnessMatrix()

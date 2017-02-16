@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.XFEM
             double t = 1.0;
             var material = ElasticMaterial2DPlainStress.Create(E, v, t);
 
-            var element = IsoparametricQuad4.CreateHomogeneous(nodes, material);
+            var element = new IsoparametricQuad4(nodes, material);
             SymmetricMatrix2D<double> k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
             Console.WriteLine(k);
@@ -159,9 +159,9 @@ namespace ISAAR.MSolve.XFEM
         static void Main(string[] args)
         {
             //Quad4Test(nodeSet5);
-            //IsoparametricQuad4Test(nodeSet1);
+            IsoparametricQuad4Test(nodeSet1);
 
-            IsoparametricQuad4WithCrackTest(nodeSet7);
+            //IsoparametricQuad4WithCrackTest(nodeSet7);
             //IsoparametricQuad4BimaterialTest(nodeSet7);
         }
     }

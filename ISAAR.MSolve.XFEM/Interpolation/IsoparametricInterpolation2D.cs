@@ -9,11 +9,11 @@ using ISAAR.MSolve.XFEM.Geometry;
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
 
-    abstract class IsoparamatricInterpolation2D
+    abstract class IsoparametricInterpolation2D
     {
         #region enum values
-        public static readonly IsoparamatricInterpolation2D Quad4 = new Quad4ShapeFunctions();
-        public static readonly IsoparamatricInterpolation2D Quad9 = new Quad9ShapeFunctions();
+        public static readonly IsoparametricInterpolation2D Quad4 = new Quad4ShapeFunctions();
+        public static readonly IsoparametricInterpolation2D Quad9 = new Quad9ShapeFunctions();
         #endregion
 
         #region implemented members
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         // i) Use an interface and many similar (and interchangeable) enum classes (e.g. 1 for quads, 1 for triangles).
         // ii) Relax the requirement that derived classes must be nested. 
         // iii) Keep the nested requirement but use partial class
-        private IsoparamatricInterpolation2D(int functionsCount) { this.FunctionsCount = functionsCount; }
+        private IsoparametricInterpolation2D(int functionsCount) { this.FunctionsCount = functionsCount; }
 
         public int FunctionsCount { get; }
 
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         #endregion
 
         #region concrete (private) classes
-        private class Quad4ShapeFunctions : IsoparamatricInterpolation2D
+        private class Quad4ShapeFunctions : IsoparametricInterpolation2D
         {
             public Quad4ShapeFunctions() : base(4) { }
 
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             }
         }
 
-        private class Quad9ShapeFunctions : IsoparamatricInterpolation2D
+        private class Quad9ShapeFunctions : IsoparametricInterpolation2D
         {
             public Quad9ShapeFunctions() : base(9) { }
 
