@@ -30,5 +30,10 @@ namespace ISAAR.MSolve.XFEM.Elements
                 GaussQuadrature2D.Order2x2.GenerateIntegrationPoints(), commonMaterial)
         {
         }
+
+        public IsoparametricQuad9(IReadOnlyList<Node2D> nodes) :
+            base(nodes, IsoparametricInterpolation2D.Quad9, null)
+        {
+        }
     }
 }

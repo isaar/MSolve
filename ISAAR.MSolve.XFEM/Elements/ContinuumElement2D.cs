@@ -16,10 +16,10 @@ namespace ISAAR.MSolve.XFEM.Elements
     abstract class ContinuumElement2D
     {
         public IReadOnlyList<Node2D> Nodes { get; private set; }
-        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; private set; }
+        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; set; }
 
-        private int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
-        private IsoparametricInterpolation2D Interpolation { get; set; } // Must change when nodes change.
+        public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
+        public IsoparametricInterpolation2D Interpolation { get; private set; } // Must change when nodes change.
 
         /// <summary>
         /// Parameters passed to this constructor will not be copied.
@@ -38,7 +38,8 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation,
             IReadOnlyList<GaussPoint2D> integrationPoints, IFiniteElementMaterial2D commonMaterial):
-            this(nodes, interpolation, AssignMaterialToIntegrationPoints(integrationPoints, commonMaterial))
+            this(nodes, interpolation, 
+                MaterialUtilities.AssignMaterialToIntegrationPoints(integrationPoints, commonMaterial))
         {
         }
 
@@ -92,18 +93,5 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             return deformationMatrix;
         }
-        
-        #region static members
-        private static IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> AssignMaterialToIntegrationPoints(
-            IReadOnlyList<GaussPoint2D> integrationPoints, IFiniteElementMaterial2D commonMaterial)
-        {
-            var gpToMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
-            foreach (var point in integrationPoints)
-            {
-                gpToMaterials[point] = commonMaterial.Clone();
-            }
-            return gpToMaterials;
-        }
-        #endregion
     }
 }

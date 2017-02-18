@@ -16,31 +16,23 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    // TODO: It still uses the same nodes for the std and enriched part. 
-    class XIsoparametricQuad4
+    // Uses the same interpolation and nodes as the underlying std element!
+    class XElement2D
     {
-        // Copy of the nodes list in the std FE? Or only the enrichment interpolation nodes? Should I use the list stored in the enrichment interpolation?
-        public IReadOnlyList<XNode2D> Nodes { get; } 
-        private readonly IsoparametricQuad4_OLD stdFiniteElement;
+        private readonly ContinuumElement2D stdFiniteElement;
+        public IReadOnlyList<XNode2D> Nodes { get; } // The same as in stdElement.
 
-        // I could store the materials and gauss points here (like the nodes), instead of pulling them from the std FE.
-        //public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; } 
-
-        private readonly IsoparametricInterpolation2D enrichmentInterpolation;
-        
-
-        public static XIsoparametricQuad4 CreateHomogeneous(XNode2D[] nodes, IFiniteElementMaterial2D material)
+        public static XElement2D CreateHomogeneous(ContinuumElement2D stdFiniteElement, 
+            IFiniteElementMaterial2D commonMaterial)
         {
             var integration = new SubgridIntegration2D(2, GaussQuadrature2D.Order2x2);
-            var gpToMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
-            foreach (var point in integration.GenerateIntegrationPoints())
-            {
-                gpToMaterials[point] = material.Clone();
-            }
-            return new XIsoparametricQuad4(nodes, gpToMaterials);
+            IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> gpToMaterials = 
+                MaterialUtilities.AssignMaterialToIntegrationPoints(integration.GenerateIntegrationPoints(), 
+                commonMaterial);
+            return new XElement2D(stdFiniteElement, gpToMaterials);
         }
 
-        public static XIsoparametricQuad4 CreateBimaterial(XNode2D[] nodes, 
+        public static XElement2D CreateBimaterial(ContinuumElement2D stdFiniteElement,
             IFiniteElementMaterial2D materialLeft, IFiniteElementMaterial2D materialRight)
         {
             var integration = new SubgridIntegration2D(2, GaussQuadrature2D.Order2x2);
@@ -50,20 +42,17 @@ namespace ISAAR.MSolve.XFEM.Elements
                 if (point.X < 0) gpToMaterials[point] = materialLeft.Clone();
                 else gpToMaterials[point] = materialRight.Clone();
             }
-            return new XIsoparametricQuad4(nodes, gpToMaterials);
+            return new XElement2D(stdFiniteElement, gpToMaterials);
         }
 
-        private XIsoparametricQuad4(XNode2D[] nodes, 
+        // Perhaps an element factory for the std element would be better than an instance,
+        // in which I change stuff or use casts.
+        private XElement2D(ContinuumElement2D stdFiniteElement,
             IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints)
         {
-            var nodesCopy = new XNode2D[nodes.Length];
-            nodes.CopyTo(nodesCopy, 0);
-            this.Nodes = nodesCopy;
-
-            // Checking the nodes and gauss points is done by the standard Finite Element
-            // As it is, the same nodes are used for both the std FE and the enriched FE.
-            this.stdFiniteElement = new IsoparametricQuad4_OLD(this.Nodes, materialsOfGaussPoints);
-            this.enrichmentInterpolation = IsoparametricInterpolation2D.Quad4;
+            this.stdFiniteElement = stdFiniteElement;
+            this.Nodes = (IReadOnlyList<XNode2D>)(stdFiniteElement.Nodes); // I am not too thrilled about casting especially when using covariance.
+            this.stdFiniteElement.MaterialsOfGaussPoints = materialsOfGaussPoints;
         }
 
         public SymmetricMatrix2D<double> BuildStdStiffnessMatrix()
@@ -75,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             out SymmetricMatrix2D<double> stiffnessEnriched)
         {
             int artificialDofsCount = CountArtificialDofs();
-            stiffnessStdEnriched = new Matrix2D<double>(stdFiniteElement.DOFS_COUNT, artificialDofsCount);
+            stiffnessStdEnriched = new Matrix2D<double>(stdFiniteElement.DofsCount, artificialDofsCount);
             stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
             foreach (var entry in stdFiniteElement.MaterialsOfGaussPoints)
             {
@@ -84,10 +73,10 @@ namespace ISAAR.MSolve.XFEM.Elements
 
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
-                EvaluatedInterpolation2D evaluatedInterpolation = 
-                    enrichmentInterpolation.EvaluateAt(Nodes, gaussPoint);
+                EvaluatedInterpolation2D evaluatedInterpolation =
+                    stdFiniteElement.Interpolation.EvaluateAt(Nodes, gaussPoint);
                 Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
-                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount, 
+                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
                     gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices
@@ -102,7 +91,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
         }
 
-        private Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount, 
+        private Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount,
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             IPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
@@ -119,7 +108,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 {
                     IEnrichmentFunction2D enrichmentFunction = enrichment.Item1;
                     double nodalEnrichmentValue = enrichment.Item2;
-                    
+
                     // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
                     EvaluatedFunction2D evaluatedEnrichment;
                     if (!(uniqueFunctions.TryGetValue(enrichmentFunction, out evaluatedEnrichment))) //Only search once
@@ -131,9 +120,9 @@ namespace ISAAR.MSolve.XFEM.Elements
                     // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
                     // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
                     // function
-                    double Bx = dNdx.Item1 * (evaluatedEnrichment.Value - nodalEnrichmentValue) 
+                    double Bx = dNdx.Item1 * (evaluatedEnrichment.Value - nodalEnrichmentValue)
                         + N * evaluatedEnrichment.CartesianDerivatives.Item1;
-                    double By = dNdx.Item2 * (evaluatedEnrichment.Value - nodalEnrichmentValue) 
+                    double By = dNdx.Item2 * (evaluatedEnrichment.Value - nodalEnrichmentValue)
                         + N * evaluatedEnrichment.CartesianDerivatives.Item2;
 
                     // This depends on the convention: node major or enrichment major. The following is node major.

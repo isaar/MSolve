@@ -12,20 +12,20 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     class MaterialInterface2D : IEnrichmentItem2D
     {
-        private List<XIsoparametricQuad4> splitElements;
+        private List<XElement2D> splitElements;
 
         public ICurve2D Geometry { get; }
         public IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
-        public IReadOnlyList<XIsoparametricQuad4> AffectedElements { get { return splitElements; } }
+        public IReadOnlyList<XElement2D> AffectedElements { get { return splitElements; } }
 
         public MaterialInterface2D(ICurve2D geometry)
         {
-            this.splitElements = new List<XIsoparametricQuad4>();
+            this.splitElements = new List<XElement2D>();
             this.Geometry = geometry;
             this.EnrichmentFunctions = new IEnrichmentFunction2D[] { new RampFunction2D(this) };
         }
 
-        public void AffectElement(XIsoparametricQuad4 element)
+        public void AffectElement(XElement2D element)
         {
             // TODO: There should be a check here or this method should be private.
             if (!splitElements.Contains(element)) splitElements.Add(element);

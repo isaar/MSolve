@@ -49,14 +49,12 @@
   <ItemGroup>
     <Compile Include="Elements\ContinuumElement2D.cs" />
     <Compile Include="Elements\IFiniteElement2DView.cs" />
-    <Compile Include="Elements\IsoparametricQuad4_OLD.cs" />
-    <Compile Include="Elements\IsoparametricQuad4WithDiscontinuity.cs" />
-    <Compile Include="Elements\IsoparametricQuad4WithTip.cs" />
     <Compile Include="Elements\IsoparametricQuad4.cs" />
     <Compile Include="Elements\IsoparametricQuad9.cs" />
     <Compile Include="Elements\Quad4.cs" />
-    <Compile Include="Elements\XIsoparametricQuad4.cs" />
+    <Compile Include="Elements\XElement2D.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
+    <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
     <Compile Include="Enrichments\Functions\SignFunction2D.cs" />

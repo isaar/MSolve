@@ -15,9 +15,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         ICurve2D Geometry { get; }
         IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
-        IReadOnlyList<XIsoparametricQuad4> AffectedElements { get; }
+        IReadOnlyList<XElement2D> AffectedElements { get; }
 
-        void AffectElement(XIsoparametricQuad4 element);
+        void AffectElement(XElement2D element);
 
         /// <summary>
         /// Assigns enrichment functions and their nodal values to each enriched node.
