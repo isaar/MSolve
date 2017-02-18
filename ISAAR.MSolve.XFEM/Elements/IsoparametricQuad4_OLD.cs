@@ -14,10 +14,10 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    class IsoparametricQuad4_OLD: IFiniteElement2D
+    class IsoparametricQuad4_OLD: IFiniteElement2DView
     {
         public readonly int DOFS_COUNT = 8;
-        private readonly IReadOnlyList<Node2D> nodes;
+        public IReadOnlyList<Node2D> Nodes { get; }
         private IsoparametricInterpolation2D Interpolation { get { return IsoparametricInterpolation2D.Quad4; } }
 
         public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; }
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         {
             // TODO: Add checks here: order of nodes and suitability of gauss points. 
             // Or add checks in the callers (in this class and in enriched elements)?
-            this.nodes = nodes;
+            this.Nodes = nodes;
             //this.interpolation = new IsoparametricInterpolation2D(this.nodes, NaturalShapeFunctions2D.Quad4);
             this.MaterialsOfGaussPoints = materialsOfGaussPoints;
         }
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation = 
-                    Interpolation.EvaluateOnlyDerivativesAt(nodes, gaussPoint);
+                    Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
                 Matrix2D<double> deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 int col1 = 2 * nodeIndex;
                 int col2 = 2 * nodeIndex + 1;
-                Tuple<double, double> dNdX = evaluatedInterpolation.GetCartesianDerivativesOf(nodes[nodeIndex]);
+                Tuple<double, double> dNdX = evaluatedInterpolation.GetCartesianDerivativesOf(Nodes[nodeIndex]);
 
                 deformationMatrix[0, col1] = dNdX.Item1;
                 deformationMatrix[1, col2] = dNdX.Item2;

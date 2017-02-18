@@ -10,9 +10,9 @@ namespace ISAAR.MSolve.XFEM.Entities
     class Element2D
     {
         public IReadOnlyList<XNode2D> Nodes { get; }
-        public IFiniteElement2D ElementType { get; private set; }
+        public IFiniteElement2DView ElementType { get; private set; }
 
-        public Element2D(IEnumerable<XNode2D> nodes, IFiniteElement2D elementType)
+        public Element2D(IEnumerable<XNode2D> nodes, IFiniteElement2DView elementType)
         {
             // TODO: Add checks here
             this.Nodes = new List<XNode2D>(nodes);

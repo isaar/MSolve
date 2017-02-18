@@ -13,14 +13,14 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    class Quad4: IFiniteElement2D
+    class Quad4: IFiniteElement2DView
     {
         private const double DETERMINANT_TOLERANCE = 0.00000001;
         private const int DOFS_COUNT = 8;
 
         private readonly double halfLengthX;
         private readonly double halfLengthY;
-        private readonly IReadOnlyList<Node2D> nodes;
+        public IReadOnlyList<Node2D> Nodes { get; }
         private readonly IReadOnlyList<GaussPoint2D> gaussPoints;
         private readonly IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materials;
 
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.halfLengthX = 0.5 * (nodes[1].X - nodes[0].X);
             this.halfLengthY = 0.5 * (nodes[3].Y - nodes[0].Y);
 
-            this.nodes = new List<Node2D>(nodes);
+            this.Nodes = new List<Node2D>(nodes);
             this.gaussPoints = FindGaussPoints();
 
             var materialsDict = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();

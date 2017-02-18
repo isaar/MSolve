@@ -16,15 +16,18 @@ namespace ISAAR.MSolve.XFEM.Elements
     class IsoparametricQuad4: ContinuumElement2D
     {
         /// <summary>
-        /// The caller assumes responsibility for the gauss points and materials
+        /// The caller assumes responsibility for the the nodes, gauss points and materials
         /// </summary>
-        public IsoparametricQuad4(Node2D[] nodes, 
+        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes, 
             IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints): 
             base(nodes, IsoparametricInterpolation2D.Quad4, materialsOfGaussPoints)
         {
         }
 
-        public IsoparametricQuad4(Node2D[] nodes, IFiniteElementMaterial2D commonMaterial) :
+        /// <summary>
+        /// The caller assumes responsibility for the the nodes.
+        /// </summary>
+        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes, IFiniteElementMaterial2D commonMaterial) :
             base(nodes, IsoparametricInterpolation2D.Quad4, 
                 GaussQuadrature2D.Order2x2.GenerateIntegrationPoints(), commonMaterial)
         {

@@ -15,30 +15,28 @@ namespace ISAAR.MSolve.XFEM.Elements
 {
     abstract class ContinuumElement2D
     {
-        private IReadOnlyList<Node2D> Nodes { get; }
-        private int DofsCount { get; }
-        private IsoparametricInterpolation2D Interpolation { get; }
-        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; }
+        public IReadOnlyList<Node2D> Nodes { get; private set; }
+        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; private set; }
+
+        private int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
+        private IsoparametricInterpolation2D Interpolation { get; set; } // Must change when nodes change.
 
         /// <summary>
-        /// Not all parameters passed to this constructor will be copied.
+        /// Parameters passed to this constructor will not be copied.
         /// </summary>
-        /// <param name="nodes">Is deep copied.</param>
+        /// <param name="nodes">Is not deep copied.</param>
         /// <param name="materialsOfGaussPoints">Is not deep copied</param>
-        protected ContinuumElement2D(Node2D[] nodes, IsoparametricInterpolation2D interpolation,
+        protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation,
             IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints)
         {
             // TODO: Add checks here: order of nodes and suitability of gauss points. 
             // Or add checks in the callers (in this class and in enriched elements)?
-            var nodesCopy = new Node2D[nodes.Length];
-            nodes.CopyTo(nodesCopy, 0);
-            this.Nodes = nodesCopy;
-            this.DofsCount = 2 * nodesCopy.Length;
+            this.Nodes = nodes;
             this.Interpolation = interpolation;
             this.MaterialsOfGaussPoints = materialsOfGaussPoints;
         }
 
-        protected ContinuumElement2D(Node2D[] nodes, IsoparametricInterpolation2D interpolation,
+        protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation,
             IReadOnlyList<GaussPoint2D> integrationPoints, IFiniteElementMaterial2D commonMaterial):
             this(nodes, interpolation, AssignMaterialToIntegrationPoints(integrationPoints, commonMaterial))
         {
