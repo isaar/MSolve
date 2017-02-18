@@ -106,8 +106,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             var localGaussPoints = new List<GaussPoint2D>();
             foreach (var naturalGaussPoint in GaussQuadrature2D.Order2x2.GenerateIntegrationPoints())
             {
-                double localX = naturalGaussPoint.X * halfLengthX;
-                double localY = naturalGaussPoint.Y * halfLengthY;
+                double localX = naturalGaussPoint.Xi * halfLengthX;
+                double localY = naturalGaussPoint.Eta * halfLengthY;
                 double localWeight = naturalGaussPoint.Weight * halfLengthX * halfLengthY;
                 localGaussPoints.Add(new GaussPoint2D(localX, localY, localWeight));
             }
@@ -125,24 +125,24 @@ namespace ISAAR.MSolve.XFEM.Elements
         {
             var B = new Matrix2D<double>(3, DOFS_COUNT);
 
-            B[0, 0] = gaussPoint.Y - halfLengthY;
-            B[0, 2] = -gaussPoint.Y + halfLengthY;
-            B[0, 4] = gaussPoint.Y + halfLengthY;
-            B[0, 6] = -gaussPoint.Y - halfLengthY;
+            B[0, 0] = gaussPoint.Eta - halfLengthY;
+            B[0, 2] = -gaussPoint.Eta + halfLengthY;
+            B[0, 4] = gaussPoint.Eta + halfLengthY;
+            B[0, 6] = -gaussPoint.Eta - halfLengthY;
 
-            B[1, 1] = gaussPoint.X - halfLengthX;
-            B[1, 3] = -gaussPoint.X - halfLengthX;
-            B[1, 5] = gaussPoint.X + halfLengthX;
-            B[1, 7] = -gaussPoint.X + halfLengthX;
+            B[1, 1] = gaussPoint.Xi - halfLengthX;
+            B[1, 3] = -gaussPoint.Xi - halfLengthX;
+            B[1, 5] = gaussPoint.Xi + halfLengthX;
+            B[1, 7] = -gaussPoint.Xi + halfLengthX;
 
-            B[2, 0] = gaussPoint.X - halfLengthX;
-            B[2, 1] = gaussPoint.Y - halfLengthY;
-            B[2, 2] = -gaussPoint.X - halfLengthX;
-            B[2, 3] = -gaussPoint.Y + halfLengthY;
-            B[2, 4] = gaussPoint.X + halfLengthX;
-            B[2, 5] = gaussPoint.Y + halfLengthY;
-            B[2, 6] = -gaussPoint.X + halfLengthX;
-            B[2, 7] = -gaussPoint.Y - halfLengthY;
+            B[2, 0] = gaussPoint.Xi - halfLengthX;
+            B[2, 1] = gaussPoint.Eta - halfLengthY;
+            B[2, 2] = -gaussPoint.Xi - halfLengthX;
+            B[2, 3] = -gaussPoint.Eta + halfLengthY;
+            B[2, 4] = gaussPoint.Xi + halfLengthX;
+            B[2, 5] = gaussPoint.Eta + halfLengthY;
+            B[2, 6] = -gaussPoint.Xi + halfLengthX;
+            B[2, 7] = -gaussPoint.Eta - halfLengthY;
 
             B.Scale(1.0 / (4 * halfLengthX * halfLengthY));
             return B;

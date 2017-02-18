@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.XFEM.Geometry;
-using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -23,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes used for the interpolation.</param>
         /// <param name="naturalDerivatives">The shape function derivatives at a specific integration point. </param>
-        public Jacobian2D(IReadOnlyList<IPoint2D> nodes, double[,] naturalDerivatives)
+        public Jacobian2D(IReadOnlyList<ICartesianPoint2D> nodes, double[,] naturalDerivatives)
         {
             // The original matrix is not stored. Only the inverse and the determinant
             Matrix2D<double> jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
@@ -38,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return new Tuple<double, double>(derivativeX, derivativeY);
         }
 
-        private static Matrix2D<double> CalculateJacobianMatrix(IReadOnlyList<IPoint2D> nodes, 
+        private static Matrix2D<double> CalculateJacobianMatrix(IReadOnlyList<ICartesianPoint2D> nodes, 
             double[,] naturalDerivatives)
         {
             var J = new Matrix2D<double>(DIMENSION, DIMENSION);

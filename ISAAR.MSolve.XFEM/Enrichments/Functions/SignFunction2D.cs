@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             this.enrichmentItem = enrichmentItem;
         }
 
-        public double EvalueAt(IPoint2D cartesianPoint)
+        public double EvalueAt(ICartesianPoint2D cartesianPoint)
         {
             double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
             if (signedDistance > 0.0) return 1.0;
@@ -33,12 +34,12 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             else return 0.0;
         }
 
-        public Tuple<double, double> EvaluateDerivativesAt(IPoint2D cartesianPoint)
+        public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
         {
             return new Tuple<double, double>(0.0, 0.0);
         }
 
-        public EvaluatedFunction2D EvaluateAllAt(IPoint2D cartesianPoint)
+        public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
         {
             var derivatives = new Tuple<double, double>(0.0, 0.0);
             double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);

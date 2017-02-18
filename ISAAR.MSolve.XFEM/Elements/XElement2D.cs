@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             var gpToMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
             foreach (var point in integration.GenerateIntegrationPoints())
             {
-                if (point.X < 0) gpToMaterials[point] = materialLeft.Clone();
+                if (point.Xi < 0) gpToMaterials[point] = materialLeft.Clone();
                 else gpToMaterials[point] = materialRight.Clone();
             }
             return new XElement2D(stdFiniteElement, gpToMaterials);
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         private Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount,
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            IPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
+            ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
             var uniqueFunctions = new Dictionary<IEnrichmentFunction2D, EvaluatedFunction2D>();
 
             var deformationMatrix = new Matrix2D<double>(3, artificialDofsCount);

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry
 {
@@ -14,8 +15,8 @@ namespace ISAAR.MSolve.XFEM.Geometry
     // the normal vector of the positive region is pointing DOWNWARDS (into the positive region). 
     class Line2D : ICurve2D
     {
-        public IPoint2D Start { get; }
-        public IPoint2D End { get; }
+        public ICartesianPoint2D Start { get; }
+        public ICartesianPoint2D End { get; }
 
         public double Length
         {
@@ -27,13 +28,13 @@ namespace ISAAR.MSolve.XFEM.Geometry
             }
         }
         
-        public Line2D(IPoint2D start, IPoint2D end)
+        public Line2D(ICartesianPoint2D start, ICartesianPoint2D end)
         {
             this.Start = start;
             this.End = end;
         }
 
-        public double SignedDistanceOf(IPoint2D point)
+        public double SignedDistanceOf(ICartesianPoint2D point)
         {
             // The following area is positive in the positive region. TODO: prove it
             double triangleAreax2 = 
@@ -42,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Geometry
         }
 
         // The normal vector for the positive region.
-        public Tuple<double, double> NormalVectorThrough(IPoint2D point)
+        public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
         {
             double dy = End.Y - Start.Y;
             double dx = Start.X - End.X;

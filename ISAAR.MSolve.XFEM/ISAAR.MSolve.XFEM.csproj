@@ -53,6 +53,11 @@
     <Compile Include="Elements\IsoparametricQuad9.cs" />
     <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Elements\XElement2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\CartesianPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\ICartesianPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\INaturalPoint1D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\INaturalPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
@@ -67,7 +72,6 @@
     <Compile Include="Entities\XNode2D.cs" />
     <Compile Include="Geometry\ICurve2D.cs" />
     <Compile Include="Geometry\Line2D.cs" />
-    <Compile Include="Geometry\Point2D.cs" />
     <Compile Include="Integration\Points\GaussPoint1D.cs" />
     <Compile Include="Integration\Points\GaussPoint2D.cs" />
     <Compile Include="Integration\Rules\IIntegrationRule1D.cs" />
@@ -75,7 +79,6 @@
     <Compile Include="Integration\Rules\GaussQuadrature2D.cs" />
     <Compile Include="Integration\Rules\GaussQuadrature1D.cs" />
     <Compile Include="Integration\Rules\SubgridIntegration2D.cs" />
-    <Compile Include="Geometry\IPoint2D.cs" />
     <Compile Include="Interpolation\EvaluatedInterpolation2D.cs" />
     <Compile Include="Interpolation\Jacobian2D.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStrain.cs" />

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
-    class Node2D : IPoint2D, IComparable<Node2D>
+    class Node2D : ICartesianPoint2D, IComparable<Node2D>
     {
         public int ID { get; }
 

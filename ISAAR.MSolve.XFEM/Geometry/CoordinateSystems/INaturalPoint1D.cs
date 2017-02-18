@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.XFEM.Geometry
+namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 {
-    interface IPoint2D
+    interface INaturalPoint1D
     {
-        double X { get; }
-        double Y { get; }
+        double Xi { get; }
     }
 }

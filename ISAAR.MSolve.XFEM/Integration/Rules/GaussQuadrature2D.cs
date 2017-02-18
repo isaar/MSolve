@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             {
                 foreach (var pointEta in ruleEta.GenerateIntegrationPoints())
                 {
-                    points2D.Add(new GaussPoint2D(pointXi.X, pointEta.X, pointXi.Weight * pointEta.Weight));
+                    points2D.Add(new GaussPoint2D(pointXi.Xi, pointEta.Xi, pointXi.Weight * pointEta.Weight));
                 }
             }
             this.integrationPoints = points2D;

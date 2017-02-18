@@ -41,8 +41,8 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
                     foreach(var subgridPoint in gaussQuadrature.GenerateIntegrationPoints())
                     {
                         // Transformation from the system of the subrectangle to the natural system of the element
-                        double naturalXi = subgridPoint.X * (xiMax - xiMin) / 2.0 + (xiMin + xiMax) / 2.0;
-                        double naturalEta = subgridPoint.Y * (etaMax - etaMin) / 2.0 + (etaMin + etaMax) / 2.0;
+                        double naturalXi = subgridPoint.Xi * (xiMax - xiMin) / 2.0 + (xiMin + xiMax) / 2.0;
+                        double naturalEta = subgridPoint.Eta * (etaMax - etaMin) / 2.0 + (etaMin + etaMax) / 2.0;
                         double naturalWeight = subgridPoint.Weight * (xiMax - xiMin) / 2.0 * (etaMax - etaMin) / 2.0;
                         points.Add(new GaussPoint2D(naturalXi, naturalEta, naturalWeight));
                     }

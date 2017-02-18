@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return nodesToCartesianDerivatives[node];
         }
 
-        public IPoint2D TransformNaturalToCartesian(IPoint2D naturalCoordinates)
+        public ICartesianPoint2D TransformNaturalToCartesian(INaturalPoint2D naturalCoordinates)
         {
             double x = 0, y = 0;
             foreach (var entry in nodesToValues)
@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 x += val * node.X;
                 y += val * node.Y;
             }
-            return new Point2D(x, y);
+            return new CartesianPoint2D(x, y);
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -25,19 +25,19 @@ namespace ISAAR.MSolve.XFEM.Interpolation
 
         public int FunctionsCount { get; }
 
-        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<Node2D> nodes, IPoint2D naturalPoint)
+        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<Node2D> nodes, INaturalPoint2D naturalPoint)
         {
-            double xi = naturalPoint.X;
-            double eta = naturalPoint.Y;
+            double xi = naturalPoint.Xi;
+            double eta = naturalPoint.Eta;
             double[,] naturalDerivatives = EvaluateDerivativesAt(xi, eta);
             // TODO: perhaps check that the nodes match the values and derivatives
             return new EvaluatedInterpolation2D(nodes, EvaluateAt(xi, eta),
                 naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }
 
-        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<Node2D> nodes, IPoint2D naturalPoint)
+        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<Node2D> nodes, INaturalPoint2D naturalPoint)
         {
-            double[,] naturalDerivatives = EvaluateDerivativesAt(naturalPoint.X, naturalPoint.Y);
+            double[,] naturalDerivatives = EvaluateDerivativesAt(naturalPoint.Xi, naturalPoint.Eta);
             // TODO: perhaps check that the nodes match the values and derivatives
             return new EvaluatedInterpolation2D(nodes, naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }

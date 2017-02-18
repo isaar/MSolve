@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.XFEM.Geometry
+namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 {
-    class Point2D : IPoint2D
+    class CartesianPoint2D: ICartesianPoint2D
     {
         public double X { get; }
         public double Y { get; }
 
-        public Point2D(double x, double y)
+        public CartesianPoint2D(double x, double y)
         {
             this.X = x;
             this.Y = y;
