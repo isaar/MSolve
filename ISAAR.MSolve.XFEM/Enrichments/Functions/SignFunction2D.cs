@@ -18,16 +18,16 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
     //      values associated each point.
     class SignFunction2D : IEnrichmentFunction2D
     {
-        private readonly IEnrichmentItem2D enrichmentItem;
+        private readonly CrackBody2D enrichmentItem;
 
-        public SignFunction2D(IEnrichmentItem2D enrichmentItem)
+        public SignFunction2D(CrackBody2D enrichmentItem)
         {
             this.enrichmentItem = enrichmentItem;
         }
 
         public double EvalueAt(IPoint2D cartesianPoint)
         {
-            double signedDistance = enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint);
+            double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
             if (signedDistance > 0.0) return 1.0;
             else if (signedDistance < 0.0) return -1.0;
             else return 0.0;
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
         public EvaluatedFunction2D EvaluateAllAt(IPoint2D cartesianPoint)
         {
             var derivatives = new Tuple<double, double>(0.0, 0.0);
-            double signedDistance = enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint);
+            double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
             if (signedDistance > 0) return new EvaluatedFunction2D(1.0, derivatives);
             else if (signedDistance < 0) return new EvaluatedFunction2D(-1.0, derivatives);
             else return new EvaluatedFunction2D(0.0, derivatives);

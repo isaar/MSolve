@@ -14,14 +14,14 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         private List<XElement2D> splitElements;
 
-        public ICurve2D Geometry { get; }
+        public ICurve2D Discontinuity { get; }
         public IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
         public IReadOnlyList<XElement2D> AffectedElements { get { return splitElements; } }
 
         public MaterialInterface2D(ICurve2D geometry)
         {
             this.splitElements = new List<XElement2D>();
-            this.Geometry = geometry;
+            this.Discontinuity = geometry;
             this.EnrichmentFunctions = new IEnrichmentFunction2D[] { new RampFunction2D(this) };
         }
 

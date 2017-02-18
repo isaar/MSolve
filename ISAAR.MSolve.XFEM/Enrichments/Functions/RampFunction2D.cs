@@ -18,30 +18,30 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
     //      values associated each point.
     class RampFunction2D: IEnrichmentFunction2D
     {
-        private readonly IEnrichmentItem2D enrichmentItem;
+        private readonly MaterialInterface2D enrichmentItem;
 
-        public RampFunction2D(IEnrichmentItem2D enrichmentItem)
+        public RampFunction2D(MaterialInterface2D enrichmentItem)
         {
             this.enrichmentItem = enrichmentItem;
         }
 
         public double EvalueAt(IPoint2D cartesianPoint)
         {
-            return Math.Abs(enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint));
+            return Math.Abs(enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint));
         }
 
         public Tuple<double, double> EvaluateDerivativesAt(IPoint2D cartesianPoint)
         {
-            int sign = Math.Sign(enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint));
-            Tuple<double, double> normal = enrichmentItem.Geometry.NormalVectorThrough(cartesianPoint);
+            int sign = Math.Sign(enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint));
+            Tuple<double, double> normal = enrichmentItem.Discontinuity.NormalVectorThrough(cartesianPoint);
             return new Tuple<double, double>(sign * normal.Item1, sign * normal.Item2);
         }
 
         public EvaluatedFunction2D EvaluateAllAt(IPoint2D cartesianPoint)
         {
-            double signedDistance = enrichmentItem.Geometry.SignedDistanceOf(cartesianPoint);
+            double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
             int sign = Math.Sign(signedDistance);
-            Tuple<double, double> normal = enrichmentItem.Geometry.NormalVectorThrough(cartesianPoint);
+            Tuple<double, double> normal = enrichmentItem.Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D(Math.Abs(signedDistance), 
                 new Tuple<double, double>(sign * normal.Item1, sign * normal.Item2));
         }

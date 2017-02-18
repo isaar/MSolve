@@ -14,17 +14,17 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         private List<XElement2D> splitElements;
 
-        public ICurve2D Geometry { get; }
+        public ICurve2D Discontinuity { get; }
         public IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
         public IReadOnlyList<XElement2D> AffectedElements { get { return splitElements; } }
 
         //TODO: allow the user to specify which Heaviside function to pass. 
         // First specialize IEnrichmentFunction2D into IDiscontinuityFunction2D to allow only Heaviside, Sign or 
         // Heaviside approximation functions.
-        public CrackBody2D(ICurve2D geometry) 
+        public CrackBody2D(ICurve2D discontinuity) 
         {
             this.splitElements = new List<XElement2D>();
-            this.Geometry = geometry;
+            this.Discontinuity = discontinuity;
             this.EnrichmentFunctions = new IEnrichmentFunction2D[] { new SignFunction2D(this) };
         }
 

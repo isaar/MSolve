@@ -13,7 +13,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     // Connects the geometry, model and enrichment function entities.
     interface IEnrichmentItem2D
     {
-        ICurve2D Geometry { get; }
         IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
         IReadOnlyList<XElement2D> AffectedElements { get; }
 
