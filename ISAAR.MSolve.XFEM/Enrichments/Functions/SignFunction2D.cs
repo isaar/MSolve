@@ -34,11 +34,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             else return 0.0;
         }
 
-        public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
-        {
-            return new Tuple<double, double>(0.0, 0.0);
-        }
-
         public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
         {
             var derivatives = new Tuple<double, double>(0.0, 0.0);

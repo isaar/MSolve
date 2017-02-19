@@ -12,7 +12,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
     interface IEnrichmentFunction2D
     {
         double EvalueAt(ICartesianPoint2D cartesianPoint);
-        Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint);
         EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint);
     }
 }

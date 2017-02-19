@@ -31,11 +31,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0);
             }
 
-            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
-            {
-                throw new NotImplementedException();
-            }
-
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
@@ -72,11 +67,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                     enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0);
-            }
-
-            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
-            {
-                throw new NotImplementedException();
             }
 
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
@@ -119,11 +109,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                     * Math.Sin(polarCoordinates.Theta);
             }
 
-            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
-            {
-                throw new NotImplementedException();
-            }
-
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
@@ -163,11 +148,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0)
                     * Math.Sin(polarCoordinates.Theta);
-            }
-
-            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
-            {
-                throw new NotImplementedException();
             }
 
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)

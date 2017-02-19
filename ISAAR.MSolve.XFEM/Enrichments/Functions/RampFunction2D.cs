@@ -31,13 +31,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             return Math.Abs(enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint));
         }
 
-        public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
-        {
-            int sign = Math.Sign(enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint));
-            Tuple<double, double> normal = enrichmentItem.Discontinuity.NormalVectorThrough(cartesianPoint);
-            return new Tuple<double, double>(sign * normal.Item1, sign * normal.Item2);
-        }
-
         public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
         {
             double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
