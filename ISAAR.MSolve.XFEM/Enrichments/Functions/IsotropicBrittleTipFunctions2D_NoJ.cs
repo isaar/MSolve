@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
     // TODO: The cartesian global to cartesian local to polar system transformation and the jacobian should be 
     // calculated only once per gauss point for all functions of the same enrichment item.
-    static class IsotropicBrittleTipFunctions2D
+    static class IsotropicBrittleTipFunctions2D_NoJ
     {
         public class Func1 : IEnrichmentFunction2D
         {
@@ -43,11 +43,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf;
-                double derivativeR = 0.5 / sqrtR * sinThetaHalf;
-                double derivativeTheta = 0.5 * sqrtR * cosThetaHalf;
+                double derivativeX1 = - 0.5 / sqrtR * sinThetaHalf;
+                double derivativeX2 = 0.5 / sqrtR * cosThetaHalf;
 
                 return new EvaluatedFunction2D(value, 
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformLocalCartesianDerivativesToGlobalCartesian(derivativeX1, derivativeX2));
             }
         }
 
@@ -82,11 +82,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 
 
                 double value = sqrtR * cosThetaHalf;
-                double derivativeR = 0.5 / sqrtR * cosThetaHalf;
-                double derivativeTheta = -0.5 * sqrtR * sinThetaHalf;
+                double derivativeX1 = 0.5 / sqrtR * cosThetaHalf;
+                double derivativeX2 = 0.5 / sqrtR * sinThetaHalf;
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformLocalCartesianDerivativesToGlobalCartesian(derivativeX1, derivativeX2));
             }
         }
 
@@ -123,11 +123,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf * cosTheta;
-                double derivativeR = 0.5 / sqrtR * sinThetaHalf * cosTheta;
-                double derivativeTheta = sqrtR * (0.5 * cosThetaHalf * cosTheta - sinThetaHalf * sinTheta);
+                double derivativeX1 = 0.5 / sqrtR * sinThetaHalf * (2.0 * sinTheta * sinTheta - cosTheta);
+                double derivativeX2 = 0.5 / sqrtR * cosTheta * Math.Cos(3.0 * polarCoordinates.Theta / 2.0);
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformLocalCartesianDerivativesToGlobalCartesian(derivativeX1, derivativeX2));
             }
         }
 
@@ -164,11 +164,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf * cosTheta;
-                double derivativeR = 0.5 / sqrtR * cosThetaHalf * cosTheta;
-                double derivativeTheta = sqrtR * (-0.5 * sinThetaHalf * cosTheta - cosThetaHalf * sinTheta);
+                double derivativeX1 = 0.5 / sqrtR * cosThetaHalf * (cosTheta + 2.0 * sinTheta * sinTheta);
+                double derivativeX2 = -0.5 / sqrtR * cosTheta * Math.Sin(3.0 * polarCoordinates.Theta / 2.0);
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformLocalCartesianDerivativesToGlobalCartesian(derivativeX1, derivativeX2));
             }
         }
     }

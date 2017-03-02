@@ -580,5 +580,24 @@ namespace ISAAR.MSolve.Matrices
             builder.Append("]\n");
             return builder.ToString();
         }
+
+        public String UpperTriangleToString()
+        {
+            StringBuilder builder = new StringBuilder("[\n");
+            for (int row = 0; row < Rows; ++row)
+            {
+                //builder.Append("[ ");
+                for (int col = 0; col < Columns; ++col)
+                {
+                    if (col < row) builder.Append(0.0);
+                    else builder.Append(this[row, col]);
+                    builder.Append(' ');
+                }
+                //builder.Append(" ]\n");
+                builder.Append("\n");
+            }
+            //builder.Append("]\n");
+            return builder.ToString();
+        }
     }
 }

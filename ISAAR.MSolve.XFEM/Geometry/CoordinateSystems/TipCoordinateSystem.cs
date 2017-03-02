@@ -7,6 +7,7 @@ using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 {
+    // Isn't the orientation the same as the polar coordinate theta?
     class TipCoordinateSystem
     {
         // Let a be the counter-clockwise angle from global x axis to local x1 axis
@@ -33,6 +34,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
             double x2 = -sina * globX + cosa * globY - x2Tip;
             double r = Math.Sqrt(x1 * x1 + x2 * x2);
             double theta = Math.Atan2(x2, x1);
+            #region Testing
+            // To compare with C++ code, where ATAN2 is [-π, π) uncomment the next following
+            //if (Math.Abs(x2) < 1e-8) theta = -theta;
+            #endregion
             return new PolarPoint2D(r, theta);
         }
 

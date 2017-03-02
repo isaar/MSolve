@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight);
+                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I shoul scale only the smallest matrix (constitutive) before the multiplications
                 Debug.Assert(partial.Rows == DofsCount);
                 Debug.Assert(partial.Columns == DofsCount);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);

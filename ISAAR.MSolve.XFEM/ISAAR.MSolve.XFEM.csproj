@@ -54,6 +54,7 @@
     <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Elements\XElement2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
+    <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D_NoJ.cs" />
     <Compile Include="Enrichments\Items\CrackTip2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\CartesianPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\ICartesianPoint2D.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tests\FEMTests.cs" />
+    <Compile Include="Tests\GaussPointsForTipTest.cs" />
     <Compile Include="Tests\NodeSets.cs" />
     <Compile Include="Tests\XElementTests.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
