@@ -35,10 +35,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             this.splitElements = new List<XElement2D>();
             this.EnrichmentFunctions = new IEnrichmentFunction2D[]
             {
-                new IsotropicBrittleTipFunctions2D.Func1(this),
-                new IsotropicBrittleTipFunctions2D.Func2(this),
-                new IsotropicBrittleTipFunctions2D.Func3(this),
-                new IsotropicBrittleTipFunctions2D.Func4(this)
+                new IsotropicBrittleTipFunctions2DAlternative.Func1(this),
+                new IsotropicBrittleTipFunctions2DAlternative.Func2(this),
+                new IsotropicBrittleTipFunctions2DAlternative.Func3(this),
+                new IsotropicBrittleTipFunctions2DAlternative.Func4(this)
             };
         }
 

@@ -25,10 +25,15 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             public double EvalueAt(ICartesianPoint2D cartesianPoint)
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates = 
+                PolarPoint2D polarCoordinates =
                     enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0);
+            }
+
+            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
+            {
+                throw new NotImplementedException();
             }
 
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
@@ -46,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double derivativeR = 0.5 / sqrtR * sinThetaHalf;
                 double derivativeTheta = 0.5 * sqrtR * cosThetaHalf;
 
-                return new EvaluatedFunction2D(value, 
+                return new EvaluatedFunction2D(value,
                     jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
             }
         }
@@ -69,6 +74,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0);
             }
 
+            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
+            {
+                throw new NotImplementedException();
+            }
+
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
@@ -79,7 +89,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sqrtR = Math.Sqrt(polarCoordinates.R);
                 double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
-                
 
                 double value = sqrtR * cosThetaHalf;
                 double derivativeR = 0.5 / sqrtR * cosThetaHalf;
@@ -105,8 +114,13 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 PolarPoint2D polarCoordinates =
                     enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
 
-                return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0) 
-                    * Math.Cos(polarCoordinates.Theta);
+                return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0)
+                    * Math.Sin(polarCoordinates.Theta);
+            }
+
+            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
+            {
+                throw new NotImplementedException();
             }
 
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
@@ -122,9 +136,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
-                double value = sqrtR * sinThetaHalf * cosTheta;
-                double derivativeR = 0.5 / sqrtR * sinThetaHalf * cosTheta;
-                double derivativeTheta = sqrtR * (0.5 * cosThetaHalf * cosTheta - sinThetaHalf * sinTheta);
+                double value = sqrtR * sinThetaHalf * sinTheta;
+                double derivativeR = 0.5 / sqrtR * sinThetaHalf * sinTheta;
+                double derivativeTheta = sqrtR * (0.5 * cosThetaHalf * sinTheta + sinThetaHalf * cosTheta);
 
                 return new EvaluatedFunction2D(value,
                     jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
@@ -147,7 +161,12 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                     enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0)
-                    * Math.Cos(polarCoordinates.Theta);
+                    * Math.Sin(polarCoordinates.Theta);
+            }
+
+            public Tuple<double, double> EvaluateDerivativesAt(ICartesianPoint2D cartesianPoint)
+            {
+                throw new NotImplementedException();
             }
 
             public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
@@ -163,9 +182,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
-                double value = sqrtR * cosThetaHalf * cosTheta;
-                double derivativeR = 0.5 / sqrtR * cosThetaHalf * cosTheta;
-                double derivativeTheta = sqrtR * (-0.5 * sinThetaHalf * cosTheta - cosThetaHalf * sinTheta);
+                double value = sqrtR * cosThetaHalf * sinTheta;
+                double derivativeR = 0.5 / sqrtR * cosThetaHalf * sinTheta;
+                double derivativeTheta = sqrtR * (-0.5 * sinThetaHalf * sinTheta + cosThetaHalf * cosTheta);
 
                 return new EvaluatedFunction2D(value,
                     jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));

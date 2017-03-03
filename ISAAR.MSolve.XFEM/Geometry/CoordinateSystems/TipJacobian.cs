@@ -9,15 +9,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 {
     class TipJacobian
     {
-        // TODO: Purge these after testing
-        private readonly double cosa, sina;
         private readonly Matrix2D<double> jacobian;
 
         public TipJacobian(double cosa, double sina, double r, double theta)
         {
-            this.cosa = cosa;
-            this.sina = sina;
-
             double cosTheta = Math.Cos(theta);
             double sinTheta = Math.Sin(theta);
 
@@ -33,14 +28,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
         {
             double derivativeX = derivativeR * jacobian[0, 0] + derivativeTheta * jacobian[0, 1];
             double derivativeY = derivativeR * jacobian[1, 0] + derivativeTheta * jacobian[1, 1];
-            return new Tuple<double, double>(derivativeX, derivativeY);
-        }
-
-        public Tuple<double, double> TransformLocalCartesianDerivativesToGlobalCartesian(
-            double derivativeX1, double derivativeX2)
-        {
-            double derivativeX = derivativeX1 * cosa - derivativeX2 * sina;
-            double derivativeY = derivativeX1 * sina + derivativeX2 * cosa;
             return new Tuple<double, double>(derivativeX, derivativeY);
         }
     }

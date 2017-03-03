@@ -34,10 +34,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
             double x2 = -sina * globX + cosa * globY - x2Tip;
             double r = Math.Sqrt(x1 * x1 + x2 * x2);
             double theta = Math.Atan2(x2, x1);
-            #region Testing
-            // To compare with C++ code, where ATAN2 is [-π, π) uncomment the next following
-            //if (Math.Abs(x2) < 1e-8) theta = -theta;
-            #endregion
             return new PolarPoint2D(r, theta);
         }
 

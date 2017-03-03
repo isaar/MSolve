@@ -12,7 +12,6 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.Tests;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
@@ -20,19 +19,16 @@ namespace ISAAR.MSolve.XFEM.Elements
     // Uses the same interpolation and nodes as the underlying std element!
     class XElement2D
     {
-        public readonly ContinuumElement2D stdFiniteElement; //TODO: make it private after debugging
+        private readonly ContinuumElement2D stdFiniteElement;
         public IReadOnlyList<XNode2D> Nodes { get; } // The same as in stdElement.
 
         public static XElement2D CreateHomogeneous(ContinuumElement2D stdFiniteElement, 
             IFiniteElementMaterial2D commonMaterial)
         {
             var integration = new SubgridIntegration2D(2, GaussQuadrature2D.Order2x2);
-            //IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> gpToMaterials = 
-            //    MaterialUtilities.AssignMaterialToIntegrationPoints(integration.GenerateIntegrationPoints(), 
-            //    commonMaterial);
             IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> gpToMaterials =
-                MaterialUtilities.AssignMaterialToIntegrationPoints(GaussPointsForTipTest.gaussPoints,
-                commonMaterial); // TODO: Purge once finished testing.
+                MaterialUtilities.AssignMaterialToIntegrationPoints(integration.GenerateIntegrationPoints(),
+                commonMaterial);
             return new XElement2D(stdFiniteElement, gpToMaterials);
         }
 
@@ -70,7 +66,6 @@ namespace ISAAR.MSolve.XFEM.Elements
             int artificialDofsCount = CountArtificialDofs();
             stiffnessStdEnriched = new Matrix2D<double>(stdFiniteElement.DofsCount, artificialDofsCount);
             stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
-            int gpCounter = 0; // TODO: Purge once debugging is done
             foreach (var entry in stdFiniteElement.MaterialsOfGaussPoints)
             {
                 GaussPoint2D gaussPoint = entry.Key;
@@ -93,46 +88,10 @@ namespace ISAAR.MSolve.XFEM.Elements
                 Matrix2D<double> Kee = (Benr.Transpose() * constitutive) * Benr;  // enriched-enriched part
                 Kee.Scale(dVolume);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(Kee, stiffnessEnriched);
-
-                // TODO: Purge once debugging is done ********************
-                //Console.WriteLine("GP" + gpCounter + ": (xi,eta,w) = (" + gaussPoint.Xi + " , " + gaussPoint.Eta + " , " + gaussPoint.Weight + "): Kee = ");
-                //Console.WriteLine(stiffnessEnriched.UpperTriangleToString());
-                //Console.WriteLine();
-
-                //if (gpCounter == 35)
-                //{
-                //    Console.WriteLine("GP" + gpCounter + ": (xi,eta,w) = (" + gaussPoint.Xi + " , " + gaussPoint.Eta + " , " + gaussPoint.Weight + "): \n");
-
-                //    // Enrichments
-                //    if (Nodes[0].EnrichmentFunctions.Length != 4) throw new Exception("Enrichment funcs count != 4");
-                //    var interpolation = stdFiniteElement.Interpolation.EvaluateAt(stdFiniteElement.Nodes, gaussPoint);
-                //    ICartesianPoint2D cartesianGP = interpolation.TransformNaturalToCartesian(gaussPoint);
-                //    Console.WriteLine("Cartesian GP" + gpCounter + ": (x,y) = (" + cartesianGP.X + " , " + cartesianGP.Y + "): \n");
-                //    for (int enr = 0; enr < 4; ++enr)
-                //    {
-                //        IEnrichmentFunction2D func = Nodes[0].EnrichmentFunctions[enr].Item1;
-                //        EvaluatedFunction2D H = func.EvaluateAllAt(cartesianGP);
-                //        Console.Write("Enrichment H" + enr + ": ");
-                //        Console.WriteLine("H = " + H.Value + " , dH/dx = " + H.CartesianDerivatives.Item1
-                //            + " , dH/dy = " + H.CartesianDerivatives.Item2);
-                //    }
-                //    Console.WriteLine();
-
-                //    Console.WriteLine("Benr = " + Benr);
-                //    Console.WriteLine("E = " + constitutive);
-                //    Console.WriteLine("E*Benr = " + (constitutive * Benr));
-                //    Console.WriteLine("dV = " + dVolume + "\n");
-                //    Console.WriteLine("partial Kee = " + Kee.UpperTriangleToString());
-                //    Console.WriteLine("Kee = " + stiffnessEnriched.UpperTriangleToString());
-                //}
-
-
-                ++gpCounter;
-                // ******************** Till here
             }
         }
 
-        public Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount, // TODO: make it private after debugging
+        private Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount,
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
@@ -180,7 +139,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             return deformationMatrix;
         }
 
-        public int CountArtificialDofs() // TODO: make it private after debugging
+        private int CountArtificialDofs()
         {
             int count = 0;
             foreach (XNode2D node in Nodes) count += node.ArtificialDofsCount; // in all nodes or in enriched interpolation nodes?
