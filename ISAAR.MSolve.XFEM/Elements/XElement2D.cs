@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
@@ -19,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     // Uses the same interpolation and nodes as the underlying std element!
     class XElement2D
     {
-        private readonly ContinuumElement2D stdFiniteElement;
+        public ContinuumElement2D StandardFiniteElement { get; }
         public IReadOnlyList<XNode2D> Nodes { get; } // The same as in stdElement.
 
         public static XElement2D CreateHomogeneous(ContinuumElement2D stdFiniteElement, 
@@ -50,23 +51,23 @@ namespace ISAAR.MSolve.XFEM.Elements
         private XElement2D(ContinuumElement2D stdFiniteElement,
             IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints)
         {
-            this.stdFiniteElement = stdFiniteElement;
+            this.StandardFiniteElement = stdFiniteElement;
             this.Nodes = (IReadOnlyList<XNode2D>)(stdFiniteElement.Nodes); // I am not too thrilled about casting especially when using covariance.
-            this.stdFiniteElement.MaterialsOfGaussPoints = materialsOfGaussPoints;
+            this.StandardFiniteElement.MaterialsOfGaussPoints = materialsOfGaussPoints;
         }
 
-        public SymmetricMatrix2D<double> BuildStdStiffnessMatrix()
+        public SymmetricMatrix2D<double> BuildStdStiffnessMatrix() // This is not needed if I expose the standard FE
         {
-            return stdFiniteElement.BuildStiffnessMatrix();
+            return StandardFiniteElement.BuildStiffnessMatrix();
         }
 
         public void BuildEnrichedStiffnessMatrices(out Matrix2D<double> stiffnessStdEnriched,
             out SymmetricMatrix2D<double> stiffnessEnriched)
         {
             int artificialDofsCount = CountArtificialDofs();
-            stiffnessStdEnriched = new Matrix2D<double>(stdFiniteElement.DofsCount, artificialDofsCount);
+            stiffnessStdEnriched = new Matrix2D<double>(StandardFiniteElement.DofsCount, artificialDofsCount);
             stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
-            foreach (var entry in stdFiniteElement.MaterialsOfGaussPoints)
+            foreach (var entry in StandardFiniteElement.MaterialsOfGaussPoints)
             {
                 GaussPoint2D gaussPoint = entry.Key;
                 IFiniteElementMaterial2D material = entry.Value;
@@ -74,8 +75,8 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation =
-                    stdFiniteElement.Interpolation.EvaluateAt(Nodes, gaussPoint);
-                Matrix2D<double> Bstd = stdFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
+                    StandardFiniteElement.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                Matrix2D<double> Bstd = StandardFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
                 Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
                     gaussPoint, evaluatedInterpolation);
 

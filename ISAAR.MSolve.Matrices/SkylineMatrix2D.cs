@@ -8,6 +8,10 @@ using System.Globalization;
 
 namespace ISAAR.MSolve.Matrices
 {
+    /// <summary>
+    /// Symmetric skyline matrix. Stores the lower triangle internally. 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SkylineMatrix2D<T> : IMatrix2D<T>, ICloneable
     {
         private bool isFactorized;

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
@@ -13,7 +14,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     // Connects the geometry, model and enrichment function entities.
     interface IEnrichmentItem2D
     {
+        int ID { get; }
         IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
+        IReadOnlyList<ArtificialDOFType> DOFs { get; }
         IReadOnlyList<XElement2D> AffectedElements { get; }
 
         void AffectElement(XElement2D element);

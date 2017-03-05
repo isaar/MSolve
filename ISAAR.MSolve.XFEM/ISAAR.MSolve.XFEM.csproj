@@ -54,8 +54,13 @@
     <Compile Include="Elements\Quad4.cs" />
     <Compile Include="Elements\XElement2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
-    <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D_NoJ.cs" />
+    <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2DAlternative.cs" />
+    <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
     <Compile Include="Enrichments\Items\CrackTip2D.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
+    <Compile Include="Entities\FreedomDegrees\ArtificialDOFTypeDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\StandardDOFType.cs" />
+    <Compile Include="Entities\Model2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\CartesianPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\ICartesianPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\INaturalPoint1D.cs" />
@@ -102,7 +107,9 @@
     <None Include="App.config" />
     <None Include="ClassDiagram1.cd" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Assembly\" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
       <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
