@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assembly\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="Elements\ContinuumElement2D.cs" />
     <Compile Include="Elements\IFiniteElement2DView.cs" />
     <Compile Include="Elements\IsoparametricQuad4.cs" />
@@ -107,9 +108,7 @@
     <None Include="App.config" />
     <None Include="ClassDiagram1.cd" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Assembly\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
       <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>

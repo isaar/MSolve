@@ -16,7 +16,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         int ID { get; }
         IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
-        IReadOnlyList<ArtificialDOFType> DOFs { get; }
+
+        // Perhaps the nodal dof types should be decided by the element type (structural, continuum) in combination with the EnrichmentItem2D and drawn from XElement2D
+        IReadOnlyList<ArtificialDOFType> DOFs { get; } 
+
         IReadOnlyList<XElement2D> AffectedElements { get; }
 
         void AffectElement(XElement2D element);

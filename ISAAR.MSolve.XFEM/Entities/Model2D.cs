@@ -14,6 +14,9 @@ namespace ISAAR.MSolve.XFEM.Entities
         private Dictionary<int, Element2D> elements;
         private Dictionary<int, IEnrichmentItem2D> enrichments;
 
+        public IEnumerable<XNode2D> Nodes { get { return nodes.Values; } }
+        public IEnumerable<Element2D> Elements { get { return elements.Values; } }
+        public IEnumerable<IEnrichmentItem2D> Enrichments { get { return enrichments.Values; } }
         public DOFEnumerator DofEnumerator { get; private set; }
 
         public Model2D()
