@@ -130,27 +130,38 @@ namespace ISAAR.MSolve.FEM.Problems.Structural
 
         #region IImplicitIntegrationProvider Members
 
-        public void CalculateEffectiveMatrix(int id, IImplicitIntegrationCoefficients coefficients)
+        public IMatrix2D CalculateEffectiveMatrix(int id, IImplicitIntegrationCoefficients coefficients)
         {
             //subdomain.Matrix = this.Ks[subdomain.ID];
             //if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized)
             //    BuildKs();
             //var m = subdomain.Matrix as ILinearlyCombinable;
-
+            // TODO: This sucks BIG TIME!
             var matrix = this.Ks[id];
-            if (((SkylineMatrix2D)matrix).IsFactorized)
-                BuildKs();
-            var m = matrix as ILinearlyCombinable;
+            if (matrix.GetType() == typeof(SkylineMatrix2D))
+            {
+                if (((SkylineMatrix2D)matrix).IsFactorized)
+                    BuildKs();
+                var m = matrix as ILinearlyCombinable<SkylineMatrix2D>;
 
-            m.LinearCombination(
-                new double[] 
-                {
+                m.LinearCombination(
+                    new double[] { coefficients.Stiffness, coefficients.Mass, coefficients.Damping },
+                    new SkylineMatrix2D[] { (SkylineMatrix2D)this.Ks[id], (SkylineMatrix2D)this.Ms[id], (SkylineMatrix2D)this.Cs[id] });
+            }
+            else
+            {
+                var m = matrix as ILinearlyCombinable;
+                m.LinearCombination(
+                    new double[]
+                    {
                     coefficients.Stiffness, coefficients.Mass, coefficients.Damping
-                }, 
-                new IMatrix2D[] 
-                { 
-                    this.Ks[id], this.Ms[id], this.Cs[id] 
-                });
+                    },
+                    new IMatrix2D[]
+                    {
+                    this.Ks[id], this.Ms[id], this.Cs[id]
+                    });
+            }
+            return matrix;
         }
 
         public void ProcessRHS(int id, IImplicitIntegrationCoefficients coefficients)
@@ -211,10 +222,10 @@ namespace ISAAR.MSolve.FEM.Problems.Structural
 
         #region IStaticProvider Members
 
-        public void CalculateMatrix(int id)
+        public IMatrix2D CalculateMatrix(int id)
         {
             if (ks == null) BuildKs();
-            //subdomain.Matrix = this.ks[subdomain.ID];
+            return this.ks[id];
         }
 
         #endregion

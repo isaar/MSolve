@@ -9,22 +9,22 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class StaticAnalyzer : IAnalyzer, INonLinearParentAnalyzer
     {
-        private readonly IDictionary<int, ILinearSystem> subdomains;
+        private readonly IDictionary<int, IMatrixLinearSystem> subdomains;
         private readonly IStaticProvider provider;
         private IAnalyzer childAnalyzer;
         private IAnalyzer parentAnalyzer = null;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, ILinearSystem subdomain)
+        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IMatrixLinearSystem subdomain)
         {
             this.provider = provider;
             this.childAnalyzer = embeddedAnalyzer;
             this.childAnalyzer.ParentAnalyzer = this;
-            this.subdomains = new Dictionary<int, ILinearSystem>();
+            this.subdomains = new Dictionary<int, IMatrixLinearSystem>();
             this.subdomains.Add(subdomain.ID, subdomain);
         }
 
-        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains)
+        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, IMatrixLinearSystem> subdomains)
         {
             this.provider = provider;
             this.childAnalyzer = embeddedAnalyzer;
@@ -34,8 +34,8 @@ namespace ISAAR.MSolve.Analyzers
 
         private void InitalizeMatrices()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
-                provider.CalculateMatrix(subdomain.ID);
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
+                subdomain.Matrix = provider.CalculateMatrix(subdomain.ID);
             //provider.CalculateMatrices();
                 //subdomain.Matrix = provider.Ks[subdomain.ID];
         }

@@ -11,18 +11,18 @@ namespace ISAAR.MSolve.Analyzers
     {
         private IAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
-        private readonly IDictionary<int, ILinearSystem> subdomains;
+        private readonly IDictionary<int, IMatrixLinearSystem> subdomains;
         private readonly Dictionary<int, ILinearAnalyzerLogFactory> logFactories = new Dictionary<int, ILinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public LinearAnalyzer(ISolver solver, ILinearSystem subdomain)
+        public LinearAnalyzer(ISolver solver, IMatrixLinearSystem subdomain)
         {
             this.solver = solver;
-            this.subdomains = new Dictionary<int, ILinearSystem>();
+            this.subdomains = new Dictionary<int, IMatrixLinearSystem>();
             this.subdomains.Add(subdomain.ID, subdomain);
         }
 
-        public LinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> subdomains)
+        public LinearAnalyzer(ISolver solver, IDictionary<int, IMatrixLinearSystem> subdomains)
         {
             this.solver = solver;
             this.subdomains = subdomains;

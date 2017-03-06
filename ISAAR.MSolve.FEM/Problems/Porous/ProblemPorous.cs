@@ -163,7 +163,7 @@ namespace ISAAR.MSolve.Problems
                     }
         }
 
-        private void CalculateEffectiveMatrixInternal(int id, IImplicitIntegrationCoefficients coefficients)
+        private IMatrix2D CalculateEffectiveMatrixInternal(int id, IImplicitIntegrationCoefficients coefficients)
         {
             //subdomain.Matrix = this.Ks[subdomain.ID];
             //var m = subdomain.Matrix as ILinearlyCombinable;
@@ -187,6 +187,8 @@ namespace ISAAR.MSolve.Problems
                 {
                     this.Ks[id], this.Ms[id], this.Cs[id]
                 });
+
+            return matrix;
         }
 
         #region IAnalyzerProvider Members
@@ -204,11 +206,11 @@ namespace ISAAR.MSolve.Problems
 
         #region IImplicitIntegrationProvider Members
 
-        public void CalculateEffectiveMatrix(int id, IImplicitIntegrationCoefficients coefficients)
+        public IMatrix2D CalculateEffectiveMatrix(int id, IImplicitIntegrationCoefficients coefficients)
         {
             InitializeProvidersAndBuildQs(coefficients);
             scalingCoefficient = coefficients.Damping;
-            CalculateEffectiveMatrixInternal(id, coefficients);
+            return CalculateEffectiveMatrixInternal(id, coefficients);
         }
 
         public void ProcessRHS(int id, IImplicitIntegrationCoefficients coefficients)
@@ -245,7 +247,7 @@ namespace ISAAR.MSolve.Problems
 
         #region IStaticProvider Members
 
-        public void CalculateMatrix(int id)
+        public IMatrix2D CalculateMatrix(int id)
         {
             throw new NotImplementedException();
         }
