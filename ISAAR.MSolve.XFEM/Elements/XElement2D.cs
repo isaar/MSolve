@@ -17,7 +17,8 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    // Uses the same interpolation and nodes as the underlying std element!
+    // TODO: Uses the same interpolation and nodes as the underlying std element! This must change
+    // TODO: Enumerating artificial dofs may be needed to be done by this class. (e.g if structural FE introduce more artificial dofs than continuum FE)
     class XElement2D
     {
         public ContinuumElement2D StandardFiniteElement { get; }
@@ -61,11 +62,44 @@ namespace ISAAR.MSolve.XFEM.Elements
             return StandardFiniteElement.BuildStiffnessMatrix();
         }
 
-        public void BuildEnrichedStiffnessMatrices(out Matrix2D<double> stiffnessStdEnriched,
+        #region Enriched stiffness matrices with Kse
+        //public void BuildEnrichedStiffnessMatrices(out Matrix2D<double> stiffnessStdEnriched,
+        //    out SymmetricMatrix2D<double> stiffnessEnriched)
+        //{
+        //    int artificialDofsCount = CountArtificialDofs();
+        //    stiffnessStdEnriched = new Matrix2D<double>(StandardFiniteElement.DofsCount, artificialDofsCount);
+        //    stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
+        //    foreach (var entry in StandardFiniteElement.MaterialsOfGaussPoints)
+        //    {
+        //        GaussPoint2D gaussPoint = entry.Key;
+        //        IFiniteElementMaterial2D material = entry.Value;
+
+        //        // Calculate the necessary quantities for the integration
+        //        Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
+        //        EvaluatedInterpolation2D evaluatedInterpolation =
+        //            StandardFiniteElement.Interpolation.EvaluateAt(Nodes, gaussPoint);
+        //        Matrix2D<double> Bstd = StandardFiniteElement.CalculateDeformationMatrix(evaluatedInterpolation);
+        //        Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
+        //            gaussPoint, evaluatedInterpolation);
+
+        //        // Contributions of this gauss point to the element stiffness matrices
+        //        double dVolume = material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
+        //        Matrix2D<double> Kse = (Bstd.Transpose() * constitutive) * Benr;  // standard-enriched part
+        //        Kse.Scale(dVolume); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
+        //        MatrixUtilities.AddPartialToTotalMatrix(Kse, stiffnessStdEnriched);
+
+        //        Matrix2D<double> Kee = (Benr.Transpose() * constitutive) * Benr;  // enriched-enriched part
+        //        Kee.Scale(dVolume);
+        //        MatrixUtilities.AddPartialToSymmetricTotalMatrix(Kee, stiffnessEnriched);
+        //    }
+        //}
+        #endregion
+
+        public void BuildEnrichedStiffnessMatrices(out Matrix2D<double> stiffnessEnrichedStandard,
             out SymmetricMatrix2D<double> stiffnessEnriched)
         {
             int artificialDofsCount = CountArtificialDofs();
-            stiffnessStdEnriched = new Matrix2D<double>(StandardFiniteElement.DofsCount, artificialDofsCount);
+            stiffnessEnrichedStandard = new Matrix2D<double>(StandardFiniteElement.DofsCount, artificialDofsCount);
             stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
             foreach (var entry in StandardFiniteElement.MaterialsOfGaussPoints)
             {
@@ -80,13 +114,16 @@ namespace ISAAR.MSolve.XFEM.Elements
                 Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
                     gaussPoint, evaluatedInterpolation);
 
-                // Contributions of this gauss point to the element stiffness matrices
+                // Contributions of this gauss point to the element stiffness matrices. 
+                // Kee = SUM(Benr^T * E * Benr * dV), Kes = SUM(Benr^T * E * Bstd * dV)
                 double dVolume = material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
-                Matrix2D<double> Kse = (Bstd.Transpose() * constitutive) * Benr;  // standard-enriched part
-                Kse.Scale(dVolume); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
-                MatrixUtilities.AddPartialToTotalMatrix(Kse, stiffnessStdEnriched);
+                Matrix2D<double> transposeBenrTimesConstitutive = Benr.Transpose() * constitutive; // cache the result
 
-                Matrix2D<double> Kee = (Benr.Transpose() * constitutive) * Benr;  // enriched-enriched part
+                Matrix2D<double> Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
+                Kes.Scale(dVolume); // TODO: Scale only the smallest matrix (constitutive) before the multiplications. Probably requires a copy of the constitutive matrix.
+                MatrixUtilities.AddPartialToTotalMatrix(Kes, stiffnessEnrichedStandard);
+
+                Matrix2D<double> Kee = transposeBenrTimesConstitutive * Benr;  // enriched-enriched part
                 Kee.Scale(dVolume);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(Kee, stiffnessEnriched);
             }
