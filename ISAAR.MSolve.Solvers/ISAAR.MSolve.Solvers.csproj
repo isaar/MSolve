@@ -91,13 +91,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\IIterativeSolver.cs" />
+    <Compile Include="Interfaces\IMatrixSolver.cs" />
     <Compile Include="Interfaces\IPCGSearchVectorCalculator.cs" />
     <Compile Include="Interfaces\ISolver.cs" />
     <Compile Include="Interfaces\IIterativeSolverInitializer.cs" />
     <Compile Include="Interfaces\IIterativeSolverPreconditioner.cs" />
     <Compile Include="Interfaces\IIterativeSolverMatrixCalculator.cs" />
     <Compile Include="Interfaces\ISearchVectorCalculator.cs" />
-    <Compile Include="Interfaces\ILinearSystem.cs" />
+    <Compile Include="Interfaces\IMatrixLinearSystem.cs" />
     <Compile Include="PCG\SolverPCG.cs" />
     <Compile Include="PCG\SolverPCGDiagonalPreconditioner.cs" />
     <Compile Include="PCG\SolverPCGMatrixCalculator.cs" />

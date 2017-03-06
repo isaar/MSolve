@@ -6,20 +6,24 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
-    public class SolverFBSubstitution : ISolver
+    public class SolverFBSubstitution : ISolver, IMatrixSolver
     {
-        private readonly ILinearSystem linearSystem;
+        private readonly IMatrixLinearSystem linearSystem;
+        private readonly IDictionary<int, IMatrixLinearSystem> linearSystemsDictionary = new Dictionary<int, IMatrixLinearSystem>(1);
 
-        public SolverFBSubstitution(ILinearSystem linearSystem)
+        public IDictionary<int, IMatrixLinearSystem> MatrixLinearSystems { get { return linearSystemsDictionary; } }
+
+        public SolverFBSubstitution(IMatrixLinearSystem linearSystem)
         {
             this.linearSystem = linearSystem;
+            linearSystemsDictionary.Add(linearSystem.ID, linearSystem);
         }
 
         #region ISolver Members
 
         public void Initialize()
         {
-            ILinearSystem subdomain = linearSystem;
+            IMatrixLinearSystem subdomain = linearSystem;
             if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized) return;
 
             List<IVector> zems = new List<IVector>();

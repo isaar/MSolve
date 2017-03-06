@@ -6,7 +6,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.Skyline
 {
-    public class SkylineLinearSystem : ILinearSystem
+    public class SkylineLinearSystem : IMatrixLinearSystem
     {
         private readonly int id;
         private readonly double[] forces;

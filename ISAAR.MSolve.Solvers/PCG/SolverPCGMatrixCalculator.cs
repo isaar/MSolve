@@ -8,9 +8,9 @@ namespace ISAAR.MSolve.Solvers.PCG
     {
         #region ISolverPCGMatrixCalculator Members
 
-        private readonly ILinearSystem linearSystem;
+        private readonly IMatrixLinearSystem linearSystem;
 
-        public SolverPCGMatrixCalculator(ILinearSystem linearSystem)
+        public SolverPCGMatrixCalculator(IMatrixLinearSystem linearSystem)
         {
             this.linearSystem = linearSystem;
         }

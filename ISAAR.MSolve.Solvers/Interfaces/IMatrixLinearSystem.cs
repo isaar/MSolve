@@ -2,7 +2,7 @@
 
 namespace ISAAR.MSolve.Solvers.Interfaces
 {
-    public interface ILinearSystem
+    public interface IMatrixLinearSystem
     {
         int ID { get; }
         IMatrix2D Matrix { get; set; }

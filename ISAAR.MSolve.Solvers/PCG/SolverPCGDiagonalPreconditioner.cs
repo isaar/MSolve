@@ -8,10 +8,10 @@ namespace ISAAR.MSolve.Solvers.PCG
     {
         #region ISolverPCGMatrixCalculator Members
 
-        private readonly ILinearSystem linearSystem;
+        private readonly IMatrixLinearSystem linearSystem;
         private readonly double[] diagonalPreconditioner;
 
-        public SolverPCGDiagonalPreconditioner(ILinearSystem linearSystem)
+        public SolverPCGDiagonalPreconditioner(IMatrixLinearSystem linearSystem)
         {
             this.linearSystem = linearSystem;
             diagonalPreconditioner = new double[linearSystem.Matrix.Rows];
