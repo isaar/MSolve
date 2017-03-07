@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.Assembly
             SkylineMatrix2D<double> globalMatrix, IMatrix2D<double> elementMatrix,
             IReadOnlyList<int> elementRowsToGlobalRows, IReadOnlyList<int> elementColsToGlobalCols)
         {
-            for (int elementRow = 0; elementRow < elementRowsToGlobalRows.Count; ++ elementRow)
+            for (int elementRow = 0; elementRow < elementRowsToGlobalRows.Count; ++elementRow)
             {
                 int globalRow = elementRowsToGlobalRows[elementRow];
                 if (globalRow != -1)

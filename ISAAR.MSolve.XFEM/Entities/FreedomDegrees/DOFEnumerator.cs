@@ -55,7 +55,8 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                 foreach (StandardDOFType dofType in pair.Value)
                 {
-                    globalDofs[elementDof++] = globalDofsOfThisNode[dofType]; 
+                    globalDofs[elementDof] = globalDofsOfThisNode[dofType];
+                    ++elementDof;
                 }
             }
             return globalDofs;
@@ -76,7 +77,8 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                     foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
-                        globalDofs[elementDof++] = globalDofsOfThisNode[dofType];
+                        globalDofs[elementDof] = globalDofsOfThisNode[dofType];
+                        ++elementDof;
                     }
                 }
             }
@@ -97,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 foreach (StandardDOFType dofType in pair.Value)
                 {
                     if (constraints[node].Contains(dofType)) dofsOfThisNode[dofType] = -1; // Is this the best way? How about using the Ksf and Kss to calculate the reactions?
-                    else dofsOfThisNode[dofType] = dofCounter++;
+                    else dofsOfThisNode[dofType] = ++dofCounter;
                 }
                 totalDofs[node] = dofsOfThisNode;
             }
@@ -138,7 +140,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 {
                     foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
-                        dofsOfThisNode[dofType] = dofCounter++;
+                        dofsOfThisNode[dofType] = ++dofCounter;
                     }
                 }
                 totalDofs[node] = dofsOfThisNode;
