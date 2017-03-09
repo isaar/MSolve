@@ -28,5 +28,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         /// Assigns enrichment functions and their nodal values to each enriched node.
         /// </summary>
         void EnrichNodes();
+
+        void EnrichNode(XNode2D node); // TODO: delete after debugging
     }
 }

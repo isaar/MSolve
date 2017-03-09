@@ -41,16 +41,25 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
             foreach (var node in nodes)
             {
-                var allEnrichments = new Tuple<IEnrichmentFunction2D, double>[EnrichmentFunctions.Count];
-                int enrichmentCounter = 0;
-                foreach (var enrichmentFunction in EnrichmentFunctions)
+                node.EnrichmentItems = new List<IEnrichmentItem2D> { };
+                node.EnrichmentItems.Add(this);
+
+                var enrichments = new List<Tuple<IEnrichmentFunction2D, double>>(EnrichmentFunctions.Count);
+                foreach (var function in EnrichmentFunctions)
                 {
-                    allEnrichments[enrichmentCounter] =
-                        new Tuple<IEnrichmentFunction2D, double>(enrichmentFunction, enrichmentFunction.EvalueAt(node));
-                    ++enrichmentCounter;
+                    enrichments.Add(new Tuple<IEnrichmentFunction2D, double>(function, function.EvalueAt(node)));
                 }
-                node.EnrichmentItems = new IEnrichmentItem2D[] { this };
-                node.EnrichmentFunctions = allEnrichments;
+                node.EnrichmentFunctions = enrichments;
+            }
+        }
+
+        public void EnrichNode(XNode2D node) // TODO: delete after debugging
+        {
+            node.EnrichmentItems.Add(this);
+            foreach (var function in EnrichmentFunctions)
+            {
+                node.EnrichmentFunctions.Add(
+                    new Tuple<IEnrichmentFunction2D, double>(function, function.EvalueAt(node)));
             }
         }
     }

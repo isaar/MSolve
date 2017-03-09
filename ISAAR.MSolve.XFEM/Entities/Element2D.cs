@@ -10,14 +10,13 @@ namespace ISAAR.MSolve.XFEM.Entities
     class Element2D
     {
         public int ID { get; }
-        public IReadOnlyList<XNode2D> Nodes { get; }
+        public IReadOnlyList<XNode2D> Nodes { get { return ElementType.Nodes; } }
         public XElement2D ElementType { get; }
 
-        public Element2D(int id, IEnumerable<XNode2D> nodes, XElement2D elementType)
+        public Element2D(int id, XElement2D elementType)
         {
             // TODO: Add checks here
             this.ID = id;
-            this.Nodes = new List<XNode2D>(nodes);
             this.ElementType = elementType;
         }
     }

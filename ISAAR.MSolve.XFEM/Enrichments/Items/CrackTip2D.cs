@@ -21,6 +21,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         /// </summary>
         public double LocalSystemOrientation { get; private set; }
 
+        // The angle should be determined from the crack body curve, not by the user.
         public CrackTip2D(ICartesianPoint2D tipCoordinates, double localSystemOrientation)
         {
             this.TipCoordinates = tipCoordinates;

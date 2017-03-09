@@ -8,7 +8,7 @@ using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
-namespace ISAAR.MSolve.XFEM.Assembly
+namespace ISAAR.MSolve.XFEM.Assemblers
 {
     /// <summary>
     /// A unified Skyline matrix, where enriched dofs are numbered after all standard dofs. The enriched dof columns 
