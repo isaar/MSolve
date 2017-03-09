@@ -69,6 +69,7 @@
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipJacobian.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipCoordinateSystem.cs" />
+    <Compile Include="Integration\Rules\GaussQuadratureForTriangle.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
@@ -92,8 +93,8 @@
     <Compile Include="Integration\Points\GaussPoint2D.cs" />
     <Compile Include="Integration\Rules\IIntegrationRule1D.cs" />
     <Compile Include="Integration\Rules\IIntegrationRule2D.cs" />
-    <Compile Include="Integration\Rules\GaussQuadrature2D.cs" />
-    <Compile Include="Integration\Rules\GaussQuadrature1D.cs" />
+    <Compile Include="Integration\Rules\GaussLegendre2D.cs" />
+    <Compile Include="Integration\Rules\GaussLegendre1D.cs" />
     <Compile Include="Integration\Rules\SubgridIntegration2D.cs" />
     <Compile Include="Interpolation\EvaluatedInterpolation2D.cs" />
     <Compile Include="Interpolation\Jacobian2D.cs" />

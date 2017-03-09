@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         private IReadOnlyList<GaussPoint2D> FindGaussPoints()
         {
             var localGaussPoints = new List<GaussPoint2D>();
-            foreach (var naturalGaussPoint in GaussQuadrature2D.Order2x2.GenerateIntegrationPoints())
+            foreach (var naturalGaussPoint in GaussLegendre2D .Order2x2.GenerateIntegrationPoints())
             {
                 double localX = naturalGaussPoint.Xi * halfLengthX;
                 double localY = naturalGaussPoint.Eta * halfLengthY;

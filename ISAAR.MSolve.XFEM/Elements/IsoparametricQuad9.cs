@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         public IsoparametricQuad9(IReadOnlyList<Node2D> nodes, IFiniteElementMaterial2D commonMaterial) :
             base(nodes, IsoparametricInterpolation2D.Quad4, 
-                GaussQuadrature2D.Order2x2.GenerateIntegrationPoints(), commonMaterial)
+                GaussLegendre2D .Order2x2.GenerateIntegrationPoints(), commonMaterial)
         {
         }
 

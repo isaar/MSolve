@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         public static XElement2D CreateHomogeneous(ContinuumElement2D stdFiniteElement, 
             IFiniteElementMaterial2D commonMaterial)
         {
-            var integration = new SubgridIntegration2D(2, GaussQuadrature2D.Order2x2);
+            var integration = new SubgridIntegration2D(2, GaussLegendre2D .Order2x2);
             IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> gpToMaterials =
                 MaterialUtilities.AssignMaterialToIntegrationPoints(integration.GenerateIntegrationPoints(),
                 commonMaterial);
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         public static XElement2D CreateBimaterial(ContinuumElement2D stdFiniteElement,
             IFiniteElementMaterial2D materialLeft, IFiniteElementMaterial2D materialRight)
         {
-            var integration = new SubgridIntegration2D(2, GaussQuadrature2D.Order2x2);
+            var integration = new SubgridIntegration2D(2, GaussLegendre2D .Order2x2);
             var gpToMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
             foreach (var point in integration.GenerateIntegrationPoints())
             {

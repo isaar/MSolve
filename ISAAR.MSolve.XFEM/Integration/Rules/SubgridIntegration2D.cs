@@ -10,15 +10,15 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
     class SubgridIntegration2D: IIntegrationRule2D
     {
         private readonly int subgridsPerAxis;
-        private readonly GaussQuadrature2D gaussQuadrature;
+        private readonly GaussLegendre2D  gaussQuadrature;
 
         public SubgridIntegration2D(int subgridsPerAxis)
         {
             this.subgridsPerAxis = subgridsPerAxis;
-            this.gaussQuadrature = GaussQuadrature2D.Order2x2;
+            this.gaussQuadrature = GaussLegendre2D .Order2x2;
         }
 
-        public SubgridIntegration2D(int subgridsPerAxis, GaussQuadrature2D gaussQuadrature)
+        public SubgridIntegration2D(int subgridsPerAxis, GaussLegendre2D  gaussQuadrature)
         {
             this.subgridsPerAxis = subgridsPerAxis;
             this.gaussQuadrature = gaussQuadrature;
