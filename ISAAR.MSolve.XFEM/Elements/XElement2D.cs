@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             out SymmetricMatrix2D<double> stiffnessEnriched)
         {
             int artificialDofsCount = CountArtificialDofs();
-            stiffnessEnrichedStandard = new Matrix2D<double>(StandardFiniteElement.DofsCount, artificialDofsCount);
+            stiffnessEnrichedStandard = new Matrix2D<double>(artificialDofsCount, StandardFiniteElement.DofsCount);
             stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
             foreach (var entry in StandardFiniteElement.MaterialsOfGaussPoints)
             {
@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             return deformationMatrix;
         }
 
-        private int CountArtificialDofs()
+        public int CountArtificialDofs()
         {
             int count = 0;
             foreach (XNode2D node in Nodes) count += node.ArtificialDofsCount; // in all nodes or in enriched interpolation nodes?
