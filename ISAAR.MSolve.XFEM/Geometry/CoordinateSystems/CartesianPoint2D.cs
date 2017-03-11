@@ -16,5 +16,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
             this.X = x;
             this.Y = y;
         }
+
+        public override string ToString()
+        {
+            return "(x , y) = (" + X + " , " + Y + ")";
+        }
     }
 }

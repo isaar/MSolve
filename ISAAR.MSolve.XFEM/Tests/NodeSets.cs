@@ -37,16 +37,23 @@ namespace ISAAR.MSolve.XFEM.Tests
             new XNode2D(3, 0.0, 4.0)
         };
 
-        private static XNode2D[] nodeSet5 = {
+        public static XNode2D[] nodeSet5 = {
             new XNode2D(0, 0.0, 0.0),
             new XNode2D(1, 4.0, 0.0),
             new XNode2D(2, 4.0, 3.0),
             new XNode2D(3, 0.0, 3.0)
         };
 
-        public static XNode2D[] nodeSet6 = {
+        public static XNode2D[] nodeSet6A = {
             new XNode2D(0, 0.2, 0.3),
             new XNode2D(1, 2.2, 1.5),
+            new XNode2D(2, 3.0, 2.7),
+            new XNode2D(3, 0.7, 2.0)
+        };
+
+        public static XNode2D[] nodeSet6B = {
+            new XNode2D(0, 0.2, 0.3),
+            new XNode2D(1, 2.2, 0.9),
             new XNode2D(2, 3.0, 2.7),
             new XNode2D(3, 0.7, 2.0)
         };

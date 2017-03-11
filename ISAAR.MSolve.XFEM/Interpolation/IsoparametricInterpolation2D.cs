@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -46,6 +47,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         #region abstract members
         protected abstract double[] EvaluateAt(double xi, double eta);
         protected abstract double[,] EvaluateDerivativesAt(double xi, double eta);
+        public abstract IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes);
         #endregion
 
         #region concrete (private) classes
@@ -75,6 +77,11 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 derivatives[3, 0] = -0.25 * (1 + eta);
                 derivatives[3, 1] = 0.25 * (1 - xi);
                 return derivatives;
+            }
+
+            public override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+            {
+                return new InverseQuad4Mapping(nodes);
             }
         }
 
@@ -129,6 +136,11 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 derivatives[8, 1] = -2 * xi * (1 - eta_2);
                 derivatives[8, 2] = -2 * eta * (1 - xi_2);
                 return derivatives;
+            }
+
+            public override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+            {
+                throw new NotImplementedException("Probably requires an iterative procedure");
             }
         }
         #endregion
