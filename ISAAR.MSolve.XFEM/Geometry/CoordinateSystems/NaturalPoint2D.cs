@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 
         public override string ToString()
         {
-            return "(xi , eta) = (" + Xi + " , " + Eta + ")";
+            return "(" + Xi + " , " + Eta + ")";
         }
     }
 }

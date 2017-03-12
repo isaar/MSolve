@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.InverseMappingTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.DelaunyTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -45,6 +45,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Triangle, Version=0.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Triangle.0.0.6-Beta3\lib\net45\Triangle.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
@@ -70,12 +74,15 @@
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipJacobian.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipCoordinateSystem.cs" />
+    <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\Triangle2D.cs" />
     <Compile Include="Integration\Rules\GaussQuadratureForTriangle.cs" />
     <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
     <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
+    <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\FEMTests.cs" />
     <Compile Include="Tests\GaussPointsForTipTest.cs" />
     <Compile Include="Tests\InverseMappingTests.cs" />
@@ -114,6 +121,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="ClassDiagram1.cd" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
