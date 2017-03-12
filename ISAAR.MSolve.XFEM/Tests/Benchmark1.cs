@@ -62,19 +62,25 @@ namespace ISAAR.MSolve.XFEM.Tests
             }
         }
 
-        private void HandleEnrichments() // This should not be done manually
+        private void HandleEnrichments() // Most of these should not be done manually
         {
+            // Create enrichments
             var crackStart = new CartesianPoint2D(0.00, 0.15);
             var crackEnd = new CartesianPoint2D(0.20, 0.15);
             crackBody = new CrackBody2D(new Line2D(crackStart, crackEnd));
             crackTip = new CrackTip2D(crackEnd, 0.0);
 
+            // Enrich nodes
             crackBody.EnrichNode(nodes[5]);
             crackBody.EnrichNode(nodes[10]);
             crackTip.EnrichNode(nodes[6]);
             crackTip.EnrichNode(nodes[7]);
             crackTip.EnrichNode(nodes[11]);
             crackTip.EnrichNode(nodes[12]);
+
+            //Enrich elements
+            crackBody.EnrichElement(elements[4]);
+            crackTip.EnrichElement(elements[5]);
         }
 
         private void CreateModel()

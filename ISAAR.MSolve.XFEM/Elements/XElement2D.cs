@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -23,6 +24,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     {
         public ContinuumElement2D StandardFiniteElement { get; }
         public IReadOnlyList<XNode2D> Nodes { get; } // The same as in stdElement.
+        public List<IEnrichmentItem2D> EnrichmentItems { get; }
 
         public static XElement2D CreateHomogeneous(ContinuumElement2D stdFiniteElement, 
             IFiniteElementMaterial2D commonMaterial)
@@ -55,6 +57,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.StandardFiniteElement = stdFiniteElement;
             this.Nodes = (IReadOnlyList<XNode2D>)(stdFiniteElement.Nodes); // I am not too thrilled about casting especially when using covariance.
             this.StandardFiniteElement.MaterialsOfGaussPoints = materialsOfGaussPoints;
+            this.EnrichmentItems = new List<IEnrichmentItem2D>();
         }
 
         public SymmetricMatrix2D<double> BuildStdStiffnessMatrix() // This is not needed if I expose the standard FE

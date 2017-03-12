@@ -62,5 +62,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                     new Tuple<IEnrichmentFunction2D, double>(function, function.EvalueAt(node)));
             }
         }
+
+        public void EnrichElement(XElement2D element)
+        {
+            element.EnrichmentItems.Add(this);
+        }
     }
 }

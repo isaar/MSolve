@@ -30,5 +30,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         void EnrichNodes();
 
         void EnrichNode(XNode2D node); // TODO: delete after debugging
+
+        void EnrichElement(XElement2D element);
     }
 }
