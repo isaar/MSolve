@@ -16,34 +16,22 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    abstract class ContinuumElement2D
+    class ContinuumElement2D
     {
-        public IReadOnlyList<Node2D> Nodes { get; private set; }
-        public IIntegrationStrategy2D IntegrationStrategy { get; }
+        private readonly IsoparametricElementType2D elementType;
 
+        public IReadOnlyList<Node2D> Nodes { get; private set; }
+        public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
+        public IIntegrationRule2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
+        public IIntegrationStrategy2D IntegrationStrategy { get; }
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
         
-        public IsoparametricInterpolation2D Interpolation { get; }
-
-        /// <summary>
-        /// TODO: Create a standard integration rule interface that guarantees gauss points that are
-        /// i) immutable, ii) precached for fast generation, iii) stored globally for all elements
-        /// TODO: Should this be stored as a field? It is a static property of the concrete (aka derived) class...
-        /// </summary>
-        public IIntegrationRule2D MinimumIntegrationRule { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="nodes">The caller is responsibile for checking their suitability 
-        ///     (at least their number).</param>
-        /// <param name="integrationStrategyFactory"></param>
-        protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation, 
-            IIntegrationRule2D minimumIntegrationRule, IIntegrationStrategyFactory2D integrationStrategyFactory)
+        public ContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<Node2D> nodes,  
+            IIntegrationStrategyFactory2D integrationStrategyFactory)
         {
+            type.CheckNodes(nodes);
             this.Nodes = nodes;
-            this.Interpolation = interpolation;
-            this.MinimumIntegrationRule = minimumIntegrationRule;
+            this.elementType = type;
 
             /// WARNING: this will probably try to access the members of <see cref="ContinuumElement2D"/>. 
             /// Thus they must be ready. However it is easy to have members that are initialized in the constructor of 
@@ -62,7 +50,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation =
-                    Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
+                    elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
                 Matrix2D<double> deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix

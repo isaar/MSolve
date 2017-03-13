@@ -62,7 +62,8 @@ namespace ISAAR.MSolve.XFEM.Tests
                     int firstNode = row * NODE_COLUMNS + col;
                     XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
                         nodes[firstNode + NODE_COLUMNS + 1], nodes[firstNode + NODE_COLUMNS] };
-                    elements[id++] = new XElement2D(new IsoparametricQuad4(elementNodes, integrationFactory));
+                    elements[id++] = new XElement2D(
+                        new ContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, integrationFactory));
                 }
             }
         }

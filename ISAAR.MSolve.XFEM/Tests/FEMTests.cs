@@ -32,9 +32,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             double v = 0.25;
             double t = 1.0;
             var material = ElasticMaterial2DPlainStress.Create(E, v, t);
-            IIntegrationStrategyFactory2D integration = new SimpleIntegration2D.Factory(material);
+            IIntegrationStrategyFactory2D integrationFactory = new SimpleIntegration2D.Factory(material);
 
-            var element = new IsoparametricQuad4(nodes, integration);
+            var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory);
             SymmetricMatrix2D<double> k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
             Console.WriteLine(k);

@@ -9,7 +9,6 @@ using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
-
     abstract class IsoparametricInterpolation2D
     {
         #region enum values

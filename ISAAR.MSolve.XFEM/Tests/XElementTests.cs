@@ -29,7 +29,8 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
             var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
-            var element = new XElement2D(new IsoparametricQuad4(nodes, integrationFactory));
+            var element = 
+                new XElement2D(new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
@@ -64,7 +65,8 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
             var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
-            var element = new XElement2D(new IsoparametricQuad4(nodes, integrationFactory));
+            var element = 
+                new XElement2D(new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
@@ -100,7 +102,8 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
             var integrationFactory = new BimaterialIntegration2D.Factory(integrationRule, enrichmentItem);
-            var element = new XElement2D(new IsoparametricQuad4(nodes, integrationFactory));
+            var element = 
+                new XElement2D(new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();

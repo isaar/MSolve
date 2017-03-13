@@ -50,12 +50,12 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="elementType"></param>
+        /// <param name="element"></param>
         /// <param name="material">A homogeneous material, common for all gauss points. 
         ///     It will not change during the analysis</param>
-        private SimpleIntegration2D(ContinuumElement2D elementType, IFiniteElementMaterial2D material)
+        private SimpleIntegration2D(ContinuumElement2D element, IFiniteElementMaterial2D material)
         {
-            this.quadrature = elementType.MinimumIntegrationRule;
+            this.quadrature = element.StandardQuadrature;
             this.material = material;
         }
 
