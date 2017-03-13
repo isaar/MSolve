@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
+using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -149,10 +150,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             double v = 0.25;
             double t = 1.0;
             var material = ElasticMaterial2DPlainStress.Create(E, v, t);
-            var element = new IsoparametricQuad4(nodes, material);
+            IIntegrationStrategyFactory2D integrationFactory = new SimpleIntegration2D.Factory(material);
+            var element = new IsoparametricQuad4(nodes, integrationFactory);
 
             IsoparametricInterpolation2D interpolation = element.Interpolation;
             IInverseMapping2D inverseMapping = interpolation.CreateInverseMappingFor(nodes);
+            
 
             const int pointsCount = 20;
             double naturalStep = 2.0 / pointsCount;

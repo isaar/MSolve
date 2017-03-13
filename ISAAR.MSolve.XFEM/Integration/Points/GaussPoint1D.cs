@@ -7,7 +7,10 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Integration.Points
 {
-    class GaussPoint1D: INaturalPoint1D
+    /// <summary>
+    /// Must be immutable to use across many elements that employ the same integration rule
+    /// </summary>
+    class GaussPoint1D : INaturalPoint1D
     {
         public double Xi { get; }
         public double Weight { get; }

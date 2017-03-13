@@ -9,6 +9,8 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Tests
@@ -25,7 +27,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             ICurve2D discontinuity = new Line2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
             IEnrichmentItem2D enrichmentItem = new CrackBody2D(discontinuity);
 
-            var element = XElement2D.CreateHomogeneous(new IsoparametricQuad4(nodes), material);
+            var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
+            var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
+            var element = new XElement2D(new IsoparametricQuad4(nodes, integrationFactory));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
@@ -58,7 +62,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             double angle = Math.PI / 2.0;
             CrackTip2D enrichmentItem = new CrackTip2D(tip, angle);
 
-            var element = XElement2D.CreateHomogeneous(new IsoparametricQuad4(nodes), material);
+            var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
+            var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
+            var element = new XElement2D(new IsoparametricQuad4(nodes, integrationFactory));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
@@ -90,9 +96,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             var materialRight = ElasticMaterial2DPlainStrain.Create(E / 2.0, v, t);
 
             ICurve2D discontinuity = new Line2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
-            IEnrichmentItem2D enrichmentItem = new MaterialInterface2D(discontinuity);
+            MaterialInterface2D enrichmentItem = new MaterialInterface2D(discontinuity, materialLeft, materialRight);
 
-            var element = XElement2D.CreateBimaterial(new IsoparametricQuad4(nodes), materialLeft, materialRight);
+            var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
+            var integrationFactory = new BimaterialIntegration2D.Factory(integrationRule, enrichmentItem);
+            var element = new XElement2D(new IsoparametricQuad4(nodes, integrationFactory));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
@@ -117,8 +125,8 @@ namespace ISAAR.MSolve.XFEM.Tests
         static void Main(string[] args)
         {
             //IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
-            IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
-            //IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
+            //IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
+            IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
         }
     }
 }

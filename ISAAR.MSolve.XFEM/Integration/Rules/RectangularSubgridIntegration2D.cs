@@ -7,18 +7,19 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 
 namespace ISAAR.MSolve.XFEM.Integration.Rules
 {
-    class SubgridIntegration2D: IIntegrationRule2D
+    /// <summary>
+    /// TODO: Ensure this is not used for anything other than Quadrilaterals.
+    /// </summary>
+    class RectangularSubgridIntegration2D: IIntegrationRule2D
     {
         private readonly int subgridsPerAxis;
         private readonly GaussLegendre2D  gaussQuadrature;
 
-        public SubgridIntegration2D(int subgridsPerAxis)
+        public RectangularSubgridIntegration2D(int subgridsPerAxis): this(subgridsPerAxis, GaussLegendre2D.Order2x2)
         {
-            this.subgridsPerAxis = subgridsPerAxis;
-            this.gaussQuadrature = GaussLegendre2D .Order2x2;
         }
 
-        public SubgridIntegration2D(int subgridsPerAxis, GaussLegendre2D  gaussQuadrature)
+        public RectangularSubgridIntegration2D(int subgridsPerAxis, GaussLegendre2D gaussQuadrature)
         {
             this.subgridsPerAxis = subgridsPerAxis;
             this.gaussQuadrature = gaussQuadrature;

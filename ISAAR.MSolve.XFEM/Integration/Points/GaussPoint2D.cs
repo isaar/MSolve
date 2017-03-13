@@ -7,6 +7,9 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Integration.Points
 {
+    /// <summary>
+    /// Must be immutable to use across many elements that employ the same integration rule
+    /// </summary>
     class GaussPoint2D: INaturalPoint2D
     {
         public double Xi { get; }

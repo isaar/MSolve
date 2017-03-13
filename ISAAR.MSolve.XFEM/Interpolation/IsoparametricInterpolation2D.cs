@@ -42,6 +42,18 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             // TODO: perhaps check that the nodes match the values and derivatives
             return new EvaluatedInterpolation2D(nodes, naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }
+
+        public ICartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<Node2D> nodes, INaturalPoint2D naturalPoint)
+        {
+            double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta);
+            double x = 0, y = 0;
+            for (int i = 0; i < nodes.Count; ++i)
+            {
+                x += shapeFunctionValues[i] * nodes[i].X;
+                y += shapeFunctionValues[i] * nodes[i].Y;
+            }
+            return new CartesianPoint2D(x, y);
+        }
         #endregion
 
         #region abstract members

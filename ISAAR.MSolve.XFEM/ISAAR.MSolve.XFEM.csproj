@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.DelaunyTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.XElementTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -76,7 +76,11 @@
     <Compile Include="Geometry\CoordinateSystems\TipCoordinateSystem.cs" />
     <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />
     <Compile Include="Geometry\Triangulation\Triangle2D.cs" />
+    <Compile Include="Integration\Strategies\BimaterialIntegration2D.cs" />
+    <Compile Include="Integration\Strategies\IIntegrationStrategy2D.cs" />
     <Compile Include="Integration\Rules\GaussQuadratureForTriangle.cs" />
+    <Compile Include="Integration\Strategies\HomogeneousIntegration2D.cs" />
+    <Compile Include="Integration\Strategies\SimpleIntegration2D.cs" />
     <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
     <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
@@ -106,7 +110,7 @@
     <Compile Include="Integration\Rules\IIntegrationRule2D.cs" />
     <Compile Include="Integration\Rules\GaussLegendre2D.cs" />
     <Compile Include="Integration\Rules\GaussLegendre1D.cs" />
-    <Compile Include="Integration\Rules\SubgridIntegration2D.cs" />
+    <Compile Include="Integration\Rules\RectangularSubgridIntegration2D.cs" />
     <Compile Include="Interpolation\EvaluatedInterpolation2D.cs" />
     <Compile Include="Interpolation\Jacobian2D.cs" />
     <Compile Include="Materials\ElasticMaterial2DPlainStrain.cs" />

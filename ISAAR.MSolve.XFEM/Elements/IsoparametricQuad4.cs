@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -15,27 +16,11 @@ namespace ISAAR.MSolve.XFEM.Elements
     // are more readable (and expected in FEM software) and may be useful for geometric operations later on.
     class IsoparametricQuad4: ContinuumElement2D
     {
-        /// <summary>
-        /// The caller assumes responsibility for the the nodes, gauss points and materials
-        /// </summary>
-        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes, 
-            IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints): 
-            base(nodes, IsoparametricInterpolation2D.Quad4, materialsOfGaussPoints)
+        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes, IIntegrationStrategyFactory2D integrationFactory):
+            base (nodes, IsoparametricInterpolation2D.Quad4, GaussLegendre2D.Order2x2, integrationFactory)
         {
-        }
-
-        /// <summary>
-        /// The caller assumes responsibility for the the nodes.
-        /// </summary>
-        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes, IFiniteElementMaterial2D commonMaterial) :
-            base(nodes, IsoparametricInterpolation2D.Quad4, 
-                GaussLegendre2D .Order2x2.GenerateIntegrationPoints(), commonMaterial)
-        {
-        }
-
-        public IsoparametricQuad4(IReadOnlyList<Node2D> nodes) :
-            base(nodes, IsoparametricInterpolation2D.Quad4, null)
-        {
+            if (nodes.Count != 4) throw new ArgumentException("A Quad4 finite element has 4 nodes, but " 
+                + nodes.Count + " nodes were provided.");
         }
     }
 }

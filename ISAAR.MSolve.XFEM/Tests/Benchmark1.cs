@@ -11,6 +11,8 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Tests
@@ -48,6 +50,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void CreateElements()
         {
+            IIntegrationRule2D integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
+            var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
+
             elements = new XElement2D[ELEMENT_ROWS * ELEMENT_COLUMNS];
             int id = 0;
             for (int row = 0; row < ELEMENT_ROWS; ++row)
@@ -57,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Tests
                     int firstNode = row * NODE_COLUMNS + col;
                     XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
                         nodes[firstNode + NODE_COLUMNS + 1], nodes[firstNode + NODE_COLUMNS] };
-                    elements[id++] = XElement2D.CreateHomogeneous(new IsoparametricQuad4(elementNodes), material);
+                    elements[id++] = new XElement2D(new IsoparametricQuad4(elementNodes, integrationFactory));
                 }
             }
         }

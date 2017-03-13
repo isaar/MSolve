@@ -7,6 +7,7 @@ using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -31,8 +32,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             double v = 0.25;
             double t = 1.0;
             var material = ElasticMaterial2DPlainStress.Create(E, v, t);
+            IIntegrationStrategyFactory2D integration = new SimpleIntegration2D.Factory(material);
 
-            var element = new IsoparametricQuad4(nodes, material);
+            var element = new IsoparametricQuad4(nodes, integration);
             SymmetricMatrix2D<double> k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
             Console.WriteLine(k);

@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Integration.Points;
+using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -17,40 +19,45 @@ namespace ISAAR.MSolve.XFEM.Elements
     abstract class ContinuumElement2D
     {
         public IReadOnlyList<Node2D> Nodes { get; private set; }
-        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> MaterialsOfGaussPoints { get; set; }
+        public IIntegrationStrategy2D IntegrationStrategy { get; }
 
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
-        public IsoparametricInterpolation2D Interpolation { get; private set; } // Must change when nodes change.
+        
+        public IsoparametricInterpolation2D Interpolation { get; }
 
         /// <summary>
-        /// Parameters passed to this constructor will not be copied.
+        /// TODO: Create a standard integration rule interface that guarantees gauss points that are
+        /// i) immutable, ii) precached for fast generation, iii) stored globally for all elements
+        /// TODO: Should this be stored as a field? It is a static property of the concrete (aka derived) class...
         /// </summary>
-        /// <param name="nodes">Is not deep copied.</param>
-        /// <param name="materialsOfGaussPoints">Is not deep copied</param>
-        protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation,
-            IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> materialsOfGaussPoints)
+        public IIntegrationRule2D MinimumIntegrationRule { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nodes">The caller is responsibile for checking their suitability 
+        ///     (at least their number).</param>
+        /// <param name="integrationStrategyFactory"></param>
+        protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation, 
+            IIntegrationRule2D minimumIntegrationRule, IIntegrationStrategyFactory2D integrationStrategyFactory)
         {
-            // TODO: Add checks here: order of nodes and suitability of gauss points. 
-            // Or add checks in the callers (in this class and in enriched elements)?
             this.Nodes = nodes;
             this.Interpolation = interpolation;
-            this.MaterialsOfGaussPoints = materialsOfGaussPoints;
-        }
+            this.MinimumIntegrationRule = minimumIntegrationRule;
 
-        protected ContinuumElement2D(IReadOnlyList<Node2D> nodes, IsoparametricInterpolation2D interpolation,
-            IReadOnlyList<GaussPoint2D> integrationPoints, IFiniteElementMaterial2D commonMaterial):
-            this(nodes, interpolation, 
-                MaterialUtilities.AssignMaterialToIntegrationPoints(integrationPoints, commonMaterial))
-        {
+            /// WARNING: this will probably try to access the members of <see cref="ContinuumElement2D"/>. 
+            /// Thus they must be ready. However it is easy to have members that are initialized in the constructor of 
+            /// the derived class, but are still uninitialized when they are accessed
+            this.IntegrationStrategy = integrationStrategyFactory.CreateStrategy(this); 
         }
 
         public SymmetricMatrix2D<double> BuildStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(DofsCount);
-            foreach (var entry in MaterialsOfGaussPoints)
+            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials())
             {
-                GaussPoint2D gaussPoint = entry.Key;
-                IFiniteElementMaterial2D material = entry.Value;
+                GaussPoint2D gaussPoint = gausspointMaterialPair.Item1;
+                IFiniteElementMaterial2D material = gausspointMaterialPair.Item2;
 
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
