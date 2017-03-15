@@ -9,6 +9,9 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
+    // Perhaps I can pass the element instance (actually the element will pass "this") to the GetIntegrationPoints()
+    // and Update(). Alternatively I could ensure that the element passed in the constructor is not used unti the GetIntegrationPoints is called.
+
     interface IIntegrationStrategy2D
     {
         /// <summary>

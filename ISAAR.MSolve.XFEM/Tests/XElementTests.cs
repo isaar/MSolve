@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -24,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             double t = 1.0;
             var material = ElasticMaterial2DPlainStrain.Create(E, v, t);
 
-            ICurve2D discontinuity = new Line2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
+            ICurve2D discontinuity = new LineSegment2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
             IEnrichmentItem2D enrichmentItem = new CrackBody2D(discontinuity);
 
             var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
@@ -97,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var materialLeft = ElasticMaterial2DPlainStrain.Create(E, v, t);
             var materialRight = ElasticMaterial2DPlainStrain.Create(E / 2.0, v, t);
 
-            ICurve2D discontinuity = new Line2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
+            ICurve2D discontinuity = new LineSegment2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
             MaterialInterface2D enrichmentItem = new MaterialInterface2D(discontinuity, materialLeft, materialRight);
 
             var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);

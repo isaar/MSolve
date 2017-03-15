@@ -49,6 +49,7 @@
       <HintPath>..\packages\Triangle.0.0.6-Beta3\lib\net45\Triangle.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
@@ -73,6 +74,9 @@
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipJacobian.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipCoordinateSystem.cs" />
+    <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
+    <Compile Include="Geometry\Shapes\LineSegment1D.cs" />
+    <Compile Include="Geometry\Shapes\Polyline2D.cs" />
     <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />
     <Compile Include="Geometry\Triangulation\Triangle2D.cs" />
     <Compile Include="Integration\Strategies\BimaterialIntegration2D.cs" />
@@ -102,7 +106,7 @@
     <Compile Include="Entities\Node2D.cs" />
     <Compile Include="Entities\XNode2D.cs" />
     <Compile Include="Geometry\ICurve2D.cs" />
-    <Compile Include="Geometry\Line2D.cs" />
+    <Compile Include="Geometry\Shapes\LineSegment2D.cs" />
     <Compile Include="Integration\Points\GaussPoint1D.cs" />
     <Compile Include="Integration\Points\GaussPoint2D.cs" />
     <Compile Include="Integration\Rules\IIntegrationRule1D.cs" />

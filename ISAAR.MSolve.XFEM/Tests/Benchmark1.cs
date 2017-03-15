@@ -9,7 +9,7 @@ using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Create enrichments
             var crackStart = new CartesianPoint2D(0.00, 0.15);
             var crackEnd = new CartesianPoint2D(0.20, 0.15);
-            crackBody = new CrackBody2D(new Line2D(crackStart, crackEnd));
+            crackBody = new CrackBody2D(new LineSegment2D(crackStart, crackEnd));
             crackTip = new CrackTip2D(crackEnd, 0.0);
 
             // Enrich nodes
