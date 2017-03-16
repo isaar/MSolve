@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return new Tuple<double, double>(dy / length, -dx / length);
         }
 
-        public IReadOnlyList<ICartesianPoint2D> InteractionWith(ConvexPolygon2D element)
+        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D element)
         {
             var intersectionPoints = new List<CartesianPoint2D>();
             // Should I also include the vertices if they fall inside? Or should I do that in the enrichment item?

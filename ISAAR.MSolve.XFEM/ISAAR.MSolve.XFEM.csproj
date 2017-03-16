@@ -75,6 +75,7 @@
     <Compile Include="Geometry\CoordinateSystems\TipJacobian.cs" />
     <Compile Include="Geometry\CoordinateSystems\TipCoordinateSystem.cs" />
     <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
+    <Compile Include="Geometry\Shapes\DirectedSegment2D.cs" />
     <Compile Include="Geometry\Shapes\LineSegment1D.cs" />
     <Compile Include="Geometry\Shapes\Polyline2D.cs" />
     <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />

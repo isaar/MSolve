@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Geometry
         double SignedDistanceOf(ICartesianPoint2D point);
         Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point);
 
-        IReadOnlyList<ICartesianPoint2D> InteractionWith(ConvexPolygon2D element);
+        IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D element);
 
         // This is the correct one but it needs constrained Delauny triangulation
         //public void IntersectionWith(ContinuumElement2D element, out ICartesianPoint2D[] points, out LineSegment2D[] segments);
