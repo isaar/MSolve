@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         /// for the enriched parts. Thus it would be beneficial to cache the results if the calculation is expensive.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> GetIntegrationPointsAndMaterials();
+        IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> GetIntegrationPointsAndMaterials(); // TODO: better return a Dictionary view
 
         // TODO: The update should be done for some element, rule and new condition. 
         // The first 2 could be fields, but the new condition should be passed as an argument.

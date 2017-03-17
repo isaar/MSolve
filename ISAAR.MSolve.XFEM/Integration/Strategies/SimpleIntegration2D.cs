@@ -41,10 +41,6 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         /// </summary>
         private readonly IFiniteElementMaterial2D material;
 
-        /// <summary>
-        /// TODO: Create a standard integration rule interface that guarantees gauss points that are
-        /// i) immutable, ii) precached for fast generation, iii) stored globally for all elements
-        /// </summary>
         private readonly IStandardQuadrature2D quadrature;
 
         /// <summary>
