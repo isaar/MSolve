@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             mesher.Insert(nodes[3]);
             foreach (var point in intersectionPoints) mesher.Insert(point);
-            var triangles = mesher.Mesh();
+            var triangles = mesher.CreateMesh();
 
             for (int i = 0; i < triangles.Count; ++i)
             {

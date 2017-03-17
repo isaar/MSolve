@@ -4,6 +4,7 @@ using System.Windows;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
@@ -52,11 +53,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return new Tuple<double, double>(dy / length, -dx / length);
         }
 
-        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D element)
+        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(XElement2D element)
         {
             var intersectionPoints = new List<CartesianPoint2D>();
             // Should I also include the vertices if they fall inside? Or should I do that in the enrichment item?
-            foreach (LineSegment2D edge in element.Edges)
+            var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+            foreach (LineSegment2D edge in polygon.Edges)
             {
                 CartesianPoint2D point;
                 SegmentSegmentPosition intersection = IntersectionWith(edge, out point);

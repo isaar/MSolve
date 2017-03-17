@@ -14,7 +14,8 @@ namespace ISAAR.MSolve.XFEM.Geometry
         double SignedDistanceOf(ICartesianPoint2D point);
         Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point);
 
-        IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D element);
+        // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.
+        IReadOnlyList<ICartesianPoint2D> IntersectionWith(XElement2D element);
 
         // This is the correct one but it needs constrained Delauny triangulation
         //public void IntersectionWith(ContinuumElement2D element, out ICartesianPoint2D[] points, out LineSegment2D[] segments);

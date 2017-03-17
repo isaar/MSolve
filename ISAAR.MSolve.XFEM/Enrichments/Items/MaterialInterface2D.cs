@@ -59,5 +59,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 return false;
             }
         }
+
+        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element)
+        {
+            return Discontinuity.IntersectionWith(element);
+        }
     }
 }

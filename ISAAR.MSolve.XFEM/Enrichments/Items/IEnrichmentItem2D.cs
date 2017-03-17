@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
@@ -32,5 +32,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         void EnrichNode(XNode2D node); // TODO: delete after debugging
 
         void EnrichElement(XElement2D element);
+
+        IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element);
     }
 }

@@ -7,10 +7,11 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
-    class AbstractEnrichmentItem2D: IEnrichmentItem2D
+    abstract class AbstractEnrichmentItem2D: IEnrichmentItem2D
     {
         protected List<XElement2D> affectedElements;
 
@@ -67,5 +68,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
             element.EnrichmentItems.Add(this);
         }
+
+        public abstract IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element);
     }
 }

@@ -47,5 +47,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 new ArtificialDOFType(EnrichmentFunctions[3], StandardDOFType.Y),
             };
         }
+
+        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element)
+        {
+            throw new NotImplementedException("I should return the tip and the nodes of the element it is inside");
+        }
     }
 }

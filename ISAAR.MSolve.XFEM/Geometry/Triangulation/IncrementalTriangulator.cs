@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             vertices.Add(new Vertex(vertex.Xi, vertex.Eta));
         }
 
-        public IReadOnlyList<Triangle2D> Mesh()
+        public IReadOnlyList<Triangle2D> CreateMesh()
         {
             var triangles = new List<Triangle2D>();
             IMesh mesh = mesher.Triangulate(vertices, config);

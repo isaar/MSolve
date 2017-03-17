@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
@@ -27,6 +28,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 new ArtificialDOFType(enrichment, StandardDOFType.X),
                 new ArtificialDOFType(enrichment, StandardDOFType.Y)
             };
+        }
+
+        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element)
+        {
+            return Discontinuity.IntersectionWith(element);
         }
     }
 }
