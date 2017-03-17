@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.Elements
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// i) immutable, ii) precached for fast generation, iii) stored globally for all elements
         /// TODO: Should this be stored as a field? It is a static property of the concrete (aka derived) class...
         /// </summary>
-        public abstract IIntegrationRule2D StandardQuadrature { get; }
+        public abstract IStandardQuadrature2D StandardQuadrature { get; }
         public abstract IsoparametricInterpolation2D Interpolation { get; }
         public abstract void CheckNodes(IReadOnlyList<Node2D> nodes);
 
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return IsoparametricInterpolation2D.Quad4; }
             }
 
-            public override IIntegrationRule2D StandardQuadrature
+            public override IStandardQuadrature2D StandardQuadrature
             {
                 get { return GaussLegendre2D.Order2x2; }
             }
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return IsoparametricInterpolation2D.Quad9; }
             }
 
-            public override IIntegrationRule2D StandardQuadrature
+            public override IStandardQuadrature2D StandardQuadrature
             {
                 get { return GaussLegendre2D.Order3x3; }
             }

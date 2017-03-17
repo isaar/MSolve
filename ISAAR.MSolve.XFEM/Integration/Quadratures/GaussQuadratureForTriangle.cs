@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Integration.Points;
 
-namespace ISAAR.MSolve.XFEM.Integration.Rules
+namespace ISAAR.MSolve.XFEM.Integration.Quadratures
 {
-    sealed class GaussQuadratureForTriangle: IIntegrationRule2D
+    sealed class GaussQuadratureForTriangle: IStandardQuadrature2D
     {
         public static readonly GaussQuadratureForTriangle Order1Point1 = new GaussQuadratureForTriangle(
             new GaussPoint2D(1.0/3,     1.0/3,      1.0/2));
@@ -66,13 +66,11 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             new GaussPoint2D(0.3333333333333, 0.3333333333333, -0.1495700444677 / 2));
 
 
-        private readonly IReadOnlyList<GaussPoint2D> integrationPoints;
+        public IReadOnlyList<GaussPoint2D> IntegrationPoints { get; }
 
         private GaussQuadratureForTriangle(params GaussPoint2D[] points)
         {
-            this.integrationPoints = new List<GaussPoint2D>(points);
+            this.IntegrationPoints = new List<GaussPoint2D>(points);
         }
-
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints() { return integrationPoints; }
     }
 }

@@ -8,7 +8,7 @@ using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Elements
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         private IReadOnlyList<GaussPoint2D> FindGaussPoints()
         {
             var localGaussPoints = new List<GaussPoint2D>();
-            foreach (var naturalGaussPoint in GaussLegendre2D .Order2x2.GenerateIntegrationPoints())
+            foreach (var naturalGaussPoint in GaussLegendre2D.Order2x2.IntegrationPoints)
             {
                 double localX = naturalGaussPoint.Xi * halfLengthX;
                 double localY = naturalGaussPoint.Eta * halfLengthY;

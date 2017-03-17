@@ -16,10 +16,10 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     {
         public class Factory : IIntegrationStrategyFactory2D
         {
-            private readonly IIntegrationRule2D integrationRule;
+            private readonly IIntegrationRule2D<ContinuumElement2D> integrationRule;
             private readonly MaterialInterface2D bimaterialInterface;
 
-            public Factory(IIntegrationRule2D integrationRule, MaterialInterface2D bimaterialInterface)
+            public Factory(IIntegrationRule2D<ContinuumElement2D> integrationRule, MaterialInterface2D bimaterialInterface)
             {
                 this.integrationRule = integrationRule;
                 this.bimaterialInterface = bimaterialInterface;
@@ -27,16 +27,16 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
 
             public IIntegrationStrategy2D CreateStrategy(ContinuumElement2D element)
             {
-                return new BimaterialIntegration2D(integrationRule, bimaterialInterface, element);
+                return new BimaterialIntegration2D(element, integrationRule, bimaterialInterface);
             }
         }
 
         private readonly IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> pointsAndMaterials;
 
-        private BimaterialIntegration2D(IIntegrationRule2D integrationRule, MaterialInterface2D bimaterialInterface, 
-            ContinuumElement2D element)
+        private BimaterialIntegration2D(ContinuumElement2D element, 
+            IIntegrationRule2D<ContinuumElement2D> integrationRule, MaterialInterface2D bimaterialInterface)
         {
-            IReadOnlyList<GaussPoint2D> points = integrationRule.GenerateIntegrationPoints();
+            IReadOnlyList<GaussPoint2D> points = integrationRule.GenerateIntegrationPoints(element);
 
             var pairs = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>[points.Count];
             for (int i = 0; i < points.Count; ++i)

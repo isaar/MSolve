@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         /// TODO: Create a standard integration rule interface that guarantees gauss points that are
         /// i) immutable, ii) precached for fast generation, iii) stored globally for all elements
         /// </summary>
-        private readonly IIntegrationRule2D quadrature;
+        private readonly IStandardQuadrature2D quadrature;
 
         /// <summary>
         /// 
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         // so there is no need to cache it.
         public IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> GetIntegrationPointsAndMaterials()
         {
-            IReadOnlyList<GaussPoint2D> gaussPoints = quadrature.GenerateIntegrationPoints();
+            IReadOnlyList<GaussPoint2D> gaussPoints = quadrature.IntegrationPoints;
             var result = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>[gaussPoints.Count];
             for (int i = 0; i < gaussPoints.Count; ++i)
             {

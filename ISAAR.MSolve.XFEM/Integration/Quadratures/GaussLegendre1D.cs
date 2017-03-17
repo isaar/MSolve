@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Integration.Points;
 
-namespace ISAAR.MSolve.XFEM.Integration.Rules
+namespace ISAAR.MSolve.XFEM.Integration.Quadratures
 {
-    sealed class GaussLegendre1D: IIntegrationRule1D
+    sealed class GaussLegendre1D: IStandardQuadrature1D
     {
         public static readonly GaussLegendre1D Order1 = new GaussLegendre1D(
             new GaussPoint1D(0.0, 2.0));
@@ -84,13 +84,11 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             new GaussPoint1D(-0.9739065285171717200779640, 0.0666713443086881375935688),
             new GaussPoint1D(+0.9739065285171717200779640, 0.0666713443086881375935688));
 
-        private readonly IReadOnlyList<GaussPoint1D> integrationPoints;
+        public IReadOnlyList<GaussPoint1D> IntegrationPoints { get; }
 
         private GaussLegendre1D(params GaussPoint1D[] points)
         {
-            this.integrationPoints = new List<GaussPoint1D>(points);
+            IntegrationPoints = new List<GaussPoint1D>(points);
         }
-
-        public IReadOnlyList<GaussPoint1D> GenerateIntegrationPoints() { return integrationPoints; }
     }
 }

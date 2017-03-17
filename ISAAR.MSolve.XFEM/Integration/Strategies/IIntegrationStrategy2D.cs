@@ -12,6 +12,11 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     // Perhaps I can pass the element instance (actually the element will pass "this") to the GetIntegrationPoints()
     // and Update(). Alternatively I could ensure that the element passed in the constructor is not used unti the GetIntegrationPoints is called.
 
+    /// <summary>
+    /// Classes that handle storing and updating the integration rules, integration points and materials of each 
+    /// element. The element only  needs to access the integration point-material pairs form this class. The 
+    /// integration point generation is delegated to a suitable integration rule usually.
+    /// </summary>    
     interface IIntegrationStrategy2D
     {
         /// <summary>

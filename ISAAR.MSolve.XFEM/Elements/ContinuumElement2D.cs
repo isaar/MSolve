@@ -9,7 +9,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IReadOnlyList<Node2D> Nodes { get; private set; }
         public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
-        public IIntegrationRule2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
+        public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D IntegrationStrategy { get; }
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
         

@@ -8,17 +8,16 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Materials;
 
-
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
     class HomogeneousIntegration2D: IIntegrationStrategy2D
     {
         public class Factory: IIntegrationStrategyFactory2D
         {
-            private readonly IIntegrationRule2D integrationRule;
+            private readonly IIntegrationRule2D<ContinuumElement2D> integrationRule;
             private readonly IFiniteElementMaterial2D commonMaterial;
 
-            public Factory(IIntegrationRule2D integrationRule, IFiniteElementMaterial2D commonMaterial)
+            public Factory(IIntegrationRule2D<ContinuumElement2D> integrationRule, IFiniteElementMaterial2D commonMaterial)
             {
                 this.integrationRule = integrationRule;
                 this.commonMaterial = commonMaterial;
@@ -27,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             // So far this strategy does not need anything from the element itself. That might change imminently.
             public IIntegrationStrategy2D CreateStrategy(ContinuumElement2D element)
             {
-                return new HomogeneousIntegration2D(integrationRule, commonMaterial);
+                return new HomogeneousIntegration2D(element, integrationRule, commonMaterial);
             }
         }
 
@@ -39,11 +38,12 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         private readonly IFiniteElementMaterial2D commonMaterial;
         private readonly IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> pointsAndMaterials;
 
-        private HomogeneousIntegration2D(IIntegrationRule2D integrationRule, IFiniteElementMaterial2D commonMaterial)
+        private HomogeneousIntegration2D(ContinuumElement2D element, IIntegrationRule2D<ContinuumElement2D> integrationRule, 
+            IFiniteElementMaterial2D commonMaterial)
         {
             this.commonMaterial = commonMaterial.Clone(); // The object passed might be mutated later on 
 
-            IReadOnlyList<GaussPoint2D> points = integrationRule.GenerateIntegrationPoints();
+            IReadOnlyList<GaussPoint2D> points = integrationRule.GenerateIntegrationPoints(element);
             var pairs = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>[points.Count];
             for (int i = 0; i < points.Count; ++i)
             {

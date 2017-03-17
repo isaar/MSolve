@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Integration.Points;
 
-namespace ISAAR.MSolve.XFEM.Integration.Rules
+namespace ISAAR.MSolve.XFEM.Integration.Quadratures
 {
     using static GaussLegendre1D;
 
-    sealed class GaussLegendre2D : IIntegrationRule2D
+    sealed class GaussLegendre2D : IStandardQuadrature2D
     {
         public static readonly GaussLegendre2D  Order1x1 = new GaussLegendre2D (Order1, Order1);
         public static readonly GaussLegendre2D  Order2x2 = new GaussLegendre2D (Order2, Order2);
@@ -22,22 +22,20 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
         public static readonly GaussLegendre2D  Order9x9 = new GaussLegendre2D (Order9, Order9);
         public static readonly GaussLegendre2D  Order10x10 = new GaussLegendre2D (Order10, Order10);
 
-        public readonly IReadOnlyList<GaussPoint2D> integrationPoints;
+        public IReadOnlyList<GaussPoint2D> IntegrationPoints { get; }
 
         private GaussLegendre2D (GaussLegendre1D ruleXi, GaussLegendre1D ruleEta)
         {
             // Combine the integration rules of each axis: 
             var points2D = new List<GaussPoint2D>();
-            foreach (var pointXi in ruleXi.GenerateIntegrationPoints())
+            foreach (var pointXi in ruleXi.IntegrationPoints)
             {
-                foreach (var pointEta in ruleEta.GenerateIntegrationPoints())
+                foreach (var pointEta in ruleEta.IntegrationPoints)
                 {
                     points2D.Add(new GaussPoint2D(pointXi.Xi, pointEta.Xi, pointXi.Weight * pointEta.Weight));
                 }
             }
-            this.integrationPoints = points2D;
+            this.IntegrationPoints = points2D;
         }
-
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints() { return integrationPoints; }
     }
 }

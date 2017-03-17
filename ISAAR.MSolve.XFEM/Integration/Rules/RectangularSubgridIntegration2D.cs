@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Integration.Points;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 
 namespace ISAAR.MSolve.XFEM.Integration.Rules
 {
     /// <summary>
+    /// TODO: This rule is actually independent from the element and its elements can be cached, albeit not in a 
+    /// static manner. Should I put it with the standard quadratures?
     /// TODO: Ensure this is not used for anything other than Quadrilaterals.
     /// </summary>
-    class RectangularSubgridIntegration2D: IIntegrationRule2D
+    class RectangularSubgridIntegration2D: IIntegrationRule2D<ContinuumElement2D>
     {
         private readonly int subgridsPerAxis;
         private readonly GaussLegendre2D  gaussQuadrature;
@@ -25,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             this.gaussQuadrature = gaussQuadrature;
         }
 
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints()
+        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(ContinuumElement2D element)
         {
             var points = new List<GaussPoint2D>();
             double length = 2.0 / subgridsPerAxis;
@@ -39,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
                     double etaMin = -1.0 + length * j;
                     double etaMax = -1.0 + length * (j + 1);
 
-                    foreach(var subgridPoint in gaussQuadrature.GenerateIntegrationPoints())
+                    foreach(var subgridPoint in gaussQuadrature.IntegrationPoints)
                     {
                         // Transformation from the system of the subrectangle to the natural system of the element
                         double naturalXi = subgridPoint.Xi * (xiMax - xiMin) / 2.0 + (xiMin + xiMax) / 2.0;

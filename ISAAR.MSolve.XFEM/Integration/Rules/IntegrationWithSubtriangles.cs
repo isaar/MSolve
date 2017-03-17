@@ -8,60 +8,32 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 using ISAAR.MSolve.XFEM.Materials;
 
-namespace ISAAR.MSolve.XFEM.Integration.Strategies
+namespace ISAAR.MSolve.XFEM.Integration.Rules
 {
-    // This should probably be an Integration rule, not an integration strategy
-    class IntegrationWithSubtriangles: IIntegrationStrategy2D
+    class IntegrationWithSubtriangles: IIntegrationRule2D<XElement2D>
     {
-        public class Factory : IIntegrationStrategyFactory2D
-        {
-            private readonly IFiniteElementMaterial2D material;
-            private readonly GaussQuadratureForTriangle triangleIntegrationRule;
-
-            public Factory(IFiniteElementMaterial2D material, GaussQuadratureForTriangle triangleIntegrationRule)
-            {
-                this.material = material;
-                this.triangleIntegrationRule = triangleIntegrationRule;
-            }
-
-            public IIntegrationStrategy2D CreateStrategy(ContinuumElement2D elementType)
-            {
-                throw new NotImplementedException();
-                //return new IntegrationWithSubtriangles(elementType, material, triangleIntegrationRule);
-            }
-        }
-
-        private readonly XElement2D element;
-        private readonly IFiniteElementMaterial2D material;
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
 
-        private IntegrationWithSubtriangles(XElement2D element, IFiniteElementMaterial2D material, 
-            GaussQuadratureForTriangle triangleIntegrationRule)
+        private IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule)
         {
-            this.element = element;
-            this.material = material;
             this.triangleIntegrationRule = triangleIntegrationRule;
         }
         
-        public IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> GetIntegrationPointsAndMaterials()
+        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XElement2D element)
         {
-            IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints = FindCartesianPointsForTriangulation();
+            IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints = FindCartesianPointsForTriangulation(element);
             IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints = 
-                FindNaturalPointsForTriangulation(cartesianDelaunyPoints);
+                FindNaturalPointsForTriangulation(element, cartesianDelaunyPoints);
             IReadOnlyList<Triangle2D> subtriangles = CreateIntegrationMesh(naturalDelaunyPoints);
 
-            var integrationPoints = new List<Tuple<GaussPoint2D, IFiniteElementMaterial2D>>();
+            var integrationPoints = new List<GaussPoint2D>();
             foreach (Triangle2D triangle in subtriangles)
             {
-                foreach (var gaussPoint in TriangleQuadrature(triangle))
-                {
-                    integrationPoints.Add(
-                        new Tuple<GaussPoint2D, IFiniteElementMaterial2D>(gaussPoint, this.material.Clone()));
-                }
+                integrationPoints.AddRange(GenerateIntegrationPointsOfTriangle(triangle));
             }
             return integrationPoints;
         }
@@ -69,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         // These triangles are output by the delauny triangulation and the order of their nodes might be 
         // counter-clockwise or clockwise. In the second case the jacobian will be negative, 
         // but it doesn't matter otherwise. 
-        private IReadOnlyList<GaussPoint2D> TriangleQuadrature(Triangle2D triangle)
+        private IReadOnlyList<GaussPoint2D> GenerateIntegrationPointsOfTriangle(Triangle2D triangle)
         {
             // Coordinates of the triangle's nodes in the natural system of the element
             double xi1 = triangle.Vertices[0].Xi;
@@ -84,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             // negative. It doesn't matter since its absolute value is used for integration with change of variables.
             double jacobian = Math.Abs(xi1 * (eta2 - eta3) + xi2 * (eta3 - eta1) + xi3 * (eta1 - eta2));
 
-            var triangleGaussPoints = triangleIntegrationRule.GenerateIntegrationPoints();
+            var triangleGaussPoints = triangleIntegrationRule.IntegrationPoints;
             var elementGaussPoints = new GaussPoint2D[triangleGaussPoints.Count];
             for (int i = 0; i < triangleGaussPoints.Count; ++i)
             {
@@ -108,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             return elementGaussPoints;
         }
 
-        private IReadOnlyList<Triangle2D> CreateIntegrationMesh(IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints)
+        private static IReadOnlyList<Triangle2D> CreateIntegrationMesh(IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints)
         {
             IncrementalTriangulator triangulator = 
                 new IncrementalTriangulator(naturalDelaunyPoints[0], naturalDelaunyPoints[1], naturalDelaunyPoints[2]);
@@ -116,7 +88,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             return triangulator.CreateMesh();
         }
 
-        private IReadOnlyList<INaturalPoint2D> FindNaturalPointsForTriangulation(
+        private static IReadOnlyList<INaturalPoint2D> FindNaturalPointsForTriangulation(XElement2D element,
             IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints)
         {
             IInverseMapping2D inverseMapping =
@@ -130,7 +102,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             return naturalDelaunyPoints;
         }
 
-        private IEnumerable<ICartesianPoint2D> FindCartesianPointsForTriangulation()
+        private static IEnumerable<ICartesianPoint2D> FindCartesianPointsForTriangulation(XElement2D element)
         {
             if (element.EnrichmentItems.Count == 0)
             {
@@ -146,11 +118,6 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                 pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));
             }
             return pointsOfInterest.Distinct(); // TODO: Provide a comparer that checks (x,y) proximity
-        }
-
-        public void Update()
-        {
-            throw new NotImplementedException();
         }
     }
 }

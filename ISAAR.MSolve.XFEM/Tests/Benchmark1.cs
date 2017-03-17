@@ -11,6 +11,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void CreateElements()
         {
-            IIntegrationRule2D integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
+            IIntegrationRule2D<ContinuumElement2D> integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
             var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
 
             elements = new XElement2D[ELEMENT_ROWS * ELEMENT_COLUMNS];
