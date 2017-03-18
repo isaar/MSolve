@@ -76,11 +76,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             var intersection = new CartesianPoint2D(0.15, 0.15);
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
-            crackTip = new CrackTip2D(crackEnd, 0.0);
+            crackTip = new CrackTip2D(CrackTip2D.TipPosition.CurveEnd, polyline);
 
             // Mesh geometry interaction
             polyline.ElementIntersections.Add(elements[4], new CartesianPoint2D[] { crackStart, intersection });
-            polyline.ElementIntersections.Add(elements[5], new CartesianPoint2D[] { intersection, crackEnd });
+            polyline.ElementIntersections.Add(elements[5], new CartesianPoint2D[] { intersection });
 
             // Enrich nodes
             crackBody.EnrichNode(nodes[5]);
@@ -183,6 +183,15 @@ namespace ISAAR.MSolve.XFEM.Tests
             return elementMatrices;
         }
 
+        private static void PrintElementMatrices(int elementId, SymmetricMatrix2D<double> kss, 
+            Matrix2D<double> kes, SymmetricMatrix2D<double> kee)
+        {
+            Console.WriteLine("\n\nElement " + elementId + ":");
+            Console.WriteLine("Kss" + kss);
+            Console.WriteLine("Kes" + kes);
+            Console.WriteLine("Kee" + kee);
+        }
+
         private void CheckElementStiffnessMatrices()
         {
             Console.WriteLine("Checking element stiffness matrices...");
@@ -199,6 +208,8 @@ namespace ISAAR.MSolve.XFEM.Tests
                 Matrix2D<double> kes;
                 kss = element.BuildStandardStiffnessMatrix();
                 element.BuildEnrichedStiffnessMatrices(out kes, out kee);
+                PrintElementMatrices(el, kss, kes, kee);
+
 
                 // Check dimensions first
                 //int stdDofsCount = element.StandardFiniteElement.DofsCount;
@@ -217,15 +228,15 @@ namespace ISAAR.MSolve.XFEM.Tests
                     }
                 }
 
-                //    // Check Kes entrywise
-                //    for (int row = 0; row < kes.Rows; ++row)
-                //    {
-                //        for (int col = 0; col < kes.Columns; ++col)
-                //        {
-                //            if (!AreEqual(kes[row, col], correctK[kss.Rows + row, col]))
-                //                throw new ArgumentException("Error at Kes[" + row + ", " + col + "]");
-                //        }
-                //    }
+                // Check Kes entrywise
+                for (int row = 0; row < kes.Rows; ++row)
+                {
+                    for (int col = 0; col < kes.Columns; ++col)
+                    {
+                        if (!AreEqual(kes[row, col], correctK[kss.Rows + row, col]))
+                            throw new ArgumentException("Error at Kes[" + row + ", " + col + "]");
+                    }
+                }
 
                 //    // Check Kee entrywise
                 //    for (int row = 0; row < kee.Rows; ++row)

@@ -8,12 +8,19 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
+    // TODO: there should be some linking between the crack tips and the crack body, outside sharing the same curve 
+    // object.
     class CrackTip2D: AbstractEnrichmentItem2D
     {
-        public ICartesianPoint2D TipCoordinates { get; private set; }
+        
+        private readonly TipPosition tipPosition;
+        private readonly IGeometryDescription2D discontinuity;
+
+        // This needs to be updated at each analysis step.
         public TipCoordinateSystem TipSystem { get; private set; }
 
         /// <summary>
@@ -22,11 +29,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         public double LocalSystemOrientation { get; private set; }
 
         // The angle should be determined from the crack body curve, not by the user.
-        public CrackTip2D(ICartesianPoint2D tipCoordinates, double localSystemOrientation)
+        public CrackTip2D(TipPosition tipPosition, IGeometryDescription2D discontinuity)
         {
-            this.TipCoordinates = tipCoordinates;
-            this.LocalSystemOrientation = localSystemOrientation;
-            this.TipSystem = new TipCoordinateSystem(this.TipCoordinates, this.LocalSystemOrientation);
+            this.tipPosition = tipPosition;
+            this.discontinuity = discontinuity;
 
             this.EnrichmentFunctions = new IEnrichmentFunction2D[]
             {
@@ -46,12 +52,43 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 new ArtificialDOFType(EnrichmentFunctions[3], StandardDOFType.X),
                 new ArtificialDOFType(EnrichmentFunctions[3], StandardDOFType.Y),
             };
+
+            UpdateTransform();
         }
 
+        public void UpdateTransform()
+        {
+            if (tipPosition == TipPosition.CurveEnd)
+            {
+                this.TipSystem = new TipCoordinateSystem(discontinuity.EndPoint, discontinuity.EndPointOrientation());
+            }
+            else
+            {
+                throw new NotImplementedException("For now the tip can only be located at the curve's end");
+            }
+        }
+
+        // TODO: this needs reworking. E.g. making sure there are no identical points might already be 
+        // done by the geometry class
         public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
-            throw new NotImplementedException("I should return the tip, the nodes of the element it is inside and the" 
-                + " point where the body intersects with the element edge");
+            var uniquePoints = new HashSet<ICartesianPoint2D>(element.Nodes);
+            
+            foreach (ICartesianPoint2D point in discontinuity.IntersectionWith(element))
+            {
+                uniquePoints.Add(point);
+            }
+
+            if (tipPosition == TipPosition.CurveEnd) uniquePoints.Add(discontinuity.EndPoint);
+            else throw new NotImplementedException("For now the tip can only be located at the curve's end");
+
+            return new List<ICartesianPoint2D>(uniquePoints);
+        }
+
+        // TODO: a more polymorhic design would be better
+        public enum TipPosition
+        {
+            CurveStart, CurveEnd
         }
     }
 }

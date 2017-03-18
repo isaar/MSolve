@@ -132,9 +132,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         static void Main(string[] args)
         {
-            IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
+            //IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
             //IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
-            //IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
+            IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
         }
     }
 }

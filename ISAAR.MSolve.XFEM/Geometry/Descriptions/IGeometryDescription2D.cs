@@ -13,6 +13,21 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         double SignedDistanceOf(ICartesianPoint2D point);
         Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point);
 
+        ICartesianPoint2D StartPoint { get; }
+
+        // This one's orientation requires more thought, especially since the convention for determining the
+        // level set value gives the opposite sign from the rest of the curve
+        //double StartPointOrientation() { get; } 
+
+        ICartesianPoint2D EndPoint { get; }
+
+        /// <summary>
+        /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the end point of the 
+        /// curve, 2) is tangent to the curve and 3) heads outwards from the curve.
+        /// TODO: perhaps it should return a local coordinate system. I do not need the angle, but its cos and sign.
+        /// </summary>
+        double EndPointOrientation();
+
         // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.
         IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element);
 

@@ -16,6 +16,21 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private readonly List<DirectedSegment2D> segments;
 
         public Dictionary<XContinuumElement2D, CartesianPoint2D[]> ElementIntersections { get; }
+        public ICartesianPoint2D StartPoint { get { return vertices[0]; } }
+        public ICartesianPoint2D EndPoint { get { return vertices[vertices.Count - 1]; } }
+
+        /// <summary>
+        /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the end point of the 
+        /// curve, 2) is tangent to the curve and 3) heads outwards from the curve.
+        /// </summary>
+        public double EndPointOrientation()
+        {
+            ICartesianPoint2D lastSegmentStart = vertices[vertices.Count - 2];
+            ICartesianPoint2D lastSegmentEnd = vertices[vertices.Count - 1];
+            double dx = lastSegmentEnd.X - lastSegmentStart.X;
+            double dy = lastSegmentEnd.Y - lastSegmentStart.Y;
+            return Math.Atan2(dy, dx);
+        }
 
         public Polyline2D(ICartesianPoint2D start, ICartesianPoint2D end)
         {
