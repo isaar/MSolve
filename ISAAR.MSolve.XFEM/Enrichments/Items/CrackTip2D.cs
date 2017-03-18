@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             };
         }
 
-        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element)
+        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
             throw new NotImplementedException("I should return the tip and the nodes of the element it is inside");
         }

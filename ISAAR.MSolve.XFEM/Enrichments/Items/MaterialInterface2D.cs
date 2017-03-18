@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             }
         }
 
-        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element)
+        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
             return Discontinuity.IntersectionWith(element);
         }

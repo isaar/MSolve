@@ -27,25 +27,21 @@ namespace ISAAR.MSolve.XFEM.Elements
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
         
         public ContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<Node2D> nodes,  
-            IIntegrationStrategyFactory2D<ContinuumElement2D> integrationStrategyFactory)
+            IIntegrationStrategy2D<ContinuumElement2D> integrationStrategy)
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
             this.elementType = type;
-
-            /// WARNING: this will probably try to access the members of <see cref="ContinuumElement2D"/>. 
-            /// Thus they must be ready. However it is easy to have members that are initialized in the constructor of 
-            /// the derived class, but are still uninitialized when they are accessed
-            this.IntegrationStrategy = integrationStrategyFactory.CreateStrategy(this); 
+            this.IntegrationStrategy = integrationStrategy; 
         }
 
         public SymmetricMatrix2D<double> BuildStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(DofsCount);
-            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials())
+            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
-                GaussPoint2D gaussPoint = gausspointMaterialPair.Item1;
-                IFiniteElementMaterial2D material = gausspointMaterialPair.Item2;
+                GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
+                IFiniteElementMaterial2D material = gausspointMaterialPair.Value;
 
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();

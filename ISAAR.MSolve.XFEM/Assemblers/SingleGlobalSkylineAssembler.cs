@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             foreach (Element2D element in model.Elements)
             {
                 // Element matrices
-                SymmetricMatrix2D<double> elementMatrixStdStd = element.ElementType.BuildStdStiffnessMatrix();
+                SymmetricMatrix2D<double> elementMatrixStdStd = element.ElementType.BuildStandardStiffnessMatrix();
                 Matrix2D<double> elementMatrixEnrStd;
                 SymmetricMatrix2D< double> elementMatrixEnrEnr;
                 element.ElementType.BuildEnrichedStiffnessMatrices(out elementMatrixEnrStd, out elementMatrixEnrEnr);

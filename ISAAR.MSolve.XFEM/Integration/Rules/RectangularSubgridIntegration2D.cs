@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
     /// static manner. Should I put it with the standard quadratures?
     /// TODO: Ensure this is not used for anything other than Quadrilaterals.
     /// </summary>
-    class RectangularSubgridIntegration2D: IIntegrationRule2D<ContinuumElement2D>
+    class RectangularSubgridIntegration2D<TElement> : IIntegrationRule2D<TElement>
     {
         private readonly int subgridsPerAxis;
         private readonly GaussLegendre2D  gaussQuadrature;
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             this.gaussQuadrature = gaussQuadrature;
         }
 
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(ContinuumElement2D element)
+        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(TElement element)
         {
             var points = new List<GaussPoint2D>();
             double length = 2.0 / subgridsPerAxis;

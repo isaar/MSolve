@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <summary>
         /// All nodes are enriched for now.
         /// </summary>
-        public IReadOnlyList<Node2D> Nodes { get; }
+        public IReadOnlyList<XNode2D> Nodes { get; }
 
         /// <summary>
         /// Common interpolation for standard and enriched nodes.
@@ -47,27 +47,23 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public List<IEnrichmentItem2D> EnrichmentItems { get; }
 
-        public XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<Node2D> nodes,
-            IIntegrationStrategyFactory2D<XContinuumElement2D> integrationStrategyFactory)
+        public XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,
+            IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy)
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
             this.elementType = type;
             this.EnrichmentItems = new List<IEnrichmentItem2D>();
-
-            /// WARNING: this will probably try to access the members of <see cref="ContinuumElement2D"/>. 
-            /// Thus they must be ready. However it is easy to have members that are initialized in the constructor of 
-            /// the derived class, but are still uninitialized when they are accessed
-            this.IntegrationStrategy = integrationStrategyFactory.CreateStrategy(this);
+            this.IntegrationStrategy = integrationStrategy;
         }
 
         public SymmetricMatrix2D<double> BuildStandardStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D<double>(StandardDofsCount);
-            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials())
+            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
-                GaussPoint2D gaussPoint = gausspointMaterialPair.Item1;
-                IFiniteElementMaterial2D material = gausspointMaterialPair.Item2;
+                GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
+                IFiniteElementMaterial2D material = gausspointMaterialPair.Value;
 
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
@@ -93,10 +89,10 @@ namespace ISAAR.MSolve.XFEM.Elements
             stiffnessEnrichedStandard = new Matrix2D<double>(artificialDofsCount, standardDofsCount);
             stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
 
-            foreach (var pair in IntegrationStrategy.GetIntegrationPointsAndMaterials())
+            foreach (var pair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
-                GaussPoint2D gaussPoint = pair.Item1;
-                IFiniteElementMaterial2D material = pair.Item2;
+                GaussPoint2D gaussPoint = pair.Key;
+                IFiniteElementMaterial2D material = pair.Value;
 
                 // Calculate the necessary quantities for the integration
                 Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();

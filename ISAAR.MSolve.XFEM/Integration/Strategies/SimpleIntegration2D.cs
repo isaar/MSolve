@@ -17,61 +17,47 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     /// </summary>
     class SimpleIntegration2D: IIntegrationStrategy2D<ContinuumElement2D>
     {
-        public class Factory: IIntegrationStrategyFactory2D<ContinuumElement2D>
-        {
-            private readonly IFiniteElementMaterial2D material;
-
-            public Factory(IFiniteElementMaterial2D material)
-            {
-                this.material = material;
-            }
-
-            public IIntegrationStrategy2D<ContinuumElement2D> CreateStrategy(ContinuumElement2D element)
-            {
-                return new SimpleIntegration2D(element, material);
-            }
-        }
-
         /// <summary>
         /// TODO: It must be immutable and its constitutive matrix must be fast to calculate: E.g. I could
         /// have a precached, immutable constitutive matrix. This would be inefficient if each element stored its 
         /// own constitutive matrix. Instead the constitutive matrix could be stored for the material instance and the
-        /// <see cref="material"/> fields in the different instances of <see cref="SimpleIntegration2D"/> (1 for each 
+        /// <see cref="commonMaterial"/> fields in the different instances of <see cref="SimpleIntegration2D"/> (1 for each 
         /// element) could point to the same <see cref="IFiniteElementMaterial2D"/> object.
+        /// 
+        /// The above TODO doesn't take into account that materials store stresses, thus a different one is needed for
+        /// each Gauss point.
         /// </summary>
-        private readonly IFiniteElementMaterial2D material;
-
-        private readonly IStandardQuadrature2D quadrature;
+        private readonly IFiniteElementMaterial2D commonMaterial;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="element"></param>
-        /// <param name="material">A homogeneous material, common for all gauss points. 
+        /// <param name="commonMaterial">A homogeneous material, common for all gauss points. 
         ///     It will not change during the analysis</param>
-        private SimpleIntegration2D(ContinuumElement2D element, IFiniteElementMaterial2D material)
+        public SimpleIntegration2D(IFiniteElementMaterial2D commonMaterial)
         {
-            this.quadrature = element.StandardQuadrature;
-            this.material = material;
+            this.commonMaterial = commonMaterial;
         }
 
         // TODO: Could be faster if the GaussPoint-Material pairs are stored instead, but that would require much more 
         // memory per element. Actually it would revert to the original design with GaussPoints to Materials 
         // dictionaries. Perhaps that dictionary cache would be faster for dynamic and quasi-static problems, but that 
-        // could be done in another class! In static classes the creation of that dictionary will be done exactly once,
+        // could be done in another class! In static analysis the creation of that dictionary will be done exactly once,
         // so there is no need to cache it.
-        public IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> GetIntegrationPointsAndMaterials()
+        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> GetIntegrationPointsAndMaterials(
+            ContinuumElement2D element)
         {
-            IReadOnlyList<GaussPoint2D> gaussPoints = quadrature.IntegrationPoints;
-            var result = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>[gaussPoints.Count];
-            for (int i = 0; i < gaussPoints.Count; ++i)
+            var pointsAndMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
+            IReadOnlyList<GaussPoint2D> gaussPoints = element.StandardQuadrature.IntegrationPoints;
+            foreach (GaussPoint2D gaussPoint in element.StandardQuadrature.IntegrationPoints)
             {
-                result[i] = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>(gaussPoints[i], material);
+                pointsAndMaterials.Add(gaussPoint, commonMaterial.Clone());
             }
-            return result;
+            return pointsAndMaterials;
         }
 
-        public void Update()
+        public void Update(ContinuumElement2D element)
         {
             // Do nothing
         }

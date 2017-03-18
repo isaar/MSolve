@@ -11,9 +11,9 @@ namespace ISAAR.MSolve.XFEM.Entities
     {
         public int ID { get; }
         public IReadOnlyList<XNode2D> Nodes { get { return ElementType.Nodes; } }
-        public XElement2D ElementType { get; }
+        public XContinuumElement2D ElementType { get; }
 
-        public Element2D(int id, XElement2D elementType)
+        public Element2D(int id, XContinuumElement2D elementType)
         {
             // TODO: Add checks here
             this.ID = id;

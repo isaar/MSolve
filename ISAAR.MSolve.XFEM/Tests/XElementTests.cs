@@ -29,15 +29,14 @@ namespace ISAAR.MSolve.XFEM.Tests
             ICurve2D discontinuity = new LineSegment2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
             IEnrichmentItem2D enrichmentItem = new CrackBody2D(discontinuity);
 
-            var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
-            var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
-            var element = 
-                new XElement2D(new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory));
+            var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
+            var element = new XContinuumElement2D(
+               IsoparametricElementType2D.Quad4, nodes, new HomogeneousIntegration2D(integrationRule, material));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
 
-            SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
+            SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
             SymmetricMatrix2D<double> stiffnessEnr;
             element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
@@ -65,15 +64,14 @@ namespace ISAAR.MSolve.XFEM.Tests
             double angle = Math.PI / 2.0;
             CrackTip2D enrichmentItem = new CrackTip2D(tip, angle);
 
-            var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
-            var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
-            var element = 
-                new XElement2D(new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory));
+            var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
+            var element = new XContinuumElement2D(
+               IsoparametricElementType2D.Quad4, nodes, new HomogeneousIntegration2D(integrationRule, material));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
 
-            SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
+            SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
             SymmetricMatrix2D<double> stiffnessEnr;
             element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
@@ -102,15 +100,14 @@ namespace ISAAR.MSolve.XFEM.Tests
             ICurve2D discontinuity = new LineSegment2D(new CartesianPoint2D(30.0, 0.0), new CartesianPoint2D(30.0, 20.0));
             MaterialInterface2D enrichmentItem = new MaterialInterface2D(discontinuity, materialLeft, materialRight);
 
-            var integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
-            var integrationFactory = new BimaterialIntegration2D.Factory(integrationRule, enrichmentItem);
-            var element = 
-                new XElement2D(new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, integrationFactory));
+            var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
+            var element = new XContinuumElement2D(
+               IsoparametricElementType2D.Quad4, nodes, new BimaterialIntegration2D(integrationRule, enrichmentItem));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
 
-            SymmetricMatrix2D<double> stiffnessStd = element.BuildStdStiffnessMatrix();
+            SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
             SymmetricMatrix2D<double> stiffnessEnr;
             element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
@@ -129,9 +126,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         static void Main(string[] args)
         {
-            //IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
+            IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
             //IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
-            IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
+            //IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
         }
     }
 }

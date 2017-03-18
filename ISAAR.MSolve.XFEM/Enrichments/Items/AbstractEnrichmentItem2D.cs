@@ -13,19 +13,19 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     abstract class AbstractEnrichmentItem2D: IEnrichmentItem2D
     {
-        protected List<XElement2D> affectedElements;
+        protected List<XContinuumElement2D> affectedElements;
 
         public int ID { get; }
         public IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; protected set; }
         public IReadOnlyList<ArtificialDOFType> DOFs { get; protected set; }
-        public IReadOnlyList<XElement2D> AffectedElements { get { return affectedElements; } }
+        public IReadOnlyList<XContinuumElement2D> AffectedElements { get { return affectedElements; } }
 
         protected AbstractEnrichmentItem2D()
         {
-            this.affectedElements = new List<XElement2D>();
+            this.affectedElements = new List<XContinuumElement2D>();
         }
 
-        public void AffectElement(XElement2D element)
+        public void AffectElement(XContinuumElement2D element)
         {
             // TODO: There should be a check here or this method should be private.
             if (!affectedElements.Contains(element)) affectedElements.Add(element);
@@ -64,11 +64,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             }
         }
 
-        public void EnrichElement(XElement2D element)
+        public void EnrichElement(XContinuumElement2D element)
         {
             element.EnrichmentItems.Add(this);
         }
 
-        public abstract IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XElement2D element);
+        public abstract IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
     }
 }

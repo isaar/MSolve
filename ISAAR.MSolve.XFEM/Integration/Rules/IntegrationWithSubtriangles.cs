@@ -14,7 +14,7 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Rules
 {
-    class IntegrationWithSubtriangles: IIntegrationRule2D<XElement2D>
+    class IntegrationWithSubtriangles: IIntegrationRule2D<XContinuumElement2D>
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
 
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             this.triangleIntegrationRule = triangleIntegrationRule;
         }
         
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XElement2D element)
+        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XContinuumElement2D element)
         {
             IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints = FindCartesianPointsForTriangulation(element);
             IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints = 
@@ -88,12 +88,10 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             return triangulator.CreateMesh();
         }
 
-        private static IReadOnlyList<INaturalPoint2D> FindNaturalPointsForTriangulation(XElement2D element,
+        private static IReadOnlyList<INaturalPoint2D> FindNaturalPointsForTriangulation(XContinuumElement2D element,
             IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints)
         {
-            IInverseMapping2D inverseMapping =
-                element.StandardFiniteElement.Interpolation.CreateInverseMappingFor(
-                    element.StandardFiniteElement.Nodes);
+            IInverseMapping2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
             var naturalDelaunyPoints = new List<INaturalPoint2D>();
             foreach (var cartesianPoint in cartesianDelaunyPoints)
             {
@@ -102,7 +100,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             return naturalDelaunyPoints;
         }
 
-        private static IEnumerable<ICartesianPoint2D> FindCartesianPointsForTriangulation(XElement2D element)
+        private static IEnumerable<ICartesianPoint2D> FindCartesianPointsForTriangulation(XContinuumElement2D element)
         {
             if (element.EnrichmentItems.Count == 0)
             {
@@ -112,7 +110,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             {
                 throw new NotImplementedException("I must also find the intersection points of the 2 enrichment items' curves");
             }
-            var pointsOfInterest = new List<ICartesianPoint2D>(element.StandardFiniteElement.Nodes); // TODO: better to use a set
+            var pointsOfInterest = new List<ICartesianPoint2D>(element.Nodes); // TODO: better to use a set
             foreach (IEnrichmentItem2D enrichment in element.EnrichmentItems)
             {
                 pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));

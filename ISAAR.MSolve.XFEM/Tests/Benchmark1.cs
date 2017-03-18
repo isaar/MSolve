@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         private Model2D model;
         private IFiniteElementMaterial2D material;
         private XNode2D[] nodes;
-        private XElement2D[] elements;
+        private XContinuumElement2D[] elements;
         private CrackBody2D crackBody;
         private CrackTip2D crackTip;
 
@@ -51,10 +51,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void CreateElements()
         {
-            IIntegrationRule2D<ContinuumElement2D> integrationRule = new RectangularSubgridIntegration2D(2, GaussLegendre2D.Order2x2);
-            var integrationFactory = new HomogeneousIntegration2D.Factory(integrationRule, material);
+            var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
 
-            elements = new XElement2D[ELEMENT_ROWS * ELEMENT_COLUMNS];
+            elements = new XContinuumElement2D[ELEMENT_ROWS * ELEMENT_COLUMNS];
             int id = 0;
             for (int row = 0; row < ELEMENT_ROWS; ++row)
             {
@@ -63,8 +62,8 @@ namespace ISAAR.MSolve.XFEM.Tests
                     int firstNode = row * NODE_COLUMNS + col;
                     XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
                         nodes[firstNode + NODE_COLUMNS + 1], nodes[firstNode + NODE_COLUMNS] };
-                    elements[id++] = new XElement2D(
-                        new ContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, integrationFactory));
+                    elements[id++] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, nodes,
+                        new HomogeneousIntegration2D(integrationRule, material));
                 }
             }
         }
@@ -111,7 +110,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             SymmetricMatrix2D<double> kss, kee;
             Matrix2D<double> kes;
-            kss = benchmark.elements[0].BuildStdStiffnessMatrix();
+            kss = benchmark.elements[0].BuildStandardStiffnessMatrix();
             benchmark.elements[0].BuildEnrichedStiffnessMatrices(out kes, out kee);
 
             Console.WriteLine("k0ss = ");
@@ -189,10 +188,10 @@ namespace ISAAR.MSolve.XFEM.Tests
 
                 // Retrieve the matrices
                 Matrix2D<double> correctK = correctMatrices[el];
-                XElement2D element = elements[el];
+                XContinuumElement2D element = elements[el];
                 SymmetricMatrix2D<double> kss, kee;
                 Matrix2D<double> kes;
-                kss = element.BuildStdStiffnessMatrix();
+                kss = element.BuildStandardStiffnessMatrix();
                 element.BuildEnrichedStiffnessMatrices(out kes, out kee);
 
                 // Check dimensions first

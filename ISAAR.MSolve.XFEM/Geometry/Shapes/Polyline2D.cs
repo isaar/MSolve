@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         private readonly List<ICartesianPoint2D> vertices;
         private readonly List<LineSegment2D> segments;
 
-        public Dictionary<XElement2D, CartesianPoint2D[]> ElementIntersections { get; }
+        public Dictionary<XContinuumElement2D, CartesianPoint2D[]> ElementIntersections { get; }
 
         public Polyline2D(ICartesianPoint2D start, ICartesianPoint2D end)
         {
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             segments = new List<LineSegment2D>();
             segments.Add(new LineSegment2D(start, end));
 
-            ElementIntersections = new Dictionary<XElement2D, CartesianPoint2D[]>();
+            ElementIntersections = new Dictionary<XContinuumElement2D, CartesianPoint2D[]>();
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             throw new NotImplementedException();
         }
 
-        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(XElement2D element)
+        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element)
         {
             CartesianPoint2D[] intersectionPoints;
             bool alreadyIntersected = ElementIntersections.TryGetValue(element, out intersectionPoints);

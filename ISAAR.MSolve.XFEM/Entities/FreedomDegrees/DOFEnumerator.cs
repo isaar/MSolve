@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         public IReadOnlyList<int> MatchElementToGlobalStandardDofsOf(Element2D element)
         {
-            var nodalDofTypes = element.ElementType.StandardFiniteElement.GetNodalDOFTypes();
+            var nodalDofTypes = element.ElementType.GetStandardNodalDOFTypes();
             int[] globalDofs = new int[nodalDofTypes.Count];
             int elementDof = 0;
             foreach (KeyValuePair<Node2D, HashSet<StandardDOFType>> pair in nodalDofTypes)
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             var totalDofs = new Dictionary<Node2D, HashSet<StandardDOFType>>();
             foreach (Element2D element in elements)
             {
-                foreach (var entry in element.ElementType.StandardFiniteElement.GetNodalDOFTypes())
+                foreach (var entry in element.ElementType.GetStandardNodalDOFTypes())
                 {
                     HashSet<StandardDOFType> dofsOfThisNode;
                     bool alreadyExists = totalDofs.TryGetValue(entry.Key, out dofsOfThisNode);

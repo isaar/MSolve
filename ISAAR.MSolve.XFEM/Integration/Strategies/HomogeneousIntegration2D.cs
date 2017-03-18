@@ -10,54 +10,44 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
-    class HomogeneousIntegration2D: IIntegrationStrategy2D<ContinuumElement2D>
+    class HomogeneousIntegration2D: IIntegrationStrategy2D<XContinuumElement2D>
     {
-        public class Factory: IIntegrationStrategyFactory2D<ContinuumElement2D>
-        {
-            private readonly IIntegrationRule2D<ContinuumElement2D> integrationRule;
-            private readonly IFiniteElementMaterial2D commonMaterial;
-
-            public Factory(IIntegrationRule2D<ContinuumElement2D> integrationRule, IFiniteElementMaterial2D commonMaterial)
-            {
-                this.integrationRule = integrationRule;
-                this.commonMaterial = commonMaterial;
-            }
-
-            // So far this strategy does not need anything from the element itself. That might change imminently.
-            public IIntegrationStrategy2D<ContinuumElement2D> CreateStrategy(ContinuumElement2D element)
-            {
-                return new HomogeneousIntegration2D(element, integrationRule, commonMaterial);
-            }
-        }
-
         /// <summary>
         /// Might need it later when updating. TODO: If I had a MaterialView, I could store the same material object 
         /// for all elements and save up memory.
-        /// TODO: If I need the material when updating, I will probably also need integration rule.
         /// </summary>
         private readonly IFiniteElementMaterial2D commonMaterial;
-        private readonly IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> pointsAndMaterials;
+        private readonly IIntegrationRule2D<XContinuumElement2D> integrationRule;
 
-        private HomogeneousIntegration2D(ContinuumElement2D element, IIntegrationRule2D<ContinuumElement2D> integrationRule, 
+        /// <summary>
+        /// This may be updated throughout the analysis.
+        /// </summary>
+        private Dictionary<GaussPoint2D, IFiniteElementMaterial2D> pointsAndMaterials;
+
+        public HomogeneousIntegration2D(IIntegrationRule2D<XContinuumElement2D> integrationRule, 
             IFiniteElementMaterial2D commonMaterial)
         {
+            this.integrationRule = integrationRule;
             this.commonMaterial = commonMaterial.Clone(); // The object passed might be mutated later on 
-
-            IReadOnlyList<GaussPoint2D> points = integrationRule.GenerateIntegrationPoints(element);
-            var pairs = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>[points.Count];
-            for (int i = 0; i < points.Count; ++i)
-            {
-                pairs[i] = new Tuple<GaussPoint2D, IFiniteElementMaterial2D>(points[i], commonMaterial.Clone());
-            }
-            pointsAndMaterials = pairs;
         }
 
-        public IEnumerable<Tuple<GaussPoint2D, IFiniteElementMaterial2D>> GetIntegrationPointsAndMaterials()
+        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> GetIntegrationPointsAndMaterials(
+            XContinuumElement2D element)
         {
+            if (pointsAndMaterials == null) Initialize(element); // TODO: This should be thread safe.
             return pointsAndMaterials;
         }
 
-        public void Update()
+        private void Initialize(XContinuumElement2D element)
+        {
+            pointsAndMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
+            foreach (GaussPoint2D gaussPoint in integrationRule.GenerateIntegrationPoints(element))
+            {
+                pointsAndMaterials.Add(gaussPoint, commonMaterial.Clone());
+            }
+        }
+
+        public void Update(XContinuumElement2D element)
         {
             throw new NotImplementedException();
         }
