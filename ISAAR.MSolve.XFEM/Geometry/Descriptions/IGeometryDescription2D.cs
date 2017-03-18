@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
-namespace ISAAR.MSolve.XFEM.Geometry
+namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
-    interface ICurve2D
+    interface IGeometryDescription2D
     {
         double SignedDistanceOf(ICartesianPoint2D point);
         Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point);

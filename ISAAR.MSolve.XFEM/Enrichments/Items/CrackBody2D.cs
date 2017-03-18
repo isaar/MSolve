@@ -7,19 +7,19 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     class CrackBody2D : AbstractEnrichmentItem2D
     {
-        public ICurve2D Discontinuity { get; }
+        public IGeometryDescription2D Discontinuity { get; }
 
         //TODO: allow the user to specify which Heaviside function to pass. 
         // First specialize IEnrichmentFunction2D into IDiscontinuityFunction2D to allow only Heaviside, Sign or 
         // Heaviside approximation functions.
-        public CrackBody2D(ICurve2D discontinuity)
+        public CrackBody2D(IGeometryDescription2D discontinuity)
         {
             this.Discontinuity = discontinuity;
             IEnrichmentFunction2D enrichment = new SignFunction2D(this);

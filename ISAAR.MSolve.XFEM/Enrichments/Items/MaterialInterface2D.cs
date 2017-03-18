@@ -5,8 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
-using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry;
+using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Materials;
 
@@ -17,9 +16,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         private readonly IFiniteElementMaterial2D materialInNegativeDomain;
         private readonly IFiniteElementMaterial2D materialInPositiveDomain;
         
-        public ICurve2D Discontinuity { get; }
+        public IGeometryDescription2D Discontinuity { get; }
 
-        public MaterialInterface2D(ICurve2D geometry, 
+        public MaterialInterface2D(IGeometryDescription2D geometry, 
             IFiniteElementMaterial2D materialInNegativeDomain, IFiniteElementMaterial2D materialInPositiveDomain)
         {
             this.Discontinuity = geometry;

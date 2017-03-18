@@ -6,13 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
-    class Polyline2D: ICurve2D
+    class Polyline2D: IGeometryDescription2D
     {
         private readonly List<ICartesianPoint2D> vertices;
-        private readonly List<LineSegment2D> segments;
+        private readonly List<DirectedSegment2D> segments;
 
         public Dictionary<XContinuumElement2D, CartesianPoint2D[]> ElementIntersections { get; }
 
@@ -22,8 +23,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             vertices.Add(start);
             vertices.Add(end);
 
-            segments = new List<LineSegment2D>();
-            segments.Add(new LineSegment2D(start, end));
+            segments = new List<DirectedSegment2D>();
+            segments.Add(new DirectedSegment2D(start, end));
 
             ElementIntersections = new Dictionary<XContinuumElement2D, CartesianPoint2D[]>();
         }
@@ -35,18 +36,21 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// <returns></returns>
         public double SignedDistanceOf(ICartesianPoint2D point)
         {
-           throw new NotImplementedException();
+            if (segments.Count == 1)
+            {
+                return segments[0].SignedDistanceOf(point);
+            }
+            else throw new NotImplementedException();
         }
 
         // The normal vector for the positive region.
         public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
         {
-            throw new NotImplementedException();
-        }
-
-        public void IntersectionWith(ContinuumElement2D element, out ICartesianPoint2D[] points, out LineSegment2D[] segments)
-        {
-            throw new NotImplementedException();
+            if (segments.Count == 1)
+            {
+                return segments[0].NormalVectorThrough(point);
+            }
+            else throw new NotImplementedException();
         }
 
         public IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element)

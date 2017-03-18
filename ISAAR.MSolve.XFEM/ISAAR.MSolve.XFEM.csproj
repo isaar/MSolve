@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Benchmark1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.XElementTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -77,7 +77,7 @@
     <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
     <Compile Include="Geometry\Shapes\DirectedSegment2D.cs" />
     <Compile Include="Geometry\Shapes\LineSegment1D.cs" />
-    <Compile Include="Geometry\Shapes\Polyline2D.cs" />
+    <Compile Include="Geometry\Descriptions\Polyline2D.cs" />
     <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />
     <Compile Include="Geometry\Triangulation\Triangle2D.cs" />
     <Compile Include="Integration\Quadratures\IStandardQuadrature1D.cs" />
@@ -109,7 +109,7 @@
     <Compile Include="Entities\Element2D.cs" />
     <Compile Include="Entities\Node2D.cs" />
     <Compile Include="Entities\XNode2D.cs" />
-    <Compile Include="Geometry\ICurve2D.cs" />
+    <Compile Include="Geometry\Descriptions\IGeometryDescription2D.cs" />
     <Compile Include="Geometry\Shapes\LineSegment2D.cs" />
     <Compile Include="Integration\Points\GaussPoint1D.cs" />
     <Compile Include="Integration\Points\GaussPoint2D.cs" />

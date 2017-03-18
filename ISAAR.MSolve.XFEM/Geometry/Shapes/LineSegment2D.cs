@@ -4,8 +4,6 @@ using System.Windows;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
@@ -15,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
     // has a normal vector. The normal of the positive region is defined by the following CONVENTION:
     // In a local 1D coordinate system, the START point of the line is to the left, the END point is to the right and
     // the normal vector of the positive region is pointing DOWNWARDS (into the positive region). 
-    class LineSegment2D : ICurve2D
+    class LineSegment2D
     {
         public ICartesianPoint2D Start { get; }
         public ICartesianPoint2D End { get; }
@@ -36,15 +34,14 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             this.End = end;
         }
 
-        public double SignedDistanceOf(ICartesianPoint2D point)
+        public double DistanceOf(ICartesianPoint2D point)
         {
-            // The following area is positive in the positive region. TODO: prove it
-            double triangleAreax2 = 
-                (End.Y - Start.Y) * point.X - (End.X - Start.X) * point.Y + End.X * Start.Y - End.Y * Start.X;
+            double triangleAreax2 = Math.Abs(
+                (End.Y - Start.Y) * point.X - (End.X - Start.X) * point.Y + End.X * Start.Y - End.Y * Start.X);
             return triangleAreax2 / Length;
         }
 
-        // The normal vector for the positive region.
+        // One of the 2 normal vectors for the positive region.
         public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
         {
             double dy = End.Y - Start.Y;
@@ -53,11 +50,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return new Tuple<double, double>(dy / length, -dx / length);
         }
 
-        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element)
+        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D polygon)
         {
             var intersectionPoints = new List<CartesianPoint2D>();
             // Should I also include the vertices if they fall inside? Or should I do that in the enrichment item?
-            var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
             foreach (LineSegment2D edge in polygon.Edges)
             {
                 CartesianPoint2D point;

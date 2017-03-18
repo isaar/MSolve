@@ -28,7 +28,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         public void AffectElement(XContinuumElement2D element)
         {
             // TODO: There should be a check here or this method should be private.
-            if (!affectedElements.Contains(element)) affectedElements.Add(element);
+            if (!affectedElements.Contains(element))
+            {
+                affectedElements.Add(element);
+                element.EnrichmentItems.Add(this);
+            }
         }
 
         //ERROR: This method overwrites the enrichment functions from previous items. Thus if there is both a tip and a heaviside, only the last will be saved
