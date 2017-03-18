@@ -10,9 +10,9 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
-    class HomogeneousIntegration2D: IIntegrationStrategy2D
+    class HomogeneousIntegration2D: IIntegrationStrategy2D<ContinuumElement2D>
     {
-        public class Factory: IIntegrationStrategyFactory2D
+        public class Factory: IIntegrationStrategyFactory2D<ContinuumElement2D>
         {
             private readonly IIntegrationRule2D<ContinuumElement2D> integrationRule;
             private readonly IFiniteElementMaterial2D commonMaterial;
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             }
 
             // So far this strategy does not need anything from the element itself. That might change imminently.
-            public IIntegrationStrategy2D CreateStrategy(ContinuumElement2D element)
+            public IIntegrationStrategy2D<ContinuumElement2D> CreateStrategy(ContinuumElement2D element)
             {
                 return new HomogeneousIntegration2D(element, integrationRule, commonMaterial);
             }

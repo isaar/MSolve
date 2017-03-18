@@ -10,14 +10,20 @@ using ISAAR.MSolve.XFEM.Materials;
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
     // Perhaps I can pass the element instance (actually the element will pass "this") to the GetIntegrationPoints()
-    // and Update(). Alternatively I could ensure that the element passed in the constructor is not used unti the GetIntegrationPoints is called.
+    // and Update(). Alternatively I could ensure that the element passed in the constructor is not used until the 
+    // GetIntegrationPoints is called.
+
+    // Not sure if generics are needed. I could just have different interfaces for different element types. 
+    // It would make sense if some of the actual integration strategy implementations would work for many element types.
 
     /// <summary>
     /// Classes that handle storing and updating the integration rules, integration points and materials of each 
-    /// element. The element only  needs to access the integration point-material pairs form this class. The 
+    /// element. The element only  needs to access the integration point-material pairs from this class. The 
     /// integration point generation is delegated to a suitable integration rule usually.
-    /// </summary>    
-    interface IIntegrationStrategy2D
+    /// </summary>
+    /// </summary>
+    /// <typeparam name="TElement"></typeparam>
+    interface IIntegrationStrategy2D<TElement>
     {
         /// <summary>
         /// Keep in mind that in XFEM this will be called twice: once for the std part of the stiffness matrix and once 
@@ -39,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     /// Instead of having mutators for the fields of at least 1 of the 2 classes, I use this instead. 
     /// The whole element construction design needs refactoring though.
     /// </summary>
-    interface IIntegrationStrategyFactory2D
+    interface IIntegrationStrategyFactory2D<TElement>
     {
         /// <summary>
         /// WARNING: This method will probably try to access the fields of <see cref="ContinuumElement2D"/>. 
@@ -52,6 +58,6 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         /// </summary>
         /// <param name="elementType"></param>
         /// <returns></returns>
-        IIntegrationStrategy2D CreateStrategy(ContinuumElement2D elementType);
+        IIntegrationStrategy2D<TElement> CreateStrategy(TElement element);
     }
 }

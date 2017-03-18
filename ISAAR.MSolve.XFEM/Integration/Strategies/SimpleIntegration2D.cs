@@ -15,9 +15,9 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     /// that does not change spatially (within the element) or temporally. Lightweight and fast.
     /// TODO: Needs a better name
     /// </summary>
-    class SimpleIntegration2D: IIntegrationStrategy2D
+    class SimpleIntegration2D: IIntegrationStrategy2D<ContinuumElement2D>
     {
-        public class Factory: IIntegrationStrategyFactory2D
+        public class Factory: IIntegrationStrategyFactory2D<ContinuumElement2D>
         {
             private readonly IFiniteElementMaterial2D material;
 
@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                 this.material = material;
             }
 
-            public IIntegrationStrategy2D CreateStrategy(ContinuumElement2D elementType)
+            public IIntegrationStrategy2D<ContinuumElement2D> CreateStrategy(ContinuumElement2D element)
             {
-                return new SimpleIntegration2D(elementType, material);
+                return new SimpleIntegration2D(element, material);
             }
         }
 

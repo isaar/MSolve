@@ -57,6 +57,7 @@
     <Compile Include="Elements\IsoparametricElementType2D.cs" />
     <Compile Include="Elements\IFiniteElement2DView.cs" />
     <Compile Include="Elements\Quad4.cs" />
+    <Compile Include="Elements\XContinuumElement2D.cs" />
     <Compile Include="Elements\XElement2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2DAlternative.cs" />

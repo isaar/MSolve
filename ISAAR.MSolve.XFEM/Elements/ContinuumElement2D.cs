@@ -23,11 +23,11 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IReadOnlyList<Node2D> Nodes { get; private set; }
         public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
         public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
-        public IIntegrationStrategy2D IntegrationStrategy { get; }
+        public IIntegrationStrategy2D<ContinuumElement2D> IntegrationStrategy { get; }
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
         
         public ContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<Node2D> nodes,  
-            IIntegrationStrategyFactory2D integrationStrategyFactory)
+            IIntegrationStrategyFactory2D<ContinuumElement2D> integrationStrategyFactory)
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I shoul scale only the smallest matrix (constitutive) before the multiplications
+                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
                 Debug.Assert(partial.Rows == DofsCount);
                 Debug.Assert(partial.Columns == DofsCount);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);

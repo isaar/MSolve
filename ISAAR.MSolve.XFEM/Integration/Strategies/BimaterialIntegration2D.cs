@@ -12,9 +12,9 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
-    class BimaterialIntegration2D: IIntegrationStrategy2D
+    class BimaterialIntegration2D: IIntegrationStrategy2D<ContinuumElement2D>
     {
-        public class Factory : IIntegrationStrategyFactory2D
+        public class Factory : IIntegrationStrategyFactory2D<ContinuumElement2D>
         {
             private readonly IIntegrationRule2D<ContinuumElement2D> integrationRule;
             private readonly MaterialInterface2D bimaterialInterface;
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                 this.bimaterialInterface = bimaterialInterface;
             }
 
-            public IIntegrationStrategy2D CreateStrategy(ContinuumElement2D element)
+            public IIntegrationStrategy2D<ContinuumElement2D> CreateStrategy(ContinuumElement2D element)
             {
                 return new BimaterialIntegration2D(element, integrationRule, bimaterialInterface);
             }
