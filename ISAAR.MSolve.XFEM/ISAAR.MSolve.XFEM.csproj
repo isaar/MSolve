@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.XElementTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Benchmark1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

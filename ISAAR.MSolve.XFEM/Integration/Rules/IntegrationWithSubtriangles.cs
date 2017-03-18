@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
 
-        private IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule)
+        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;
         }

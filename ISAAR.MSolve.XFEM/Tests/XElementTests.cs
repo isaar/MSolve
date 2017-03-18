@@ -30,8 +30,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             IEnrichmentItem2D enrichmentItem = new CrackBody2D(discontinuity);
 
             var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
-            var element = new XContinuumElement2D(
-               IsoparametricElementType2D.Quad4, nodes, new HomogeneousIntegration2D(integrationRule, material));
+            var element = new XContinuumElement2D(IsoparametricElementType2D.Quad4, nodes,
+                new HomogeneousIntegration2D(integrationRule, material));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();
@@ -65,8 +65,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             CrackTip2D enrichmentItem = new CrackTip2D(tip, angle);
 
             var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
-            var element = new XContinuumElement2D(
-               IsoparametricElementType2D.Quad4, nodes, new HomogeneousIntegration2D(integrationRule, material));
+            var element = new XContinuumElement2D(IsoparametricElementType2D.Quad4, nodes,
+                new HomogeneousIntegration2D(integrationRule, material));
 
             enrichmentItem.AffectElement(element);
             enrichmentItem.EnrichNodes();

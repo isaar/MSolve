@@ -50,7 +50,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
-            throw new NotImplementedException("I should return the tip and the nodes of the element it is inside");
+            throw new NotImplementedException("I should return the tip, the nodes of the element it is inside and the" 
+                + " point where the body intersects with the element edge");
         }
     }
 }

@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void CreateElements()
         {
-            var integrationRule = new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2);
+            var enrIntegrationRule = new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order7Points13);
 
             elements = new XContinuumElement2D[ELEMENT_ROWS * ELEMENT_COLUMNS];
             int id = 0;
@@ -62,8 +62,8 @@ namespace ISAAR.MSolve.XFEM.Tests
                     int firstNode = row * NODE_COLUMNS + col;
                     XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
                         nodes[firstNode + NODE_COLUMNS + 1], nodes[firstNode + NODE_COLUMNS] };
-                    elements[id++] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, nodes,
-                        new HomogeneousIntegration2D(integrationRule, material));
+                    elements[id++] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes,
+                        new HomogeneousIntegration2D(enrIntegrationRule, material));
                 }
             }
         }
@@ -295,7 +295,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             benchmark.CreateModel();
 
             benchmark.CheckElementStiffnessMatrices();
-            benchmark.CheckGlobalStiffnessMatrix();
+            //benchmark.CheckGlobalStiffnessMatrix();
         }
     }
 }
