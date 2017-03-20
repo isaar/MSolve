@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public int CompareTo(Node2D other)
         {
-            return other.ID - this.ID;
+            return this.ID - other.ID;
         }
     }
 }

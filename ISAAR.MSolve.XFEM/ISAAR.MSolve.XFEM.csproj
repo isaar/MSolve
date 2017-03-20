@@ -64,6 +64,7 @@
     <Compile Include="Enrichments\Items\CrackTip2D.cs" />
     <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
     <Compile Include="Entities\FreedomDegrees\ArtificialDOFTypeDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\NodeMajorDofReorder.cs" />
     <Compile Include="Entities\FreedomDegrees\StandardDOFType.cs" />
     <Compile Include="Entities\Model2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\CartesianPoint2D.cs" />
@@ -98,12 +99,15 @@
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
-    <Compile Include="Tests\ElementMatrixChecker.cs" />
+    <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
+    <Compile Include="Tests\Tools\DofReorder.cs" />
+    <Compile Include="Tests\Tools\ElementMatrixChecker.cs" />
     <Compile Include="Tests\FEMTests.cs" />
-    <Compile Include="Tests\GaussPointChecker.cs" />
+    <Compile Include="Tests\Tools\GaussPointChecker.cs" />
     <Compile Include="Tests\GaussPointsForTipTest.cs" />
     <Compile Include="Tests\InverseMappingTests.cs" />
-    <Compile Include="Tests\MatrixPrinter.cs" />
+    <Compile Include="Tests\Tools\GlobalMatrixChecker.cs" />
+    <Compile Include="Tests\Tools\MatrixPrinter.cs" />
     <Compile Include="Tests\NodeSets.cs" />
     <Compile Include="Tests\Tools\GaussPoint2DComparer.cs" />
     <Compile Include="Tests\Tools\OutputReaders.cs" />
@@ -157,7 +161,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\DofEnumeration.txt" />
     <Content Include="Resources\ElementMatrices.txt" />
+    <Content Include="Resources\GaussPoints.txt" />
+    <Content Include="Resources\GlobalMatrix.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

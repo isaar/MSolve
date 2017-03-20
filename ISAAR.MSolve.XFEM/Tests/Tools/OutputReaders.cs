@@ -12,6 +12,21 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
     static class OutputReaders
     {
+        /// <summary>
+        /// Expected file format:
+        /// * 0
+        /// xi0_0 eta0_0 weight0_0
+        /// xi0_1 eta0_1 weight0_1
+        /// ...
+        /// * 1
+        /// xi1_0 eta1_0 weight1_0
+        /// xi1_1 eta1_1 weight1_1
+        /// ...
+        /// *
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="elementsCount"></param>
+        /// <returns></returns>
         public static GaussPoint2D[][] ReadAllGaussPoints(string path, int elementsCount)
         {
             string[] lines = File.ReadAllLines(path);
@@ -51,6 +66,22 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             return allPoints;
         }
 
+        /// <summary>
+        /// Expected file format:
+        /// * 0
+        /// row0OfK0
+        /// row1OfK0
+        /// ...
+        /// * 1
+        /// row0OfK1
+        /// row1OfK1
+        /// ...
+        /// *
+        /// Where each row is a series of floating point numbers, seperated by single spaces. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="elementsCount"></param>
+        /// <returns></returns>
         public static Matrix2D<double>[] ReadElementStiffnessMatrices(string path, int elementsCount)
         {
             string[] lines = File.ReadAllLines(path);
@@ -97,6 +128,62 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 }
             }
             return elementMatrices;
+        }
+
+        /// <summary>
+        /// Expected file format: DENSE MATRIX:
+        /// K00 K01 ... K0N
+        /// K10 K11 ... K1N
+        /// ...
+        /// KM0 KM1 ... KMN
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static Matrix2D<double> ReadGlobalStiffnessMatrix(string path)
+        {
+            string[] lines = File.ReadAllLines(path);
+            int order = lines.Length;
+            string lastLine = lines[lines.Length - 1];
+            if (string.IsNullOrEmpty(lastLine) || string.IsNullOrWhiteSpace(lastLine)) --order; //Last row might have output an extra newline
+
+            var matrix = new Matrix2D<double>(order, order);
+            for (int row = 0; row < order; ++row)
+            {
+                string[] words = lines[row].Split(' ');
+                for (int col = 0; col < order; ++col)
+                {
+                    matrix[row, col] = double.Parse(words[col]);
+                }
+            }
+
+            return matrix;
+        }
+
+        /// <summary>
+        /// Expected file format: The i-th row contains the dofs of the i-th node, seperated by single spaces.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static int[][] ReadNodalDofs(string path)
+        {
+            string[] lines = File.ReadAllLines(path);
+            int nodesCount = lines.Length;
+
+            string lastLine = lines[lines.Length - 1];
+            if (string.IsNullOrEmpty(lastLine) || string.IsNullOrWhiteSpace(lastLine)) --nodesCount;
+
+            int[][] nodalDofs = new int[nodesCount][];
+            for (int node = 0; node < nodesCount; ++node)
+            {
+                var dofs = new List<int>();
+                foreach (var word in lines[node].Split(' '))
+                {
+                    dofs.Add(int.Parse(word)-1);
+                }
+                nodalDofs[node] = dofs.ToArray();
+            }
+
+            return nodalDofs;
         }
     }
 }

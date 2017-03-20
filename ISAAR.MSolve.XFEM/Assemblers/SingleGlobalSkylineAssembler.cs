@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
                 // Add the element contributions to the global matrix
                 AddElementToGlobalMatrix(globalMatrix, elementMatrixStdStd, elementToGlobalStdDofs, elementToGlobalStdDofs);
-                AddElementToGlobalMatrix(globalMatrix, elementMatrixStdStd, elementToGlobalEnrDofs, elementToGlobalStdDofs);
+                AddElementToGlobalMatrix(globalMatrix, elementMatrixEnrStd, elementToGlobalEnrDofs, elementToGlobalStdDofs);
                 AddElementToGlobalMatrix(globalMatrix, elementMatrixEnrEnr, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
             }
             return globalMatrix;
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return rowIndex;
         }
 
-        // Only the entries above the diagonal are considered
+        /// Only the entries above the diagonal are considered
         private static int[] CalculateRowHeights(Model2D model) // I vote to call them RowWidths!!!
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 int globalRow = elementRowsToGlobalRows[elementRow];
                 if (globalRow != -1)
                 {
-                    for (int elementCol = 0; elementRow < elementColsToGlobalCols.Count; ++elementCol)
+                    for (int elementCol = 0; elementCol < elementColsToGlobalCols.Count; ++elementCol)
                     {
                         int globalCol = elementColsToGlobalCols[elementCol];
                         if (globalCol != -1)

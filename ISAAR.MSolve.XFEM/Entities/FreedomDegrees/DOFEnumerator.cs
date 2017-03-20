@@ -7,19 +7,25 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
+    /// TODO: abstract this with an IGlobalEnumerator2D interface. That way I could have different dof orders:
+    /// e.g. 1) first all standard dofs and then all enriched, 2) First all dofs (std & enr) of the 1st node, 
+    /// then of the 2nd, etc.
     class DOFEnumerator
     {
+        private readonly int standardDofsCount;
+        private readonly int artificialDofsCount;
+
         private readonly Dictionary<Node2D, Dictionary<StandardDOFType, int>> standardDofs;
         private readonly Dictionary<XNode2D, Dictionary<ArtificialDOFType, int>> artificialDofs;
 
-        public int StandardDofsCount { get { return standardDofs.Count; } }
-        public int ArtificialDofsCount { get { return artificialDofs.Count; } }
+        public int StandardDofsCount { get { return standardDofsCount; } }
+        public int ArtificialDofsCount { get { return artificialDofsCount; } }
 
         public DOFEnumerator(IEnumerable<XNode2D> nodes, Dictionary<Node2D, StandardDOFType[]> constraints,
             IEnumerable<Element2D> elements)
         {
-            standardDofs = EnumerateStandardDofs(elements, constraints);
-            artificialDofs = EnumerateArtificialDofs(nodes, standardDofs.Count);
+            EnumerateStandardDofs(elements, constraints, out standardDofsCount, out standardDofs);
+            EnumerateArtificialDofs(nodes, standardDofsCount, out artificialDofsCount, out artificialDofs);
         }
 
         public IEnumerable<int> GetStandardDofsOf(Node2D node)
@@ -28,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         // Would it be faster to return the Dictionary<StandardDofType, int> for consecutive accesses of the dofs of this node? 
-        // Read is supposed to be O(1), but still...
+        // Dictionary's Read operation is supposed to be O(1), but still...
         public int GetStandardDofOf(Node2D node, StandardDOFType dofType)
         {
             return standardDofs[node][dofType];
@@ -47,16 +53,14 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         public IReadOnlyList<int> MatchElementToGlobalStandardDofsOf(Element2D element)
         {
             var nodalDofTypes = element.ElementType.GetStandardNodalDOFTypes();
-            int[] globalDofs = new int[nodalDofTypes.Count];
-            int elementDof = 0;
+            var globalDofs = new List<int>(); // An array might be quicker, but it requires counting the elements' dofs
             foreach (KeyValuePair<Node2D, HashSet<StandardDOFType>> pair in nodalDofTypes)
             {
                 Dictionary<StandardDOFType, int> globalDofsOfThisNode = standardDofs[pair.Key];
                 // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                 foreach (StandardDOFType dofType in pair.Value)
                 {
-                    globalDofs[elementDof] = globalDofsOfThisNode[dofType];
-                    ++elementDof;
+                    globalDofs.Add(globalDofsOfThisNode[dofType]);
                 }
             }
             return globalDofs;
@@ -65,9 +69,6 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         public IReadOnlyList<int> MatchElementToGlobalArtificialDofsOf(Element2D element)
         {
             var globalDofs = new List<int>();
-            //var nodalDofTypes = element.ElementType.StandardFiniteElement.GetNodalDOFTypes();
-            
-            int elementDof = 0;
             foreach (XNode2D node in element.ElementType.Nodes)
             {
                 Dictionary<ArtificialDOFType, int> globalDofsOfThisNode = artificialDofs[node];
@@ -77,38 +78,44 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                     foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
-                        globalDofs[elementDof] = globalDofsOfThisNode[dofType];
-                        ++elementDof;
+                        globalDofs.Add(globalDofsOfThisNode[dofType]);
                     }
                 }
             }
             return globalDofs;
         }
 
-        private static Dictionary<Node2D, Dictionary<StandardDOFType, int>> EnumerateStandardDofs(
-            IEnumerable<Element2D> elements, Dictionary<Node2D, StandardDOFType[]> constraints)
+        private static void EnumerateStandardDofs(
+            IEnumerable<Element2D> elements, Dictionary<Node2D, StandardDOFType[]> constraints, 
+            out int standardDofsCount, out Dictionary<Node2D, Dictionary<StandardDOFType, int>> standardDofs)
         {
-            Dictionary<Node2D, HashSet<StandardDOFType>> nodalDOFTypes = FindUniqueDOFTypes(elements);
+            IDictionary<Node2D, HashSet<StandardDOFType>> nodalDOFTypes = FindUniqueDOFTypes(elements);
 
-            var totalDofs = new Dictionary<Node2D, Dictionary<StandardDOFType, int>>();
+            standardDofs = new Dictionary<Node2D, Dictionary<StandardDOFType, int>>();
             int dofCounter = 0;
             foreach (var pair in nodalDOFTypes)
             {
                 Node2D node = pair.Key;
+
+                StandardDOFType[] constrainedDofs;
+                bool hasConstraints = constraints.TryGetValue(node, out constrainedDofs);
+                if (!hasConstraints) constrainedDofs = new StandardDOFType[0]; // empty constraints
+
                 var dofsOfThisNode = new Dictionary<StandardDOFType, int>();
                 foreach (StandardDOFType dofType in pair.Value)
                 {
-                    if (constraints[node].Contains(dofType)) dofsOfThisNode[dofType] = -1; // Is this the best way? How about using the Ksf and Kss to calculate the reactions?
-                    else dofsOfThisNode[dofType] = ++dofCounter;
+                    // Perhaps I could have a function that splits the dofs into free/constrained, instead of looking up each dof in the constrained ones.
+                    if (constrainedDofs.Contains(dofType)) dofsOfThisNode[dofType] = -1; // Is this the best way? How about using the Ksf and Kss to calculate the reactions?
+                    else dofsOfThisNode[dofType] = dofCounter++;
                 }
-                totalDofs[node] = dofsOfThisNode;
+                standardDofs[node] = dofsOfThisNode;
             }
-            return totalDofs;
+            standardDofsCount = dofCounter;
         }
 
-        private static Dictionary<Node2D, HashSet<StandardDOFType>> FindUniqueDOFTypes(IEnumerable<Element2D> elements)
+        private static IDictionary<Node2D, HashSet<StandardDOFType>> FindUniqueDOFTypes(IEnumerable<Element2D> elements)
         {
-            var totalDofs = new Dictionary<Node2D, HashSet<StandardDOFType>>();
+            var totalDofs = new SortedDictionary<Node2D, HashSet<StandardDOFType>>();
             foreach (Element2D element in elements)
             {
                 foreach (var entry in element.ElementType.GetStandardNodalDOFTypes())
@@ -127,10 +134,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         // Each artificial dof has index that is node major, then enrichment item major, then enrichment function major and finally axis minor
-        private Dictionary<XNode2D, Dictionary<ArtificialDOFType, int>> EnumerateArtificialDofs(
-            IEnumerable<XNode2D> nodes, int standardDofsCount)
+        private void EnumerateArtificialDofs(IEnumerable<XNode2D> nodes, int standardDofsCount,
+            out int artificialDofsCount, out Dictionary<XNode2D, Dictionary<ArtificialDOFType, int>> artificialDofs)
         {
-            var totalDofs = new Dictionary<XNode2D, Dictionary<ArtificialDOFType, int>>();
+            artificialDofs = new Dictionary<XNode2D, Dictionary<ArtificialDOFType, int>>();
             int dofCounter = standardDofsCount; // This if I put everything in the same matrix
             //int dofCounter = 0; // This if I use different matrices
             foreach (XNode2D node in nodes)
@@ -140,12 +147,12 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 {
                     foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
-                        dofsOfThisNode[dofType] = ++dofCounter;
+                        dofsOfThisNode[dofType] = dofCounter++;
                     }
                 }
-                totalDofs[node] = dofsOfThisNode;
+                artificialDofs[node] = dofsOfThisNode;
             }
-            return totalDofs;
+            artificialDofsCount = dofCounter - standardDofsCount;
         }
     }
 }

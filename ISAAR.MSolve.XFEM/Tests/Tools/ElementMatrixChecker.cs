@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Tests.Tools;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
     class ElementMatrixChecker
     {

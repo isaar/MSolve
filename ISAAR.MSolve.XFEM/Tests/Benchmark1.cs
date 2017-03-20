@@ -1,11 +1,9 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -31,6 +29,8 @@ namespace ISAAR.MSolve.XFEM.Tests
         private static readonly string expectedGaussPointsPath = @"../../Resources/GaussPoints.txt";
         private static readonly string expectedElementMatricesPath = @"../../Resources/ElementMatrices.txt";
         private static readonly string expectedGlobalMatrixPath = @"../../Resources/GlobalMatrix.txt";
+        private static readonly string expectedDofEnumerationPath = @"../../Resources/DofEnumeration.txt";
+
 
         private Model2D model;
         private IFiniteElementMaterial2D material;
@@ -142,90 +142,31 @@ namespace ISAAR.MSolve.XFEM.Tests
             for (int el = 0; el < elements.Length; ++el) model.AddElement(new Element2D(el, elements[el]));
 
             HandleEnrichments();
-        }
 
-        private void CheckGaussPoints()
-        {
-            var checker = new GaussPointChecker(expectedGaussPointsPath, 1.0e-8, true);
-            checker.CheckElementGaussPoints(elements);
-        }
-
-        private void CheckElementStiffnessMatrices()
-        {
-            var checker = new ElementMatrixChecker(expectedElementMatricesPath, 1.0e-8, false);
-            checker.CheckElementMatrices(elements);
-        }
-
-        private Matrix2D<double> ReadGlobalStiffnessMatrix()
-        {
-            string[] lines = File.ReadAllLines(expectedGlobalMatrixPath);
-            int order = lines.Length;
-            string lastLine = lines[lines.Length - 1];
-            if (string.IsNullOrEmpty(lastLine) || string.IsNullOrWhiteSpace(lastLine)) --order; //Last row might have output an extra newline
-
-            var matrix = new Matrix2D<double>(order, order);
-            for (int row = 0; row <order; ++row)
-            {
-                string[] words = lines[row].Split(' ');
-                for (int col = 0; col <order; ++col)
-                {
-                    matrix[row, col] = double.Parse(words[col]);
-                }
-            }
-           
-            return matrix;
-        }
-
-
-        //private void CheckGlobalStiffnessMatrix()
-        //{
-        //    Console.WriteLine("Checking global stiffness matrix...");
-        //    string header = "Global matrix: ";
-
-        //    // Retrieve the matrices
-        //    Matrix2D<double> correctMatrix = ReadGlobalStiffnessMatrix();
-        //    SkylineMatrix2D<double> globalMatrix = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model);
-
-        //    // Check dimensions first
-        //    if (globalMatrix.Rows != correctMatrix.Rows) throw new ArgumentException(header +"Non matching rows.");
-        //    if (globalMatrix.Columns != correctMatrix.Columns) throw new ArgumentException(header 
-        //        + "Non matching columns.");
-
-        //    // Check each entry
-        //    for (int row = 0; row < globalMatrix.Rows; ++row)
-        //    {
-        //        for (int col = 0; col < globalMatrix.Columns; ++col)
-        //        {
-        //            if (!AreEqual(globalMatrix[row, col], correctMatrix[row, col]))
-        //                throw new ArgumentException(header + "Error at K[" + row + ", " + col + "]");
-        //        }
-        //    }
-        //    Console.WriteLine("Global stiffness matrix is correct!");
-        //}
-
-        private void CheckSolutionVector()
-        {
-
-        }
-
-        private void Extra()
-        {
-            var element = elements[5];
-            SymmetricMatrix2D<double> kss, kee;
-            Matrix2D<double> kes;
-            kss = element.BuildStandardStiffnessMatrix();
-            element.BuildEnrichedStiffnessMatrices(out kes, out kee);
-            MatrixPrinter.PrintElementMatrices(5, kss, kes, kee);
+            model.EnumerateDofs();
         }
 
         public static void Main()
         {
-            Benchmark1 benchmark = new Benchmark1(false);
+            bool mockGaussPoints = true;
+            Benchmark1 benchmark = new Benchmark1(mockGaussPoints);
             benchmark.CreateModel();
 
-            benchmark.CheckGaussPoints();
-            //benchmark.CheckElementStiffnessMatrices();
-            //benchmark.CheckGlobalStiffnessMatrix();
+            // Gauss Points
+            var gpChecker = new GaussPointChecker(expectedGaussPointsPath, 1.0e-8, true);
+            //gpChecker.CheckElementGaussPoints(benchmark.elements);
+
+            // Element stiffness matrices
+            var elementChecker = new ElementMatrixChecker(expectedElementMatricesPath, 1.0e-8, false);
+            //elementChecker.CheckElementMatrices(benchmark.elements);
+
+            // Global stiffness matrix
+            //DofEnumerationChecker.PrintEnumeration(benchmark.model);
+            var globalChecker = new GlobalMatrixChecker(expectedGlobalMatrixPath, expectedDofEnumerationPath, 1.0e-5, true);
+            globalChecker.CheckGlobalMatrix(benchmark.model);
+            //globalChecker.PrintGlobalMatrix(benchmark.model);
+            // Solution
+
         }
     }
 }
