@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
@@ -42,9 +42,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             enrichmentItem.EnrichNode(nodes[2]);
             enrichmentItem.EnrichNode(nodes[3]);
 
-            SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
-            Matrix2D<double> stiffnessStdEnr;
-            SymmetricMatrix2D<double> stiffnessEnr;
+            SymmetricMatrix2D stiffnessStd = element.BuildStandardStiffnessMatrix();
+            Matrix2D stiffnessStdEnr;
+            SymmetricMatrix2D stiffnessEnr;
             element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
 
             stiffnessStd.Scale(1e-6);
@@ -77,9 +77,9 @@ namespace ISAAR.MSolve.XFEM.Tests
         //    enrichmentItem.AffectElement(element);
         //    enrichmentItem.EnrichNodes();
 
-        //    SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
-        //    Matrix2D<double> stiffnessStdEnr;
-        //    SymmetricMatrix2D<double> stiffnessEnr;
+        //    SymmetricMatrix2D stiffnessStd = element.BuildStandardStiffnessMatrix();
+        //    Matrix2D stiffnessStdEnr;
+        //    SymmetricMatrix2D stiffnessEnr;
         //    element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
 
         //    stiffnessStd.Scale(1e-6);
@@ -119,9 +119,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             enrichmentItem.EnrichNode(nodes[2]);
             enrichmentItem.EnrichNode(nodes[3]);
 
-            SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
-            Matrix2D<double> stiffnessStdEnr;
-            SymmetricMatrix2D<double> stiffnessEnr;
+            SymmetricMatrix2D stiffnessStd = element.BuildStandardStiffnessMatrix();
+            Matrix2D stiffnessStdEnr;
+            SymmetricMatrix2D stiffnessEnr;
             element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
 
             stiffnessStd.Scale(1e-6);

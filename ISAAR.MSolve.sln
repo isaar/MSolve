@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Solvers", "ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj", "{0883B2F7-198A-4404-B13D-22100BF90A31}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Analyzers.Interfaces", "ISAAR.MSolve.Analyzers.Interfaces\ISAAR.MSolve.Analyzers.Interfaces.csproj", "{EB9A7E5F-CE79-4D49-AC6C-CF9E62EA5692}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Logging.Interfaces", "ISAAR.MSolve.Logging.Interfaces\ISAAR.MSolve.Logging.Interfaces.csproj", "{A996DA85-A5EA-4C81-BDB9-969EA9512F29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.XFEM", "ISAAR.MSolve.XFEM\ISAAR.MSolve.XFEM.csproj", "{374031D0-16CD-4B11-BA88-D45145BBB2F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,18 @@ Global
 		{A996DA85-A5EA-4C81-BDB9-969EA9512F29}.Release|x64.Build.0 = Release|Any CPU
 		{A996DA85-A5EA-4C81-BDB9-969EA9512F29}.Release|x86.ActiveCfg = Release|Any CPU
 		{A996DA85-A5EA-4C81-BDB9-969EA9512F29}.Release|x86.Build.0 = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|x64.Build.0 = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Debug|x86.Build.0 = Debug|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|x64.ActiveCfg = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|x64.Build.0 = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|x86.ActiveCfg = Release|Any CPU
+		{374031D0-16CD-4B11-BA88-D45145BBB2F6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

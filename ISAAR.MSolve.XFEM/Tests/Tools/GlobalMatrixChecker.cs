@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         public void PrintGlobalMatrix(Model2D model, bool nodeMajorReordering = false)
         {
             Console.WriteLine("Global stiffness matrix:");
-            IMatrix2D<double> globalMatrix = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model);
+            IMatrix2D globalMatrix = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
             globalMatrix = MatrixUtilities.Reorder(globalMatrix, permutation);
             MatrixUtilities.PrintDense(globalMatrix);
@@ -45,8 +45,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             bool isCorrect = true;
 
             // Retrieve the matrices
-            Matrix2D<double> expectedMatrix = OutputReaders.ReadGlobalStiffnessMatrix(expectedMatrixPath);
-            IMatrix2D<double> actualMatrix = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model);
+            Matrix2D expectedMatrix = OutputReaders.ReadGlobalStiffnessMatrix(expectedMatrixPath);
+            IMatrix2D actualMatrix = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
             actualMatrix = MatrixUtilities.Reorder(actualMatrix, permutation);
 

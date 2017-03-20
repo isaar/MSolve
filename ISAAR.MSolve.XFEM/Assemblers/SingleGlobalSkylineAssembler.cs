@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
@@ -16,16 +16,16 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     static class SingleGlobalSkylineAssembler
     {
-        public static SkylineMatrix2D<double> BuildGlobalMatrix(Model2D model)
+        public static SkylineMatrix2D BuildGlobalMatrix(Model2D model)
         {
-            SkylineMatrix2D<double> globalMatrix = new SkylineMatrix2D<double>(CalculateSkylineIndexer(model));
+            SkylineMatrix2D globalMatrix = new SkylineMatrix2D(CalculateSkylineIndexer(model));
             DOFEnumerator dofEnumerator = model.DofEnumerator;
             foreach (Element2D element in model.Elements)
             {
                 // Element matrices
-                SymmetricMatrix2D<double> elementMatrixStdStd = element.ElementType.BuildStandardStiffnessMatrix();
-                Matrix2D<double> elementMatrixEnrStd;
-                SymmetricMatrix2D< double> elementMatrixEnrEnr;
+                SymmetricMatrix2D elementMatrixStdStd = element.ElementType.BuildStandardStiffnessMatrix();
+                Matrix2D elementMatrixEnrStd;
+                SymmetricMatrix2D elementMatrixEnrEnr;
                 element.ElementType.BuildEnrichedStiffnessMatrices(out elementMatrixEnrStd, out elementMatrixEnrEnr);
 
                 // Element to global dofs mappings
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
         private static void AddElementToGlobalMatrix(
-            SkylineMatrix2D<double> globalMatrix, IMatrix2D<double> elementMatrix,
+            SkylineMatrix2D globalMatrix, IMatrix2D elementMatrix,
             IReadOnlyList<int> elementRowsToGlobalRows, IReadOnlyList<int> elementColsToGlobalCols)
         {
             for (int elementRow = 0; elementRow < elementRowsToGlobalRows.Count; ++elementRow)

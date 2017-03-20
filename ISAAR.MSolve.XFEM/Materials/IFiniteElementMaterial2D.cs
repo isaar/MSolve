@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Materials
 {
@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Materials
         double YoungModulus { get; }
         double PoissonRatio { get; }
         double Thickness { get; }
-        Matrix2D<double> CalculateConstitutiveMatrix();
+        Matrix2D CalculateConstitutiveMatrix();
         IFiniteElementMaterial2D Clone();
 
         #region non linearity

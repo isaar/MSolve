@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -62,22 +62,22 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.IntegrationStrategy = integrationStrategy;
         }
 
-        public SymmetricMatrix2D<double> BuildStandardStiffnessMatrix()
+        public SymmetricMatrix2D BuildStandardStiffnessMatrix()
         {
-            var stiffness = new SymmetricMatrix2D<double>(StandardDofsCount);
+            var stiffness = new SymmetricMatrix2D(StandardDofsCount);
             foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
                 GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
                 IFiniteElementMaterial2D material = gausspointMaterialPair.Value;
 
                 // Calculate the necessary quantities for the integration
-                Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
+                Matrix2D constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
-                Matrix2D<double> deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
+                Matrix2D deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
-                Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
+                Matrix2D partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
                 partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I shoul scale only the smallest matrix (constitutive) before the multiplications
                 Debug.Assert(partial.Rows == StandardDofsCount);
                 Debug.Assert(partial.Columns == StandardDofsCount);
@@ -86,13 +86,13 @@ namespace ISAAR.MSolve.XFEM.Elements
             return stiffness;
         }
 
-        public void BuildEnrichedStiffnessMatrices(out Matrix2D<double> stiffnessEnrichedStandard,
-            out SymmetricMatrix2D<double> stiffnessEnriched)
+        public void BuildEnrichedStiffnessMatrices(out Matrix2D stiffnessEnrichedStandard,
+            out SymmetricMatrix2D stiffnessEnriched)
         {
             int standardDofsCount = StandardDofsCount;
             int artificialDofsCount = CountArtificialDofs();
-            stiffnessEnrichedStandard = new Matrix2D<double>(artificialDofsCount, standardDofsCount);
-            stiffnessEnriched = new SymmetricMatrix2D<double>(artificialDofsCount);
+            stiffnessEnrichedStandard = new Matrix2D(artificialDofsCount, standardDofsCount);
+            stiffnessEnriched = new SymmetricMatrix2D(artificialDofsCount);
 
             foreach (var pair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
@@ -100,22 +100,22 @@ namespace ISAAR.MSolve.XFEM.Elements
                 IFiniteElementMaterial2D material = pair.Value;
 
                 // Calculate the necessary quantities for the integration
-                Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
+                Matrix2D constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAt(Nodes, gaussPoint);
-                Matrix2D<double> Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
-                Matrix2D<double> Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
+                Matrix2D Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
+                Matrix2D Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
                     gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices. 
                 // Kee = SUM(Benr^T * E * Benr * dV), Kes = SUM(Benr^T * E * Bstd * dV)
                 double dVolume = material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
-                Matrix2D<double> transposeBenrTimesConstitutive = Benr.Transpose() * constitutive; // cache the result
+                Matrix2D transposeBenrTimesConstitutive = Benr.Transpose() * constitutive; // cache the result
 
-                Matrix2D<double> Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
+                Matrix2D Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
                 Kes.Scale(dVolume); // TODO: Scale only the smallest matrix (constitutive) before the multiplications. Probably requires a copy of the constitutive matrix.
                 MatrixUtilities.AddPartialToTotalMatrix(Kes, stiffnessEnrichedStandard);
 
-                Matrix2D<double> Kee = transposeBenrTimesConstitutive * Benr;  // enriched-enriched part
+                Matrix2D Kee = transposeBenrTimesConstitutive * Benr;  // enriched-enriched part
                 Kee.Scale(dVolume);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(Kee, stiffnessEnriched);
             }
@@ -131,9 +131,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
         ///     integration point</param>
         /// <returns></returns>
-        public Matrix2D<double> CalculateStandardDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
+        public Matrix2D CalculateStandardDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            var deformationMatrix = new Matrix2D<double>(3, StandardDofsCount);
+            var deformationMatrix = new Matrix2D(3, StandardDofsCount);
             for (int nodeIndex = 0; nodeIndex < Nodes.Count; ++nodeIndex)
             {
                 int col1 = 2 * nodeIndex;
@@ -148,13 +148,13 @@ namespace ISAAR.MSolve.XFEM.Elements
             return deformationMatrix;
         }
 
-        private Matrix2D<double> CalculateEnrichedDeformationMatrix(int artificialDofsCount,
+        private Matrix2D CalculateEnrichedDeformationMatrix(int artificialDofsCount,
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
             var uniqueFunctions = new Dictionary<IEnrichmentFunction2D, EvaluatedFunction2D>();
 
-            var deformationMatrix = new Matrix2D<double>(3, artificialDofsCount);
+            var deformationMatrix = new Matrix2D(3, artificialDofsCount);
             int currentColumn = 0;
             foreach (XNode2D node in Nodes)
             {

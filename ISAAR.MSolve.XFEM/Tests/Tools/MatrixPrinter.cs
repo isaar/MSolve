@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
     static class MatrixPrinter
     {
-        public static void PrintElementMatrix(int elementId, Matrix2D<double> k)
+        public static void PrintElementMatrix(int elementId, Matrix2D k)
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("K = ");
@@ -17,8 +17,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             Console.WriteLine("\n");
         }
 
-        public static void PrintElementMatrices(int elementId, SymmetricMatrix2D<double> kss,
-            Matrix2D<double> kes, SymmetricMatrix2D<double> kee)
+        public static void PrintElementMatrices(int elementId, SymmetricMatrix2D kss,
+            Matrix2D kes, SymmetricMatrix2D kee)
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("Kss = ");
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             Console.WriteLine("\n");
         }
 
-        public static void PrintGlobalMatrix(Matrix2D<double> matrix)
+        public static void PrintGlobalMatrix(Matrix2D matrix)
         {
             Console.WriteLine("Global matrix:");
             Console.WriteLine("K = ");

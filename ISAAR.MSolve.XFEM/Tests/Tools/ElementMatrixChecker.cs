@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Elements;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Checking element stiffness matrices...");
 
-            Matrix2D<double>[] correctMatrices = 
+            Matrix2D[] correctMatrices = 
                 OutputReaders.ReadElementStiffnessMatrices(expectedMatricesPath, elements.Count);
             for (int el = 0; el < elements.Count; ++el)
             {
@@ -34,10 +34,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 bool isOk = true;
 
                 // Retrieve the matrices
-                Matrix2D<double> correctK = correctMatrices[el];
+                Matrix2D correctK = correctMatrices[el];
                 XContinuumElement2D element = elements[el];
-                SymmetricMatrix2D<double> kss, kee;
-                Matrix2D<double> kes;
+                SymmetricMatrix2D kss, kee;
+                Matrix2D kes;
                 kss = element.BuildStandardStiffnessMatrix();
                 element.BuildEnrichedStiffnessMatrices(out kes, out kee);
 

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -35,22 +35,22 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.IntegrationStrategy = integrationStrategy; 
         }
 
-        public SymmetricMatrix2D<double> BuildStiffnessMatrix()
+        public SymmetricMatrix2D BuildStiffnessMatrix()
         {
-            var stiffness = new SymmetricMatrix2D<double>(DofsCount);
+            var stiffness = new SymmetricMatrix2D(DofsCount);
             foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
                 GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
                 IFiniteElementMaterial2D material = gausspointMaterialPair.Value;
 
                 // Calculate the necessary quantities for the integration
-                Matrix2D<double> constitutive = material.CalculateConstitutiveMatrix();
+                Matrix2D constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
-                Matrix2D<double> deformation = CalculateDeformationMatrix(evaluatedInterpolation);
+                Matrix2D deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
-                Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
+                Matrix2D partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
                 partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
                 Debug.Assert(partial.Rows == DofsCount);
                 Debug.Assert(partial.Columns == DofsCount);
@@ -69,9 +69,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
         ///     integration point</param>
         /// <returns></returns>
-        public Matrix2D<double> CalculateDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
+        public Matrix2D CalculateDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            var deformationMatrix = new Matrix2D<double>(3, DofsCount);
+            var deformationMatrix = new Matrix2D(3, DofsCount);
             for (int nodeIndex = 0; nodeIndex < Nodes.Count; ++nodeIndex)
             {
                 int col1 = 2 * nodeIndex;

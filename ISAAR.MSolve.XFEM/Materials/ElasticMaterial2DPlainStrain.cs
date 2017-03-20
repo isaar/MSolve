@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Materials
 {
@@ -37,13 +37,13 @@ namespace ISAAR.MSolve.XFEM.Materials
             this.Thickness = thickness;
         }
 
-        public Matrix2D<double> CalculateConstitutiveMatrix() //This needs to be stored and passed as a MatrixView
+        public Matrix2D CalculateConstitutiveMatrix() //This needs to be stored and passed as a MatrixView
         {
             double plainE = YoungModulus / (1 - PoissonRatio * PoissonRatio);
             double plainV = PoissonRatio / (1.0 - PoissonRatio); 
             double scalar = plainE / (1 - plainV * plainV);
 
-            var matrix = new Matrix2D<double>(3, 3);
+            var matrix = new Matrix2D(3, 3);
             matrix[0, 0] = scalar;
             matrix[0, 1] = scalar * plainV;
             matrix[1, 0] = scalar * plainV;

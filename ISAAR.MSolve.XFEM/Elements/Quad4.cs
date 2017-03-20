@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Integration.Points;
@@ -69,18 +69,18 @@ namespace ISAAR.MSolve.XFEM.Elements
         //    throw new NotImplementedException();
         //}
 
-        public SymmetricMatrix2D<double> BuildStiffnessMatrix()
+        public SymmetricMatrix2D BuildStiffnessMatrix()
         {
-            var stiffness = new SymmetricMatrix2D<double>(DOFS_COUNT);
+            var stiffness = new SymmetricMatrix2D(DOFS_COUNT);
             foreach (var gaussPoint in gaussPoints) // TODO: remove the integration logic from the element class
             {
                 // Calculate the necessary quantities for the integration
-                Matrix2D<double> deformation = CalculateDeformationMatrix(gaussPoint);
-                Matrix2D<double> constitutive = materials[gaussPoint].CalculateConstitutiveMatrix();
+                Matrix2D deformation = CalculateDeformationMatrix(gaussPoint);
+                Matrix2D constitutive = materials[gaussPoint].CalculateConstitutiveMatrix();
                 double thickness = materials[gaussPoint].Thickness;
 
                 // Gauss integration at this point
-                Matrix2D<double> partial = (deformation.Transpose() * constitutive) * deformation;
+                Matrix2D partial = (deformation.Transpose() * constitutive) * deformation;
                 partial.Scale(thickness * gaussPoint.Weight);
                 Debug.Assert(partial.Rows == DOFS_COUNT);
                 Debug.Assert(partial.Columns == DOFS_COUNT);
@@ -89,8 +89,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             return stiffness;
         }
 
-        private static void AddPartialToSymmetricTotalMatrix(Matrix2D<double> partialMatrix,
-            SymmetricMatrix2D<double> totalMatrix)
+        private static void AddPartialToSymmetricTotalMatrix(Matrix2D partialMatrix,
+            SymmetricMatrix2D totalMatrix)
         {
             for (int row = 0; row < totalMatrix.Rows; ++row)
             {
@@ -121,9 +121,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         /// <param name="gaussPoint"></param>
         /// <returns>A 3x8 matrix</returns>
-        private Matrix2D<double> CalculateDeformationMatrix(GaussPoint2D gaussPoint)
+        private Matrix2D CalculateDeformationMatrix(GaussPoint2D gaussPoint)
         {
-            var B = new Matrix2D<double>(3, DOFS_COUNT);
+            var B = new Matrix2D(3, DOFS_COUNT);
 
             B[0, 0] = gaussPoint.Eta - halfLengthY;
             B[0, 2] = -gaussPoint.Eta + halfLengthY;
