@@ -36,18 +36,12 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private static void TestMesh(NaturalPoint2D[] intersectionPoints)
         {
-            var mesher = new IncrementalTriangulator(nodes[0], nodes[1], nodes[2]);
-
-            mesher.Insert(nodes[3]);
-            foreach (var point in intersectionPoints) mesher.Insert(point);
-            var triangles = mesher.CreateMesh();
-
-            for (int i = 0; i < triangles.Count; ++i)
-            {
-                Console.Write("Triangle " + i + ": ");
-                Console.WriteLine(triangles[i]);
-            }
-            Console.WriteLine();
+            var mesher = new IncrementalTriangulator();
+            var vertices = new List<INaturalPoint2D>();
+            vertices.AddRange(nodes);
+            vertices.AddRange(intersectionPoints);
+            var triangles = mesher.CreateMesh(vertices);
+            Utilities.Triangles.PrintMesh(triangles);
         }
 
         public static void Main()

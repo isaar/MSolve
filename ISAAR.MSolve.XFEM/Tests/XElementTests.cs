@@ -36,8 +36,11 @@ namespace ISAAR.MSolve.XFEM.Tests
                 new HomogeneousIntegration2D(integrationRule, material));
 
             discontinuity.ElementIntersections.Add(element, new CartesianPoint2D[] { point1, point2 });
-            enrichmentItem.AffectElement(element);
-            enrichmentItem.EnrichNodes();
+            enrichmentItem.EnrichElement(element);
+            enrichmentItem.EnrichNode(nodes[0]);
+            enrichmentItem.EnrichNode(nodes[1]);
+            enrichmentItem.EnrichNode(nodes[2]);
+            enrichmentItem.EnrichNode(nodes[3]);
 
             SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
@@ -110,8 +113,11 @@ namespace ISAAR.MSolve.XFEM.Tests
                IsoparametricElementType2D.Quad4, nodes, new BimaterialIntegration2D(integrationRule, enrichmentItem));
 
             discontinuity.ElementIntersections.Add(element, new CartesianPoint2D[] { point1, point2 });
-            enrichmentItem.AffectElement(element);
-            enrichmentItem.EnrichNodes();
+            enrichmentItem.EnrichElement(element);
+            enrichmentItem.EnrichNode(nodes[0]);
+            enrichmentItem.EnrichNode(nodes[1]);
+            enrichmentItem.EnrichNode(nodes[2]);
+            enrichmentItem.EnrichNode(nodes[3]);
 
             SymmetricMatrix2D<double> stiffnessStd = element.BuildStandardStiffnessMatrix();
             Matrix2D<double> stiffnessStdEnr;
@@ -132,9 +138,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         static void Main(string[] args)
         {
-            //IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
+            IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
             //IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
-            IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
+            //IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
         }
     }
 }

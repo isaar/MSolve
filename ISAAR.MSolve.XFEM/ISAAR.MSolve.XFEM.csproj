@@ -79,6 +79,10 @@
     <Compile Include="Geometry\Shapes\LineSegment1D.cs" />
     <Compile Include="Geometry\Descriptions\Polyline2D.cs" />
     <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\ITriangulator2D.cs" />
+    <Compile Include="Geometry\Triangulation\LoggingTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\MirrorNaturalXTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\MockTriangulators.cs" />
     <Compile Include="Geometry\Triangulation\Triangle2D.cs" />
     <Compile Include="Integration\Quadratures\IStandardQuadrature1D.cs" />
     <Compile Include="Integration\Quadratures\IStandardQuadrature2D.cs" />
@@ -94,10 +98,16 @@
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
+    <Compile Include="Tests\ElementMatrixChecker.cs" />
     <Compile Include="Tests\FEMTests.cs" />
+    <Compile Include="Tests\GaussPointChecker.cs" />
     <Compile Include="Tests\GaussPointsForTipTest.cs" />
     <Compile Include="Tests\InverseMappingTests.cs" />
+    <Compile Include="Tests\MatrixPrinter.cs" />
     <Compile Include="Tests\NodeSets.cs" />
+    <Compile Include="Tests\Tools\GaussPoint2DComparer.cs" />
+    <Compile Include="Tests\Tools\OutputReaders.cs" />
+    <Compile Include="Tests\Tools\ValueComparer.cs" />
     <Compile Include="Tests\XElementTests.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
@@ -126,6 +136,8 @@
     <Compile Include="Utilities\InterpolationUtilities.cs" />
     <Compile Include="Utilities\MathUtilities.cs" />
     <Compile Include="Utilities\MatrixUtilities.cs" />
+    <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
+    <Compile Include="Utilities\Triangles.cs" />
     <Compile Include="Utilities\Vector2.cs" />
   </ItemGroup>
   <ItemGroup>

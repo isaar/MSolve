@@ -17,10 +17,12 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
     class IntegrationWithSubtriangles: IIntegrationRule2D<XContinuumElement2D>
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
+        private readonly ITriangulator2D mesher;
 
-        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule)
+        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ITriangulator2D mesher)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;
+            this.mesher = mesher;
         }
         
         public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XContinuumElement2D element)
@@ -28,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
             IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints = FindCartesianPointsForTriangulation(element);
             IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints = 
                 FindNaturalPointsForTriangulation(element, cartesianDelaunyPoints);
-            IReadOnlyList<Triangle2D> subtriangles = CreateIntegrationMesh(naturalDelaunyPoints);
+            IReadOnlyList<Triangle2D> subtriangles = mesher.CreateMesh(naturalDelaunyPoints);
 
             var integrationPoints = new List<GaussPoint2D>();
             foreach (Triangle2D triangle in subtriangles)
@@ -63,7 +65,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
                 GaussPoint2D triangleGP = triangleGaussPoints[i];
 
                 // Linear shape functions evaluated at the Gauss point's coordinates in the triangle's natural system.
-                double N1 = 1 - triangleGP.Xi - triangleGP.Eta;
+                double N1 = 1.0 - triangleGP.Xi - triangleGP.Eta;
                 double N2 = triangleGP.Xi;
                 double N3 = triangleGP.Eta;
 
@@ -74,18 +76,11 @@ namespace ISAAR.MSolve.XFEM.Integration.Rules
                 // The integral would need to be multiplicated with |detJ|. 
                 // It is simpler for the caller to have it already included in the weight.
                 double elementWeight = triangleGP.Weight * jacobian;
+
                 elementGaussPoints[i] = new GaussPoint2D(elementXi, elementEta, elementWeight);
             }
 
             return elementGaussPoints;
-        }
-
-        private static IReadOnlyList<Triangle2D> CreateIntegrationMesh(IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints)
-        {
-            IncrementalTriangulator triangulator = 
-                new IncrementalTriangulator(naturalDelaunyPoints[0], naturalDelaunyPoints[1], naturalDelaunyPoints[2]);
-            for (int i = 3; i < naturalDelaunyPoints.Count; ++i) triangulator.Insert(naturalDelaunyPoints[i]);
-            return triangulator.CreateMesh();
         }
 
         private static IReadOnlyList<INaturalPoint2D> FindNaturalPointsForTriangulation(XContinuumElement2D element,

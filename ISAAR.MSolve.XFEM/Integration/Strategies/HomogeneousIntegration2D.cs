@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Rules;
@@ -42,8 +44,31 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         private void Initialize(XContinuumElement2D element)
         {
             IReadOnlyList<GaussPoint2D> integrationPoints;
-            if (element.EnrichmentItems.Count == 0) integrationPoints = element.StandardQuadrature.IntegrationPoints;
-            else integrationPoints = enrichedIntegrationRule.GenerateIntegrationPoints(element);
+            if (element.EnrichmentItems.Count == 0)
+            {
+                // Case 1: Blending element with at least one tip enriched node. TODO: abstract the handling of blending elements
+                if (HasTipEnrichedNodes(element))
+                {
+                    // TODO: verify the need to use higher order integration for tip blending elements
+                    if (element.StandardQuadrature == GaussLegendre2D.Order2x2)
+                    {
+                        integrationPoints = GaussLegendre2D.Order4x4.IntegrationPoints;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("TODO: this is hardcoded for Quad4. " +
+                            "Have the standard quadrature give its next(and then that ones next) order.");
+                    }
+                }
+                else // Case 2: Standard element or blending element without tip enriched nodes
+                {
+                    integrationPoints = element.StandardQuadrature.IntegrationPoints;
+                }
+            }
+            else // Case 3: Enriched element
+            {
+                integrationPoints = enrichedIntegrationRule.GenerateIntegrationPoints(element);
+            }
 
             pointsAndMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
             foreach (GaussPoint2D gaussPoint in integrationPoints)
@@ -55,6 +80,19 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         public void Update(XContinuumElement2D element)
         {
             throw new NotImplementedException();
+        }
+
+        // TODO: determining the state of the element is the responsibility of XContinuumElement2D.
+        private bool HasTipEnrichedNodes(XContinuumElement2D element)
+        {
+            foreach (XNode2D node in element.Nodes)
+            {
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems)
+                {
+                    if (enrichment is CrackTip2D) return true;
+                }
+            }
+            return false;
         }
     }
 }

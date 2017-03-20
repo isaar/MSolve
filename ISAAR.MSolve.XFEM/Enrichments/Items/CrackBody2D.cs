@@ -32,7 +32,12 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
-            return Discontinuity.IntersectionWith(element);
+            var uniquePoints = new HashSet<ICartesianPoint2D>(element.Nodes);
+            foreach (ICartesianPoint2D point in Discontinuity.IntersectionWith(element))
+            {
+                uniquePoints.Add(point);
+            }
+            return new List<ICartesianPoint2D>(uniquePoints);
         }
     }
 }

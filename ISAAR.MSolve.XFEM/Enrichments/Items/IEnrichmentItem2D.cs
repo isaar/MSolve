@@ -22,8 +22,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         IReadOnlyList<XContinuumElement2D> AffectedElements { get; }
 
-        void AffectElement(XContinuumElement2D element);
-
         /// <summary>
         /// Assigns enrichment functions and their nodal values to each enriched node.
         /// </summary>

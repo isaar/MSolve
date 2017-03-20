@@ -26,6 +26,15 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             this.Vertices = vertices;
         }
 
+        public Triangle2D(NaturalPoint2D p0, NaturalPoint2D p1, NaturalPoint2D p2)
+        {
+            var vertices = new NaturalPoint2D[3];
+            vertices[0] = p0;
+            vertices[1] = p1;
+            vertices[2] = p2;
+            this.Vertices = vertices;
+        }
+
         public override string ToString()
         {
             var builder = new StringBuilder("{ ");

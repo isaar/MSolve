@@ -45,6 +45,11 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
 
+        /// <summary>
+        /// ERROR: elements should not be enriched explicitly. 
+        /// Instead the enrichment items should store which elements they interact with. 
+        /// If the element needs to access the enrichment items it should do so through its nodes.
+        /// </summary>
         public List<IEnrichmentItem2D> EnrichmentItems { get; }
 
         public XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,

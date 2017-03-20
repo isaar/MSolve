@@ -9,21 +9,19 @@ using TriangleNet.Meshing;
 using TriangleNet.Meshing.Algorithm;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
-
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
-    /// <summary>
-    /// Wrapper class for 3rd party library incremental triangulator.
-    /// </summary>
-    class IncrementalTriangulator: ITriangulator2D
+    class MirrorNaturalXTriangulator : ITriangulator2D
     {
         private readonly Incremental mesher;
         private readonly Configuration config;
+        private readonly int elementID;
 
-        public IncrementalTriangulator()
+        public MirrorNaturalXTriangulator(int elementID)
         {
             this.mesher = new Incremental();
             this.config = new Configuration();
+            this.elementID = elementID;
         }
 
         public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points)
@@ -38,8 +36,22 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             IMesh mesh = mesher.Triangulate(vertices, config);
             foreach (ITriangle triangle in mesh.Triangles)
             {
-                triangles.Add(new Triangle2D(triangle));
+                double xi0 = triangle.GetVertex(0).X;
+                double eta0 = -triangle.GetVertex(0).Y;
+                double xi1 = triangle.GetVertex(1).X;
+                double eta1 = -triangle.GetVertex(1).Y;
+                double xi2 = triangle.GetVertex(2).X;
+                double eta2 = -triangle.GetVertex(2).Y;
+                triangles.Add(new Triangle2D(
+                    new NaturalPoint2D(xi0, eta0), new NaturalPoint2D(xi1, eta1), new NaturalPoint2D(xi2, eta2)));
             }
+
+            //Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - START ************");
+            //Console.WriteLine("Generated Mesh:");
+            //Utilities.Triangles.PrintMesh(triangles);
+            //Console.WriteLine();
+            //Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - END ************\n");
+
             return triangles;
         }
     }

@@ -9,21 +9,19 @@ using TriangleNet.Meshing;
 using TriangleNet.Meshing.Algorithm;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
-
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
-    /// <summary>
-    /// Wrapper class for 3rd party library incremental triangulator.
-    /// </summary>
-    class IncrementalTriangulator: ITriangulator2D
+    class LoggingTriangulator : ITriangulator2D
     {
         private readonly Incremental mesher;
         private readonly Configuration config;
+        private readonly int elementID;
 
-        public IncrementalTriangulator()
+        public LoggingTriangulator(int elementID)
         {
             this.mesher = new Incremental();
             this.config = new Configuration();
+            this.elementID = elementID;
         }
 
         public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points)
@@ -40,6 +38,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             {
                 triangles.Add(new Triangle2D(triangle));
             }
+
+            Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - START ************");
+            Console.WriteLine("Generated Mesh:");
+            Utilities.Triangles.PrintMesh(triangles);
+            Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - END ************\n");
+
             return triangles;
         }
     }
