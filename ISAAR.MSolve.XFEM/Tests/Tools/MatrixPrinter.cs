@@ -12,7 +12,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         public static void PrintElementMatrix(int elementId, Matrix2D<double> k)
         {
             Console.WriteLine("Element " + elementId + ":");
-            Console.WriteLine("K = \n" + k);
+            Console.WriteLine("K = ");
+            Utilities.MatrixUtilities.PrintDense(k);
             Console.WriteLine("\n");
         }
 
@@ -20,16 +21,22 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             Matrix2D<double> kes, SymmetricMatrix2D<double> kee)
         {
             Console.WriteLine("Element " + elementId + ":");
-            Console.WriteLine("Kss = \n" + kss);
-            Console.WriteLine("Kes = \n" + kes);
-            Console.WriteLine("Kee = \n" + kee);
+            Console.WriteLine("Kss = ");
+            Utilities.MatrixUtilities.PrintDense(kss);
+            Console.WriteLine();
+            Console.WriteLine("Kes = ");
+            Utilities.MatrixUtilities.PrintDense(kes);
+            Console.WriteLine();
+            Console.WriteLine("Kee = ");
+            Utilities.MatrixUtilities.PrintDense(kee);
             Console.WriteLine("\n");
         }
 
         public static void PrintGlobalMatrix(Matrix2D<double> matrix)
         {
             Console.WriteLine("Global matrix:");
-            Console.WriteLine("K = \n" + matrix);
+            Console.WriteLine("K = ");
+            Utilities.MatrixUtilities.PrintDense(matrix);
             Console.WriteLine("\n");
         }
     }

@@ -52,11 +52,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             stiffnessEnr.Scale(1e-6);
 
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            Console.WriteLine(stiffnessStd);
+            Utilities.MatrixUtilities.PrintDense(stiffnessStd);
             Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            Console.WriteLine(stiffnessStdEnr);
+            Utilities.MatrixUtilities.PrintDense(stiffnessStdEnr);
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            Console.WriteLine(stiffnessEnr);
+            Utilities.MatrixUtilities.PrintDense(stiffnessEnr);
         }
 
         //private static void IsoparametricQuad4WithTipTest(XNode2D[] nodes)
@@ -129,11 +129,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             stiffnessEnr.Scale(1e-6);
 
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            Console.WriteLine(stiffnessStd);
+            Utilities.MatrixUtilities.PrintDense(stiffnessStd);
             Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            Console.WriteLine(stiffnessStdEnr);
+            Utilities.MatrixUtilities.PrintDense(stiffnessStdEnr);
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            Console.WriteLine(stiffnessEnr);
+            Utilities.MatrixUtilities.PrintDense(stiffnessEnr);
         }
 
         static void Main(string[] args)

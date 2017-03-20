@@ -563,38 +563,5 @@ namespace ISAAR.MSolve.Matrices
         }
 
         #endregion
-
-        public override string ToString()
-        {
-            StringBuilder builder = new StringBuilder();
-            for (int row = 0; row < Rows; ++row)
-            {
-                for (int col = 0; col < Columns; ++col)
-                {
-                    builder.Append(this[row, col]);
-                    builder.Append(' ');
-                }
-                builder.Append("\n");
-            }
-            builder.Append("\n");
-            return builder.ToString();
-        }
-
-        public String UpperTriangleToString()
-        {
-            StringBuilder builder = new StringBuilder();
-            for (int row = 0; row < Rows; ++row)
-            {
-                for (int col = 0; col < Columns; ++col)
-                {
-                    if (col < row) builder.Append(0.0);
-                    else builder.Append(this[row, col]);
-                    builder.Append(' ');
-                }
-                builder.Append("\n");
-            }
-            builder.Append("\n");
-            return builder.ToString();
-        }
     }
 }
