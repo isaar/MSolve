@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         private static int[] CalculateRowHeights(Model2D model) // I vote to call them RowWidths!!!
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
-            int[] rowHeights = new int[dofEnumerator.StandardDofsCount + dofEnumerator.ArtificialDofsCount];
+            int[] rowHeights = new int[dofEnumerator.FreeStandardDofsCount + dofEnumerator.ArtificialDofsCount];
             foreach (Element2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 

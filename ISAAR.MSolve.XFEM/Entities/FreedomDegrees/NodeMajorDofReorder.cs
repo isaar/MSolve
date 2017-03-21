@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         public static int[] OldToNewDofs(Model2D model)
         {
             DOFEnumerator enumerator = model.DofEnumerator;
-            int totalDofsCount = enumerator.StandardDofsCount + enumerator.ArtificialDofsCount;
+            int totalDofsCount = enumerator.FreeStandardDofsCount + enumerator.ArtificialDofsCount;
 
             // In case some dof is mistakenly skipped, initialize the array to an illegal value, such as -2 (-1 is taken)
             List<int> permutation = Enumerable.Repeat(-2, totalDofsCount).ToList();

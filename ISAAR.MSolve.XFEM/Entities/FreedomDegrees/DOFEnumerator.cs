@@ -12,21 +12,26 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
     /// then of the 2nd, etc.
     class DOFEnumerator
     {
-        private readonly int standardDofsCount;
+        private readonly int freeStandardDofsCount;
         private readonly int artificialDofsCount;
 
         private readonly Dictionary<Node2D, Dictionary<StandardDOFType, int>> standardDofs;
         private readonly Dictionary<XNode2D, Dictionary<ArtificialDOFType, int>> artificialDofs;
 
-        public int StandardDofsCount { get { return standardDofsCount; } }
+        public int FreeStandardDofsCount { get { return freeStandardDofsCount; } }
+        public int ConstrainedStandardDofsCount { get; }
         public int ArtificialDofsCount { get { return artificialDofsCount; } }
+        
 
         // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections used to represent constraints
         public DOFEnumerator(IEnumerable<XNode2D> nodes, Dictionary<Node2D, SortedSet<StandardDOFType>> constraints,
             IEnumerable<Element2D> elements)
         {
-            EnumerateStandardDofs(elements, constraints, out standardDofsCount, out standardDofs);
-            EnumerateArtificialDofs(nodes, standardDofsCount, out artificialDofsCount, out artificialDofs);
+            EnumerateStandardDofs(elements, constraints, out freeStandardDofsCount, out standardDofs);
+            EnumerateArtificialDofs(nodes, freeStandardDofsCount, out artificialDofsCount, out artificialDofs);
+
+            ConstrainedStandardDofsCount = 0;
+            foreach (SortedSet<StandardDOFType> dofs in constraints.Values) ConstrainedStandardDofsCount += dofs.Count;
         }
 
         public IEnumerable<int> GetStandardDofsOf(Node2D node)

@@ -19,7 +19,12 @@ namespace ISAAR.MSolve.XFEM.Entities
         private readonly Dictionary<int, IEnrichmentItem2D> enrichments;
 
         // TODO: There should probably be a dedicated Constraint or Constraints or BoundaryCondition(s) class
-        private readonly Dictionary<Node2D, SortedSet<StandardDOFType>> constraints; 
+        private readonly Dictionary<Node2D, SortedSet<StandardDOFType>> constraints;
+
+        /// <summary>
+        /// Multiple loads for the same dof are allowed for now. Probably they shouldn't.
+        /// </summary>
+        private readonly List<NodalLoad2D> loads;
 
         public IEnumerable<XNode2D> Nodes { get { return nodes.Values; } }
         public IEnumerable<Element2D> Elements { get { return elements.Values; } }
@@ -32,6 +37,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.elements = new Dictionary<int, Element2D>();
             this.enrichments = new Dictionary<int, IEnrichmentItem2D>();
             this.constraints = new Dictionary<Node2D, SortedSet<StandardDOFType>>();
+            this.loads = new List<NodalLoad2D>();
         }
 
         public void AddNode(XNode2D node)
@@ -55,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             enrichments[enrichment.ID] = enrichment;
         }
 
-        //TODO: Should I use the id instead? In a UI class, I probably should.
+        //TODO: Should I use the node's id instead? In a UI class, I probably should.
         public void AddConstraint(Node2D node, StandardDOFType dofType)
         {
             if (!nodes.Values.Contains(node)) // TODO: This should be done more efficiently than O(N)
@@ -73,9 +79,34 @@ namespace ISAAR.MSolve.XFEM.Entities
             constraintsOfNode.Add(dofType);
         }
 
+        //TODO: Should I use the node's id instead? In a UI class, I probably should.
+        public void AddNodalLoad(Node2D node, StandardDOFType dofType, double value)
+        {
+            if (!nodes.Values.Contains(node)) // TODO: This should be done more efficiently than O(N)
+            {
+                throw new ArgumentException("There is no such node");
+            }
+
+            this.loads.Add(new NodalLoad2D(node, dofType, value));
+        }
+
         public void EnumerateDofs()
         {
             this.DofEnumerator = new DOFEnumerator(nodes.Values, constraints, elements.Values);
+        }
+
+        public double[] CalculateForces()
+        {
+            if (DofEnumerator == null) EnumerateDofs();
+            double[] rhs = new double[DofEnumerator.FreeStandardDofsCount];
+            foreach (NodalLoad2D load in loads)
+            {
+                int dof = DofEnumerator.GetStandardDofOf(load.Node, load.DofType);
+                if (dof < 0) throw new NotImplementedException("Load on a constraint dof at node "
+                    + load.Node.ID + ", axis " + load.DofType);
+                else rhs[dof] += load.Value;
+            }
+            return rhs;
         }
     }
 }

@@ -113,6 +113,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             model.AddConstraint(topRight, StandardDOFType.Y);
         }
 
+        private void CreateLoads(Model2D model)
+        {
+            XNode2D topLeft = nodes[(NODE_ROWS - 1) * NODE_COLUMNS];
+            model.AddNodalLoad(topLeft, StandardDOFType.Y, 1000.0);
+        }
+
         private void HandleEnrichments() // Most of these should not be done manually
         {
             // Create enrichments
@@ -147,12 +153,14 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             CreateNodes();
             foreach (var node in nodes) model.AddNode(node);
-            HandleConstraints(model);
 
             HandleIntegration();
             CreateElements();
             for (int el = 0; el < elements.Length; ++el) model.AddElement(new Element2D(el, elements[el]));
-            
+
+            HandleConstraints(model);
+            CreateLoads(model);
+
             HandleEnrichments();
 
             model.EnumerateDofs();
@@ -175,10 +183,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Global stiffness matrix
             //DofEnumerationChecker.PrintEnumeration(benchmark.model);
             var globalChecker = new GlobalMatrixChecker(expectedGlobalMatrixPath, expectedDofEnumerationPath, 1.0e-5, true);
-            globalChecker.CheckGlobalMatrix(benchmark.model);
+            //globalChecker.CheckGlobalMatrix(benchmark.model);
             //globalChecker.PrintGlobalMatrix(benchmark.model);
             // Solution
-
+            double[] forces = benchmark.model.CalculateForces();
+            Console.WriteLine("Forces:");
+            for (int i = 0; i < forces.Length; ++i) Console.WriteLine(i + ": " + forces[i]);
         }
     }
 }
