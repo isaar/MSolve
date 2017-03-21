@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
@@ -102,6 +103,16 @@ namespace ISAAR.MSolve.XFEM.Tests
             }
         }
 
+        private void HandleConstraints(Model2D model)
+        {
+            XNode2D bottomRight = nodes[NODE_COLUMNS - 1];
+            XNode2D topRight = nodes[NODE_ROWS * NODE_COLUMNS -1];
+            model.AddConstraint(bottomRight, StandardDOFType.X);
+            model.AddConstraint(bottomRight, StandardDOFType.Y);
+            model.AddConstraint(topRight, StandardDOFType.X);
+            model.AddConstraint(topRight, StandardDOFType.Y);
+        }
+
         private void HandleEnrichments() // Most of these should not be done manually
         {
             // Create enrichments
@@ -136,11 +147,12 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             CreateNodes();
             foreach (var node in nodes) model.AddNode(node);
+            HandleConstraints(model);
 
             HandleIntegration();
             CreateElements();
             for (int el = 0; el < elements.Length; ++el) model.AddElement(new Element2D(el, elements[el]));
-
+            
             HandleEnrichments();
 
             model.EnumerateDofs();

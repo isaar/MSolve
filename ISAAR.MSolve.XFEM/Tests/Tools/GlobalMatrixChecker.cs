@@ -51,8 +51,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             actualMatrix = MatrixUtilities.Reorder(actualMatrix, permutation);
 
             // Check dimensions first
-            if (actualMatrix.Rows != expectedMatrix.Rows) throw new ArgumentException("Non matching rows.");
-            if (actualMatrix.Columns != expectedMatrix.Columns) throw new ArgumentException("Non matching columns.");
+            if (actualMatrix.Rows != expectedMatrix.Rows)
+                throw new ArgumentException("The 2 global matrices have non matching rows.");
+            if (actualMatrix.Columns != expectedMatrix.Columns)
+                throw new ArgumentException("The 2 global matrices have non matching columns.");
 
             // Check each entry
             for (int row = 0; row < actualMatrix.Rows; ++row)
@@ -66,9 +68,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                     }
                 }
             }
-            if (isCorrect) Console.WriteLine("Global stiffness matrix is correct!");
-            else if (printIncorrectEntries) Console.WriteLine(errors.ToString());
-            else Console.WriteLine("Wrong global stiffness matrix!");
+            if (isCorrect) Console.WriteLine("Global stiffness matrix is correct!\n");
+            else if (printIncorrectEntries) Console.WriteLine(errors.Append("\n").ToString());
+            else Console.WriteLine("Wrong global stiffness matrix!\n");
 
         }
     }

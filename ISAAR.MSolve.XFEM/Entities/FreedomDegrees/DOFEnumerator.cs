@@ -21,7 +21,8 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         public int StandardDofsCount { get { return standardDofsCount; } }
         public int ArtificialDofsCount { get { return artificialDofsCount; } }
 
-        public DOFEnumerator(IEnumerable<XNode2D> nodes, Dictionary<Node2D, StandardDOFType[]> constraints,
+        // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections used to represent constraints
+        public DOFEnumerator(IEnumerable<XNode2D> nodes, Dictionary<Node2D, SortedSet<StandardDOFType>> constraints,
             IEnumerable<Element2D> elements)
         {
             EnumerateStandardDofs(elements, constraints, out standardDofsCount, out standardDofs);
@@ -86,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         private static void EnumerateStandardDofs(
-            IEnumerable<Element2D> elements, Dictionary<Node2D, StandardDOFType[]> constraints, 
+            IEnumerable<Element2D> elements, Dictionary<Node2D, SortedSet<StandardDOFType>> constraints, 
             out int standardDofsCount, out Dictionary<Node2D, Dictionary<StandardDOFType, int>> standardDofs)
         {
             IDictionary<Node2D, HashSet<StandardDOFType>> nodalDOFTypes = FindUniqueDOFTypes(elements);
@@ -97,9 +98,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             {
                 Node2D node = pair.Key;
 
-                StandardDOFType[] constrainedDofs;
+                SortedSet<StandardDOFType> constrainedDofs;
                 bool hasConstraints = constraints.TryGetValue(node, out constrainedDofs);
-                if (!hasConstraints) constrainedDofs = new StandardDOFType[0]; // empty constraints
+                if (!hasConstraints) constrainedDofs = new SortedSet<StandardDOFType>(); // empty constraints
 
                 var dofsOfThisNode = new Dictionary<StandardDOFType, int>();
                 foreach (StandardDOFType dofType in pair.Value)

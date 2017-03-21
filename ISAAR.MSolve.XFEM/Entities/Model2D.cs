@@ -8,11 +8,18 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
+    /// <summary>
+    /// This class both manages and assembles the FEM entities. TODO: Those 2 should be split. I could have a nested 
+    /// Builder or better yet a UI class for assembling the model.
+    /// </summary>
     class Model2D
     {
-        private Dictionary<int, XNode2D> nodes;
-        private Dictionary<int, Element2D> elements;
-        private Dictionary<int, IEnrichmentItem2D> enrichments;
+        private readonly Dictionary<int, XNode2D> nodes;
+        private readonly Dictionary<int, Element2D> elements;
+        private readonly Dictionary<int, IEnrichmentItem2D> enrichments;
+
+        // TODO: There should probably be a dedicated Constraint or Constraints or BoundaryCondition(s) class
+        private readonly Dictionary<Node2D, SortedSet<StandardDOFType>> constraints; 
 
         public IEnumerable<XNode2D> Nodes { get { return nodes.Values; } }
         public IEnumerable<Element2D> Elements { get { return elements.Values; } }
@@ -24,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.nodes = new Dictionary<int, XNode2D>();
             this.elements = new Dictionary<int, Element2D>();
             this.enrichments = new Dictionary<int, IEnrichmentItem2D>();
+            this.constraints = new Dictionary<Node2D, SortedSet<StandardDOFType>>();
         }
 
         public void AddNode(XNode2D node)
@@ -47,15 +55,27 @@ namespace ISAAR.MSolve.XFEM.Entities
             enrichments[enrichment.ID] = enrichment;
         }
 
-        public Dictionary<Node2D, StandardDOFType[]> FindConstraints()
+        //TODO: Should I use the id instead? In a UI class, I probably should.
+        public void AddConstraint(Node2D node, StandardDOFType dofType)
         {
-            // TODO: Implement or replace this method.
-            return new Dictionary<Node2D, StandardDOFType[]>();
+            if (!nodes.Values.Contains(node)) // TODO: This should be done more efficiently than O(N)
+            {
+                throw new ArgumentException("There is no such node");
+            }
+             
+            SortedSet<StandardDOFType> constraintsOfNode;
+            bool alreadyExists = constraints.TryGetValue(node, out constraintsOfNode);
+            if (!alreadyExists)
+            {
+                constraintsOfNode = new SortedSet<StandardDOFType>();
+                constraints.Add(node, constraintsOfNode);
+            }
+            constraintsOfNode.Add(dofType);
         }
 
         public void EnumerateDofs()
         {
-            this.DofEnumerator = new DOFEnumerator(nodes.Values, FindConstraints(), elements.Values);
+            this.DofEnumerator = new DOFEnumerator(nodes.Values, constraints, elements.Values);
         }
     }
 }
