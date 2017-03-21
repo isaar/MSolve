@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
@@ -166,6 +167,13 @@ namespace ISAAR.MSolve.XFEM.Tests
             model.EnumerateDofs();
         }
 
+        public static void CheckSolution(Model2D model)
+        {
+            LinearStaticAnalysis analysis = new LinearStaticAnalysis(model);
+            analysis.Solve();
+            analysis.PrintSolution();
+        }
+
         public static void Main()
         {
             bool mockGaussPoints = true;
@@ -185,10 +193,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             var globalChecker = new GlobalMatrixChecker(expectedGlobalMatrixPath, expectedDofEnumerationPath, 1.0e-5, true);
             //globalChecker.CheckGlobalMatrix(benchmark.model);
             //globalChecker.PrintGlobalMatrix(benchmark.model);
+
             // Solution
-            double[] forces = benchmark.model.CalculateForces();
-            Console.WriteLine("Forces:");
-            for (int i = 0; i < forces.Length; ++i) Console.WriteLine(i + ": " + forces[i]);
+            CheckSolution(benchmark.model);
+            //double[] forces = benchmark.model.CalculateForces();
+            //Console.WriteLine("Forces:");
+            //for (int i = 0; i < forces.Length; ++i) Console.WriteLine(i + ": " + forces[i]);
         }
     }
 }

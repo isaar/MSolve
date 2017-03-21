@@ -52,6 +52,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analysis\LinearStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="Elements\ContinuumElement2D.cs" />
     <Compile Include="Elements\IsoparametricElementType2D.cs" />
@@ -159,6 +160,10 @@
     <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj">
       <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
       <Name>ISAAR.MSolve.PreProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
+      <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
+      <Name>ISAAR.MSolve.Solvers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
