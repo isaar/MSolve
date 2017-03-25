@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Materials.Crack;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Direction
 {
@@ -12,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Direction
         {
         }
 
-        public double ComputeGrowthAngle(double sif1, double sif2)
+        public double ComputeGrowthAngle(double sif1, double sif2, CrackMaterial2D material)
         {
             if (sif1 > 0)
             {

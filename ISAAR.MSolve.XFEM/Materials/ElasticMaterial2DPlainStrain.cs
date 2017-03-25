@@ -15,9 +15,9 @@ namespace ISAAR.MSolve.XFEM.Materials
 
         public static ElasticMaterial2DPlainStrain Create(double youngModulus, double poissonRatio, double thickness)
         {
-            if (youngModulus < 0.0)
+            if (youngModulus <= 0.0)
             {
-                throw new ArgumentException("Young's modulus must be non negative but was: " + youngModulus);
+                throw new ArgumentException("Young's modulus must be positive but was: " + youngModulus);
             }
             if (poissonRatio < -1.0 || poissonRatio > 0.5)
             {

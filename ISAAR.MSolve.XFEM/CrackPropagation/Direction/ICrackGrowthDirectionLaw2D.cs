@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Materials.Crack;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Direction
 {
     // TODO: Perhaps it should be (-pi/2, pi/2)
+    // TODO: Remove the material parameter. Not all direction laws use the material properties and in some cases it may 
+    // require some calculations to locate them. Perhaps the law could be an observer.
     interface ICrackGrowthDirectionLaw2D
     {
         /// <summary>
@@ -16,7 +19,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Direction
         /// </summary>
         /// <param name="sif1">The stress intensity factor of crack mode I (opening mode)</param>
         /// <param name="sif2">The stress intensity factor of crack mode II (sliding mode)</param>
+        /// <param name="material">The properties of the material at the crack tip.</param>
         /// <returns>The angle belonging in the interval (-pi, pi] </returns>
-        double ComputeGrowthAngle(double sif1, double sif2);
+        double ComputeGrowthAngle(double sif1, double sif2, CrackMaterial2D material);
     }
 }
