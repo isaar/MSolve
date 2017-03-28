@@ -107,6 +107,7 @@
     <Compile Include="Materials\Crack\HomogeneousIsotropicMaterialFactory2D.cs" />
     <Compile Include="Materials\Crack\ICrackMaterialFactory2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
+    <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
