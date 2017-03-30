@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.Utilities
 {
-    class Vector2
+    class NonMatchingDimensionsException: ArgumentException
     {
-        public double x;
-        public double y;
+        public NonMatchingDimensionsException(string message) : base(message) { }
     }
 }

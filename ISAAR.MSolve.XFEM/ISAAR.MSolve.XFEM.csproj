@@ -150,11 +150,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\InterpolationUtilities.cs" />
     <Compile Include="Utilities\MathUtilities.cs" />
-    <Compile Include="Utilities\MatrixUtilities.cs" />
+    <Compile Include="LinearAlgebra\DenseMatrix.cs" />
+    <Compile Include="LinearAlgebra\MatrixUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
-    <Compile Include="Utilities\RotationMatrix2D.cs" />
+    <Compile Include="LinearAlgebra\RotationMatrix2D.cs" />
+    <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
     <Compile Include="Utilities\Triangles.cs" />
-    <Compile Include="Utilities\Vector2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

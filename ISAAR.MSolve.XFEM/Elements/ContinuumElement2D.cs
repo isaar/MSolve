@@ -12,7 +12,7 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {

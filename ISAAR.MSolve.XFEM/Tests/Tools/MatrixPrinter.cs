@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
@@ -13,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("K = ");
-            Utilities.MatrixUtilities.PrintDense(k);
+            MatrixUtilities.PrintDense(k);
             Console.WriteLine("\n");
         }
 
@@ -22,13 +23,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("Kss = ");
-            Utilities.MatrixUtilities.PrintDense(kss);
+            MatrixUtilities.PrintDense(kss);
             Console.WriteLine();
             Console.WriteLine("Kes = ");
-            Utilities.MatrixUtilities.PrintDense(kes);
+            MatrixUtilities.PrintDense(kes);
             Console.WriteLine();
             Console.WriteLine("Kee = ");
-            Utilities.MatrixUtilities.PrintDense(kee);
+            MatrixUtilities.PrintDense(kee);
             Console.WriteLine("\n");
         }
 
@@ -36,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Global matrix:");
             Console.WriteLine("K = ");
-            Utilities.MatrixUtilities.PrintDense(matrix);
+            MatrixUtilities.PrintDense(matrix);
             Console.WriteLine("\n");
         }
     }

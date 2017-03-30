@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.XFEM.Utilities
+namespace ISAAR.MSolve.XFEM.LinearAlgebra
 {
     // TODO: The matrix-matrix and matrix-vector operations should be extracted into a generic rectangular dense 
     // matrix. Rotation matrix classes should either be removed or just handle their construction (this could be the 

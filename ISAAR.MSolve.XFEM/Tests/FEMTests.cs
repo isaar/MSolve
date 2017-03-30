@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
+using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -23,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var element = new Quad4(nodes, material);
             SymmetricMatrix2D k = element.BuildStiffnessMatrix();
             Console.WriteLine("Quad4 stiffness matrix = ");
-            Utilities.MatrixUtilities.PrintDense(k);
+            MatrixUtilities.PrintDense(k);
         }
 
         private static void IsoparametricQuad4Test(XNode2D[] nodes)
@@ -35,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, new SimpleIntegration2D(material));
             SymmetricMatrix2D k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
-            Utilities.MatrixUtilities.PrintDense(k);
+            MatrixUtilities.PrintDense(k);
         }
 
         public static void Main()

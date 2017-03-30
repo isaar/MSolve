@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.XFEM.Utilities
+namespace ISAAR.MSolve.XFEM.LinearAlgebra
 {
     /// <summary>
-    /// TODO: Some of these could be extension methods, but it effort should be spent into implementing them in the  
+    /// TODO: Some of these could be extension methods, but effort should be spent into implementing them in the  
     /// Matrix classes directly. If they indeed only need IMatrix, then they should be implemented as extensions.
     /// </summary>
     static class MatrixUtilities
