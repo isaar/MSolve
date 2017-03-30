@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates = 
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0);
             }
@@ -35,8 +35,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
-                TipJacobian jacobian = enrichmentItem.TipSystem.CalculateJacobianAt(polarCoordinates);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
+                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
 
                 double sqrtR = Math.Sqrt(polarCoordinates.R);
                 double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double derivativeTheta = 0.5 * sqrtR * cosThetaHalf;
 
                 return new EvaluatedFunction2D(value, 
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
             }
         }
 
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0);
             }
@@ -73,8 +73,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
-                TipJacobian jacobian = enrichmentItem.TipSystem.CalculateJacobianAt(polarCoordinates);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
+                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
 
                 double sqrtR = Math.Sqrt(polarCoordinates.R);
                 double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double derivativeTheta = -0.5 * sqrtR * sinThetaHalf;
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
             }
         }
 
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0) 
                     * Math.Cos(polarCoordinates.Theta);
@@ -113,8 +113,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
-                TipJacobian jacobian = enrichmentItem.TipSystem.CalculateJacobianAt(polarCoordinates);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
+                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
 
                 double sqrtR = Math.Sqrt(polarCoordinates.R);
                 double cosTheta = Math.Cos(polarCoordinates.Theta);
@@ -127,7 +127,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double derivativeTheta = sqrtR * (0.5 * cosThetaHalf * cosTheta - sinThetaHalf * sinTheta);
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
             }
         }
 
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
 
                 return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0)
                     * Math.Cos(polarCoordinates.Theta);
@@ -154,8 +154,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             {
                 //This section needs to be calculated only once per gauss point for all enrichment items of the same item
                 PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformCartesianGlobalToPolarLocal(cartesianPoint);
-                TipJacobian jacobian = enrichmentItem.TipSystem.CalculateJacobianAt(polarCoordinates);
+                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
+                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
 
                 double sqrtR = Math.Sqrt(polarCoordinates.R);
                 double cosTheta = Math.Cos(polarCoordinates.Theta);
@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double derivativeTheta = sqrtR * (-0.5 * sinThetaHalf * cosTheta - cosThetaHalf * sinTheta);
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformLocalPolarDerivativesToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
             }
         }
     }

@@ -9,6 +9,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
@@ -191,11 +192,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Global stiffness matrix
             //DofEnumerationChecker.PrintEnumeration(benchmark.model);
             var globalChecker = new GlobalMatrixChecker(expectedGlobalMatrixPath, expectedDofEnumerationPath, 1.0e-5, true);
-            //globalChecker.CheckGlobalMatrix(benchmark.model);
+            globalChecker.CheckGlobalMatrix(benchmark.model);
             //globalChecker.PrintGlobalMatrix(benchmark.model);
 
             // Solution
-            CheckSolution(benchmark.model);
+            //CheckSolution(benchmark.model);
             //double[] forces = benchmark.model.CalculateForces();
             //Console.WriteLine("Forces:");
             //for (int i = 0; i < forces.Length; ++i) Console.WriteLine(i + ": " + forces[i]);

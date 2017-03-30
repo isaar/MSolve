@@ -67,7 +67,8 @@
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2DAlternative.cs" />
     <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
-    <Compile Include="Enrichments\Items\CrackTip2D.cs" />
+    <Compile Include="Enrichments\Items\CrackTip\CrackTip2D.cs" />
+    <Compile Include="Enrichments\Items\CrackTip\TipJacobians.cs" />
     <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
     <Compile Include="Entities\FreedomDegrees\ArtificialDOFTypeDOFType.cs" />
     <Compile Include="Entities\FreedomDegrees\NodeMajorDofReorder.cs" />
@@ -80,8 +81,7 @@
     <Compile Include="Geometry\CoordinateSystems\INaturalPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\NaturalPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
-    <Compile Include="Geometry\CoordinateSystems\TipJacobian.cs" />
-    <Compile Include="Geometry\CoordinateSystems\TipCoordinateSystem.cs" />
+    <Compile Include="Enrichments\Items\CrackTip\TipCoordinateSystem.cs" />
     <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
     <Compile Include="Geometry\Shapes\DirectedSegment2D.cs" />
     <Compile Include="Geometry\Shapes\LineSegment1D.cs" />
@@ -152,6 +152,7 @@
     <Compile Include="Utilities\MathUtilities.cs" />
     <Compile Include="Utilities\MatrixUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
+    <Compile Include="Utilities\RotationMatrix2D.cs" />
     <Compile Include="Utilities\Triangles.cs" />
     <Compile Include="Utilities\Vector2.cs" />
   </ItemGroup>

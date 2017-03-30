@@ -10,7 +10,7 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 
-namespace ISAAR.MSolve.XFEM.Enrichments.Items
+namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 {
     // TODO: there should be some linking between the crack tips and the crack body, outside sharing the same curve 
     // object.
