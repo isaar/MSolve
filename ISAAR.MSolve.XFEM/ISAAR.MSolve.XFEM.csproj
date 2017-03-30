@@ -153,7 +153,6 @@
     <Compile Include="LinearAlgebra\DenseMatrix.cs" />
     <Compile Include="LinearAlgebra\MatrixUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
-    <Compile Include="LinearAlgebra\RotationMatrix2D.cs" />
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
     <Compile Include="Utilities\Triangles.cs" />
   </ItemGroup>

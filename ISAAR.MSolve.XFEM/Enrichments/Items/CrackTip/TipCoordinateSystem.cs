@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         private readonly double[] localCoordinatesOfGlobalOrigin;
 
         public double RotationAngle { get; }
-        public RotationMatrix2D RotationMatrixGlobalToLocal { get; }
-        public RotationMatrix2D TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
+        public DenseMatrix RotationMatrixGlobalToLocal { get; }
+        public DenseMatrix TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
 
         /// <summary>
         /// 
@@ -32,7 +32,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         public TipCoordinateSystem(ICartesianPoint2D tipCoordinates, double tipRotationAngle)
         {
             this.RotationAngle = tipRotationAngle;
-            RotationMatrixGlobalToLocal = new RotationMatrix2D(tipRotationAngle);
+
+            double cosa = Math.Cos(tipRotationAngle);
+            double sina = Math.Sin(tipRotationAngle);
+            RotationMatrixGlobalToLocal = new DenseMatrix(new double[,] { { cosa, sina }, { -sina, cosa } });
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
             localCoordinatesOfGlobalOrigin = RotationMatrixGlobalToLocal.MultiplyRight(
                 new double[] { -tipCoordinates.X, -tipCoordinates.Y });
@@ -40,8 +43,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 
         public ICartesianPoint2D TransformPointGlobalCartesianToLocalCartesian(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = RotationMatrixGlobalToLocal.MultiplyRight(
-                new double[] { cartesianGlobalPoint.X, cartesianGlobalPoint.Y });
+            double[] rotated = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
             double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
             double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
             return new CartesianPoint2D(x1, x2);
@@ -58,8 +60,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 
         public PolarPoint2D TransformPointGlobalCartesianToLocalPolar(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = RotationMatrixGlobalToLocal.MultiplyRight(
-                new double[] { cartesianGlobalPoint.X, cartesianGlobalPoint.Y });
+            double[] rotated = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
             double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
             double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
             double r = Math.Sqrt(x1 * x1 + x2 * x2);
@@ -72,24 +73,22 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             return new TipJacobians(this, polarCoordinates);
         }
 
-        public Tuple<double, double> TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(
-            double gradX, double gradY)
+        public double[] TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(double[] gradient)
+
         {
-            double gradX1 = RotationMatrixGlobalToLocal[0, 0] * gradX + RotationMatrixGlobalToLocal[0, 1] * gradY;
-            double gradX2 = RotationMatrixGlobalToLocal[1, 0] * gradX + RotationMatrixGlobalToLocal[1, 1] * gradY;
-            return new Tuple<double, double>(gradX1, gradX2);
+            return gradient * TransposeRotationMatrixGlobalToLocal;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="derivatives">Row i is the gradient of the ith component of the vector field, thus: 
-        ///     derivatives = [Fx,x Fx,y; Fy,x Fy,y],
+        /// <param name="gradient">A 2x2 matrix, for which: Row i is the gradient of the ith component of the vector 
+        ///     field, thus:    gradient = [Fx,x Fx,y; Fy,x Fy,y],
         ///     where Fi,j is the derivative of component i w.r.t. coordinate j</param>
         /// <returns></returns>
-        public double[,] TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(double[,] derivatives)
+        public DenseMatrix TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(DenseMatrix gradient)
         {
-            return RotationMatrixGlobalToLocal.MultiplyRight(TransposeRotationMatrixGlobalToLocal.MultiplyLeft(derivatives));
+            return RotationMatrixGlobalToLocal * (gradient * TransposeRotationMatrixGlobalToLocal);
         }
 
         public Tensor2D TransformTensorGlobalCartesianToLocalCartesian(Tensor2D tensor)

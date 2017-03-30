@@ -15,10 +15,10 @@ namespace ISAAR.MSolve.XFEM.Utilities
         public double Value { get; }
         public Tuple<double, double> CartesianDerivatives { get; }
 
-        public EvaluatedFunction2D(double value, Tuple<double, double> cartesianDerivatives)
+        public EvaluatedFunction2D(double value, double[] cartesianDerivatives)
         {
             this.Value = value;
-            this.CartesianDerivatives = cartesianDerivatives;
+            this.CartesianDerivatives = new Tuple<double, double>(cartesianDerivatives[0], cartesianDerivatives[1]);
         }
     }
 }

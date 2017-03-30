@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 
         public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
         {
-            var derivatives = new Tuple<double, double>(0.0, 0.0);
+            var derivatives = new double[] { 0.0, 0.0 };
             double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
             if (signedDistance > 0) return new EvaluatedFunction2D(1.0, derivatives);
             else if (signedDistance < 0) return new EvaluatedFunction2D(-1.0, derivatives);

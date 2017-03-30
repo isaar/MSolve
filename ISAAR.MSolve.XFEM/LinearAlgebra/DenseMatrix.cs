@@ -8,14 +8,14 @@ using ISAAR.MSolve.XFEM.Utilities;
 namespace ISAAR.MSolve.XFEM.LinearAlgebra
 {
     /// <summary>
-    /// A simple unoptimized double[,] with some useful methods for linear algebra operations. 
+    /// A simple unoptimized immutable double[,] with some useful methods for linear algebra operations. 
     /// Use it for small matrices.
     /// </summary>
     class DenseMatrix
     {
         public static DenseMatrix CreateByCopying(double[,] data)
         {
-            double[,] newData = new double[data.GetLength(1), data.GetLength(2)];
+            double[,] newData = new double[data.GetLength(0), data.GetLength(1)];
             Array.Copy(data, newData, data.Length);
             return new DenseMatrix(newData);
         }
@@ -45,8 +45,8 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
 
         public DenseMatrix(double[,] data)
         {
-            this.rows = data.GetLength(1);
-            this.columns = data.GetLength(2);
+            this.rows = data.GetLength(0);
+            this.columns = data.GetLength(1);
             this.data = data;
         }
 

@@ -11,6 +11,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
         public double X { get; }
         public double Y { get; }
 
+        public double[] Coordinates { get { return new double[] { X, Y }; } }
+
         public CartesianPoint2D(double x, double y)
         {
             this.X = x;

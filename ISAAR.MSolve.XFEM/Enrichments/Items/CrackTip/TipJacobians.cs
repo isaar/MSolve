@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 {
@@ -13,8 +14,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
     class TipJacobians
     {
         private readonly TipCoordinateSystem tipSystem;
-        private readonly double[,] invTransJacobianPolarToLocal;
-        private readonly double[,] invTransJacobianPolarToGlobal;
+        private readonly DenseMatrix inverseJacobianPolarToLocal;
+        private readonly DenseMatrix inverseJacobianPolarToGlobal;
 
         public TipJacobians(TipCoordinateSystem tipSystem, PolarPoint2D polarCoordinates)
         {
@@ -23,42 +24,35 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             double r = polarCoordinates.R;
             double cosTheta = Math.Cos(polarCoordinates.Theta);
             double sinTheta = Math.Sin(polarCoordinates.Theta);
-            invTransJacobianPolarToLocal = new double[,] { { cosTheta, -sinTheta / r }, { sinTheta, cosTheta / r } };
+            inverseJacobianPolarToLocal = new DenseMatrix(new double[,] 
+                { { cosTheta, sinTheta }, {-sinTheta / r , cosTheta / r } });
 
-            invTransJacobianPolarToGlobal = 
-                tipSystem.TransposeRotationMatrixGlobalToLocal.MultiplyRight(invTransJacobianPolarToLocal);
+            inverseJacobianPolarToGlobal = inverseJacobianPolarToLocal * tipSystem.RotationMatrixGlobalToLocal;
         }
 
-        public Tuple<double, double> TransformScalarFieldDerivativesLocalPolarToLocalCartesian(
-            double gradR, double gradTheta)
+        public double[] TransformScalarFieldDerivativesLocalPolarToLocalCartesian(double[] gradient)
         {
-            double gradX1 = invTransJacobianPolarToLocal[0, 0] * gradR
-                + invTransJacobianPolarToLocal[0, 1] * gradTheta;
-            double gradX2 = invTransJacobianPolarToLocal[1, 0] * gradR
-                +  invTransJacobianPolarToLocal[1, 1] * gradTheta;
-           return new Tuple<double, double>(gradX1, gradX2);
+            return gradient * inverseJacobianPolarToLocal;
         }
 
-        public Tuple<double, double> TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(
-            double derivativeR, double derivativeTheta)
+        public double[] TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(double[] gradient)
         {
-            double gradX1 = invTransJacobianPolarToGlobal[0, 0] * derivativeR
-                + invTransJacobianPolarToGlobal[0, 1] * derivativeTheta;
-            double gradX2 = invTransJacobianPolarToGlobal[1, 0] * derivativeR
-                + invTransJacobianPolarToGlobal[1, 1] * derivativeTheta;
-            return new Tuple<double, double>(gradX1, gradX2);
+            return gradient * inverseJacobianPolarToGlobal;
         }
 
         /// <summary>
-        /// 
+        /// Attention: The input vector field is differentiated w.r.t. the polar cartesian system coordinates.
+        /// The output vector field is differentiated w.r.t. the local cartesian system coordinates. However the 
+        /// representations of both vector fields (aka the coordinates of the vectors) are in the local cartesian 
+        /// coordinate system.
         /// </summary>
-        /// <param name="derivatives">Row i is the gradient of the ith component of the vector field, thus: 
-        ///     derivatives = [Fr,r Fr,theta; Ftheta,r Ftheta,theta],
+        /// <param name="gradient">A 2x2 matrix, for which: Row i is the gradient of the ith component of the vector  
+        ///     field, thus:    gradient = [Fr,r Fr,theta; Ftheta,r Ftheta,theta],
         ///     where Fi,j is the derivative of component i w.r.t. coordinate j</param>
         /// <returns></returns>
-        public double[,] TransformVectorFieldDerivativesLocalPolarToLocalCartesian(double[,] derivatives)
+        public DenseMatrix TransformVectorFieldDerivativesLocalPolarToLocalCartesian(DenseMatrix gradient)
         {
-            throw new NotImplementedException("Should return [derivatives]*inv([JacobianPolarToLocal])");
+            return gradient * inverseJacobianPolarToLocal;
         }
     }
 }

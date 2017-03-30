@@ -16,6 +16,8 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public double Y { get; }
 
+        public double[] Coordinates { get { return new double[] { X, Y }; } }
+
         public Node2D(int id, double x, double y)
         {
             if (id < 0) throw new ArgumentException("The parameter id must be non negative, but was: " + id);

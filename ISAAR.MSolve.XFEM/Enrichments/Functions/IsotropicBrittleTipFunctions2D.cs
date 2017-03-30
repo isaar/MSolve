@@ -48,11 +48,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf;
-                double derivativeR = 0.5 / sqrtR * sinThetaHalf;
-                double derivativeTheta = 0.5 * sqrtR * cosThetaHalf;
+                double[] gradient = { 0.5 / sqrtR * sinThetaHalf, 0.5 * sqrtR * cosThetaHalf };
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
             }
         }
 
@@ -91,11 +90,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf;
-                double derivativeR = 0.5 / sqrtR * cosThetaHalf;
-                double derivativeTheta = -0.5 * sqrtR * sinThetaHalf;
+                double[] gradient = { 0.5 / sqrtR * cosThetaHalf, -0.5 * sqrtR * sinThetaHalf };
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
             }
         }
 
@@ -137,11 +135,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf * sinTheta;
-                double derivativeR = 0.5 / sqrtR * sinThetaHalf * sinTheta;
-                double derivativeTheta = sqrtR * (0.5 * cosThetaHalf * sinTheta + sinThetaHalf * cosTheta);
+                double[] gradient = { 0.5 / sqrtR * sinThetaHalf * sinTheta,
+                    sqrtR * (0.5 * cosThetaHalf * sinTheta + sinThetaHalf * cosTheta) };
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
             }
         }
 
@@ -183,11 +181,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf * sinTheta;
-                double derivativeR = 0.5 / sqrtR * cosThetaHalf * sinTheta;
-                double derivativeTheta = sqrtR * (-0.5 * sinThetaHalf * sinTheta + cosThetaHalf * cosTheta);
+                double[] gradient = { 0.5 / sqrtR * cosThetaHalf * sinTheta,
+                    sqrtR * (-0.5 * sinThetaHalf * sinTheta + cosThetaHalf * cosTheta) };
 
                 return new EvaluatedFunction2D(value,
-                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(derivativeR, derivativeTheta));
+                    jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
             }
         }
     }

@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             int sign = Math.Sign(signedDistance);
             Tuple<double, double> normal = enrichmentItem.Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D(Math.Abs(signedDistance), 
-                new Tuple<double, double>(sign * normal.Item1, sign * normal.Item2));
+                new double[] { sign * normal.Item1, sign * normal.Item2 });
         }
     }
 }

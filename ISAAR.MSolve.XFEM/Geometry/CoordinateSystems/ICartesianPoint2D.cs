@@ -10,5 +10,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
     {
         double X { get; }
         double Y { get; }
+
+        /// <summary>
+        /// Returns an array of length = 2 containing the coordinates. The point is not mutated if the array is changed.
+        /// </summary>
+        double[] Coordinates { get; }
     }
 }
