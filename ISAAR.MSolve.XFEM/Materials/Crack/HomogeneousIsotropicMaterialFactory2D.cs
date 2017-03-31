@@ -9,12 +9,18 @@ namespace ISAAR.MSolve.XFEM.Materials.Crack
 {
     class HomogeneousIsotropicMaterialFactory2D: ICrackMaterialFactory2D
     {
+        public enum PlaneProblem
+        {
+            PlaneStrain, PlaneStress  
+        }
+
         private readonly double poissonRatio;
-        private readonly double shearModulus;
+        private readonly double youngModulus;
         private readonly double criticalFractureTougnhess;
+        private readonly double kolosovCoefficient;
 
         public HomogeneousIsotropicMaterialFactory2D(double youngModulus, double poissonRatio, 
-            double criticalFractureTougnhess)
+            double criticalFractureTougnhess, PlaneProblem planeProblem)
         {
             if (youngModulus < 0.0)
             {
@@ -30,14 +36,18 @@ namespace ISAAR.MSolve.XFEM.Materials.Crack
                     + criticalFractureTougnhess);
             }
 
+            this.youngModulus = youngModulus;
             this.poissonRatio = poissonRatio;
-            this.shearModulus = 0.5 * youngModulus / (1.0 + poissonRatio);
             this.criticalFractureTougnhess = criticalFractureTougnhess;
+
+            if (planeProblem == PlaneProblem.PlaneStrain) kolosovCoefficient = 3 - 4 * poissonRatio;
+            else kolosovCoefficient = (3 - poissonRatio) / (1 + poissonRatio);
         }
 
         public CrackMaterial2D FindMaterialAtPoint(ICartesianPoint2D point)
         {
-            return new CrackMaterial2D(poissonRatio, shearModulus, criticalFractureTougnhess);
+            return new CrackMaterial2D(youngModulus, poissonRatio, 
+                0.5 * youngModulus / (1.0 + poissonRatio), criticalFractureTougnhess, kolosovCoefficient);
         }
     }
 }

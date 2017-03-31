@@ -67,6 +67,7 @@
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2DAlternative.cs" />
     <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
+    <Compile Include="CrackPropagation\Jintegral\AuxiliaryStates.cs" />
     <Compile Include="Enrichments\Items\CrackTip\CrackTip2D.cs" />
     <Compile Include="Enrichments\Items\CrackTip\TipJacobians.cs" />
     <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />

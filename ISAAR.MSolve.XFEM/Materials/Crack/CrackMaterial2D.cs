@@ -12,17 +12,21 @@ namespace ISAAR.MSolve.XFEM.Materials.Crack
     /// </summary>
     class CrackMaterial2D
     {
-        public CrackMaterial2D(double poissonRatio, double shearModulus, double criticalFractureTougnhess)
+        public CrackMaterial2D(double youngModulus, double poissonRatio, double shearModulus, 
+            double criticalFractureTougnhess, double kolosovCoefficient)
         {
             // Arguments should be checked by the factory, to avoid rechecking at each step.
-
+            this.YoungModulus = youngModulus;
             this.PoissonRatio = poissonRatio;
             this.ShearModulus = shearModulus;
             this.CriticalFractureTougnhess = criticalFractureTougnhess;
+            this.KolosovCoefficient = kolosovCoefficient;
         }
 
-        double PoissonRatio { get; }
-        double ShearModulus { get; }
-        double CriticalFractureTougnhess { get; }
+        public double YoungModulus { get; }
+        public double PoissonRatio { get; }
+        public double ShearModulus { get; }
+        public double CriticalFractureTougnhess { get; }
+        public double KolosovCoefficient { get; }
     }
 }

@@ -13,11 +13,11 @@ namespace ISAAR.MSolve.XFEM.Tensors
         public double YY { get; }
         public double XY { get; }
 
-        public Tensor2D(double valueXX, double valueYY, double valueXY)
+        public Tensor2D(double componentXX, double componentYY, double componentXY)
         {
-            this.XX = valueXX;
-            this.YY = valueYY;
-            this.XY = valueXY;
+            this.XX = componentXX;
+            this.YY = componentYY;
+            this.XY = componentXY;
         }
 
         public Tensor2D Multiply(double scalar)
