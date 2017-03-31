@@ -24,6 +24,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         public DenseMatrix TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
 
         /// <summary>
+        /// det(J_globToLoc) = det(Q) = (cosa)^2 + (sina)^2 = 1
+        /// </summary>
+        public double DeterminantOfJacobianGlobalToLocalCartesian { get; }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="tipCoordinates">Coordinates of the crack tip in the global cartesian system.</param>
@@ -39,6 +44,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
             localCoordinatesOfGlobalOrigin = RotationMatrixGlobalToLocal.MultiplyRight(
                 new double[] { -tipCoordinates.X, -tipCoordinates.Y });
+
+            DeterminantOfJacobianGlobalToLocalCartesian = 1.0; // det = (cosa)^2 +(sina)^2 = 1
         }
 
         public ICartesianPoint2D TransformPointGlobalCartesianToLocalCartesian(ICartesianPoint2D cartesianGlobalPoint)

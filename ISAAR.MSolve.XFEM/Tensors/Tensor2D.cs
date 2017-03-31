@@ -26,6 +26,16 @@ namespace ISAAR.MSolve.XFEM.Tensors
         }
 
         /// <summary>
+        /// Colon multiplication of tensors A, B is defined as: A:B = Aij * Bij
+        /// </summary>
+        /// <param name="tensor"></param>
+        /// <returns></returns>
+        public double MultiplyColon(Tensor2D tensor)
+        {
+            return this.XX * tensor.XX + 2 * (this.XY * tensor.XY) + this.YY * tensor.YY;
+        }
+
+        /// <summary>
         /// Rotates the tensor counter clockwise.
         /// </summary>
         /// <param name="angle">The counter-clockwise angle that the current tensor is rotated. Should belong to 
