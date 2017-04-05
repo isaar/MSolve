@@ -17,7 +17,7 @@ using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.Integration.Rules;
+using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -195,6 +195,48 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             Debug.Assert(currentColumn == artificialDofsCount);
             return deformationMatrix;
+        }
+
+        /// <summary>
+        /// The displacement field derivatives are a 2x2 matrix: gradientU[i,j] = dui/dj where i is the vector component 
+        /// and j is the coordinate, w.r.t which the differentiation is done. The differentation coordinates and the
+        /// vector components refer to the global cartesian system. 
+        /// </summary>
+        /// <param name="evaluatedInterpolation"></param>
+        /// <param name="nodalDisplacementsX"></param>
+        /// <param name="nodalDisplacementsY"></param>
+        /// <returns></returns>
+        private DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
+            double[] nodalDisplacementsX, double[] nodalDisplacementsY)
+        {
+            double[,] displacementGradient = new double[2, 2];
+            for (int n = 0; n < Nodes.Count; ++n)
+            {
+                Tuple<double, double> shapeFunctionDerivatives = evaluatedInterpolation.GetCartesianDerivativesOf(Nodes[n]);
+                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsX[n];
+                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsX[n];
+                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsY[n];
+                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsY[n];
+            }
+            return new DenseMatrix(displacementGradient);
+        }
+
+        // In a non linear problem I would also have to pass the new displacements or I would have to update the
+        // material state elsewhere.
+        private Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, IFiniteElementMaterial2D material)
+        {
+            Matrix2D constitutive = material.CalculateConstitutiveMatrix(); 
+
+            double strainXX = displacementFieldGradient[0, 0];
+            double strainYY = displacementFieldGradient[1, 1];
+            double strainXY = 0.5 * (displacementFieldGradient[0, 1] + displacementFieldGradient[1, 0]);
+
+            // Should constitutive also be a tensor? Or  should I use matrices and vectors instead of tensors?
+            double stressXX = constitutive[0, 0] * strainXX + constitutive[0, 1] * strainYY;
+            double stressYY = constitutive[1, 0] * strainXX + constitutive[1, 1] * strainYY;
+            double stressXY = constitutive[2, 2] * strainXY;
+
+            return new Tensor2D(stressXX, stressYY, stressXY);
         }
 
         #region Dofs (perhaps all these should be delegated to element specific std and enr DofEnumerators)
