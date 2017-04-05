@@ -54,18 +54,12 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
         /// </summary>
         public Tensor2D StressTensorMode2 { get; }
 
-        public static AuxiliaryStates ComputeLocalCartesianTensorsOfAuxiliaryStates(CrackMaterial2D materialAtTip, 
-            TipCoordinateSystem tipCoordinateSystem, ICartesianPoint2D localCartesianCoordinatesOfGaussPoint)
-        {
-            return new AuxiliaryStates(materialAtTip, tipCoordinateSystem, localCartesianCoordinatesOfGaussPoint);
-        }
-
-        private AuxiliaryStates(CrackMaterial2D materialAtTip, TipCoordinateSystem tipCoordinateSystem, 
-            ICartesianPoint2D localCartesianCoordinatesOfGaussPoint)
+        public AuxiliaryStates(CrackMaterial2D materialAtTip, TipCoordinateSystem tipCoordinateSystem, 
+            ICartesianPoint2D globalCartesianCoordinatesOfGaussPoint)
         {
             // Common calculations
             PolarPoint2D point = 
-                tipCoordinateSystem.TransformPointLocalCartesianToLocalPolar(localCartesianCoordinatesOfGaussPoint);
+                tipCoordinateSystem.TransformPointGlobalCartesianToLocalPolar(globalCartesianCoordinatesOfGaussPoint);
             var commonValues = new CommonValues(point.R, point.Theta);
 
             // Displacement field derivatives

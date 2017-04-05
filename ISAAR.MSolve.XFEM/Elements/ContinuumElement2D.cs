@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 int col1 = 2 * nodeIndex;
                 int col2 = 2 * nodeIndex + 1;
-                Tuple<double, double> dNdX = evaluatedInterpolation.GetCartesianDerivativesOf(Nodes[nodeIndex]);
+                Tuple<double, double> dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
 
                 deformationMatrix[0, col1] = dNdX.Item1;
                 deformationMatrix[1, col2] = dNdX.Item2;

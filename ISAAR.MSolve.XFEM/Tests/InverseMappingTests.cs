@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
                     NaturalPoint2D naturalOriginal = new NaturalPoint2D(xi, eta);
                     ICartesianPoint2D cartesian =
-                        interpolation.EvaluateAt(nodes, naturalOriginal).TransformNaturalToCartesian(naturalOriginal);
+                        interpolation.EvaluateAt(nodes, naturalOriginal).TransformPointNaturalToGlobalCartesian(naturalOriginal);
                     INaturalPoint2D naturalReconstructed = inverseMapping.TransformCartesianToNatural(cartesian);
 
                     Console.WriteLine("Point (" + i + "," + j + "):");

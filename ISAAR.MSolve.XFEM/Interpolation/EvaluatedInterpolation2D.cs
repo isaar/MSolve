@@ -8,6 +8,13 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
+    // TODO: The contnets of this class will almost always be accessed in for loops with the node index as a loop
+    // counter, because there will generally be a need for the index's position in a matrix or there would be a list of
+    // nodal values to interpolate. Using Node2D as key of the dictionaries with and requiring it from the client, 
+    // introduces little extra safety, since the user will have to map the node index to Node2D. Performance wise it is
+    // also a bad idea, since it requires to convert int -> Node2D (client) and then Dictionary lookup of Node2D (this 
+    // class), instead of an array read. I guess it would be acceptable to use node indices to communicate with the 
+    // client, IF that client is guaranteed to be the element. 
     class EvaluatedInterpolation2D
     {
         // TODO: these 2 dictionaries may be able to be optimized into 1. E.g. only 1 data structure 
@@ -53,12 +60,15 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return nodesToValues[node];
         }
 
-        public Tuple<double, double> GetCartesianDerivativesOf(Node2D node)
+        // TODO: It would be easier for the client to access directly dNi/dx and dNi/dy instead of a 
+        // Tuple<double, double>. However it would require multiple node lookups. Otherwise, a software wide convention   
+        // to use gradients as IReadOnlyList (immutable row arrays) or a dedicated (immutable class) can be enforced.  
+        public Tuple<double, double> GetGlobalCartesianDerivativesOf(Node2D node)
         {
             return nodesToCartesianDerivatives[node];
         }
 
-        public ICartesianPoint2D TransformNaturalToCartesian(INaturalPoint2D naturalCoordinates)
+        public ICartesianPoint2D TransformPointNaturalToGlobalCartesian(INaturalPoint2D naturalCoordinates)
         {
             double x = 0, y = 0;
             foreach (var entry in nodesToValues)
@@ -70,5 +80,10 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             }
             return new CartesianPoint2D(x, y);
         }
+
+        // TODO: Add methods: interpolate scalar, interpolate vector/point (there already is one, just make it similar 
+        // to the other interpolations), interpolate scalar gradient, interpolate vector gradient. All these will need
+        // nodal values as input. These should be passed in as immutable 2D and 2D lists for starters. Nodal 
+        // dictionaries would require a lot of work for the client, but provide some extra security.
     }
 }

@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     /// </summary>
     class XContinuumElement2D
     {
-        private readonly IsoparametricElementType2D elementType;
+        protected readonly IsoparametricElementType2D elementType;
 
         /// <summary>
         /// All nodes are enriched for now.
@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 int col1 = 2 * nodeIndex;
                 int col2 = 2 * nodeIndex + 1;
-                Tuple<double, double> dNdX = evaluatedInterpolation.GetCartesianDerivativesOf(Nodes[nodeIndex]);
+                Tuple<double, double> dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
 
                 deformationMatrix[0, col1] = dNdX.Item1;
                 deformationMatrix[1, col2] = dNdX.Item2;
@@ -149,10 +149,10 @@ namespace ISAAR.MSolve.XFEM.Elements
             return deformationMatrix;
         }
 
-        private Matrix2D CalculateEnrichedDeformationMatrix(int artificialDofsCount,
+        protected Matrix2D CalculateEnrichedDeformationMatrix(int artificialDofsCount,
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformNaturalToCartesian(gaussPoint);
+            ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
             var uniqueFunctions = new Dictionary<IEnrichmentFunction2D, EvaluatedFunction2D>();
 
             var deformationMatrix = new Matrix2D(3, artificialDofsCount);
@@ -160,7 +160,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (XNode2D node in Nodes)
             {
                 double N = evaluatedInterpolation.GetValueOf(node);
-                var dNdx = evaluatedInterpolation.GetCartesianDerivativesOf(node);
+                var dNdx = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
 
                 foreach (var enrichment in node.EnrichmentFunctions)
                 {
@@ -206,24 +206,25 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        private DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
+        protected DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
             double[] nodalDisplacementsX, double[] nodalDisplacementsY)
         {
             double[,] displacementGradient = new double[2, 2];
-            for (int n = 0; n < Nodes.Count; ++n)
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                Tuple<double, double> shapeFunctionDerivatives = evaluatedInterpolation.GetCartesianDerivativesOf(Nodes[n]);
-                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsX[n];
-                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsX[n];
-                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsY[n];
-                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsY[n];
+                Tuple<double, double> shapeFunctionDerivatives = 
+                    evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIdx]);
+                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsX[nodeIdx];
+                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsX[nodeIdx];
+                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsY[nodeIdx];
+                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsY[nodeIdx];
             }
             return new DenseMatrix(displacementGradient);
         }
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        private Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, IFiniteElementMaterial2D material)
+        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, IFiniteElementMaterial2D material)
         {
             Matrix2D constitutive = material.CalculateConstitutiveMatrix(); 
 
