@@ -10,6 +10,8 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
     /// TODO: abstract this with an IGlobalEnumerator2D interface. That way I could have different dof orders:
     /// e.g. 1) first all standard dofs and then all enriched, 2) First all dofs (std & enr) of the 1st node, 
     /// then of the 2nd, etc.
+    /// TODO: there is no reason to interact with Element2D instead of directly XContinuumElement. I do not use 
+    /// anything from Element2D and accessing element.ElementType.SomeMethod() violates Diameter's law.
     class DOFEnumerator
     {
         private readonly int freeStandardDofsCount;
@@ -89,6 +91,36 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 }
             }
             return globalDofs;
+        }
+
+        /// <summary>
+        /// For constrained dofs the corresponding displacement is 0.0
+        /// TODO: Modify this method to extract any kind of vector, not only displacement, which means different 
+        /// handling of constrained dofs, if constrained dofs are defined in the first place.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="globalVector"></param>
+        /// <returns></returns>
+        public double[] ExtractDisplacementVectorOfElementFromGlobal(Element2D element, double[] globalVector)
+        {
+            IReadOnlyDictionary<Node2D, HashSet<StandardDOFType>> elementDofs = 
+                element.ElementType.GetStandardNodalDOFTypes();
+            int dofsCount = 0;
+            foreach (HashSet<StandardDOFType> nodalDofs in elementDofs.Values) dofsCount += nodalDofs.Count;
+            double[] localVector = new double[dofsCount];
+
+            int localDof = 0;
+            foreach (KeyValuePair<Node2D, HashSet<StandardDOFType>> pair in elementDofs)
+            {
+                Dictionary<StandardDOFType, int> globalDofTypesOfNode = standardDofs[pair.Key];
+                foreach (StandardDOFType localDofType in pair.Value)
+                {
+                    int globalDof = globalDofTypesOfNode[localDofType];
+                    if (globalDof == -1) localVector[localDof++] = 0;
+                    else localVector[localDof++] = globalVector[globalDof];
+                }
+            }
+            return localVector;
         }
 
         private static void EnumerateStandardDofs(

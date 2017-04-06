@@ -207,17 +207,20 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
         protected DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
-            double[] nodalDisplacementsX, double[] nodalDisplacementsY)
+            double[] nodalDisplacements)
         {
             double[,] displacementGradient = new double[2, 2];
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
+                double displacementX = nodalDisplacements[2 * nodeIdx];
+                double displacementY = nodalDisplacements[2 * nodeIdx + 1];
+
                 Tuple<double, double> shapeFunctionDerivatives = 
                     evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIdx]);
-                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsX[nodeIdx];
-                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsX[nodeIdx];
-                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * nodalDisplacementsY[nodeIdx];
-                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * nodalDisplacementsY[nodeIdx];
+                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * displacementX;
+                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * displacementX;
+                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * displacementY;
+                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * displacementY;
             }
             return new DenseMatrix(displacementGradient);
         }

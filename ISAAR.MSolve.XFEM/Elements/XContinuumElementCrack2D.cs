@@ -29,8 +29,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         public void ComputeInteractionIntegrals(TipCoordinateSystem tipCoordinateSystem, CrackMaterial2D materialAtTip,
-            double[] nodalDisplacementsX, double[] nodalDisplacementsY, double[] nodalWeights,
-            out double integralMode1, out double integralMode2)
+            double[] nodalDisplacements, double[] nodalWeights, out double integralMode1, out double integralMode2)
         {
             integralMode1 = 0.0;
             integralMode2 = 0.0;
@@ -46,8 +45,8 @@ namespace ISAAR.MSolve.XFEM.Elements
                 ICartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
 
                 // State 1
-                DenseMatrix globalDisplacementGradState1 = CalculateDisplacementFieldGradient(evaluatedInterpolation, 
-                    nodalDisplacementsX, nodalDisplacementsY);
+                DenseMatrix globalDisplacementGradState1 = 
+                    CalculateDisplacementFieldGradient(evaluatedInterpolation, nodalDisplacements);
                 Tensor2D globalStressState1 = CalculateStressTensor(globalDisplacementGradState1, material);
                 DenseMatrix localDisplacementGradState1 = tipCoordinateSystem.
                     TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(globalDisplacementGradState1);
@@ -55,6 +54,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                     TransformTensorGlobalCartesianToLocalCartesian(globalStressState1);
 
                 // Weight Function
+                // TODO: There should be a method InterpolateScalarGradient(double[] nodalValues) in EvaluatedInterpolation
                 double[] globalWeightGradient = new double[2];
                 for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
                 {
