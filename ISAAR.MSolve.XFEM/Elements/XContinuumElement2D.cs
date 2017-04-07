@@ -17,6 +17,7 @@ using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Elements
@@ -29,9 +30,11 @@ namespace ISAAR.MSolve.XFEM.Elements
     ///     Pros: only need to track one set of Gauss points, which simplifies non linear analysis. 
     ///     Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
     /// </summary>
-    class XContinuumElement2D
+    class XContinuumElement2D: IMeshFace
     {
         protected readonly IsoparametricElementType2D elementType;
+
+        public IReadOnlyList<ICartesianPoint2D> Vertices { get { return Nodes; } }
 
         /// <summary>
         /// All nodes are enriched for now.

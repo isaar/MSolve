@@ -70,6 +70,9 @@
     <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
     <Compile Include="CrackPropagation\Jintegral\AuxiliaryStates.cs" />
     <Compile Include="Enrichments\Items\CrackTip\CrackTip2D.cs" />
+    <Compile Include="Enrichments\Items\CrackTip\FixedEnrichmentArea.cs" />
+    <Compile Include="Enrichments\Items\CrackTip\IElementInteractionStrategy.cs" />
+    <Compile Include="Enrichments\Items\CrackTip\SingleElementEnrichment.cs" />
     <Compile Include="Enrichments\Items\CrackTip\TipJacobians.cs" />
     <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
     <Compile Include="Entities\FreedomDegrees\ArtificialDOFTypeDOFType.cs" />
@@ -84,6 +87,9 @@
     <Compile Include="Geometry\CoordinateSystems\NaturalPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Enrichments\Items\CrackTip\TipCoordinateSystem.cs" />
+    <Compile Include="Geometry\Mesh\IMesh2D.cs" />
+    <Compile Include="Geometry\Mesh\IMeshFace.cs" />
+    <Compile Include="Geometry\Mesh\SimpleMesh2D.cs" />
     <Compile Include="Geometry\Shapes\Circle2D.cs" />
     <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
     <Compile Include="Geometry\Shapes\DirectedSegment2D.cs" />

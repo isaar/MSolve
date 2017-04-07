@@ -32,6 +32,18 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         public IReadOnlyList<ICartesianPoint2D> Vertices { get; }
         public IReadOnlyList<LineSegment2D> Edges { get; }
 
+        public double ComputeArea()
+        {
+            double sum = 0.0;
+            for (int vertexIdx = 0; vertexIdx < Vertices.Count; ++vertexIdx)
+            {
+                ICartesianPoint2D vertex1 = Vertices[vertexIdx];
+                ICartesianPoint2D vertex2 = Vertices[(vertexIdx + 1) % Vertices.Count];
+                sum += vertex1.X * vertex2.Y - vertex2.X * vertex1.Y;
+            }
+            return Math.Abs(0.5 * sum); // area would be negative if vertices were in counter-clockwise order
+        }
+
         /// <summary>
         /// Shamelessly copied from http://stackoverflow.com/questions/8721406/how-to-determine-if-a-point-is-inside-a-2d-convex-polygon
         /// or http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon?noredirect=1&lq=1
