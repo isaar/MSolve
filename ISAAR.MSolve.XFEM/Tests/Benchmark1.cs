@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var crackEnd = new CartesianPoint2D(0.20, 0.15);
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
-            crackTip = new CrackTip2D(CrackTip2D.TipPosition.CurveEnd, polyline);
+            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveEnd, polyline);
 
             // Mesh geometry interaction
             polyline.ElementIntersections.Add(elements[4], new CartesianPoint2D[] { crackStart, intersection });

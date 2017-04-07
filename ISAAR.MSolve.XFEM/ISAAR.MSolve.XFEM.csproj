@@ -84,6 +84,7 @@
     <Compile Include="Geometry\CoordinateSystems\NaturalPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Enrichments\Items\CrackTip\TipCoordinateSystem.cs" />
+    <Compile Include="Geometry\Shapes\Circle2D.cs" />
     <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
     <Compile Include="Geometry\Shapes\DirectedSegment2D.cs" />
     <Compile Include="Geometry\Shapes\LineSegment1D.cs" />

@@ -8,7 +8,10 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
+//using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 {
@@ -16,20 +19,28 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
     // object.
     class CrackTip2D: AbstractEnrichmentItem2D
     {
-        
-        private readonly TipPosition tipPosition;
+        // TODO: a more polymorhic design would be better
+        public enum TipCurvePosition
+        {
+            CurveStart, CurveEnd
+        }
+
+        private readonly TipCurvePosition tipPosition;
         private readonly IGeometryDescription2D discontinuity;
 
-        // This needs to be updated at each analysis step.
+        // The next properties/fields need to be updated at each analysis step.
         public TipCoordinateSystem TipSystem { get; private set; }
+        public ICartesianPoint2D TipCoordinates { get; private set; }
 
         /// <summary>
         /// Angle (in rad) of local x to global x, in a counter clockwise rotation.
         /// </summary>
         public double LocalSystemOrientation { get; private set; }
 
+        private XContinuumElementCrack2D TipElement { get; set; }
+
         // The angle should be determined from the crack body curve, not by the user.
-        public CrackTip2D(TipPosition tipPosition, IGeometryDescription2D discontinuity)
+        public CrackTip2D(TipCurvePosition tipPosition, IGeometryDescription2D discontinuity)
         {
             this.tipPosition = tipPosition;
             this.discontinuity = discontinuity;
@@ -58,9 +69,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 
         public void UpdateTransform()
         {
-            if (tipPosition == TipPosition.CurveEnd)
+            if (tipPosition == TipCurvePosition.CurveEnd)
             {
-                this.TipSystem = new TipCoordinateSystem(discontinuity.EndPoint, discontinuity.EndPointOrientation());
+                TipCoordinates = discontinuity.EndPoint;
+                TipSystem = new TipCoordinateSystem(TipCoordinates, discontinuity.EndPointOrientation());
             }
             else
             {
@@ -79,16 +91,50 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
                 uniquePoints.Add(point);
             }
 
-            if (tipPosition == TipPosition.CurveEnd) uniquePoints.Add(discontinuity.EndPoint);
+            if (tipPosition == TipCurvePosition.CurveEnd) uniquePoints.Add(discontinuity.EndPoint);
             else throw new NotImplementedException("For now the tip can only be located at the curve's end");
 
             return new List<ICartesianPoint2D>(uniquePoints);
         }
 
-        // TODO: a more polymorhic design would be better
-        public enum TipPosition
+        private double ComputeJintegralOuterRadius()
         {
-            CurveStart, CurveEnd
+            throw new NotImplementedException("Needs input from the constructor and is different for fixed enrichment");
+        }
+
+        private IReadOnlyDictionary<XContinuumElementCrack2D, double[]> FindJintegralElementsAndNodalWeights(
+            Model2D model)
+        {
+            Circle2D outerContour = new Circle2D(TipCoordinates, ComputeJintegralOuterRadius());
+
+            var elementsAndWeights = new Dictionary<XContinuumElementCrack2D, double[]>();
+            foreach (Element2D element in model.Elements) // TODO: Reduce the O(elementsCount) complexity by using a better mesh class.
+            {
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+                if (outline.IntersectsWithCircle(outerContour))
+                {
+                    // The relative position of the circle and the nodes was already calculated when checking the
+                    // circle-element intersection, but that method should be decoupled from assigning the nodal 
+                    // weights, even at the cost of some duplicate operations. What could be done more efficiently is 
+                    // caching the nodes and weights already processed by previous elements, but even then the cost of
+                    // processing each node will be increased by the lookup.
+
+                    double[] nodalWeights = new double[element.Nodes.Count];
+                    for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
+                    {
+                        if (outerContour.FindRelativePositionOfPoint(element.Nodes[nodeIdx]) == CirclePointPosition.Outside)
+                        {
+                            nodalWeights[nodeIdx] = 0.0;
+                        }
+                        else // Node is inside or exactly on the circle
+                        {
+                            nodalWeights[nodeIdx] = 1.0;
+                        }
+                    }
+                    elementsAndWeights.Add((XContinuumElementCrack2D)(element.ElementType), nodalWeights); // TODO: This is horrible. Model should be generic.
+                }
+            }
+            return elementsAndWeights;
         }
     }
 }

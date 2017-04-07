@@ -8,6 +8,8 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
+    // TODO: At some point I will have to override Equals() and GetHashCode(). The hash function should use 
+    // the id and the number of nodes of the model
     class Node2D : ICartesianPoint2D, IComparable<Node2D>
     {
         public int ID { get; }

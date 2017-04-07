@@ -7,6 +7,11 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 {
+    public enum CirclePolygonPosition
+    {
+        Disjoint, Intersecting, PolygonInsideCircle, CircleInsidePolygon
+    }
+
     class ConvexPolygon2D
     {
         public static ConvexPolygon2D CreateUnsafe(IReadOnlyList<ICartesianPoint2D> vertices)
@@ -26,6 +31,74 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 
         public IReadOnlyList<ICartesianPoint2D> Vertices { get; }
         public IReadOnlyList<LineSegment2D> Edges { get; }
+
+        /// <summary>
+        /// Shamelessly copied from http://stackoverflow.com/questions/8721406/how-to-determine-if-a-point-is-inside-a-2d-convex-polygon
+        /// or http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon?noredirect=1&lq=1
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public bool IsPointInsidePolygon(ICartesianPoint2D point)
+        {
+            int i, j;
+            bool result = false;
+            for (i = 0, j = Vertices.Count - 1; i < Vertices.Count; j = i++)
+            {
+                if (    ( (Vertices[i].Y > point.Y) != (Vertices[j].Y > point.Y) ) &&
+                        ( point.X < (Vertices[j].X - Vertices[i].X) * (point.Y - Vertices[i].Y) 
+                                    / (Vertices[j].Y - Vertices[i].Y) + Vertices[i].X ) )
+                {
+                    result = !result;
+                }
+            }
+            return result;
+        }
+
+        public CirclePolygonPosition FindRelativePositionOfCircle(Circle2D circle)
+        {
+            int verticesOutsideCircle = 0;
+            int verticesInsideCircle = 0;
+            foreach (ICartesianPoint2D vertex in Vertices)
+            {
+                CirclePointPosition vertexPosition = circle.FindRelativePositionOfPoint(vertex);
+                if (vertexPosition == CirclePointPosition.Outside) ++verticesOutsideCircle;
+                else if (vertexPosition == CirclePointPosition.Inside) ++verticesInsideCircle;
+            }
+            int verticesOnCircle = Vertices.Count - verticesOutsideCircle - verticesInsideCircle;
+
+            if (verticesOutsideCircle == Vertices.Count)
+            {
+                if (IsPointInsidePolygon(circle.Center)) return CirclePolygonPosition.CircleInsidePolygon;
+                else return CirclePolygonPosition.Disjoint;
+            }
+            else if (verticesOutsideCircle == 0) return CirclePolygonPosition.PolygonInsideCircle;
+            else if ((verticesOnCircle == 1) && (verticesInsideCircle == 0)) return CirclePolygonPosition.Disjoint;
+            else return CirclePolygonPosition.Intersecting;
+        }
+
+        /// <summary>
+        /// Shortcut method to avoid redundant checks
+        /// </summary>
+        /// <param name="circle"></param>
+        /// <returns></returns>
+        public bool IntersectsWithCircle(Circle2D circle)
+        {
+            int verticesOutsideCircle = 0;
+            int verticesInsideCircle = 0;
+            foreach (ICartesianPoint2D vertex in Vertices)
+            {
+                CirclePointPosition vertexPosition = circle.FindRelativePositionOfPoint(vertex);
+                if (vertexPosition == CirclePointPosition.Outside) ++verticesOutsideCircle;
+                else if (vertexPosition == CirclePointPosition.Inside) ++verticesInsideCircle;
+            }
+            int verticesOnCircle = Vertices.Count - verticesOutsideCircle - verticesInsideCircle;
+
+            if (verticesOutsideCircle >= 1)
+            {
+                if ((verticesInsideCircle >= 1) || (verticesOnCircle >= 2)) return true;
+            }
+            return false;
+        }
 
         private ConvexPolygon2D(IReadOnlyList<ICartesianPoint2D> vertices)
         {
