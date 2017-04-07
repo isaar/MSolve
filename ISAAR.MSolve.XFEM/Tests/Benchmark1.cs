@@ -158,7 +158,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             HandleIntegration();
             CreateElements();
-            for (int el = 0; el < elements.Length; ++el) model.AddElement(new Element2D(el, elements[el]));
+            for (int el = 0; el < elements.Length; ++el) model.AddElement(elements[el]);
 
             HandleConstraints(model);
             CreateLoads(model);

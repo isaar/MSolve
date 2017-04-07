@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
@@ -10,8 +11,6 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
     /// TODO: abstract this with an IGlobalEnumerator2D interface. That way I could have different dof orders:
     /// e.g. 1) first all standard dofs and then all enriched, 2) First all dofs (std & enr) of the 1st node, 
     /// then of the 2nd, etc.
-    /// TODO: there is no reason to interact with Element2D instead of directly XContinuumElement. I do not use 
-    /// anything from Element2D and accessing element.ElementType.SomeMethod() violates Diameter's law.
     class DOFEnumerator
     {
         private readonly int freeStandardDofsCount;
@@ -27,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections used to represent constraints
         public DOFEnumerator(IEnumerable<XNode2D> nodes, Dictionary<Node2D, SortedSet<StandardDOFType>> constraints,
-            IEnumerable<Element2D> elements)
+            IEnumerable<XContinuumElement2D> elements)
         {
             EnumerateStandardDofs(elements, constraints, out freeStandardDofsCount, out standardDofs);
             EnumerateArtificialDofs(nodes, freeStandardDofsCount, out artificialDofsCount, out artificialDofs);
@@ -58,9 +57,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return artificialDofs[node][dofType];
         }
 
-        public IReadOnlyList<int> MatchElementToGlobalStandardDofsOf(Element2D element)
+        public IReadOnlyList<int> MatchElementToGlobalStandardDofsOf(XContinuumElement2D element)
         {
-            var nodalDofTypes = element.ElementType.GetStandardNodalDOFTypes();
+            var nodalDofTypes = element.GetStandardNodalDOFTypes();
             var globalDofs = new List<int>(); // An array might be quicker, but it requires counting the elements' dofs
             foreach (KeyValuePair<Node2D, HashSet<StandardDOFType>> pair in nodalDofTypes)
             {
@@ -74,13 +73,13 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return globalDofs;
         }
 
-        public IReadOnlyList<int> MatchElementToGlobalArtificialDofsOf(Element2D element)
+        public IReadOnlyList<int> MatchElementToGlobalArtificialDofsOf(XContinuumElement2D element)
         {
             var globalDofs = new List<int>();
-            foreach (XNode2D node in element.ElementType.Nodes)
+            foreach (XNode2D node in element.Nodes)
             {
                 Dictionary<ArtificialDOFType, int> globalDofsOfThisNode = artificialDofs[node];
-                // TODO: Perhaps the nodal dof types should be decided by the element type (structural, continuum) and drawn from XElement2D instead form enrichment items
+                // TODO: Perhaps the nodal dof types should be decided by the element type (structural, continuum) and drawn from XXContinuumElement2D instead form enrichment items
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems)
                 {
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
@@ -101,10 +100,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// <param name="element"></param>
         /// <param name="globalVector"></param>
         /// <returns></returns>
-        public double[] ExtractDisplacementVectorOfElementFromGlobal(Element2D element, double[] globalVector)
+        public double[] ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element, double[] globalVector)
         {
             IReadOnlyDictionary<Node2D, HashSet<StandardDOFType>> elementDofs = 
-                element.ElementType.GetStandardNodalDOFTypes();
+                element.GetStandardNodalDOFTypes();
             int dofsCount = 0;
             foreach (HashSet<StandardDOFType> nodalDofs in elementDofs.Values) dofsCount += nodalDofs.Count;
             double[] localVector = new double[dofsCount];
@@ -124,7 +123,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         private static void EnumerateStandardDofs(
-            IEnumerable<Element2D> elements, Dictionary<Node2D, SortedSet<StandardDOFType>> constraints, 
+            IEnumerable<XContinuumElement2D> elements, Dictionary<Node2D, SortedSet<StandardDOFType>> constraints, 
             out int standardDofsCount, out Dictionary<Node2D, Dictionary<StandardDOFType, int>> standardDofs)
         {
             IDictionary<Node2D, HashSet<StandardDOFType>> nodalDOFTypes = FindUniqueDOFTypes(elements);
@@ -151,12 +150,12 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             standardDofsCount = dofCounter;
         }
 
-        private static IDictionary<Node2D, HashSet<StandardDOFType>> FindUniqueDOFTypes(IEnumerable<Element2D> elements)
+        private static IDictionary<Node2D, HashSet<StandardDOFType>> FindUniqueDOFTypes(IEnumerable<XContinuumElement2D> elements)
         {
             var totalDofs = new SortedDictionary<Node2D, HashSet<StandardDOFType>>();
-            foreach (Element2D element in elements)
+            foreach (XContinuumElement2D element in elements)
             {
-                foreach (var entry in element.ElementType.GetStandardNodalDOFTypes())
+                foreach (var entry in element.GetStandardNodalDOFTypes())
                 {
                     HashSet<StandardDOFType> dofsOfThisNode;
                     bool alreadyExists = totalDofs.TryGetValue(entry.Key, out dofsOfThisNode);

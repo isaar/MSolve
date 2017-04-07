@@ -11,6 +11,7 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
+using ISAAR.MSolve.XFEM.Materials.Crack;
 
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
@@ -29,6 +30,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         private readonly TipCurvePosition tipPosition;
         private readonly IGeometryDescription2D discontinuity;
         private readonly ITipEnrichmentAreaStrategy enrichmentAreaStrategy;
+        private readonly ICrackMaterialFactory2D crackMaterialFactory;
 
         public IMesh2D<XNode2D, XContinuumElementCrack2D> Mesh { get; }
 
@@ -101,6 +103,26 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             if (tipElements.Count == 0) throw new NotImplementedException("New tip is outside of domain");
             else if (tipElements.Count > 1) throw new NotImplementedException("The new tip lies on an element edge or node");
             else TipElement = tipElements[0];
+        }
+
+        private void ComputeInteractionIntegrals(Model2D model, double[] totalDisplacements)
+        {
+            CrackMaterial2D tipMaterial = crackMaterialFactory.FindMaterialAtPoint(TipCoordinates);
+            double integralMode1 = 0.0, integralMode2 = 0.0;
+            foreach(var pair in FindJintegralElementsAndNodalWeights())
+            {
+                XContinuumElementCrack2D element = pair.Key;
+                double[] nodalWeights = pair.Value;
+                double[] elementDisplacements = 
+                    model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element, totalDisplacements);
+
+                double partialIntegralMode1, partialIntegralMode2;
+                element.ComputeInteractionIntegrals(TipSystem, tipMaterial, elementDisplacements, nodalWeights,
+                    out partialIntegralMode1, out partialIntegralMode2);
+
+                integralMode1 += partialIntegralMode1;
+                integralMode2 += partialIntegralMode2;
+            }
         }
 
         private IReadOnlyDictionary<XContinuumElementCrack2D, double[]> FindJintegralElementsAndNodalWeights()

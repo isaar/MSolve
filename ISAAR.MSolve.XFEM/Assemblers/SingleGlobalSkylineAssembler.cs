@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
@@ -20,13 +21,13 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         {
             SkylineMatrix2D globalMatrix = new SkylineMatrix2D(CalculateSkylineIndexer(model));
             DOFEnumerator dofEnumerator = model.DofEnumerator;
-            foreach (Element2D element in model.Elements)
+            foreach (XContinuumElement2D element in model.Elements)
             {
                 // Element matrices
-                SymmetricMatrix2D elementMatrixStdStd = element.ElementType.BuildStandardStiffnessMatrix();
+                SymmetricMatrix2D elementMatrixStdStd = element.BuildStandardStiffnessMatrix();
                 Matrix2D elementMatrixEnrStd;
                 SymmetricMatrix2D elementMatrixEnrEnr;
-                element.ElementType.BuildEnrichedStiffnessMatrices(out elementMatrixEnrStd, out elementMatrixEnrEnr);
+                element.BuildEnrichedStiffnessMatrices(out elementMatrixEnrStd, out elementMatrixEnrEnr);
 
                 // Element to global dofs mappings
                 IReadOnlyList<int> elementToGlobalStdDofs = dofEnumerator.MatchElementToGlobalStandardDofsOf(element);
@@ -57,12 +58,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
             int[] rowHeights = new int[dofEnumerator.FreeStandardDofsCount + dofEnumerator.ArtificialDofsCount];
-            foreach (Element2D element in model.Elements)
+            foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0 entries in the element stiffness matrix.
                 int minDOF = Int32.MaxValue;
-                foreach (XNode2D node in element.ElementType.Nodes) // Should I draw the nodes from element.ElementType?
+                foreach (XNode2D node in element.Nodes) // Should I draw the nodes from element.ElementType?
                 {
                     // Both standard and artificial dofs are considered. I could have a DOFEnumerator.GetAllDofsOfNode() method.
                     foreach (int dof in dofEnumerator.GetStandardDofsOf(node))
@@ -78,7 +79,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
                 // The height of each row is updated for all elements that engage the corresponding dof. 
                 // The max height is stored.
-                foreach (XNode2D node in element.ElementType.Nodes)
+                foreach (XNode2D node in element.Nodes)
                 {
                     foreach (int dof in dofEnumerator.GetStandardDofsOf(node))
                     {

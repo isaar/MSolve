@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
@@ -15,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.Entities
     class Model2D
     {
         private readonly List<XNode2D> nodes;
-        private readonly List<Element2D> elements;
+        private readonly List<XContinuumElement2D> elements;
         private readonly List<IEnrichmentItem2D> enrichments;
 
         // TODO: There should probably be a dedicated Constraint or Constraints or BoundaryCondition(s) class
@@ -27,14 +28,14 @@ namespace ISAAR.MSolve.XFEM.Entities
         private readonly List<NodalLoad2D> loads;
 
         public IReadOnlyList<XNode2D> Nodes { get { return nodes; } }
-        public IReadOnlyList<Element2D> Elements { get { return elements; } }
+        public IReadOnlyList<XContinuumElement2D> Elements { get { return elements; } }
         public IReadOnlyList<IEnrichmentItem2D> Enrichments { get { return enrichments; } }
         public DOFEnumerator DofEnumerator { get; private set; }
 
         public Model2D()
         {
             this.nodes = new List<XNode2D>();
-            this.elements = new List<Element2D>();
+            this.elements = new List<XContinuumElement2D>();
             this.enrichments = new List<IEnrichmentItem2D>();
             this.constraints = new Dictionary<Node2D, SortedSet<StandardDOFType>>();
             this.loads = new List<NodalLoad2D>();
@@ -47,10 +48,10 @@ namespace ISAAR.MSolve.XFEM.Entities
             nodes.Add(node);
         }
 
-        public void AddElement(Element2D element)
+        public void AddElement(XContinuumElement2D element)
         {
             if (elements.Contains(element))
-                throw new ArgumentException("There is already a element with id = " + element.ID);
+                throw new ArgumentException("This element is already inserted");
             elements.Add(element);
         }
 
