@@ -11,7 +11,8 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
-using ISAAR.MSolve.XFEM.Materials.Crack;
+using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
@@ -30,7 +31,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         private readonly TipCurvePosition tipPosition;
         private readonly IGeometryDescription2D discontinuity;
         private readonly ITipEnrichmentAreaStrategy enrichmentAreaStrategy;
-        private readonly ICrackMaterialFactory2D crackMaterialFactory;
+        private readonly IAuxiliaryStates auxiliaryStatesStrategy;
+        private readonly ISIFCalculator sifCalculationStrategy;
 
         public IMesh2D<XNode2D, XContinuumElementCrack2D> Mesh { get; }
 
@@ -39,10 +41,15 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         public TipCoordinateSystem TipSystem { get; private set; }
         public ICartesianPoint2D TipCoordinates { get; private set; }
 
-        public CrackTip2D(TipCurvePosition tipPosition, IGeometryDescription2D discontinuity)
+        public CrackTip2D(TipCurvePosition tipPosition, IGeometryDescription2D discontinuity,
+            ITipEnrichmentAreaStrategy enrichmentAreaStrategy, IAuxiliaryStates auxiliaryStatesStrategy,
+            ISIFCalculator sifCalculationStrategy)
         {
             this.tipPosition = tipPosition;
             this.discontinuity = discontinuity;
+            this.enrichmentAreaStrategy = enrichmentAreaStrategy;
+            this.auxiliaryStatesStrategy = auxiliaryStatesStrategy;
+            this.sifCalculationStrategy = sifCalculationStrategy;
 
             this.EnrichmentFunctions = new IEnrichmentFunction2D[]
             {
@@ -105,10 +112,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             else TipElement = tipElements[0];
         }
 
-        private void ComputeInteractionIntegrals(Model2D model, double[] totalDisplacements)
+        private void ComputeSIFS(Model2D model, double[] totalDisplacements, out double sifMode1, out double sifMode2)
         {
-            CrackMaterial2D tipMaterial = crackMaterialFactory.FindMaterialAtPoint(TipCoordinates);
-            double integralMode1 = 0.0, integralMode2 = 0.0;
+            double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
             foreach(var pair in FindJintegralElementsAndNodalWeights())
             {
                 XContinuumElementCrack2D element = pair.Key;
@@ -117,12 +123,15 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
                     model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element, totalDisplacements);
 
                 double partialIntegralMode1, partialIntegralMode2;
-                element.ComputeInteractionIntegrals(TipSystem, tipMaterial, elementDisplacements, nodalWeights,
-                    out partialIntegralMode1, out partialIntegralMode2);
+                element.ComputeInteractionIntegrals(TipSystem, auxiliaryStatesStrategy, elementDisplacements,
+                    nodalWeights, out partialIntegralMode1, out partialIntegralMode2);
 
-                integralMode1 += partialIntegralMode1;
-                integralMode2 += partialIntegralMode2;
+                interactionIntegralMode1 += partialIntegralMode1;
+                interactionIntegralMode2 += partialIntegralMode2;
             }
+
+            sifMode1 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode1);
+            sifMode2 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode2);
         }
 
         private IReadOnlyDictionary<XContinuumElementCrack2D, double[]> FindJintegralElementsAndNodalWeights()

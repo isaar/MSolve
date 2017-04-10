@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Analysis;
+using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
@@ -129,7 +130,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             var crackEnd = new CartesianPoint2D(0.20, 0.15);
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
-            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveEnd, polyline);
+            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveEnd, polyline, new SingleElementEnrichment(2.0),
+                new HomogeneousMaterialAuxiliaryStates(), new HomogeneousSIFCalculator(material));
 
             // Mesh geometry interaction
             polyline.ElementIntersections.Add(elements[4], new CartesianPoint2D[] { crackStart, intersection });

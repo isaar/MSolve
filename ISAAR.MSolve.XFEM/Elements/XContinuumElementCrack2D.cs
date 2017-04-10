@@ -12,7 +12,6 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.Materials.Crack;
 using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Elements
@@ -28,8 +27,9 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.jIntegralStrategy = jIntegralStrategy;
         }
 
-        public void ComputeInteractionIntegrals(TipCoordinateSystem tipCoordinateSystem, CrackMaterial2D materialAtTip,
-            double[] nodalDisplacements, double[] nodalWeights, out double integralMode1, out double integralMode2)
+        public void ComputeInteractionIntegrals(TipCoordinateSystem tipCoordinateSystem,
+            IAuxiliaryStates auxiliaryStates, double[] nodalDisplacements, double[] nodalWeights, 
+            out double integralMode1, out double integralMode2)
         {
             integralMode1 = 0.0;
             integralMode2 = 0.0;
@@ -66,15 +66,19 @@ namespace ISAAR.MSolve.XFEM.Elements
                     TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(globalWeightGradient);
 
                 // State 2
-                var auxiliaryStates = new AuxiliaryStates(materialAtTip, tipCoordinateSystem, globalGP);
+                // TODO: XContinuumElement shouldn't have to pass tipCoordinate system to auxiliaryStates. 
+                // It would be better to have CrackTip handle this and the coordinate transformations. That would also 
+                // obey LoD, but a lot of wrapper methods would be required.
+                AuxiliaryStatesTensors auxiliary 
+                    = auxiliaryStates.ComputeTensorsAt(globalGP, material, tipCoordinateSystem);
 
                 // Interaction integrals
                 double integrandMode1 = ComputeJIntegrand(localWeightGradient, localDisplacementGradState1, 
-                    localStressTensorState1, auxiliaryStates.DisplacementGradientMode1, 
-                    auxiliaryStates.StrainTensorMode1, auxiliaryStates.StressTensorMode1);
+                    localStressTensorState1, auxiliary.DisplacementGradientMode1, 
+                    auxiliary.StrainTensorMode1, auxiliary.StressTensorMode1);
                 double integrandMode2 = ComputeJIntegrand(localWeightGradient, localDisplacementGradState1,
-                    localStressTensorState1, auxiliaryStates.DisplacementGradientMode2,
-                    auxiliaryStates.StrainTensorMode2, auxiliaryStates.StressTensorMode2);
+                    localStressTensorState1, auxiliary.DisplacementGradientMode2,
+                    auxiliary.StrainTensorMode2, auxiliary.StressTensorMode2);
 
                 integralMode1 += integrandMode1 * evaluatedInterpolation.Jacobian.Determinant* naturalGP.Weight;
                 integralMode2 += integrandMode2 * evaluatedInterpolation.Jacobian.Determinant * naturalGP.Weight;
@@ -85,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             DenseMatrix displGrad2, Tensor2D strain2, Tensor2D stress2)
         {
             // Unrolled to greatly reduce mistakes. Alternatively Einstein notation products could be implementated
-            // in Tensor2D, but still some parts would have to be unrolled.
+            // in Tensor2D (like the tensor-tensor multiplication is), but still some parts would have to be unrolled.
             // Perhaps vector (and scalar) gradients should also be accessed by component and derivative variable.
 
             double strainEnergy = stress1.MultiplyColon(strain2);

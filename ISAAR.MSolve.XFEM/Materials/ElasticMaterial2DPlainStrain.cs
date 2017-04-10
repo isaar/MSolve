@@ -10,7 +10,9 @@ namespace ISAAR.MSolve.XFEM.Materials
     class ElasticMaterial2DPlainStrain : IFiniteElementMaterial2D
     {
         public double YoungModulus { get; }
+        public double EquivalentYoungModulus { get { return YoungModulus / (1.0 - PoissonRatio * PoissonRatio); } }
         public double PoissonRatio { get; }
+        public double EquivalentPoissonRatio { get { return PoissonRatio / (1.0 - PoissonRatio); } }
         public double Thickness { get; }
 
         public static ElasticMaterial2DPlainStrain Create(double youngModulus, double poissonRatio, double thickness)

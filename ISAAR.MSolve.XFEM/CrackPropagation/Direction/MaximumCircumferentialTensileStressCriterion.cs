@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Materials.Crack;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Direction
 {
+    // To research: Does this work for heterogenegous materials too?
     class MaximumCircumferentialTensileStressCriterion: ICrackGrowthDirectionLaw2D
     {
         public MaximumCircumferentialTensileStressCriterion()
         {
         }
 
-        public double ComputeGrowthAngle(double sif1, double sif2, CrackMaterial2D material)
+        public double ComputeGrowthAngle(double sif1, double sif2)
         {
             if (sif1 > 0)
             {

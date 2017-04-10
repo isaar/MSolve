@@ -6,87 +6,46 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
-using ISAAR.MSolve.XFEM.Materials.Crack;
+using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 {
-    /// <summary>
-    /// All quantities are with respect to the local cartesian system of the crack tip.
-    /// </summary>
-    class AuxiliaryStates
+    class HomogeneousMaterialAuxiliaryStates: IAuxiliaryStates
     {
-        /// <summary>
-        /// The derivatives of the displacement field of an imaginary pure Mode I (opening crack extension) state 
-        /// represented in the local cartesian system of the crack tip. The differentation is also w.r.t. the tip local
-        /// cartesian coordinates. Matrix dimensions: 2x2.
-        /// </summary>
-        public DenseMatrix DisplacementGradientMode1 { get; }
-
-        /// <summary>
-        /// The derivatives of the displacement field of an imaginary pure Mode II (sliding crack extension) state 
-        /// represented in the local cartesian system of the crack tip. The differentation is also w.r.t. the tip local 
-        /// cartesian coordinates. Matrix dimensions: 2x2.
-        /// </summary>
-        public DenseMatrix DisplacementGradientMode2 { get; }
-
-        /// <summary>
-        /// The strain tensor of an imaginary pure Mode I (opening crack extension) state represented in the local
-        /// cartesian system of the crack tip. Tensor dimensions: 2x2.
-        /// </summary>
-        public Tensor2D StrainTensorMode1 { get; }
-
-        /// <summary>
-        /// The strain tensor of an imaginary pure Mode IΙ (sliding crack extension) state represented in the local
-        /// cartesian system of the crack tip. Tensor dimensions: 2x2.
-        /// </summary>
-        public Tensor2D StrainTensorMode2 { get; }
-
-        /// <summary>
-        /// The stress tensor of an imaginary pure Mode I (opening crack extension) state represented in the local
-        /// cartesian system of the crack tip. Tensor dimensions: 2x2.
-        /// </summary>
-        public Tensor2D StressTensorMode1 { get; }
-
-        /// <summary>
-        /// The stress tensor of an imaginary pure Mode IΙ (sliding crack extension) state represented in the local
-        /// cartesian system of the crack tip. Tensor dimensions: 2x2.
-        /// </summary>
-        public Tensor2D StressTensorMode2 { get; }
-
-        public AuxiliaryStates(CrackMaterial2D materialAtTip, TipCoordinateSystem tipCoordinateSystem, 
-            ICartesianPoint2D globalCartesianCoordinatesOfGaussPoint)
+        public AuxiliaryStatesTensors ComputeTensorsAt(ICartesianPoint2D globalIntegrationPoint, 
+            IFiniteElementMaterial2D materialPoint, TipCoordinateSystem tipCoordinateSystem)
         {
             // Common calculations
-            PolarPoint2D point = 
-                tipCoordinateSystem.TransformPointGlobalCartesianToLocalPolar(globalCartesianCoordinatesOfGaussPoint);
-            var commonValues = new CommonValues(point.R, point.Theta);
+            PolarPoint2D polarCoordinates =
+                tipCoordinateSystem.TransformPointGlobalCartesianToLocalPolar(globalIntegrationPoint);
+            var commonValues = new CommonValues(polarCoordinates.R, polarCoordinates.Theta);
 
             // Displacement field derivatives
-            TipJacobians polarJacobians = tipCoordinateSystem.CalculateJacobiansAt(point);
-            Tuple<DenseMatrix, DenseMatrix> gradients = 
-                ComputeDisplacementDerivatives(polarJacobians, materialAtTip, commonValues);
-            DisplacementGradientMode1 = gradients.Item1;
-            DisplacementGradientMode2 = gradients.Item2;
+            DenseMatrix displacementGradientMode1, displacementGradientMode2;
+            TipJacobians polarJacobians = tipCoordinateSystem.CalculateJacobiansAt(polarCoordinates);
+            ComputeDisplacementDerivatives(polarJacobians, materialPoint, commonValues, 
+                out displacementGradientMode1, out displacementGradientMode2);
 
             // Strains
-            StrainTensorMode1 = ComputeStrainTensor(DisplacementGradientMode1);
-            StrainTensorMode2 = ComputeStrainTensor(DisplacementGradientMode2);
+            Tensor2D strainTensorMode1 = ComputeStrainTensor(displacementGradientMode1);
+            Tensor2D strainTensorMode2 = ComputeStrainTensor(displacementGradientMode2);
 
             // Stresses
-            Tuple<Tensor2D, Tensor2D> stresses = ComputeStressTensors(commonValues);
-            StressTensorMode1 = stresses.Item1;
-            StressTensorMode2 = stresses.Item2;
+            Tensor2D stressTensorMode1, stressTensorMode2;
+            ComputeStressTensors(commonValues, out stressTensorMode1, out stressTensorMode2);
+
+            return new AuxiliaryStatesTensors(displacementGradientMode1, displacementGradientMode2,
+                strainTensorMode1, strainTensorMode2, stressTensorMode1, stressTensorMode2);
         }
 
-        private static Tuple<DenseMatrix, DenseMatrix> ComputeDisplacementDerivatives(TipJacobians polarJacobians, 
-            CrackMaterial2D materialAtTip, CommonValues val)
+        private static void ComputeDisplacementDerivatives(TipJacobians polarJacobians,
+            IFiniteElementMaterial2D material, CommonValues val, 
+            out DenseMatrix displacementGradientMode1, out DenseMatrix displacementGradientMode2)
         {
-            DenseMatrix displacementGradientMode1, displacementGradientMode2;
-
             // Temporary values and derivatives of the differentiated quantities. See documentation for their derivation.
-            double k = materialAtTip.KolosovCoefficient;
-            double a = (1.0 + materialAtTip.PoissonRatio) / (materialAtTip.YoungModulus * Math.Sqrt(2.0 * Math.PI));
+            double k = (3.0 - material.EquivalentPoissonRatio) / (1.0 + material.EquivalentPoissonRatio);
+            double a = (1.0 + material.PoissonRatio) / (material.YoungModulus * Math.Sqrt(2.0 * Math.PI));
             double b = val.sqrtR;
             double b_r = 0.5 / val.sqrtR;
 
@@ -124,8 +83,6 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
                 displacementGradientMode2 =
                     polarJacobians.TransformVectorFieldDerivativesLocalPolarToLocalCartesian(polarGradient);
             }
-
-            return new Tuple<DenseMatrix, DenseMatrix>(displacementGradientMode1, displacementGradientMode2);
         }
 
         private static Tensor2D ComputeStrainTensor(DenseMatrix displacementGradient)
@@ -136,7 +93,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
             return new Tensor2D(exx, eyy, exy);
         }
 
-        private static Tuple<Tensor2D, Tensor2D> ComputeStressTensors(CommonValues val)
+        private static void ComputeStressTensors(CommonValues val, 
+            out Tensor2D stressTensorMode1, out Tensor2D stressTensorMode2)
         {
             double coeff = 1.0 / (Math.Sqrt(2.0 * Math.PI) * val.sqrtR);
 
@@ -148,12 +106,13 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
             double syyMode2 = sxyMode1;
             double sxyMode2 = sxxMode1;
 
-            return new Tuple<Tensor2D, Tensor2D>(
-                new Tensor2D(sxxMode1, syyMode1, sxyMode1), new Tensor2D(sxxMode2, syyMode2, sxyMode2));
+            stressTensorMode1 = new Tensor2D(sxxMode1, syyMode1, sxyMode1);
+            stressTensorMode2 = new Tensor2D(sxxMode2, syyMode2, sxyMode2);
         }
 
         /// <summary>
-        /// A DTO to pass the common values to the various methods, instead of recalculating them
+        /// A DTO to pass the common values to the various methods, instead of recalculating them. 
+        /// Also handles their calculation.
         /// </summary>
         private class CommonValues
         {

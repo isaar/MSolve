@@ -9,7 +9,9 @@ namespace ISAAR.MSolve.XFEM.Materials
     public interface IFiniteElementMaterial2D
     {
         double YoungModulus { get; }
+        double EquivalentYoungModulus { get; }
         double PoissonRatio { get; }
+        double EquivalentPoissonRatio { get; }
         double Thickness { get; }
         Matrix2D CalculateConstitutiveMatrix();
         IFiniteElementMaterial2D Clone();

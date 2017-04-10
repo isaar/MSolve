@@ -55,6 +55,12 @@
     <Compile Include="Analysis\LinearStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="CrackPropagation\Direction\MaximumCircumferentialTensileStressCriterion.cs" />
+    <Compile Include="CrackPropagation\Termination\HomogeneousToughnessCriterion.cs" />
+    <Compile Include="CrackPropagation\Termination\IMaterialCriterion.cs" />
+    <Compile Include="CrackPropagation\Jintegral\AuxiliaryStatesTensors.cs" />
+    <Compile Include="CrackPropagation\Jintegral\HomogeneousSIFCalculator.cs" />
+    <Compile Include="CrackPropagation\Jintegral\IAuxiliaryStates.cs" />
+    <Compile Include="CrackPropagation\Jintegral\ISIFCalculator.cs" />
     <Compile Include="CrackPropagation\Length\ConstantIncrement2D.cs" />
     <Compile Include="CrackPropagation\Direction\ICrackGrowthDirectionLaw2D.cs" />
     <Compile Include="CrackPropagation\Length\ICrackGrowthLengthLaw2D.cs" />
@@ -68,7 +74,7 @@
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2DAlternative.cs" />
     <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
-    <Compile Include="CrackPropagation\Jintegral\AuxiliaryStates.cs" />
+    <Compile Include="CrackPropagation\Jintegral\HomogeneousMaterialAuxiliaryStates.cs" />
     <Compile Include="Enrichments\Items\CrackTip\CrackTip2D.cs" />
     <Compile Include="Enrichments\Items\CrackTip\FixedEnrichmentArea.cs" />
     <Compile Include="Enrichments\Items\CrackTip\IElementInteractionStrategy.cs" />
@@ -112,9 +118,6 @@
     <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
     <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
-    <Compile Include="Materials\Crack\CrackMaterial2D.cs" />
-    <Compile Include="Materials\Crack\HomogeneousIsotropicMaterialFactory2D.cs" />
-    <Compile Include="Materials\Crack\ICrackMaterialFactory2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
