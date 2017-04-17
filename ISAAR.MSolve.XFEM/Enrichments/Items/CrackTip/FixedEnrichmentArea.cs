@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         public IReadOnlyList<XNode2D> SelectNodesForEnrichment(CrackTip2D tipItem)
         {
             var circle = new Circle2D(tipItem.TipCoordinates, fixedRadius);
-            return tipItem.Mesh.FindNodesInsideCircle(circle, true, tipItem.TipElement);
+            return tipItem.Mesh.FindNodesInsideCircle(circle, true, tipItem.TipElements[0]);
         }
     }
 }

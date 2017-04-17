@@ -33,13 +33,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             foreach (TFace element in Faces) // O(elementsCount)
             {
                 var outline = ConvexPolygon2D.CreateUnsafe(element.Vertices);
-                if (outline.IsPointInsidePolygon(point)) // TODO: I think this only finds points in the interior.
-                {
-                    containingElements.Add(element);
-                }
+                PolygonPointPosition pos = outline.FindRelativePositionOfPoint(point);
+                if ((pos == PolygonPointPosition.Inside) || (pos == PolygonPointPosition.OnEdge) ||
+                    (pos == PolygonPointPosition.OnVertex)) containingElements.Add(element);
             }
-            if (containingElements.Count != 1) throw new NotImplementedException("The tip was not inside any element. " 
-                + "It is either outside the domain or on an element edge");
             return containingElements;
         }
 

@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         public IMesh2D<XNode2D, XContinuumElementCrack2D> Mesh { get; }
 
         // The next properties/fields need to be updated at each analysis step.
-        public XContinuumElementCrack2D TipElement { get; private set; }
+        public IReadOnlyList<XContinuumElementCrack2D> TipElements { get; private set; }
         public TipCoordinateSystem TipSystem { get; private set; }
         public ICartesianPoint2D TipCoordinates { get; private set; }
 
@@ -104,12 +104,12 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         }
 
         // TODO: what happens if the tip is on an element's edge/node?
-        private void UpdateTipElement(ICartesianPoint2D newTip)
+        private void UpdateTipElements(ICartesianPoint2D newTip)
         {
-            IReadOnlyList<XContinuumElementCrack2D> tipElements = Mesh.FindElementsContainingPoint(newTip, TipElement);
+            IReadOnlyList<XContinuumElementCrack2D> tipElements = Mesh.FindElementsContainingPoint(newTip, 
+                TipElements[0]);
             if (tipElements.Count == 0) throw new NotImplementedException("New tip is outside of domain");
-            else if (tipElements.Count > 1) throw new NotImplementedException("The new tip lies on an element edge or node");
-            else TipElement = tipElements[0];
+            else TipElements = tipElements;
         }
 
         private void ComputeSIFS(Model2D model, double[] totalDisplacements, out double sifMode1, out double sifMode2)
@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             Circle2D outerContour = 
                 new Circle2D(TipCoordinates, enrichmentAreaStrategy.ComputeRadiusOfJintegralOuterContour(this));
             IReadOnlyList<XContinuumElementCrack2D> intersectedElements = 
-                Mesh.FindElementsIntersectedByCircle(outerContour, TipElement);
+                Mesh.FindElementsIntersectedByCircle(outerContour, TipElements[0]);
 
             var elementsAndWeights = new Dictionary<XContinuumElementCrack2D, double[]>();
             foreach (var element in intersectedElements)

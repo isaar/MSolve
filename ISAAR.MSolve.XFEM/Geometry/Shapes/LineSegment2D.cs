@@ -142,6 +142,24 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             }
         }
 
+        public SegmentPointPosition FindRelativePositionOfPoint(ICartesianPoint2D point)
+        {
+            // TODO: find a faster algorithm
+            if (DistanceOf(point) == 0.0)
+            {
+                //if ((point.X >= Start.X) != (point.X <= End.X)) return SegmentPointPosition.PointOnSegment // This might be a shortcut
+                double left = Math.Min(Start.X, End.X);
+                double right = Math.Max(Start.X, End.X);
+                if ((point.X >= left) && (point.X <= right)) return SegmentPointPosition.PointOnSegment;
+            }
+            return SegmentPointPosition.Disjoint;
+        }
+
+        public enum SegmentPointPosition
+        {
+            PointOnSegment, Disjoint
+        }
+
         public enum SegmentSegmentPosition // TODO: Perhaps this should be a class
         {
             Disjoint,

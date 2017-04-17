@@ -19,7 +19,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         /// 
         /// </summary>
         /// <param name="magnificationOfJintegralRadius">The outer countour of the J-integral domain is defined as:
-        ///     radius = magnification * sqrt(areaOfElementContainingTip). This parameter is the magnification.</param>
+        ///     radius = magnification * sqrt(areaOfElementContainingTip). This parameter is the magnification. 
+        ///     It should be at least 1.5 (see "Modeling quasi-static crack growth with the extended finite element 
+        ///     method Part II: Numerical applications, Huang et al, 2003" page 7546</param>
         public SingleElementEnrichment(double magnificationOfJintegralRadius)
         {
             // TODO: Add checks for valid values of the magnitude.
@@ -28,14 +30,21 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 
         public double ComputeRadiusOfJintegralOuterContour(CrackTip2D tipItem)
         {
-            // TODO: what happens if the tip is on an element's edge/node?
-            var outline = ConvexPolygon2D.CreateUnsafe(tipItem.TipElement.Nodes);
-            return magnificationOfJintegralRadius * Math.Sqrt(outline.ComputeArea()); 
+            double maxTipElementArea = -1.0;
+            foreach (var element in tipItem.TipElements)
+            {
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+                double elementArea = outline.ComputeArea();
+                if (elementArea > maxTipElementArea) maxTipElementArea = elementArea;
+            }
+            return magnificationOfJintegralRadius * Math.Sqrt(maxTipElementArea); 
         }
 
         public IReadOnlyList<XNode2D> SelectNodesForEnrichment(CrackTip2D tipItem)
         {
-            return tipItem.TipElement.Nodes;
+            var nodes = new List<XNode2D>();
+            foreach (var element in tipItem.TipElements) nodes.AddRange(element.Nodes);
+            return nodes;
         }
     }
 }

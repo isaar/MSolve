@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Benchmark1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Geometry.PointInPolygon</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -122,6 +122,7 @@
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
+    <Compile Include="Tests\Geometry\PointInPolygon.cs" />
     <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
     <Compile Include="Tests\Tools\DofReorder.cs" />
     <Compile Include="Tests\Tools\ElementMatrixChecker.cs" />

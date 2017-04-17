@@ -12,6 +12,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         Disjoint, Intersecting, PolygonInsideCircle, CircleInsidePolygon
     }
 
+    public enum PolygonPointPosition
+    {
+        Inside, Outside, OnEdge, OnVertex
+    }
+
     class ConvexPolygon2D
     {
         public static ConvexPolygon2D CreateUnsafe(IReadOnlyList<ICartesianPoint2D> vertices)
@@ -45,8 +50,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         }
 
         /// <summary>
-        /// Shamelessly copied from http://stackoverflow.com/questions/8721406/how-to-determine-if-a-point-is-inside-a-2d-convex-polygon
-        /// or http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon?noredirect=1&lq=1
+        /// Ray casting method, shamelessly copied from 
+        /// http://stackoverflow.com/questions/8721406/how-to-determine-if-a-point-is-inside-a-2d-convex-polygon or 
+        /// http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon?noredirect=1&lq=1
+        /// For points on the outline of the polygon, false is returned.
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
@@ -86,6 +93,28 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             else if (verticesOutsideCircle == 0) return CirclePolygonPosition.PolygonInsideCircle;
             else if ((verticesOnCircle == 1) && (verticesInsideCircle == 0)) return CirclePolygonPosition.Disjoint;
             else return CirclePolygonPosition.Intersecting;
+        }
+
+        public PolygonPointPosition FindRelativePositionOfPoint(ICartesianPoint2D point)
+        {
+            if (IsPointInsidePolygon(point)) return PolygonPointPosition.Inside;
+            else
+            {
+                int edgesPassingThroughPoint = 0;
+                for (int i = 0; i < Vertices.Count; ++i)
+                {
+                    var edge = new LineSegment2D(Vertices[i], Vertices[(i + 1) % Vertices.Count]);
+                    if (edge.FindRelativePositionOfPoint(point) == LineSegment2D.SegmentPointPosition.PointOnSegment)
+                    {
+                        ++edgesPassingThroughPoint;
+                    }
+                }
+                if (edgesPassingThroughPoint == 0) return PolygonPointPosition.Outside;
+                else if (edgesPassingThroughPoint == 1) return PolygonPointPosition.OnEdge;
+                else if (edgesPassingThroughPoint == 2) return PolygonPointPosition.OnVertex;
+                else throw new Exception("This should not have happened.");
+            }
+            
         }
 
         /// <summary>
