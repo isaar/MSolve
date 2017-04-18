@@ -264,10 +264,10 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// code duplication with the standard ContinuumElement2D
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyDictionary<Node2D, HashSet<StandardDOFType>> GetStandardNodalDOFTypes()
+        public IReadOnlyDictionary<XNode2D, HashSet<StandardDOFType>> GetStandardNodalDOFTypes()
         {
-            var nodalDOFTypes = new Dictionary<Node2D, HashSet<StandardDOFType>>(Nodes.Count);
-            foreach (Node2D node in Nodes)
+            var nodalDOFTypes = new Dictionary<XNode2D, HashSet<StandardDOFType>>(Nodes.Count);
+            foreach (XNode2D node in Nodes)
             {
                 var dofTypesOfThisNode = new HashSet<StandardDOFType>();
                 dofTypesOfThisNode.Add(StandardDOFType.X);

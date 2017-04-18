@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Geometry.PointInPolygon</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Benchmark1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -162,11 +162,13 @@
     <Compile Include="Materials\IFiniteElementMaterial2D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\InterpolationUtilities.cs" />
+    <Compile Include="Utilities\ITable.cs" />
     <Compile Include="Utilities\MathUtilities.cs" />
     <Compile Include="LinearAlgebra\DenseMatrix.cs" />
     <Compile Include="LinearAlgebra\MatrixUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
+    <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />
   </ItemGroup>
   <ItemGroup>

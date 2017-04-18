@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                         if (currentDof != expectedDof)
                         {
                             throw new Exception("The " + d + "th dof of node " + node +
-                                "is constrained only on one of the 2 models that are compared.");
+                                " is constrained only on one of the 2 models that are compared.");
                         }
                     }
                     else oldToNewIndices[currentDof] = expectedDof;

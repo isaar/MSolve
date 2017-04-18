@@ -110,10 +110,10 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             XNode2D bottomRight = nodes[NODE_COLUMNS - 1];
             XNode2D topRight = nodes[NODE_ROWS * NODE_COLUMNS -1];
-            model.AddConstraint(bottomRight, StandardDOFType.X);
-            model.AddConstraint(bottomRight, StandardDOFType.Y);
-            model.AddConstraint(topRight, StandardDOFType.X);
-            model.AddConstraint(topRight, StandardDOFType.Y);
+            model.AddConstraint(bottomRight, StandardDOFType.X, 0.0);
+            model.AddConstraint(bottomRight, StandardDOFType.Y, 0.0);
+            model.AddConstraint(topRight, StandardDOFType.X, 0.0);
+            model.AddConstraint(topRight, StandardDOFType.Y, 0.0);
         }
 
         private void CreateLoads(Model2D model)
