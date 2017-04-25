@@ -82,18 +82,36 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.DofEnumerator = new DOFEnumerator(nodes, constraints, elements);
         }
 
-        public double[] CalculateForces()
+        public double[] CalculateFreeForces()
         {
             if (DofEnumerator == null) EnumerateDofs();
-            double[] rhs = new double[DofEnumerator.FreeStandardDofsCount + DofEnumerator.ArtificialDofsCount];
+            double[] rhs = new double[DofEnumerator.FreeDofsCount + DofEnumerator.ArtificialDofsCount];
             foreach (Tuple<XNode2D, StandardDOFType, double> entry in loads)
             {
-                int dof = DofEnumerator.GetStandardDofOf(entry.Item1, entry.Item2);
-                if (dof < 0) throw new NotImplementedException("Load on a constraint dof at node "
-                    + entry.Item1.ID + ", axis " + entry.Item2);
-                else rhs[dof] += entry.Item3;
+                try
+                {
+                    int dof = DofEnumerator.GetFreeDofOf(entry.Item1, entry.Item2);
+                    rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which that isn't implemented yet
+                }
+                catch (KeyNotFoundException ex)
+                {
+                    throw new NotImplementedException("Load on a constraint dof at node "
+                    + entry.Item1.ID + ", axis " + entry.Item2, ex);
+                }
             }
             return rhs;
+        }
+
+        public double[] CalculateConstrainedDisplacements()
+        {
+            if (DofEnumerator == null) EnumerateDofs();
+            double[] uc = new double[DofEnumerator.ConstrainedDofsCount];
+            foreach (Tuple<XNode2D, StandardDOFType, double> entry in constraints)
+            {
+                int dof = DofEnumerator.GetConstrainedDofOf(entry.Item1, entry.Item2);
+                uc[dof] = entry.Item3;
+            }
+            return uc;
         }
     }
 }

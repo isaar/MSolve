@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             //elementChecker.CheckElementMatrices(benchmark.elements);
 
             // Global stiffness matrix
-            //DofEnumerationChecker.PrintEnumeration(benchmark.model);
+            DofEnumerationChecker.PrintEnumeration(benchmark.model);
             var globalChecker = new GlobalMatrixChecker(expectedGlobalMatrixPath, expectedDofEnumerationPath, 1.0e-5, true);
             globalChecker.CheckGlobalMatrix(benchmark.model);
             //globalChecker.PrintGlobalMatrix(benchmark.model);

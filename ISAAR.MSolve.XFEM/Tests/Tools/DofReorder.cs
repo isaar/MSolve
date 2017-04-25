@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             for (int n = 0; n < nodes.Length; ++n)
             {
                 var dofsOfNode = new List<int>();
-                foreach (int dof in enumerator.GetStandardDofsOf(nodes[n]))
+                foreach (int dof in enumerator.GetFreeDofsOf(nodes[n]))
                 {
                     dofsOfNode.Add(dof);
                     //if (dof != -1) dofsOfNode.Add(dof);

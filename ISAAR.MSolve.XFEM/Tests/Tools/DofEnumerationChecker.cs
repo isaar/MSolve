@@ -18,9 +18,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             foreach (XNode2D node in model.Nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (int dof in enumerator.GetStandardDofsOf(node))
+                foreach (int dof in enumerator.GetFreeDofsOf(node))
                 {
                     Console.Write(dof + " ");
+                }
+                foreach (int dof in enumerator.GetConstrainedDofsOf(node))
+                {
+                    Console.Write("c" + dof + " ");
                 }
                 Console.WriteLine();
             }

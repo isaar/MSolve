@@ -178,7 +178,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 var dofs = new List<int>();
                 foreach (var word in lines[node].Split(' '))
                 {
-                    dofs.Add(int.Parse(word)-1);
+                    int zeroBased = int.Parse(word) - 1;
+                    if (zeroBased >= 0) dofs.Add(zeroBased);
                 }
                 nodalDofs[node] = dofs.ToArray();
             }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.LinearAlgebra
 {
@@ -85,8 +86,8 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
         {
             int order = matrix.Rows;
             if (order != matrix.Columns) throw new ArgumentException("The matrix must be square");
-            if (order != oldToNewIndices.Length)
-                throw new ArgumentException("Mismatch in the dimensions of the matrix and the permutation array");
+            if (order != oldToNewIndices.Length) throw new NonMatchingDimensionsException(
+                "Mismatch in the dimensions of the matrix and the permutation array");
 
             var newMatrix = new Matrix2D(order, order);
             for (int row = 0; row < order; ++row)
@@ -98,6 +99,16 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
                 }
             }
             return newMatrix;
+        }
+
+        public static double[] Substract(double[] vector1, double[] vector2)
+        {
+            if (vector1.Length != vector2.Length) throw new NonMatchingDimensionsException(
+                "Vector 1 length  = " + vector1.Length + ", but vector 2 length = " + vector2.Length);
+
+            double[] result = new double[vector1.Length];
+            for (int i = 0; i < vector1.Length; ++i) result[i] = vector1[i] - vector2[i];
+            return result;
         }
     }
 }

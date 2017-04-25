@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace ISAAR.MSolve.XFEM.Utilities
 {
     // TODO: Add slicing features
+    // TODO: Perhaps a Table.Builder would be better, since EntryCount can be O(1)
     class Table<TRow, TColumn, TValue> : ITable<TRow, TColumn, TValue>
     {
         protected readonly Dictionary<TRow, Dictionary<TColumn, TValue>> data;
@@ -74,10 +75,32 @@ namespace ISAAR.MSolve.XFEM.Utilities
         {
             return GetEnumerator();
         }
+        
+        public IEnumerable<TColumn> GetColumnsOfRow(TRow row)
+        {
+            return data[row].Keys;
+        }
+
+        public IEnumerable<TRow> GetRows()
+        {
+            return data.Keys;
+        }
 
         public IEnumerable<TValue> GetValuesOfRow(TRow row)
         {
             return data[row].Values;
+        }
+
+        public bool TryGetValue(TRow row, TColumn col, out TValue value)
+        {
+            Dictionary<TColumn, TValue> wholeRow;
+            bool containsRow = data.TryGetValue(row, out wholeRow);
+            if (!containsRow)
+            {
+                value = default(TValue);
+                return false;
+            }
+            else return wholeRow.TryGetValue(col, out value);
         }
     }
 }

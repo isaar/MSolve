@@ -12,15 +12,27 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
     /// <summary>
-    /// A unified Skyline matrix, where enriched dofs are numbered after all standard dofs. The enriched dof columns 
-    /// will have huge heights. A more sophisticated solver and matrix assembler are needed.
+    /// The matrix that will be "inverted" is a unified Skyline matrix, where enriched dofs are numbered after all 
+    /// standard dofs. 
+    /// TODO: The enriched dof columns will have huge heights. A more sophisticated solver and matrix assembler are
+    /// needed. Also the global constrained submatrix must be sparse.
     /// </summary>
     static class SingleGlobalSkylineAssembler
     {
-        public static SkylineMatrix2D BuildGlobalMatrix(Model2D model)
+        public static void BuildGlobalMatrix(Model2D model, 
+            out SkylineMatrix2D globalMatrixLhsLhs, out Matrix2D globalMatrixLhsCon)
         {
-            SkylineMatrix2D globalMatrix = new SkylineMatrix2D(CalculateSkylineIndexer(model));
             DOFEnumerator dofEnumerator = model.DofEnumerator;
+            int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
+
+            // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
+            globalMatrixLhsLhs = new SkylineMatrix2D(CalculateSkylineIndexer(model));
+
+            // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
+            // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
+            globalMatrixLhsCon = new Matrix2D(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount, 
+                dofEnumerator.ConstrainedDofsCount);
+
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // Element matrices
@@ -30,15 +42,21 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 element.BuildEnrichedStiffnessMatrices(out elementMatrixEnrStd, out elementMatrixEnrEnr);
 
                 // Element to global dofs mappings
-                IReadOnlyList<int> elementToGlobalStdDofs = dofEnumerator.MatchElementToGlobalStandardDofsOf(element);
-                IReadOnlyList<int> elementToGlobalEnrDofs = dofEnumerator.MatchElementToGlobalArtificialDofsOf(element);
+                // TODO: perhaps that could be done during the assembly to avoid iterating over the dofs twice
+                IReadOnlyDictionary<int, int> elementToGlobalFreeDofs, elementToGlobalConstrainedDofs;
+                dofEnumerator.MatchElementToGlobalStandardDofsOf(element, 
+                    out elementToGlobalFreeDofs, out elementToGlobalConstrainedDofs);
+                IReadOnlyDictionary<int, int> elementToGlobalEnrDofs = 
+                    dofEnumerator.MatchElementToGlobalArtificialDofsOf(element);
 
-                // Add the element contributions to the global matrix
-                AddElementToGlobalMatrix(globalMatrix, elementMatrixStdStd, elementToGlobalStdDofs, elementToGlobalStdDofs);
-                AddElementToGlobalMatrix(globalMatrix, elementMatrixEnrStd, elementToGlobalEnrDofs, elementToGlobalStdDofs);
-                AddElementToGlobalMatrix(globalMatrix, elementMatrixEnrEnr, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                // Add the element contributions to the global matrices
+                AddElementToGlobalMatrix(globalMatrixLhsLhs, elementMatrixStdStd, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsLhs, elementMatrixEnrStd, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsLhs, elementMatrixEnrEnr, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+
+                AddElementToGlobalMatrix(globalMatrixLhsCon, elementMatrixStdStd, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsCon, elementMatrixEnrStd, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
             }
-            return globalMatrix;
         }
 
         private static int[] CalculateSkylineIndexer(Model2D model)
@@ -57,37 +75,28 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         private static int[] CalculateRowHeights(Model2D model) // I vote to call them RowWidths!!!
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
-            int[] rowHeights = new int[dofEnumerator.FreeStandardDofsCount + dofEnumerator.ArtificialDofsCount];
+            int[] rowHeights = new int[dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount];
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0 entries in the element stiffness matrix.
                 int minDOF = Int32.MaxValue;
-                foreach (XNode2D node in element.Nodes) // Should I draw the nodes from element.ElementType?
+                foreach (XNode2D node in element.Nodes)
                 {
-                    // Both standard and artificial dofs are considered. I could have a DOFEnumerator.GetAllDofsOfNode() method.
-                    foreach (int dof in dofEnumerator.GetStandardDofsOf(node))
-                    {
-                        if (dof != -1) minDOF = Math.Min(dof, minDOF);
-                    }
-                    foreach (int dof in dofEnumerator.GetArtificialDofsOf(node))
-                    {
-                        //if (dof != -1) minDOF = Math.Min(dof, minDOF); //Is it even possible to have constrained artificial dofs?
-                        Math.Min(dof, minDOF);
-                    }
+                    foreach (int dof in dofEnumerator.GetFreeDofsOf(node)) minDOF = Math.Min(dof, minDOF);
+                    foreach (int dof in dofEnumerator.GetArtificialDofsOf(node)) Math.Min(dof, minDOF);
                 }
 
                 // The height of each row is updated for all elements that engage the corresponding dof. 
                 // The max height is stored.
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofEnumerator.GetStandardDofsOf(node))
+                    foreach (int dof in dofEnumerator.GetFreeDofsOf(node))
                     {
-                        if (dof != -1) rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
+                        rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
                     }
                     foreach (int dof in dofEnumerator.GetArtificialDofsOf(node))
                     {
-                        //if (dof != -1) rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF); //Is it even possible to have constrained artificial dofs?
                         rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
                     }
                 }
@@ -95,39 +104,50 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return rowHeights;
         }
 
-        private static void AddElementToGlobalMatrix(
-            SkylineMatrix2D globalMatrix, IMatrix2D elementMatrix,
-            IReadOnlyList<int> elementRowsToGlobalRows, IReadOnlyList<int> elementColsToGlobalCols)
+        private static void AddElementToGlobalMatrix(SkylineMatrix2D globalMatrix, IMatrix2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
-            for (int elementRow = 0; elementRow < elementRowsToGlobalRows.Count; ++elementRow)
+            foreach (var rowPair in elementRowsToGlobalRows)
             {
-                int globalRow = elementRowsToGlobalRows[elementRow];
-                if (globalRow != -1)
+                int elementRow = rowPair.Key;
+                int globalRow = rowPair.Value;
+                foreach (var colPair in elementColsToGlobalCols)
                 {
-                    for (int elementCol = 0; elementCol < elementColsToGlobalCols.Count; ++elementCol)
+                    int elementCol = colPair.Key;
+                    int globalCol = colPair.Value;
+
+                    int height = globalRow - globalCol; // Skyline matrix stores the lower triangle
+                    // Check if the entry is in the lower triangle. This check concerns global dofs only.
+                    // No need to check if the entry is within the row height.
+                    // TODO: This check is redundant for the enriched-standard submatrices, since they always 
+                    // have row=enrichedDof > col=standardDof. Perhaps I could have an optimized method that 
+                    // doesn't check that height>0. Frankly it would be too much code just for avoiding this 
+                    // check. Perhaps after optimizing other things first.
+                    if (height >= 0)
                     {
-                        int globalCol = elementColsToGlobalCols[elementCol];
-                        if (globalCol != -1)
-                        {
-                            int height = globalRow - globalCol; // Skyline matrix stores the lower triangle
-
-                            // Check if the entry is in the lower triangle. This check concerns global dofs only.
-                            // No need to check if the entry is within the row height.
-                            // TODO: This check is redundant for the enriched-standard submatrices, since they always 
-                            // have row=enrichedDof > col=standardDof. Perhaps I could have an optimized method that 
-                            // doesn't check that height>0. Frankly it would be too much code just for avoiding this 
-                            // check. Perhaps after optimizing other things first.
-                            if (height >= 0)
-                            {
-                                // Shouldn't the skyline indexing logic be abstracted?
-                                int skylinePos = globalMatrix.RowIndex[globalRow] + height;
-                                globalMatrix.Data[skylinePos] += elementMatrix[elementRow, elementCol];
-                            }
-                        }
-
+                        // Shouldn't the skyline indexing logic be abstracted?
+                        int skylinePos = globalMatrix.RowIndex[globalRow] + height;
+                        globalMatrix.Data[skylinePos] += elementMatrix[elementRow, elementCol];
                     }
                 }
-                
+            }
+        }
+
+        // TODO: The global matrix should be sparse. Probably in CSR/DOK format
+        private static void AddElementToGlobalMatrix(Matrix2D globalMatrix, IMatrix2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        {
+            foreach (var rowPair in elementRowsToGlobalRows)
+            {
+                int elementRow = rowPair.Key;
+                int globalRow = rowPair.Value;
+                foreach (var colPair in elementColsToGlobalCols)
+                {
+                    int elementCol = colPair.Key;
+                    int globalCol = colPair.Value;
+
+                    globalMatrix[globalRow, globalCol] = elementMatrix[elementRow, elementCol];
+                }
             }
         }
     }

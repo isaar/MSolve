@@ -112,15 +112,16 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             else TipElements = tipElements;
         }
 
-        private void ComputeSIFS(Model2D model, double[] totalDisplacements, out double sifMode1, out double sifMode2)
+        private void ComputeSIFS(Model2D model, double[] totalFreeDisplacements, double[] totalConstrainedDisplacements,
+            out double sifMode1, out double sifMode2)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
             foreach(var pair in FindJintegralElementsAndNodalWeights())
             {
                 XContinuumElementCrack2D element = pair.Key;
                 double[] nodalWeights = pair.Value;
-                double[] elementDisplacements = 
-                    model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element, totalDisplacements);
+                double[] elementDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
+                    element, totalFreeDisplacements, totalConstrainedDisplacements);
 
                 double partialIntegralMode1, partialIntegralMode2;
                 element.ComputeInteractionIntegrals(TipSystem, auxiliaryStatesStrategy, elementDisplacements,

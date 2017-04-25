@@ -10,13 +10,14 @@ using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 
 namespace ISAAR.MSolve.XFEM.Analysis
 {
     /// <summary>
     /// The linear analyzer and the solver should not compose the linear system. It should be passed as an argument to Solve.
-    /// The linear system should be instantiated with the Matrix and the rhs. PERIOD!
+    /// The linear system should be instantiated with the Matrix and the rhs.
     /// </summary>
     class LinearStaticAnalysis
     {
@@ -35,13 +36,10 @@ namespace ISAAR.MSolve.XFEM.Analysis
 
         public void Solve()
         {
-            SkylineLinearSystem ls = new SkylineLinearSystem(0, model.CalculateForces()); // Model should not be responsible for the rhs too
-            ls.Matrix = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model);
+            SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
             solver = new SolverFBSubstitution(ls);
-
             solver.Initialize();
             solver.Solve();
-
             solution = ls.Solution;
         }
 
@@ -50,13 +48,40 @@ namespace ISAAR.MSolve.XFEM.Analysis
             Console.WriteLine("Displacements: ");
             for (int n = 0; n < model.Nodes.Count; ++n)
             {
-                int xDof = model.DofEnumerator.GetStandardDofOf(model.Nodes[n], StandardDOFType.X);
+                int xDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], StandardDOFType.X);
                 double dx = (xDof < 0) ? 0 : solution[xDof];
-                int yDof = model.DofEnumerator.GetStandardDofOf(model.Nodes[n], StandardDOFType.Y);
+                int yDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], StandardDOFType.Y);
                 double dy = (yDof < 0) ? 0 : solution[yDof];
 
                 Console.WriteLine("Node " + n + ": dx = " + dx + "\t\t , dy = " + dy);
             }
+        }
+
+        private SkylineLinearSystem ReduceToSimpleLinearSystem()
+        {
+            /// The extended linear system is:
+            /// [Kcc Kcu; Kuc Kuu] * [uc; uu] = [Fc; Fu]
+            /// where c are the standard constrained dofs, f are the standard free dofs, e are the enriched dofs and 
+            /// u = Union(f,c) are both the dofs with unknown left hand side vectors: uu = [uf; ue].
+            /// To solve the system (for the unknowns ul):
+            /// i) Kuu * uu = Fu - Kuc * uc = Feff
+            /// ii) uu = Kuu \ Feff
+            SkylineMatrix2D Kuu;
+            Matrix2D Kuc;
+            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kuu, out Kuc);
+
+            // TODO: Perhaps a dedicated class should be responsible for these vectors
+            double[] Fu = model.CalculateFreeForces(); 
+            double[] uc = model.CalculateConstrainedDisplacements();
+
+            // TODO: The linear algebra library is ridiculously cumbersome and limited.
+            double[] KlcTimesUc = new double[Kuc.Rows];
+            Kuc.Multiply(new Vector(uc), KlcTimesUc);
+            double[] Feff = MatrixUtilities.Substract(Fu, KlcTimesUc);
+
+            SkylineLinearSystem ls = new SkylineLinearSystem(0, Feff);
+            ls.Matrix = Kuu;
+            return ls;
         }
     }
 }

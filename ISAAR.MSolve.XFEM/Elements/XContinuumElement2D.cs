@@ -257,24 +257,22 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         /// <summary>
-        /// TODO: This should return readonly collections publicly.
         /// TODO: Perhaps this should be saved as a DOFEnumerator object (the dofs themselves would be created on  
         /// demand though). XElement will have a mutable one, while others will get a view. I could still use a  
         /// DOFEnumerator even if I do not save it. Transfering most of the code to the Enumerator class, also reduces  
         /// code duplication with the standard ContinuumElement2D
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyDictionary<XNode2D, HashSet<StandardDOFType>> GetStandardNodalDOFTypes()
+        public ITable<XNode2D, StandardDOFType, int> GetStandardDofs()
         {
-            var nodalDOFTypes = new Dictionary<XNode2D, HashSet<StandardDOFType>>(Nodes.Count);
+            var elementDofs = new Table<XNode2D, StandardDOFType, int>();
+            int dofCounter = 0;
             foreach (XNode2D node in Nodes)
             {
-                var dofTypesOfThisNode = new HashSet<StandardDOFType>();
-                dofTypesOfThisNode.Add(StandardDOFType.X);
-                dofTypesOfThisNode.Add(StandardDOFType.Y);
-                nodalDOFTypes.Add(node, dofTypesOfThisNode);
+                elementDofs[node, StandardDOFType.X] = dofCounter++;
+                elementDofs[node, StandardDOFType.Y] = dofCounter++;
             }
-            return nodalDOFTypes;
+            return elementDofs;
         }
         #endregion
     }

@@ -11,6 +11,9 @@ namespace ISAAR.MSolve.XFEM.Utilities
         int EntryCount { get; }
         TValue this[TRow row, TColumn col] { get; }
         bool Contains(TRow row, TColumn col);
+        IEnumerable<TColumn> GetColumnsOfRow(TRow row);
+        IEnumerable<TRow> GetRows();
         IEnumerable<TValue> GetValuesOfRow(TRow row);
+        bool TryGetValue(TRow row, TColumn col, out TValue value);
     }
 }
