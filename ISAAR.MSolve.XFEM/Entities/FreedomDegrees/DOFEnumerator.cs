@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         public int GetConstrainedDofOf(XNode2D node, StandardDOFType dofType)
         {
-            return freeDofs[node, dofType];
+            return constrainedDofs[node, dofType];
         }
 
         public IEnumerable<int> GetArtificialDofsOf(XNode2D node)

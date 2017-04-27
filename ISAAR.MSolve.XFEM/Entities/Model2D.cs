@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.XFEM.Entities
                 }
                 catch (KeyNotFoundException ex)
                 {
-                    throw new NotImplementedException("Load on a constraint dof at node "
+                    throw new NotImplementedException("Load on a constrained dof at node "
                     + entry.Item1.ID + ", axis " + entry.Item2, ex);
                 }
             }

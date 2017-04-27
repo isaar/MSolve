@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     {
         private readonly Model2D model;
         private ISolver solver; // A solver devoid of linear system must be passed into the constructor
-        private IVector solution;
+        public IVector Solution { get; private set; }
 
         public LinearStaticAnalysis(Model2D model)
         {
@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             solver = new SolverFBSubstitution(ls);
             solver.Initialize();
             solver.Solve();
-            solution = ls.Solution;
+            Solution = ls.Solution;
         }
 
         public void PrintSolution()
@@ -49,9 +49,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             for (int n = 0; n < model.Nodes.Count; ++n)
             {
                 int xDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], StandardDOFType.X);
-                double dx = (xDof < 0) ? 0 : solution[xDof];
+                double dx = (xDof < 0) ? 0 : Solution[xDof];
                 int yDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], StandardDOFType.Y);
-                double dy = (yDof < 0) ? 0 : solution[yDof];
+                double dy = (yDof < 0) ? 0 : Solution[yDof];
 
                 Console.WriteLine("Node " + n + ": dx = " + dx + "\t\t , dy = " + dy);
             }

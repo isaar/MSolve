@@ -18,11 +18,11 @@ namespace ISAAR.MSolve.XFEM.Elements
 {
     class XContinuumElementCrack2D: XContinuumElement2D
     {
-        private readonly IIntegrationStrategy2D<XContinuumElementCrack2D> jIntegralStrategy;
+        private readonly IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy;
 
         public XContinuumElementCrack2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,
             IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, 
-            IIntegrationStrategy2D<XContinuumElementCrack2D> jIntegralStrategy): base(type, nodes, integrationStrategy)
+            IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy): base(type, nodes, integrationStrategy)
         {
             this.jIntegralStrategy = jIntegralStrategy;
         }

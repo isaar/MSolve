@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         // There must be a master crack class that knows where the tips, bodies and junctions are.
         public enum TipCurvePosition
         {
-            CurveStart, CurveEnd
+            CurveStart, CurveEnd, Both
         }
 
         private readonly TipCurvePosition tipPosition;
@@ -53,10 +53,14 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 
             this.EnrichmentFunctions = new IEnrichmentFunction2D[]
             {
-                new IsotropicBrittleTipFunctions2DAlternative.Func1(this),
-                new IsotropicBrittleTipFunctions2DAlternative.Func2(this),
-                new IsotropicBrittleTipFunctions2DAlternative.Func3(this),
-                new IsotropicBrittleTipFunctions2DAlternative.Func4(this)
+                //new IsotropicBrittleTipFunctions2DAlternative.Func1(this),
+                //new IsotropicBrittleTipFunctions2DAlternative.Func2(this),
+                //new IsotropicBrittleTipFunctions2DAlternative.Func3(this),
+                //new IsotropicBrittleTipFunctions2DAlternative.Func4(this)
+                new IsotropicBrittleTipFunctions2D.Func1(this),
+                new IsotropicBrittleTipFunctions2D.Func2(this),
+                new IsotropicBrittleTipFunctions2D.Func3(this),
+                new IsotropicBrittleTipFunctions2D.Func4(this)
             };
             this.DOFs = new ArtificialDOFType[]
             {
@@ -85,7 +89,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             }
 
             if (tipPosition == TipCurvePosition.CurveEnd) uniquePoints.Add(discontinuity.EndPoint);
-            else throw new NotImplementedException("For now the tip can only be located at the curve's end");
+            else if (tipPosition == TipCurvePosition.CurveStart) uniquePoints.Add(discontinuity.StartPoint);
+            else throw new NotImplementedException("For now the tip can only be located at one end of the curve");
 
             return new List<ICartesianPoint2D>(uniquePoints);
         }
@@ -97,9 +102,14 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
                 TipCoordinates = discontinuity.EndPoint;
                 TipSystem = new TipCoordinateSystem(TipCoordinates, discontinuity.EndPointOrientation());
             }
+            else if (tipPosition == TipCurvePosition.CurveStart)
+            {
+                TipCoordinates = discontinuity.StartPoint;
+                TipSystem = new TipCoordinateSystem(TipCoordinates, discontinuity.StartPointOrientation());
+            }
             else
             {
-                throw new NotImplementedException("For now the tip can only be located at the curve's end");
+                throw new NotImplementedException("For now the tip can only be located at one end of the curve");
             }
         }
 

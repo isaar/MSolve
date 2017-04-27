@@ -32,6 +32,19 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             return Math.Atan2(dy, dx);
         }
 
+        /// <summary>
+        /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the start point of the 
+        /// curve, 2) is tangent to the curve and 3) heads outwards from the curve.
+        /// </summary>
+        public double StartPointOrientation()
+        {
+            ICartesianPoint2D firstSegmentStart = vertices[0];
+            ICartesianPoint2D firstSegmentEnd = vertices[1];
+            double dx = firstSegmentStart.X - firstSegmentEnd.X;
+            double dy = firstSegmentStart.Y - firstSegmentEnd.Y;
+            return Math.Atan2(dy, dx);
+        }
+
         public Polyline2D(ICartesianPoint2D start, ICartesianPoint2D end)
         {
             vertices = new List<ICartesianPoint2D>();

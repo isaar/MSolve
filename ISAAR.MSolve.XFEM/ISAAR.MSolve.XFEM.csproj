@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Benchmark1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -121,8 +121,11 @@
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
+    <Compile Include="Tests\Khoei\CrackIntegrationStrategy.cs" />
+    <Compile Include="Tests\Khoei\DCB3x1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\Geometry\PointInPolygon.cs" />
+    <Compile Include="Tests\Khoei\JintegralStrategy.cs" />
     <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
     <Compile Include="Tests\Tools\DofReorder.cs" />
     <Compile Include="Tests\Tools\ElementMatrixChecker.cs" />
@@ -135,6 +138,7 @@
     <Compile Include="Tests\NodeSets.cs" />
     <Compile Include="Tests\Tools\GaussPoint2DComparer.cs" />
     <Compile Include="Tests\Tools\OutputReaders.cs" />
+    <Compile Include="Tests\Tools\SubmatrixChecker.cs" />
     <Compile Include="Tests\Tools\ValueComparer.cs" />
     <Compile Include="Tests\XElementTests.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />

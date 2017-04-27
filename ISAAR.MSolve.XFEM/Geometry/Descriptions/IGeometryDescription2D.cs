@@ -28,6 +28,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         /// </summary>
         double EndPointOrientation();
 
+        double StartPointOrientation();
+
         // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.
         IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element);
 
