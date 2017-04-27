@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    interface IFiniteElement2DView
+    interface IFiniteElement2DView<TNode, TInterpolation>
     {
-        IReadOnlyList<Node2D> Nodes { get; }
-
-        SymmetricMatrix2D BuildStiffnessMatrix();
+        IReadOnlyList<TNode> Nodes { get; }
+        TInterpolation Interpolation { get; }
     }
 }

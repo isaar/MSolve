@@ -13,6 +13,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     class MaterialInterface2D : AbstractEnrichmentItem2D
     {
+        public enum Subdomain { Positive, Negative, Boundary }
+
         private readonly IFiniteElementMaterial2D materialInNegativeDomain;
         private readonly IFiniteElementMaterial2D materialInPositiveDomain;
         
@@ -57,6 +59,22 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 materialAtThisPoint = null;
                 return false;
             }
+        }
+
+        // TODO: add some tolerance when checking around 0. Perhaps all this is not needed though and I could even 
+        // ignore points on the interface. It certainly needs a better name
+        /// <summary>
+        /// Finds the subdomain where the requested cartesian point lies.
+        /// </summary>
+        /// <param name="point"></param>
+        /// <param name="subdomain">The posi</param>
+        /// <returns></returns>
+        public Subdomain LocatePoint(ICartesianPoint2D point)
+        {
+            int sign = Math.Sign(Discontinuity.SignedDistanceOf(point));
+            if (sign < 0) return Subdomain.Negative;
+            else if (sign > 0) return Subdomain.Positive;
+            else return Subdomain.Boundary;
         }
 
         public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)

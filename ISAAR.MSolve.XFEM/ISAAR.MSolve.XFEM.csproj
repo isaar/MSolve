@@ -118,6 +118,9 @@
     <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
     <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
+    <Compile Include="Materials\BiElasticMaterial2D.cs" />
+    <Compile Include="Materials\HomogeneousElasticMaterial2D.cs" />
+    <Compile Include="Materials\IMaterialField2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Benchmark1.cs" />

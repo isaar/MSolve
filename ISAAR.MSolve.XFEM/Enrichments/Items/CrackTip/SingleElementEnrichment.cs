@@ -21,7 +21,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         /// <param name="magnificationOfJintegralRadius">The outer countour of the J-integral domain is defined as:
         ///     radius = magnification * sqrt(areaOfElementContainingTip). This parameter is the magnification. 
         ///     It should be at least 1.5 (see "Modeling quasi-static crack growth with the extended finite element 
-        ///     method Part II: Numerical applications, Huang et al, 2003" page 7546</param>
+        ///     method Part II: Numerical applications, Huang et al, 2003" page 7546). Usually values 2-3 are selected 
+        ///     (see Ahmed thesis, 2009).</param>
         public SingleElementEnrichment(double magnificationOfJintegralRadius)
         {
             // TODO: Add checks for valid values of the magnitude.

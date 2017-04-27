@@ -13,7 +13,7 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    class Quad4: IFiniteElement2DView
+    class Quad4
     {
         private const double DETERMINANT_TOLERANCE = 0.00000001;
         private const int DOFS_COUNT = 8;
