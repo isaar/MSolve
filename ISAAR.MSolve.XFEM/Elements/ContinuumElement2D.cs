@@ -41,10 +41,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         public SymmetricMatrix2D BuildStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D(DofsCount);
-            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
+            foreach (GaussPoint2D gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
-                GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
-
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
@@ -119,10 +117,8 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, IFiniteElementMaterial2D material)
+        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix2D constitutive)
         {
-            Matrix2D constitutive = material.CalculateConstitutiveMatrix();
-
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];
             double strainXY = 0.5 * (displacementFieldGradient[0, 1] + displacementFieldGradient[1, 0]);

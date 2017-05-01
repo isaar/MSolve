@@ -149,10 +149,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             double E = 1;
             double v = 0.25;
             double t = 1.0;
-            var material = ElasticMaterial2DPlainStress.Create(E, v, t);
-            var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
+            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
             var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, 
-                new SimpleIntegration2D(material), materialField);
+                new SimpleIntegration2D(), material);
 
             IsoparametricInterpolation2D interpolation = element.Interpolation;
             IInverseMapping2D inverseMapping = interpolation.CreateInverseMappingFor(nodes);

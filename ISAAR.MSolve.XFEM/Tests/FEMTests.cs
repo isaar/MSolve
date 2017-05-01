@@ -14,28 +14,14 @@ namespace ISAAR.MSolve.XFEM.Tests
 {
     static class FEMTests
     {
-        private static void Quad4Test(XNode2D[] nodes)
-        {
-            double E = 1.0;
-            double v = 0.25;
-            double t = 1.0;
-            var material = ElasticMaterial2DPlainStress.Create(E, v, t);
-
-            var element = new Quad4(nodes, material);
-            SymmetricMatrix2D k = element.BuildStiffnessMatrix();
-            Console.WriteLine("Quad4 stiffness matrix = ");
-            MatrixUtilities.PrintDense(k);
-        }
-
         private static void IsoparametricQuad4Test(XNode2D[] nodes)
         {
             double E = 1;
             double v = 0.25;
             double t = 1.0;
-            var material = ElasticMaterial2DPlainStress.Create(E, v, t);
-            var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
+            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
             var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, 
-                new SimpleIntegration2D(material), materialField);
+                new SimpleIntegration2D(), material);
             SymmetricMatrix2D k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
             MatrixUtilities.PrintDense(k);

@@ -7,14 +7,14 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 
-namespace ISAAR.MSolve.XFEM.Integration.Rules
+namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
     /// <summary>
     /// TODO: This rule is actually independent from the element and its elements can be cached, albeit not in a 
     /// static manner. Should I put it with the standard quadratures?
     /// TODO: Ensure this is not used for anything other than Quadrilaterals.
     /// </summary>
-    class RectangularSubgridIntegration2D<TElement> : IIntegrationRule2D<TElement>
+    class RectangularSubgridIntegration2D<TElement> : IIntegrationStrategy2D<TElement>
     {
         private readonly int subgridsPerAxis;
         private readonly GaussLegendre2D  gaussQuadrature;

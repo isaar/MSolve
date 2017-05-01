@@ -12,9 +12,9 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 using ISAAR.MSolve.XFEM.Materials;
 
-namespace ISAAR.MSolve.XFEM.Integration.Rules
+namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
-    class IntegrationWithSubtriangles: IIntegrationRule2D<XContinuumElement2D>
+    class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
         private readonly ITriangulator2D mesher;

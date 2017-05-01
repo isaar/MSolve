@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 Console.WriteLine("Element " + el + ": ");
 
                 // Retrieve the gauss points
-                var actualPoints = elements[el].IntegrationStrategy.GetIntegrationPointsAndMaterials(elements[el]).Keys.ToArray();
+                var actualPoints = elements[el].IntegrationStrategy.GenerateIntegrationPoints(elements[el]).ToArray();
                 Array.Sort(actualPoints, pointComparer);
 
                 for (int p = 0; p < actualPoints.Length; ++p)
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
 
                 // Retrieve the gauss points
                 GaussPoint2D[] expectedPoints = allGaussPoints[el];
-                var actualPoints = elements[el].IntegrationStrategy.GetIntegrationPointsAndMaterials(elements[el]).Keys.ToArray();
+                var actualPoints = elements[el].IntegrationStrategy.GenerateIntegrationPoints(elements[el]).ToArray();
 
                 //Check count first
                 int gpCount = actualPoints.Length;

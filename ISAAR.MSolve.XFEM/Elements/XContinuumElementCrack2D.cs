@@ -36,13 +36,10 @@ namespace ISAAR.MSolve.XFEM.Elements
             integralMode1 = 0.0;
             integralMode2 = 0.0;
 
-            foreach (var entry in jIntegralStrategy.GetIntegrationPointsAndMaterials(this))
+            foreach (GaussPoint2D naturalGP in jIntegralStrategy.GenerateIntegrationPoints(this))
             {
                 // Nomenclature: global = global cartesian system, natural = element natural system, 
                 // local = tip local cartesian system  
-
-                //IFiniteElementMaterial2D material = entry.Value;
-                GaussPoint2D naturalGP = entry.Key;
                 EvaluatedInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAt(Nodes, naturalGP);
                 ICartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
                 Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);

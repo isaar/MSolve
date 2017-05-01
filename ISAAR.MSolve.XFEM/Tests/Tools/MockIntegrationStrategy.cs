@@ -14,27 +14,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
     class MockIntegrationStrategy: IIntegrationStrategy2D<XContinuumElement2D>
     {
         private readonly GaussPoint2D[] knownIntegrationPoints;
-        private readonly IFiniteElementMaterial2D material;
 
-        public MockIntegrationStrategy(GaussPoint2D[] knownIntegrationPoints, IFiniteElementMaterial2D material)
+        public MockIntegrationStrategy(GaussPoint2D[] knownIntegrationPoints)
         {
             this.knownIntegrationPoints = knownIntegrationPoints;
-            this.material = material;
         }
 
-        public IReadOnlyDictionary<GaussPoint2D, IFiniteElementMaterial2D> GetIntegrationPointsAndMaterials(XContinuumElement2D element)
+        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XContinuumElement2D element)
         {
-            var pointsAndMaterials = new Dictionary<GaussPoint2D, IFiniteElementMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in knownIntegrationPoints)
-            {
-                pointsAndMaterials.Add(gaussPoint, material.Clone());
-            }
-            return pointsAndMaterials;
-        }
-
-        public void Update(XContinuumElement2D element)
-        {
-
+            return knownIntegrationPoints;
         }
     }
 }

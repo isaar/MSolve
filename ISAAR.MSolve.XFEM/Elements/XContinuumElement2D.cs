@@ -72,10 +72,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         public SymmetricMatrix2D BuildStandardStiffnessMatrix()
         {
             var stiffness = new SymmetricMatrix2D(StandardDofsCount);
-            foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
+            foreach (GaussPoint2D gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
-                GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
-
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
@@ -101,10 +99,8 @@ namespace ISAAR.MSolve.XFEM.Elements
             stiffnessEnrichedStandard = new Matrix2D(artificialDofsCount, standardDofsCount);
             stiffnessEnriched = new SymmetricMatrix2D(artificialDofsCount);
 
-            foreach (var pair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
+            foreach (GaussPoint2D gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
-                GaussPoint2D gaussPoint = pair.Key;
-
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateAt(Nodes, gaussPoint);

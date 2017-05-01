@@ -40,29 +40,17 @@ namespace ISAAR.MSolve.XFEM.Tests
 
 
         private Model2D model;
-        private IFiniteElementMaterial2D material;
         private XNode2D[] nodes;
         private XContinuumElement2D[] elements;
         private CrackBody2D crackBody;
         private CrackTip2D crackTip;
 
-        private MockIntegrationStrategy[] mockIntegrations;
+        private IIntegrationStrategy2D<XContinuumElement2D>[] integrations;
         private bool mockIntegration;
 
         public Benchmark1(bool mockIntegration = false)
         {
             this.mockIntegration = mockIntegration;
-        }
-
-        private void HandleIntegration()
-        {
-            int elementsCount = ELEMENT_ROWS * ELEMENT_COLUMNS;
-            GaussPoint2D[][] allPoints = OutputReaders.ReadAllGaussPoints(expectedGaussPointsPath, elementsCount);
-            mockIntegrations = new MockIntegrationStrategy[elementsCount];
-            for (int el = 0; el < elementsCount; ++el)
-            {
-                mockIntegrations[el] = new MockIntegrationStrategy(allPoints[el], material);
-            }
         }
 
         private void CreateNodes()
@@ -80,9 +68,33 @@ namespace ISAAR.MSolve.XFEM.Tests
                 }
             }
         }
-        
+
+        private void HandleIntegration()
+        {
+            int elementsCount = ELEMENT_ROWS * ELEMENT_COLUMNS;
+            if (mockIntegration)
+            {
+                GaussPoint2D[][] allPoints = OutputReaders.ReadAllGaussPoints(expectedGaussPointsPath, elementsCount);
+                integrations = new MockIntegrationStrategy[elementsCount];
+                for (int el = 0; el < elementsCount; ++el)
+                {
+                    integrations[el] = new MockIntegrationStrategy(allPoints[el]);
+                }
+            }
+            else
+            {
+                var enrichedIntegration = new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order7Points13,
+                    new IncrementalTriangulator());
+                var integrationStrategy = 
+                    new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4, enrichedIntegration);
+                integrations = new IntegrationForCrackPropagation2D[elementsCount];
+                for (int el = 0; el < elementsCount; ++el) integrations[el] = integrationStrategy;
+            }
+        }
+
         private void CreateElements()
         {
+            HandleIntegration();
             elements = new XContinuumElement2D[ELEMENT_ROWS * ELEMENT_COLUMNS];
             int id = 0;
             for (int row = 0; row < ELEMENT_ROWS; ++row)
@@ -92,19 +104,9 @@ namespace ISAAR.MSolve.XFEM.Tests
                     int firstNode = row * NODE_COLUMNS + col;
                     XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
                         nodes[firstNode + NODE_COLUMNS + 1], nodes[firstNode + NODE_COLUMNS] };
-                    var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-                    if (mockIntegration)
-                    {
-                        elements[id] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes,
-                            mockIntegrations[id], materialField);
-                    }
-                    else
-                    {
-                        var enrIntegrationRule = new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order7Points13,
-                            new IncrementalTriangulator());
-                        elements[id] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes,
-                            new HomogeneousIntegration2D(enrIntegrationRule, material), materialField);
-                    }
+                    var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                    elements[id] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes,
+                            integrations[id], material);
                     id++;
                 }
             }
@@ -158,13 +160,11 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void CreateModel()
         {
-            material = ElasticMaterial2DPlainStrain.Create(E, v, 1.0);
             model = new Model2D();
 
             CreateNodes();
             foreach (var node in nodes) model.AddNode(node);
 
-            HandleIntegration();
             CreateElements();
             for (int el = 0; el < elements.Length; ++el) model.AddElement(elements[el]);
 
