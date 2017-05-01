@@ -201,8 +201,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var intersection = new CartesianPoint2D(2 * h, 0.5 * h);
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
-            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(2.0),
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial), 
+            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(),
+                2.0, new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial), 
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial));
 
             // Mesh geometry interaction

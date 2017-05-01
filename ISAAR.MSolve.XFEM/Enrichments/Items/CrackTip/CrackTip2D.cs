@@ -31,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         private readonly TipCurvePosition tipPosition;
         private readonly IGeometryDescription2D discontinuity;
         private readonly ITipEnrichmentAreaStrategy enrichmentAreaStrategy;
+        private readonly double magnificationOfJintegralRadius;
         private readonly IAuxiliaryStates auxiliaryStatesStrategy;
         private readonly ISIFCalculator sifCalculationStrategy;
 
@@ -41,13 +42,27 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         public TipCoordinateSystem TipSystem { get; private set; }
         public ICartesianPoint2D TipCoordinates { get; private set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tipPosition"></param>
+        /// <param name="discontinuity"></param>
+        /// <param name="enrichmentAreaStrategy"></param>
+        /// <param name="magnificationOfJintegralRadius">The outer countour of the J-integral domain is defined as:
+        ///     radius = magnification * sqrt(areaOfElementContainingTip). This parameter is the magnification. 
+        ///     It should be at least 1.5 (see "Modeling quasi-static crack growth with the extended finite element 
+        ///     method Part II: Numerical applications, Huang et al, 2003" page 7546). Usually values 2-3 are selected 
+        ///     (see Ahmed thesis, 2009).</param>
+        /// <param name="auxiliaryStatesStrategy"></param>
+        /// <param name="sifCalculationStrategy"></param>
         public CrackTip2D(TipCurvePosition tipPosition, IGeometryDescription2D discontinuity,
-            ITipEnrichmentAreaStrategy enrichmentAreaStrategy, IAuxiliaryStates auxiliaryStatesStrategy,
-            ISIFCalculator sifCalculationStrategy)
+            ITipEnrichmentAreaStrategy enrichmentAreaStrategy, double magnificationOfJintegralRadius,
+            IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy)
         {
             this.tipPosition = tipPosition;
             this.discontinuity = discontinuity;
             this.enrichmentAreaStrategy = enrichmentAreaStrategy;
+            this.magnificationOfJintegralRadius = magnificationOfJintegralRadius; // TODO: Add checks for valid values
             this.auxiliaryStatesStrategy = auxiliaryStatesStrategy;
             this.sifCalculationStrategy = sifCalculationStrategy;
 
@@ -148,7 +163,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
         private IReadOnlyDictionary<XContinuumElementCrack2D, double[]> FindJintegralElementsAndNodalWeights()
         {
             Circle2D outerContour = 
-                new Circle2D(TipCoordinates, enrichmentAreaStrategy.ComputeRadiusOfJintegralOuterContour(this));
+                new Circle2D(TipCoordinates, ComputeRadiusOfJintegralOuterContour());
             IReadOnlyList<XContinuumElementCrack2D> intersectedElements = 
                 Mesh.FindElementsIntersectedByCircle(outerContour, TipElements[0]);
 
@@ -175,6 +190,18 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
                 elementsAndWeights.Add(element, nodalWeights);
             }
             return elementsAndWeights;
+        }
+
+        private double ComputeRadiusOfJintegralOuterContour()
+        {
+            double maxTipElementArea = -1.0;
+            foreach (var element in TipElements)
+            {
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+                double elementArea = outline.ComputeArea();
+                if (elementArea > maxTipElementArea) maxTipElementArea = elementArea;
+            }
+            return magnificationOfJintegralRadius * Math.Sqrt(maxTipElementArea);
         }
     }
 }

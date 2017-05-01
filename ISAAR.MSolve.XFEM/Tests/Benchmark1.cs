@@ -137,8 +137,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
             var globalMaterialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveEnd, polyline, new SingleElementEnrichment(2.0),
-                new HomogeneousMaterialAuxiliaryStates(globalMaterialField), 
+            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveEnd, polyline, new SingleElementEnrichment(),
+                2.0, new HomogeneousMaterialAuxiliaryStates(globalMaterialField), 
                 new HomogeneousSIFCalculator(globalMaterialField));
 
             // Mesh geometry interaction
