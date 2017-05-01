@@ -33,7 +33,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             double v = 0.25;
             double t = 1.0;
             var material = ElasticMaterial2DPlainStress.Create(E, v, t);
-            var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, new SimpleIntegration2D(material));
+            var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
+            var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, 
+                new SimpleIntegration2D(material), materialField);
             SymmetricMatrix2D k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
             MatrixUtilities.PrintDense(k);

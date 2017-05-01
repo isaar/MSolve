@@ -11,10 +11,27 @@ using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 {
-    class HomogeneousMaterialAuxiliaryStates: IAuxiliaryStates
+    // TODO 1: An IHomogeneousMaterialField would be better than the restrictive HomogeneousElasticMaterial2D
+    // TODO 2: Enforce that all elements of the (J-integral) domain have the identical material properties to the ones 
+    //      passed to this class.
+    class HomogeneousMaterialAuxiliaryStates : IAuxiliaryStates
     {
+        private readonly HomogeneousElasticMaterial2D material;
+
+        /// <summary>
+        /// The material properties (E, v, E*, v*) must be the same across all elements. The user assumes 
+        /// responsibility for passing a <see cref="HomogeneousElasticMaterial2D"/> that has the same properties as 
+        /// the materials of all other elements of the integration domain.
+        /// </summary>
+        /// <param name="globalMaterial">The material properties which must be identical for all elements and this 
+        ///     class</param>
+        public HomogeneousMaterialAuxiliaryStates(HomogeneousElasticMaterial2D globalMaterial)
+        {
+            this.material = globalMaterial;
+        }
+
         public AuxiliaryStatesTensors ComputeTensorsAt(ICartesianPoint2D globalIntegrationPoint, 
-            IFiniteElementMaterial2D materialPoint, TipCoordinateSystem tipCoordinateSystem)
+            TipCoordinateSystem tipCoordinateSystem)
         {
             // Common calculations
             PolarPoint2D polarCoordinates =
@@ -24,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
             // Displacement field derivatives
             DenseMatrix displacementGradientMode1, displacementGradientMode2;
             TipJacobians polarJacobians = tipCoordinateSystem.CalculateJacobiansAt(polarCoordinates);
-            ComputeDisplacementDerivatives(polarJacobians, materialPoint, commonValues, 
+            ComputeDisplacementDerivatives(polarJacobians, commonValues, 
                 out displacementGradientMode1, out displacementGradientMode2);
 
             // Strains
@@ -39,13 +56,15 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
                 strainTensorMode1, strainTensorMode2, stressTensorMode1, stressTensorMode2);
         }
 
-        private static void ComputeDisplacementDerivatives(TipJacobians polarJacobians,
-            IFiniteElementMaterial2D material, CommonValues val, 
+        private void ComputeDisplacementDerivatives(TipJacobians polarJacobians, CommonValues val, 
             out DenseMatrix displacementGradientMode1, out DenseMatrix displacementGradientMode2)
         {
             // Temporary values and derivatives of the differentiated quantities. See documentation for their derivation.
-            double k = (3.0 - material.EquivalentPoissonRatio) / (1.0 + material.EquivalentPoissonRatio);
-            double a = (1.0 + material.PoissonRatio) / (material.YoungModulus * Math.Sqrt(2.0 * Math.PI));
+            double E = material.HomogeneousYoungModulus;
+            double v = material.HomogeneousPoissonRatio;
+            double vEq = material.HomogeneousEquivalentPoissonRatio;
+            double k = (3.0 - vEq) / (1.0 + vEq);
+            double a = (1.0 + v) / (E * Math.Sqrt(2.0 * Math.PI));
             double b = val.sqrtR;
             double b_r = 0.5 / val.sqrtR;
 

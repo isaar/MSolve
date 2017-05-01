@@ -25,15 +25,17 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
         public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<ContinuumElement2D> IntegrationStrategy { get; }
+        public IMaterialField2D Material { get; }
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
         
         public ContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<Node2D> nodes,  
-            IIntegrationStrategy2D<ContinuumElement2D> integrationStrategy)
+            IIntegrationStrategy2D<ContinuumElement2D> integrationStrategy, IMaterialField2D material)
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
             this.elementType = type;
-            this.IntegrationStrategy = integrationStrategy; 
+            this.IntegrationStrategy = integrationStrategy;
+            this.Material = material;
         }
 
         public SymmetricMatrix2D BuildStiffnessMatrix()
@@ -42,17 +44,17 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
                 GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
-                IFiniteElementMaterial2D material = gausspointMaterialPair.Value;
 
                 // Calculate the necessary quantities for the integration
-                Matrix2D constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
+                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
+                Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
+                partial.Scale(thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
                 Debug.Assert(partial.Rows == DofsCount);
                 Debug.Assert(partial.Columns == DofsCount);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);

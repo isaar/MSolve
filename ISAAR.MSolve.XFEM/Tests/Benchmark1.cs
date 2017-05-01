@@ -25,6 +25,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 {
     class Benchmark1
     {
+        private readonly static double E = 2.0e6;
+        private readonly static double v = 0.3;
+
         private readonly static int NODE_ROWS = 4;
         private readonly static int NODE_COLUMNS = 5;
         private readonly static int ELEMENT_ROWS = 3;
@@ -89,17 +92,18 @@ namespace ISAAR.MSolve.XFEM.Tests
                     int firstNode = row * NODE_COLUMNS + col;
                     XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
                         nodes[firstNode + NODE_COLUMNS + 1], nodes[firstNode + NODE_COLUMNS] };
+                    var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
                     if (mockIntegration)
                     {
                         elements[id] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes,
-                            mockIntegrations[id]);
+                            mockIntegrations[id], materialField);
                     }
                     else
                     {
                         var enrIntegrationRule = new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order7Points13,
                             new IncrementalTriangulator());
                         elements[id] = new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes,
-                            new HomogeneousIntegration2D(enrIntegrationRule, material));
+                            new HomogeneousIntegration2D(enrIntegrationRule, material), materialField);
                     }
                     id++;
                 }
@@ -130,8 +134,10 @@ namespace ISAAR.MSolve.XFEM.Tests
             var crackEnd = new CartesianPoint2D(0.20, 0.15);
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
+            var globalMaterialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
             crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveEnd, polyline, new SingleElementEnrichment(2.0),
-                new HomogeneousMaterialAuxiliaryStates(), new HomogeneousSIFCalculator(material));
+                new HomogeneousMaterialAuxiliaryStates(globalMaterialField), 
+                new HomogeneousSIFCalculator(globalMaterialField));
 
             // Mesh geometry interaction
             polyline.ElementIntersections.Add(elements[4], new CartesianPoint2D[] { crackStart, intersection });
@@ -152,7 +158,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void CreateModel()
         {
-            material = ElasticMaterial2DPlainStrain.Create(2.0e6, 0.3, 1.0);
+            material = ElasticMaterial2DPlainStrain.Create(E, v, 1.0);
             model = new Model2D();
 
             CreateNodes();

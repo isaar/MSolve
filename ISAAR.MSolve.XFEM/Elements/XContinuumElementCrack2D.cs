@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Entities;
@@ -22,7 +23,8 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public XContinuumElementCrack2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,
             IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, 
-            IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy): base(type, nodes, integrationStrategy)
+            IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy, IMaterialField2D material) : 
+            base(type, nodes, integrationStrategy, material)
         {
             this.jIntegralStrategy = jIntegralStrategy;
         }
@@ -39,15 +41,16 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Nomenclature: global = global cartesian system, natural = element natural system, 
                 // local = tip local cartesian system  
 
-                IFiniteElementMaterial2D material = entry.Value;
+                //IFiniteElementMaterial2D material = entry.Value;
                 GaussPoint2D naturalGP = entry.Key;
                 EvaluatedInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAt(Nodes, naturalGP);
                 ICartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
+                Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 
                 // State 1
                 DenseMatrix globalDisplacementGradState1 = 
                     CalculateDisplacementFieldGradient(evaluatedInterpolation, nodalDisplacements);
-                Tensor2D globalStressState1 = CalculateStressTensor(globalDisplacementGradState1, material);
+                Tensor2D globalStressState1 = CalculateStressTensor(globalDisplacementGradState1, constitutive);
                 DenseMatrix localDisplacementGradState1 = tipCoordinateSystem.
                     TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(globalDisplacementGradState1);
                 Tensor2D localStressTensorState1 = tipCoordinateSystem.
@@ -69,8 +72,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // TODO: XContinuumElement shouldn't have to pass tipCoordinate system to auxiliaryStates. 
                 // It would be better to have CrackTip handle this and the coordinate transformations. That would also 
                 // obey LoD, but a lot of wrapper methods would be required.
-                AuxiliaryStatesTensors auxiliary 
-                    = auxiliaryStates.ComputeTensorsAt(globalGP, material, tipCoordinateSystem);
+                AuxiliaryStatesTensors auxiliary = auxiliaryStates.ComputeTensorsAt(globalGP, tipCoordinateSystem);
 
                 // Interaction integrals
                 double integrandMode1 = ComputeJIntegrand(localWeightGradient, localDisplacementGradState1, 

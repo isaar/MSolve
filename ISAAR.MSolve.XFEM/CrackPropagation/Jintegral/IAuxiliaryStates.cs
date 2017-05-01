@@ -7,12 +7,11 @@ using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Materials;
 
-
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 {
     interface IAuxiliaryStates
     {
         AuxiliaryStatesTensors ComputeTensorsAt(ICartesianPoint2D globalIntegrationPoint, 
-            IFiniteElementMaterial2D materialPoint, TipCoordinateSystem tipCoordinateSystem);
+            TipCoordinateSystem tipCoordinateSystem);
     }
 }

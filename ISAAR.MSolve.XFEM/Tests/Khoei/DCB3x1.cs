@@ -137,7 +137,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         private readonly double h; // element length
-
+        private readonly double E = 2e6, v = 0.3;
+        private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private IFiniteElementMaterial2D material;
         private Model2D model;
         private CrackBody2D crackBody;
@@ -150,9 +151,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateMaterial()
         {
-            double E = 2e6;
-            double v = 0.3;
             material = ElasticMaterial2DPlainStrain.Create(E, v, 1.0);
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
         }
 
         private void CreateModel()
@@ -177,12 +177,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             connectivity[2] = new XNode2D[] { nodes[4], nodes[5], nodes[6], nodes[7] };
             for (int e = 0; e < 3; ++e)
             {
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
                 var integration = new CrackIntegrationStrategy(
                     new RectangularSubgridIntegration2D<XContinuumElement2D>(8), material);
                 var jIntegration = new JintegralStrategy(GaussLegendre2D.Order4x4,
                     new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4), material);
                 model.AddElement(new XContinuumElementCrack2D(IsoparametricElementType2D.Quad4,
-                    connectivity[e], integration, jIntegration));
+                    connectivity[e], integration, jIntegration, materialField));
             }
 
             // Boundary conditions
@@ -203,7 +204,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var polyline = new Polyline2D(crackStart, crackEnd);
             crackBody = new CrackBody2D(polyline);
             crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(2.0),
-                new HomogeneousMaterialAuxiliaryStates(), new HomogeneousSIFCalculator(material));
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial), 
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial));
 
             // Mesh geometry interaction
             polyline.ElementIntersections.Add(model.Elements[2], new CartesianPoint2D[] { crackStart, intersection });

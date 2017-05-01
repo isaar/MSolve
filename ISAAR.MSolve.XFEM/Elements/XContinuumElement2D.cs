@@ -49,6 +49,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
 
+        public IMaterialField2D Material { get; }
+
         /// <summary>
         /// ERROR: elements should not be enriched explicitly. 
         /// Instead the enrichment items should store which elements they interact with. 
@@ -57,13 +59,14 @@ namespace ISAAR.MSolve.XFEM.Elements
         public List<IEnrichmentItem2D> EnrichmentItems { get; }
 
         public XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,
-            IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy)
+            IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, IMaterialField2D material)
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
             this.elementType = type;
             this.EnrichmentItems = new List<IEnrichmentItem2D>();
             this.IntegrationStrategy = integrationStrategy;
+            this.Material = material;
         }
 
         public SymmetricMatrix2D BuildStandardStiffnessMatrix()
@@ -72,17 +75,17 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (var gausspointMaterialPair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
                 GaussPoint2D gaussPoint = gausspointMaterialPair.Key;
-                IFiniteElementMaterial2D material = gausspointMaterialPair.Value;
 
                 // Calculate the necessary quantities for the integration
-                Matrix2D constitutive = material.CalculateConstitutiveMatrix();
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
+                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
+                Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I shoul scale only the smallest matrix (constitutive) before the multiplications
+                partial.Scale(thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I shoul scale only the smallest matrix (constitutive) before the multiplications
                 Debug.Assert(partial.Rows == StandardDofsCount);
                 Debug.Assert(partial.Columns == StandardDofsCount);
                 MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);
@@ -101,18 +104,19 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (var pair in IntegrationStrategy.GetIntegrationPointsAndMaterials(this))
             {
                 GaussPoint2D gaussPoint = pair.Key;
-                IFiniteElementMaterial2D material = pair.Value;
 
                 // Calculate the necessary quantities for the integration
-                Matrix2D constitutive = material.CalculateConstitutiveMatrix();
-                EvaluatedInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAt(Nodes, gaussPoint);
+                EvaluatedInterpolation2D evaluatedInterpolation =
+                    elementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
+                Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
                 Matrix2D Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
                     gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices. 
                 // Kee = SUM(Benr^T * E * Benr * dV), Kes = SUM(Benr^T * E * Bstd * dV)
-                double dVolume = material.Thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
+                double dVolume = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
                 Matrix2D transposeBenrTimesConstitutive = Benr.Transpose() * constitutive; // cache the result
 
                 Matrix2D Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
@@ -230,10 +234,8 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, IFiniteElementMaterial2D material)
+        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix2D constitutive)
         {
-            Matrix2D constitutive = material.CalculateConstitutiveMatrix(); 
-
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];
             double strainXY = 0.5 * (displacementFieldGradient[0, 1] + displacementFieldGradient[1, 0]);
