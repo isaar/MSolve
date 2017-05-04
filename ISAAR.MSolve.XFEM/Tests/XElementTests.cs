@@ -11,7 +11,6 @@ using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
-using ISAAR.MSolve.XFEM.Integration.Rules;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.LinearAlgebra;

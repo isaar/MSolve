@@ -154,7 +154,6 @@
     <Compile Include="Geometry\Shapes\LineSegment2D.cs" />
     <Compile Include="Integration\Points\GaussPoint1D.cs" />
     <Compile Include="Integration\Points\GaussPoint2D.cs" />
-    <Compile Include="Integration\Rules\IIntegrationRule2D.cs" />
     <Compile Include="Integration\Quadratures\GaussLegendre2D.cs" />
     <Compile Include="Integration\Quadratures\GaussLegendre1D.cs" />
     <Compile Include="Integration\Strategies\RectangularSubgridIntegration2D.cs" />

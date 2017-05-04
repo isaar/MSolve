@@ -9,8 +9,6 @@ using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Rules;
-using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
