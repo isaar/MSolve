@@ -8,6 +8,8 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
@@ -15,8 +17,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         protected List<XContinuumElement2D> affectedElements;
 
-        public int ID { get; }
-        public IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; protected set; }
         public IReadOnlyList<ArtificialDOFType> DOFs { get; protected set; }
         public IReadOnlyList<XContinuumElement2D> AffectedElements { get { return affectedElements; } }
 
@@ -51,12 +51,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         public void EnrichNode(XNode2D node) // TODO: this should not be done manually
         {
-            node.EnrichmentItems.Add(this);
-            foreach (var function in EnrichmentFunctions)
-            {
-                node.EnrichmentFunctions.Add(
-                    new Tuple<IEnrichmentFunction2D, double>(function, function.EvalueAt(node)));
-            }
+            double[] enrichmentValues = EvaluateFunctionsAt(node);
+            node.EnrichmentItems.Add(this, enrichmentValues);
         }
 
         public void EnrichElement(XContinuumElement2D element)
@@ -67,6 +63,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 element.EnrichmentItems.Add(this);
             }
         }
+
+        public abstract double[] EvaluateFunctionsAt(ICartesianPoint2D point);
+        public abstract EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+             EvaluatedInterpolation2D interpolation);
 
         public abstract IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
     }

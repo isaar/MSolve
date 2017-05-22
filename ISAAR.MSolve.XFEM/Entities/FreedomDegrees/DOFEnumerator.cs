@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             {
                 // TODO: Perhaps the nodal dof types should be decided by the element type (structural, continuum) 
                 // and drawn from XXContinuumElement2D instead of from enrichment items
-                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems)
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                     foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
@@ -236,7 +236,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             //int dofCounter = 0; // This if I use different matrices
             foreach (XNode2D node in nodes)
             {
-                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems)
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
                     foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {

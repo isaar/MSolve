@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
-    /// <summary>
-    /// Tagging interface
-    /// </summary>
-    interface IEnrichmentFunction2D
+    interface ITipFunction: IEnrichmentFunction2D
     {
-        //double EvalueAt(ICartesianPoint2D cartesianPoint);
-        //EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint);
+        double EvaluateAt(PolarPoint2D point);
+        EvaluatedFunction2D EvaluateAllAt(PolarPoint2D point, TipJacobians jacobian);
     }
 }

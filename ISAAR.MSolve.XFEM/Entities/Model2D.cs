@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public void AddEnrichment(IEnrichmentItem2D enrichment)
         {
             if (enrichments.Contains(enrichment))
-                throw new ArgumentException("There is already a enrichment with id = " + enrichment.ID);
+                throw new ArgumentException("This enrichment is already inserted");
             enrichments.Add(enrichment);
         }
 

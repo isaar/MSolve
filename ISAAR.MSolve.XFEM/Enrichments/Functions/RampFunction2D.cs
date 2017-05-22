@@ -10,34 +10,22 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
-    // Cons: 
-    // 1) Either I store the enrichment item or the geometry entity. Either way this class (and any similar) is coupled
-    //      with geometry.
-    // 2) Evaluating both the derivatives and the raw value requires 2 identical signed distance calculations, which 
-    //      may be costly. Also the normal vector through a point and that point's signed distance may have common 
-    //      costly calculations. It seems that the curve should somehow remember (and clear) the various geometric 
-    //      values associated each point.
     class RampFunction2D: IEnrichmentFunction2D
     {
-        private readonly MaterialInterface2D enrichmentItem;
-
-        public RampFunction2D(MaterialInterface2D enrichmentItem)
+        public RampFunction2D()
         {
-            this.enrichmentItem = enrichmentItem;
         }
 
-        public double EvalueAt(ICartesianPoint2D cartesianPoint)
+        public double EvaluateAt(double signedDistance)
         {
-            return Math.Abs(enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint));
+            return Math.Abs(signedDistance);
         }
 
-        public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
+        public EvaluatedFunction2D EvaluateAllAt(double signedDistance, Tuple<double, double> normalVector)
         {
-            double signedDistance = enrichmentItem.Discontinuity.SignedDistanceOf(cartesianPoint);
             int sign = Math.Sign(signedDistance);
-            Tuple<double, double> normal = enrichmentItem.Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D(Math.Abs(signedDistance), 
-                new double[] { sign * normal.Item1, sign * normal.Item2 });
+                new double[] { sign * normalVector.Item1, sign * normalVector.Item2 });
         }
     }
 }

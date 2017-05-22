@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
-                    elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
+                    elementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
@@ -155,8 +155,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         protected Matrix2D CalculateEnrichedDeformationMatrix(int artificialDofsCount,
             GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
-            var uniqueFunctions = new Dictionary<IEnrichmentFunction2D, EvaluatedFunction2D>();
+            //ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
+            var uniqueEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
 
             var deformationMatrix = new Matrix2D(3, artificialDofsCount);
             int currentColumn = 0;
@@ -165,35 +165,38 @@ namespace ISAAR.MSolve.XFEM.Elements
                 double N = evaluatedInterpolation.GetValueOf(node);
                 var dNdx = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
 
-                foreach (var enrichment in node.EnrichmentFunctions)
+                foreach (var enrichment in node.EnrichmentItems)
                 {
-                    IEnrichmentFunction2D enrichmentFunction = enrichment.Item1;
-                    double nodalEnrichmentValue = enrichment.Item2;
+                    IEnrichmentItem2D enrichmentItem = enrichment.Key;
+                    double[] nodalEnrichmentValues = enrichment.Value;
 
                     // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
-                    EvaluatedFunction2D evaluatedEnrichment;
-                    if (!(uniqueFunctions.TryGetValue(enrichmentFunction, out evaluatedEnrichment))) //Only search once
+                    EvaluatedFunction2D[] evaluatedEnrichments;
+                    if (!(uniqueEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
                     {
-                        evaluatedEnrichment = enrichmentFunction.EvaluateAllAt(cartesianPoint);
-                        uniqueFunctions[enrichmentFunction] = evaluatedEnrichment;
+                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, Nodes, evaluatedInterpolation);
+                        uniqueEnrichments[enrichmentItem] = evaluatedEnrichments;
                     }
 
-                    // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
-                    // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
-                    // function
-                    double Bx = dNdx.Item1 * (evaluatedEnrichment.Value - nodalEnrichmentValue)
-                        + N * evaluatedEnrichment.CartesianDerivatives.Item1;
-                    double By = dNdx.Item2 * (evaluatedEnrichment.Value - nodalEnrichmentValue)
-                        + N * evaluatedEnrichment.CartesianDerivatives.Item2;
+                    for (int i = 0; i < evaluatedEnrichments.Length; ++i)
+                    {
+                        // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
+                        // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
+                        // function
+                        double Bx = dNdx.Item1 * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                            + N * evaluatedEnrichments[i].CartesianDerivatives.Item1;
+                        double By = dNdx.Item2 * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                            + N * evaluatedEnrichments[i].CartesianDerivatives.Item2;
 
-                    // This depends on the convention: node major or enrichment major. The following is node major.
-                    int col1 = currentColumn++;
-                    int col2 = currentColumn++;
+                        // This depends on the convention: node major or enrichment major. The following is node major.
+                        int col1 = currentColumn++;
+                        int col2 = currentColumn++;
 
-                    deformationMatrix[0, col1] = Bx;
-                    deformationMatrix[1, col2] = By;
-                    deformationMatrix[2, col1] = By;
-                    deformationMatrix[2, col2] = Bx;
+                        deformationMatrix[0, col1] = Bx;
+                        deformationMatrix[1, col2] = By;
+                        deformationMatrix[2, col1] = By;
+                        deformationMatrix[2, col2] = Bx;
+                    }
                 }
             }
             Debug.Assert(currentColumn == artificialDofsCount);

@@ -13,35 +13,18 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
     // calculated only once per gauss point for all functions of the same enrichment item.
     static class IsotropicBrittleTipFunctions2D
     {
-        public class Func1 : IEnrichmentFunction2D
+        public class Func1 : ITipFunction
         {
-            private readonly CrackTip2D enrichmentItem;
-
-            public Func1(CrackTip2D enrichmentItem)
+            public double EvaluateAt(PolarPoint2D point)
             {
-                this.enrichmentItem = enrichmentItem;
+                return Math.Sqrt(point.R) * Math.Sin(point.Theta / 2.0);
             }
 
-            public double EvalueAt(ICartesianPoint2D cartesianPoint)
+            public EvaluatedFunction2D EvaluateAllAt(PolarPoint2D point, TipJacobians jacobian)
             {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-
-                return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0);
-            }
-
-
-            public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
-            {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
-
-                double sqrtR = Math.Sqrt(polarCoordinates.R);
-                double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
-                double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
+                double sqrtR = Math.Sqrt(point.R);
+                double cosThetaHalf = Math.Cos(point.Theta / 2.0);
+                double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf;
                 double[] gradient = { 0.5 / sqrtR * sinThetaHalf, 0.5 * sqrtR * cosThetaHalf };
@@ -51,34 +34,18 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             }
         }
 
-        public class Func2 : IEnrichmentFunction2D
+        public class Func2 : ITipFunction
         {
-            private readonly CrackTip2D enrichmentItem;
-
-            public Func2(CrackTip2D enrichmentItem)
+            public double EvaluateAt(PolarPoint2D point)
             {
-                this.enrichmentItem = enrichmentItem;
+                return Math.Sqrt(point.R) * Math.Cos(point.Theta / 2.0);
             }
 
-            public double EvalueAt(ICartesianPoint2D cartesianPoint)
+            public EvaluatedFunction2D EvaluateAllAt(PolarPoint2D point, TipJacobians jacobian)
             {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-
-                return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0);
-            }
-
-            public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
-            {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
-
-                double sqrtR = Math.Sqrt(polarCoordinates.R);
-                double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
-                double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
+                double sqrtR = Math.Sqrt(point.R);
+                double cosThetaHalf = Math.Cos(point.Theta / 2.0);
+                double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf;
                 double[] gradient = { 0.5 / sqrtR * cosThetaHalf, -0.5 * sqrtR * sinThetaHalf };
@@ -88,37 +55,20 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             }
         }
 
-        public class Func3 : IEnrichmentFunction2D
+        public class Func3 : ITipFunction
         {
-            private readonly CrackTip2D enrichmentItem;
-
-            public Func3(CrackTip2D enrichmentItem)
+            public double EvaluateAt(PolarPoint2D point)
             {
-                this.enrichmentItem = enrichmentItem;
+                return Math.Sqrt(point.R) * Math.Sin(point.Theta / 2.0) * Math.Sin(point.Theta);
             }
 
-            public double EvalueAt(ICartesianPoint2D cartesianPoint)
+            public EvaluatedFunction2D EvaluateAllAt(PolarPoint2D point, TipJacobians jacobian)
             {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-
-                return Math.Sqrt(polarCoordinates.R) * Math.Sin(polarCoordinates.Theta / 2.0)
-                    * Math.Sin(polarCoordinates.Theta);
-            }
-
-            public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
-            {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
-
-                double sqrtR = Math.Sqrt(polarCoordinates.R);
-                double cosTheta = Math.Cos(polarCoordinates.Theta);
-                double sinTheta = Math.Sin(polarCoordinates.Theta);
-                double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
-                double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
+                double sqrtR = Math.Sqrt(point.R);
+                double cosTheta = Math.Cos(point.Theta);
+                double sinTheta = Math.Sin(point.Theta);
+                double cosThetaHalf = Math.Cos(point.Theta / 2.0);
+                double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf * sinTheta;
                 double[] gradient = { 0.5 / sqrtR * sinThetaHalf * sinTheta,
@@ -129,37 +79,20 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             }
         }
 
-        public class Func4 : IEnrichmentFunction2D
+        public class Func4 : ITipFunction
         {
-            private readonly CrackTip2D enrichmentItem;
-
-            public Func4(CrackTip2D enrichmentItem)
+            public double EvaluateAt(PolarPoint2D point)
             {
-                this.enrichmentItem = enrichmentItem;
+                return Math.Sqrt(point.R) * Math.Cos(point.Theta / 2.0) * Math.Sin(point.Theta);
             }
 
-            public double EvalueAt(ICartesianPoint2D cartesianPoint)
+            public EvaluatedFunction2D EvaluateAllAt(PolarPoint2D point, TipJacobians jacobian)
             {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-
-                return Math.Sqrt(polarCoordinates.R) * Math.Cos(polarCoordinates.Theta / 2.0)
-                    * Math.Sin(polarCoordinates.Theta);
-            }
-
-            public EvaluatedFunction2D EvaluateAllAt(ICartesianPoint2D cartesianPoint)
-            {
-                //This section needs to be calculated only once per gauss point for all enrichment items of the same item
-                PolarPoint2D polarCoordinates =
-                    enrichmentItem.TipSystem.TransformPointGlobalCartesianToLocalPolar(cartesianPoint);
-                TipJacobians jacobian = enrichmentItem.TipSystem.CalculateJacobiansAt(polarCoordinates);
-
-                double sqrtR = Math.Sqrt(polarCoordinates.R);
-                double cosTheta = Math.Cos(polarCoordinates.Theta);
-                double sinTheta = Math.Sin(polarCoordinates.Theta);
-                double cosThetaHalf = Math.Cos(polarCoordinates.Theta / 2.0);
-                double sinThetaHalf = Math.Sin(polarCoordinates.Theta / 2.0);
+                double sqrtR = Math.Sqrt(point.R);
+                double cosTheta = Math.Cos(point.Theta);
+                double sinTheta = Math.Sin(point.Theta);
+                double cosThetaHalf = Math.Cos(point.Theta / 2.0);
+                double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf * sinTheta;
                 double[] gradient = { 0.5 / sqrtR * cosThetaHalf * sinTheta,

@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.XElementTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -72,6 +72,7 @@
     <Compile Include="Elements\XContinuumElementCrack2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
     <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2DAlternative.cs" />
+    <Compile Include="Enrichments\Functions\ITipFunction.cs" />
     <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
     <Compile Include="CrackPropagation\Jintegral\HomogeneousMaterialAuxiliaryStates.cs" />
     <Compile Include="Enrichments\Items\CrackTip\CrackTip2D.cs" />

@@ -23,7 +23,6 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             double E = 2e6;
             double v = 0.3;
-            double t = 1.0;
             var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
 
             var point1 = new CartesianPoint2D(30.0, 20.0);
@@ -108,7 +107,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var material = BiElasticMaterial2D.CreateMaterialForPlainStrain(E, v, 0.5 * E, v, enrichmentItem);
 
             var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(4, GaussLegendre2D.Order2x2));
             var element = new XContinuumElement2D(IsoparametricElementType2D.Quad4, nodes,
                 integrationStrategy, material);
 
@@ -140,7 +139,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
             //IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
-            IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
+            //IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
         }
     }
 }

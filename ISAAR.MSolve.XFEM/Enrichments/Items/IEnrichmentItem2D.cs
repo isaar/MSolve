@@ -8,15 +8,15 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     // Connects the geometry, model and enrichment function entities.
+    // TODO: At this point it does most of the work in 1 class. Appropriate decomposition is needed.
     interface IEnrichmentItem2D
     {
-        int ID { get; }
-        IReadOnlyList<IEnrichmentFunction2D> EnrichmentFunctions { get; }
-
         // Perhaps the nodal dof types should be decided by the element type (structural, continuum) in combination with the EnrichmentItem2D and drawn from XContinuumElement2D
         IReadOnlyList<ArtificialDOFType> DOFs { get; } 
 
@@ -32,5 +32,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         void EnrichElement(XContinuumElement2D element);
 
         IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
+
+        double[] EvaluateFunctionsAt(ICartesianPoint2D point);
+
+        EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+             EvaluatedInterpolation2D interpolation);
     }
 }

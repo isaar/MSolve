@@ -11,16 +11,25 @@ namespace ISAAR.MSolve.XFEM.Entities
 {
     class XNode2D: Node2D
     {
-        public List<Tuple<IEnrichmentFunction2D, double>> EnrichmentFunctions { get; set; }
-        public List<IEnrichmentItem2D> EnrichmentItems { get; set; }
-        public bool IsEnriched { get { return EnrichmentFunctions.Count > 0; } }
+        public Dictionary<IEnrichmentItem2D, double[]> EnrichmentItems { get; }
+        public bool IsEnriched { get { return EnrichmentItems.Count > 0; } }
 
-        public int ArtificialDofsCount { get { return 2 * EnrichmentFunctions.Count; } }
+        public int ArtificialDofsCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys)
+                {
+                    count += enrichment.DOFs.Count;
+                }
+                return count;
+            }
+        }
 
         public XNode2D(int id, double x, double y) : base(id, x, y)
         {
-            this.EnrichmentFunctions = new List<Tuple<IEnrichmentFunction2D, double>>();
-            this.EnrichmentItems = new List<IEnrichmentItem2D>();
+            this.EnrichmentItems = new Dictionary<IEnrichmentItem2D, double[]>();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
@@ -11,8 +12,8 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
-using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
+using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.XFEM.Utilities;
 
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
@@ -28,6 +29,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             CurveStart, CurveEnd, Both
         }
 
+        private readonly IReadOnlyList<ITipFunction> enrichmentFunctions;
         private readonly TipCurvePosition tipPosition;
         private readonly IGeometryDescription2D discontinuity;
         private readonly ITipEnrichmentAreaStrategy enrichmentAreaStrategy;
@@ -66,30 +68,52 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             this.auxiliaryStatesStrategy = auxiliaryStatesStrategy;
             this.sifCalculationStrategy = sifCalculationStrategy;
 
-            this.EnrichmentFunctions = new IEnrichmentFunction2D[]
+            this.enrichmentFunctions = new ITipFunction[]
             {
-                //new IsotropicBrittleTipFunctions2DAlternative.Func1(this),
-                //new IsotropicBrittleTipFunctions2DAlternative.Func2(this),
-                //new IsotropicBrittleTipFunctions2DAlternative.Func3(this),
-                //new IsotropicBrittleTipFunctions2DAlternative.Func4(this)
-                new IsotropicBrittleTipFunctions2D.Func1(this),
-                new IsotropicBrittleTipFunctions2D.Func2(this),
-                new IsotropicBrittleTipFunctions2D.Func3(this),
-                new IsotropicBrittleTipFunctions2D.Func4(this)
+                new IsotropicBrittleTipFunctions2D.Func1(),
+                new IsotropicBrittleTipFunctions2D.Func2(),
+                new IsotropicBrittleTipFunctions2D.Func3(),
+                new IsotropicBrittleTipFunctions2D.Func4()
             };
             this.DOFs = new ArtificialDOFType[]
             {
-                new ArtificialDOFType(EnrichmentFunctions[0], StandardDOFType.X),
-                new ArtificialDOFType(EnrichmentFunctions[0], StandardDOFType.Y),
-                new ArtificialDOFType(EnrichmentFunctions[1], StandardDOFType.X),
-                new ArtificialDOFType(EnrichmentFunctions[1], StandardDOFType.Y),
-                new ArtificialDOFType(EnrichmentFunctions[2], StandardDOFType.X),
-                new ArtificialDOFType(EnrichmentFunctions[2], StandardDOFType.Y),
-                new ArtificialDOFType(EnrichmentFunctions[3], StandardDOFType.X),
-                new ArtificialDOFType(EnrichmentFunctions[3], StandardDOFType.Y),
+                new ArtificialDOFType(enrichmentFunctions[0], StandardDOFType.X),
+                new ArtificialDOFType(enrichmentFunctions[0], StandardDOFType.Y),
+                new ArtificialDOFType(enrichmentFunctions[1], StandardDOFType.X),
+                new ArtificialDOFType(enrichmentFunctions[1], StandardDOFType.Y),
+                new ArtificialDOFType(enrichmentFunctions[2], StandardDOFType.X),
+                new ArtificialDOFType(enrichmentFunctions[2], StandardDOFType.Y),
+                new ArtificialDOFType(enrichmentFunctions[3], StandardDOFType.X),
+                new ArtificialDOFType(enrichmentFunctions[3], StandardDOFType.Y),
             };
 
             UpdateTransform();
+        }
+
+        public override double[] EvaluateFunctionsAt(ICartesianPoint2D point)
+        {
+            PolarPoint2D polarPoint = TipSystem.TransformPointGlobalCartesianToLocalPolar(point);
+            var enrichments = new double[enrichmentFunctions.Count];
+            for (int i = 0; i < enrichments.Length; ++i)
+            {
+                enrichments[i] = enrichmentFunctions[i].EvaluateAt(polarPoint);
+            }
+            return enrichments;
+        }
+
+        public override EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+             EvaluatedInterpolation2D interpolation)
+        {
+            PolarPoint2D polarPoint = TipSystem.TransformPointGlobalCartesianToLocalPolar(
+                interpolation.TransformPointNaturalToGlobalCartesian(point));
+            TipJacobians tipJacobians = TipSystem.CalculateJacobiansAt(polarPoint);
+
+            var enrichments = new EvaluatedFunction2D[enrichmentFunctions.Count];
+            for (int i = 0; i < enrichments.Length; ++i)
+            {
+                enrichments[i] = enrichmentFunctions[i].EvaluateAllAt(polarPoint, tipJacobians);
+            }
+            return enrichments;
         }
 
         // TODO: this needs reworking. E.g. making sure there are no identical points might already be 

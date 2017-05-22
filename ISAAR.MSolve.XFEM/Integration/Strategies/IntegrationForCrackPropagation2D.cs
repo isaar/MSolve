@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         {
             foreach (XNode2D node in element.Nodes)
             {
-                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems)
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
                     if (enrichment is CrackTip2D) return true;
                 }
