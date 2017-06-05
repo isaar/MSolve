@@ -55,6 +55,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// ERROR: elements should not be enriched explicitly. 
         /// Instead the enrichment items should store which elements they interact with. 
         /// If the element needs to access the enrichment items it should do so through its nodes.
+        /// Ok, but how would the integration strategy access the enrichment item?
         /// </summary>
         public List<IEnrichmentItem2D> EnrichmentItems { get; }
 

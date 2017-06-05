@@ -32,5 +32,10 @@ namespace ISAAR.MSolve.XFEM.Entities
         {
             return this.ID - other.ID;
         }
+
+        public override string ToString()
+        {
+            return "node " + ID + "(" + X + ", " + Y + ")"; 
+        }
     }
 }

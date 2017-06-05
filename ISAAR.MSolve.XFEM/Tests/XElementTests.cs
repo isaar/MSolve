@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var point1 = new CartesianPoint2D(30.0, 20.0);
             var point2 = new CartesianPoint2D(30.0, 0.0);
             Polyline2D discontinuity = new Polyline2D(point1, point2);
-            IEnrichmentItem2D enrichmentItem = new CrackBody2D(discontinuity);
+            CrackBody2D enrichmentItem = new CrackBody2D(discontinuity);
 
             var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
                 new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
@@ -137,9 +137,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         static void Main(string[] args)
         {
-            //IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
+            IsoparametricQuad4WithCrackTest(NodeSets.nodeSet7);
             //IsoparametricQuad4WithTipTest(NodeSets.nodeSet8);
-            IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
+            //IsoparametricQuad4BimaterialTest(NodeSets.nodeSet7);
         }
     }
 }

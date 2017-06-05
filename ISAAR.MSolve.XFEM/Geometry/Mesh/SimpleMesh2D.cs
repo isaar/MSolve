@@ -52,6 +52,29 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return intersectedElements;
         }
 
+        public IReadOnlyList<TFace> FindElementsInsideCircle(Circle2D circle, TFace startingElement = null)
+        {
+            var internalElements = new List<TFace>();
+            foreach (TFace element in Faces)
+            {
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Vertices);
+                CirclePolygonPosition relativePosition = outline.FindRelativePositionOfCircle(circle);
+                if ((relativePosition == CirclePolygonPosition.Intersecting) ||
+                    (relativePosition == CirclePolygonPosition.PolygonInsideCircle)) internalElements.Add(element);
+            }
+            return internalElements;
+        }
+
+        public IReadOnlyList<TFace> FindElementsWithNode(TVertex node)
+        {
+            var neighboringElements = new List<TFace>();
+            foreach (TFace element in Faces)
+            {
+                if (element.Vertices.Contains(node)) neighboringElements.Add(element);
+            }
+            return neighboringElements;
+        }
+
         public IReadOnlyList<TVertex> FindNodesInsideCircle(Circle2D circle,
             bool findBoundaryNodes = true, TFace startingElement = null)
         {

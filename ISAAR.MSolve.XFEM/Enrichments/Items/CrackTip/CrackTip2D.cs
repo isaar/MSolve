@@ -90,9 +90,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             UpdateTransform();
         }
 
-        public override double[] EvaluateFunctionsAt(ICartesianPoint2D point)
+        public override double[] EvaluateFunctionsAt(XNode2D node)
         {
-            PolarPoint2D polarPoint = TipSystem.TransformPointGlobalCartesianToLocalPolar(point);
+            PolarPoint2D polarPoint = TipSystem.TransformPointGlobalCartesianToLocalPolar(node);
             var enrichments = new double[enrichmentFunctions.Count];
             for (int i = 0; i < enrichments.Length; ++i)
             {

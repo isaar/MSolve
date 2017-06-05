@@ -7,6 +7,7 @@ using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
 {
+    // Deprecated. TODO: remove it and implementors
     interface ITipEnrichmentAreaStrategy
     {
         IReadOnlyList<XNode2D> SelectNodesForEnrichment(CrackTip2D tipItem);

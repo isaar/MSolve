@@ -31,9 +31,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             };
         }
 
-        public override double[] EvaluateFunctionsAt(ICartesianPoint2D point)
+        public override double[] EvaluateFunctionsAt(XNode2D node)
         {
-            double signedDistance = Discontinuity.SignedDistanceOf(point);
+            double signedDistance = Discontinuity.SignedDistanceOf(node);
             return new double[] { enrichmentFunction.EvaluateAt(signedDistance) };
         }
 

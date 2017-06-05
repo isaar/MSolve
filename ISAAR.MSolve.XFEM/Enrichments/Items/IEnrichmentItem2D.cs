@@ -20,20 +20,18 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         // Perhaps the nodal dof types should be decided by the element type (structural, continuum) in combination with the EnrichmentItem2D and drawn from XContinuumElement2D
         IReadOnlyList<ArtificialDOFType> DOFs { get; } 
 
-        IReadOnlyList<XContinuumElement2D> AffectedElements { get; }
+        //IReadOnlyList<XContinuumElement2D> AffectedElements { get; }
 
-        /// <summary>
-        /// Assigns enrichment functions and their nodal values to each enriched node.
-        /// </summary>
-        void EnrichNodes();
+        ///// <summary>
+        ///// Assigns enrichment functions and their nodal values to each enriched node.
+        ///// </summary>
+        //void EnrichNodes();
 
-        void EnrichNode(XNode2D node); // TODO: delete after debugging
-
-        void EnrichElement(XContinuumElement2D element);
+        //void EnrichElement(XContinuumElement2D element);
 
         IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
 
-        double[] EvaluateFunctionsAt(ICartesianPoint2D point);
+        double[] EvaluateFunctionsAt(XNode2D node);
 
         EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
              EvaluatedInterpolation2D interpolation);

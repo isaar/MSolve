@@ -43,6 +43,16 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         IReadOnlyList<TFace> FindElementsIntersectedByCircle(Circle2D circle, TFace startingElement = null);
 
         /// <summary>
+        /// Find the elements that are completely inside or intersected by the provided circle. 
+        /// <param name="circle">The circle to consider.</param>
+        /// <param name="startingElement">An element around which to start the search. If no such element is provided 
+        ///     the search will probably take longer, usually O(elementsCount).</param>
+        /// <returns></returns>
+        IReadOnlyList<TFace> FindElementsInsideCircle(Circle2D circle, TFace startingElement = null);
+
+        IReadOnlyList<TFace> FindElementsWithNode(TVertex node);
+
+        /// <summary>
         /// Find the nodes of the mesh which are inside (and optionally exactly on) the provided circle. If there are
         /// none, the returned collection will be empty.
         /// </summary>
