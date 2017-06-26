@@ -21,15 +21,14 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         /// sets could be used for the transformations (points, vectors, derivatives)
         TipCoordinateSystem TipSystem { get; } 
 
-        // If there is only 1 tip, the end point of the provided curve will be used
-        void Initialize(IOpenCurve2D initialCrack);
-        void UpdateGeometry(ICartesianPoint2D newTip);
+        void Initialize(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip);
+        void UpdateGeometry(double localGrowthAngle, double growthLength); // Perhaps the global angle should be passed in
 
         double SignedDistanceOf(XNode2D node);
         double SignedDistanceOf(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
              EvaluatedInterpolation2D interpolation);
         Tuple<double, double> SignedDistanceGradientThrough(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
-             EvaluatedInterpolation2D interpolation);
+             EvaluatedInterpolation2D interpolation); // Not necessary. Should be removed.
 
         IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element);
         void UpdateEnrichments();

@@ -14,12 +14,12 @@ using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 
-
 namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
-    // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
-    class BasicCrackLSM : ICrackDescription
+    class BasicExplicitCrack2D
     {
+        private static readonly PointComparer pointComparer = new PointComparer();
+
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
@@ -29,40 +29,34 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
 
-        private readonly Dictionary<XNode2D, double> levelSetsBody;
-        private readonly Dictionary<XNode2D, double> levelSetsTip;
-        private ICartesianPoint2D crackTip;
+        private List<ICartesianPoint2D> Vertices { get; }
+        private List<DirectedSegment2D> Segments { get; }
+        private List<double> Angles { get; } // Angle of segment i w.r.t segment i-1, aka the crack growth angle
 
-        public BasicCrackLSM(IMesh2D<XNode2D, XContinuumElement2D> mesh, double tipEnrichmentAreaRadius = 0.0)
+        public BasicExplicitCrack2D(IMesh2D<XNode2D, XContinuumElement2D> mesh, double tipEnrichmentAreaRadius = 0.0)
         {
             this.mesh = mesh;
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.triangulator = new CartesianTriangulator();
-            levelSetsBody = new Dictionary<XNode2D, double>();
-            levelSetsTip = new Dictionary<XNode2D, double>();
+
+            Vertices = new List<ICartesianPoint2D>();
+            Segments = new List<DirectedSegment2D>();
+            Angles = new List<double>();
         }
 
         public TipCoordinateSystem TipSystem { get; private set; }
 
         public void Initialize(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
-            var segment = new DirectedSegment2D(crackMouth, crackTip);
-
-            double tangentX = crackTip.X - crackMouth.X;
-            double tangentY = crackTip.Y - crackMouth.Y;
-            double length = Math.Sqrt(tangentX * tangentX + tangentY * tangentY);
-            double tangentSlope = Math.Atan2(tangentX, tangentY);
-            this.crackTip = crackTip;
+            double dx = crackTip.X - crackMouth.X;
+            double dy = crackTip.Y - crackMouth.Y;
+            double tangentSlope = Math.Atan2(dx, dy);
             TipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 
-            tangentX /= length;
-            tangentY /= length;
-
-            foreach (XNode2D node in mesh.Vertices)
-            {
-                levelSetsBody[node] = segment.SignedDistanceOf(node);
-                levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
-            }
+            Vertices.Add(crackMouth);
+            Vertices.Add(crackTip);
+            Segments.Add(new DirectedSegment2D(crackMouth, crackTip));
+            Angles.Add(double.NaN);
         }
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)
@@ -70,109 +64,60 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             double globalGrowthAngle = localGrowthAngle + TipSystem.RotationAngle;
             double dx = growthLength * Math.Cos(globalGrowthAngle);
             double dy = growthLength * Math.Sin(globalGrowthAngle);
-            double unitDx = dx / growthLength;
-            double unitDy = dy / growthLength;
-
-            var oldTip = crackTip;
-            var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
-            crackTip = newTip;
             double tangentSlope = Math.Atan2(dy, dx);
-            TipSystem = new TipCoordinateSystem(newTip, tangentSlope);
 
-            var newSegment = new DirectedSegment2D(oldTip, newTip);
-            foreach (XNode2D node in mesh.Vertices)
-            {
-                // Rotate the ALL tip level sets towards the new tip and then advance them
-                double rotatedTipLevelSet = (node.X - crackTip.X) * unitDx + (node.Y - crackTip.Y) * unitDy;
-                levelSetsTip[node] = rotatedTipLevelSet - newSegment.Length;
-                 
-                if (rotatedTipLevelSet > 0.0) // Only some body level sets are updated (See Stolarska 2001) 
-                {
-                    levelSetsBody[node] = newSegment.SignedDistanceOf(node);
-                }
-            }
+            var oldTip = Vertices[Vertices.Count - 1];
+            var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
+            Vertices.Add(newTip);
+            Segments.Add(new DirectedSegment2D(oldTip, newTip));
+            Angles.Add(localGrowthAngle); // These are independent of the global coordinate system
+            TipSystem = new TipCoordinateSystem(newTip, tangentSlope);
         }
 
-        /// <summary>
-        /// Warning: with narrow band this should throw an exception if the node is not tracked.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
         public double SignedDistanceOf(XNode2D node)
         {
-            return levelSetsBody[node];
+            return SignedDistanceOfPoint(node);
         }
 
-        /// <summary>
-        /// Warning: with narrow band this should throw an exception if the element/nodes are not tracked.
-        /// </summary>
-        /// <param name="point"></param>
-        /// <param name="elementNodes"></param>
-        /// <param name="interpolation"></param>
-        /// <returns></returns>
         public double SignedDistanceOf(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
              EvaluatedInterpolation2D interpolation)
         {
-            double signedDistance = 0.0;
-            foreach (XNode2D node in elementNodes)
-            {
-                signedDistance += interpolation.GetValueOf(node) * levelSetsBody[node];
-            }
-            return signedDistance;
+            return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
         }
 
         public Tuple<double, double> SignedDistanceGradientThrough(INaturalPoint2D point,
-            IReadOnlyList<XNode2D> elementNodes, EvaluatedInterpolation2D interpolation)
+             IReadOnlyList<XNode2D> elementNodes, EvaluatedInterpolation2D interpolation)
         {
-            double gradientX = 0.0;
-            double gradientY = 0.0;
-            foreach (XNode2D node in elementNodes)
-            {
-                double levelSet = levelSetsBody[node];
-                var shapeFunctionGradient = interpolation.GetGlobalCartesianDerivativesOf(node);
-                gradientX += shapeFunctionGradient.Item1 * levelSet;
-                gradientY += shapeFunctionGradient.Item2 * levelSet;
-            }
-            return new Tuple<double, double>(gradientX, gradientY);
+            throw new NotImplementedException("Perhaps the private method should return the closest segment");
         }
 
         public IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element)
         {
-            var triangleVertices = new HashSet<ICartesianPoint2D>(element.Nodes);
+            var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+            var triangleVertices = new SortedSet<ICartesianPoint2D>(element.Nodes, pointComparer);
             int nodesCount = element.Nodes.Count;
-            ElementEnrichmentType type = CharacterizeElementEnrichment(element);
-            if (type != ElementEnrichmentType.Standard)
+
+            foreach (var vertex in Vertices)
             {
-                // Find the intersections between element edges and the crack 
-                for (int i = 0; i < nodesCount; ++i)
-                {
-                    XNode2D node1 = element.Nodes[i];
-                    XNode2D node2 = element.Nodes[(i + 1) % nodesCount];
-                    double levelSet1 = levelSetsBody[node1];
-                    double levelSet2 = levelSetsBody[node2];
-
-                    if (levelSet1 * levelSet2 < 0.0) 
-                    {
-                        // The intersection point between these nodes can be found using the linear interpolation, see 
-                        // Sukumar 2001
-                        double k = -levelSet1 / (levelSet2 - levelSet1);
-                        double x = node1.X + k * (node2.X - node1.X);
-                        double y = node1.Y + k * (node2.Y - node1.Y);
-
-                        // TODO: For the tip element one intersection point is on the crack extension and does not  
-                        // need to be added. It is not wrong though.
-                        triangleVertices.Add(new CartesianPoint2D(x, y)); 
-                    }
-                    else if (levelSet1 == 0.0) triangleVertices.Add(node1); // TODO: perhaps some tolerance is needed
-                    else if (levelSet2 == 0.0) triangleVertices.Add(node2);
-                }
-
-                if (type == ElementEnrichmentType.Tip) triangleVertices.Add(crackTip);
+                PolygonPointPosition position = polygon.FindRelativePositionOfPoint(vertex);
+                if (position == PolygonPointPosition.Inside || position == PolygonPointPosition.OnEdge || 
+                    position == PolygonPointPosition.OnVertex) triangleVertices.Add(vertex);
             }
+
+            foreach (var crackSegment in Segments)
+            {
+                var segment = new LineSegment2D(crackSegment.Start, crackSegment.End);
+                IReadOnlyList<ICartesianPoint2D> intersections = segment.IntersectionWith(polygon);
+                foreach (var point in intersections)
+                {
+                    triangleVertices.Add(point);
+                }
+            }
+
             return triangulator.CreateMesh(triangleVertices);
         }
 
-        public void UpdateEnrichments() 
+        public void UpdateEnrichments()
         {
             var bodyNodes = new HashSet<XNode2D>();
             var tipNodes = new HashSet<XNode2D>();
@@ -182,7 +127,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             ApplyFixedEnrichmentArea(tipNodes, tipElements[0]);
             ResolveHeavisideEnrichmentDependencies(bodyNodes);
 
-            ApplyEnrichmentFunctions(bodyNodes, tipNodes); 
+            ApplyEnrichmentFunctions(bodyNodes, tipNodes);
         }
 
         private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
@@ -217,7 +162,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         {
             if (tipEnrichmentAreaRadius > 0)
             {
-                var enrichmentArea = new Circle2D(crackTip, tipEnrichmentAreaRadius);
+                var enrichmentArea = new Circle2D(Vertices[Vertices.Count - 1], tipEnrichmentAreaRadius);
                 foreach (var element in mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
                 {
                     bool completelyInside = true;
@@ -245,33 +190,65 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 
         private ElementEnrichmentType CharacterizeElementEnrichment(XContinuumElement2D element)
         {
-            double minBodyLevelSet = double.MaxValue;
-            double maxBodyLevelSet = double.MinValue;
-            double minTipLevelSet = double.MaxValue;
-            double maxTipLevelSet = double.MinValue;
+            var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+            int tipIndex = Vertices.Count - 1;
 
-            foreach (XNode2D node in element.Nodes)
+            // Check tip element
+            PolygonPointPosition tipPosition = polygon.FindRelativePositionOfPoint(Vertices[tipIndex]);
+            if (tipPosition == PolygonPointPosition.Inside || tipPosition == PolygonPointPosition.OnEdge ||
+                    tipPosition == PolygonPointPosition.OnVertex)
             {
-                double bodyLevelSet = levelSetsBody[node];
-                double tipLevelSet = levelSetsTip[node];
-                if (bodyLevelSet < minBodyLevelSet) minBodyLevelSet = bodyLevelSet;
-                if (bodyLevelSet > maxBodyLevelSet) maxBodyLevelSet = bodyLevelSet;
-                if (tipLevelSet < minTipLevelSet) minTipLevelSet = tipLevelSet;
-                if (tipLevelSet > maxTipLevelSet) maxTipLevelSet = tipLevelSet;
+                PolygonPointPosition previousVertexPos = polygon.FindRelativePositionOfPoint(Vertices[tipIndex - 1]);
+                if (previousVertexPos == PolygonPointPosition.Inside) return ElementEnrichmentType.Both;
+                else return ElementEnrichmentType.Tip;
             }
 
-            // Warning: This criterion might give false positives for tip elements (see Serafeim's thesis for details)
-            if (minBodyLevelSet * maxBodyLevelSet <= 0.0)
+            // Look at the other vertices 
+            // (if a segment is inside an element, it will not be caught by checking the segment itself)
+            bool previousVertexOnEdge = false;
+            for (int v = 0; v < tipIndex; ++v)
             {
-                if (minTipLevelSet * maxTipLevelSet <= 0) return ElementEnrichmentType.Tip;
-                else if (maxTipLevelSet < 0) return ElementEnrichmentType.Heaviside;
+                PolygonPointPosition position = polygon.FindRelativePositionOfPoint(Vertices[v]);
+                if (position == PolygonPointPosition.Inside) return ElementEnrichmentType.Heaviside;
+                else if (position == PolygonPointPosition.OnEdge || position == PolygonPointPosition.OnVertex)
+                {
+                    if (previousVertexOnEdge) return ElementEnrichmentType.Heaviside;
+                    else previousVertexOnEdge = true;
+                }
+                else previousVertexOnEdge = false;
             }
+
+            // Look at each segment
+            foreach (var crackSegment in Segments)
+            {
+                var segment = new LineSegment2D(crackSegment.Start, crackSegment.End);
+                CartesianPoint2D intersectionPoint;
+                foreach (var edge in polygon.Edges)
+                {
+                    LineSegment2D.SegmentSegmentPosition position = segment.IntersectionWith(edge, out intersectionPoint);
+                    if (position == LineSegment2D.SegmentSegmentPosition.Intersecting)
+                    {
+                        // TODO: Perhaps the element should not be flagged as a Heaviside element, if the segment passes
+                        // through 1 node only. To detect this, check if the intersection point coincides with an element
+                        // node. If it does store it and go to the next edge. If a second intersection point (that does
+                        // not coincide with the stored one) is found then it is a Heaviside element.
+                        return ElementEnrichmentType.Heaviside;
+                    }
+                    else if (position == LineSegment2D.SegmentSegmentPosition.Overlapping)
+                    {
+                        return ElementEnrichmentType.Heaviside;
+                    }
+                }
+            }
+
+            // Then it must be a standard element
             return ElementEnrichmentType.Standard;
         }
 
-        private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes, 
+        private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes,
             List<XContinuumElement2D> tipElements)
         {
+            var bothElements = new HashSet<XContinuumElement2D>();
             foreach (var element in mesh.Faces)
             {
                 element.EnrichmentItems.Clear();
@@ -287,13 +264,34 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                     foreach (var node in element.Nodes) bodyNodes.Add(node);
                     element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
+                else if (type == ElementEnrichmentType.Both)
+                {
+                    tipElements.Add(element);
+                    bothElements.Add(element);
+                    foreach (var node in element.Nodes)
+                    {
+                        tipNodes.Add(node);
+                        bodyNodes.Add(node);
+                    }
+                    element.EnrichmentItems.Add(CrackTipEnrichments);
+                    element.EnrichmentItems.Add(CrackBodyEnrichment);
+                }
             }
-            foreach (var node in tipNodes) bodyNodes.Remove(node); // tip element's nodes are not enriched with Heaviside
+
+            // After all Heaviside nodes are aggregated remove the nodes of tip elements
+            foreach (var element in tipElements)
+            {
+                foreach (var node in element.Nodes) bodyNodes.Remove(node);
+            }
+            foreach (var element in bothElements) // Re-adding these nodes afterwards is safer 
+            {
+                foreach (var node in element.Nodes) bodyNodes.Add(node);
+            }
 
             ReportTipElements(tipElements);
         }
 
-        private void FindSignedAreasOfElement(XContinuumElement2D element, 
+        private void FindSignedAreasOfElement(XContinuumElement2D element,
             out double positiveArea, out double negativeArea)
         {
             positiveArea = 0.0;
@@ -305,25 +303,24 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                 ICartesianPoint2D v2 = triangle.Vertices[2];
                 double area = 0.5 * Math.Abs(v0.X * (v1.Y - v2.Y) + v1.X * (v2.Y - v0.Y) + v2.X * (v0.Y - v1.Y));
 
-                // The sign of the area can be derived from any node with body level set != 0
+                // The sign of the area can be derived from any node with signed distance != 0
                 int sign = 0;
                 foreach (var vertex in triangle.Vertices)
                 {
                     if (vertex is XNode2D)
                     {
-                        sign = Math.Sign(levelSetsBody[(XNode2D)vertex]);
+                        sign = Math.Sign(SignedDistanceOfPoint(vertex));
                         if (sign != 0) break;
                     }
                 }
 
-                // If no node with non-zero body level set is found, then find the body level set of its centroid
+                // If no node with non-zero signed distance is found, then find the signed distance of its centroid
                 if (sign == 0)
                 {
-                    // TODO: report this instance in DEBUG messages. It should not happen with linear level sets and only 1 crack.
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     INaturalPoint2D centroidNatural = element.Interpolation.
                         CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
-                    EvaluatedInterpolation2D centroidInterpolation = 
+                    EvaluatedInterpolation2D centroidInterpolation =
                         element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
                     sign = Math.Sign(SignedDistanceOf(centroidNatural, element.Nodes, centroidInterpolation));
                 }
@@ -333,6 +330,22 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                 else throw new Exception(
                     "Even after finding the signed distance of its centroid, the sign of the area is unidentified");
             }
+        }
+
+        private int IndexOfMinAbs(IReadOnlyList<double> distances)
+        {
+            double min = double.MaxValue;
+            int pos = -1;
+            for (int i = 0; i < distances.Count; ++i)
+            {
+                double absDistance = Math.Abs(distances[i]);
+                if (absDistance < min)
+                {
+                    min = absDistance;
+                    pos = i;
+                }
+            }
+            return pos;
         }
 
         private void ResolveHeavisideEnrichmentDependencies(HashSet<XNode2D> bodyNodes)
@@ -359,7 +372,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                     nodeNegativeArea += elementPosNegAreas.Item2;
                 }
 
-                if (levelSetsBody[node] >= 0.0)
+                if (SignedDistanceOfPoint(node) >= 0.0)
                 {
                     double negativeAreaRatio = nodeNegativeArea / (nodePositiveArea + nodeNegativeArea);
                     if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
@@ -370,6 +383,63 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                     if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
                 }
             }
+        }
+
+        private double SignedDistanceOfPoint(ICartesianPoint2D globalPoint)
+        {
+            var distances = new List<double>();
+            bool afterPreviousSegment = false;
+
+            // First segment
+            ICartesianPoint2D localPoint = Segments[0].TransformGlobalToLocalPoint(globalPoint);
+            if (localPoint.X < Segments[0].Length) distances.Add(localPoint.Y);
+            else afterPreviousSegment = true;
+
+            // Subsequent segments
+            for (int i = 1; i < Segments.Count - 1; ++i)
+            {
+                localPoint = Segments[i].TransformGlobalToLocalPoint(globalPoint);
+                if (localPoint.X < 0.0)
+                {
+                    if (afterPreviousSegment)
+                    {
+                        // Compute the distance from the vertex between this segment and the previous
+                        double dx = globalPoint.X - Vertices[i].X;
+                        double dy = globalPoint.Y - Vertices[i].Y;
+                        double distance = Math.Sqrt(dx * dx + dy * dy);
+                        int sign = -Math.Sign(Angles[i]); // If growth angle > 0, the convex angle faces the positive area.
+                        distances.Add(sign * distance);
+                    }
+                    afterPreviousSegment = false;
+                }
+                else if (localPoint.X <= Segments[i].Length)
+                {
+                    distances.Add(localPoint.Y);
+                    afterPreviousSegment = false;
+                }
+                else afterPreviousSegment = true;
+            }
+
+            // Last segment
+            int last = Segments.Count - 1;
+            localPoint = Segments[last].TransformGlobalToLocalPoint(globalPoint);
+            if (localPoint.X < 0.0)
+            {
+                if (afterPreviousSegment)
+                {
+                    // Compute the distance from the vertex between this segment and the previous
+                    double dx = globalPoint.X - Vertices[last].X;
+                    double dy = globalPoint.Y - Vertices[last].Y;
+                    double distance = Math.Sqrt(dx * dx + dy * dy);
+                    int sign = -Math.Sign(Angles[last]); // If growth angle > 0, the convex angle faces the positive area.
+                    distances.Add(sign * distance);
+                }
+                afterPreviousSegment = false;
+            }
+            else distances.Add(localPoint.Y);
+
+            return distances[IndexOfMinAbs(distances)];
+
         }
 
         [ConditionalAttribute("DEBUG")]
@@ -384,18 +454,29 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                 foreach (var node in tipElements[e].Nodes)
                 {
                     Console.Write(node);
-                    Console.Write(" - body level set = " + levelSetsBody[node]);
-                    Console.WriteLine(" - tip level set = " + levelSetsTip[node]);
                 }
                 Console.WriteLine("------ /DEBUG ------");
             }
         }
 
         /// <summary>
-        /// Represents the type of enrichment that will be applied to all nodes of the element. In LSM with linear 
-        /// interpolations, an element enriched with tip functions does not need to be enriched with Heaviside too. 
-        /// This is because, even if there are kinks inside the element, the linear interpolation cannot reproduce them.
+        /// Represents the type of enrichment that will be applied to all nodes of the element.
         /// </summary>
-        private enum ElementEnrichmentType { Standard, Heaviside, Tip } 
+        private enum ElementEnrichmentType { Standard, Heaviside, Tip, Both }
+
+        private class PointComparer: IComparer<ICartesianPoint2D>
+        {
+            public int Compare(ICartesianPoint2D point1, ICartesianPoint2D point2)
+            {
+                if (point1.X < point2.X) return -1;
+                else if (point1.X > point2.X) return 1;
+                else // same X
+                {
+                    if (point1.Y < point2.Y) return -1;
+                    else if (point1.Y > point2.Y) return 1;
+                    else return 0; // same point
+                }
+            }
+        }
     }
 }

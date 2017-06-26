@@ -97,6 +97,7 @@
     <Compile Include="Geometry\CoordinateSystems\NaturalPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="Enrichments\Items\CrackTip\TipCoordinateSystem.cs" />
+    <Compile Include="Geometry\Descriptions\BasicExplicitCrack2D.cs" />
     <Compile Include="Geometry\Descriptions\ICrackDescription.cs" />
     <Compile Include="Geometry\Descriptions\BasicCrackLSM.cs" />
     <Compile Include="Geometry\Mesh\IMesh2D.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />
+    <Compile Include="Utilities\Vector2D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

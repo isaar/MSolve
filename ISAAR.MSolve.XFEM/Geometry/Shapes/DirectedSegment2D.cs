@@ -58,6 +58,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return LocalYOf(point); // This suffices since there is no scaling involved in the transformation.
         }
 
+        public ICartesianPoint2D TransformGlobalToLocalPoint(ICartesianPoint2D point)
+        {
+            return new CartesianPoint2D(cosa * point.X + sina * point.Y + originLocalX,
+                -sina * point.X + cosa * point.Y + originLocalY);
+        }
+
         // The normal vector for the positive region.
         public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
         {
