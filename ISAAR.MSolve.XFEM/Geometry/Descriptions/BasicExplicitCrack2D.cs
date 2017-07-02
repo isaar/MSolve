@@ -16,7 +16,7 @@ using ISAAR.MSolve.XFEM.Geometry.Mesh;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
-    class BasicExplicitCrack2D
+    class BasicExplicitCrack2D: ICrackDescription
     {
         private static readonly PointComparer pointComparer = new PointComparer();
 
@@ -28,6 +28,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         // parameters to a CrackDescription builder and construct them there, without involving the user.
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
+        public ICartesianPoint2D CrackTip { get { return Vertices[Vertices.Count - 1]; } }
+        public List<XContinuumElement2D> TipElements { get; }
 
         private List<ICartesianPoint2D> Vertices { get; }
         private List<DirectedSegment2D> Segments { get; }
@@ -38,6 +40,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             this.mesh = mesh;
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.triangulator = new CartesianTriangulator();
+            this.TipElements = new List<XContinuumElement2D>();
 
             Vertices = new List<ICartesianPoint2D>();
             Segments = new List<DirectedSegment2D>();
@@ -46,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 
         public TipCoordinateSystem TipSystem { get; private set; }
 
-        public void Initialize(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
+        public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
             double dx = crackTip.X - crackMouth.X;
             double dy = crackTip.Y - crackMouth.Y;
@@ -121,10 +124,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         {
             var bodyNodes = new HashSet<XNode2D>();
             var tipNodes = new HashSet<XNode2D>();
-            var tipElements = new List<XContinuumElement2D>();
+            TipElements.Clear();
 
-            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes, tipElements);
-            ApplyFixedEnrichmentArea(tipNodes, tipElements[0]);
+            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes, TipElements);
+            ApplyFixedEnrichmentArea(tipNodes, TipElements[0]);
             ResolveHeavisideEnrichmentDependencies(bodyNodes);
 
             ApplyEnrichmentFunctions(bodyNodes, tipNodes);
@@ -199,7 +202,15 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                     tipPosition == PolygonPointPosition.OnVertex)
             {
                 PolygonPointPosition previousVertexPos = polygon.FindRelativePositionOfPoint(Vertices[tipIndex - 1]);
-                if (previousVertexPos == PolygonPointPosition.Inside) return ElementEnrichmentType.Both;
+                if (previousVertexPos == PolygonPointPosition.Inside)
+                {
+                    throw new NotImplementedException("Problem with blending elements, if the tip element is also " +
+                        "enriched with Heaviside. What happens after the crack tip? Based on the LSM, the signed " +
+                        "distance of the blending element after the crack tip should have a positive and negative " +
+                        "region, however that element is not split by the crack and  thus should not have " +
+                        "discontinuity in the displacement field");
+                    //return ElementEnrichmentType.Both;
+                }
                 else return ElementEnrichmentType.Tip;
             }
 
@@ -460,7 +471,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         }
 
         /// <summary>
-        /// Represents the type of enrichment that will be applied to all nodes of the element.
+        /// Represents the type of enrichment that will be applied to all nodes of the element. 
         /// </summary>
         private enum ElementEnrichmentType { Standard, Heaviside, Tip, Both }
 

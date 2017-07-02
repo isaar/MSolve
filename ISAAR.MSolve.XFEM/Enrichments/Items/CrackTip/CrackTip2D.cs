@@ -216,7 +216,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip
             return elementsAndWeights;
         }
 
-        private double ComputeRadiusOfJintegralOuterContour()
+        // This method should directly return the elements and take care of cases near the domain boundaries (see Ahmed)
+        private double ComputeRadiusOfJintegralOuterContour() 
         {
             double maxTipElementArea = -1.0;
             foreach (var element in TipElements)

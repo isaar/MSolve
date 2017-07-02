@@ -213,7 +213,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        protected DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
+        public DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
             double[] nodalDisplacements)
         {
             double[,] displacementGradient = new double[2, 2];
@@ -234,7 +234,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix2D constitutive)
+        public Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix2D constitutive)
         {
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];

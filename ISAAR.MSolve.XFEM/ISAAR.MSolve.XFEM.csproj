@@ -55,6 +55,7 @@
     <Compile Include="Analysis\LinearStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="CrackPropagation\Direction\MaximumCircumferentialTensileStressCriterion.cs" />
+    <Compile Include="CrackPropagation\CrackPropagation.cs" />
     <Compile Include="CrackPropagation\Termination\HomogeneousToughnessCriterion.cs" />
     <Compile Include="CrackPropagation\Termination\IMaterialCriterion.cs" />
     <Compile Include="CrackPropagation\Jintegral\AuxiliaryStatesTensors.cs" />

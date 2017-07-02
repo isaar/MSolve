@@ -20,8 +20,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         /// TODO: an interface is needed for TipSystems. Then the explicit (global, local, polar) systems or the level 
         /// sets could be used for the transformations (points, vectors, derivatives)
         TipCoordinateSystem TipSystem { get; } 
+        ICartesianPoint2D CrackTip { get; }
+        List<XContinuumElement2D> TipElements { get; }
 
-        void Initialize(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip);
+        void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip);
         void UpdateGeometry(double localGrowthAngle, double growthLength); // Perhaps the global angle should be passed in
 
         double SignedDistanceOf(XNode2D node);
