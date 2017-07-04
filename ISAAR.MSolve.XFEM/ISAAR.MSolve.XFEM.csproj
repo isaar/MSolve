@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.XElementTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -136,6 +136,7 @@
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Benchmark1.cs" />
     <Compile Include="Tests\Khoei\DCB3x1.cs" />
+    <Compile Include="Tests\Khoei\DCB3x1OLD.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\Geometry\PointInPolygon.cs" />
     <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
@@ -153,6 +154,7 @@
     <Compile Include="Tests\Tools\SubmatrixChecker.cs" />
     <Compile Include="Tests\Tools\ValueComparer.cs" />
     <Compile Include="Tests\XElementTests.cs" />
+    <Compile Include="Tests\XElementTestsOLD.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
     <Compile Include="Enrichments\Functions\SignFunction2D.cs" />

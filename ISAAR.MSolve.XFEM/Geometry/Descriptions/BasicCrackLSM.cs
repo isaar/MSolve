@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             double tangentX = crackTip.X - crackMouth.X;
             double tangentY = crackTip.Y - crackMouth.Y;
             double length = Math.Sqrt(tangentX * tangentX + tangentY * tangentY);
-            double tangentSlope = Math.Atan2(tangentX, tangentY);
+            double tangentSlope = Math.Atan2(tangentY, tangentX);
             this.CrackTip = crackTip;
             TipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 

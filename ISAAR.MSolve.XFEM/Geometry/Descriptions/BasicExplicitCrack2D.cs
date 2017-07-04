@@ -25,7 +25,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private readonly CartesianTriangulator triangulator;
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
-        // parameters to a CrackDescription builder and construct them there, without involving the user.
+        // parameters to a CrackDescription builder and construct them there, without involving the user 
+        // (given how easy it is to forget the setters, it is a must).
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
         public ICartesianPoint2D CrackTip { get { return Vertices[Vertices.Count - 1]; } }
@@ -53,7 +54,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         {
             double dx = crackTip.X - crackMouth.X;
             double dy = crackTip.Y - crackMouth.Y;
-            double tangentSlope = Math.Atan2(dx, dy);
+            double tangentSlope = Math.Atan2(dy, dx);
             TipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 
             Vertices.Add(crackMouth);
@@ -464,7 +465,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                 Console.WriteLine("Tip element " + e + " with nodes: ");
                 foreach (var node in tipElements[e].Nodes)
                 {
-                    Console.Write(node);
+                    Console.WriteLine(node);
                 }
                 Console.WriteLine("------ /DEBUG ------");
             }

@@ -11,12 +11,10 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
@@ -31,13 +29,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
     /// See Khoei (2015), 7.6.1.
     /// Main units: cm, kN
     /// </summary>
-    class DCB3x1
+    class DCB3x1OLD
     {
         private static Matrix2D expectedK_Node6;
         private static Matrix2D expectedK_Node7_El1;
         private static Matrix2D expectedK_Node7_El2;
         private static Matrix2D expectedK_Node7_Global;
-        private static double[] expectedSolutionNodes5_6 =
+        private static double[] expectedSolutionNodes5_6 = 
             { -8.17e-3, -50e-3, -8.17e-3, 50e-3, 15.69e-3, 49.88e-3, -15.69e-3, 49.88e-3 };
 
         private static void StiffnessNode6()
@@ -114,17 +112,17 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             expectedK_Node7_Global.Scale(1e6);
         }
 
-        static DCB3x1()
+        static DCB3x1OLD()
         {
             StiffnessNode6();
             StiffnessNode7Element1();
             StiffnessNode7Element2();
             StiffnessNode7Global();
         }
-
+        
         public static void Main()
         {
-            DCB3x1 benchmark = new DCB3x1(20);
+            DCB3x1OLD benchmark = new DCB3x1OLD(20);
             benchmark.CreateMaterial();
             benchmark.CreateModel();
             benchmark.HandleEnrichment();
@@ -141,8 +139,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly double E = 2e6, v = 0.3;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
+        private CrackBody2D crackBody;
+        private CrackTip2D crackTip;
 
-        public DCB3x1(double elementLength)
+        public DCB3x1OLD(double elementLength)
         {
             this.h = elementLength;
         }
@@ -161,10 +161,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             model.AddNode(new XNode2D(1, h, 0.0));
             model.AddNode(new XNode2D(2, h, h));
             model.AddNode(new XNode2D(3, 0.0, h));
-            model.AddNode(new XNode2D(4, 2 * h, 0.0));
-            model.AddNode(new XNode2D(5, 3 * h, 0.0));
-            model.AddNode(new XNode2D(6, 3 * h, h));
-            model.AddNode(new XNode2D(7, 2 * h, h));
+            model.AddNode(new XNode2D(4, 2*h, 0.0));
+            model.AddNode(new XNode2D(5, 3*h, 0.0));
+            model.AddNode(new XNode2D(6, 3*h, h));
+            model.AddNode(new XNode2D(7, 2*h, h));
 
             // Elements
             IReadOnlyList<XNode2D> nodes = model.Nodes;
@@ -194,21 +194,31 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleEnrichment()
         {
-            var mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements);
-            var crack = new BasicExplicitCrack2D(mesh);
-
-            // Create enrichments          
-            crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());
-            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack);
-            //crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(),
-            //    2.0, new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-            //    new HomogeneousSIFCalculator(globalHomogeneousMaterial));
+            // Create enrichments
+            var crackStart = new CartesianPoint2D(1.5 * h, 0.5 * h);
+            var crackEnd = new CartesianPoint2D(3 * h, 0.5 * h);
+            var intersection = new CartesianPoint2D(2 * h, 0.5 * h);
+            var polyline = new Polyline2D(crackStart, crackEnd);
+            crackBody = new CrackBody2D(polyline);
+            crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(),
+                2.0, new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial), 
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial));
 
             // Mesh geometry interaction
-            var crackMouth = new CartesianPoint2D(3 * h, 0.5 * h);
-            var crackTip = new CartesianPoint2D(1.5 * h, 0.5 * h);
-            crack.InitializeGeometry(crackMouth, crackTip);
-            crack.UpdateEnrichments();
+            polyline.ElementIntersections.Add(model.Elements[2], new CartesianPoint2D[] { crackStart, intersection });
+            polyline.ElementIntersections.Add(model.Elements[1], new CartesianPoint2D[] { intersection });
+
+            // Enrich nodes
+            crackBody.EnrichNode(model.Nodes[5]);
+            crackBody.EnrichNode(model.Nodes[6]);
+            crackTip.EnrichNode(model.Nodes[1]);
+            crackTip.EnrichNode(model.Nodes[2]);
+            crackTip.EnrichNode(model.Nodes[4]);
+            crackTip.EnrichNode(model.Nodes[7]);
+
+            //Enrich elements. 
+            crackBody.EnrichElement(model.Elements[2]);
+            crackTip.EnrichElement(model.Elements[1]);
         }
 
         private void CheckStiffnessNode6(SubmatrixChecker checker)
@@ -322,7 +332,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             MatrixUtilities.PrintDense(scaledKee);
             Console.WriteLine();
         }
-
+        
         private void RoundMatrix(IMatrix2D matrix)
         {
             for (int r = 0; r < matrix.Rows; ++r)
