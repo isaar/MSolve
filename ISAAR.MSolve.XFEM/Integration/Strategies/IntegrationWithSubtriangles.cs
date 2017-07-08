@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
@@ -18,8 +19,10 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
         private readonly ITriangulator2D mesher;
+        private readonly ICrackDescription crack;
 
-        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ITriangulator2D mesher)
+        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ITriangulator2D mesher, 
+            ICrackDescription crack)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;
             this.mesher = mesher;
@@ -105,12 +108,13 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             {
                 throw new NotImplementedException("I must also find the intersection points of the 2 enrichment items' curves");
             }
-            var pointsOfInterest = new List<ICartesianPoint2D>(element.Nodes); // TODO: better to use a set
-            foreach (IEnrichmentItem2D enrichment in element.EnrichmentItems)
-            {
-                pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));
-            }
-            return pointsOfInterest.Distinct(); // TODO: Provide a comparer that checks (x,y) proximity
+            throw new NotImplementedException("The triangulation should be done at the global system");
+            //var pointsOfInterest = new List<ICartesianPoint2D>(element.Nodes); // TODO: better to use a set
+            //foreach (IEnrichmentItem2D enrichment in element.EnrichmentItems)
+            //{
+            //    pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));
+            //}
+            //return pointsOfInterest.Distinct(); // TODO: Provide a comparer that checks (x,y) proximity
         }
     }
 }

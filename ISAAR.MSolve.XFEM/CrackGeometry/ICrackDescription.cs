@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
@@ -12,8 +11,8 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 
-namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
-{
+namespace ISAAR.MSolve.XFEM.CrackGeometry
+{ 
     // TODO: this only works for cracks with a single tip
     interface ICrackDescription
     {

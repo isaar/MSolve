@@ -25,30 +25,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             this.affectedElements = new List<XContinuumElement2D>();
         }
 
-        //ERROR: This method overwrites the enrichment functions from previous items. Thus if there is both a tip and a heaviside, only the last will be saved
-        //TODO: This method should also handle the removal of enrichments form a node.
-        // Ok for the 1st time. What about updates when only some enrichments must be cleared/changed?
-        public void EnrichNodes()
-        {
-            throw new NotImplementedException("Do it manually for now");
-            //// Find all unique affected nodes.
-            //HashSet<XNode2D> nodes = new HashSet<XNode2D>();
-            //foreach (var element in AffectedElements) nodes.UnionWith(element.Nodes);
-
-            //foreach (var node in nodes)
-            //{
-            //    node.EnrichmentItems = new List<IEnrichmentItem2D> { };
-            //    node.EnrichmentItems.Add(this);
-
-            //    var enrichments = new List<Tuple<IEnrichmentFunction2D, double>>(EnrichmentFunctions.Count);
-            //    foreach (var function in EnrichmentFunctions)
-            //    {
-            //        enrichments.Add(new Tuple<IEnrichmentFunction2D, double>(function, function.EvalueAt(node)));
-            //    }
-            //    node.EnrichmentFunctions = enrichments;
-            //}
-        }
-
         public void EnrichNode(XNode2D node) // TODO: this should not be done manually
         {
             double[] enrichmentValues = EvaluateFunctionsAt(node);

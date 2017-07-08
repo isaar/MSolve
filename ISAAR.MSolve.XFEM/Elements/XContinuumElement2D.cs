@@ -48,6 +48,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
+        public IIntegrationStrategy2D<XContinuumElement2D> JintegralStrategy { get; }
 
         public IMaterialField2D Material { get; }
 
@@ -60,7 +61,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         public List<IEnrichmentItem2D> EnrichmentItems { get; }
 
         public XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,
-            IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, IMaterialField2D material)
+            IMaterialField2D material, IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy):
+            this(type, nodes, material, integrationStrategy, integrationStrategy)
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
@@ -68,6 +70,19 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.EnrichmentItems = new List<IEnrichmentItem2D>();
             this.IntegrationStrategy = integrationStrategy;
             this.Material = material;
+        }
+
+        public XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,
+            IMaterialField2D material, IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy,
+            IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy)
+        {
+            type.CheckNodes(nodes);
+            this.Nodes = nodes;
+            this.elementType = type;
+            this.EnrichmentItems = new List<IEnrichmentItem2D>();
+            this.Material = material;
+            this.IntegrationStrategy = integrationStrategy;
+            this.JintegralStrategy = jIntegralStrategy;
         }
 
         public SymmetricMatrix2D BuildStandardStiffnessMatrix()

@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.XFEM.Geometry.Descriptions;
-using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.CrackPropagation.Length;
@@ -28,7 +27,6 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly ICrackDescription crack;
         private readonly double magnificationOfJintegralRadius;
-        private readonly IIntegrationStrategy2D<XContinuumElement2D> jIntegrationStrategy;
         private readonly IAuxiliaryStates auxiliaryStatesStrategy;
         private readonly ISIFCalculator sifCalculationStrategy;
         private readonly ICrackGrowthDirectionLaw2D growthDirectionLaw;
@@ -44,18 +42,16 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         ///     It should be at least 1.5 (see "Modeling quasi-static crack growth with the extended finite element 
         ///     method Part II: Numerical applications, Huang et al, 2003" page 7546). Usually values 2-3 are selected 
         ///     (see Ahmed thesis, 2009).</param>
-        /// <param name="jIntegrationStrategy"></param>
         /// <param name="auxiliaryStatesStrategy"></param>
         /// <param name="sifCalculationStrategy"></param>
         public CrackPropagation(IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
-            double magnificationOfJintegralRadius, IIntegrationStrategy2D<XContinuumElement2D> jIntegrationStrategy, 
+            double magnificationOfJintegralRadius,
             IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy,
             ICrackGrowthDirectionLaw2D growthDirectionLaw, ICrackGrowthLengthLaw2D growthLengthLaw)
         {
             this.mesh = mesh;
             this.crack = crack;
             this.magnificationOfJintegralRadius = magnificationOfJintegralRadius;
-            this.jIntegrationStrategy = jIntegrationStrategy;
             this.auxiliaryStatesStrategy = auxiliaryStatesStrategy;
             this.sifCalculationStrategy = sifCalculationStrategy;
             this.growthDirectionLaw = growthDirectionLaw;
@@ -145,7 +141,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             integralMode1 = 0.0;
             integralMode2 = 0.0;
 
-            foreach (GaussPoint2D naturalGP in jIntegrationStrategy.GenerateIntegrationPoints(element))
+            foreach (GaussPoint2D naturalGP in element.JintegralStrategy.GenerateIntegrationPoints(element))
             {
                 // Nomenclature: global = global cartesian system, natural = element natural system, 
                 // local = tip local cartesian system  

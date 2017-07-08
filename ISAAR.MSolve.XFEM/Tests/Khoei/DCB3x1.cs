@@ -13,8 +13,7 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
-using ISAAR.MSolve.XFEM.Geometry.Descriptions;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
@@ -179,9 +178,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                     new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
                 var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4,
                     new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
-                model.AddElement(new XContinuumElementCrack2D(IsoparametricElementType2D.Quad4,
-                    connectivity[e], integration, jIntegration, materialField));
+                model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
+                    connectivity[e], materialField, integration, jIntegration));
             }
+
+            // TODO: Add this to the propagator class
+
+            
 
             // Boundary conditions
             model.AddConstraint(model.Nodes[0], StandardDOFType.X, 0.0);
@@ -194,8 +197,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleEnrichment()
         {
-            var mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements);
-            var crack = new BasicExplicitCrack2D(mesh);
+            var crack = new BasicExplicitCrack2D();
+            crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements);
 
             // Create enrichments          
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());

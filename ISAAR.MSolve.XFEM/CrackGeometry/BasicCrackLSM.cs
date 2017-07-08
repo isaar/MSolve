@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -15,17 +14,17 @@ using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 
-namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
+namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
     class BasicCrackLSM : ICrackDescription
     {
-        private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
         // parameters to a CrackDescription builder and construct them there, without involving the user.
+        public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
         public ICartesianPoint2D CrackTip { get; private set; }
@@ -34,9 +33,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private readonly Dictionary<XNode2D, double> levelSetsBody;
         private readonly Dictionary<XNode2D, double> levelSetsTip;
 
-        public BasicCrackLSM(IMesh2D<XNode2D, XContinuumElement2D> mesh, double tipEnrichmentAreaRadius = 0.0)
+        public BasicCrackLSM(double tipEnrichmentAreaRadius = 0.0)
         {
-            this.mesh = mesh;
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.triangulator = new CartesianTriangulator();
             this.TipElements = new List<XContinuumElement2D>();
@@ -60,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             tangentX /= length;
             tangentY /= length;
 
-            foreach (XNode2D node in mesh.Vertices)
+            foreach (XNode2D node in Mesh.Vertices)
             {
                 levelSetsBody[node] = segment.SignedDistanceOf(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
@@ -82,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             TipSystem = new TipCoordinateSystem(newTip, tangentSlope);
 
             var newSegment = new DirectedSegment2D(oldTip, newTip);
-            foreach (XNode2D node in mesh.Vertices)
+            foreach (XNode2D node in Mesh.Vertices)
             {
                 // Rotate the ALL tip level sets towards the new tip and then advance them
                 double rotatedTipLevelSet = (node.X - CrackTip.X) * unitDx + (node.Y - CrackTip.Y) * unitDy;
@@ -190,7 +188,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
         {
             // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
-            foreach (var node in mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
+            foreach (var node in Mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
             foreach (var node in tipNodes)
             {
                 double[] enrichmentValues = CrackTipEnrichments.EvaluateFunctionsAt(node);
@@ -220,7 +218,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             if (tipEnrichmentAreaRadius > 0)
             {
                 var enrichmentArea = new Circle2D(CrackTip, tipEnrichmentAreaRadius);
-                foreach (var element in mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
+                foreach (var element in Mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
                 {
                     bool completelyInside = true;
                     foreach (var node in element.Nodes)
@@ -274,7 +272,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes, 
             List<XContinuumElement2D> tipElements)
         {
-            foreach (var element in mesh.Faces)
+            foreach (var element in Mesh.Faces)
             {
                 element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
@@ -346,7 +344,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                 double nodePositiveArea = 0.0;
                 double nodeNegativeArea = 0.0;
 
-                foreach (var element in mesh.FindElementsWithNode(node))
+                foreach (var element in Mesh.FindElementsWithNode(node))
                 {
                     Tuple<double, double> elementPosNegAreas;
                     bool alreadyProcessed = processedElements.TryGetValue(element, out elementPosNegAreas);

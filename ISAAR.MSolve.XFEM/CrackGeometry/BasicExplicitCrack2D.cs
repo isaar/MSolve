@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
@@ -14,19 +13,19 @@ using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
+namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     class BasicExplicitCrack2D: ICrackDescription
     {
         private static readonly PointComparer pointComparer = new PointComparer();
 
-        private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
         // parameters to a CrackDescription builder and construct them there, without involving the user 
         // (given how easy it is to forget the setters, it is a must).
+        public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
         public ICartesianPoint2D CrackTip { get { return Vertices[Vertices.Count - 1]; } }
@@ -36,9 +35,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private List<DirectedSegment2D> Segments { get; }
         private List<double> Angles { get; } // Angle of segment i w.r.t segment i-1, aka the crack growth angle
 
-        public BasicExplicitCrack2D(IMesh2D<XNode2D, XContinuumElement2D> mesh, double tipEnrichmentAreaRadius = 0.0)
+        public BasicExplicitCrack2D(double tipEnrichmentAreaRadius = 0.0)
         {
-            this.mesh = mesh;
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.triangulator = new CartesianTriangulator();
             this.TipElements = new List<XContinuumElement2D>();
@@ -137,7 +135,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
         {
             // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
-            foreach (var node in mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
+            foreach (var node in Mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
             foreach (var node in tipNodes)
             {
                 double[] enrichmentValues = CrackTipEnrichments.EvaluateFunctionsAt(node);
@@ -167,7 +165,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             if (tipEnrichmentAreaRadius > 0)
             {
                 var enrichmentArea = new Circle2D(Vertices[Vertices.Count - 1], tipEnrichmentAreaRadius);
-                foreach (var element in mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
+                foreach (var element in Mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
                 {
                     bool completelyInside = true;
                     foreach (var node in element.Nodes)
@@ -261,7 +259,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             List<XContinuumElement2D> tipElements)
         {
             var bothElements = new HashSet<XContinuumElement2D>();
-            foreach (var element in mesh.Faces)
+            foreach (var element in Mesh.Faces)
             {
                 element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
@@ -369,7 +367,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
                 double nodePositiveArea = 0.0;
                 double nodeNegativeArea = 0.0;
 
-                foreach (var element in mesh.FindElementsWithNode(node))
+                foreach (var element in Mesh.FindElementsWithNode(node))
                 {
                     Tuple<double, double> elementPosNegAreas;
                     bool alreadyProcessed = processedElements.TryGetValue(element, out elementPosNegAreas);

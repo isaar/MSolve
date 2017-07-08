@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Enrichments.Items.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Points;
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             {
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    if (enrichment is CrackTip2D) return true;
+                    if (enrichment is CrackTipEnrichments2D) return true;
                 }
             }
             return false;
