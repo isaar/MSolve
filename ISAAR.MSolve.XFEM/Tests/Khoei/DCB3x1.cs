@@ -182,10 +182,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                     connectivity[e], materialField, integration, jIntegration));
             }
 
-            // TODO: Add this to the propagator class
-
-            
-
             // Boundary conditions
             model.AddConstraint(model.Nodes[0], StandardDOFType.X, 0.0);
             model.AddConstraint(model.Nodes[0], StandardDOFType.Y, 0.0);

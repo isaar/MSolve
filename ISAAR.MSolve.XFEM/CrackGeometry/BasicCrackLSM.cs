@@ -319,7 +319,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 // If no node with non-zero body level set is found, then find the body level set of its centroid
                 if (sign == 0)
                 {
-                    // TODO: report this instance in DEBUG messages. It should not happen with linear level sets and only 1 crack.
+                    // Report this instance in DEBUG messages. It should not happen with linear level sets and only 1 crack.
+                    Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
+                    
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     INaturalPoint2D centroidNatural = element.Interpolation.
                         CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);

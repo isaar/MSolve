@@ -317,22 +317,17 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 int sign = 0;
                 foreach (var vertex in triangle.Vertices)
                 {
-                    if (vertex is XNode2D)
-                    {
-                        sign = Math.Sign(SignedDistanceOfPoint(vertex));
-                        if (sign != 0) break;
-                    }
+                    sign = Math.Sign(SignedDistanceOfPoint(vertex));
+                    if (sign != 0) break;
                 }
 
                 // If no node with non-zero signed distance is found, then find the signed distance of its centroid
                 if (sign == 0)
                 {
+                    // Report this instance in DEBUG messages. It should not happen.
+                    Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where all vertices are on the crack. ---");
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
-                    INaturalPoint2D centroidNatural = element.Interpolation.
-                        CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
-                    EvaluatedInterpolation2D centroidInterpolation =
-                        element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
-                    sign = Math.Sign(SignedDistanceOf(centroidNatural, element.Nodes, centroidInterpolation));
+                    sign = Math.Sign(SignedDistanceOfPoint(centroid));
                 }
 
                 if (sign > 0) positiveArea += area;

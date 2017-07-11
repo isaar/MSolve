@@ -22,7 +22,7 @@ using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
-    class CrackPropagation
+    class Propagator
     {
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly ICrackDescription crack;
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         ///     (see Ahmed thesis, 2009).</param>
         /// <param name="auxiliaryStatesStrategy"></param>
         /// <param name="sifCalculationStrategy"></param>
-        public CrackPropagation(IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
+        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
             double magnificationOfJintegralRadius,
             IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy,
             ICrackGrowthDirectionLaw2D growthDirectionLaw, ICrackGrowthLengthLaw2D growthLengthLaw)

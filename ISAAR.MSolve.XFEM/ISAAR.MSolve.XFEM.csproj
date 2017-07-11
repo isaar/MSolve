@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -55,7 +55,7 @@
     <Compile Include="Analysis\LinearStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="CrackPropagation\Direction\MaximumCircumferentialTensileStressCriterion.cs" />
-    <Compile Include="CrackPropagation\CrackPropagation.cs" />
+    <Compile Include="CrackPropagation\Propagator.cs" />
     <Compile Include="CrackPropagation\Termination\HomogeneousToughnessCriterion.cs" />
     <Compile Include="CrackPropagation\Termination\IMaterialCriterion.cs" />
     <Compile Include="CrackPropagation\Jintegral\AuxiliaryStatesTensors.cs" />
@@ -133,6 +133,7 @@
     <Compile Include="Tests\Khoei\DCB3x1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\Geometry\PointInPolygon.cs" />
+    <Compile Include="Tests\Khoei\DCBvariable.cs" />
     <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
     <Compile Include="Tests\Tools\DofReorder.cs" />
     <Compile Include="Tests\Tools\ElementMatrixChecker.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="LinearAlgebra\DenseMatrix.cs" />
     <Compile Include="LinearAlgebra\MatrixUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
+    <Compile Include="Utilities\EntityFinder.cs" />
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />

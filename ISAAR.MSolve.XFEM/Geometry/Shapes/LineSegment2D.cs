@@ -144,13 +144,20 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 
         public SegmentPointPosition FindRelativePositionOfPoint(ICartesianPoint2D point)
         {
-            // TODO: find a faster algorithm
-            if (DistanceOf(point) == 0.0)
+            // Local coordinate system
+            double length = Length;
+            double cosa = (End.X - Start.X) / length;
+            double sina = (End.Y - Start.Y) / length;
+            double originLocalX = -cosa * Start.X - sina * Start.Y;
+            double originLocalY = sina * Start.X - cosa * Start.Y;
+
+            double localX = cosa * point.X + sina * point.Y + originLocalX;
+            double localY = -sina * point.X + cosa * point.Y + originLocalY;
+            double tolerance = 1e-6;
+
+            if (Math.Abs(localY) < tolerance)
             {
-                //if ((point.X >= Start.X) != (point.X <= End.X)) return SegmentPointPosition.PointOnSegment // This might be a shortcut
-                double left = Math.Min(Start.X, End.X);
-                double right = Math.Max(Start.X, End.X);
-                if ((point.X >= left) && (point.X <= right)) return SegmentPointPosition.PointOnSegment;
+                if ((localX >= 0.0) && (localX <= length)) return SegmentPointPosition.PointOnSegment;
             }
             return SegmentPointPosition.Disjoint;
         }

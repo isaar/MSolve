@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
                 int edgesPassingThroughPoint = 0;
                 for (int i = 0; i < Vertices.Count; ++i)
                 {
-                    var edge = new LineSegment2D(Vertices[i], Vertices[(i + 1) % Vertices.Count]);
+                    var edge = new LineSegment2D(Vertices[i], Vertices[(i + 1) % Vertices.Count]); //TODO: Perhaps I should use the DirectedSegment2D, which is faster for the use
                     if (edge.FindRelativePositionOfPoint(point) == LineSegment2D.SegmentPointPosition.PointOnSegment)
                     {
                         ++edgesPassingThroughPoint;

@@ -18,17 +18,17 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
         {
             this.dx = domainDim1 / elementsPerDim1;
             this.dy = domainDim2 / elementsPerDim2;
-            this.elementRows = elementsPerDim1;
-            this.elementColumns = elementsPerDim2;
+            this.elementRows = elementsPerDim2;
+            this.elementColumns = elementsPerDim1;
             this.nodeRows = elementRows + 1;
             this.nodeColumns = elementColumns + 1;
         }
 
-        public Tuple<XNode2D[], MeshFacePlaceholder2D[]> CreateMesh()
+        public Tuple<XNode2D[], List<XNode2D[]>> CreateMesh()
         {
             XNode2D[] nodes = CreateNodes();
-            MeshFacePlaceholder2D[] elements = CreateElements(nodes);
-            return new Tuple<XNode2D[], MeshFacePlaceholder2D[]>(nodes, elements);
+            List<XNode2D[]> elementNodes = CreateElements(nodes);
+            return new Tuple<XNode2D[], List<XNode2D[]>>(nodes, elementNodes);
         }
 
         private XNode2D[] CreateNodes()
@@ -46,22 +46,20 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
             return nodes;
         }
 
-        private MeshFacePlaceholder2D[] CreateElements(XNode2D[] nodes)
+        private List<XNode2D[]> CreateElements(XNode2D[] allNodes)
         {
-            var elements = new MeshFacePlaceholder2D[elementRows * elementColumns];
-            int id = 0;
+            var elementNodes = new List<XNode2D[]>();
             for (int row = 0; row < elementRows; ++row)
             {
                 for (int col = 0; col < elementColumns; ++col)
                 {
                     int firstNode = row * nodeColumns + col;
-                    XNode2D[] elementNodes = { nodes[firstNode], nodes[firstNode+1],
-                        nodes[firstNode + nodeColumns + 1], nodes[firstNode + nodeColumns] };
-                    elements[id] = new MeshFacePlaceholder2D(elementNodes);
-                    ++id;
+                    XNode2D[] nodesOfElement = { allNodes[firstNode], allNodes[firstNode+1],
+                        allNodes[firstNode + nodeColumns + 1], allNodes[firstNode + nodeColumns] };
+                    elementNodes.Add(nodesOfElement);
                 }
             }
-            return elements;
+            return elementNodes;
         }
     }
 }
