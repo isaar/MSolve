@@ -20,7 +20,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -33,22 +33,24 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
     class DCBvariable
     {
-        private static readonly double DIM_X = 0.60, DIM_Y = 0.20;
+        private static readonly double DIM_X = 60, DIM_Y = 20;
         private static readonly double E = 2e6, v = 0.3;
         private static readonly ICartesianPoint2D CRACK_MOUTH = new CartesianPoint2D(DIM_X, 0.5 * DIM_Y);
 
         public static void Main()
         {
-            var test = new DCBvariable(45, 1);
+            var test = new DCBvariable(15, 1);
+            //test.CheckJintegralCountour();
             IVector solution = test.Solve();
             test.CheckSolution(solution);
+            test.Propagate(solution);
         }
 
 
         private readonly SubmatrixChecker checker;
 
-        private readonly double elementSize;
-        private readonly double jIntegralRadius;
+        //private readonly double elementSize;
+        private readonly double jIntegralRadiusOverElementSize;
 
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
@@ -59,12 +61,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private XNode2D bottomRightNode;
         private XNode2D topRightNode;
 
+        private Propagator propagator;
+
         public DCBvariable(int elementsPerY, int jIntegralRadiusOverElementSize)
         {
             checker = new SubmatrixChecker(1e-4);
 
-            elementSize = DIM_Y / elementsPerY;
-            jIntegralRadius = jIntegralRadiusOverElementSize * elementSize;
+            //elementSize = DIM_Y / elementsPerY;
+            //this.jIntegralRadius= jIntegralRadiusOverElementSize * this.elementSize;
+            this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
 
             CreateModel(3 * elementsPerY, elementsPerY);
             HandleCrack();
@@ -123,12 +128,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.InitializeGeometry(CRACK_MOUTH, crackTip);
             crack.UpdateEnrichments();
 
-            // J-integral
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            var propagation = new Propagator(crack.Mesh, crack, jIntegralRadius, 
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial), 
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial), 
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.05));
+            
         }
 
         private IVector Solve()
@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        public void CheckSolution(IVector solution)
+        private void CheckSolution(IVector solution)
         {
             var finder = new EntityFinder(model, 1e-6);
             List<XContinuumElement2D> mouthElements = finder.FindElementsThatContains(CRACK_MOUTH);
@@ -155,7 +155,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double aTopX = solution[model.DofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];
             double aTopY = solution[model.DofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[1])];
 
-            Console.WriteLine("For the element containing the crack mouth:");
+            Console.WriteLine("Solution results: For the element containing the crack mouth:");
             Console.WriteLine("Bottom right node, standard dof x: u = " + uBotX);
             Console.WriteLine("Bottom right node, standard dof y: u = " + uBotY);
             Console.WriteLine("Top right node, standard dof x: u = " + uTopX);
@@ -164,7 +164,46 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine("Bottom right node, enriched dof y: u = " + aBotY);
             Console.WriteLine("Top right node, enriched dof x: u = " + aTopX);
             Console.WriteLine("Top right node, enriched dof y: u = " + aTopY);
+            Console.WriteLine();
         }
 
+        private void Propagate(IVector solution)
+        {
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            propagator = new Propagator(crack.Mesh, crack, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
+
+            double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
+            double[] totalFreeDisplacements = new double[solution.Length];
+            solution.CopyTo(totalFreeDisplacements, 0);
+
+            double growthAngle, growthIncrement;
+            propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements, 
+                out growthAngle, out growthIncrement);
+            double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
+                Math.Pow(propagator.Logger.SIFsMode2[0], 2))
+                / globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
+
+            Console.WriteLine("Propagation results:");
+            propagator.Logger.PrintAnalysisStep(0);
+            Console.WriteLine("J-integral = " + jIntegral);
+            Console.WriteLine();
+        }
+
+        private void CheckJintegralCountour()
+        {
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            propagator = new Propagator(crack.Mesh, crack, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.05));
+
+            double radius = propagator.ComputeRadiusOfJintegralOuterContour();
+            Circle2D outerContour = new Circle2D(crack.CrackTip, radius);
+            IReadOnlyList<XContinuumElement2D> intersectedElements =
+                crack.Mesh.FindElementsIntersectedByCircle(outerContour, crack.TipElements[0]);
+        }
     }
 }

@@ -228,14 +228,17 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        public DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation, 
-            double[] nodalDisplacements)
+        public DenseMatrix CalculateDisplacementFieldGradient(GaussPoint2D gaussPoint, 
+            EvaluatedInterpolation2D evaluatedInterpolation, double[] standardNodalDisplacements,
+             double[] enrichedNodalDisplacements)
         {
             double[,] displacementGradient = new double[2, 2];
+
+            // Standard contributions
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                double displacementX = nodalDisplacements[2 * nodeIdx];
-                double displacementY = nodalDisplacements[2 * nodeIdx + 1];
+                double displacementX = standardNodalDisplacements[2 * nodeIdx];
+                double displacementY = standardNodalDisplacements[2 * nodeIdx + 1];
 
                 Tuple<double, double> shapeFunctionDerivatives = 
                     evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIdx]);
@@ -244,6 +247,39 @@ namespace ISAAR.MSolve.XFEM.Elements
                 displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * displacementY;
                 displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * displacementY;
             }
+
+            // Enriched contributions. TODO: Extract the common steps with building B into a separate method 
+            IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> evalEnrichments = 
+                EvaluateEnrichments(gaussPoint, evaluatedInterpolation);
+            int dof = 0;
+            foreach (XNode2D node in Nodes)
+            {
+                double N = evaluatedInterpolation.GetValueOf(node);
+                Tuple<double, double> gradN = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
+
+                foreach (var nodalEnrichment in node.EnrichmentItems)
+                {
+                    EvaluatedFunction2D[] currentEvalEnrichments = evalEnrichments[nodalEnrichment.Key];
+                    for (int e = 0; e < currentEvalEnrichments.Length; ++e)
+                    {
+                        double psi = currentEvalEnrichments[e].Value;
+                        Tuple<double, double> gradPsi = currentEvalEnrichments[e].CartesianDerivatives;
+                        double deltaPsi = psi - nodalEnrichment.Value[e];
+
+                        double Bx = gradN.Item1 * deltaPsi + N * gradPsi.Item1;
+                        double By = gradN.Item2 * deltaPsi + N * gradPsi.Item2;
+
+                        double enrDisplacementX = enrichedNodalDisplacements[dof++];
+                        double enrDisplacementY = enrichedNodalDisplacements[dof++];
+
+                        displacementGradient[0, 0] += Bx * enrDisplacementX;
+                        displacementGradient[0, 1] += By * enrDisplacementX;
+                        displacementGradient[1, 0] += Bx * enrDisplacementY;
+                        displacementGradient[1, 1] += By * enrDisplacementY;
+                    }
+                }
+            }
+
             return new DenseMatrix(displacementGradient);
         }
 
@@ -291,6 +327,46 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             return elementDofs;
         }
+
+        public ITable<XNode2D, ArtificialDOFType, int> GetEnrichedDofs()
+        {
+            var elementDofs = new Table<XNode2D, ArtificialDOFType, int>();
+            int dofCounter = 0;
+            foreach (XNode2D node in Nodes)
+            {
+                foreach (var enrichment in node.EnrichmentItems.Keys)
+                {
+                    foreach (var enrichedDof in enrichment.DOFs) // there are different dofs for x and y axes
+                    {
+                        elementDofs[node, enrichedDof] = dofCounter++;
+                    }
+                }
+            }
+            return elementDofs;
+        }
         #endregion
+        
+        private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
+            GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+        {
+            var evalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
+            foreach (XNode2D node in Nodes)
+            {
+                foreach (var enrichment in node.EnrichmentItems)
+                {
+                    IEnrichmentItem2D enrichmentItem = enrichment.Key;
+                    double[] nodalEnrichmentValues = enrichment.Value;
+
+                    // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
+                    EvaluatedFunction2D[] evaluatedEnrichments;
+                    if (!(evalEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
+                    {
+                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, Nodes, evaluatedInterpolation);
+                        evalEnrichments[enrichmentItem] = evaluatedEnrichments;
+                    }
+                }
+            }
+            return evalEnrichments;
+        }
     }
 }

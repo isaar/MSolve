@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -18,6 +19,7 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
+using ISAAR.MSolve.XFEM.Utilities;
 
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
@@ -31,6 +33,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         private readonly ISIFCalculator sifCalculationStrategy;
         private readonly ICrackGrowthDirectionLaw2D growthDirectionLaw;
         private readonly ICrackGrowthLengthLaw2D growthLengthLaw;
+
+        public PropagationLogger Logger { get; }
 
         /// <summary>
         /// 
@@ -56,9 +60,10 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.sifCalculationStrategy = sifCalculationStrategy;
             this.growthDirectionLaw = growthDirectionLaw;
             this.growthLengthLaw = growthLengthLaw;
+            this.Logger = new PropagationLogger();
         }
 
-        public void Propagate(Model2D model, double[] totalFreeDisplacements, double[] totalConstrainedDisplacements, 
+        public void Propagate(Model2D model, double[] totalFreeDisplacements, double[] totalConstrainedDisplacements,
             out double growthAngle, out double growthLength)
         {
             // TODO: Also check if the sifs do not violate the material toughness
@@ -66,22 +71,27 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             ComputeSIFS(model, totalFreeDisplacements, totalConstrainedDisplacements, out sifMode1, out sifMode2);
             growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
             growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
+            Logger.GrowthAngles.Add(growthAngle);
+            Logger.GrowthLengths.Add(growthLength);
         }
 
         private void ComputeSIFS(Model2D model, double[] totalFreeDisplacements, double[] totalConstrainedDisplacements,
-            out double sifMode1, out double sifMode2)
+             out double sifMode1, out double sifMode2)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
-            foreach (var pair in FindJintegralElementsAndNodalWeights())
+            IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = FindJintegralElementsAndNodalWeights();
+            foreach (var pair in elementWeights)
             {
                 XContinuumElement2D element = pair.Key;
                 double[] nodalWeights = pair.Value;
-                double[] elementDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
+                double[] standardElementDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
                     element, totalFreeDisplacements, totalConstrainedDisplacements);
+                double[] enrichedElementDisplacements = model.DofEnumerator.
+                    ExtractEnrichedDisplacementsOfElementFromGlobal(element, totalFreeDisplacements);
 
                 double partialIntegralMode1, partialIntegralMode2;
-                ComputeInteractionIntegrals(element, elementDisplacements, nodalWeights,
-                    out partialIntegralMode1, out partialIntegralMode2);
+                ComputeInteractionIntegrals(element, standardElementDisplacements, enrichedElementDisplacements,
+                    nodalWeights, out partialIntegralMode1, out partialIntegralMode2);
 
                 interactionIntegralMode1 += partialIntegralMode1;
                 interactionIntegralMode2 += partialIntegralMode2;
@@ -89,6 +99,11 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
             sifMode1 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode1);
             sifMode2 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode2);
+
+            Logger.InteractionIntegralsMode1.Add(interactionIntegralMode1);
+            Logger.InteractionIntegralsMode2.Add(interactionIntegralMode2);
+            Logger.SIFsMode1.Add(sifMode1);
+            Logger.SIFsMode2.Add(sifMode2);
         }
 
         private IReadOnlyDictionary<XContinuumElement2D, double[]> FindJintegralElementsAndNodalWeights()
@@ -123,7 +138,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         }
 
         // This method should directly return the elements and take care of cases near the domain boundaries (see Ahmed)
-        private double ComputeRadiusOfJintegralOuterContour()
+        public double ComputeRadiusOfJintegralOuterContour()
         {
             double maxTipElementArea = -1.0;
             foreach (var element in crack.TipElements)
@@ -135,8 +150,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             return magnificationOfJintegralRadius * Math.Sqrt(maxTipElementArea);
         }
 
-        private void ComputeInteractionIntegrals(XContinuumElement2D element, double[] nodalDisplacements,
-             double[] nodalWeights, out double integralMode1, out double integralMode2)
+        private void ComputeInteractionIntegrals(XContinuumElement2D element, double[] standardNodalDisplacements,
+            double[] enrichedNodalDisplacements, double[] nodalWeights, 
+            out double integralMode1, out double integralMode2)
         {
             integralMode1 = 0.0;
             integralMode2 = 0.0;
@@ -152,8 +168,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 
                 // State 1
-                DenseMatrix globalDisplacementGradState1 =
-                    element.CalculateDisplacementFieldGradient(evaluatedInterpolation, nodalDisplacements);
+                DenseMatrix globalDisplacementGradState1 = element.CalculateDisplacementFieldGradient(
+                    naturalGP, evaluatedInterpolation, standardNodalDisplacements, enrichedNodalDisplacements);
                 Tensor2D globalStressState1 = element.CalculateStressTensor(globalDisplacementGradState1, constitutive);
                 DenseMatrix localDisplacementGradState1 = crack.TipSystem.
                     TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(globalDisplacementGradState1);

@@ -176,6 +176,24 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return elementVector;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="globalFreeVector">Both the free and enriched dofs.</param>
+        /// <returns></returns>
+        public double[] ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, 
+            double[] globalFreeVector)
+        {
+            ITable<XNode2D, ArtificialDOFType, int> elementDofs = element.GetEnrichedDofs();
+            double[] elementVector = new double[elementDofs.EntryCount];
+            foreach (Tuple<XNode2D, ArtificialDOFType, int> entry in elementDofs)
+            {
+                int globalFreeDof = artificialDofs[entry.Item1, entry.Item2];
+                elementVector[entry.Item3] = globalFreeVector[globalFreeDof];
+            }
+            return elementVector;
+        }
+
         private static void EnumerateFreeDofs(IDictionary<XNode2D, HashSet<StandardDOFType>> nodalDOFTypes, 
             ITable<XNode2D, StandardDOFType, double> constraints, 
             out int freeDofsCount, out Table<XNode2D, StandardDOFType, int> freeDofs)
