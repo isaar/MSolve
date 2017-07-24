@@ -97,8 +97,8 @@
     <Compile Include="CrackGeometry\ICrackDescription.cs" />
     <Compile Include="CrackGeometry\BasicCrackLSM.cs" />
     <Compile Include="Geometry\Mesh\IMesh2D.cs" />
-    <Compile Include="Geometry\Mesh\IMeshFace.cs" />
-    <Compile Include="Geometry\Mesh\MeshFacePlaceholder2D.cs" />
+    <Compile Include="Geometry\Mesh\ICell.cs" />
+    <Compile Include="Geometry\Mesh\CellPlaceholder2D.cs" />
     <Compile Include="Geometry\Mesh\Providers\RectangularMeshGenerator.cs" />
     <Compile Include="Geometry\Mesh\SimpleMesh2D.cs" />
     <Compile Include="Geometry\Shapes\Circle2D.cs" />

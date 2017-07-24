@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     ///     Pros: only need to track one set of Gauss points, which simplifies non linear analysis. 
     ///     Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
     /// </summary>
-    class XContinuumElement2D: IMeshFace, IFiniteElement2DView<XNode2D, IsoparametricInterpolation2D>
+    class XContinuumElement2D: ICell, IFiniteElement2DView<XNode2D, IsoparametricInterpolation2D>
     {
         protected readonly IsoparametricElementType2D elementType;
 

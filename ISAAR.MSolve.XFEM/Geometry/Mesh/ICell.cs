@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh
 {
-    interface IMeshFace
+    interface ICell
     {
         IReadOnlyList<ICartesianPoint2D> Vertices { get; }
     }

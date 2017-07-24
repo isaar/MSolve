@@ -7,11 +7,11 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh
 {
-    class MeshFacePlaceholder2D: IMeshFace
+    class CellPlaceholder2D: ICell
     {
         public IReadOnlyList<ICartesianPoint2D> Vertices { get; }
 
-        public MeshFacePlaceholder2D(IReadOnlyList<ICartesianPoint2D> vertices)
+        public CellPlaceholder2D(IReadOnlyList<ICartesianPoint2D> vertices)
         {
             this.Vertices = vertices;
         }

@@ -259,7 +259,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             List<XContinuumElement2D> tipElements)
         {
             var bothElements = new HashSet<XContinuumElement2D>();
-            foreach (var element in Mesh.Faces)
+            foreach (var element in Mesh.Cells)
             {
                 element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);

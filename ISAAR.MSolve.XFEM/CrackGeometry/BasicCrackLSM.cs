@@ -272,7 +272,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes, 
             List<XContinuumElement2D> tipElements)
         {
-            foreach (var element in Mesh.Faces)
+            foreach (var element in Mesh.Cells)
             {
                 element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);

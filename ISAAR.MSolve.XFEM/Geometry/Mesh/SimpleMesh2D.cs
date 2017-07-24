@@ -12,25 +12,25 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
     /// Unoptimized. All search operations take linear time: O(nodesCount) and O(elementsCount).
     /// </summary>
     /// <typeparam name="TVertex"></typeparam>
-    /// <typeparam name="TFace"></typeparam>
-    class SimpleMesh2D<TVertex, TFace>: IMesh2D<TVertex, TFace> 
+    /// <typeparam name="TCell"></typeparam>
+    class SimpleMesh2D<TVertex, TCell>: IMesh2D<TVertex, TCell> 
         where TVertex: ICartesianPoint2D 
-        where TFace: class, IMeshFace
+        where TCell: class, ICell
     {
         public IReadOnlyList<TVertex> Vertices { get; }
-        public IReadOnlyList<TFace> Faces { get; }
+        public IReadOnlyList<TCell> Cells { get; }
 
-        public SimpleMesh2D(IReadOnlyList<TVertex> vertices, IReadOnlyList<TFace> faces)
+        public SimpleMesh2D(IReadOnlyList<TVertex> vertices, IReadOnlyList<TCell> faces)
         {
             this.Vertices = vertices;
-            this.Faces = faces;
+            this.Cells = faces;
         }
 
         // TODO: handle cases where more the point lies on an element edge or node.
-        public IReadOnlyList<TFace> FindElementsContainingPoint(ICartesianPoint2D point, TFace startingElement = null)
+        public IReadOnlyList<TCell> FindElementsContainingPoint(ICartesianPoint2D point, TCell startingElement = null)
         {
-            var containingElements = new List<TFace>();
-            foreach (TFace element in Faces) // O(elementsCount)
+            var containingElements = new List<TCell>();
+            foreach (TCell element in Cells) // O(elementsCount)
             {
                 var outline = ConvexPolygon2D.CreateUnsafe(element.Vertices);
                 PolygonPointPosition pos = outline.FindRelativePositionOfPoint(point);
@@ -40,10 +40,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return containingElements;
         }
 
-        public IReadOnlyList<TFace> FindElementsIntersectedByCircle(Circle2D circle, TFace startingElement = null)
+        public IReadOnlyList<TCell> FindElementsIntersectedByCircle(Circle2D circle, TCell startingElement = null)
         {
-            var intersectedElements = new List<TFace>();
-            foreach (TFace element in Faces)
+            var intersectedElements = new List<TCell>();
+            foreach (TCell element in Cells)
             {
                 var outline = ConvexPolygon2D.CreateUnsafe(element.Vertices);
                 CirclePolygonPosition relativePosition = outline.FindRelativePositionOfCircle(circle);
@@ -52,10 +52,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return intersectedElements;
         }
 
-        public IReadOnlyList<TFace> FindElementsInsideCircle(Circle2D circle, TFace startingElement = null)
+        public IReadOnlyList<TCell> FindElementsInsideCircle(Circle2D circle, TCell startingElement = null)
         {
-            var internalElements = new List<TFace>();
-            foreach (TFace element in Faces)
+            var internalElements = new List<TCell>();
+            foreach (TCell element in Cells)
             {
                 var outline = ConvexPolygon2D.CreateUnsafe(element.Vertices);
                 CirclePolygonPosition relativePosition = outline.FindRelativePositionOfCircle(circle);
@@ -65,10 +65,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return internalElements;
         }
 
-        public IReadOnlyList<TFace> FindElementsWithNode(TVertex node)
+        public IReadOnlyList<TCell> FindElementsWithNode(TVertex node)
         {
-            var neighboringElements = new List<TFace>();
-            foreach (TFace element in Faces)
+            var neighboringElements = new List<TCell>();
+            foreach (TCell element in Cells)
             {
                 if (element.Vertices.Contains(node)) neighboringElements.Add(element);
             }
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         }
 
         public IReadOnlyList<TVertex> FindNodesInsideCircle(Circle2D circle,
-            bool findBoundaryNodes = true, TFace startingElement = null)
+            bool findBoundaryNodes = true, TCell startingElement = null)
         {
             var selectedNodes = new List<TVertex>();
             foreach (TVertex node in Vertices) // O(nodesCount)
