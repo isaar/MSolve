@@ -1,0 +1,68 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Visualization.VTK;
+using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry.Mesh;
+using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
+using ISAAR.MSolve.XFEM.Integration.Quadratures;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
+using ISAAR.MSolve.XFEM.Materials;
+
+namespace ISAAR.MSolve.XFEM.Tests.Visualization
+{
+    class VTKWriterTests
+    {
+
+        public static void Main()
+        {
+            Model2D model = CreateModel();
+            var writer = new LegacyVTKWriter();
+            writer.Model = model;
+            writer.InitializeFile("test1");
+            writer.WriteMesh();
+            writer.WriteScalarField("Distance_from_orgin", GenerateScalarField(model));
+            writer.CloseCurrentFile();
+        }
+
+        private static Model2D CreateModel()
+        {
+            // Mesh
+            Model2D model = new Model2D();
+            var meshGenerator = new RectangularMeshGenerator(100, 50, 40, 25);
+            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
+
+            // Nodes
+            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
+
+            // Elements
+            var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+            var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4,
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
+
+            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            {
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(2e6, 0.3);
+                model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
+                    elementNodes, materialField, integration, jIntegration));
+            }
+
+            return model;
+        }
+
+        private static double[] GenerateScalarField(Model2D model)
+        {
+            double[] nodalValues = new double[model.Nodes.Count];
+            for (int n = 0; n < model.Nodes.Count; ++ n)
+            {
+                XNode2D node = model.Nodes[n];
+                nodalValues[n] = Math.Sqrt(node.X * node.X + node.Y * node.Y);
+            }
+            return nodalValues;
+        }
+    }
+}

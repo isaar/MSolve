@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     /// </summary>
     class XContinuumElement2D: ICell, IFiniteElement2DView<XNode2D, IsoparametricInterpolation2D>
     {
-        protected readonly IsoparametricElementType2D elementType;
+        public IsoparametricElementType2D ElementType { get; }
 
         public IReadOnlyList<ICartesianPoint2D> Vertices { get { return Nodes; } }
 
@@ -44,9 +44,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <summary>
         /// Common interpolation for standard and enriched nodes.
         /// </summary>
-        public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
+        public IsoparametricInterpolation2D Interpolation { get { return ElementType.Interpolation; } }
 
-        public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
+        public IStandardQuadrature2D StandardQuadrature { get { return ElementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
         public IIntegrationStrategy2D<XContinuumElement2D> JintegralStrategy { get; }
 
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
-            this.elementType = type;
+            this.ElementType = type;
             this.EnrichmentItems = new List<IEnrichmentItem2D>();
             this.IntegrationStrategy = integrationStrategy;
             this.Material = material;
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         {
             type.CheckNodes(nodes);
             this.Nodes = nodes;
-            this.elementType = type;
+            this.ElementType = type;
             this.EnrichmentItems = new List<IEnrichmentItem2D>();
             this.Material = material;
             this.IntegrationStrategy = integrationStrategy;
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
-                    elementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                    ElementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
-                    elementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                    ElementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix2D Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
