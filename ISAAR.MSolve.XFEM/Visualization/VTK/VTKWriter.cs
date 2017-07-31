@@ -6,10 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Visualization.VTK
 {
-    class LegacyVTKWriter
+    class VTKWriter
     {
         public static string vtkReaderVersion = "4.1";
         private static readonly string directory = 
@@ -25,15 +26,22 @@ namespace ISAAR.MSolve.XFEM.Visualization.VTK
 
         public void InitializeFile(string filename)
         {
+            // Header
             string path = directory + filename + ".vtk";
             writer = new StreamWriter(path);
             writer.Write("# vtk DataFile Version ");
             writer.WriteLine(vtkReaderVersion);
             writer.WriteLine(filename);
             writer.Write("ASCII\n\n");
+
+            WriteMesh();
+
+            // Fields
+            writer.Write("\n\n");
+            writer.WriteLine("POINT_DATA " + Model.Nodes.Count);
         }
 
-        public void WriteMesh()
+        private void WriteMesh()
         {
             // Nodes 
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");
@@ -43,12 +51,11 @@ namespace ISAAR.MSolve.XFEM.Visualization.VTK
                 XNode2D node = Model.Nodes[n];
                 writer.Write(String.Format("{0} {1} 0.0\n", node.X, node.Y));
             }
-            writer.WriteLine();
 
             // Element connectivity
             int elementDataCount = 0;
             foreach (var element in Model.Elements) elementDataCount += 1 + element.Nodes.Count;
-            writer.WriteLine(String.Format("CELLS {0} {1}", Model.Elements.Count, elementDataCount));
+            writer.WriteLine(String.Format("\nCELLS {0} {1}", Model.Elements.Count, elementDataCount));
             foreach (var element in Model.Elements)
             {
                 writer.Write(element.Nodes.Count); 
@@ -61,22 +68,41 @@ namespace ISAAR.MSolve.XFEM.Visualization.VTK
             }
 
             // Element types
-            writer.WriteLine("CELL_TYPES " + Model.Elements.Count);
+            writer.WriteLine("\nCELL_TYPES " + Model.Elements.Count);
             foreach (var element in Model.Elements)
             {
                 writer.WriteLine(cellTypeCodes[element.ElementType]);
             }
-            writer.Write("\n\n");
         }
 
         public void WriteScalarField(string fieldName, double[] nodalValues)
         {
-            writer.WriteLine("POINT_DATA " + Model.Nodes.Count);
-            writer.WriteLine(String.Format("SCALARS {0} float 1", fieldName));
+            writer.WriteLine(String.Format("SCALARS {0} double 1", fieldName));
             writer.WriteLine("LOOKUP_TABLE default");
-            for (int n = 0; n < Model.Nodes.Count; ++n)
+            for (int i = 0; i < Model.Nodes.Count; ++i)
             {
-                writer.WriteLine(nodalValues[n]);
+                writer.WriteLine(nodalValues[i]);
+            }
+            writer.WriteLine();
+        }
+
+        public void WriteVector2DField(string fieldName, double[,] nodalValues)
+        {
+            writer.WriteLine(String.Format("VECTORS {0} double", fieldName));
+            for (int i = 0; i < Model.Nodes.Count; ++i)
+            {
+                writer.WriteLine(String.Format("{0} {1} 0.0", nodalValues[i, 0], nodalValues[i, 1]));
+            }
+            writer.WriteLine();
+        }
+        
+        public void WriteTensor2DField(string fieldName, IReadOnlyList<Tensor2D> nodalTensors)
+        {
+            writer.WriteLine(String.Format("TENSORS {0} double", fieldName));
+            for (int i = 0; i < Model.Nodes.Count; ++i)
+            {
+                writer.WriteLine(String.Format("{0} {1} {2} 0.0 0.0 0.0 0.0 0.0 0.0", 
+                    nodalTensors[i].XX, nodalTensors[i].YY, nodalTensors[i].XY));
             }
             writer.WriteLine();
         }

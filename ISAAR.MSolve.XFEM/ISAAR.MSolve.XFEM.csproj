@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Visualization.VTKWriterTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.CantileverFEM</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -131,6 +131,7 @@
     <Compile Include="Materials\IMaterialField2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
+    <Compile Include="Tests\CantileverFEM.cs" />
     <Compile Include="Tests\Khoei\DCB3x1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\Geometry\PointInPolygon.cs" />
@@ -178,10 +179,11 @@
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
     <Compile Include="Utilities\EntityFinder.cs" />
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
+    <Compile Include="Utilities\StressRecovery.cs" />
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />
     <Compile Include="Utilities\Vector2D.cs" />
-    <Compile Include="Visualization\VTK\LegacyVTKWriter.cs" />
+    <Compile Include="Visualization\VTK\VTKWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

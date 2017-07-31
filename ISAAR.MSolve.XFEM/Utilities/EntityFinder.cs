@@ -40,6 +40,40 @@ namespace ISAAR.MSolve.XFEM.Utilities
             else throw new Exception("More than 1 node were found, with x = " + x + " and y = " + y);
         }
 
+        /// <summary>
+        /// Throws 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public IReadOnlyList<XNode2D> FindNodesWithX(double x)
+        {
+            var result = new List<XNode2D>();
+            foreach (var node in model.Nodes)
+            {
+                if (Math.Abs(x - node.X) <= tolerance) result.Add(node);
+            }
+
+            if (result.Count == 0) throw new KeyNotFoundException("No node was found, with x = " + x);
+            else return result;
+        }
+
+        /// <summary>
+        /// Throws 
+        /// </summary>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public IReadOnlyList<XNode2D> FindNodesWithY(double y)
+        {
+            var result = new List<XNode2D>();
+            foreach (var node in model.Nodes)
+            {
+                if (Math.Abs(y - node.Y) <= tolerance) result.Add(node);
+            }
+
+            if (result.Count == 0) throw new KeyNotFoundException("No node was found, with y = " + y );
+            else return result;
+        }
+
         public List<XContinuumElement2D> FindElementsThatContains(ICartesianPoint2D point)
         {
             var result = new List<XContinuumElement2D>();

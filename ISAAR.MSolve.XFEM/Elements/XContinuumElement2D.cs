@@ -228,7 +228,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        public DenseMatrix CalculateDisplacementFieldGradient(GaussPoint2D gaussPoint, 
+        public DenseMatrix CalculateDisplacementFieldGradient(INaturalPoint2D gaussPoint, 
             EvaluatedInterpolation2D evaluatedInterpolation, double[] standardNodalDisplacements,
              double[] enrichedNodalDisplacements)
         {
@@ -347,7 +347,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         #endregion
         
         private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
-            GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+            INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             var evalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
             foreach (XNode2D node in Nodes)

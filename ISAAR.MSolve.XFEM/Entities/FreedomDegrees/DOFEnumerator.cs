@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -263,6 +264,32 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 }
             }
             artificialDofsCount = dofCounter - standardDofsCount;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="solution"></param>
+        /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
+        public double[,] GatherNodalDisplacements(Model2D model, IVector solution)
+        {
+            double[,] result = new double[model.Nodes.Count, 2];
+            for (int i = 0; i < model.Nodes.Count; ++i)
+            {
+                XNode2D node = model.Nodes[i];
+
+                int globalFreeDofX;
+                bool isXFree = freeDofs.TryGetValue(node, StandardDOFType.X, out globalFreeDofX);
+                if (isXFree) result[i, 0] = solution[globalFreeDofX];
+                else result[i, 0] = model.Constraints[node, StandardDOFType.X];
+
+                int globalFreeDofY;
+                bool isYFree = freeDofs.TryGetValue(node, StandardDOFType.Y, out globalFreeDofY);
+                if (isYFree) result[i, 1] = solution[globalFreeDofY];
+                else result[i, 1] = model.Constraints[node, StandardDOFType.Y];
+            }
+            return result;
         }
     }
 }

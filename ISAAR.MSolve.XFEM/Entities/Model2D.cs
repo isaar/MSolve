@@ -30,6 +30,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public IReadOnlyList<XNode2D> Nodes { get { return nodes; } }
         public IReadOnlyList<XContinuumElement2D> Elements { get { return elements; } }
         public IReadOnlyList<IEnrichmentItem2D> Enrichments { get { return enrichments; } }
+        public ITable<XNode2D, StandardDOFType, double> Constraints { get { return constraints; } }
         public DOFEnumerator DofEnumerator { get; private set; }
 
         public Model2D()

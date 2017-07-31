@@ -20,10 +20,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         public static void Main()
         {
             Model2D model = CreateModel();
-            var writer = new LegacyVTKWriter();
+            var writer = new VTKWriter();
             writer.Model = model;
             writer.InitializeFile("test1");
-            writer.WriteMesh();
             writer.WriteScalarField("Distance_from_orgin", GenerateScalarField(model));
             writer.CloseCurrentFile();
         }
