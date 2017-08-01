@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.CantileverFEM</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Visualization.CantilevelFEMDiscontinuous</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -131,7 +131,8 @@
     <Compile Include="Materials\IMaterialField2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
-    <Compile Include="Tests\CantileverFEM.cs" />
+    <Compile Include="Tests\Visualization\CantilevelFEMDiscontinuous.cs" />
+    <Compile Include="Tests\Visualization\CantileverFEM.cs" />
     <Compile Include="Tests\Khoei\DCB3x1.cs" />
     <Compile Include="Tests\DelaunyTests.cs" />
     <Compile Include="Tests\Geometry\PointInPolygon.cs" />
@@ -183,6 +184,10 @@
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />
     <Compile Include="Utilities\Vector2D.cs" />
+    <Compile Include="Visualization\VTK\VTKMesh2D.cs" />
+    <Compile Include="Visualization\VTK\DiscontinuousMeshVTKWriter.cs" />
+    <Compile Include="Visualization\VTK\VTKCell.cs" />
+    <Compile Include="Visualization\VTK\VTKPoint.cs" />
     <Compile Include="Visualization\VTK\VTKWriter.cs" />
   </ItemGroup>
   <ItemGroup>

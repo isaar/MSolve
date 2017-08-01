@@ -17,7 +17,7 @@ using ISAAR.MSolve.XFEM.Visualization.VTK;
 using ISAAR.MSolve.XFEM.Tensors;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.Visualization
 {
     class CantileverFEM
     {
@@ -84,8 +84,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private static void WriteOutput(Model2D model, IVector solution)
         {
-            var writer = new VTKWriter();
-            writer.Model = model;
+            var writer = new VTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);
 
             double[,] nodalDisplacements = model.DofEnumerator.GatherNodalDisplacements(model, solution);

@@ -60,6 +60,20 @@ namespace ISAAR.MSolve.XFEM.Utilities
             return nodalStresses;
         }
 
+        public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> ComputeElementWiseStresses(
+            double[] solution)
+        {
+            double[] constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            var allStresses = new Dictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>>();
+            foreach (var element in model.Elements)
+            {
+                IReadOnlyDictionary<XNode2D, Tensor2D> elementStresses =
+                    ComputeNodalStressesOfElement(element, solution, constrainedDisplacements);
+                allStresses[element] = elementStresses.Values.ToArray();
+            }
+            return allStresses;
+        }
+
         // Computes stresses directly at the nodes. The other approach is to compute them at Gauss points and then extrapolate
         private IReadOnlyDictionary<XNode2D, Tensor2D> ComputeNodalStressesOfElement(XContinuumElement2D element, 
             double[] freeDisplacements, double[] constrainedDisplacements)

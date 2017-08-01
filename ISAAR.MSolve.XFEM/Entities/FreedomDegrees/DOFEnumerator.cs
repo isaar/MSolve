@@ -266,6 +266,28 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             artificialDofsCount = dofCounter - standardDofsCount;
         }
 
+        public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<double[]>> GatherElementWiseDisplacements(
+            Model2D model, double[] freeDisplacements)
+        {
+            double[] constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            var allDisplacements = new Dictionary<XContinuumElement2D, IReadOnlyList<double[]>>();
+            foreach (var element in model.Elements)
+            {
+                double[] displacementsUnrolled = ExtractDisplacementVectorOfElementFromGlobal(element,
+                    freeDisplacements, constrainedDisplacements);
+                var displacementsAsVectors = new double[element.Nodes.Count][];
+                for (int i = 0; i < element.Nodes.Count; ++i)
+                {
+                    displacementsAsVectors[i] = new double[] 
+                    {
+                        displacementsUnrolled[2 * i], displacementsUnrolled[2 * i + 1] // This only works for continuum elements though.
+                    };
+                }
+                allDisplacements[element] = displacementsAsVectors;
+            }
+            return allDisplacements;
+        }
+
         /// <summary>
         /// 
         /// </summary>
