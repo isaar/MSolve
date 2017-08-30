@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Visualization.CantileverFEM</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -180,24 +180,25 @@
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
     <Compile Include="Utilities\EntityFinder.cs" />
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
-    <Compile Include="Utilities\StressRecovery.cs" />
+    <Compile Include="Output\StressRecovery.cs" />
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />
     <Compile Include="Utilities\Vector2D.cs" />
-    <Compile Include="Visualization\VTK\VTKMesh2D.cs" />
-    <Compile Include="Visualization\VTK\DiscontinuousMeshVTKWriter.cs" />
-    <Compile Include="Visualization\VTK\VTKCell.cs" />
-    <Compile Include="Visualization\VTK\VTKPoint.cs" />
-    <Compile Include="Visualization\VTK\VTKWriter.cs" />
+    <Compile Include="Output\VTK\VTKMesh2D.cs" />
+    <Compile Include="Output\VTK\DiscontinuousMeshVTKWriter.cs" />
+    <Compile Include="Output\VTK\VTKCell.cs" />
+    <Compile Include="Output\VTK\VTKPoint.cs" />
+    <Compile Include="Output\VTK\VTKWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
+    <None Include="Resources\CantileverFEM.vtk" />
+    <None Include="Resources\CantileverFEMDiscontinuous.vtk" />
+    <None Include="Resources\test1.vtk" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Output\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>

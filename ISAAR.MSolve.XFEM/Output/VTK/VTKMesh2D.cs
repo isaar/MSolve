@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace ISAAR.MSolve.XFEM.Visualization.VTK
+namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     /// <summary>
     /// Same elements as the original mesh, but each node is included once per element owning it. 

@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
 
-namespace ISAAR.MSolve.XFEM.Utilities
+namespace ISAAR.MSolve.XFEM.Output
 {
     class StressRecovery
     {

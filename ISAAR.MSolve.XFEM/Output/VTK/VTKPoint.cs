@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
-namespace ISAAR.MSolve.XFEM.Visualization.VTK
+namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class VTKPoint: ICartesianPoint2D
     {

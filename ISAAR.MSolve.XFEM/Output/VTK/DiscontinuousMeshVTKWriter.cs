@@ -7,13 +7,13 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Tensors;
 
-namespace ISAAR.MSolve.XFEM.Visualization.VTK
+namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class DiscontinuousMeshVTKWriter
     {
         public static string vtkReaderVersion = "4.1";
         private static readonly string directory =
-            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Output\\";
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Resources\\";
         
 
         private readonly Model2D originalModel;
