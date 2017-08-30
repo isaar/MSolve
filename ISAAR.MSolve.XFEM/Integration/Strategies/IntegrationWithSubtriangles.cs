@@ -98,6 +98,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             return naturalDelaunyPoints;
         }
 
+        // TODO: perhaps the triangulation should be done at the global system
         private static IEnumerable<ICartesianPoint2D> FindCartesianPointsForTriangulation(XContinuumElement2D element)
         {
             if (element.EnrichmentItems.Count == 0)
@@ -108,13 +109,13 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             {
                 throw new NotImplementedException("I must also find the intersection points of the 2 enrichment items' curves");
             }
-            throw new NotImplementedException("The triangulation should be done at the global system");
-            //var pointsOfInterest = new List<ICartesianPoint2D>(element.Nodes); // TODO: better to use a set
-            //foreach (IEnrichmentItem2D enrichment in element.EnrichmentItems)
-            //{
-            //    pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));
-            //}
-            //return pointsOfInterest.Distinct(); // TODO: Provide a comparer that checks (x,y) proximity
+            
+            var pointsOfInterest = new List<ICartesianPoint2D>(element.Nodes); // TODO: better to use a set
+            foreach (IEnrichmentItem2D enrichment in element.EnrichmentItems)
+            {
+                pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));
+            }
+            return pointsOfInterest.Distinct(); // TODO: Provide a comparer that checks (x,y) proximity
         }
     }
 }

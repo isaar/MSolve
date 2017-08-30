@@ -32,8 +32,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             Console.WriteLine("Interaction integral - Mode 2 = " + InteractionIntegralsMode2[iteration]);
             Console.WriteLine("SIF - Mode 1 = " + SIFsMode1[iteration]);
             Console.WriteLine("SIF - Mode 2 = " + SIFsMode2[iteration]);
-            Console.WriteLine("Crach growth angle (local tip system) = " + GrowthAngles[iteration]);
-            Console.WriteLine("Crach growth length = " + GrowthAngles[iteration]);
+            Console.WriteLine("Crack growth angle (local tip system) = " + GrowthAngles[iteration]);
+            Console.WriteLine("Crack growth length = " + GrowthLengths[iteration]);
         }
     }
 }

@@ -137,7 +137,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             return elementsAndWeights;
         }
 
-        // This method should directly return the elements and take care of cases near the domain boundaries (see Ahmed)
+        // TODO: This method should directly return the elements and take care of cases near the domain boundaries (see Ahmed)
+        // TODO: The J-integral radius should not exceed the last crack segment's length
         public double ComputeRadiusOfJintegralOuterContour()
         {
             double maxTipElementArea = -1.0;
@@ -217,11 +218,12 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
             double strainEnergy = stress1.MultiplyColon(strain2);
             double parenthesis0 = stress1.XX * displGrad2[0, 0] + stress1.XY * displGrad2[1, 0]
-                - stress2.XX * displGrad1[0, 0] - stress2.XY * displGrad1[1, 0] - strainEnergy;
+                + stress2.XX * displGrad1[0, 0] + stress2.XY * displGrad1[1, 0] - strainEnergy;
             double parenthesis1 = stress1.XY * displGrad2[0, 0] + stress1.YY * displGrad2[1, 0]
-                - stress2.XY * displGrad1[0, 0] - stress2.YY * displGrad1[1, 0];
+                + stress2.XY * displGrad1[0, 0] + stress2.YY * displGrad1[1, 0];
             return parenthesis0 * weightGrad[0] + parenthesis1 * weightGrad[1];
 
+            // ERROR: I think that only th strain energy should be subtracted in parenthesis0 and parenthesis1
         }
     }
 }

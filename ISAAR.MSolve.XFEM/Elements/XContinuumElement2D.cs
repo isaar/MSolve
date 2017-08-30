@@ -289,12 +289,12 @@ namespace ISAAR.MSolve.XFEM.Elements
         {
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];
-            double strainXY = 0.5 * (displacementFieldGradient[0, 1] + displacementFieldGradient[1, 0]);
+            double strainXYtimes2 = displacementFieldGradient[0, 1] + displacementFieldGradient[1, 0];
 
             // Should constitutive also be a tensor? Or  should I use matrices and vectors instead of tensors?
             double stressXX = constitutive[0, 0] * strainXX + constitutive[0, 1] * strainYY;
             double stressYY = constitutive[1, 0] * strainXX + constitutive[1, 1] * strainYY;
-            double stressXY = constitutive[2, 2] * strainXY;
+            double stressXY = constitutive[2, 2] * strainXYtimes2;
 
             return new Tensor2D(stressXX, stressYY, stressXY);
         }

@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         public static void Main()
         {
-            var test = new DCBvariable(15, 1);
+            var test = new DCBvariable(45, 5);
             //test.CheckJintegralCountour();
             IVector solution = test.Solve();
             test.CheckSolution(solution);
@@ -89,8 +89,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Elements
             var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
                     new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
-            var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4,
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
+
+            // Perhaps I need a way to dynamically specify which integration corresponds to which case. I think that all elements in the J-integral domain need to have the same rule. 
+
+            var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
+            //var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+            //    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
 
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
