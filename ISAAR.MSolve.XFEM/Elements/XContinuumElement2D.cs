@@ -168,8 +168,11 @@ namespace ISAAR.MSolve.XFEM.Elements
             return deformationMatrix;
         }
 
-        protected Matrix2D CalculateEnrichedDeformationMatrix(int artificialDofsCount,
-            GaussPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+        // TODO: the argument asrtificialDofsCount was added when this method was private and only called by 
+        // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 
+        // (J-integral, output), it would be better to obscure it, at the cost of recounting the dofs in some cases.
+        public Matrix2D CalculateEnrichedDeformationMatrix(int artificialDofsCount,
+            INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             //ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
             var uniqueEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();

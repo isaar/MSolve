@@ -87,16 +87,18 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             var writer = new DiscontinuousMeshVTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);
 
-            double[] displacements = new double[solution.Length];
-            solution.CopyTo(displacements, 0);
+            double[] solutionArry = new double[solution.Length];
+            solution.CopyTo(solutionArry, 0);
 
-            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<double[]>> elementDisplacements = 
-                model.DofEnumerator.GatherElementWiseDisplacements(model, displacements);
+            var displacementsOut = new DisplacementOutput(model);
+
+            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<double[]>> elementDisplacements =
+               displacementsOut.FindElementWiseDisplacements(solutionArry);
             writer.WriteVector2DField("displacements", elementDisplacements);
             
             var stressRecovery = new StressRecovery(model);
             IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> elementStresses = 
-                stressRecovery.ComputeElementWiseStresses(displacements);
+                stressRecovery.ComputeElementWiseStresses(solutionArry);
             writer.WriteTensor2DField("stresses", elementStresses);
 
             writer.CloseCurrentFile();

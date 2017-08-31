@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -266,35 +265,13 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             artificialDofsCount = dofCounter - standardDofsCount;
         }
 
-        public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<double[]>> GatherElementWiseDisplacements(
-            Model2D model, double[] freeDisplacements)
-        {
-            double[] constrainedDisplacements = model.CalculateConstrainedDisplacements();
-            var allDisplacements = new Dictionary<XContinuumElement2D, IReadOnlyList<double[]>>();
-            foreach (var element in model.Elements)
-            {
-                double[] displacementsUnrolled = ExtractDisplacementVectorOfElementFromGlobal(element,
-                    freeDisplacements, constrainedDisplacements);
-                var displacementsAsVectors = new double[element.Nodes.Count][];
-                for (int i = 0; i < element.Nodes.Count; ++i)
-                {
-                    displacementsAsVectors[i] = new double[] 
-                    {
-                        displacementsUnrolled[2 * i], displacementsUnrolled[2 * i + 1] // This only works for continuum elements though.
-                    };
-                }
-                allDisplacements[element] = displacementsAsVectors;
-            }
-            return allDisplacements;
-        }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="model"></param>
         /// <param name="solution"></param>
         /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
-        public double[,] GatherNodalDisplacements(Model2D model, IVector solution)
+        public double[,] GatherNodalDisplacements(Model2D model, double[] solution)
         {
             double[,] result = new double[model.Nodes.Count, 2];
             for (int i = 0; i < model.Nodes.Count; ++i)
