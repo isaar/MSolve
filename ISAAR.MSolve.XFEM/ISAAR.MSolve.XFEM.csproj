@@ -131,7 +131,9 @@
     <Compile Include="Materials\IMaterialField2D.cs" />
     <Compile Include="Materials\MaterialUtilities.cs" />
     <Compile Include="Output\DisplacementOutput.cs" />
+    <Compile Include="Interpolation\GaussPointSystems\IGaussPointSystem.cs" />
     <Compile Include="Output\IOutputField.cs" />
+    <Compile Include="Interpolation\GaussPointSystems\Quad4GPSystem.cs" />
     <Compile Include="Output\StrainField.cs" />
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />

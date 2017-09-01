@@ -7,6 +7,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -27,6 +28,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         public abstract IsoparametricInterpolation2D Interpolation { get; }
         public abstract void CheckNodes(IReadOnlyList<Node2D> nodes);
         public abstract IReadOnlyList<INaturalPoint2D> NaturalCoordinatesOfNodes { get; }
+        public abstract IGaussPointSystem GaussPointSystem { get; }
 
         private class IsoparametricQuad4: IsoparametricElementType2D
         {
@@ -60,6 +62,8 @@ namespace ISAAR.MSolve.XFEM.Elements
                     };
                 }
             }
+
+            public override IGaussPointSystem GaussPointSystem { get { return new Quad4GPSystem(); } }
         }
 
         private class IsoparametricQuad9 : IsoparametricElementType2D
@@ -100,6 +104,8 @@ namespace ISAAR.MSolve.XFEM.Elements
                     };
                 }
             }
+
+            public override IGaussPointSystem GaussPointSystem { get { throw new NotImplementedException(); } }
         }
     }
 }

@@ -7,7 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
 
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Output
 
             foreach (var element in model.Elements)
             {
-                IReadOnlyDictionary<XNode2D, Tensor2D> elementTensors;
+                IReadOnlyList<Tensor2D> elementTensors;
                 if (extrapolateFromGPs)
                 {
                     elementTensors = 
@@ -67,9 +67,9 @@ namespace ISAAR.MSolve.XFEM.Output
                     elementTensors = ElementNodalTensorsDirectly(element, solution, constrainedDisplacements, field);
                 }
                 
-                foreach (var nodeTensorPair in elementTensors)
+                for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
-                    tensorsFromAllElements[nodeTensorPair.Key].Add(nodeTensorPair.Value);
+                    tensorsFromAllElements[element.Nodes[nodeIdx]].Add(elementTensors[nodeIdx]);
                 }
             }
 
@@ -102,23 +102,22 @@ namespace ISAAR.MSolve.XFEM.Output
             var allTensors = new Dictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>>();
             foreach (var element in model.Elements)
             {
-                IReadOnlyDictionary<XNode2D, Tensor2D> elementTensors;
                 if (extrapolateFromGPs)
                 {
-                    elementTensors = 
+                    allTensors[element] =
                         ElementNodalTensorsExtrapolation(element, solution, constrainedDisplacements, field);
                 }
                 else
                 {
-                    elementTensors = ElementNodalTensorsDirectly(element, solution, constrainedDisplacements, field);
+                    allTensors[element] =
+                        ElementNodalTensorsDirectly(element, solution, constrainedDisplacements, field);
                 }
-                allTensors[element] = elementTensors.Values.ToArray();
             }
             return allTensors;
         }
 
         // Computes stresses directly at the nodes. The other approach is to compute them at Gauss points and then extrapolate
-        private IReadOnlyDictionary<XNode2D, Tensor2D> ElementNodalTensorsDirectly(XContinuumElement2D element,
+        private IReadOnlyList<Tensor2D> ElementNodalTensorsDirectly(XContinuumElement2D element,
             double[] freeDisplacements, double[] constrainedDisplacements, IOutputField field)
         {
             double[] standardDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element,
@@ -127,19 +126,32 @@ namespace ISAAR.MSolve.XFEM.Output
                 model.DofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IReadOnlyList<INaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
-            var nodalTensors = new Dictionary<XNode2D, Tensor2D>();
+            var nodalTensors = new Tensor2D[element.Nodes.Count];
             for (int i = 0; i < element.Nodes.Count; ++i)
             {
-                nodalTensors[element.Nodes[i]] =
+                nodalTensors[i] =
                     field.EvaluateAt(element, naturalNodes[i], standardDisplacements, enrichedDisplacements);
             }
             return nodalTensors;
         }
 
-        private IReadOnlyDictionary<XNode2D, Tensor2D> ElementNodalTensorsExtrapolation(XContinuumElement2D element,
+        private IReadOnlyList<Tensor2D> ElementNodalTensorsExtrapolation(XContinuumElement2D element,
             double[] freeDisplacements, double[] constrainedDisplacements, IOutputField field)
         {
-            throw new NotImplementedException();
+            double[] standardDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element,
+                freeDisplacements, constrainedDisplacements);
+            double[] enrichedDisplacements =
+                model.DofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
+
+            IGaussPointSystem gpSystem = element.ElementType.GaussPointSystem;
+            IReadOnlyList<INaturalPoint2D> gaussPoints = gpSystem.GaussPoints;
+            var gpTensors = new Tensor2D[gaussPoints.Count];
+            for (int i = 0; i < gaussPoints.Count; ++i)
+            {
+                gpTensors[i] =
+                    field.EvaluateAt(element, gaussPoints[i], standardDisplacements, enrichedDisplacements);
+            }
+            return gpSystem.ExtrapolateTensorFromGaussPointsToNodes(gpTensors);
         }
 
     }
