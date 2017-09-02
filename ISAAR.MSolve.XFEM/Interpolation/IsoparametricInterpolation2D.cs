@@ -14,6 +14,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         #region enum values
         public static readonly IsoparametricInterpolation2D Quad4 = new Quad4ShapeFunctions();
         public static readonly IsoparametricInterpolation2D Quad9 = new Quad9ShapeFunctions();
+        public static readonly IsoparametricInterpolation2D Tri3 = new Tri3ShapeFunctions();
         #endregion
 
         #region implemented members
@@ -152,6 +153,40 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             public override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
             {
                 throw new NotImplementedException("Probably requires an iterative procedure");
+            }
+        }
+
+        // TODO: This needs to be more efficient. The design needs to change and some of the public methods become 
+        // abstract. In triangles, the natural shape function derivatives are always the same. Also the jacobian is 
+        // constant for the same element.
+        private class Tri3ShapeFunctions : IsoparametricInterpolation2D
+        {
+            public Tri3ShapeFunctions() : base(3) { }
+
+            protected override sealed double[] EvaluateAt(double xi, double eta)
+            {
+                double[] values = new double[3];
+                values[0] = 1 - xi - eta;
+                values[1] = xi;
+                values[2] = eta;
+                return values;
+            }
+
+            protected override sealed double[,] EvaluateDerivativesAt(double xi, double eta)
+            {
+                double[,] derivatives = new double[3, 2];
+                derivatives[0, 0] = -1;
+                derivatives[0, 1] = -1;
+                derivatives[1, 0] = 1;
+                derivatives[1, 1] = 0;
+                derivatives[2, 0] = 0;
+                derivatives[2, 1] = 1;
+                return derivatives;
+            }
+
+            public override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+            {
+                return new InverseTri3Mapping(nodes);
             }
         }
         #endregion

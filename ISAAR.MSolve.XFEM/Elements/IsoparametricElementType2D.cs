@@ -15,6 +15,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     {
         public static readonly IsoparametricElementType2D Quad4 = new IsoparametricQuad4();
         public static readonly IsoparametricElementType2D Quad9 = new IsoparametricQuad9();
+        public static readonly IsoparametricElementType2D Tri3 = new IsoparametricTri3();
 
         private IsoparametricElementType2D() // prevents derived classes, except for nested ones
         { }
@@ -106,6 +107,41 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
 
             public override IGaussPointSystem GaussPointSystem { get { throw new NotImplementedException(); } }
+        }
+
+        private class IsoparametricTri3 : IsoparametricElementType2D
+        {
+            public override IsoparametricInterpolation2D Interpolation
+            {
+                get { return IsoparametricInterpolation2D.Tri3; }
+            }
+
+            public override IStandardQuadrature2D StandardQuadrature
+            {
+                get { return GaussQuadratureForTriangle.Order1Point1; }
+            }
+
+            public override void CheckNodes(IReadOnlyList<Node2D> nodes)
+            {
+                if (nodes.Count != 3) throw new ArgumentException("A Tri3 finite element has 3 nodes, but "
+                + nodes.Count + " nodes were provided.");
+                // TODO: Perhaps I can check the order of the nodes too or even the shape
+            }
+
+            public override IReadOnlyList<INaturalPoint2D> NaturalCoordinatesOfNodes
+            {
+                get
+                {
+                    return new INaturalPoint2D[]
+                    {
+                        new NaturalPoint2D(0.0, 0.0),
+                        new NaturalPoint2D(1.0, 0.0),
+                        new NaturalPoint2D(0.0, 1.0)
+                    };
+                }
+            }
+
+            public override IGaussPointSystem GaussPointSystem { get { return new Tri3GPSystem(); } }
         }
     }
 }
