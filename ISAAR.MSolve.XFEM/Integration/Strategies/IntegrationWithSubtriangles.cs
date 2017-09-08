@@ -19,10 +19,10 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
         private readonly ITriangulator2D mesher;
-        private readonly ICrackDescription crack;
+        private readonly IExteriorCrack crack;
 
         public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ITriangulator2D mesher, 
-            ICrackDescription crack)
+            IExteriorCrack crack)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;
             this.mesher = mesher;

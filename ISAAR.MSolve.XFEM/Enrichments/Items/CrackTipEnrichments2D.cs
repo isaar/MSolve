@@ -17,10 +17,12 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     class CrackTipEnrichments2D : IEnrichmentItem2D
     {
         private readonly IReadOnlyList<ITipFunction> enrichmentFunctions;
+        private readonly IExteriorCrack crackDescription;
+        private readonly CrackTipPosition tipPosition;
         public IReadOnlyList<ArtificialDOFType> DOFs { get; }
-        public ICrackDescription crackDescription;
 
-        public CrackTipEnrichments2D(ICrackDescription crackDescription): this(crackDescription, new ITipFunction[] 
+        public CrackTipEnrichments2D(IExteriorCrack crackDescription, CrackTipPosition tipPosition) : 
+            this(crackDescription, tipPosition, new ITipFunction[] 
             {
                 new IsotropicBrittleTipFunctions2D.Func1(),
                 new IsotropicBrittleTipFunctions2D.Func2(),
@@ -30,9 +32,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
         }
 
-        public CrackTipEnrichments2D(ICrackDescription crackDescription, IReadOnlyList<ITipFunction> enrichmentFunctions)
+        public CrackTipEnrichments2D(IExteriorCrack crackDescription, CrackTipPosition tipPosition,
+            IReadOnlyList<ITipFunction> enrichmentFunctions)
         {
             this.crackDescription = crackDescription;
+            this.tipPosition = tipPosition;
             this.enrichmentFunctions = enrichmentFunctions;
             this.DOFs = new ArtificialDOFType[]
             {
@@ -50,7 +54,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         public double[] EvaluateFunctionsAt(XNode2D node)
         {
-            PolarPoint2D polarPoint = crackDescription.TipSystem.TransformPointGlobalCartesianToLocalPolar(node);
+            PolarPoint2D polarPoint = 
+                crackDescription.GetTipSystem(tipPosition).TransformPointGlobalCartesianToLocalPolar(node);
             var enrichments = new double[enrichmentFunctions.Count];
             for (int i = 0; i < enrichments.Length; ++i)
             {
@@ -59,12 +64,13 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             return enrichments;
         }
 
-        public EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+        public EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
-            PolarPoint2D polarPoint = crackDescription.TipSystem.TransformPointGlobalCartesianToLocalPolar(
+            TipCoordinateSystem tipSystem = crackDescription.GetTipSystem(tipPosition);
+            PolarPoint2D polarPoint = tipSystem.TransformPointGlobalCartesianToLocalPolar(
                 interpolation.TransformPointNaturalToGlobalCartesian(point));
-            TipJacobians tipJacobians = crackDescription.TipSystem.CalculateJacobiansAt(polarPoint);
+            TipJacobians tipJacobians = tipSystem.CalculateJacobiansAt(polarPoint);
 
             var enrichments = new EvaluatedFunction2D[enrichmentFunctions.Count];
             for (int i = 0; i < enrichments.Length; ++i)

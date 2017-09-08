@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Visualization.CantileverFEM</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -54,6 +54,9 @@
   <ItemGroup>
     <Compile Include="Analysis\LinearStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
+    <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
+    <Compile Include="CrackGeometry\CrackTipPosition.cs" />
+    <Compile Include="CrackGeometry\IInteriorCrack.cs" />
     <Compile Include="CrackPropagation\Direction\MaximumCircumferentialTensileStressCriterion.cs" />
     <Compile Include="CrackPropagation\PropagationLogger.cs" />
     <Compile Include="CrackPropagation\Propagator.cs" />
@@ -91,10 +94,11 @@
     <Compile Include="Geometry\CoordinateSystems\INaturalPoint1D.cs" />
     <Compile Include="Geometry\CoordinateSystems\INaturalPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\NaturalPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\Point2DComparerXMajor.cs" />
     <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
     <Compile Include="CrackGeometry\TipCoordinateSystem.cs" />
     <Compile Include="CrackGeometry\BasicExplicitCrack2D.cs" />
-    <Compile Include="CrackGeometry\ICrackDescription.cs" />
+    <Compile Include="CrackGeometry\IExteriorCrack.cs" />
     <Compile Include="CrackGeometry\BasicCrackLSM.cs" />
     <Compile Include="Geometry\Mesh\IMesh2D.cs" />
     <Compile Include="Geometry\Mesh\ICell.cs" />
@@ -123,8 +127,10 @@
     <Compile Include="Integration\Strategies\IntegrationWithSubtriangles.cs" />
     <Compile Include="Integration\Strategies\SimpleIntegration2D.cs" />
     <Compile Include="Integration\Strategies\IntegrationForCrackPropagation2D.cs" />
+    <Compile Include="Interpolation\GaussPointSystems\Tri3GPSystem.cs" />
     <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
     <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
+    <Compile Include="Interpolation\InverseMappings\InverseTri3Mapping.cs" />
     <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
     <Compile Include="Materials\BiElasticMaterial2D.cs" />
     <Compile Include="Materials\HomogeneousElasticMaterial2D.cs" />
@@ -160,6 +166,7 @@
     <Compile Include="Tests\Tools\ValueComparer.cs" />
     <Compile Include="Tests\Khoei\XElementTests.cs" />
     <Compile Include="Tests\Visualization\VTKWriterTests.cs" />
+    <Compile Include="Utilities\AngleUtilities.cs" />
     <Compile Include="Utilities\EvaluatedFunction2D.cs" />
     <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
     <Compile Include="Enrichments\Functions\SignFunction2D.cs" />

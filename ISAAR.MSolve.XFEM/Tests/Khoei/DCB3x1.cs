@@ -198,7 +198,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             // Create enrichments          
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());
-            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack);
+            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
             //crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(),
             //    2.0, new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
             //    new HomogeneousSIFCalculator(globalHomogeneousMaterial));

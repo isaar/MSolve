@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         double[] EvaluateFunctionsAt(XNode2D node);
 
-        EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+        EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation);
     }
 }

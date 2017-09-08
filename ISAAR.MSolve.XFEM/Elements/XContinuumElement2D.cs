@@ -193,7 +193,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                     EvaluatedFunction2D[] evaluatedEnrichments;
                     if (!(uniqueEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
                     {
-                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, Nodes, evaluatedInterpolation);
+                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
                         uniqueEnrichments[enrichmentItem] = evaluatedEnrichments;
                     }
 
@@ -364,7 +364,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                     EvaluatedFunction2D[] evaluatedEnrichments;
                     if (!(evalEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
                     {
-                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, Nodes, evaluatedInterpolation);
+                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
                         evalEnrichments[enrichmentItem] = evaluatedEnrichments;
                     }
                 }

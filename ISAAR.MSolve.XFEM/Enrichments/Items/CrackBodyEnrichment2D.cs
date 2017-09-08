@@ -18,13 +18,13 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         private readonly IHeavisideFunction2D enrichmentFunction;
         public IReadOnlyList<ArtificialDOFType> DOFs { get; }
-        public ICrackDescription crackDescription;
+        public IExteriorCrack crackDescription;
 
-        public CrackBodyEnrichment2D(ICrackDescription crackDescription): this(crackDescription, new SignFunction2D())
+        public CrackBodyEnrichment2D(IExteriorCrack crackDescription): this(crackDescription, new SignFunction2D())
         {
         }
 
-        public CrackBodyEnrichment2D(ICrackDescription crackDescription, IHeavisideFunction2D enrichmentFunction)
+        public CrackBodyEnrichment2D(IExteriorCrack crackDescription, IHeavisideFunction2D enrichmentFunction)
         {
             this.crackDescription = crackDescription;
             this.enrichmentFunction = enrichmentFunction;
@@ -40,11 +40,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             return new double[] { enrichmentFunction.EvaluateAt(signedDistance) };
         }
 
-        public EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+        public EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
             ICartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
-            double signedDistance = crackDescription.SignedDistanceOf(point, elementNodes, interpolation);
+            double signedDistance = crackDescription.SignedDistanceOf(point, element, interpolation);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance) };
         }
 

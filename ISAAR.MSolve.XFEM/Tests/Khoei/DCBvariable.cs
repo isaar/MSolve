@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         public static void Main()
         {
-            var test = new DCBvariable(45, 5);
+            var test = new DCBvariable(15, 3);
             //test.CheckJintegralCountour();
             IVector solution = test.Solve();
             test.CheckSolution(solution);
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             // Create enrichments          
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());
-            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack);
+            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
 
             // Mesh geometry interaction
             var crackTip = new CartesianPoint2D(0.5 * DIM_X, 0.5 * DIM_Y);
@@ -174,7 +174,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void Propagate(IVector solution)
         {
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            propagator = new Propagator(crack.Mesh, crack, jIntegralRadiusOverElementSize,
+            propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
@@ -199,7 +199,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CheckJintegralCountour()
         {
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            propagator = new Propagator(crack.Mesh, crack, jIntegralRadiusOverElementSize,
+            propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.05));

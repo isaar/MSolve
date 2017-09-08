@@ -27,7 +27,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
     class Propagator
     {
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
-        private readonly ICrackDescription crack;
+        private readonly IExteriorCrack crack;
+        private readonly CrackTipPosition tipPosition;
         private readonly double magnificationOfJintegralRadius;
         private readonly IAuxiliaryStates auxiliaryStatesStrategy;
         private readonly ISIFCalculator sifCalculationStrategy;
@@ -48,13 +49,14 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         ///     (see Ahmed thesis, 2009).</param>
         /// <param name="auxiliaryStatesStrategy"></param>
         /// <param name="sifCalculationStrategy"></param>
-        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
-            double magnificationOfJintegralRadius,
+        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack,
+            CrackTipPosition tipPosition, double magnificationOfJintegralRadius,
             IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy,
             ICrackGrowthDirectionLaw2D growthDirectionLaw, ICrackGrowthLengthLaw2D growthLengthLaw)
         {
             this.mesh = mesh;
             this.crack = crack;
+            this.tipPosition = tipPosition;
             this.magnificationOfJintegralRadius = magnificationOfJintegralRadius;
             this.auxiliaryStatesStrategy = auxiliaryStatesStrategy;
             this.sifCalculationStrategy = sifCalculationStrategy;
@@ -155,13 +157,14 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             double[] enrichedNodalDisplacements, double[] nodalWeights, 
             out double integralMode1, out double integralMode2)
         {
+            TipCoordinateSystem tipSystem = crack.GetTipSystem(tipPosition);
             integralMode1 = 0.0;
             integralMode2 = 0.0;
-
             foreach (GaussPoint2D naturalGP in element.JintegralStrategy.GenerateIntegrationPoints(element))
             {
                 // Nomenclature: global = global cartesian system, natural = element natural system, 
                 // local = tip local cartesian system  
+                
                 EvaluatedInterpolation2D evaluatedInterpolation = 
                     element.Interpolation.EvaluateAt(element.Nodes, naturalGP);
                 ICartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
@@ -172,9 +175,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 DenseMatrix globalDisplacementGradState1 = element.CalculateDisplacementFieldGradient(
                     naturalGP, evaluatedInterpolation, standardNodalDisplacements, enrichedNodalDisplacements);
                 Tensor2D globalStressState1 = element.CalculateStressTensor(globalDisplacementGradState1, constitutive);
-                DenseMatrix localDisplacementGradState1 = crack.TipSystem.
+                DenseMatrix localDisplacementGradState1 = tipSystem.
                     TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(globalDisplacementGradState1);
-                Tensor2D localStressTensorState1 = crack.TipSystem.
+                Tensor2D localStressTensorState1 = tipSystem.
                     TransformTensorGlobalCartesianToLocalCartesian(globalStressState1);
 
                 // Weight Function
@@ -187,14 +190,14 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                     globalWeightGradient[0] += interpolationGradient.Item1 * nodalWeights[nodeIdx];
                     globalWeightGradient[1] += interpolationGradient.Item2 * nodalWeights[nodeIdx];
                 }
-                double[] localWeightGradient = crack.TipSystem.
+                double[] localWeightGradient = tipSystem.
                     TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(globalWeightGradient);
 
                 // State 2
                 // TODO: XContinuumElement shouldn't have to pass tipCoordinate system to auxiliaryStates. 
                 // It would be better to have CrackTip handle this and the coordinate transformations. That would also 
                 // obey LoD, but a lot of wrapper methods would be required.
-                AuxiliaryStatesTensors auxiliary = auxiliaryStatesStrategy.ComputeTensorsAt(globalGP, crack.TipSystem);
+                AuxiliaryStatesTensors auxiliary = auxiliaryStatesStrategy.ComputeTensorsAt(globalGP, tipSystem);
 
                 // Interaction integrals
                 double integrandMode1 = ComputeJIntegrand(localWeightGradient, localDisplacementGradState1,

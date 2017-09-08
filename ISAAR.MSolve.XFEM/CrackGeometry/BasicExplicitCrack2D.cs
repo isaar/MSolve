@@ -8,16 +8,18 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
+using ISAAR.MSolve.XFEM.Utilities;
+
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    class BasicExplicitCrack2D: ICrackDescription
+    class BasicExplicitCrack2D: IExteriorCrack
     {
-        private static readonly PointComparer pointComparer = new PointComparer();
+        private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
 
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
@@ -30,10 +32,17 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
         public ICartesianPoint2D CrackTip { get { return Vertices[Vertices.Count - 1]; } }
         public List<XContinuumElement2D> TipElements { get; }
+        public TipCoordinateSystem GetTipSystem(CrackTipPosition tip)
+        {
+            if (tip == CrackTipPosition.Single) return tipSystem;
+            else throw new ArgumentException("Only works for single tip cracks.");
+        }
 
         private List<ICartesianPoint2D> Vertices { get; }
         private List<DirectedSegment2D> Segments { get; }
-        private List<double> Angles { get; } // Angle of segment i w.r.t segment i-1, aka the crack growth angle
+        // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
+        private List<double> Angles { get; } 
+        private TipCoordinateSystem tipSystem;
 
         public BasicExplicitCrack2D(double tipEnrichmentAreaRadius = 0.0)
         {
@@ -44,36 +53,32 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             Vertices = new List<ICartesianPoint2D>();
             Segments = new List<DirectedSegment2D>();
             Angles = new List<double>();
-        }
-
-        public TipCoordinateSystem TipSystem { get; private set; }
+        }     
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
             double dx = crackTip.X - crackMouth.X;
             double dy = crackTip.Y - crackMouth.Y;
             double tangentSlope = Math.Atan2(dy, dx);
-            TipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
+            tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 
             Vertices.Add(crackMouth);
             Vertices.Add(crackTip);
             Segments.Add(new DirectedSegment2D(crackMouth, crackTip));
-            Angles.Add(double.NaN);
         }
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)
         {
-            double globalGrowthAngle = localGrowthAngle + TipSystem.RotationAngle;
+            double globalGrowthAngle = AngleUtilities.Wrap(localGrowthAngle + tipSystem.RotationAngle);
             double dx = growthLength * Math.Cos(globalGrowthAngle);
             double dy = growthLength * Math.Sin(globalGrowthAngle);
-            double tangentSlope = Math.Atan2(dy, dx);
 
             var oldTip = Vertices[Vertices.Count - 1];
             var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
             Vertices.Add(newTip);
             Segments.Add(new DirectedSegment2D(oldTip, newTip));
             Angles.Add(localGrowthAngle); // These are independent of the global coordinate system
-            TipSystem = new TipCoordinateSystem(newTip, tangentSlope);
+            tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
         }
 
         public double SignedDistanceOf(XNode2D node)
@@ -81,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return SignedDistanceOfPoint(node);
         }
 
-        public double SignedDistanceOf(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+        public double SignedDistanceOf(INaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
             return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
@@ -125,7 +130,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             var tipNodes = new HashSet<XNode2D>();
             TipElements.Clear();
 
-            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes, TipElements);
+            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes);
             ApplyFixedEnrichmentArea(tipNodes, TipElements[0]);
             ResolveHeavisideEnrichmentDependencies(bodyNodes);
 
@@ -255,8 +260,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return ElementEnrichmentType.Standard;
         }
 
-        private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes,
-            List<XContinuumElement2D> tipElements)
+        // Warning: TipElements must first be cleared in this iteration
+        private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
         {
             var bothElements = new HashSet<XContinuumElement2D>();
             foreach (var element in Mesh.Cells)
@@ -265,7 +270,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
                 if (type == ElementEnrichmentType.Tip)
                 {
-                    tipElements.Add(element);
+                    TipElements.Add(element);
                     foreach (var node in element.Nodes) tipNodes.Add(node);
                     element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
@@ -276,7 +281,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
                 else if (type == ElementEnrichmentType.Both)
                 {
-                    tipElements.Add(element);
+                    TipElements.Add(element);
                     bothElements.Add(element);
                     foreach (var node in element.Nodes)
                     {
@@ -289,7 +294,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             }
 
             // After all Heaviside nodes are aggregated remove the nodes of tip elements
-            foreach (var element in tipElements)
+            foreach (var element in TipElements)
             {
                 foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
@@ -298,7 +303,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 foreach (var node in element.Nodes) bodyNodes.Add(node);
             }
 
-            ReportTipElements(tipElements);
+            ReportTipElements(TipElements);
         }
 
         private void FindSignedAreasOfElement(XContinuumElement2D element,
@@ -335,22 +340,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 else throw new Exception(
                     "Even after finding the signed distance of its centroid, the sign of the area is unidentified");
             }
-        }
-
-        private int IndexOfMinAbs(IReadOnlyList<double> distances)
-        {
-            double min = double.MaxValue;
-            int pos = -1;
-            for (int i = 0; i < distances.Count; ++i)
-            {
-                double absDistance = Math.Abs(distances[i]);
-                if (absDistance < min)
-                {
-                    min = absDistance;
-                    pos = i;
-                }
-            }
-            return pos;
         }
 
         private void ResolveHeavisideEnrichmentDependencies(HashSet<XNode2D> bodyNodes)
@@ -392,6 +381,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         private double SignedDistanceOfPoint(ICartesianPoint2D globalPoint)
         {
+            if (Segments.Count == 1) return Segments[0].TransformGlobalToLocalPoint(globalPoint).Y;
+
             var distances = new List<double>();
             bool afterPreviousSegment = false;
 
@@ -412,7 +403,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                         double dx = globalPoint.X - Vertices[i].X;
                         double dy = globalPoint.Y - Vertices[i].Y;
                         double distance = Math.Sqrt(dx * dx + dy * dy);
-                        int sign = -Math.Sign(Angles[i]); // If growth angle > 0, the convex angle faces the positive area.
+                        int sign = -Math.Sign(Angles[i-1]); // If growth angle > 0, the convex angle faces the positive area.
                         distances.Add(sign * distance);
                     }
                     afterPreviousSegment = false;
@@ -436,15 +427,14 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     double dx = globalPoint.X - Vertices[last].X;
                     double dy = globalPoint.Y - Vertices[last].Y;
                     double distance = Math.Sqrt(dx * dx + dy * dy);
-                    int sign = -Math.Sign(Angles[last]); // If growth angle > 0, the convex angle faces the positive area.
+                    int sign = -Math.Sign(Angles[last - 1]); // If growth angle > 0, the convex angle faces the positive area.
                     distances.Add(sign * distance);
                 }
                 afterPreviousSegment = false;
             }
             else distances.Add(localPoint.Y);
 
-            return distances[IndexOfMinAbs(distances)];
-
+            return distances[MathUtilities.IndexOfMinAbs(distances)];
         }
 
         [ConditionalAttribute("DEBUG")]
@@ -460,28 +450,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 {
                     Console.WriteLine(node);
                 }
-                Console.WriteLine("------ /DEBUG ------");
             }
+            Console.WriteLine("------ /DEBUG ------");
         }
 
         /// <summary>
         /// Represents the type of enrichment that will be applied to all nodes of the element. 
         /// </summary>
         private enum ElementEnrichmentType { Standard, Heaviside, Tip, Both }
-
-        private class PointComparer: IComparer<ICartesianPoint2D>
-        {
-            public int Compare(ICartesianPoint2D point1, ICartesianPoint2D point2)
-            {
-                if (point1.X < point2.X) return -1;
-                else if (point1.X > point2.X) return 1;
-                else // same X
-                {
-                    if (point1.Y < point2.Y) return -1;
-                    else if (point1.Y > point2.Y) return 1;
-                    else return 0; // same point
-                }
-            }
-        }
     }
 }

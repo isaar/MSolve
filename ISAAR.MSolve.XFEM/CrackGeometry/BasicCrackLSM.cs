@@ -12,12 +12,13 @@ using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.XFEM.Utilities;
 
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
-    class BasicCrackLSM : ICrackDescription
+    class BasicCrackLSM : IExteriorCrack
     {
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
@@ -29,6 +30,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
         public ICartesianPoint2D CrackTip { get; private set; }
         public List<XContinuumElement2D> TipElements { get; }
+        public TipCoordinateSystem GetTipSystem(CrackTipPosition tip)
+        {
+            if (tip == CrackTipPosition.Single) return tipSystem;
+            else throw new ArgumentException("Only works for single tip cracks.");
+        }
 
         private readonly Dictionary<XNode2D, double> levelSetsBody;
         private readonly Dictionary<XNode2D, double> levelSetsTip;
@@ -42,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             levelSetsTip = new Dictionary<XNode2D, double>();
         }
 
-        public TipCoordinateSystem TipSystem { get; private set; }
+        private TipCoordinateSystem tipSystem;
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
@@ -53,7 +59,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double length = Math.Sqrt(tangentX * tangentX + tangentY * tangentY);
             double tangentSlope = Math.Atan2(tangentY, tangentX);
             this.CrackTip = crackTip;
-            TipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
+            tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 
             tangentX /= length;
             tangentY /= length;
@@ -67,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)
         {
-            double globalGrowthAngle = localGrowthAngle + TipSystem.RotationAngle;
+            double globalGrowthAngle = AngleUtilities.Wrap(localGrowthAngle + tipSystem.RotationAngle);
             double dx = growthLength * Math.Cos(globalGrowthAngle);
             double dy = growthLength * Math.Sin(globalGrowthAngle);
             double unitDx = dx / growthLength;
@@ -76,8 +82,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             var oldTip = CrackTip;
             var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
             CrackTip = newTip;
-            double tangentSlope = Math.Atan2(dy, dx);
-            TipSystem = new TipCoordinateSystem(newTip, tangentSlope);
+            tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
 
             var newSegment = new DirectedSegment2D(oldTip, newTip);
             foreach (XNode2D node in Mesh.Vertices)
@@ -110,11 +115,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         /// <param name="elementNodes"></param>
         /// <param name="interpolation"></param>
         /// <returns></returns>
-        public double SignedDistanceOf(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+        public double SignedDistanceOf(INaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
             double signedDistance = 0.0;
-            foreach (XNode2D node in elementNodes)
+            foreach (XNode2D node in element.Nodes)
             {
                 signedDistance += interpolation.GetValueOf(node) * levelSetsBody[node];
             }
@@ -327,7 +332,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                         CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
                     EvaluatedInterpolation2D centroidInterpolation = 
                         element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
-                    sign = Math.Sign(SignedDistanceOf(centroidNatural, element.Nodes, centroidInterpolation));
+                    sign = Math.Sign(SignedDistanceOf(centroidNatural, element, centroidInterpolation));
                 }
 
                 if (sign > 0) positiveArea += area;
@@ -389,8 +394,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     Console.Write(" - body level set = " + levelSetsBody[node]);
                     Console.WriteLine(" - tip level set = " + levelSetsTip[node]);
                 }
-                Console.WriteLine("------ /DEBUG ------");
             }
+            Console.WriteLine("------ /DEBUG ------");
         }
 
         /// <summary>

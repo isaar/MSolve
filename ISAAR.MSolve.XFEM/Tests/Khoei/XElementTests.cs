@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var crack = new BasicExplicitCrack2D();
             crack.Mesh = mesh;
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
-            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack);
+            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
 
             var point1 = new CartesianPoint2D(30.0, 20.0);
             var point2 = new CartesianPoint2D(30.0, -30.0);

@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             return new double[] { enrichmentFunction.EvaluateAt(signedDistance) };
         }
 
-        public override EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, IReadOnlyList<XNode2D> elementNodes,
+        public override EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
             ICartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);

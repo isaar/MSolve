@@ -10,7 +10,21 @@ namespace ISAAR.MSolve.XFEM.Utilities
     {
         private static readonly double TOLERANCE = 1.0e-6;
 
-        
+        public static int IndexOfMinAbs(IReadOnlyList<double> values)
+        {
+            double min = double.MaxValue;
+            int pos = -1;
+            for (int i = 0; i < values.Count; ++i)
+            {
+                double absDistance = Math.Abs(values[i]);
+                if (absDistance < min)
+                {
+                    min = absDistance;
+                    pos = i;
+                }
+            }
+            return pos;
+        }
 
         /// <summary>
         /// Solves a * x^2 + b * x + c = 0
