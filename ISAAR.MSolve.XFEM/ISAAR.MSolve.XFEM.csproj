@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.InfinitePlateHorizontalCrack</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

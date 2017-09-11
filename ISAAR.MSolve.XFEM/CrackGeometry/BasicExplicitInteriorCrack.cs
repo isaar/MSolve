@@ -465,6 +465,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             const double toleranceHeavisideEnrichmentArea = 1e-4;
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
+            var nodesToRemove = new List<XNode2D>(); // Can't remove them while iterating the collection.
             foreach (var node in bodyNodes)
             {
                 double nodePositiveArea = 0.0;
@@ -488,14 +489,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 if (SignedDistanceOfPoint(node) >= 0.0)
                 {
                     double negativeAreaRatio = nodeNegativeArea / (nodePositiveArea + nodeNegativeArea);
-                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
+                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
                 }
                 else
                 {
                     double positiveAreaRatio = nodePositiveArea / (nodePositiveArea + nodeNegativeArea);
-                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
+                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
                 }
             }
+
+            foreach (var node in nodesToRemove) bodyNodes.Remove(node);
         }
 
         [ConditionalAttribute("DEBUG")]
