@@ -46,7 +46,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             test.Propagate(solution);
         }
 
-
         private readonly SubmatrixChecker checker;
 
         //private readonly double elementSize;
@@ -131,8 +130,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var crackTip = new CartesianPoint2D(0.5 * DIM_X, 0.5 * DIM_Y);
             crack.InitializeGeometry(CRACK_MOUTH, crackTip);
             crack.UpdateEnrichments();
-
-            
         }
 
         private IVector Solve()
@@ -205,9 +202,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.05));
 
             double radius = propagator.ComputeRadiusOfJintegralOuterContour();
-            Circle2D outerContour = new Circle2D(crack.CrackTip, radius);
+            Circle2D outerContour = new Circle2D(crack.GetCrackTip(CrackTipPosition.Single), radius);
             IReadOnlyList<XContinuumElement2D> intersectedElements =
-                crack.Mesh.FindElementsIntersectedByCircle(outerContour, crack.TipElements[0]);
+                crack.Mesh.FindElementsIntersectedByCircle(outerContour, 
+                crack.GetTipElements(CrackTipPosition.Single)[0]);
         }
     }
 }

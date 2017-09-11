@@ -16,10 +16,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         double SignedDistanceOf(XNode2D node);
         double SignedDistanceOf(INaturalPoint2D point, XContinuumElement2D element,
             EvaluatedInterpolation2D interpolation);
-        
+
+        ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition);
         /// TODO: an interface is needed for TipSystems. Then the explicit (global, local, polar) systems or the level 
         /// sets could be used for the transformations (points, vectors, derivatives)
-        TipCoordinateSystem GetTipSystem(CrackTipPosition tip);
+        TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition);
+        IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition);
 
         IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element);
         void UpdateEnrichments();

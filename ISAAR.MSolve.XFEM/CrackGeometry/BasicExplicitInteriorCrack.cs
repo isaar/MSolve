@@ -32,34 +32,47 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public CrackTipEnrichments2D StartTipEnrichments { get; set; }
         public CrackTipEnrichments2D EndTipEnrichments { get; set; }
 
-        public ICartesianPoint2D StartTip { get { return Vertices.First.Value; } }
-        public List<XContinuumElement2D> StartTipElements { get; }
-        private TipCoordinateSystem startTipSystem;
-        public ICartesianPoint2D EndTip { get { return Vertices.Last.Value; } }
-        public List<XContinuumElement2D> EndTipElements { get; }
-        private TipCoordinateSystem endTipSystem;
-        public TipCoordinateSystem GetTipSystem(CrackTipPosition tip)
-        {
-            if (tip == CrackTipPosition.Start) return startTipSystem;
-            else if (tip == CrackTipPosition.End) return endTipSystem;
-            else throw new ArgumentException("Invalid tip position");
-        }
-
         private LinkedList<ICartesianPoint2D> Vertices { get; }
         private LinkedList<DirectedSegment2D> Segments { get; }
         // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
         private LinkedList<double> Angles { get; }
 
+        private TipCoordinateSystem startTipSystem;
+        private TipCoordinateSystem endTipSystem;
+        private List<XContinuumElement2D> startTipElements;
+        private List<XContinuumElement2D> endTipElements;
+
         public BasicExplicitInteriorCrack(double tipEnrichmentAreaRadius = 0.0)
         {
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.triangulator = new CartesianTriangulator();
-            this.StartTipElements = new List<XContinuumElement2D>();
-            this.EndTipElements = new List<XContinuumElement2D>();
+            this.startTipElements = new List<XContinuumElement2D>();
+            this.endTipElements = new List<XContinuumElement2D>();
 
             Vertices = new LinkedList<ICartesianPoint2D>();
             Segments = new LinkedList<DirectedSegment2D>();
             Angles = new LinkedList<double>();
+        }
+
+        public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Start) return Vertices.First.Value;
+            else if (tipPosition == CrackTipPosition.End) return Vertices.Last.Value;
+            else throw new ArgumentException("Invalid tip position");
+        }
+
+        public TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Start) return startTipSystem;
+            else if (tipPosition == CrackTipPosition.End) return endTipSystem;
+            else throw new ArgumentException("Invalid tip position");
+        }
+
+        public IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Start) return startTipElements;
+            else if (tipPosition == CrackTipPosition.End) return endTipElements;
+            else throw new ArgumentException("Invalid tip position");
         }
 
         public void InitializeGeometry(ICartesianPoint2D startTip, ICartesianPoint2D endTip)
@@ -143,12 +156,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             var bodyNodes = new HashSet<XNode2D>();
             var startTipNodes = new HashSet<XNode2D>();
             var endTipNodes = new HashSet<XNode2D>();
-            StartTipElements.Clear();
-            EndTipElements.Clear();
+            startTipElements.Clear();
+            endTipElements.Clear();
 
             FindBodyAndTipNodesAndElements(bodyNodes, startTipNodes, endTipNodes);
-            ApplyFixedEnrichmentArea(StartTip, StartTipElements[0], startTipNodes, StartTipEnrichments);
-            ApplyFixedEnrichmentArea(EndTip, EndTipElements[0], endTipNodes, EndTipEnrichments);
+            ApplyFixedEnrichmentArea(Vertices.First.Value, startTipElements[0], startTipNodes, StartTipEnrichments);
+            ApplyFixedEnrichmentArea(Vertices.Last.Value, endTipElements[0], endTipNodes, EndTipEnrichments);
             ResolveHeavisideEnrichmentDependencies(bodyNodes);
 
             ApplyEnrichmentFunctions(bodyNodes, startTipNodes, endTipNodes);
@@ -230,13 +243,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 
                 if (containsStartTip)
                 {
-                    StartTipElements.Add(element);
+                    startTipElements.Add(element);
                     foreach (var node in element.Nodes) startTipNodes.Add(node);
                     element.EnrichmentItems.Add(StartTipEnrichments);
                 }
                 if (containsEndTip)
                 {
-                    EndTipElements.Add(element);
+                    endTipElements.Add(element);
                     foreach (var node in element.Nodes) endTipNodes.Add(node);
                     element.EnrichmentItems.Add(EndTipEnrichments);
                 }
@@ -250,15 +263,15 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
             // After all Heaviside nodes are aggregated remove the nodes of tip elements. 
             // TODO: Handle the case where the tip element contains 2 vertices. In this case the Heaviside enrichment should not be removed.
-            foreach (var element in StartTipElements)
+            foreach (var element in startTipElements)
             {
                 foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
-            foreach (var element in EndTipElements)
+            foreach (var element in endTipElements)
             {
                 foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
-            ReportTipElements(StartTipElements, EndTipElements);
+            ReportTipElements(startTipElements, endTipElements);
         }
 
         private bool IsTipElement(XContinuumElement2D element, CrackTipPosition tipPosition)

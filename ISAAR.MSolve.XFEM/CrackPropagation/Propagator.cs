@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
     class Propagator
     {
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
-        private readonly IExteriorCrack crack;
+        private readonly ICrackGeometry crack;
         private readonly CrackTipPosition tipPosition;
         private readonly double magnificationOfJintegralRadius;
         private readonly IAuxiliaryStates auxiliaryStatesStrategy;
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         ///     (see Ahmed thesis, 2009).</param>
         /// <param name="auxiliaryStatesStrategy"></param>
         /// <param name="sifCalculationStrategy"></param>
-        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack,
+        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackGeometry crack,
             CrackTipPosition tipPosition, double magnificationOfJintegralRadius,
             IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy,
             ICrackGrowthDirectionLaw2D growthDirectionLaw, ICrackGrowthLengthLaw2D growthLengthLaw)
@@ -110,9 +110,10 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         private IReadOnlyDictionary<XContinuumElement2D, double[]> FindJintegralElementsAndNodalWeights()
         {
-            Circle2D outerContour = new Circle2D(crack.CrackTip, ComputeRadiusOfJintegralOuterContour());
+            Circle2D outerContour = 
+                new Circle2D(crack.GetCrackTip(tipPosition), ComputeRadiusOfJintegralOuterContour());
             IReadOnlyList<XContinuumElement2D> intersectedElements =
-                mesh.FindElementsIntersectedByCircle(outerContour, crack.TipElements[0]);
+                mesh.FindElementsIntersectedByCircle(outerContour, crack.GetTipElements(tipPosition)[0]);
 
             var elementsAndWeights = new Dictionary<XContinuumElement2D, double[]>();
             foreach (var element in intersectedElements)
@@ -144,7 +145,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         public double ComputeRadiusOfJintegralOuterContour()
         {
             double maxTipElementArea = -1.0;
-            foreach (var element in crack.TipElements)
+            foreach (var element in crack.GetTipElements(tipPosition))
             {
                 var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
                 double elementArea = outline.ComputeArea();
@@ -225,8 +226,6 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             double parenthesis1 = stress1.XY * displGrad2[0, 0] + stress1.YY * displGrad2[1, 0]
                 + stress2.XY * displGrad1[0, 0] + stress2.YY * displGrad1[1, 0];
             return parenthesis0 * weightGrad[0] + parenthesis1 * weightGrad[1];
-
-            // ERROR: I think that only th strain energy should be subtracted in parenthesis0 and parenthesis1
         }
     }
 }

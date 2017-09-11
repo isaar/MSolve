@@ -16,9 +16,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     // TODO: this only works for cracks with a single tip
     interface IExteriorCrack: ICrackGeometry
     {
-        ICartesianPoint2D CrackTip { get; }
-        List<XContinuumElement2D> TipElements { get; }
-
         void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip);
         void UpdateGeometry(double localGrowthAngle, double growthLength); // Perhaps the global angle should be passed in
         

@@ -30,30 +30,43 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
-        public ICartesianPoint2D CrackTip { get { return Vertices[Vertices.Count - 1]; } }
-        public List<XContinuumElement2D> TipElements { get; }
-        public TipCoordinateSystem GetTipSystem(CrackTipPosition tip)
-        {
-            if (tip == CrackTipPosition.Single) return tipSystem;
-            else throw new ArgumentException("Only works for single tip cracks.");
-        }
 
         private List<ICartesianPoint2D> Vertices { get; }
         private List<DirectedSegment2D> Segments { get; }
         // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
         private List<double> Angles { get; } 
+
         private TipCoordinateSystem tipSystem;
+        private List<XContinuumElement2D> tipElements;
 
         public BasicExplicitCrack2D(double tipEnrichmentAreaRadius = 0.0)
         {
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.triangulator = new CartesianTriangulator();
-            this.TipElements = new List<XContinuumElement2D>();
+            this.tipElements = new List<XContinuumElement2D>();
 
             Vertices = new List<ICartesianPoint2D>();
             Segments = new List<DirectedSegment2D>();
             Angles = new List<double>();
-        }     
+        }
+
+        public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Single) return Vertices[Vertices.Count - 1];
+            else throw new ArgumentException("Only works for single tip cracks.");
+        }
+
+        public TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Single) return tipSystem;
+            else throw new ArgumentException("Only works for single tip cracks.");
+        }
+
+        public IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Single) return tipElements;
+            else throw new ArgumentException("Only works for single tip cracks.");
+        }
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
@@ -122,10 +135,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             var bodyNodes = new HashSet<XNode2D>();
             var tipNodes = new HashSet<XNode2D>();
-            TipElements.Clear();
+            tipElements.Clear();
 
             FindBodyAndTipNodesAndElements(bodyNodes, tipNodes);
-            ApplyFixedEnrichmentArea(tipNodes, TipElements[0]);
+            ApplyFixedEnrichmentArea(tipNodes, tipElements[0]);
             ResolveHeavisideEnrichmentDependencies(bodyNodes);
 
             ApplyEnrichmentFunctions(bodyNodes, tipNodes);
@@ -264,7 +277,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
                 if (type == ElementEnrichmentType.Tip)
                 {
-                    TipElements.Add(element);
+                    tipElements.Add(element);
                     foreach (var node in element.Nodes) tipNodes.Add(node);
                     element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
@@ -275,7 +288,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
                 else if (type == ElementEnrichmentType.Both)
                 {
-                    TipElements.Add(element);
+                    tipElements.Add(element);
                     bothElements.Add(element);
                     foreach (var node in element.Nodes)
                     {
@@ -288,7 +301,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             }
 
             // After all Heaviside nodes are aggregated remove the nodes of tip elements
-            foreach (var element in TipElements)
+            foreach (var element in tipElements)
             {
                 foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
@@ -297,7 +310,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 foreach (var node in element.Nodes) bodyNodes.Add(node);
             }
 
-            ReportTipElements(TipElements);
+            ReportTipElements(tipElements);
         }
 
         private void FindSignedAreasOfElement(XContinuumElement2D element,

@@ -28,27 +28,40 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
-        public ICartesianPoint2D CrackTip { get; private set; }
-        public List<XContinuumElement2D> TipElements { get; }
+
+        private readonly Dictionary<XNode2D, double> levelSetsBody;
+        private readonly Dictionary<XNode2D, double> levelSetsTip;
+
+        private ICartesianPoint2D crackTip;
+        private TipCoordinateSystem tipSystem;
+        private List<XContinuumElement2D> tipElements;
+
+        public BasicCrackLSM(double tipEnrichmentAreaRadius = 0.0)
+        {
+            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
+            this.triangulator = new CartesianTriangulator();
+            this.tipElements = new List<XContinuumElement2D>();
+            levelSetsBody = new Dictionary<XNode2D, double>();
+            levelSetsTip = new Dictionary<XNode2D, double>();
+        }
+
+        public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
+        {
+            if (tipPosition == CrackTipPosition.Single) return crackTip;
+            else throw new ArgumentException("Only works for single tip cracks.");
+        }
+
         public TipCoordinateSystem GetTipSystem(CrackTipPosition tip)
         {
             if (tip == CrackTipPosition.Single) return tipSystem;
             else throw new ArgumentException("Only works for single tip cracks.");
         }
 
-        private readonly Dictionary<XNode2D, double> levelSetsBody;
-        private readonly Dictionary<XNode2D, double> levelSetsTip;
-
-        public BasicCrackLSM(double tipEnrichmentAreaRadius = 0.0)
+        public IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition)
         {
-            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
-            this.triangulator = new CartesianTriangulator();
-            this.TipElements = new List<XContinuumElement2D>();
-            levelSetsBody = new Dictionary<XNode2D, double>();
-            levelSetsTip = new Dictionary<XNode2D, double>();
+            if (tipPosition == CrackTipPosition.Single) return tipElements;
+            else throw new ArgumentException("Only works for single tip cracks.");
         }
-
-        private TipCoordinateSystem tipSystem;
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
@@ -58,7 +71,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double tangentY = crackTip.Y - crackMouth.Y;
             double length = Math.Sqrt(tangentX * tangentX + tangentY * tangentY);
             double tangentSlope = Math.Atan2(tangentY, tangentX);
-            this.CrackTip = crackTip;
+            this.crackTip = crackTip;
             tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 
             tangentX /= length;
@@ -79,16 +92,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double unitDx = dx / growthLength;
             double unitDy = dy / growthLength;
 
-            var oldTip = CrackTip;
+            var oldTip = crackTip;
             var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
-            CrackTip = newTip;
+            crackTip = newTip;
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
 
             var newSegment = new DirectedSegment2D(oldTip, newTip);
             foreach (XNode2D node in Mesh.Vertices)
             {
                 // Rotate the ALL tip level sets towards the new tip and then advance them
-                double rotatedTipLevelSet = (node.X - CrackTip.X) * unitDx + (node.Y - CrackTip.Y) * unitDy;
+                double rotatedTipLevelSet = (node.X - crackTip.X) * unitDx + (node.Y - crackTip.Y) * unitDy;
                 levelSetsTip[node] = rotatedTipLevelSet - newSegment.Length;
                  
                 if (rotatedTipLevelSet > 0.0) // Only some body level sets are updated (See Stolarska 2001) 
@@ -172,7 +185,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     else if (levelSet2 == 0.0) triangleVertices.Add(node2);
                 }
 
-                if (type == ElementEnrichmentType.Tip) triangleVertices.Add(CrackTip);
+                if (type == ElementEnrichmentType.Tip) triangleVertices.Add(crackTip);
             }
             return triangulator.CreateMesh(triangleVertices);
         }
@@ -181,10 +194,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             var bodyNodes = new HashSet<XNode2D>();
             var tipNodes = new HashSet<XNode2D>();
-            TipElements.Clear();
+            tipElements.Clear();
 
-            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes, TipElements);
-            ApplyFixedEnrichmentArea(tipNodes, TipElements[0]);
+            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes, tipElements);
+            ApplyFixedEnrichmentArea(tipNodes, tipElements[0]);
             ResolveHeavisideEnrichmentDependencies(bodyNodes);
 
             ApplyEnrichmentFunctions(bodyNodes, tipNodes); 
@@ -222,7 +235,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             if (tipEnrichmentAreaRadius > 0)
             {
-                var enrichmentArea = new Circle2D(CrackTip, tipEnrichmentAreaRadius);
+                var enrichmentArea = new Circle2D(crackTip, tipEnrichmentAreaRadius);
                 foreach (var element in Mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
                 {
                     bool completelyInside = true;
