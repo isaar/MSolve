@@ -8,13 +8,13 @@ using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
 {
-    class RectangularMeshGenerator
+    class UniformRectilinearMeshGenerator
     {
         private readonly double dx;
         private readonly double dy;
         private readonly int nodeRows, nodeColumns, elementRows, elementColumns;
 
-        public RectangularMeshGenerator(double domainDim1, double domainDim2, int elementsPerDim1, int elementsPerDim2)
+        public UniformRectilinearMeshGenerator(double domainDim1, double domainDim2, int elementsPerDim1, int elementsPerDim2)
         {
             this.dx = domainDim1 / elementsPerDim1;
             this.dy = domainDim2 / elementsPerDim2;

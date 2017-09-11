@@ -248,20 +248,15 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
             }
 
-            // After all Heaviside nodes are aggregated remove the nodes of tip elements
+            // After all Heaviside nodes are aggregated remove the nodes of tip elements. 
+            // TODO: Handle the case where the tip element contains 2 vertices. In this case the Heaviside enrichment should not be removed.
             foreach (var element in StartTipElements)
             {
-                if (!bodyElements.Contains(element))
-                {
-                    foreach (var node in element.Nodes) bodyNodes.Remove(node);
-                }
+                foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
             foreach (var element in EndTipElements)
             {
-                if (!bodyElements.Contains(element))
-                {
-                    foreach (var node in element.Nodes) bodyNodes.Remove(node);
-                }
+                foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
             ReportTipElements(StartTipElements, EndTipElements);
         }

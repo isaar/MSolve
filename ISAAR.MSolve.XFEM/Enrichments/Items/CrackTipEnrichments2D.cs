@@ -17,11 +17,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     class CrackTipEnrichments2D : IEnrichmentItem2D
     {
         private readonly IReadOnlyList<ITipFunction> enrichmentFunctions;
-        private readonly IExteriorCrack crackDescription;
+        private readonly ICrackGeometry crackDescription;
         private readonly CrackTipPosition tipPosition;
         public IReadOnlyList<ArtificialDOFType> DOFs { get; }
 
-        public CrackTipEnrichments2D(IExteriorCrack crackDescription, CrackTipPosition tipPosition) : 
+        public CrackTipEnrichments2D(ICrackGeometry crackDescription, CrackTipPosition tipPosition) : 
             this(crackDescription, tipPosition, new ITipFunction[] 
             {
                 new IsotropicBrittleTipFunctions2D.Func1(),
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
         }
 
-        public CrackTipEnrichments2D(IExteriorCrack crackDescription, CrackTipPosition tipPosition,
+        public CrackTipEnrichments2D(ICrackGeometry crackDescription, CrackTipPosition tipPosition,
             IReadOnlyList<ITipFunction> enrichmentFunctions)
         {
             this.crackDescription = crackDescription;

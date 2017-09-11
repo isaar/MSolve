@@ -92,12 +92,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
         }
 
-        public Tuple<double, double> SignedDistanceGradientThrough(INaturalPoint2D point,
-             IReadOnlyList<XNode2D> elementNodes, EvaluatedInterpolation2D interpolation)
-        {
-            throw new NotImplementedException("Perhaps the private method should return the closest segment");
-        }
-
         public IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element)
         {
             var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);

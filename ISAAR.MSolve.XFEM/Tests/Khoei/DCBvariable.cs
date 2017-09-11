@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             model = new Model2D();
             
             // Mesh
-            var meshGenerator = new RectangularMeshGenerator(DIM_X, DIM_Y, elementsPerX, elementsPerY);
+            var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, elementsPerX, elementsPerY);
             Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
 
             // Nodes

@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.InfinitePlateHorizontalCrack</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -56,6 +56,7 @@
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
     <Compile Include="CrackGeometry\CrackTipPosition.cs" />
+    <Compile Include="CrackGeometry\ICrackGeometry.cs" />
     <Compile Include="CrackGeometry\IInteriorCrack.cs" />
     <Compile Include="CrackPropagation\Direction\MaximumCircumferentialTensileStressCriterion.cs" />
     <Compile Include="CrackPropagation\PropagationLogger.cs" />
@@ -103,7 +104,9 @@
     <Compile Include="Geometry\Mesh\IMesh2D.cs" />
     <Compile Include="Geometry\Mesh\ICell.cs" />
     <Compile Include="Geometry\Mesh\CellPlaceholder2D.cs" />
-    <Compile Include="Geometry\Mesh\Providers\RectangularMeshGenerator.cs" />
+    <Compile Include="Geometry\Mesh\Providers\FineAtCenterRectilinearMeshGenerator.cs" />
+    <Compile Include="Geometry\Mesh\Providers\RectilinearMeshGenerator.cs" />
+    <Compile Include="Geometry\Mesh\Providers\UniformRectilinearMeshGenerator.cs" />
     <Compile Include="Geometry\Mesh\SimpleMesh2D.cs" />
     <Compile Include="Geometry\Shapes\Circle2D.cs" />
     <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
@@ -144,6 +147,8 @@
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
+    <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
+    <Compile Include="Tests\Tools\LoadDistributor.cs" />
     <Compile Include="Tests\Visualization\CantilevelFEMDiscontinuous.cs" />
     <Compile Include="Tests\Visualization\CantileverFEM.cs" />
     <Compile Include="Tests\Khoei\DCB3x1.cs" />

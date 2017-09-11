@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         {
             // Mesh
             Model2D model = new Model2D();
-            var meshGenerator = new RectangularMeshGenerator(100, 50, 40, 25);
+            var meshGenerator = new UniformRectilinearMeshGenerator(100, 50, 40, 25);
             Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
 
             // Nodes
