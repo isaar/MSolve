@@ -25,117 +25,111 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
-    //TODO: Fix the bugs when a/s=4.
-    class InfinitePlateHorizontalCrack
+    class InfinitePlateInclinedCrack
     {
         private static readonly double E = 2.1e6; // kg/cm^2
         private static readonly double v = 0.3;
         private static readonly double tension = 2000; // kg/cm (actually kg/cm^2, but the extra cm is thickness)
         private static readonly double width = 100;
         private static readonly double crackLength = width / 25;
-        //private static readonly double crackLength = width / 50;
         private static readonly int elementsPerCoarseRegion = 10;
 
 
         public static void Main()
         {
-            double[] crackLengthsOverElementSize = new double[] { 1.05, 2.05, 3, 4.05, 5, 6.05, 7, 8.05, 9, 10.05 };
-            //double[] crackLengthsOverElementSize = new double[] { 1.05, 2, 3, 4.05, 5, 6};
-            //double[] jIntegralRadiiOverElementSize = new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-            double[] jIntegralRadiiOverElementSize = new double[] { 3 };
-            int rows = crackLengthsOverElementSize.Length;
-            int columns = jIntegralRadiiOverElementSize.Length;
+            double jIntegralRadiusOverElementSize = 3;
+            double crackLengthOverElementSize = 7;
+            double[] crackAnglesDegrees = new double[] { 0, 10, 20, 30, 40, 50, 60, 70};
+            int entries = crackAnglesDegrees.Length;
 
-            double[,] analyticJintegrals = new double[rows, columns];
-            double[,] analyticSIFs1 = new double[rows, columns];
-            double[,] analyticSIFs2 = new double[rows, columns];
-            double[,] startJintegrals = new double[rows, columns];
-            double[,] startSIFs1 = new double[rows, columns];
-            double[,] startSIFs2 = new double[rows, columns];
-            double[,] endJintegrals = new double[rows, columns];
-            double[,] endSIFs1 = new double[rows, columns];
-            double[,] endSIFs2 = new double[rows, columns];
+            double[] analyticJintegrals = new double[entries];
+            double[] analyticSIFs1 = new double[entries];
+            double[] analyticSIFs2 = new double[entries];
+            double[] startJintegrals = new double[entries];
+            double[] startSIFs1 = new double[entries];
+            double[] startSIFs2 = new double[entries];
+            double[] endJintegrals = new double[entries];
+            double[] endSIFs1 = new double[entries];
+            double[] endSIFs2 = new double[entries];
 
-            for (int i = 0; i < rows; ++i)
+            for (int i = 0; i < entries; ++i)
             {
-                for (int j = 0; j < columns; ++j)
-                {
-                    var test = new InfinitePlateHorizontalCrack(crackLength / crackLengthsOverElementSize[i],
-                        jIntegralRadiiOverElementSize[j]);
-                    IVector solution = test.Solve();
-                    PropagationResults results = test.Propagate(solution);
-                    analyticJintegrals[i, j] = (double) results.referenceJIntegral;
-                    analyticSIFs1[i, j] = (double)results.referenceSIF1;
-                    analyticSIFs2[i, j] = (double)results.referenceSIF2;
-                    startJintegrals[i, j] = (double)results.startJIntegral;
-                    startSIFs1[i, j] = (double)results.startSIF1;
-                    startSIFs2[i, j] = (double)results.startSIF2;
-                    endJintegrals[i, j] = (double)results.endJIntegral;
-                    endSIFs1[i, j] = (double)results.endSIF1;
-                    endSIFs2[i, j] = (double)results.endSIF2;
-                }
+                var test = new InfinitePlateInclinedCrack(crackAnglesDegrees[i], 
+                    crackLength / crackLengthOverElementSize,
+                    jIntegralRadiusOverElementSize);
+                IVector solution = test.Solve();
+                PropagationResults results = test.Propagate(solution);
+                analyticJintegrals[i] = (double)results.referenceJIntegral;
+                analyticSIFs1[i] = (double)results.referenceSIF1;
+                analyticSIFs2[i] = (double)results.referenceSIF2;
+                startJintegrals[i] = (double)results.startJIntegral;
+                startSIFs1[i] = (double)results.startSIF1;
+                startSIFs2[i] = (double)results.startSIF2;
+                endJintegrals[i] = (double)results.endJIntegral;
+                endSIFs1[i] = (double)results.endSIF1;
+                endSIFs2[i] = (double)results.endSIF2;
             }
-            
-            Console.WriteLine("******************************* RESULTS *******************************");
 
-            Console.Write("Rows = crack length over element size: ");
-            ArrayPrinter.PrintArrayAsColumn(crackLengthsOverElementSize);
-            Console.WriteLine();
-            Console.Write("Columns = J-integral radius over element size: ");
-            ArrayPrinter.PrintArrayAsRow(jIntegralRadiiOverElementSize);
+            Console.WriteLine("******************************* RESULTS *******************************");
+            Console.Write("Rows = crack angle (degrees) ");
+            ArrayPrinter.PrintArrayAsColumn(crackAnglesDegrees);
             Console.WriteLine();
 
             Console.WriteLine("\nAnalytic J-integral:");
-            ArrayPrinter.PrintArray2D(analyticJintegrals);
+            ArrayPrinter.PrintArrayAsColumn(analyticJintegrals);
             Console.WriteLine();
 
             Console.WriteLine("\nAnalytic SIF mode I:");
-            ArrayPrinter.PrintArray2D(analyticSIFs1);
+            ArrayPrinter.PrintArrayAsColumn(analyticSIFs1);
             Console.WriteLine();
 
             Console.WriteLine("\nAnalytic SIF mode II:");
-            ArrayPrinter.PrintArray2D(analyticSIFs2);
+            ArrayPrinter.PrintArrayAsColumn(analyticSIFs2);
             Console.WriteLine();
 
             Console.WriteLine("\nStart tip J-integral:");
-            ArrayPrinter.PrintArray2D(startJintegrals);
+            ArrayPrinter.PrintArrayAsColumn(startJintegrals);
             Console.WriteLine();
 
             Console.WriteLine("\nStart tip SIF mode I:");
-            ArrayPrinter.PrintArray2D(startSIFs1);
+            ArrayPrinter.PrintArrayAsColumn(startSIFs1);
             Console.WriteLine();
 
             Console.WriteLine("\nStart tip SIF mode II:");
-            ArrayPrinter.PrintArray2D(startSIFs2);
+            ArrayPrinter.PrintArrayAsColumn(startSIFs2);
             Console.WriteLine();
 
             Console.WriteLine("\nEnd tip J-integral:");
-            ArrayPrinter.PrintArray2D(endJintegrals);
+            ArrayPrinter.PrintArrayAsColumn(endJintegrals);
             Console.WriteLine();
 
             Console.WriteLine("\nEnd tip SIF mode I:");
-            ArrayPrinter.PrintArray2D(endSIFs1);
+            ArrayPrinter.PrintArrayAsColumn(endSIFs1);
             Console.WriteLine();
 
             Console.WriteLine("\nEnd tip SIF mode II:");
-            ArrayPrinter.PrintArray2D(endSIFs2);
+            ArrayPrinter.PrintArrayAsColumn(endSIFs2);
             Console.WriteLine();
 
             //Console.WriteLine("Enter any key to exit");
             //Console.ReadLine();
         }
 
+        private readonly double crackAngleDegrees;
+        private readonly double fineElementSize;
+        private readonly double jIntegralRadiusOverElementSize;
+
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
         private BasicExplicitInteriorCrack crack;
-        private readonly double fineElementSize;
-        private readonly double jIntegralRadiusOverElementSize;
 
         private readonly PropagationResults results;
 
-        public InfinitePlateHorizontalCrack(double fineElementSize, double jIntegralRadiusOverElementSize)
+        public InfinitePlateInclinedCrack(double crackAngleDegrees, double fineElementSize, 
+            double jIntegralRadiusOverElementSize)
         {
+            this.crackAngleDegrees = crackAngleDegrees;
             this.fineElementSize = fineElementSize;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             checker = new SubmatrixChecker(1e-4);
@@ -143,6 +137,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
             results = new PropagationResults();
             CalculateAnalytic();
+            
 
             CreateModel();
             HandleCrack();
@@ -151,8 +146,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CalculateAnalytic()
         {
             double equivalentE = globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
-            double sif1 = tension * Math.Sqrt(Math.PI * crackLength / 2);
-            double sif2 = 0.0;
+            double angleRad = crackAngleDegrees * Math.PI / 180;
+            double cosBeta = Math.Cos(angleRad);
+            double sinBeta = Math.Sin(angleRad);
+            double sif1 = tension * Math.Sqrt(Math.PI * crackLength / 2) * cosBeta * cosBeta;
+            double sif2 = tension * Math.Sqrt(Math.PI * crackLength / 2) * sinBeta * cosBeta;
             results.referenceSIF1 = sif1;
             results.referenceSIF2 = sif2;
             results.referenceJIntegral = (sif1 * sif1 + sif2 * sif2) / equivalentE;
@@ -179,7 +177,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                     elementNodes, materialField, integration, jIntegration));
             }
 
-            //ApplyBoundaryConditions(model);
             ApplyBoundaryConditions2(model);
         }
 
@@ -270,7 +267,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleCrack()
         {
-            crack = new BasicExplicitInteriorCrack(3.0 * fineElementSize);
+            crack = new BasicExplicitInteriorCrack();
             crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements);
 
             // Create enrichments          
@@ -279,8 +276,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.EndTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.End);
 
             // Mesh geometry interaction
-            var startTip = new CartesianPoint2D(0.5 * width - 0.5 * crackLength, 0.5 * width);
-            var endTip = new CartesianPoint2D(0.5 * width + 0.5 * crackLength, 0.5 * width);
+            double dx = crackLength / 2 * Math.Cos(crackAngleDegrees * Math.PI / 180);
+            double dy = crackLength / 2 * Math.Sin(crackAngleDegrees * Math.PI / 180);
+            var startTip = new CartesianPoint2D(0.5 * width - dx, 0.5 * width - dy);
+            var endTip = new CartesianPoint2D(0.5 * width + dx, 0.5 * width + dy);
             crack.InitializeGeometry(startTip, endTip);
             crack.UpdateEnrichments();
         }
@@ -298,6 +297,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
             double[] totalFreeDisplacements = new double[solution.Length];
             solution.CopyTo(totalFreeDisplacements, 0);
+           
 
             // Start tip propagation
             var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,
@@ -308,7 +308,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             startPropagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,
                 out startGrowthAngle, out startGrowthIncrement);
             double startSIF1 = startPropagator.Logger.SIFsMode1[0];
-            double startSIF2 = startPropagator.Logger.SIFsMode2[0];            
+            double startSIF2 = startPropagator.Logger.SIFsMode2[0];
 
             // End tip propagation
             var endPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.End, jIntegralRadiusOverElementSize,
@@ -320,7 +320,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 out endGrowthAngle, out endGrowthIncrement);
             double endSIF1 = endPropagator.Logger.SIFsMode1[0];
             double endSIF2 = endPropagator.Logger.SIFsMode2[0];
-            
+
             // Return results
             double equivalentE = globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
             results.startSIF1 = startSIF1;
@@ -329,6 +329,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             results.endSIF1 = endSIF1;
             results.endSIF2 = endSIF2;
             results.endJIntegral = (endSIF1 * endSIF1 + endSIF2 * endSIF2) / equivalentE;
+
             return results;
         }
     }

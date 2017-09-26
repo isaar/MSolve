@@ -161,7 +161,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             ElementEnrichmentType type = CharacterizeElementEnrichment(element);
             if (type != ElementEnrichmentType.Standard)
             {
-                // Find the intersections between element edges and the crack 
+                // Find the intersections between element edges and the crack. TODO: See Serafeim's Msc Thesis for a correct procedure.
                 for (int i = 0; i < nodesCount; ++i)
                 {
                     XNode2D node1 = element.Nodes[i];
@@ -181,7 +181,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                         // need to be added. It is not wrong though.
                         triangleVertices.Add(new CartesianPoint2D(x, y)); 
                     }
-                    else if (levelSet1 == 0.0) triangleVertices.Add(node1); // TODO: perhaps some tolerance is needed
+                    else if (levelSet1 == 0.0) triangleVertices.Add(node1); // TODO: perhaps some tolerance is needed.
                     else if (levelSet2 == 0.0) triangleVertices.Add(node2);
                 }
 

@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     {
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
 
-        private readonly double tipEnrichmentAreaRadius;
+        private readonly double enrichmentRadiusOverElementSize;
         private readonly CartesianTriangulator triangulator;
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
@@ -42,9 +42,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private List<XContinuumElement2D> startTipElements;
         private List<XContinuumElement2D> endTipElements;
 
-        public BasicExplicitInteriorCrack(double tipEnrichmentAreaRadius = 0.0)
+        public BasicExplicitInteriorCrack(double enrichmentRadiusOverElementSize = 0.0)
         {
-            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
+            this.enrichmentRadiusOverElementSize = enrichmentRadiusOverElementSize;
             this.triangulator = new CartesianTriangulator();
             this.startTipElements = new List<XContinuumElement2D>();
             this.endTipElements = new List<XContinuumElement2D>();
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             endTipSystem = new TipCoordinateSystem(newEndTip, globalAngleEnd);
 
             //StartTip
-            double globalAngleStart = localGrowthAngleStart + startTipSystem.RotationAngle;
+            double globalAngleStart = AngleUtilities.Wrap(localGrowthAngleStart + startTipSystem.RotationAngle);
             double dxStart = growthLengthStart * Math.Cos(globalAngleStart);
             double dyStart = growthLengthStart * Math.Sin(globalAngleStart);
             var oldStartTip = Vertices.First.Value;
@@ -210,9 +210,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void ApplyFixedEnrichmentArea(ICartesianPoint2D crackTip, XContinuumElement2D tipElement, 
             HashSet<XNode2D> tipNodes, IEnrichmentItem2D tipEnrichments)
         {
-            if (tipEnrichmentAreaRadius > 0)
+            if (enrichmentRadiusOverElementSize > 0)
             {
-                var enrichmentArea = new Circle2D(crackTip, tipEnrichmentAreaRadius);
+                var outline = ConvexPolygon2D.CreateUnsafe(tipElement.Nodes);
+                double elementArea = outline.ComputeArea();
+                double radius = enrichmentRadiusOverElementSize * Math.Sqrt(elementArea);
+                var enrichmentArea = new Circle2D(crackTip, radius);
+
                 foreach (var element in Mesh.FindElementsInsideCircle(enrichmentArea, tipElement))
                 {
                     bool completelyInside = true;
@@ -271,7 +275,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             {
                 foreach (var node in element.Nodes) bodyNodes.Remove(node);
             }
-            ReportTipElements(startTipElements, endTipElements);
+            //ReportTipElements(startTipElements, endTipElements);
         }
 
         private bool IsTipElement(XContinuumElement2D element, CrackTipPosition tipPosition)
