@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.InfinitePlate</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Gmsh.GmshReaderCantilever</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -101,6 +101,9 @@
     <Compile Include="CrackGeometry\BasicExplicitCrack2D.cs" />
     <Compile Include="CrackGeometry\IExteriorCrack.cs" />
     <Compile Include="CrackGeometry\BasicCrackLSM.cs" />
+    <Compile Include="Geometry\Mesh\Gmsh\GmshElement.cs" />
+    <Compile Include="Geometry\Mesh\Gmsh\GmshElementFactory.cs" />
+    <Compile Include="Geometry\Mesh\Gmsh\GmshReader.cs" />
     <Compile Include="Geometry\Mesh\IMesh2D.cs" />
     <Compile Include="Geometry\Mesh\ICell.cs" />
     <Compile Include="Geometry\Mesh\CellPlaceholder2D.cs" />
@@ -130,6 +133,7 @@
     <Compile Include="Integration\Strategies\IntegrationWithSubtriangles.cs" />
     <Compile Include="Integration\Strategies\SimpleIntegration2D.cs" />
     <Compile Include="Integration\Strategies\IntegrationForCrackPropagation2D.cs" />
+    <Compile Include="Integration\Strategies\XSimpleIntegration2D.cs" />
     <Compile Include="Interpolation\GaussPointSystems\Tri3GPSystem.cs" />
     <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
     <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
@@ -147,6 +151,7 @@
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
+    <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />

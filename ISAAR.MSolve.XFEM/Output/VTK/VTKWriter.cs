@@ -115,6 +115,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         public void CloseCurrentFile()
         {
             writer.Flush();
+            writer.Close();
         }
     }
 }
