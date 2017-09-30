@@ -132,7 +132,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
             }
 
-            return triangulator.CreateMesh(triangleVertices);
+            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+            ReportTriangulation(element, triangleVertices, triangles);
+            return triangles;
         }
 
         public void UpdateEnrichments()
@@ -451,7 +453,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         [ConditionalAttribute("DEBUG")]
         private void ReportTipElements(IReadOnlyList<XContinuumElement2D> tipElements)
         {
-            Console.WriteLine("------ DEBUG/ ------");
+            Console.WriteLine("------ DEBUG: TIP ELEMENTS/ ------");
             if (tipElements.Count < 1) throw new Exception("No tip element found");
             Console.WriteLine("Tip elements:");
             for (int e = 0; e < tipElements.Count; ++e)
@@ -462,7 +464,35 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     Console.WriteLine(node);
                 }
             }
-            Console.WriteLine("------ /DEBUG ------");
+            Console.WriteLine("------ /DEBUG: TIP ELEMENTS ------");
+        }
+
+        [ConditionalAttribute("DEBUG")]
+        private void ReportTriangulation(XContinuumElement2D element, SortedSet<ICartesianPoint2D> triangleVertices, 
+            IReadOnlyList<TriangleCartesian2D> triangles)
+        {
+            Console.WriteLine("------ DEBUG: TRIANGULATION/ ------");
+            Console.WriteLine("Element with nodes: ");
+            foreach (var node in element.Nodes) 
+            {
+                Console.Write(node);
+                Console.Write(' ');
+            }
+
+            Console.WriteLine("\nVertices of triangular mesh: ");
+            foreach (var vertex in triangleVertices)
+            {
+                Console.Write(vertex);
+                Console.Write(' ');
+            }
+
+            Console.WriteLine("\nTriangles: ");
+            foreach (var triangle in triangles)
+            {
+                Console.WriteLine(triangle);
+            }
+
+            Console.WriteLine("------ /DEBUG: TRIANGULATION ------");
         }
 
         /// <summary>

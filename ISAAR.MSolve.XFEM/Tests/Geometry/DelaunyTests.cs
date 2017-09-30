@@ -10,7 +10,7 @@ using TriangleNet.Meshing.Algorithm;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.Geometry
 {
     class DelaunyTests
     {

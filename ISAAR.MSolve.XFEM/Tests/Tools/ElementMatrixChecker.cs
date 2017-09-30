@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {

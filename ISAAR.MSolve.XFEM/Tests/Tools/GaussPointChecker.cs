@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Integration.Points;
+using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {

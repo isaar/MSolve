@@ -124,10 +124,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             bottomRightNode = finder.FindNodeWith(DIM_X, 0.0);
             topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
 
-            model.AddConstraint(bottomLeftNode, StandardDOFType.X, 0.0);
-            model.AddConstraint(bottomLeftNode, StandardDOFType.Y, 0.0);
-            model.AddConstraint(topLeftNode, StandardDOFType.X, 0.0);
-            model.AddConstraint(topLeftNode, StandardDOFType.Y, 0.0);
+            foreach (var node in finder.FindNodesWithX(0.0))
+            {
+                model.AddConstraint(node, StandardDOFType.X, 0.0);
+                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+            }
+
+            //model.AddConstraint(bottomLeftNode, StandardDOFType.X, 0.0);
+            //model.AddConstraint(bottomLeftNode, StandardDOFType.Y, 0.0);
+            //model.AddConstraint(topLeftNode, StandardDOFType.X, 0.0);
+            //model.AddConstraint(topLeftNode, StandardDOFType.Y, 0.0);
             model.AddConstraint(bottomRightNode, StandardDOFType.Y, -0.05);
             model.AddConstraint(topRightNode, StandardDOFType.Y, 0.05);
         }

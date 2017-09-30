@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Integration.Strategies;
+using ISAAR.MSolve.XFEM.LinearAlgebra;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.FEM
 {
-    static class NodeSets
+    static class FEMTests
     {
         public static XNode2D[] nodeSet1 = {
             new XNode2D(0, -1.0, -1.0),
@@ -71,5 +76,23 @@ namespace ISAAR.MSolve.XFEM.Tests
             new XNode2D(2, 40.0, 60.0),
             new XNode2D(3, 20.0, 60.0)
         };
+
+        private static void IsoparametricQuad4Test(XNode2D[] nodes)
+        {
+            double E = 1;
+            double v = 0.25;
+            double t = 1.0;
+            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
+            var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, 
+                new SimpleIntegration2D(), material);
+            SymmetricMatrix2D k = element.BuildStiffnessMatrix();
+            Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
+            MatrixUtilities.PrintDense(k);
+        }
+
+        public static void Main()
+        {
+            IsoparametricQuad4Test(nodeSet1);
+        }
     }
 }

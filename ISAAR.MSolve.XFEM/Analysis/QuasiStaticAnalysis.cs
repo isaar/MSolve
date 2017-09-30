@@ -31,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             this.mesh = mesh;
             this.crack = crack;
             this.propagator = propagator;
+            this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
         }
 
@@ -43,6 +44,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             int iteration;
             for (iteration = 0; iteration < maxIterations; ++iteration)
             {
+                Console.WriteLine(
+                    "********************************** Iteration {0} **********************************", iteration);
+
                 model.EnumerateDofs();
                 var embeddedAnalysis = new LinearStaticAnalysis(model);
                 embeddedAnalysis.Solve();
@@ -54,6 +58,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
                 double growthAngle, growthIncrement;
                 propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,
                     out growthAngle, out growthIncrement);
+                crack.UpdateGeometry(growthAngle, growthIncrement);
+                crack.UpdateEnrichments();
                 ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
                 crackPath.Add(newTip);
 

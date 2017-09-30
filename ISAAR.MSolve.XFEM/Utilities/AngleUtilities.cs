@@ -20,10 +20,13 @@ namespace ISAAR.MSolve.XFEM.Utilities
             // Wrap to [0, 2pi)
             double quotient = Math.Floor(angle / twoPI);
             double modulus = angle - twoPI * quotient;
-            // Change the limits to (0, 2pi]. 
-            if (modulus == 0.0) modulus = twoPI;
-            // Shift it to (-pi, pi] 
-            return modulus - Math.PI;
+            // Wrap to (-pi, pi]
+            double excess = modulus - Math.PI;
+            if (excess > 0) // (pi, 2pi) -> (-pi, 0). The [0, pi] is not affected.
+            {
+                modulus = -Math.PI + excess;
+            }
+            return modulus;
            
         }
     }

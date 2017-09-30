@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 using ISAAR.MSolve.XFEM.Materials;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.FEM
 {
     static class InverseMappingTests
     {

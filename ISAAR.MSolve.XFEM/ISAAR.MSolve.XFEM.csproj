@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBpropagation</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -154,7 +154,9 @@
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
+    <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
+    <Compile Include="Tests\Khoei\DCBpropagation.cs" />
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />
@@ -164,23 +166,22 @@
     <Compile Include="Tests\Visualization\CantilevelFEMDiscontinuous.cs" />
     <Compile Include="Tests\Visualization\CantileverFEM.cs" />
     <Compile Include="Tests\Khoei\DCB3x1.cs" />
-    <Compile Include="Tests\DelaunyTests.cs" />
+    <Compile Include="Tests\Geometry\DelaunyTests.cs" />
     <Compile Include="Tests\Geometry\PointInPolygon.cs" />
     <Compile Include="Tests\Khoei\DCBvariable.cs" />
     <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
     <Compile Include="Tests\Tools\DofReorder.cs" />
     <Compile Include="Tests\Tools\ElementMatrixChecker.cs" />
-    <Compile Include="Tests\FEMTests.cs" />
+    <Compile Include="Tests\FEM\FEMTests.cs" />
     <Compile Include="Tests\Tools\GaussPointChecker.cs" />
     <Compile Include="Tests\GaussPointsForTipTest.cs" />
-    <Compile Include="Tests\InverseMappingTests.cs" />
+    <Compile Include="Tests\FEM\InverseMappingTests.cs" />
     <Compile Include="Tests\Tools\GlobalMatrixChecker.cs" />
     <Compile Include="Tests\Tools\MatrixPrinter.cs" />
-    <Compile Include="Tests\NodeSets.cs" />
     <Compile Include="Tests\Tools\GaussPoint2DComparer.cs" />
     <Compile Include="Tests\Tools\OutputReaders.cs" />
     <Compile Include="Tests\Tools\SubmatrixChecker.cs" />
-    <Compile Include="Tests\Tools\ValueComparer.cs" />
+    <Compile Include="Utilities\ValueComparer.cs" />
     <Compile Include="Tests\Khoei\XElementTests.cs" />
     <Compile Include="Tests\Visualization\VTKWriterTests.cs" />
     <Compile Include="Utilities\AngleUtilities.cs" />
