@@ -27,5 +27,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             else if (signedDistance < 0) return new EvaluatedFunction2D(-1.0, derivatives);
             else return new EvaluatedFunction2D(0.0, derivatives);
         }
+
+        public override string ToString()
+        {
+            return "Heaviside";
+        }
     }
 }

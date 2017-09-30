@@ -46,8 +46,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
 
             // Elements
-            var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(1, GaussLegendre2D.Order2x2));
+            var integration = new XSimpleIntegration2D();
+            //var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+            //        new RectangularSubgridIntegration2D<XContinuumElement2D>(1, GaussLegendre2D.Order2x2));
 
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {

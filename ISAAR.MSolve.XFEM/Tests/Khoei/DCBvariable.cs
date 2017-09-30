@@ -39,11 +39,23 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         public static void Main()
         {
-            var test = new DCBvariable(15, 3);
-            //test.CheckJintegralCountour();
-            IVector solution = test.Solve();
-            test.CheckSolution(solution);
-            test.Propagate(solution);
+            int[] meshElements = new int[] { 15, 25, 45 };
+            double[] jIntegralRadiiOverElementSize = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
+            Console.WriteLine("---------------------- Results ---------------------");
+            for (int i = 0; i < meshElements.Length; ++i)
+            {
+                for (int j = 0; j < jIntegralRadiiOverElementSize.Length; ++j)
+                {
+                    var test = new DCBvariable(meshElements[i], jIntegralRadiiOverElementSize[j]);
+                    //test.CheckJintegralCountour();
+                    IVector solution = test.Solve();
+                    //test.CheckSolution(solution);
+                    Tuple<double, double> results = test.Propagate(solution);
+
+                    Console.WriteLine("Mesh = ({0}x{1}), J-integral radius / element size = {2}: J = {3}, KI = {4}",
+                    meshElements[i], 3 * meshElements[i], jIntegralRadiiOverElementSize[j], results.Item1, results.Item2);
+                }
+            }
         }
 
         private readonly SubmatrixChecker checker;
@@ -62,7 +74,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Propagator propagator;
 
-        public DCBvariable(int elementsPerY, int jIntegralRadiusOverElementSize)
+        public DCBvariable(int elementsPerY, double jIntegralRadiusOverElementSize)
         {
             checker = new SubmatrixChecker(1e-4);
 
@@ -86,8 +98,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
 
             // Elements
-            var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+            var integration = new IntegrationForCrackPropagation2D(
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+
 
             // Perhaps I need a way to dynamically specify which integration corresponds to which case. I think that all elements in the J-integral domain need to have the same rule. 
 
@@ -168,7 +182,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
         }
 
-        private void Propagate(IVector solution)
+        private Tuple<double, double> Propagate(IVector solution)
         {
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
             propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
@@ -187,10 +201,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))
                 / globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
 
-            Console.WriteLine("Propagation results:");
-            propagator.Logger.PrintAnalysisStep(0);
-            Console.WriteLine("J-integral = " + jIntegral);
-            Console.WriteLine();
+            return new Tuple<double, double>(jIntegral, propagator.Logger.SIFsMode1[0]);
+
+            //Console.WriteLine("Propagation results:");
+            //propagator.Logger.PrintAnalysisStep(0);
+            //Console.WriteLine("J-integral = " + jIntegral);
+            //Console.WriteLine();
         }
 
         private void CheckJintegralCountour()

@@ -32,6 +32,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 return new EvaluatedFunction2D(value,
                     jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
             }
+
+            public override string ToString()
+            {
+                return "TipIsotropicBrittle1";
+            }
         }
 
         public class Func2 : ITipFunction
@@ -52,6 +57,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 
                 return new EvaluatedFunction2D(value,
                     jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
+            }
+
+            public override string ToString()
+            {
+                return "TipIsotropicBrittle2";
             }
         }
 
@@ -77,6 +87,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 return new EvaluatedFunction2D(value,
                     jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
             }
+
+            public override string ToString()
+            {
+                return "TipIsotropicBrittle3";
+            }
         }
 
         public class Func4 : ITipFunction
@@ -100,6 +115,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 
                 return new EvaluatedFunction2D(value,
                     jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradient));
+            }
+
+            public override string ToString()
+            {
+                return "TipIsotropicBrittle4";
             }
         }
     }

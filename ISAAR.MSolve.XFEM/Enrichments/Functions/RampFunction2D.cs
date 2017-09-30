@@ -27,5 +27,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             return new EvaluatedFunction2D(Math.Abs(signedDistance), 
                 new double[] { sign * normalVector.Item1, sign * normalVector.Item2 });
         }
+
+        public override string ToString()
+        {
+            return "Ramp";
+        }
     }
 }

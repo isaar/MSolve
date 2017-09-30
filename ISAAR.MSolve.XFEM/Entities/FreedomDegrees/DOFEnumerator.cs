@@ -290,5 +290,16 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             }
             return result;
         }
+
+        public ITable<XNode2D, ArtificialDOFType, double> GatherArtificialNodalDisplacements(Model2D model, 
+            double[] solution)
+        {
+            var table = new Table<XNode2D, ArtificialDOFType, double>();
+            foreach (var row in artificialDofs)
+            {
+                table[row.Item1, row.Item2] = solution[row.Item3];
+            }
+            return table;
+        }
     }
 }

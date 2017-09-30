@@ -15,11 +15,12 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     class IntegrationForCrackPropagation2D: IIntegrationStrategy2D<XContinuumElement2D>
     {
         // TODO: verify the need to use higher order integration for tip blending elements
-        private readonly IStandardQuadrature2D integrationForTipBlendingElements;
+        private readonly IIntegrationStrategy2D<XContinuumElement2D> integrationForTipBlendingElements;
         private readonly IIntegrationStrategy2D<XContinuumElement2D> integrationForEnrichedElements;
         
-        public IntegrationForCrackPropagation2D(IStandardQuadrature2D integrationForTipBlendingElements,
-            IIntegrationStrategy2D<XContinuumElement2D> integrationForEnrichedElements)
+        public IntegrationForCrackPropagation2D(
+            IIntegrationStrategy2D<XContinuumElement2D> integrationForEnrichedElements,
+            IIntegrationStrategy2D<XContinuumElement2D> integrationForTipBlendingElements)
         {
             this.integrationForEnrichedElements = integrationForEnrichedElements;
             this.integrationForTipBlendingElements = integrationForTipBlendingElements;
@@ -32,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                 // Case 1: Blending element with at least one tip enriched node. TODO: abstract the handling of blending elements
                 if (HasTipEnrichedNodes(element))
                 {
-                    return integrationForTipBlendingElements.IntegrationPoints;
+                    return integrationForTipBlendingElements.GenerateIntegrationPoints(element);
                     #region legacy hard-coded integration for Quad 4 blending elements
                     if (element.StandardQuadrature == GaussLegendre2D.Order2x2)
                     {

@@ -128,22 +128,30 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             benchmark.CreateModel();
             benchmark.HandleEnrichment();
             benchmark.model.EnumerateDofs();
-            var checker = new SubmatrixChecker(1e-2); // The heaviside dofs are slightly off
-            benchmark.CheckStiffnessNode6(checker);
-            benchmark.CheckStiffnessNode7Element1(checker);
-            benchmark.CheckStiffnessNode7Element2(checker);
-            benchmark.CheckGlobalStiffnessNode7(checker);
-            benchmark.CheckSolution(checker);
+            
+            benchmark.CheckStiffnessNode6();
+            benchmark.CheckStiffnessNode7Element1();
+            benchmark.CheckStiffnessNode7Element2();
+            benchmark.CheckGlobalStiffnessNode7();
+            benchmark.CheckSolution();
+
+            benchmark.PrintAllStiffnesses();
+            benchmark.PrintDisplacements();
         }
 
         private readonly double h; // element length
         private readonly double E = 2e6, v = 0.3;
+        private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
+        private BasicExplicitCrack2D crack;
+
+
 
         public DCB3x1(double elementLength)
         {
             this.h = elementLength;
+            this.checker = new SubmatrixChecker(1e-2); // The heaviside dofs are slightly off
         }
 
         private void CreateMaterial()
@@ -174,10 +182,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             for (int e = 0; e < 3; ++e)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-                var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
-                var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4,
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
+                var integration = new IntegrationForCrackPropagation2D(
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2), 
+                    new XSimpleIntegration2D());
+                var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     connectivity[e], materialField, integration, jIntegration));
             }
@@ -193,7 +201,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleEnrichment()
         {
-            var crack = new BasicExplicitCrack2D();
+            crack = new BasicExplicitCrack2D();
             crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements);
 
             // Create enrichments          
@@ -210,7 +218,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private void CheckStiffnessNode6(SubmatrixChecker checker)
+        private void CheckStiffnessNode6()
         {
             Matrix2D Kes;
             SymmetricMatrix2D Kee;
@@ -226,7 +234,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedK_Node6, node6Submatrix);
         }
 
-        private void CheckStiffnessNode7Element1(SubmatrixChecker checker)
+        private void CheckStiffnessNode7Element1()
         {
             Matrix2D Kes;
             SymmetricMatrix2D Kee;
@@ -242,7 +250,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedK_Node7_El1, node7Submatrix);
         }
 
-        private void CheckStiffnessNode7Element2(SubmatrixChecker checker)
+        private void CheckStiffnessNode7Element2()
         {
             Matrix2D Kes;
             SymmetricMatrix2D Kee;
@@ -258,7 +266,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedK_Node7_El2, node7Submatrix);
         }
 
-        private void CheckGlobalStiffnessNode7(SubmatrixChecker checker)
+        private void CheckGlobalStiffnessNode7()
         {
             SkylineMatrix2D Kuu;
             Matrix2D Kuc;
@@ -278,7 +286,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         // WARNING: The heaviside enriched dofs are slightly off!
-        private void CheckSolution(SubmatrixChecker checker)
+        private void CheckSolution()
         {
             var analysis = new LinearStaticAnalysis(model);
             analysis.Solve();
@@ -301,23 +309,60 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedSolutionNodes5_6, displacements);
         }
 
+        private void PrintAllStiffnesses()
+        {
+            Console.WriteLine("\n-------------------- Element Matrices ------------------");
+            for (int i = 0; i < model.Elements.Count; ++i)
+            {
+                Matrix2D Kes;
+                SymmetricMatrix2D Kee;
+                SymmetricMatrix2D Kss = model.Elements[i].BuildStandardStiffnessMatrix();
+                model.Elements[i].BuildEnrichedStiffnessMatrices(out Kes, out Kee);
+
+                Console.WriteLine("Element " + i);
+                PrintElementMatrices(Kss, Kes, Kee, 1e-6);
+            }
+            Console.WriteLine();
+        }
+
+        private void PrintDisplacements()
+        {
+            var analysis = new LinearStaticAnalysis(model);
+            analysis.Solve();
+            double[] solution = new double[analysis.Solution.Length];
+            analysis.Solution.CopyTo(solution, 0);
+            double[,] nodalDisplacements = model.DofEnumerator.GatherNodalDisplacements(model, solution);
+
+
+            Console.WriteLine("\n-------------------- Standard displacements ------------------");
+            for (int i = 0; i < nodalDisplacements.GetLength(0); ++i)
+            {
+                Console.WriteLine("Node " + i + ", dof X :\t Ux = " + nodalDisplacements[i, 0]);
+                Console.WriteLine("Node " + i + ", dof Y :\t Uy = " + nodalDisplacements[i, 1]);
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("\n-------------------- Artificial displacements ------------------");
+            Console.WriteLine(model.DofEnumerator.GatherArtificialNodalDisplacements(model, solution));
+        }
+
         private void PrintElementMatrices(SymmetricMatrix2D kss, Matrix2D kes, SymmetricMatrix2D kee, double scale)
         {
             var scaledKss = new SymmetricMatrix2D((double[])kss.Data.Clone());
             scaledKss.Scale(scale);
-            Console.WriteLine("Kss = ");
+            Console.WriteLine("Kss = " + 1/scale + " * ");
             MatrixUtilities.PrintDense(scaledKss);
             Console.WriteLine();
 
             var scaledKes = new Matrix2D((double[,])kes.Data.Clone());
             scaledKes.Scale(scale);
-            Console.WriteLine("Kes = ");
+            Console.WriteLine("Kes = " + 1 / scale + " * ");
             MatrixUtilities.PrintDense(scaledKes);
             Console.WriteLine();
 
             var scaledKee = new SymmetricMatrix2D((double[])kee.Data.Clone());
             scaledKee.Scale(scale);
-            Console.WriteLine("Kee = ");
+            Console.WriteLine("Kee = " + 1 / scale + " * ");
             MatrixUtilities.PrintDense(scaledKee);
             Console.WriteLine();
         }

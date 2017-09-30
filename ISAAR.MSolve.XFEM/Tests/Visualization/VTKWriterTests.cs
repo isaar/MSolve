@@ -37,16 +37,17 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
 
             // Elements
-            var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
-            var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4,
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
+            var integration = new XSimpleIntegration2D();
+            //var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+            //        new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+            //var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order4x4,
+            //    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
 
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(2e6, 0.3);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
-                    elementNodes, materialField, integration, jIntegration));
+                    elementNodes, materialField, integration));
             }
 
             return model;

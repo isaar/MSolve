@@ -17,5 +17,14 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             this.Enrichment = enrichment;
             this.Axis = axis;
         }
+        
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            builder.Append(Enrichment.ToString());
+            builder.Append(' ');
+            builder.Append(Axis);
+            return builder.ToString();
+        }
     }
 }

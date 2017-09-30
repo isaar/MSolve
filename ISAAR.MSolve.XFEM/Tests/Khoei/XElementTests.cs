@@ -38,8 +38,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double v = 0.3;
             var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
 
-            var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
+            var integrationStrategy = new IntegrationForCrackPropagation2D(
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),
+                new XSimpleIntegration2D());
+            //var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+            //new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
             var bodyElement = new XContinuumElement2D(IsoparametricElementType2D.Quad4, 
                 new XNode2D[] { nodes[0], nodes[1], nodes[2], nodes[3]}, material, integrationStrategy);
             var tipElement = new XContinuumElement2D(IsoparametricElementType2D.Quad4,
@@ -85,8 +88,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             MaterialInterface2D enrichmentItem = new MaterialInterface2D(discontinuity);
             var material = BiElasticMaterial2D.CreateMaterialForPlainStrain(0.5 * E, v, E, v, enrichmentItem);
 
-            var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
+            var integrationStrategy = new IntegrationForCrackPropagation2D(new XSimpleIntegration2D(),
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+            //var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+            //    new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
             var element = new XContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, material, 
                 integrationStrategy);
 

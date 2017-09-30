@@ -102,5 +102,20 @@ namespace ISAAR.MSolve.XFEM.Utilities
             }
             else return wholeRow.TryGetValue(col, out value);
         }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (var wholeRow in this)
+            {
+                builder.Append(wholeRow.Item1);
+                builder.Append(" , ");
+                builder.Append(wholeRow.Item2);
+                builder.Append(" , ");
+                builder.Append(wholeRow.Item3);
+                builder.Append('\n');
+            }
+            return builder.ToString();
+        }
     }
 }
