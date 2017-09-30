@@ -23,6 +23,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
 
+        public ICartesianPoint2D CrackMouth { get; private set; }
+
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
         // parameters to a CrackDescription builder and construct them there, without involving the user.
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
@@ -65,6 +67,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
+            CrackMouth = crackMouth;
             var segment = new DirectedSegment2D(crackMouth, crackTip);
 
             double tangentX = crackTip.X - crackMouth.X;

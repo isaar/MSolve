@@ -24,6 +24,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
 
+        public ICartesianPoint2D CrackMouth { get; private set; }
+
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
         // parameters to a CrackDescription builder and construct them there, without involving the user 
         // (given how easy it is to forget the setters, it is a must).
@@ -70,6 +72,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
+            CrackMouth = crackMouth;
+
             double dx = crackTip.X - crackMouth.X;
             double dy = crackTip.Y - crackMouth.Y;
             double tangentSlope = Math.Atan2(dy, dx);

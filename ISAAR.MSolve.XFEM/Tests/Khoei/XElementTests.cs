@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -45,10 +46,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
             var bodyElement = new XContinuumElement2D(IsoparametricElementType2D.Quad4, 
                 new XNode2D[] { nodes[0], nodes[1], nodes[2], nodes[3]}, material, integrationStrategy);
+            var blendingElement = new XContinuumElement2D(IsoparametricElementType2D.Quad4,
+                new XNode2D[] { nodes[7], nodes[6], nodes[1], nodes[0] }, material, integrationStrategy);
             var tipElement = new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                 new XNode2D[] { nodes[4], nodes[5], nodes[6], nodes[7] }, material, integrationStrategy);
+            var boundary = new RectangularBoundary(20.0, 40.0, -40.0, 20.0);
             var mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(nodes, 
-                new XContinuumElement2D[] { bodyElement, tipElement });
+                new XContinuumElement2D[] { bodyElement, blendingElement, tipElement }, boundary);
 
             var crack = new BasicExplicitCrack2D();
             crack.Mesh = mesh;

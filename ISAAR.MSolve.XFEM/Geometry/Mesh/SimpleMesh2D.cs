@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
@@ -17,13 +18,16 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         where TVertex: ICartesianPoint2D 
         where TCell: class, ICell
     {
+        private readonly IDomainBoundary boundary;
+
         public IReadOnlyList<TVertex> Vertices { get; }
         public IReadOnlyList<TCell> Cells { get; }
 
-        public SimpleMesh2D(IReadOnlyList<TVertex> vertices, IReadOnlyList<TCell> faces)
+        public SimpleMesh2D(IReadOnlyList<TVertex> vertices, IReadOnlyList<TCell> faces, IDomainBoundary boundary)
         {
             this.Vertices = vertices;
             this.Cells = faces;
+            this.boundary = boundary;
         }
 
         // TODO: handle cases where more the point lies on an element edge or node.
@@ -91,5 +95,9 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return selectedNodes;
         }
 
+        public bool IsInsideBoundary(ICartesianPoint2D point)
+        {
+            return boundary.IsInside(point);
+        }
     }
 }

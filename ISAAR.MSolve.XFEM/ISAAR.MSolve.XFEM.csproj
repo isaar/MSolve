@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analysis\LinearStaticAnalysis.cs" />
+    <Compile Include="Analysis\QuasiStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
     <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
     <Compile Include="CrackGeometry\CrackTipPosition.cs" />
@@ -90,6 +91,8 @@
     <Compile Include="Entities\FreedomDegrees\StandardDOFType.cs" />
     <Compile Include="Entities\Model2D.cs" />
     <Compile Include="Entities\NodalLoad2D.cs" />
+    <Compile Include="Geometry\Boundaries\IDomainBoundary.cs" />
+    <Compile Include="Geometry\Boundaries\RectangularBoundary.cs" />
     <Compile Include="Geometry\CoordinateSystems\CartesianPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\ICartesianPoint2D.cs" />
     <Compile Include="Geometry\CoordinateSystems\INaturalPoint1D.cs" />

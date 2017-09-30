@@ -1,0 +1,96 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.CrackGeometry;
+using ISAAR.MSolve.XFEM.CrackPropagation;
+using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
+using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
+using ISAAR.MSolve.XFEM.CrackPropagation.Length;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Mesh;
+
+namespace ISAAR.MSolve.XFEM.Analysis
+{
+    class QuasiStaticAnalysis
+    {
+        private readonly Model2D model;
+        private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private readonly IExteriorCrack crack;
+        private readonly Propagator propagator;
+        private readonly double fractureToughness;
+        private readonly int maxIterations;
+
+        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack, 
+            Propagator propagator, double fractureToughness, int maxIterations)
+        {
+            this.model = model;
+            this.mesh = mesh;
+            this.crack = crack;
+            this.propagator = propagator;
+            this.maxIterations = maxIterations;
+        }
+
+        public void Analyze()
+        {
+            var crackPath = new List<ICartesianPoint2D>();
+            crackPath.Add(crack.CrackMouth);
+            crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
+
+            int iteration;
+            for (iteration = 0; iteration < maxIterations; ++iteration)
+            {
+                model.EnumerateDofs();
+                var embeddedAnalysis = new LinearStaticAnalysis(model);
+                embeddedAnalysis.Solve();
+
+                double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
+                double[] totalFreeDisplacements = new double[embeddedAnalysis.Solution.Length];
+                embeddedAnalysis.Solution.CopyTo(totalFreeDisplacements, 0);
+
+                double growthAngle, growthIncrement;
+                propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,
+                    out growthAngle, out growthIncrement);
+                ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
+                crackPath.Add(newTip);
+
+                double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration], 
+                    propagator.Logger.SIFsMode2[iteration]);
+                if (sifEffective >= fractureToughness)
+                {
+                    Console.WriteLine(
+                        "Propagation analysis terminated: Failure due to fracture tougness being exceeded.");
+                    break;
+                }
+                else if (!mesh.IsInsideBoundary(newTip))
+                {
+                    Console.WriteLine(
+                        "Propagation analysis terminated: Failure due to the crack reaching the domain's boudary.");
+                    break;
+                }
+            }
+            if (iteration == maxIterations)
+            {
+                Console.WriteLine(
+                "Propagation analysis terminated: All {0} iterations were completed.", maxIterations);
+            }
+
+            Console.WriteLine("Crack path:");
+            foreach (var point in crackPath)
+            {
+                Console.Write(point);
+                Console.Write(' ');
+            }
+        }
+
+        // TODO: Abstract this and add Tanaka_1974 approach
+        private double EquivalentSIF(double sifMode1, double sifMode2)
+        {
+            return Math.Sqrt(sifMode1 * sifMode1 + sifMode2 * sifMode2);
+        }
+
+    }
+}

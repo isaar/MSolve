@@ -64,5 +64,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <returns></returns>
         IReadOnlyList<TVertex> FindNodesInsideCircle(Circle2D circle, 
             bool findBoundaryNodes = true, TCell startingElement = null);
+
+        bool IsInsideBoundary(ICartesianPoint2D point);
     }
 }
