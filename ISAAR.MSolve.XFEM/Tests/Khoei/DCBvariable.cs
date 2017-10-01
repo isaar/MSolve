@@ -20,8 +20,10 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
+using ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -37,6 +39,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly double DIM_X = 60, DIM_Y = 20;
         private static readonly double E = 2e6, v = 0.3;
         private static readonly ICartesianPoint2D CRACK_MOUTH = new CartesianPoint2D(DIM_X, 0.5 * DIM_Y);
+        private static readonly bool structuredMesh = false;
+        private static readonly string triMeshFile = "dcb_tri.msh";
+        private static readonly string quadMeshFile = "dcb_quad.msh";
+        private static readonly bool integrationWithTriangles = false;
+        //private static readonly double triangleOverElementArea = double.PositiveInfinity; Can't refine yet.
 
         public static void Main()
         {
@@ -60,16 +67,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         private readonly SubmatrixChecker checker;
-
         //private readonly double elementSize;
         private readonly double jIntegralRadiusOverElementSize;
-
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
         private BasicExplicitCrack2D crack;
-
-        private XNode2D bottomLeftNode;
-        private XNode2D topLeftNode;
+        private IIntegrationStrategy2D<XContinuumElement2D> integration;
+        private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
+        //private XNode2D bottomLeftNode;
+        //private XNode2D topLeftNode;
         private XNode2D bottomRightNode;
         private XNode2D topRightNode;
 
@@ -83,64 +89,99 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //this.jIntegralRadius= jIntegralRadiusOverElementSize * this.elementSize;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
 
-            CreateModel(3 * elementsPerY, elementsPerY);
+            CreateModel(elementsPerY);
+            
+        }
+
+        private void CreateModel(int elementsPerY)
+        {
+            // TODO: Fix the construction order. The crack needed for integration schemes. However the mesh depends
+            // on the elements than need the integration schemes. Perhaps pass the model to the crack and acces s
+            // the mesh through the model.
+            crack = new BasicExplicitCrack2D();
+            model = new Model2D();
+            HandleIntegrations();
+            if (structuredMesh) CreateStructuredMesh(elementsPerY);
+            else CreateUnstructuredMesh();
+            ApplyBoundaryConditions();
             HandleCrack();
         }
 
-        private void CreateModel(int elementsPerX, int elementsPerY)
+        private void HandleIntegrations()
         {
-            model = new Model2D();
-            
-            // Mesh
-            var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, elementsPerX, elementsPerY);
+            if (integrationWithTriangles)
+            {
+                ITriangulator2D triangulator = new IncrementalTriangulator();
+                integration = new IntegrationForCrackPropagation2D(
+                    new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order2Points3, crack, triangulator),
+                    new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order2Points3, crack, triangulator));
+                jIntegration = new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order3Points4, crack,
+                    triangulator);
+            }
+            else
+            {
+                integration = new IntegrationForCrackPropagation2D(
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+                jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
+                //var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
+                //    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
+            }
+        }
+
+        private void CreateStructuredMesh(int elementsPerY)
+        {
+            var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, 3 * elementsPerY, elementsPerY);
             Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
-
-            // Nodes
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
-
-            // Elements
-            var integration = new IntegrationForCrackPropagation2D(
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
-
-
-            // Perhaps I need a way to dynamically specify which integration corresponds to which case. I think that all elements in the J-integral domain need to have the same rule. 
-
-            var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
-            //var jIntegration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
-            //    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
-
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-                model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
-                    elementNodes, materialField, integration, jIntegration));
+                model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
+                    integration, jIntegration));
             }
+        }
 
-            // Boundary conditions
+        private void CreateUnstructuredMesh()
+        {
+            //var meshReader = new GmshReader(triMeshFile);
+            var meshReader = new GmshReader(quadMeshFile);
+            Tuple<IReadOnlyList<XNode2D>, IReadOnlyList<GmshElement>> meshEntities = meshReader.ReadMesh();
+            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
+            foreach (var element in meshEntities.Item2)
+            {
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                model.AddElement(new XContinuumElement2D(element.ElementType, element.Nodes, materialField, 
+                    integration, jIntegration));
+            }
+        }
+
+        private void ApplyBoundaryConditions()
+        {
             var finder = new EntityFinder(model, 1e-6);
-            bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
-            topLeftNode = finder.FindNodeWith(0.0, DIM_Y);
-            bottomRightNode = finder.FindNodeWith(DIM_X, 0.0);
-            topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
 
+            // Fixed dofs
             foreach (var node in finder.FindNodesWithX(0.0))
             {
                 model.AddConstraint(node, StandardDOFType.X, 0.0);
                 model.AddConstraint(node, StandardDOFType.Y, 0.0);
             }
-
+            //bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
+            //topLeftNode = finder.FindNodeWith(0.0, DIM_Y);
             //model.AddConstraint(bottomLeftNode, StandardDOFType.X, 0.0);
             //model.AddConstraint(bottomLeftNode, StandardDOFType.Y, 0.0);
             //model.AddConstraint(topLeftNode, StandardDOFType.X, 0.0);
             //model.AddConstraint(topLeftNode, StandardDOFType.Y, 0.0);
+
+            // Prescribed displacements
+            bottomRightNode = finder.FindNodeWith(DIM_X, 0.0);
+            topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
             model.AddConstraint(bottomRightNode, StandardDOFType.Y, -0.05);
             model.AddConstraint(topRightNode, StandardDOFType.Y, 0.05);
         }
 
         private void HandleCrack()
         {
-            crack = new BasicExplicitCrack2D();
             var boundary = new RectangularBoundary(0.0, DIM_X, 0.0, DIM_Y);
             crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
 

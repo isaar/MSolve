@@ -19,6 +19,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     class BasicExplicitCrack2D: IExteriorCrack
     {
+        private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
 
         private readonly double tipEnrichmentAreaRadius;
@@ -109,7 +110,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
         }
 
-        public IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element)
+        public SortedSet<ICartesianPoint2D> FindTriangleVertices(XContinuumElement2D element)
         {
             var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
             var triangleVertices = new SortedSet<ICartesianPoint2D>(element.Nodes, pointComparer);
@@ -132,9 +133,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
             }
 
-            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
-            ReportTriangulation(element, triangleVertices, triangles);
-            return triangles;
+            return triangleVertices;
         }
 
         public void UpdateEnrichments()
@@ -322,9 +321,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void FindSignedAreasOfElement(XContinuumElement2D element,
             out double positiveArea, out double negativeArea)
         {
+            SortedSet<ICartesianPoint2D> triangleVertices = FindTriangleVertices(element);
+            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+            ReportTriangulation(element, triangleVertices, triangles);
+
             positiveArea = 0.0;
             negativeArea = 0.0;
-            foreach (var triangle in TriangulateAreaOf(element))
+            foreach (var triangle in triangles)
             {
                 ICartesianPoint2D v0 = triangle.Vertices[0];
                 ICartesianPoint2D v1 = triangle.Vertices[1];
@@ -359,6 +362,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             const double toleranceHeavisideEnrichmentArea = 1e-4;
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
+            var nodesToRemove = new List<XNode2D>(); // Can't remove them while iterating the collection.
             foreach (var node in bodyNodes)
             {
                 double nodePositiveArea = 0.0;
@@ -382,14 +386,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 if (SignedDistanceOfPoint(node) >= 0.0)
                 {
                     double negativeAreaRatio = nodeNegativeArea / (nodePositiveArea + nodeNegativeArea);
-                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
+                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
                 }
                 else
                 {
                     double positiveAreaRatio = nodePositiveArea / (nodePositiveArea + nodeNegativeArea);
-                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
+                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
                 }
             }
+
+            foreach (var node in nodesToRemove) bodyNodes.Remove(node);
         }
 
         private double SignedDistanceOfPoint(ICartesianPoint2D globalPoint)
@@ -453,6 +459,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         [ConditionalAttribute("DEBUG")]
         private void ReportTipElements(IReadOnlyList<XContinuumElement2D> tipElements)
         {
+            if (!reports) return;
             Console.WriteLine("------ DEBUG: TIP ELEMENTS/ ------");
             if (tipElements.Count < 1) throw new Exception("No tip element found");
             Console.WriteLine("Tip elements:");
@@ -471,6 +478,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void ReportTriangulation(XContinuumElement2D element, SortedSet<ICartesianPoint2D> triangleVertices, 
             IReadOnlyList<TriangleCartesian2D> triangles)
         {
+            if (!reports) return;
             Console.WriteLine("------ DEBUG: TRIANGULATION/ ------");
             Console.WriteLine("Element with nodes: ");
             foreach (var node in element.Nodes) 

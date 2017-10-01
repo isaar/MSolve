@@ -54,5 +54,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 
             return triangles;
         }
+
+        public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

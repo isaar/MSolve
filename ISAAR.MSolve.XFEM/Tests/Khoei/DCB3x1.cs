@@ -33,6 +33,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
     /// </summary>
     class DCB3x1
     {
+        private static readonly bool integrationWithTriangles = false;
         private static Matrix2D expectedK_Node6;
         private static Matrix2D expectedK_Node7_El1;
         private static Matrix2D expectedK_Node7_El2;
@@ -180,13 +181,28 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             connectivity[0] = new XNode2D[] { nodes[0], nodes[1], nodes[2], nodes[3] };
             connectivity[1] = new XNode2D[] { nodes[1], nodes[4], nodes[7], nodes[2] };
             connectivity[2] = new XNode2D[] { nodes[4], nodes[5], nodes[6], nodes[7] };
+
+            IIntegrationStrategy2D<XContinuumElement2D> integration, jIntegration;
+            if (integrationWithTriangles)
+            {
+                ITriangulator2D triangulator = new IncrementalTriangulator();
+                integration = new IntegrationForCrackPropagation2D(
+                    new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order2Points3, crack, triangulator),
+                    new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order2Points3, crack, triangulator));
+                jIntegration = new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order3Points4, crack,
+                    triangulator);
+            }
+            else
+            {
+                integration = new IntegrationForCrackPropagation2D(
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),
+                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
+                jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
+            }
+
             for (int e = 0; e < 3; ++e)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-                var integration = new IntegrationForCrackPropagation2D(
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2), 
-                    new XSimpleIntegration2D());
-                var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     connectivity[e], materialField, integration, jIntegration));
             }

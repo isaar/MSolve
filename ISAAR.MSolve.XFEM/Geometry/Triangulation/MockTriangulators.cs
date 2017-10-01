@@ -31,6 +31,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
                     new NaturalPoint2D(-1, -0.599999999999999), new NaturalPoint2D(1, -1), new NaturalPoint2D(1, -0.15));
                 return triangles;
             }
+
+            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class Element5Triangulator : ITriangulator2D
@@ -49,6 +54,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
                 triangles[4] = new Triangle2D(
                     new NaturalPoint2D(-0.333333333333333, 5.55111512312578e-16), new NaturalPoint2D(-1, 1), new NaturalPoint2D(-1, -0.15));
                 return triangles;
+            }
+
+            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+            {
+                throw new NotImplementedException();
             }
         }
 

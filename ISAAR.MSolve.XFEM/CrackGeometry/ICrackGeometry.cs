@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition);
         IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition);
 
-        IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element);
+        SortedSet<ICartesianPoint2D> FindTriangleVertices(XContinuumElement2D element);
         void UpdateEnrichments();
     }
 }

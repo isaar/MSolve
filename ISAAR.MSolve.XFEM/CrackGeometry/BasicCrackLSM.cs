@@ -20,6 +20,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
     class BasicCrackLSM : IExteriorCrack
     {
+        private static readonly bool reports = false;
+        private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
+
         private readonly double tipEnrichmentAreaRadius;
         private readonly CartesianTriangulator triangulator;
 
@@ -157,9 +160,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return new Tuple<double, double>(gradientX, gradientY);
         }
 
-        public IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element)
+        public SortedSet<ICartesianPoint2D> FindTriangleVertices(XContinuumElement2D element)
         {
-            var triangleVertices = new HashSet<ICartesianPoint2D>(element.Nodes);
+            var triangleVertices = new SortedSet<ICartesianPoint2D>(element.Nodes, pointComparer);
             int nodesCount = element.Nodes.Count;
             ElementEnrichmentType type = CharacterizeElementEnrichment(element);
             if (type != ElementEnrichmentType.Standard)
@@ -190,7 +193,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
                 if (type == ElementEnrichmentType.Tip) triangleVertices.Add(crackTip);
             }
-            return triangulator.CreateMesh(triangleVertices);
+            return triangleVertices;
         }
 
         public void UpdateEnrichments() 
@@ -317,9 +320,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void FindSignedAreasOfElement(XContinuumElement2D element, 
             out double positiveArea, out double negativeArea)
         {
+            SortedSet<ICartesianPoint2D> triangleVertices = FindTriangleVertices(element);
+            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+
             positiveArea = 0.0;
             negativeArea = 0.0;
-            foreach (var triangle in TriangulateAreaOf(element))
+            foreach (var triangle in triangles)
             {
                 ICartesianPoint2D v0 = triangle.Vertices[0];
                 ICartesianPoint2D v1 = triangle.Vertices[1];
@@ -398,6 +404,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         [ConditionalAttribute("DEBUG")]
         private void ReportTipElements(IReadOnlyList<XContinuumElement2D> tipElements)
         {
+            if (!reports) return;
             Console.WriteLine("------ DEBUG/ ------");
             if (tipElements.Count < 1) throw new Exception("No tip element found");
             Console.WriteLine("Tip elements:");

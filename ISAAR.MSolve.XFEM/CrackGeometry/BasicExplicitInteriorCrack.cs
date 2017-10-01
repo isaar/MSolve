@@ -19,6 +19,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     class BasicExplicitInteriorCrack: IInteriorCrack
     {
+        private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
 
         private readonly double enrichmentRadiusOverElementSize;
@@ -125,7 +126,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
         }
 
-        public IReadOnlyList<TriangleCartesian2D> TriangulateAreaOf(XContinuumElement2D element)
+        public SortedSet<ICartesianPoint2D> FindTriangleVertices(XContinuumElement2D element)
         {
             var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
             var triangleVertices = new SortedSet<ICartesianPoint2D>(element.Nodes, pointComparer);
@@ -148,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
             }
 
-            return triangulator.CreateMesh(triangleVertices);
+            return triangleVertices;
         }
 
         public void UpdateEnrichments()
@@ -432,9 +433,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void FindSignedAreasOfElement(XContinuumElement2D element,
             out double positiveArea, out double negativeArea)
         {
+            SortedSet<ICartesianPoint2D> triangleVertices = FindTriangleVertices(element);
+            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+
             positiveArea = 0.0;
             negativeArea = 0.0;
-            foreach (var triangle in TriangulateAreaOf(element))
+            foreach (var triangle in triangles)
             {
                 ICartesianPoint2D v0 = triangle.Vertices[0];
                 ICartesianPoint2D v1 = triangle.Vertices[1];
@@ -509,6 +513,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private void ReportTipElements(IReadOnlyList<XContinuumElement2D> startTipElements, 
             IReadOnlyList<XContinuumElement2D> endTipElements)
         {
+            if (!reports) return;
             Console.WriteLine("------ DEBUG/ ------");
 
             // Start tip

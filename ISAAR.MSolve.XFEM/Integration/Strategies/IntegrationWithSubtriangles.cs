@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.CrackGeometry;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
@@ -15,25 +16,38 @@ using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
+    // TODO: Needs option to refine the mesh for the J-integral and tip blending elements.
     class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
-        private readonly ITriangulator2D mesher;
+        private readonly ITriangulator2D triangulator;
         private readonly IExteriorCrack crack;
+        private readonly double triangleOverElementArea;
 
-        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ITriangulator2D mesher, 
-            IExteriorCrack crack)
+        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, IExteriorCrack crack, 
+            ITriangulator2D triangulator, double triangleOverElementArea = double.PositiveInfinity)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;
-            this.mesher = mesher;
+            this.crack = crack;
+            this.triangulator = triangulator;
+            this.triangleOverElementArea = triangleOverElementArea;
         }
-        
+
         public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XContinuumElement2D element)
         {
-            IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints = FindCartesianPointsForTriangulation(element);
+            SortedSet<ICartesianPoint2D> cartesianDelaunyPoints = crack.FindTriangleVertices(element);
             IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints = 
                 FindNaturalPointsForTriangulation(element, cartesianDelaunyPoints);
-            IReadOnlyList<Triangle2D> subtriangles = mesher.CreateMesh(naturalDelaunyPoints);
+            IReadOnlyList<Triangle2D> subtriangles;
+            if (double.IsPositiveInfinity(triangleOverElementArea))
+            {
+                subtriangles = triangulator.CreateMesh(naturalDelaunyPoints);
+            }
+            else
+            {
+                double elementArea = (ConvexPolygon2D.CreateUnsafe(element.Nodes)).ComputeArea();
+                subtriangles = triangulator.CreateMesh(naturalDelaunyPoints, triangleOverElementArea * elementArea);
+            }
 
             var integrationPoints = new List<GaussPoint2D>();
             foreach (Triangle2D triangle in subtriangles)
@@ -96,26 +110,6 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                 naturalDelaunyPoints.Add(inverseMapping.TransformCartesianToNatural(cartesianPoint));
             }
             return naturalDelaunyPoints;
-        }
-
-        // TODO: perhaps the triangulation should be done at the global system
-        private static IEnumerable<ICartesianPoint2D> FindCartesianPointsForTriangulation(XContinuumElement2D element)
-        {
-            if (element.EnrichmentItems.Count == 0)
-            {
-                throw new Exception("Should not be used for standard elements");
-            }
-            else if (element.EnrichmentItems.Count > 1)
-            {
-                throw new NotImplementedException("I must also find the intersection points of the 2 enrichment items' curves");
-            }
-            
-            var pointsOfInterest = new List<ICartesianPoint2D>(element.Nodes); // TODO: better to use a set
-            foreach (IEnrichmentItem2D enrichment in element.EnrichmentItems)
-            {
-                pointsOfInterest.AddRange(enrichment.IntersectionPointsForIntegration(element));
-            }
-            return pointsOfInterest.Distinct(); // TODO: Provide a comparer that checks (x,y) proximity
         }
     }
 }

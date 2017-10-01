@@ -32,8 +32,36 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
                 vertices.Add(new Vertex(point.Xi, point.Eta));
             }
 
-            var triangles = new List<Triangle2D>();
             IMesh mesh = mesher.Triangulate(vertices, config);
+            var triangles = new List<Triangle2D>();
+            foreach (ITriangle triangle in mesh.Triangles)
+            {
+                triangles.Add(new Triangle2D(triangle));
+            }
+
+            Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - START ************");
+            Console.WriteLine("Generated Mesh:");
+            Utilities.Triangles.PrintMesh(triangles);
+            Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - END ************\n");
+
+            return triangles;
+        }
+
+        public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+        {
+            var quality = new QualityOptions();
+            quality.MaximumArea = maxTriangleArea;
+
+            List<Vertex> vertices = new List<Vertex>();
+            foreach (INaturalPoint2D point in points)
+            {
+                vertices.Add(new Vertex(point.Xi, point.Eta));
+            }
+
+            IMesh mesh = mesher.Triangulate(vertices, config);
+            mesh.Refine(quality, true);
+
+            var triangles = new List<Triangle2D>();
             foreach (ITriangle triangle in mesh.Triangles)
             {
                 triangles.Add(new Triangle2D(triangle));

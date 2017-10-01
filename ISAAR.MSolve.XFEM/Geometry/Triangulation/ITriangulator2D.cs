@@ -10,5 +10,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
     interface ITriangulator2D
     {
         IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points);
+        IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea);
     }
 }

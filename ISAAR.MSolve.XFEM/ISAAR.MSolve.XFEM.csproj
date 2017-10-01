@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBpropagation</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -228,6 +228,14 @@
     <None Include="packages.config" />
     <None Include="Resources\CantileverFEM.vtk" />
     <None Include="Resources\CantileverFEMDiscontinuous.vtk" />
+    <None Include="Resources\dcb.geo" />
+    <None Include="Resources\dcb_quad.msh" />
+    <None Include="Resources\dcb_quad_coarse.msh" />
+    <None Include="Resources\dcb_quad_fine.msh" />
+    <None Include="Resources\dcb_quad_med.msh" />
+    <None Include="Resources\dcb_tri.msh" />
+    <None Include="Resources\gmsh_cantilevel_test.geo" />
+    <None Include="Resources\gmsh_cantilevel_test.msh" />
     <None Include="Resources\test1.vtk" />
   </ItemGroup>
   <ItemGroup />
