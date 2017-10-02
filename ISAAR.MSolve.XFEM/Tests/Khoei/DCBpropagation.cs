@@ -39,8 +39,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly double DIM_X = 60, DIM_Y = 20;
         private static readonly double E = 2e6, v = 0.3;
         private static readonly ICartesianPoint2D CRACK_MOUTH = new CartesianPoint2D(DIM_X, 0.5 * DIM_Y);
-        private static readonly SubmatrixChecker checker = new SubmatrixChecker(1e-4);
-        private static readonly bool structuredMesh = true;
+        private static readonly bool structuredMesh = false;
         private static readonly string triMeshFile = "dcb_tri.msh";
         private static readonly string quadMeshFile = "dcb_quad.msh";
         private static readonly bool integrationWithTriangles = false;
@@ -50,11 +49,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Parameters
             int elementsPerY = 15;
             double jIntegralRadiusOverElementSize = 2.0;
-            double fractureTaoughness = double.MaxValue;
+            double fractureToughness = double.MaxValue;
             int maxIterations = 10;
-            double growthLength = 5; // cm
+            double growthLength = 2; // cm
 
-            var benchmark = new DCBpropagation(elementsPerY, jIntegralRadiusOverElementSize, fractureTaoughness,
+            var benchmark = new DCBpropagation(elementsPerY, jIntegralRadiusOverElementSize, fractureToughness,
                 maxIterations, growthLength);
             benchmark.Analyze();
         }
@@ -69,7 +68,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private readonly double fractureToughness;
         private readonly int maxIterations;
-        
         private readonly double growthLength;
 
         public DCBpropagation(int elementsPerY, double jIntegralRadiusOverElementSize, double fractureToughness,
@@ -95,18 +93,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             HandleCrack();
         }
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateMesh(int elementsPerY)
-        {
-            if (structuredMesh)
-            {
-                var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, 3 * elementsPerY, elementsPerY);
-                return meshGenerator.CreateMesh();
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
         private void HandleIntegrations()
         {
             if (integrationWithTriangles)
@@ -187,7 +173,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Mesh geometry interaction
             var crackTip = new CartesianPoint2D(0.5 * DIM_X, 0.5 * DIM_Y);
             crack.InitializeGeometry(CRACK_MOUTH, crackTip);
-            crack.UpdateEnrichments();
         }
 
         private void Analyze()

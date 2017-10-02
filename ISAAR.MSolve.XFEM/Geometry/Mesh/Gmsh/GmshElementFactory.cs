@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh
 {
@@ -57,6 +58,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh
                     int msolveIndex = gmshElementConnectivity[type][i];
                     elementNodes[msolveIndex] = allNodes[nodeIDs[i]];
                 }
+                ReverseNodeOrder(elementNodes);
                 element = new GmshElement(type, elementNodes);
                 return true;
             }
@@ -65,6 +67,21 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh
                 element = null;
                 return false;
             }
+        }
+
+        private void ReverseNodeOrder(XNode2D[] elementNodes)
+        {
+            // The area of the element with clockwise nodes is negative!
+            double elementArea = 0.0; // Actually double the area, but we only care about the sign here
+            for (int i = 0; i < elementNodes.Length; ++i)
+            {
+                XNode2D node1 = elementNodes[i];
+                XNode2D node2 = elementNodes[(i + 1) % elementNodes.Length];
+                elementArea += node1.X * node2.Y - node2.X * node1.Y;
+            }
+
+            if (elementArea < 0) Array.Reverse(elementNodes);
+            return;
         }
     }
 }

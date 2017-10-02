@@ -220,11 +220,22 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 PolygonPointPosition previousVertexPos = polygon.FindRelativePositionOfPoint(Vertices[tipIndex - 1]);
                 if (previousVertexPos == PolygonPointPosition.Inside)
                 {
-                    throw new NotImplementedException("Problem with blending elements, if the tip element is also " +
-                        "enriched with Heaviside. What happens after the crack tip? Based on the LSM, the signed " +
-                        "distance of the blending element after the crack tip should have a positive and negative " +
-                        "region, however that element is not split by the crack and  thus should not have " +
-                        "discontinuity in the displacement field");
+                    // Problem with blending elements, if the tip element is also enriched with Heaviside. What happens
+                    // after the crack tip? Based on the LSM, the signed distance of the blending element after the 
+                    // crack tip should have a positive and negative region, however that element is not split by the 
+                    // crack and  thus should not have discontinuity in the displacement field.
+                    var builder = new StringBuilder();
+                    builder.Append("Crack tip ");
+                    builder.Append(Vertices[Vertices.Count - 1].ToString());
+                    builder.Append(" and kink point ");
+                    builder.Append(Vertices[Vertices.Count - 2].ToString());
+                    builder.Append(" inside the same element with nodes: ");
+                    foreach (var node in element.Nodes)
+                    {
+                        builder.Append(node.ToString());
+                        builder.Append(' ');
+                    }
+                    throw new ArgumentException(builder.ToString());
                     //return ElementEnrichmentType.Both;
                 }
                 else return ElementEnrichmentType.Tip;

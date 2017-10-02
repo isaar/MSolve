@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.Fillet</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -157,6 +157,7 @@
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
     <Compile Include="Tests\Khoei\DCBpropagation.cs" />
+    <Compile Include="Tests\Khoei\Fillet.cs" />
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />
