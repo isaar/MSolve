@@ -347,7 +347,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 if (sign == 0)
                 {
                     // Report this instance in DEBUG messages. It should not happen with linear level sets and only 1 crack.
-                    Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
+                    if (reports)
+                    {
+                        Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
+                    }
+                   
                     
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     INaturalPoint2D centroidNatural = element.Interpolation.
@@ -368,6 +372,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             const double toleranceHeavisideEnrichmentArea = 1e-4;
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
+            var nodesToRemove = new List<XNode2D>(); // Can't remove them while iterating the collection.
             foreach (var node in bodyNodes)
             {
                 double nodePositiveArea = 0.0;
@@ -391,14 +396,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 if (levelSetsBody[node] >= 0.0)
                 {
                     double negativeAreaRatio = nodeNegativeArea / (nodePositiveArea + nodeNegativeArea);
-                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
+                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
                 }
                 else
                 {
                     double positiveAreaRatio = nodePositiveArea / (nodePositiveArea + nodeNegativeArea);
-                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) bodyNodes.Remove(node);
+                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
                 }
             }
+
+            foreach (var node in nodesToRemove) bodyNodes.Remove(node);
         }
 
         [ConditionalAttribute("DEBUG")]

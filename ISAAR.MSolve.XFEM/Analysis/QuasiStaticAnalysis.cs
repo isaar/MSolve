@@ -46,8 +46,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
             {
                 for (iteration = 0; iteration < maxIterations; ++iteration)
                 {
-                    Console.WriteLine(
-                        "********************************** Iteration {0} **********************************", iteration);
+                    //Console.WriteLine(
+                        //"********************************** Iteration {0} **********************************", iteration);
                     crack.UpdateEnrichments();
                     model.EnumerateDofs();
                     var embeddedAnalysis = new LinearStaticAnalysis(model);

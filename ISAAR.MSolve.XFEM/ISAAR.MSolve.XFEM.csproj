@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.Fillet</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBpropagationBelytschko</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -156,7 +156,9 @@
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
+    <Compile Include="Tests\JintegralContour.cs" />
     <Compile Include="Tests\Khoei\DCBpropagation.cs" />
+    <Compile Include="Tests\Khoei\DCBpropagationBelytschko.cs" />
     <Compile Include="Tests\Khoei\Fillet.cs" />
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />

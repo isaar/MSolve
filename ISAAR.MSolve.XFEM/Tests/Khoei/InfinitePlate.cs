@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly bool uniformMesh = false;
         private static readonly bool constrainTopLeft = false, constrainTopRight = true;
         private static readonly bool constrainBottomLeft = false, constrainBottomRight = true;
-        private static readonly bool clampedBottom = true; // overwrites the flags for corner nodes above
+        private static readonly bool clampedBottom = false; // overwrites the flags for corner nodes above
 
         public static void Main()
         {
@@ -236,7 +236,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Elements
             var integration = new IntegrationForCrackPropagation2D(
                 new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),
-                new XSimpleIntegration2D());
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4));
             //var integration = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
             //        new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
             var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
