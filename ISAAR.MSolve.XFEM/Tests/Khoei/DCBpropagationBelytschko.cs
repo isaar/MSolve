@@ -21,6 +21,7 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
+using ISAAR.MSolve.XFEM.Output.VTK;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
@@ -32,32 +33,59 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly double load = 197; // lbs
         private static readonly double a = 3.95, da = 0.5; // in 
         private static readonly double dTheta = 5.71 * Math.PI / 180; // initial crack angle
+        private static readonly bool useLSM = false;
+        private static readonly bool uniformMesh = false;
+        private static readonly double coarseOverFine = 10;
 
         public static void Main()
         {
             // Parameters
             double jIntegralRadiusOverElementSize = 2.0;
             double fractureToughness = double.MaxValue;
-            int maxIterations = 24;
-            int defaultElementsPerY = 49;
-            double defaultGrowthLength = 0.3;
-            bool useLSM = true;
-            //ParametricCrackLength(jIntegralRadiusOverElementSize, fractureToughness, maxIterations, defaultElementsPerY, useLSM);
-            //ParametricMesh(jIntegralRadiusOverElementSize, fractureToughness, maxIterations, defaultGrowthLength, useLSM);
-            GridSearch(jIntegralRadiusOverElementSize, fractureToughness, maxIterations, useLSM);
+            int maxIterations = 100;
+            SingleTest(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
+            //ParametricCrackLength(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
+            //ParametricMesh(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
+            //GridSearch(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
+        }
+
+        private static void SingleTest(double jIntegralRadiusOverElementSize, double fractureToughness,
+            int maxIterations)
+        {
+            double growthLength = 0.05;
+            double fineElementSize = 0.08;
+
+            var benchmark = new DCBpropagationBelytschko(fineElementSize, jIntegralRadiusOverElementSize,
+                        fractureToughness, maxIterations, growthLength);
+            Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
+                fineElementSize, benchmark.model.Elements.Count, growthLength);
+
+            //Print
+            //VTKWriter writer = new VTKWriter(benchmark.model);
+            //writer.InitializeFile("dcb_transfinite");
+            //writer.CloseCurrentFile();
+
+            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze();
+            Console.WriteLine("Crack path:");
+            foreach (var point in crackPath)
+            {
+                Console.WriteLine("{0} {1}", point.X, point.Y);
+            }
         }
 
         private static void ParametricCrackLength(double jIntegralRadiusOverElementSize, double fractureToughness, 
-            int maxIterations, int elementsPerY, bool useLSM)
+            int maxIterations)
         {
-            double[] growthLengths = new double[] { 0.1, 0.2, 0.3, 0.4, 0.5 };
+            double fineElementSize = 0.038;
+            double[] growthLengths = new double[] { 0.05, 0.1, 0.2, 0.4 };
             Console.WriteLine("------------------------------------ Parametric Growth Length ------------------------------------");
             for (int i = 0; i < growthLengths.Length; ++i)
             {
-                Console.WriteLine("------------------ Mesh: {0}x{1} , Growth length = {2} ------------------",
-                    elementsPerY, 3 * elementsPerY, growthLengths[i]);
-                var benchmark = new DCBpropagationBelytschko(elementsPerY, jIntegralRadiusOverElementSize,
-                    fractureToughness, maxIterations, growthLengths[i], useLSM);
+                var benchmark = new DCBpropagationBelytschko(fineElementSize, jIntegralRadiusOverElementSize,
+                    fractureToughness, maxIterations, growthLengths[i]);
+                Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
+                    fineElementSize, benchmark.model.Elements.Count, growthLengths[i]);
+                
                 try
                 {
                     IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze();
@@ -69,24 +97,27 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 }
                 catch (Exception e)
                 {
-                    //Console.WriteLine(e.Message);
-                    throw e;
+                    Console.WriteLine(e.Message);
+                    //throw e;
                 }
                 Console.WriteLine();
             }
         }
 
         private static void ParametricMesh(double jIntegralRadiusOverElementSize, double fractureToughness,
-            int maxIterations, double propagationLength, bool useLSM)
+            int maxIterations)
         {
-            int[] elementsPerY = new int[] { 15, 23, 37, 51 };
+            double propagationLength = 0.3;
+            //double[] fineElementSizes = new double[] { 0.046 };
+            double[] fineElementSizes = new double[] { 0.046, 0.1, 0.15, 0.2, 0.25 };
             Console.WriteLine("------------------------------------ Parametric Mesh ------------------------------------");
-            for (int i = 0; i < elementsPerY.Length; ++i)
+            for (int i = 0; i < fineElementSizes.Length; ++i)
             {
-                Console.WriteLine("------------------ Mesh: {0}x{1} , Growth length = {2} ------------------",
-                    elementsPerY[i], 3 * elementsPerY[i], propagationLength);
-                var benchmark = new DCBpropagationBelytschko(elementsPerY[i], jIntegralRadiusOverElementSize,
-                    fractureToughness, maxIterations, propagationLength, useLSM);
+                var benchmark = new DCBpropagationBelytschko(fineElementSizes[i], jIntegralRadiusOverElementSize,
+                    fractureToughness, maxIterations, propagationLength);
+                Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
+                    fineElementSizes[i], benchmark.model.Elements.Count, propagationLength);
+
                 try
                 {
                     IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze();
@@ -105,18 +136,22 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         private static void GridSearch(double jIntegralRadiusOverElementSize, double fractureToughness, 
-            int maxIterations, bool useLSM)
+            int maxIterations)
         {
-            for (int elems = 15; elems <= 60; ++elems)
+            double[] growthLengths = new double[] {0.2, 0.25, 0.3};
+            double[] fineElementSizes = new double[] { 0.035, 0.036, 0.037, 0.038, 0.039, 0.040, 0.041, 0.042, 0.043, 0.044, 0.045, 0.046, 0.047, 0.048, 0.049 };
+            //double[] growthLengths = new double[] { 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4};
+            //double[] fineElementSizes = new double[] { 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35 };
+            //double[] fineElementSizes = new double[] {0.035, 0.036, 0.037, 0.038, 0.039, 0.040, 0.041, 0.042, 0.043, 0.044, 0.045, 0.046, 0.047, 0.048, 0.049 };
+
+            for (int j = 0; j < growthLengths.Length; ++j)
             {
-                //double[] growthLengths = new double[] { 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5 };
-                double[] growthLengths = new double[] { 0.2 };
-                for (int i = 0; i < growthLengths.Length; ++i)
+                for (int i = 0; i < fineElementSizes.Length; ++i)
                 {
-                    Console.WriteLine("------------------ Mesh: {0}x{1}={2} , Growth length = {3} ------------------",
-                        elems, 3 * elems, 3 * elems * elems, growthLengths[i]);
-                    var benchmark = new DCBpropagationBelytschko(elems, jIntegralRadiusOverElementSize,
-                        fractureToughness, maxIterations, growthLengths[i], useLSM);
+                    var benchmark = new DCBpropagationBelytschko(fineElementSizes[i], jIntegralRadiusOverElementSize,
+                        fractureToughness, maxIterations, growthLengths[j]);
+                    Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
+                        fineElementSizes[i], benchmark.model.Elements.Count, growthLengths[j]);
                     try
                     {
                         IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze();
@@ -135,8 +170,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             }
         }
 
-        private Model2D model;
-        private readonly bool useLSM;
+        public Model2D model;
         private IExteriorCrack crack;
         private IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
@@ -148,25 +182,24 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly int maxIterations;
         private readonly double growthLength;
 
-        public DCBpropagationBelytschko(int elementsPerY, double jIntegralRadiusOverElementSize,
-            double fractureToughness, int maxIterations, double growthLength, bool useLSM)
+        public DCBpropagationBelytschko(double fineElementSize, double jIntegralRadiusOverElementSize,
+            double fractureToughness, int maxIterations, double growthLength)
         {
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
             this.growthLength = growthLength;
-            this.useLSM = useLSM;
 
-            CreateModel(elementsPerY);
+            CreateModel(fineElementSize);
         }
 
-        private void CreateModel(int elementsPerY)
+        private void CreateModel(double fineElementSize)
         {
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
             crack = new BasicExplicitCrack2D();
             model = new Model2D();
             HandleIntegrations();
-            CreateMesh(elementsPerY);
+            CreateMesh(fineElementSize);
             ApplyBoundaryConditions();
             HandleCrack();
         }
@@ -179,10 +212,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
         }
 
-        private void CreateMesh(int elementsPerY)
+        private void CreateMesh(double fineElementSize)
         {
-            var meshGenerator = new UniformRectilinearMeshGenerator(L, h, 3 * elementsPerY, elementsPerY);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
+            Tuple<XNode2D[], List<XNode2D[]>> meshEntities;
+            if (uniformMesh) meshEntities = CreateUniformMesh(fineElementSize);
+            else meshEntities = CreateRectilinearMesh(fineElementSize);
+
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
@@ -193,6 +228,34 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             var boundary = new RectangularBoundary(0.0, L, 0.0, h);
             mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
+        }
+
+
+        private Tuple<XNode2D[], List<XNode2D[]>> CreateUniformMesh(double fineElementSize)
+        {
+            int elementsPerXAxis = (int)(L / fineElementSize) + 1;
+            int elementsPerYAxis = (int)(h / fineElementSize) + 1;
+            var meshGenerator = new UniformRectilinearMeshGenerator(L, h, elementsPerXAxis, elementsPerYAxis);
+            return meshGenerator.CreateMesh();
+        }
+
+        private Tuple<XNode2D[], List<XNode2D[]>> CreateRectilinearMesh(double fineElementSize)
+        {
+            double[,] meshSizeAlongX = new double[,] {
+                { 0.0, fineElementSize * coarseOverFine},
+                { a, fineElementSize},
+                //{ 3.0 / 5.0* L, fineElementSize},
+                { 6.4, fineElementSize},
+                { L, fineElementSize * coarseOverFine} };
+            double[,] meshSizeAlongY = new double[,] {
+                { 0.0, fineElementSize },
+                //{ 0.0, fineElementSize * coarseOverFine},
+                //{ 0.5, fineElementSize},
+                { h/2 + h/10, fineElementSize},
+                { h, fineElementSize * coarseOverFine} };
+
+            var meshGenerator = new RectilinearMeshGenerator(meshSizeAlongX, meshSizeAlongY);
+            return meshGenerator.CreateMesh();
         }
 
         private void ApplyBoundaryConditions()

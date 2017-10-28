@@ -9,38 +9,23 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
 {
     class RectilinearMeshGenerator
     {
-        private readonly double[] coordinatesX;
-        private readonly double[] coordinatesY;
+        private readonly IReadOnlyList<double> coordinatesX;
+        private readonly IReadOnlyList<double> coordinatesY;
 
         public int NodeRows { get; }
         public int NodeColumns { get; }
 
-        public RectilinearMeshGenerator(double[] coordinatesX, double[] coordinatesY)
+        public RectilinearMeshGenerator(double[,] meshSizeAlongX, double[,] meshSizeAlongY):
+            this(PartitionLine(meshSizeAlongX), PartitionLine(meshSizeAlongY))
+        {
+        }
+
+        public RectilinearMeshGenerator(IReadOnlyList<double> coordinatesX, IReadOnlyList<double> coordinatesY)
         {
             this.coordinatesX = coordinatesX;
             this.coordinatesY = coordinatesY;
-            NodeRows = coordinatesY.Length;
-            NodeColumns = coordinatesX.Length;
-        }
-
-        public RectilinearMeshGenerator(double minX, double maxX, double minY, double maxY, 
-            double[] normalizedCoordinatesX, double[] normalizedCoordinatesY)
-        {
-            NodeRows = normalizedCoordinatesY.Length;
-            NodeColumns = normalizedCoordinatesX.Length;
-
-            coordinatesX = new double[NodeRows];
-            coordinatesY = new double[NodeColumns];
-
-            for (int row = 0; row < NodeRows; ++row)
-            {
-                coordinatesX[row] = minX + (maxX - minX) * normalizedCoordinatesX[row];
-            }
-            for (int col = 0; col < NodeColumns; ++col)
-            {
-                coordinatesY[col] = minY + (maxY - minY) * normalizedCoordinatesY[col];
-            }
-            
+            NodeRows = coordinatesY.Count;
+            NodeColumns = coordinatesX.Count;
         }
 
         public Tuple<XNode2D[], List<XNode2D[]>> CreateMesh()
@@ -81,6 +66,58 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
                 }
             }
             return elementNodes;
+        }
+
+        private static List<double> PartitionLine(double[,] meshSizes)
+        {
+            int n = meshSizes.GetLength(0);
+            var points = new List<double>();
+            for (int i = 0; i < n - 1; ++i)
+            {
+                points.Add(meshSizes[i, 0]);
+                points.AddRange(
+                    PartitionSegment(meshSizes[i, 0], meshSizes[i, 1], meshSizes[i + 1, 0], meshSizes[i + 1, 1]));
+            }
+            points.Add(meshSizes[n - 1, 0]);
+            return points;
+        }
+
+        /// <summary>
+        /// x1 < x2
+        /// </summary>
+        private static List<double> PartitionSegment(double x1, double h1, double x2, double h2)
+        {
+            var points = new List<double>();
+            double slope = (h2 - h1) / (x2 - x1);
+            if (h1 <= h2)
+            {
+                double x = x1;
+                double h = h1;
+                while (true)
+                {
+                    x = x + h;
+                    h = slope * (x - x1) + h1;
+                    if (x < x2) points.Add(x);
+                    else return points;
+                }
+            }
+            else
+            {
+                double x = x2;
+                double h = h2;
+                //points.Add(x); Do not add the edges
+                while (true)
+                {
+                    x = x - h;
+                    h = slope * (x - x1) + h1;
+                    if (x > x1) points.Add(x);
+                    else
+                    {
+                        points.Reverse();
+                        return points;
+                    }
+                }
+            }
         }
     }
 }

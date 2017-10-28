@@ -155,6 +155,7 @@
     <Compile Include="Output\TensorOutput.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
+    <Compile Include="Tests\Geometry\RectilinearTest.cs" />
     <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
     <Compile Include="Tests\JintegralContour.cs" />
     <Compile Include="Tests\Khoei\DCBpropagation.cs" />
