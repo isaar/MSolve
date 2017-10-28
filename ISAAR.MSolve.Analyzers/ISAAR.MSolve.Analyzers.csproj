@@ -99,21 +99,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VRFMonteCarloAnalyzerWithStochasticMaterial.cs" />
-    <Compile Include="PolynomialChaosAnalyzer.cs" />
-    <Compile Include="PolynomialChaosSolverPCGMatrixCalculator.cs" />
-    <Compile Include="MonteCarloSolverPCGDirectMatrixCalculator.cs" />
-    <Compile Include="MonteCarloStiffnessMatrixFactoryWithStochasticMaterial.cs" />
-    <Compile Include="MonteCarloAnalyzerWithStochasticMaterial.cs" />
     <Compile Include="ImplicitIntegrationCoefficients.cs" />
-    <Compile Include="Interfaces\INonLinearProvider.cs" />
-    <Compile Include="Interfaces\INonLinearParentAnalyzer.cs" />
-    <Compile Include="Interfaces\IAnalyzerProvider.cs" />
-    <Compile Include="MonteCarloAnalyzer.cs" />
-    <Compile Include="PowerSpectrumTargetEvaluator.cs" />
-    <Compile Include="Interfaces\IStaticProvider.cs" />
-    <Compile Include="Interfaces\IAnalyzer.cs" />
-    <Compile Include="Interfaces\IImplicitIntegrationProvider.cs" />
     <Compile Include="LinearAnalyzer.cs" />
     <Compile Include="NewmarkDynamicAnalyzer.cs" />
     <Compile Include="NewtonRaphsonNonLinearAnalyzer.cs" />
@@ -121,21 +107,21 @@
     <Compile Include="StaticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
-      <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
-      <Name>ISAAR.MSolve.Logging</Name>
+    <ProjectReference Include="..\ISAAR.MSolve.Analyzers.Interfaces\ISAAR.MSolve.Analyzers.Interfaces.csproj">
+      <Project>{eb9a7e5f-ce79-4d49-ac6c-cf9e62ea5692}</Project>
+      <Name>ISAAR.MSolve.Analyzers.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Logging.Interfaces\ISAAR.MSolve.Logging.Interfaces.csproj">
+      <Project>{a996da85-a5ea-4c81-bdb9-969ea9512f29}</Project>
+      <Name>ISAAR.MSolve.Logging.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
+      <Name>ISAAR.MSolve.Numerical</Name>
     </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
       <Project>{0883B2F7-198A-4404-B13D-22100BF90A31}</Project>
       <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
-      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

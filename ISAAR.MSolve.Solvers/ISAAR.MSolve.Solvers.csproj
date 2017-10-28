@@ -91,32 +91,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\IIterativeSolver.cs" />
+    <Compile Include="Interfaces\IMatrixSolver.cs" />
     <Compile Include="Interfaces\IPCGSearchVectorCalculator.cs" />
     <Compile Include="Interfaces\ISolver.cs" />
-    <Compile Include="Interfaces\ISolverPCGInitialization.cs" />
-    <Compile Include="Interfaces\ISolverPCGMatrixCalculator.cs" />
+    <Compile Include="Interfaces\IIterativeSolverInitializer.cs" />
+    <Compile Include="Interfaces\IIterativeSolverPreconditioner.cs" />
+    <Compile Include="Interfaces\IIterativeSolverMatrixCalculator.cs" />
     <Compile Include="Interfaces\ISearchVectorCalculator.cs" />
-    <Compile Include="Interfaces\ISolverSubdomain.cs" />
-    <Compile Include="PCGSkyline\SolverPCGMatrixCalculator.cs" />
-    <Compile Include="PCGSkyline\SolverPCGMatrixInitialization.cs" />
-    <Compile Include="PCGSkyline\SolverPCGSkyline.cs" />
+    <Compile Include="Interfaces\IMatrixLinearSystem.cs" />
     <Compile Include="PCG\SolverPCG.cs" />
+    <Compile Include="PCG\SolverPCGDiagonalPreconditioner.cs" />
+    <Compile Include="PCG\SolverPCGMatrixCalculator.cs" />
     <Compile Include="PCG\SolverPCGSimpleSearchVectorCalculator.cs" />
     <Compile Include="PCG\SolverPCGReorthogonalizationSearchVectorCalculator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PSM\SolverPSM.cs" />
     <Compile Include="SearchVectors.cs" />
-    <Compile Include="Skyline\SolverSkyline.cs" />
-    <Compile Include="Skyline\SubdomainSkyline.cs" />
+    <Compile Include="Skyline\SolverFBSubstitution.cs" />
+    <Compile Include="Skyline\SkylineLinearSystem.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
-      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
+      <Name>ISAAR.MSolve.Numerical</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

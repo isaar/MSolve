@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using ISAAR.MSolve.Analyzers.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class ImplicitIntegrationCoefficients
+    public class ImplicitIntegrationCoefficients : IImplicitIntegrationCoefficients
     {
         public double Mass { get; set; }
         public double Damping { get; set; }

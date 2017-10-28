@@ -2,23 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.Solvers
 {
     public static class SearchVectors
     {
-        public static void CalculateReorthogonalizedSearchVector(Vector<double> z, Vector<double> p, IList<Vector<double>> ps,
-            IList<Vector<double>> qs)
+        public static void CalculateReorthogonalizedSearchVector(IVector z, IVector p, IList<IVector> ps, IList<IVector> qs)
         {
             int procs = VectorExtensions.AffinityCount;
 
             //z.CopyTo(p.Data, 0);
             Parallel.ForEach(z.PartitionLimits(procs), limit =>
             {
-                Array.Copy(z.Data, limit.Item2, p.Data, limit.Item2, limit.Item3 - limit.Item2);
+                //Array.Copy(z.Data, limit.Item2, p.Data, limit.Item2, limit.Item3 - limit.Item2);
+                z.CopyFrom(limit.Item2, limit.Item3 - limit.Item2, p, limit.Item2);
             });
             if (ps.Count > 0)
             {
@@ -33,8 +34,8 @@ namespace ISAAR.MSolve.Solvers
                     {
                         for (int i = limit.Item2; i < limit.Item3; i++)
                         {
-                            bsTemp1[limit.Item1] += z[i] * qs[c].Data[i];
-                            bsTemp2[limit.Item1] += ps[c].Data[i] * qs[c].Data[i];
+                            bsTemp1[limit.Item1] += z[i] * qs[c][i];
+                            bsTemp2[limit.Item1] += ps[c][i] * qs[c][i];
                         }
                     });
 
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.Solvers
                     if (Double.IsNaN(ab)) throw new InvalidOperationException("Gradient of search vector is NaN.");
                     Parallel.ForEach(ps[c].PartitionLimits(procs), limit =>
                     {
-                        for (int j = limit.Item2; j < limit.Item3; j++) p.Data[j] -= ab * ps[c].Data[j];
+                        for (int j = limit.Item2; j < limit.Item3; j++) p[j] -= ab * ps[c][j];
                     });
                 }
 
@@ -79,11 +80,10 @@ namespace ISAAR.MSolve.Solvers
             }
         }
 
-        public static double CalculateReorthogonalizedGradient(Vector<double> p, Vector<double> q, 
-            Vector<double> r, IList<Vector<double>> ps, IList<Vector<double>> qs)
+        public static double CalculateReorthogonalizedGradient(IVector p, IVector q, IVector r, IList<IVector> ps, IList<IVector> qs)
         {
-            ps.Add(new Vector<double>(p.Length));
-            qs.Add(new Vector<double>(q.Length));
+            ps.Add(new Vector(p.Length));
+            qs.Add(new Vector(q.Length));
             //p.CopyTo(ps[ps.Count - 1].Data, 0);
             //q.CopyTo(qs[qs.Count - 1].Data, 0);
             //return (p * r) / (p * q);
@@ -93,12 +93,14 @@ namespace ISAAR.MSolve.Solvers
             double[] bTemp = new double[procs];
             Parallel.ForEach(p.PartitionLimits(procs), limit =>
             {
-                Array.Copy(p.Data, limit.Item2, ps[ps.Count - 1].Data, limit.Item2, limit.Item3 - limit.Item2);
-                Array.Copy(q.Data, limit.Item2, qs[qs.Count - 1].Data, limit.Item2, limit.Item3 - limit.Item2);
+                //Array.Copy(p.Data, limit.Item2, ps[ps.Count - 1].Data, limit.Item2, limit.Item3 - limit.Item2);
+                //Array.Copy(q.Data, limit.Item2, qs[qs.Count - 1].Data, limit.Item2, limit.Item3 - limit.Item2);
+                p.CopyFrom(limit.Item2, limit.Item3 - limit.Item2, ps[ps.Count - 1], limit.Item2);
+                q.CopyFrom(limit.Item2, limit.Item3 - limit.Item2, qs[ps.Count - 1], limit.Item2);
                 for (int j = limit.Item2; j < limit.Item3; j++)
                 {
-                    aTemp[limit.Item1] += p.Data[j] * r.Data[j];
-                    bTemp[limit.Item1] += p.Data[j] * q.Data[j];
+                    aTemp[limit.Item1] += p[j] * r[j];
+                    bTemp[limit.Item1] += p[j] * q[j];
                 }
             });
 
@@ -112,14 +114,13 @@ namespace ISAAR.MSolve.Solvers
             return a / b;
         }
 
-        public static bool InitializeStartingVectorFromReorthogonalizedSearchVectors(
-            Vector<double> x, Vector<double> b, IList<Vector<double>> ps, IList<Vector<double>> qs)
+        public static bool InitializeStartingVectorFromReorthogonalizedSearchVectors(IVector x, IVector b, IList<IVector> ps, IList<IVector> qs)
         {
             if (ps.Count == 0) return false;
 
             ps.RemoveAt(ps.Count - 1);
             qs.RemoveAt(qs.Count - 1);
-            Vector<double> xx = (Vector<double>)x;
+            var xx = x;
             xx.Clear();
             double v;
 
@@ -134,8 +135,8 @@ namespace ISAAR.MSolve.Solvers
                 {
                     for (int i = limit.Item2; i < limit.Item3; i++)
                     {
-                        aTemp[limit.Item1] += ps[c].Data[i] * qs[c].Data[i];
-                        bTemp[limit.Item1] += ps[c].Data[i] * b[i];
+                        aTemp[limit.Item1] += ps[c][i] * qs[c][i];
+                        bTemp[limit.Item1] += ps[c][i] * b[i];
                     }
                 });
 
@@ -151,7 +152,8 @@ namespace ISAAR.MSolve.Solvers
                 if (Double.IsNaN(v)) throw new InvalidOperationException("Gradient of starting vector initialization is NaN.");
                 Parallel.ForEach(ps[c].PartitionLimits(procs), limit =>
                 {
-                    for (int j = limit.Item2; j < limit.Item3; j++) xx.Data[j] += v * ps[c].Data[j];
+                    for (int j = limit.Item2; j < limit.Item3; j++)
+                        xx[j] += v * ps[c][j];
                 });
             }
             //for (int i = 0; i < ps.Count; i++)

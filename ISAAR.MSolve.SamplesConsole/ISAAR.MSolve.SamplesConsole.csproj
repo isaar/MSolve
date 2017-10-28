@@ -46,21 +46,21 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
-      <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
-      <Name>ISAAR.MSolve.Logging</Name>
+    <ProjectReference Include="..\ISAAR.MSolve.Analyzers.Interfaces\ISAAR.MSolve.Analyzers.Interfaces.csproj">
+      <Project>{eb9a7e5f-ce79-4d49-ac6c-cf9e62ea5692}</Project>
+      <Name>ISAAR.MSolve.Analyzers.Interfaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj">
       <Project>{c30e5a92-8060-46eb-8249-4fe4f603de18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
+      <Name>ISAAR.MSolve.FEM</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj">
-      <Project>{d4c27dc8-5a58-4bf0-8423-0f3c1fb47b8f}</Project>
-      <Name>ISAAR.MSolve.Problems</Name>
+    <ProjectReference Include="..\ISAAR.MSolve.Logging.Interfaces\ISAAR.MSolve.Logging.Interfaces.csproj">
+      <Project>{a996da85-a5ea-4c81-bdb9-969ea9512f29}</Project>
+      <Name>ISAAR.MSolve.Logging.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
+      <Name>ISAAR.MSolve.Numerical</Name>
     </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
       <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>

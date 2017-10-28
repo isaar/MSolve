@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using System.IO;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Logging.Interfaces;
 using System.Diagnostics;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -17,25 +15,25 @@ namespace ISAAR.MSolve.Analyzers
     {
         private readonly double alpha, delta, timeStep, totalTime;
         private double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
-        private Dictionary<int, Vector<double>> rhs = new Dictionary<int, Vector<double>>();
-        private Dictionary<int, Vector<double>> uu = new Dictionary<int, Vector<double>>();
-		private Dictionary<int, Vector<double>> uum = new Dictionary<int,Vector<double>>();
-		private Dictionary<int, Vector<double>> uc = new Dictionary<int,Vector<double>>();
-		private Dictionary<int, Vector<double>> ucc = new Dictionary<int,Vector<double>>();
-		private Dictionary<int, Vector<double>> u = new Dictionary<int,Vector<double>>();
-		private Dictionary<int, Vector<double>> v = new Dictionary<int,Vector<double>>();
-		private Dictionary<int, Vector<double>> v1 = new Dictionary<int,Vector<double>>();
-		private Dictionary<int, Vector<double>> v2 = new Dictionary<int,Vector<double>>();
-        //private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
-        //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
-        private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages = 
-            new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
+        private Dictionary<int, Vector> rhs = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> uu = new Dictionary<int, Vector>();
+		private Dictionary<int, Vector> uum = new Dictionary<int,Vector>();
+		private Dictionary<int, Vector> uc = new Dictionary<int,Vector>();
+		private Dictionary<int, Vector> ucc = new Dictionary<int,Vector>();
+		private Dictionary<int, Vector> u = new Dictionary<int,Vector>();
+		private Dictionary<int, Vector> v = new Dictionary<int,Vector>();
+		private Dictionary<int, Vector> v1 = new Dictionary<int,Vector>();
+		private Dictionary<int, Vector> v2 = new Dictionary<int,Vector>();
+        private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
+            new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
+        //private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages = 
+        //    new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
+        private readonly IDictionary<int, IMatrixLinearSystem> subdomains;
         private readonly IImplicitIntegrationProvider provider;
         private IAnalyzer childAnalyzer;
         private IAnalyzer parentAnalyzer;
 
-        public NewmarkDynamicAnalyzer(IImplicitIntegrationProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains,
+        public NewmarkDynamicAnalyzer(IImplicitIntegrationProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, IMatrixLinearSystem> subdomains,
             double alpha, double delta, double timeStep, double totalTime)
         {
             this.provider = provider;
@@ -48,7 +46,21 @@ namespace ISAAR.MSolve.Analyzers
             this.childAnalyzer.ParentAnalyzer = this;
         }
 
-        public Dictionary<int, ImplicitIntegrationAnalyzerLog> ResultStorages { get { return resultStorages; } }
+        public NewmarkDynamicAnalyzer(IImplicitIntegrationProvider provider, IAnalyzer embeddedAnalyzer, IMatrixLinearSystem subdomain,
+            double alpha, double delta, double timeStep, double totalTime)
+        {
+            this.provider = provider;
+            this.childAnalyzer = embeddedAnalyzer;
+            this.alpha = alpha;
+            this.delta = delta;
+            this.timeStep = timeStep;
+            this.totalTime = totalTime;
+            this.childAnalyzer.ParentAnalyzer = this;
+            this.subdomains = new Dictionary<int, IMatrixLinearSystem>();
+            this.subdomains.Add(subdomain.ID, subdomain);
+        }
+
+        public Dictionary<int, IImplicitIntegrationAnalyzerLog> ResultStorages { get { return resultStorages; } }
 
         private void InitializeCoefficients()
         {
@@ -78,7 +90,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public void ResetSolutionVectors()
         {
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
                 subdomain.Solution.Clear();
         }
 
@@ -94,18 +106,18 @@ namespace ISAAR.MSolve.Analyzers
             v2.Clear();
             rhs.Clear();
 
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
             {
                 int dofs = subdomain.RHS.Length;
-                uu.Add(subdomain.ID, new Vector<double>(dofs));
-                uum.Add(subdomain.ID, new Vector<double>(dofs));
-                uc.Add(subdomain.ID, new Vector<double>(dofs));
-                ucc.Add(subdomain.ID, new Vector<double>(dofs));
-                u.Add(subdomain.ID, new Vector<double>(dofs));
-                v.Add(subdomain.ID, new Vector<double>(dofs));
-                v1.Add(subdomain.ID, new Vector<double>(dofs));
-                v2.Add(subdomain.ID, new Vector<double>(dofs));
-                rhs.Add(subdomain.ID, new Vector<double>(dofs));
+                uu.Add(subdomain.ID, new Vector(dofs));
+                uum.Add(subdomain.ID, new Vector(dofs));
+                uc.Add(subdomain.ID, new Vector(dofs));
+                ucc.Add(subdomain.ID, new Vector(dofs));
+                u.Add(subdomain.ID, new Vector(dofs));
+                v.Add(subdomain.ID, new Vector(dofs));
+                v1.Add(subdomain.ID, new Vector(dofs));
+                v2.Add(subdomain.ID, new Vector(dofs));
+                rhs.Add(subdomain.ID, new Vector(dofs));
 
                 // Account for initial conditions coming from a previous solution
                 subdomain.Solution.CopyTo(v[subdomain.ID].Data, 0);
@@ -114,38 +126,38 @@ namespace ISAAR.MSolve.Analyzers
 
         private void InitializeMatrices()
         {
-            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients 
+            IImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients 
             {
                 Mass = a0,
                 Damping = a1,
                 Stiffness = 1 
             };
-            foreach (ISolverSubdomain subdomain in subdomains.Values) 
-                provider.CalculateEffectiveMatrix(subdomain, coeffs);
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
+                subdomain.Matrix = provider.CalculateEffectiveMatrix(subdomain.ID, coeffs);
 
-            var m = (SkylineMatrix2D<double>)subdomains[1].Matrix;
-            var x = new HashSet<double>();
-            int nonZeroCount = 0;
-            for (int i = 0; i < m.Data.Length; i++)
-            {
-                nonZeroCount += m.Data[i] != 0 ? 1 : 0;
-                if (x.Contains(m.Data[i]) == false)
-                    x.Add(m.Data[i]);
-            }
-            nonZeroCount += 0;
+            //var m = (SkylineMatrix2D)subdomains[1].Matrix;
+            //var x = new HashSet<double>();
+            //int nonZeroCount = 0;
+            //for (int i = 0; i < m.Data.Length; i++)
+            //{
+            //    nonZeroCount += m.Data[i] != 0 ? 1 : 0;
+            //    if (x.Contains(m.Data[i]) == false)
+            //        x.Add(m.Data[i]);
+            //}
+            //nonZeroCount += 0;
         }
 
         private void InitializeRHSs()
         {
-            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients 
+            IImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients 
             {
                 Mass = a0,
                 Damping = a1,
                 Stiffness = 1 
             };
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
             {
-                provider.ProcessRHS(subdomain, coeffs);
+                provider.ProcessRHS(subdomain.ID, coeffs);
                 int dofs = subdomain.RHS.Length;
                 for (int i = 0; i < dofs; i++) rhs[subdomain.ID][i] = subdomain.RHS[i];
             }
@@ -153,8 +165,10 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
+            //TODO: See implementation of logging
+
             if (childAnalyzer == null) return;
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
                 if (resultStorages.ContainsKey(subdomain.ID))
                     if (resultStorages[subdomain.ID] != null)
                         foreach (var l in childAnalyzer.Logs[subdomain.ID])
@@ -186,7 +200,7 @@ namespace ISAAR.MSolve.Analyzers
             childAnalyzer.Initialize();
         }
 
-        private void CalculateRHSImplicit(ISolverSubdomain subdomain, double[] rhsResult, bool addRHS)
+        private void CalculateRHSImplicit(IMatrixLinearSystem subdomain, double[] rhsResult, bool addRHS)
         {
             int id = subdomain.ID;
             for (int i = 0; i < subdomain.RHS.Length; i++)
@@ -196,8 +210,8 @@ namespace ISAAR.MSolve.Analyzers
                 uc[id].Data[i] = a1 * v[id].Data[i] + a4 * v1[id].Data[i] + a5 * v2[id].Data[i];
             }
             //provider.Ms[id].Multiply(uu[id], uum[id].Data);
-            provider.MassMatrixVectorProduct(subdomain, uu[id], uum[id].Data);
-            provider.DampingMatrixVectorProduct(subdomain, uc[id], ucc[id].Data);
+            provider.MassMatrixVectorProduct(subdomain.ID, uu[id], uum[id].Data);
+            provider.DampingMatrixVectorProduct(subdomain.ID, uc[id], ucc[id].Data);
             if (addRHS)
                 for (int i = 0; i < subdomain.RHS.Length; i++)
                     rhsResult[i] = rhs[id].Data[i] + uum[id].Data[i] + ucc[id].Data[i];
@@ -231,13 +245,13 @@ namespace ISAAR.MSolve.Analyzers
 
         private void CalculateRHSImplicit()
         {
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
             {
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
                 //    subdomain.RHS[i] = rhs[id].Data[i];
                 
-                CalculateRHSImplicit(subdomain, ((Vector<double>)subdomain.RHS).Data, true);
+                CalculateRHSImplicit(subdomain, ((Vector)subdomain.RHS).Data, true);
                 
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
@@ -300,7 +314,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateVelocityAndAcceleration()
         {
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
             {
                 int id = subdomain.ID;
                 v[id].CopyTo(u[id].Data, 0);
@@ -324,7 +338,7 @@ namespace ISAAR.MSolve.Analyzers
 
         #region INonLinearParentAnalyzer Members
 
-        public double[] GetOtherRHSComponents(ISolverSubdomain subdomain, IVector<double> currentSolution)
+        public double[] GetOtherRHSComponents(int id, IVector currentSolution)
         {
             //// u[id]: old solution
             //// v[id]: current solution
@@ -358,9 +372,9 @@ namespace ISAAR.MSolve.Analyzers
 
             //return result.Data;
 
-            Vector<double> result = new Vector<double>(subdomain.Solution.Length);
-            Vector<double> temp = new Vector<double>(subdomain.Solution.Length);
-            Vector<double> tempResult = new Vector<double>(subdomain.Solution.Length);
+            Vector result = new Vector(currentSolution.Length);
+            Vector temp = new Vector(currentSolution.Length);
+            Vector tempResult = new Vector(currentSolution.Length);
             //Vector<double> uu = new Vector<double>(subdomain.Solution.Length);
             //Vector<double> uc = new Vector<double>(subdomain.Solution.Length);
             //int id = subdomain.ID;
@@ -378,12 +392,12 @@ namespace ISAAR.MSolve.Analyzers
             ////result.Scale(-1d);
             currentSolution.CopyTo(temp.Data, 0);
             temp.Scale(a0);
-            provider.MassMatrixVectorProduct(subdomain, temp, tempResult.Data);
+            provider.MassMatrixVectorProduct(id, temp, tempResult.Data);
             result.Add(tempResult);
 
             currentSolution.CopyTo(temp.Data, 0);
             temp.Scale(a1);
-            provider.DampingMatrixVectorProduct(subdomain, temp, tempResult.Data);
+            provider.DampingMatrixVectorProduct(id, temp, tempResult.Data);
             result.Add(tempResult);
 
             return result.Data;
