@@ -5,6 +5,6 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 {
     public interface IIterativeSolverInitializer
     {
-        double InitializeAndGetResidual(IVector r, IVector x);
+        double InitializeAndGetResidual(IVectorOLD r, IVectorOLD x);
     }
 }

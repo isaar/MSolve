@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Solvers.PCG
     public class SolverPCGSimpleSearchVectorCalculator : IPCGSearchVectorCalculator
     {
         private int searchVectorSize = 0;
-        private IVector zOld, rOld;
+        private IVectorOLD zOld, rOld;
 
         #region ISearchVectorCalculator Members
 
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             //return (pcg.VectorZ * pcg.VectorR) / (pcg.VectorP * pcg.VectorQ);
         }
 
-        public bool InitializeStartingVectorFromSearchVectors(IVector x, IVector b)
+        public bool InitializeStartingVectorFromSearchVectors(IVectorOLD x, IVectorOLD b)
         {
             return false;
         }

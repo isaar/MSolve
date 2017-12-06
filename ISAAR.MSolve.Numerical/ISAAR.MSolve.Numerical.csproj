@@ -90,13 +90,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\NonMatchingDimensionsException.cs" />
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
+    <Compile Include="LinearAlgebra\DenseVector.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
+    <Compile Include="LinearAlgebra\IVector.cs" />
+    <Compile Include="LinearAlgebra\IVectorView.cs" />
     <Compile Include="LinearAlgebra\Matrix2D.cs" />
     <Compile Include="LinearAlgebra\Interfaces\IMatrix2D.cs" />
-    <Compile Include="LinearAlgebra\Interfaces\IVector.cs" />
+    <Compile Include="LinearAlgebra\Interfaces\IVectorOLD.cs" />
+    <Compile Include="LinearAlgebra\Preconditions.cs" />
+    <Compile Include="LinearAlgebra\Reduction\IReducible.cs" />
+    <Compile Include="LinearAlgebra\Reduction\Reductions.cs" />
     <Compile Include="LinearAlgebra\SkylineMatrix2D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LinearAlgebra\Sparse2D.cs" />

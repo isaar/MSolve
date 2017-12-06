@@ -4,6 +4,6 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 {
     public interface IIterativeSolverMatrixCalculator
     {
-        void MultiplyWithMatrix(IVector vIn, IVector vOut);
+        void MultiplyWithMatrix(IVectorOLD vIn, IVectorOLD vOut);
     }
 }
