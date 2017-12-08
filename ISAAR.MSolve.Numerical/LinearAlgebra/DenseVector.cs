@@ -54,16 +54,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
         #endregion
 
-        public IVector Add(IVectorView vector)
-        {
-            return DoPointwise(vector, (x1, x2) => x1 + x2);
-        }
-
-        public void AddIntoThis(IVectorView vector)
-        {
-            DoPointwiseIntoThis(vector, (x1, x2) => x1 + x2);
-        }
-
         public double[] CopyToArray()
         {
             double[] clone = new double[data.Length];
@@ -71,25 +61,30 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return clone;
         }
 
-        public IVector DoPointwise(IVectorView vector, Func<double, double, double> operation)
+        public IVector DoPointwise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, vector);
             double[] result = new double[data.Length];
-            for (int i = 0; i < data.Length; ++i) result[i] = operation(data[i], vector[i]);
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(data[i], vector[i]);
             return new DenseVector(result);
         }
 
-        public void DoPointwiseIntoThis(IVectorView vector, Func<double, double, double> operation)
+        public void DoPointwiseIntoThis(IVectorView vector, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, vector);
-            for (int i = 0; i < data.Length; ++i) data[i] = operation(data[i], vector[i]);
+            for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], vector[i]);
         }
 
-        public IVector DoToAllEntries(Func<double, double> operation)
+        public IVector DoToAllEntries(Func<double, double> unaryOperation)
         {
             double[] result = new double[data.Length];
-            for (int i = 0; i < data.Length; ++i) result[i] = operation(data[i]);
+            for (int i = 0; i < data.Length; ++i) result[i] = unaryOperation(data[i]);
             return new DenseVector(result);
+        }
+
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
         }
 
         public IVector ExtractSubvector(int[] indices)
@@ -97,11 +92,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             double[] subvector = new double[indices.Length];
             for (int i = 0; i < indices.Length; ++i) subvector[i] = data[indices[i]];
             return new DenseVector(subvector);
-        }
-
-        public void DoToAllEntriesIntoThis(Func<double, double> operation)
-        {
-            for (int i = 0; i < data.Length; ++i) data[i] = operation(data[i]);
         }
 
         public double MultiplyDot(IVectorView vector)
@@ -112,34 +102,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return result;
         }
 
-        public IVector MultiplyPointwise(IVectorView vector)
-        {
-            return DoPointwise(vector, (x1, x2) => x1 * x2);
-        }
-
-        public void MultiplyPointwiseIntoThis(IVectorView vector)
-        {
-            DoPointwiseIntoThis(vector, (x1, x2) => x1 * x2);
-        }
-
-        public IVector MultiplyScalar(double scalar)
-        {
-            return DoToAllEntries(x => x * scalar);
-        }
-
-        public void MultiplyScalarIntoThis(double scalar)
-        {
-            DoToAllEntriesIntoThis(x => x * scalar);
-        }
-
         public void Print()
         {
-            for (int i = 0; i < data.Length-2; ++i)
+            for (int i = 0; i < data.Length; ++i) 
             {
-                Console.Write(data[i]);
-                Console.Write(' ');
+                Console.WriteLine(data[i]);
             }
-            Console.Write(data[data.Length-1]);
         }
 
         DenseVector[] RemoveDuplicatesFindMultiplicity()
@@ -158,28 +126,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 
         public void SetAll(double value)
         {
-            for (int i = 0; i < data.Length; ++i) data[i] = value; // Awkward with DoToAllEntriesIntoThis
-        }
-
-        public IVector Subtract(IVectorView vector)
-        {
-            return DoPointwise(vector, (x1, x2) => x1 - x2);
-        }
-
-        public void SubtractIntoThis(IVectorView vector)
-        {
-            DoPointwiseIntoThis(vector, (x1, x2) => x1 - x2);
+            for (int i = 0; i < data.Length; ++i) data[i] = value; 
         }
 
         public void Write(string path)
         {
             var writer = new StreamWriter(path);
-            for (int i = 0; i < data.Length - 2; ++i)
+            for (int i = 0; i < data.Length; ++i)
             {
-                writer.Write(data[i]);
-                writer.Write(' ');
+                writer.WriteLine(data[i]);
             }
-            writer.Write(data[data.Length - 1]);
         }
     }
 }

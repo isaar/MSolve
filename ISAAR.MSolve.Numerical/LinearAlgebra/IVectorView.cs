@@ -11,16 +11,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         double this[int index] { get; }
         int Length { get; }
       
-        IVector Add(IVectorView vector);
         double[] CopyToArray();
-        IVector DoPointwise(IVectorView vector, Func<double, double, double> operation);
+        IVector DoPointwise(IVectorView other, Func<double, double, double> operation);
         IVector DoToAllEntries(Func<double, double> operation);
         IVector ExtractSubvector(int[] indices);
-        IVector MultiplyPointwise(IVectorView vector);
-        IVector MultiplyScalar(double scalar);
         double MultiplyDot(IVectorView vector);
         void Print();
-        IVector Subtract(IVectorView vector);
         void Write(string path);
     }
 }

@@ -9,12 +9,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
     {
         new double this[int index] { get; set; } // Concrete classes only need to implement the getter once.
         
-        void AddIntoThis(IVectorView vector);
-        void DoPointwiseIntoThis(IVectorView vector, Func<double, double, double> operation);
-        void DoToAllEntriesIntoThis(Func<double, double> operation);
-        void MultiplyPointwiseIntoThis(IVectorView vector);
-        void MultiplyScalarIntoThis(double scalar);
-        void SetAll(double value);
-        void SubtractIntoThis(IVectorView vector);
+        void DoPointwiseIntoThis(IVectorView other, Func<double, double, double> binaryOperation);
+        void DoToAllEntriesIntoThis(Func<double, double> unaryOperation);
+        void SetAll(double value); // Awkward with DoToAllEntriesIntoThis
     }
 }
