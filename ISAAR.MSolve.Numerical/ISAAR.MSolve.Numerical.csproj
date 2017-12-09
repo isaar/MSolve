@@ -93,8 +93,11 @@
     <Compile Include="Exceptions\NonMatchingDimensionsException.cs" />
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
+    <Compile Include="LinearAlgebra\DenseMatrix.cs" />
     <Compile Include="LinearAlgebra\DenseVector.cs" />
+    <Compile Include="LinearAlgebra\IMatrixView.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
+    <Compile Include="LinearAlgebra\IMatrix.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
     <Compile Include="LinearAlgebra\IVector.cs" />
     <Compile Include="LinearAlgebra\IVectorView.cs" />
@@ -106,6 +109,7 @@
     <Compile Include="LinearAlgebra\Reduction\Reductions.cs" />
     <Compile Include="LinearAlgebra\ShortcutOperations.cs" />
     <Compile Include="LinearAlgebra\SkylineMatrix2D.cs" />
+    <Compile Include="LinearAlgebra\TransposedDenseMatrix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LinearAlgebra\Sparse2D.cs" />
     <Compile Include="LinearAlgebra\SymmetricMatrix2D.cs" />
