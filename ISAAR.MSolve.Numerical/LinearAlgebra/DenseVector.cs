@@ -87,6 +87,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
         }
 
+        // Unsafe, but useful for passing the raw array to 3rd party libraries or doing optimizations after casting 
+        // IVectorView to DenseVector. I don't think you can mess the vector more than you could by using the indexer.
+        public double[] ExposeInternalArray()
+        {
+            return data;
+        }
+
         public IVector ExtractSubvector(int[] indices)
         {
             double[] subvector = new double[indices.Length];
@@ -136,6 +143,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             {
                 writer.WriteLine(data[i]);
             }
+#if DEBUG
+            writer.Flush();
+#endif
         }
     }
 }

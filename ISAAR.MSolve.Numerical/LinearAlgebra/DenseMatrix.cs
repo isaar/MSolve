@@ -132,7 +132,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 
         // Unsafe, but useful for passing the raw array to 3rd party libraries or doing optimizations after casting 
         // IMatrixView to DenseMatrix. I don't think you can mess the matrix more than you could by using the indexer.
-        public double[,] ExposeInternalArray() //TODO: Write one for DenseVector as well
+        public double[,] ExposeInternalArray()
         {
             return data;
         }
@@ -293,7 +293,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 writer.WriteLine();
             }
 #if DEBUG
-            writer.Flush(); //TODO: Add Flush in DenseVector as well
+            writer.Flush();
 #endif
         }
     }
