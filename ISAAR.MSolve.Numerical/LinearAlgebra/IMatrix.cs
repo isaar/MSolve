@@ -11,6 +11,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 
         void DoPointwiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation);
         void DoToAllEntriesIntoThis(Func<double, double> unaryOperation);
+        //void ReducedRowEchelonFormIntoThis();
         void SetAll(double value); // Awkward with DoToAllEntriesIntoThis
     }
 }

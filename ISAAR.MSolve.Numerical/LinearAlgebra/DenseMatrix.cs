@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
     public class DenseMatrix: IMatrix
     {
-        private readonly double[,] data;
+        protected readonly double[,] data;
 
         public double this[int row, int col]
         {
@@ -22,6 +22,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         public int NumNonZeros { get { return Rows * Columns; } }
 
         #region construction
+        protected DenseMatrix(double[,] data)
+        {
+            this.data = data;
+            Rows = data.GetLength(0);
+            Columns = data.GetLength(1);
+        }
+
         public static DenseMatrix CreateZero(int rows, int columns)
         {
             return new DenseMatrix(new double[rows, columns]);
@@ -60,13 +67,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         public static DenseMatrix CreateFromMatrix(DenseMatrix matrix)
         {
             return DenseMatrix.CreateFromArray(matrix.data, true);
-        }
-
-        private DenseMatrix(double[,] data)
-        {
-            this.data = data;
-            Rows = data.GetLength(0);
-            Columns = data.GetLength(1);
         }
         #endregion
 
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return DenseVector.CreateFromArray(colVector, false);
         }
 
-        public IVector ExtractDiagonal()
+        public IVector ExtractDiagonal() //Only for diagonal
         {
             double[] diagonal = new double[Rows];
             for (int i = 0; i < Rows; ++i) diagonal[i] = data[i, i];

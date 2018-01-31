@@ -35,13 +35,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         IMatrix DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation);
         IMatrix DoToAllEntries(Func<double, double> unaryOperation);
         IVector ExtractColumn(int col);
-        IVector ExtractDiagonal(); // This is only for square matrices
         IVector ExtractRow(int row); //Should there be an IndexOutOfBounds check for the entries in rows, columns? Same for all extract methods.
         IMatrix ExtractSubmatrix(int[] rows, int[] columns); //unsorted indices will also permute the submatrix!
         IVector MultiplyLeft(IVectorView vector);
         IVector MultiplyRight(IVectorView vector);
         IMatrix MultiplyRight(IMatrixView matrix);
+        //ISquareMatrixView MultiplyThisTranposeTimesThis(); actually returns a symmetric positive semi-definite 
         void Print();
+        //IMatrix ReducedRowEchelonForm();
         IMatrix Transpose();
 
         /// <summary>
