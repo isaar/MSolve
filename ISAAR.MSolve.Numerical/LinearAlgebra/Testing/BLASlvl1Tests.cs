@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             double[] cMKL = new double[5];
             Array.Copy(b, cMKL, n);
             CBlas.Daxpy(a.Length, 1.0, ref a[0], 1, ref cMKL[0], 1);
-            double[] cExpected = Utilities.MatrixOperations.AddArrays(a, b);
+            double[] cExpected = Utilities.MatrixOperations.Add(a, b);
 
             double tol = 1e-10;
             bool correct = true;
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             double[] b = { 10, 20, 30, 40, 50 };
 
             double dotMKL = CBlas.Ddot(n, ref a[0], 1, ref b[0], 1);
-            double dotExpected = Utilities.MatrixOperations.DotMultiplyArrays(a, b);
+            double dotExpected = Utilities.MatrixOperations.DotProduct(a, b);
 
             double tol = 1e-10;
             if (Math.Abs(dotMKL - dotExpected) <= tol)

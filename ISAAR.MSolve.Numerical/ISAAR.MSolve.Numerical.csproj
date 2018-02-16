@@ -130,7 +130,10 @@
     <Compile Include="LinearAlgebra\SquareDenseMatrix.cs" />
     <Compile Include="LinearAlgebra\Testing\BLASlvl1Tests.cs" />
     <Compile Include="LinearAlgebra\Testing\ComputeNETexample.cs" />
+    <Compile Include="LinearAlgebra\Testing\Utilities\Comparer.cs" />
+    <Compile Include="LinearAlgebra\Testing\Utilities\Conversions.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixOperations.cs" />
+    <Compile Include="LinearAlgebra\Testing\Utilities\Printer.cs" />
     <Compile Include="LinearAlgebra\TransposedDenseMatrix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LinearAlgebra\Sparse2D.cs" />
@@ -141,6 +144,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

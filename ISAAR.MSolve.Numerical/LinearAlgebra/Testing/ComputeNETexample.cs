@@ -13,6 +13,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         public const int UPPER_MATRIX = 1;
         public const int LOWER_MATRIX = -1;
 
+        //Variable typeA is not used and it triggers a warning
+        #pragma warning disable CS0219
         public static void RunBlasExample1()
         {
             int m = 3, n = 2, i, j;
@@ -23,6 +25,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             CBLAS_LAYOUT layout = CBLAS_LAYOUT.CblasRowMajor;
             CBLAS_SIDE side = CBLAS_SIDE.CblasLeft;
             CBLAS_UPLO uplo = CBLAS_UPLO.CblasUpper;
+
             int ma, na, typeA;
             if (side == CBLAS_SIDE.CblasLeft)
             {
