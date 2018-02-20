@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             {
                 Console.Write(ColSeparator + vector[i]);
             }
-            Console.WriteLine(RowSeparator + "]");
+            Console.WriteLine(ColSeparator + "]");
         }
 
         public void Print(double[,] matrix)

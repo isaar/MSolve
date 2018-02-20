@@ -131,6 +131,10 @@
     <Compile Include="LinearAlgebra\SquareDenseMatrix.cs" />
     <Compile Include="LinearAlgebra\Testing\BLASlvl1Tests.cs" />
     <Compile Include="LinearAlgebra\Testing\ComputeNETexample.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareInvertible.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular1Deficiency.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestSuite.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\Comparer.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\Conversions.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixOperations.cs" />

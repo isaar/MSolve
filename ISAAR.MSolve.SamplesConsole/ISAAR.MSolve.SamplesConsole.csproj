@@ -35,7 +35,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.SamplesConsole.Linear_Algebra.TestMKLInstallation</StartupObject>
+    <StartupObject>ISAAR.MSolve.SamplesConsole.Linear_Algebra.TestMatrixOperations</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeamBuildingBuilder.cs" />
+    <Compile Include="Linear Algebra\TestMatrixOperations.cs" />
     <Compile Include="Linear Algebra\TestMKLInstallation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

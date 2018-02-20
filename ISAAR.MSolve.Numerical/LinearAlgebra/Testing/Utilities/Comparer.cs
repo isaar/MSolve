@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 {
-    //TODO: Use a value comparer class that handles the checking of individual entries, such as |(a-b)/a|<tol vs |a-v|<tol.
+    // TODO: Use a value comparer class that handles the checking of individual entries, such as |(a-b)/a|<tol vs |a-v|<tol.
+    // TODO: Operate on matrices, vectors instead of arrays.
     public class Comparer
     {
         public enum PrintMode
@@ -15,13 +16,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         }
 
         public double Tolerance { get; set; }
-        public PrintMode Print { get; set; }
+        public PrintMode PMode { get; set; }
         private readonly Printer printer;
 
-        public Comparer(double tolerance = 1e-13, PrintMode printMode = PrintMode.WhenErrors)
+        public Comparer(PrintMode printMode = PrintMode.WhenErrors, double tolerance = 1e-13)
         {
             this.Tolerance = tolerance;
             this.printer = new Printer();
+            this.PMode = printMode;
         }
 
         public bool AreEqual(double[] a, double[] b)
@@ -83,8 +85,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         private bool DecidePrint(bool isCorrectOperation)
         {
             bool flag = false;
-            flag |= (Print == PrintMode.Always);
-            flag |= (Print == PrintMode.WhenErrors) && (!isCorrectOperation);
+            flag |= (PMode == PrintMode.Always);
+            flag |= (PMode == PrintMode.WhenErrors) && (!isCorrectOperation);
             return flag;
         }
     }

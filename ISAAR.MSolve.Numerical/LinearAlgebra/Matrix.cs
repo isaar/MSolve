@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         {
             this.data = data;
             this.NumRows = numRows;
-            this.NumColumns = NumColumns;
+            this.NumColumns = numColumns;
         }
 
         /// <summary>
