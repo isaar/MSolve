@@ -119,6 +119,7 @@
     <Compile Include="LinearAlgebra\IVector.cs" />
     <Compile Include="LinearAlgebra\IVectorView.cs" />
     <Compile Include="LinearAlgebra\Factorizations\LUFactorization.cs" />
+    <Compile Include="LinearAlgebra\Matrix.cs" />
     <Compile Include="LinearAlgebra\Matrix2D.cs" />
     <Compile Include="LinearAlgebra\Interfaces\IMatrix2D.cs" />
     <Compile Include="LinearAlgebra\Interfaces\IVectorOLD.cs" />

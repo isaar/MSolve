@@ -7,7 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    class DenseVector: IVector
+    public class DenseVector: IVector
     {
         private readonly double[] data;
 
@@ -18,6 +18,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         public int Length { get { return data.Length; } }
+
+        /// <summary>
+        /// TODO: make this package-private. It should only be used for passing raw arrays to linear algebra libraries
+        /// </summary>
+        internal double[] InternalData { get { return data; } }
 
         #region construction
         public static DenseVector CreateZero(int length)

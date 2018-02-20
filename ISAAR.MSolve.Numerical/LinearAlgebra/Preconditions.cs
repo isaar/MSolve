@@ -41,6 +41,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
+        //Temporary, till I fix inheritence
+        public static void CheckMultiplicationDimensions(Matrix leftMatrix, Matrix rightMatrix)
+        {
+            if (leftMatrix.NumColumns != rightMatrix.NumRows)
+            {
+                string message = string.Format(
+                    "Left matrix has dimensions ({0}x{1}), while right matrix has dimensions ({2}x{3})",
+                    leftMatrix.NumRows, leftMatrix.NumColumns, rightMatrix.NumRows, rightMatrix.NumColumns);
+                throw new NonMatchingDimensionsException(message);
+            }
+        }
+
         public static void CheckMultiplicationDimensions(IMatrixView leftMatrix, IVectorView rightVector)
         {
             if (leftMatrix.Columns != rightVector.Length)
@@ -48,6 +60,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 string message = string.Format(
                     "Left matrix has dimensions ({0}x{1}), while right vector has dimensions ({2}x1)",
                     leftMatrix.Rows, leftMatrix.Columns, rightVector.Length);
+                throw new NonMatchingDimensionsException(message);
+            }
+        }
+
+        //Temporary, till I fix inheritence
+        public static void CheckMultiplicationDimensions(Matrix leftMatrix, DenseVector rightVector)
+        {
+            if (leftMatrix.NumColumns != rightVector.Length)
+            {
+                string message = string.Format(
+                    "Left matrix has dimensions ({0}x{1}), while right vector has dimensions ({2}x1)",
+                    leftMatrix.NumRows, leftMatrix.NumColumns, rightVector.Length);
                 throw new NonMatchingDimensionsException(message);
             }
         }
