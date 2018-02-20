@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 
 //TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
     /// <summary>
     /// General matrix. Dense (full) storage. Uses MKL. Stored as 1D column major array.
     /// </summary>
-    public class Matrix
+    public class MatrixMKL
     {
         protected readonly double[] data;
 
-        private Matrix(double[] data, int numRows, int numColumns)
+        protected MatrixMKL(double[] data, int numRows, int numColumns)
         {
             this.data = data;
             this.NumRows = numRows;
@@ -46,23 +46,34 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         /// <summary>
-        /// Create a new <see cref="Matrix"/> from a provided array. The array will be copied.
+        /// Create a new <see cref="MatrixMKL"/> from a provided array. The array will be copied.
         /// </summary>
-        /// <param name="array2D">An array containing the elements of the matrix</param>
+        /// <param name="array2D">A 2-dimensional array containing the elements of the matrix</param>
         /// <returns></returns>
-        public static Matrix CreateFromArray(double[,] array2D)
+        public static MatrixMKL CreateFromArray(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
             int numCols = array2D.GetLength(1); 
-            return new Matrix(Conversions.Array2DToFullColMajor(array2D), numRows, numCols);
+            return new MatrixMKL(Conversions.Array2DToFullColMajor(array2D), numRows, numCols);
         }
 
-        public static Matrix CreateZero(int numRows, int numColumns)
+        /// <summary>
+        /// Create a new <see cref="MatrixMKL"/> with the specified dimensions and all entries equal to 0.
+        /// </summary> 
+        /// <param name="numRows">The number of rows of the matrix.</param>
+        /// <param name="numColumns">The number of rows of the matrix.</param>
+        /// <returns></returns>
+        public static MatrixMKL CreateZero(int numRows, int numColumns)
         {
             double[] data = new double[numRows * numColumns];
-            return new Matrix(data, numRows, numColumns);
+            return new MatrixMKL(data, numRows, numColumns);
         }
 
+        /// <summary>
+        /// Matrix vector multiplication, with the vector on the right: matrix * vector.
+        /// </summary>
+        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
+        /// <returns></returns>
         public DenseVector MultiplyRight(DenseVector vector)
         {
             Preconditions.CheckMultiplicationDimensions(this, vector);

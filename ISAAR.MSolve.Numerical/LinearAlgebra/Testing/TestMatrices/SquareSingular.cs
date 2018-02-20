@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = Matrix.CreateFromArray(matrix);
+            var A = MatrixMKL.CreateFromArray(matrix);
             var x = DenseVector.CreateFromArray(lhs);
             DenseVector b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
