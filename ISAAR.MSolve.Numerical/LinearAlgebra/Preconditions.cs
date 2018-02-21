@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Numerical.Exceptions;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
@@ -65,7 +66,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         //Temporary, till I fix inheritence
-        public static void CheckMultiplicationDimensions(MatrixMKL leftMatrix, DenseVector rightVector)
+        public static void CheckMultiplicationDimensions(IMatrixViewMKL leftMatrix, DenseVector rightVector)
         {
             if (leftMatrix.NumColumns != rightVector.Length)
             {
@@ -83,6 +84,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 string message = string.Format(
                     "Left matrix has dimensions (1x{0}), while right matrix has dimensions ({1}x{2})",
                     leftVector.Length, rightMatrix.Rows, rightMatrix.Columns);
+                throw new NonMatchingDimensionsException(message);
+            }
+        }
+
+        public static void CheckSystemSolutionDimensions(IMatrixViewMKL matrix, DenseVector rhsVector)
+        {
+            if (matrix.NumRows != rhsVector.Length)
+            {
+                string message = string.Format(
+                    "Matrix has dimensions ({0}x{1}), while the right hand side vector has dimensions ({2}x1)",
+                    matrix.NumRows, matrix.NumColumns, rhsVector.Length);
                 throw new NonMatchingDimensionsException(message);
             }
         }

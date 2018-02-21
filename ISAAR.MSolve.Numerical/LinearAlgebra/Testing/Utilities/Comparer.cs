@@ -15,15 +15,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Always, WhenErrors, Never
         }
 
-        public double Tolerance { get; set; }
         public PrintMode PMode { get; set; }
         private readonly Printer printer;
+        private readonly ValueComparer valueComparer;
 
         public Comparer(PrintMode printMode = PrintMode.WhenErrors, double tolerance = 1e-13)
         {
-            this.Tolerance = tolerance;
             this.printer = new Printer();
             this.PMode = printMode;
+            this.valueComparer = new ValueComparer(tolerance);
         }
 
         public bool AreEqual(double[] a, double[] b)
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             if (b.Length != n) return false;
             for (int i = 0; i < n; ++i)
             {
-                if (Math.Abs(a[i] - b[i]) > Tolerance) return false;
+                if (!valueComparer.AreEqual(a[i], b[i])) return false;
             }
             return true;
         }
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             {
                 for (int j = 0; j < n; ++j)
                 {
-                    if (Math.Abs(a[i, j] - b[i, j]) > Tolerance) return false;
+                    if (!valueComparer.AreEqual(a[i, j], b[i, j])) return false;
                 }
             }
             return true;
@@ -65,6 +65,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             bool isCorrect = AreEqual(lExpected, lComputed) && AreEqual(uExpected, uComputed);
             if (DecidePrint(isCorrect))
                 printer.PrintFactorizationLU(isCorrect, matrix, lExpected, uExpected, lComputed, uComputed);
+            return isCorrect;
+        }
+
+        public bool CheckMatrixEquality(double[,] matrixExpected, double[,] matrixComputed)
+        {
+            bool isCorrect = AreEqual(matrixExpected, matrixComputed);
+            if (DecidePrint(isCorrect)) printer.PrintMatrixEquality(isCorrect, matrixExpected, matrixComputed);
             return isCorrect;
         }
 

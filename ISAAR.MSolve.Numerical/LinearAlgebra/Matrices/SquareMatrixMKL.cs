@@ -9,7 +9,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 
 //TODO: align data using mkl_malloc, at least when creating placeholder copies of the matrix or when it is initialized from 0.
-namespace ISAAR.MSolve.Numerical.LinearAlgebra
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     /// <summary>
     /// General square matrix. Dense (full) storage. Uses MKL. Stored as 1D column major array.
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// </summary>
         /// <param name="array2D">A 2-dimensional containing the elements of the matrix. 
         /// Its lengths in both dimensions must be the same.</param>
-        /// <returns>A new <see cref="SquareMatrixMKL"/> instance.</returns>
+        /// <returns></returns>
         public static new SquareMatrixMKL CreateFromArray(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
@@ -48,25 +48,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         /// <summary>
-        /// Create a new <see cref="SquareMatrixMKL"/> from a provided array. The array will can be copied (for extra safety)
+        /// Create a new <see cref="SquareMatrixMKL"/> from a provided array. The array can be copied (for extra safety)
         /// or not (for extra performance).
         /// </summary>
         /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order.</param>
         /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
         /// False to use <see cref="array1D"/> as its internal storage.</param>
-        /// <returns>A new <see cref="SquareMatrixMKL"/> instance.</returns>
+        /// <returns></returns>
         public static SquareMatrixMKL CreateFromArray(double[] array1D, bool copyArray = true)
         {
-            int n = Conversions.FullLengthToOrder(array1D.Length);
+            int order = Conversions.FullLengthToOrder(array1D.Length);
             if (copyArray)
             {
-                var clone = new double[n * n];
+                var clone = new double[array1D.Length];
                 Array.Copy(array1D, clone, clone.Length);
-                return new SquareMatrixMKL(clone, n);
+                return new SquareMatrixMKL(clone, order);
             }
             else
             {
-                return new SquareMatrixMKL(array1D, n);
+                return new SquareMatrixMKL(array1D, order);
             }
         }
 
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// Create a new <see cref="SquareMatrixMKL"/> with the specified dimensions and all entries equal to 0.
         /// </summary>
         /// <param name="order">The number of rows or columns of the matrix.</param>
-        /// <returns>A new <see cref="SquareMatrixMKL"/> instance.</returns>
+        /// <returns></returns>
         public static SquareMatrixMKL CreateZero(int order)
         {
             double[] data = new double[order * order];

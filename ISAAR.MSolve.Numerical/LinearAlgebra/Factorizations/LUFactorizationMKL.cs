@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
@@ -52,7 +53,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         {
             double[] l = Conversions.FullColMajorToFullLowerColMajor(lu, true);
             double[] u = Conversions.FullColMajorToFullUpperColMajor(lu, false);
-            return (SquareMatrixMKL.CreateFromArray(l), SquareMatrixMKL.CreateFromArray(u));
+            return (SquareMatrixMKL.CreateFromArray(l, false), SquareMatrixMKL.CreateFromArray(u, false));
         }
 
         public DenseVector SolveLinearSystem(DenseVector rhs)

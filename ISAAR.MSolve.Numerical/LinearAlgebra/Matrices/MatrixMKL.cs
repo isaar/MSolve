@@ -7,12 +7,12 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 
 //TODO: align data using mkl_malloc
-namespace ISAAR.MSolve.Numerical.LinearAlgebra
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     /// <summary>
     /// General matrix. Dense (full) storage. Uses MKL. Stored as 1D column major array.
     /// </summary>
-    public class MatrixMKL
+    public class MatrixMKL: IMatrixViewMKL
     {
         protected readonly double[] data;
 
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// Create a new <see cref="MatrixMKL"/> from a provided array. The array will be copied.
         /// </summary>
         /// <param name="array2D">A 2-dimensional array containing the elements of the matrix</param>
-        /// <returns>A new <see cref="MatrixMKL"/> instance.</returns>
+        /// <returns></returns>
         public static MatrixMKL CreateFromArray(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
@@ -62,17 +62,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// Create a new <see cref="MatrixMKL"/> from a provided array. The array will can be copied for extra safety or not for 
         /// extra performance.
         /// </summary>
-        /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order.</param>
+        /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order. Its length 
+        /// must be equal to <see cref="numRows"/> + <see cref="NumColumns"/>. It will not be checked.</param>
         /// <param name="numRows">The number of rows of the matrix</param>
         /// <param name="numColumns">The number of columns of the matrix</param>
         /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
         /// False to use <see cref="array1D"/> as its internal storage.</param>
-        /// <returns>A new <see cref="MatrixMKL"/> instance.</returns>
+        /// <returns></returns>
         public static MatrixMKL CreateFromArray(double[] array1D, int numRows, int numColumns, bool copyArray = true)
         {
             if (copyArray)
             {
-                var clone = new double[numRows * numColumns];
+                var clone = new double[array1D.Length];
                 Array.Copy(array1D, clone, clone.Length);
                 return new MatrixMKL(clone, numRows, numColumns);
             }
@@ -87,7 +88,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// </summary> 
         /// <param name="numRows">The number of rows of the matrix.</param>
         /// <param name="numColumns">The number of rows of the matrix.</param>
-        /// <returns>A new <see cref="MatrixMKL"/> instance.</returns>
+        /// <returns></returns>
         public static MatrixMKL CreateZero(int numRows, int numColumns)
         {
             double[] data = new double[numRows * numColumns];

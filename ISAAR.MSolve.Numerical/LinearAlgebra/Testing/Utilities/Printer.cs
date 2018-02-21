@@ -86,6 +86,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
         }
 
+        public void PrintMatrixEquality(bool isCorrect, double[,] matrixExpected, double[,] matrixComputed)
+        {
+            string result = isCorrect ? "EQUAL" : "NOT EQUAL";
+            Console.WriteLine(SectionSeparator);
+            Console.WriteLine("The following matrices are " + result + ":");
+            Console.Write("A (expected) = ");
+            Print(matrixExpected);
+            Console.WriteLine();
+            Console.Write("A (computed) = ");
+            Print(matrixComputed);
+            Console.WriteLine(SectionSeparator);
+            Console.WriteLine();
+        }
+
         public void PrintMatrixVectorMult(bool isCorrect, double[,] matrix, double[] x, double[] bExpected, double[] bComputed)
         {
             string result = isCorrect ? "CORRECT" : "INCORRECT";
