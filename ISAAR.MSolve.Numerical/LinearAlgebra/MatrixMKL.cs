@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         public int NumColumns { get; }
 
         /// <summary>
-        /// The number of rows of the matrix
+        /// The number of rows of the matrix.
         /// </summary>
         public int NumRows { get; }
 
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// Create a new <see cref="MatrixMKL"/> from a provided array. The array will be copied.
         /// </summary>
         /// <param name="array2D">A 2-dimensional array containing the elements of the matrix</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="MatrixMKL"/> instance.</returns>
         public static MatrixMKL CreateFromArray(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
@@ -57,16 +57,52 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new MatrixMKL(Conversions.Array2DToFullColMajor(array2D), numRows, numCols);
         }
 
+
+        /// <summary>
+        /// Create a new <see cref="MatrixMKL"/> from a provided array. The array will can be copied for extra safety or not for 
+        /// extra performance.
+        /// </summary>
+        /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order.</param>
+        /// <param name="numRows">The number of rows of the matrix</param>
+        /// <param name="numColumns">The number of columns of the matrix</param>
+        /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
+        /// False to use <see cref="array1D"/> as its internal storage.</param>
+        /// <returns>A new <see cref="MatrixMKL"/> instance.</returns>
+        public static MatrixMKL CreateFromArray(double[] array1D, int numRows, int numColumns, bool copyArray = true)
+        {
+            if (copyArray)
+            {
+                var clone = new double[numRows * numColumns];
+                Array.Copy(array1D, clone, clone.Length);
+                return new MatrixMKL(clone, numRows, numColumns);
+            }
+            else
+            {
+                return new MatrixMKL(array1D, numRows, numColumns);
+            }
+        }
+
         /// <summary>
         /// Create a new <see cref="MatrixMKL"/> with the specified dimensions and all entries equal to 0.
         /// </summary> 
         /// <param name="numRows">The number of rows of the matrix.</param>
         /// <param name="numColumns">The number of rows of the matrix.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="MatrixMKL"/> instance.</returns>
         public static MatrixMKL CreateZero(int numRows, int numColumns)
         {
             double[] data = new double[numRows * numColumns];
             return new MatrixMKL(data, numRows, numColumns);
+        }
+
+        /// <summary>
+        /// Copy the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
+        /// and length(1) = <see cref="NumColumns"/>. 
+        /// </summary>
+        /// <returns>A new <see cref="double"/>[<see cref="NumRows"/>, <see cref="NumRows"/>] array 
+        /// with the entries of the matrix</returns>
+        public double[,] CopyToArray2D()
+        {
+            return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
@@ -53,6 +54,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             { 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000 },
             { 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000 } };
 
+        public static void CheckFactorization()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var A = SquareMatrixMKL.CreateFromArray(matrix);
+            try
+            {
+                var factor = A.FactorLU();
+                (SquareMatrixMKL L, SquareMatrixMKL U) = factor.Expand();
+                comparer.CheckFactorizationLU(matrix, lower, upper, L.CopyToArray2D(), U.CopyToArray2D());
+            }
+            catch (SingularMatrixException)
+            {
+                var printer = new Printer();
+                printer.PrintSingularMatrix(matrix, false);
+            }
+        }
+
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -60,6 +78,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var x = DenseVector.CreateFromArray(lhs);
             DenseVector b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
+        }
+
+        public static void CheckSystemSolution()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var b = DenseVector.CreateFromArray(rhs);
+            var A = SquareMatrixMKL.CreateFromArray(matrix);
+            try
+            {
+                var factor = A.FactorLU();
+                var x = factor.SolveLinearSystem(b);
+                comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
+            }
+            catch (SingularMatrixException)
+            {
+                var printer = new Printer();
+                printer.PrintSingularMatrix(matrix);
+            }
         }
     }
 }

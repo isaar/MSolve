@@ -169,6 +169,62 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return array2D;
         }
 
+        /// <summary>
+        /// Extract the lower part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <param name="unitDiagonal"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullLowerColMajor(double[] full, bool unitDiagonal)
+        {
+            int n = FullLengthToOrder(full.Length);
+            double[] lower = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = j + 1; i < n; ++i)
+                {
+                    lower[j * n + i] = full[j * n + i];
+                }
+            }
+            if (unitDiagonal)
+            {
+                for (int d = 0; d < n; ++d) lower[d * n + d] = 1.0;
+            }
+            else
+            {
+                for (int d = 0; d < n; ++d) lower[d * n + d] = full[d * n + d];
+            }
+            return lower;
+        }
+
+        /// <summary>
+        /// Extract the upper part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <param name="unitDiagonal"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullUpperColMajor(double[] full, bool unitDiagonal)
+        {
+            int n = FullLengthToOrder(full.Length);
+            double[] upper = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < j; ++i)
+                {
+                    upper[j * n + i] = full[j * n + i];
+                }
+            }
+            if (unitDiagonal)
+            {
+                for (int d = 0; d < n; ++d) upper[d * n + d] = 1.0;
+            }
+            else
+            {
+                for (int d = 0; d < n; ++d) upper[d * n + d] = full[d * n + d];
+            }
+            return upper;
+        }
+
         public static double[,] FullRowMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];
@@ -290,7 +346,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return array2D;
         }
 
-        private static int FullLengthToOrder(int length)
+        public static int FullLengthToOrder(int length)
         {
             // length = n^2 => n = sqrt(length)
             double n = Math.Sqrt(length);
@@ -302,7 +358,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return order;
         }
 
-        private static int PackedLengthToOrder(int length)
+        public static int PackedLengthToOrder(int length)
         {
             // length = n*(n+1)/2 => n = ( -1+sqrt(1+8*length) )/2
             double n = (-1.0 + Math.Sqrt(1 + 8 * length)) / 2;

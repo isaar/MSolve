@@ -47,11 +47,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             return det;
         }
 
-        // Explicitly composes and returns the L and U matrices. TODO: Also return P
+        // Explicitly composes and returns the L and U matrices. TODO: 1) Use matrix classes instead of arrays, 2) Also return P
         public (SquareMatrixMKL lower, SquareMatrixMKL upper) Expand()
         {
-            double[,] l = Conversions.FullLowerColMajorToArray2D(lu, true);
-            double[,] u = Conversions.FullUpperColMajorToArray2D(lu, false);
+            double[] l = Conversions.FullColMajorToFullLowerColMajor(lu, true);
+            double[] u = Conversions.FullColMajorToFullUpperColMajor(lu, false);
             return (SquareMatrixMKL.CreateFromArray(l), SquareMatrixMKL.CreateFromArray(u));
         }
 

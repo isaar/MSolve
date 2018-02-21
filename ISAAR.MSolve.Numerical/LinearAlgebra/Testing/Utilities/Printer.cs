@@ -11,11 +11,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
     {
         public string ColSeparator { get; set; }
         public string RowSeparator { get; set; }
+        public string SectionSeparator { get; set; }
 
         public Printer(string rowSeparator = "\n", string colSeparator = " ")
         {
             this.RowSeparator = rowSeparator;
             this.ColSeparator = colSeparator;
+            this.SectionSeparator = "************************************************************************************";
         }
 
         public void Print(double[] vector)
@@ -46,7 +48,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         public void PrintFactorizationCholesky(bool isCorrect, double[,] matrix, double[,] uExpected, double[,] uComputed)
         {
             string result = isCorrect ? "CORRECT" : "INCORRECT";
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine("The following Cholesky factorization is " + result + ":");
             Console.Write("A = ");
             Print(matrix);
@@ -56,7 +58,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
             Console.Write("U (computed) = ");
             Print(uComputed);
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine();
         }
 
@@ -64,7 +66,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             double[,] lComputed, double[,] uComputed)
         {
             string result = isCorrect ? "CORRECT" : "INCORRECT";
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine("The following LU factorization is " + result + ":");
             Console.Write("A = ");
             Print(matrix);
@@ -80,14 +82,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
             Console.Write("U (computed) = ");
             Print(uComputed);
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine();
         }
 
         public void PrintMatrixVectorMult(bool isCorrect, double[,] matrix, double[] x, double[] bExpected, double[] bComputed)
         {
             string result = isCorrect ? "CORRECT" : "INCORRECT";
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine("The following matrix multiplication is " + result + ":");
             Console.Write("A = ");
             Print(matrix);
@@ -100,14 +102,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
             Console.Write("b (computed) = ");
             Print(bComputed);
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
+            Console.WriteLine();
+        }
+
+        public void PrintSingularMatrix(double[,] matrix, bool systemSolveUsecase = true)
+        {
+            Console.WriteLine(SectionSeparator);
+            Console.Write("A = ");
+            Print(matrix);
+            Console.Write("is singular.");
+            if (systemSolveUsecase) Console.Write(" Cannot solve the linear system");
+            Console.WriteLine();
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine();
         }
 
         public void PrintSystemSolution(bool isCorrect, double[,] matrix, double[] b, double[] xExpected, double[] xComputed)
         {
             string result = isCorrect ? "CORRECT" : "INCORRECT";
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine("The following linear system solution is " + result + ":");
             Console.Write("A = ");
             Print(matrix);
@@ -120,7 +134,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
             Console.Write("x (computed) = ");
             Print(xComputed);
-            Console.WriteLine("************************************************************************************");
+            Console.WriteLine(SectionSeparator);
             Console.WriteLine();
         }
     }

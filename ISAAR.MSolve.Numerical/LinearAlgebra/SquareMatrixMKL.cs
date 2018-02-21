@@ -16,6 +16,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
     /// </summary>
     public class SquareMatrixMKL: MatrixMKL
     {
+        // Perhaps a larger number is appropriate, since the "almost zero" will propagate during back & forward substitution.
+        private const double factorizationTolerance = 1e-13; 
+
         private SquareMatrixMKL(double[] data, int order): base(data, order, order)
         {
             this.Order = order;
@@ -31,7 +34,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         /// </summary>
         /// <param name="array2D">A 2-dimensional containing the elements of the matrix. 
         /// Its lengths in both dimensions must be the same.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="SquareMatrixMKL"/> instance.</returns>
         public static new SquareMatrixMKL CreateFromArray(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
@@ -45,10 +48,33 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         /// <summary>
+        /// Create a new <see cref="SquareMatrixMKL"/> from a provided array. The array will can be copied (for extra safety)
+        /// or not (for extra performance).
+        /// </summary>
+        /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order.</param>
+        /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
+        /// False to use <see cref="array1D"/> as its internal storage.</param>
+        /// <returns>A new <see cref="SquareMatrixMKL"/> instance.</returns>
+        public static SquareMatrixMKL CreateFromArray(double[] array1D, bool copyArray = true)
+        {
+            int n = Conversions.FullLengthToOrder(array1D.Length);
+            if (copyArray)
+            {
+                var clone = new double[n * n];
+                Array.Copy(array1D, clone, clone.Length);
+                return new SquareMatrixMKL(clone, n);
+            }
+            else
+            {
+                return new SquareMatrixMKL(array1D, n);
+            }
+        }
+
+        /// <summary>
         /// Create a new <see cref="SquareMatrixMKL"/> with the specified dimensions and all entries equal to 0.
         /// </summary>
         /// <param name="order">The number of rows or columns of the matrix.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="SquareMatrixMKL"/> instance.</returns>
         public static SquareMatrixMKL CreateZero(int order)
         {
             double[] data = new double[order * order];
@@ -103,6 +129,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             else if (info > 0)
             {
                 int idx = info - 1;
+                string msg = "The factorization has been completed, but U is singular."
+                    + string.Format(" The first zero pivot is U[{0}, {1}] = 0.", idx, idx);
+                throw new SingularMatrixException(msg);
+            }
+            else if (Math.Abs(lowerUpper[n * n - 1]) <= factorizationTolerance)
+            { // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry! 
+                int idx = n - 1;
                 string msg = "The factorization has been completed, but U is singular."
                     + string.Format(" The first zero pivot is U[{0}, {1}] = 0.", idx, idx);
                 throw new SingularMatrixException(msg);

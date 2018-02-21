@@ -25,12 +25,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestFactorization()
         {
-
+            SquareInvertible.CheckFactorization();
+            SquareSingular.CheckFactorization();
+            SquareSingular1Deficiency.CheckFactorization();
         }
 
         public static void TestSystemSolution()
         {
-
+            SquareInvertible.CheckSystemSolution();
+            SquareSingular.CheckSystemSolution();
+            SquareSingular1Deficiency.CheckSystemSolution();
         }
 
         
