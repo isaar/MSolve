@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.PreProcessor;
 using System.IO;
 using System.Globalization;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.Logging
 {

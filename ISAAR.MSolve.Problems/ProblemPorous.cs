@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor.Providers;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.FEM.Providers;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.Problems
 {

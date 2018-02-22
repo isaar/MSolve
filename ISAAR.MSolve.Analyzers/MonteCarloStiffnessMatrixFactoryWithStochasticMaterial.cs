@@ -8,7 +8,6 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Stochastic;
-using ISAAR.MSolve.PreProcessor.Stochastic;
 
 namespace ISAAR.MSolve.Analyzers
 {
