@@ -5,7 +5,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.PreProcessor
+namespace ISAAR.MSolve.FEM
 {
     public static class GlobalMatrixAssemblerSkyline
     {

@@ -12,7 +12,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Interfaces;
 
-namespace ISAAR.MSolve.PreProcessor.Materials
+namespace ISAAR.MSolve.FEM.Materials
 {
     public class MohrCoulombMaterial : IFiniteElementMaterial3D
     {

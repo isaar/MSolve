@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ISAAR.MSolve.PreProcessor.Embedding
+namespace ISAAR.MSolve.FEM.Embedding
 {
     public class EmbeddedGrouping
     {

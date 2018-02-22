@@ -1,4 +1,4 @@
-﻿namespace ISAAR.MSolve.PreProcessor.Elements.SupportiveClasses
+﻿namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
 {
     #region
 

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.PreProcessor.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Materials;
 
-namespace ISAAR.MSolve.PreProcessor.Elements
+namespace ISAAR.MSolve.FEM.Elements
 {
     public class Beam2D : IStructuralFiniteElement
     {

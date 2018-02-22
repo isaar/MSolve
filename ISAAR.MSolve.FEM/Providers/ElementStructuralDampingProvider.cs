@@ -2,7 +2,7 @@
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.PreProcessor.Providers
+namespace ISAAR.MSolve.FEM.Providers
 {
     public class ElementStructuralDampingProvider : IElementMatrixProvider
     {

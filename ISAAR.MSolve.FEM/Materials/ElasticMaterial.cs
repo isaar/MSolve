@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ISAAR.MSolve.PreProcessor.Materials
+namespace ISAAR.MSolve.FEM.Materials
 {
     public class ElasticMaterial : IFiniteElementMaterial
     {

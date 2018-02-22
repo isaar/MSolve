@@ -5,7 +5,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 
-namespace ISAAR.MSolve.PreProcessor.Elements
+namespace ISAAR.MSolve.FEM.Elements
 {
     public class ConcentratedMass3D : IStructuralFiniteElement
     {

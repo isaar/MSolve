@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.PreProcessor.Elements;
+using ISAAR.MSolve.FEM.Elements;
 
-namespace ISAAR.MSolve.PreProcessor.Embedding
+namespace ISAAR.MSolve.FEM.Embedding
 {
     public class Hexa8TranslationTransformationVector : IEmbeddedDOFInHostTransformationVector
     {

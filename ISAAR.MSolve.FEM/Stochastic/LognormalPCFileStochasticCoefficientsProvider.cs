@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Diagnostics;
 using ISAAR.MSolve.FEM.Interfaces;
 
-namespace ISAAR.MSolve.PreProcessor.Stochastic
+namespace ISAAR.MSolve.FEM.Stochastic
 {
     public class LognormalPCFileStochasticCoefficientsProvider : IStochasticMaterialCoefficientsProvider, IPCCoefficientsProvider
     {

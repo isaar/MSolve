@@ -3,7 +3,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 
-namespace ISAAR.MSolve.PreProcessor
+namespace ISAAR.MSolve.FEM
 {
     public class GenericDOFEnumerator : IFiniteElementDOFEnumerator
     {
