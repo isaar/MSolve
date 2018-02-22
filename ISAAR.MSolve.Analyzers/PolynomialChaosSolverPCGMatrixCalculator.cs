@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.FEM.Stochastic;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.PCGSkyline;
-using ISAAR.MSolve.PreProcessor.Stochastic;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
@@ -75,6 +75,7 @@ namespace ISAAR.MSolve.Analyzers
             if (ssorDiagonals != null) return;
 
             ssorDiagonals = new double[this.VectorSize];
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
             foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
             {
                 for (int i = 0; i < coeffLower.Count; i++)
@@ -97,7 +98,8 @@ namespace ISAAR.MSolve.Analyzers
         {
             get
             {
-                meanSize = solver.SubdomainsDictionary.Values.First().RHS.Length;
+                //meanSize = solver.SubdomainsDictionary.Values.First().RHS.Length;
+                meanSize = solver.LinearSystem.RHS.Length;
                 return meanSize * calculator.PsiSize;
             }
         }

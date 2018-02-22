@@ -31,7 +31,8 @@ namespace ISAAR.MSolve.Analyzers
         {
             get
             {
-                return solver.SubdomainsDictionary.Values.First().RHS.Length;
+                //return solver.SubdomainsDictionary.Values.First().RHS.Length;
+                return solver.LinearSystem.RHS.Length;
             }
         }
 
@@ -47,7 +48,8 @@ namespace ISAAR.MSolve.Analyzers
 
         public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
-            ((SkylineMatrix2D)solver.SubdomainsDictionary.Values.First().Matrix).Multiply(vIn, ((Vector)vOut).Data, 1.0, 0, 0, true);
+            //((SkylineMatrix2D)solver.SubdomainsDictionary.Values.First().Matrix).Multiply(vIn, ((Vector)vOut).Data, 1.0, 0, 0, true);
+            ((SkylineMatrix2D)solver.LinearSystem.Matrix).Multiply(vIn, ((Vector)vOut).Data, 1.0, 0, 0, true);
         }
 
         public double InitializeAndGetResidual(IList<ILinearSystem> subdomains, IVector r, IVector x)
