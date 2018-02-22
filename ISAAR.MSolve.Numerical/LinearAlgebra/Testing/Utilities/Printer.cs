@@ -63,10 +63,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         }
 
         public void PrintFactorizationLU(bool isCorrect, double[,] matrix, double[,] lExpected, double[,] uExpected,
-            double[,] lComputed, double[,] uComputed)
+            double[,] lComputed, double[,] uComputed, bool isSingular)
         {
             string result = isCorrect ? "CORRECT" : "INCORRECT";
             Console.WriteLine(SectionSeparator);
+            if (isSingular) Console.Write("The matrix A is singular! ");
             Console.WriteLine("The following LU factorization is " + result + ":");
             Console.Write("A = ");
             Print(matrix);
@@ -82,6 +83,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
             Console.Write("U (computed) = ");
             Print(uComputed);
+            Console.WriteLine(SectionSeparator);
+            Console.WriteLine();
+        }
+
+        public void PrintIndefiniteMatrix(double[,] matrix)
+        {
+            Console.WriteLine(SectionSeparator);
+            Console.Write("A = ");
+            Print(matrix);
+            Console.WriteLine("is indefinite. Cannot apply Cholesky factorization.");
             Console.WriteLine(SectionSeparator);
             Console.WriteLine();
         }

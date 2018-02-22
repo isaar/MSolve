@@ -52,21 +52,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// or not (for extra performance).
         /// </summary>
         /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order.</param>
-        /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
-        /// False to use <see cref="array1D"/> as its internal storage.</param>
+        /// <param name="order">The order of the matrix. It must be positive and match the length of <see cref="array1D"/>. If a 
+        ///     value is provided, these will not be checked. If no value is provided, the order will be calculated from 
+        ///     <see cref="array1D"/> instead.</param>
+        /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. False to use 
+        ///     <see cref="array1D"/> as its internal storage.</param>
         /// <returns></returns>
-        public static SquareMatrixMKL CreateFromArray(double[] array1D, bool copyArray = true)
+        public static SquareMatrixMKL CreateFromArray(double[] array1D, int order = 0, bool copyArray = true)
         {
-            int order = Conversions.FullLengthToOrder(array1D.Length);
+            int n = (order == 0) ? Conversions.FullLengthToOrder(array1D.Length) : order;
             if (copyArray)
             {
                 var clone = new double[array1D.Length];
                 Array.Copy(array1D, clone, clone.Length);
-                return new SquareMatrixMKL(clone, order);
+                return new SquareMatrixMKL(clone, n);
             }
             else
             {
-                return new SquareMatrixMKL(array1D, order);
+                return new SquareMatrixMKL(array1D, n);
             }
         }
 
@@ -81,18 +84,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SquareMatrixMKL(data, order);
         }
 
-        public double CalcDeterminant()
-        {
-            try
-            {
-                LUFactorizationMKL factorization = FactorLU();
-                return factorization.CalcDeterminant();
-            }
-            catch (SingularMatrixException)
-            {
-                return 0.0;
-            }
-        }
+        //public double CalcDeterminant()
+        //{
+        //    LUFactorizationMKL factorization = FactorLU();
+        //    return factorization.CalcDeterminant();
+        //}
 
         public double CalcDeterminantInPlace()
         {
@@ -106,6 +102,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             double[] lowerUpper = new double[data.Length];
             Array.Copy(data, lowerUpper, data.Length);
 
+            // Call MKL
             int n = Order;
             int[] permutation = new int[n];
             int info = MKLUtilities.DefaultInfo;
@@ -126,22 +123,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     + " Please contact the developer responsible for the linear algebra project.";
                 throw new MKLException(msg);
             }
-            else if (info > 0)
-            {
-                int idx = info - 1;
-                string msg = "The factorization has been completed, but U is singular."
-                    + string.Format(" The first zero pivot is U[{0}, {1}] = 0.", idx, idx);
-                throw new SingularMatrixException(msg);
-            }
-            else if (Math.Abs(lowerUpper[n * n - 1]) <= factorizationTolerance)
-            { // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry! 
-                int idx = n - 1;
-                string msg = "The factorization has been completed, but U is singular."
-                    + string.Format(" The first zero pivot is U[{0}, {1}] = 0.", idx, idx);
-                throw new SingularMatrixException(msg);
-            }
 
-            return new LUFactorizationMKL(n, lowerUpper, permutation);
+            int firstZeroPivot = int.MinValue;
+            if (info > 0) firstZeroPivot = info - 1;
+            else if (Math.Abs(lowerUpper[n * n - 1]) <= factorizationTolerance)
+            {
+                // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
+                firstZeroPivot = n - 1;
+            }
+            return new LUFactorizationMKL(n, lowerUpper, permutation, firstZeroPivot);
         }
 
         public LUFactorizationMKL FactorLUInPlace()
@@ -150,11 +140,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         public SquareMatrixMKL Invert()
-        {
-            throw new NotImplementedException();
-        }
-
-        public SquareMatrixMKL InvertInPlace()
         {
             throw new NotImplementedException();
         }

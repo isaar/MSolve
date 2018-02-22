@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
 {
+    // TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
     public static class Conversions
     {
         public static double[,] Array2DLowerToSymmetric(double[,] array2D)
@@ -314,9 +315,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return array2D;
         }
 
-        public static double[,] PackedUpperColMajorToArray2D(double[] array1D)
+        public static double[,] PackedUpperColMajorToArray2D(double[] array1D, int order = 0)
         {
-            int n = PackedLengthToOrder(array1D.Length);
+            int n = (order == 0) ? PackedLengthToOrder(array1D.Length) : order;
             double[,] array2D = new double[n, n];
             int counter = 0; // Simplifies indexing but the outer and inner loops cannot be interchanged
             for (int j = 0; j < n; ++j)
@@ -328,6 +329,35 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
                 }
             }
             return array2D;
+        }
+
+        /// <summary>
+        /// Converts a symmetric matrix from packed column major format to full column major format.
+        /// </summary>
+        /// <param name="packed">The matrix entries in packed format. Its length must be n*(n+1)/2, where n is the order of the 
+        ///     matrix.</param>
+        /// <param name="order">The order of the matrix. It must be positive and match the length of <see cref="packed"/>. If a 
+        ///     value is provided, these will not be checked. If no value is provided, the order will be calculated from 
+        ///     <see cref="packed"/> instead.</param>
+        /// <returns></returns>
+        public static double[] PackedUpperColMajorToFullSymmColMajor(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[] full = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < j; ++i)
+                {
+                    double val = packed[i + (j * (j + 1)) / 2]; ;
+                    full[j * n + i] = val;
+                    full[i * n + j] = val;
+                }
+            }
+            for (int i = 0; i < n; ++i) // The diagonal entries need to be proceessed only once.
+            {
+                full[i * n + i] = packed[i + (i * (i + 1)) / 2];
+            }
+            return full;
         }
 
         public static double[,] PackedUpperRowMajorToArray2D(double[] array1D)

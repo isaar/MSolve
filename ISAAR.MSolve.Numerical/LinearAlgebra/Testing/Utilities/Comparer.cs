@@ -60,11 +60,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         }
 
         public bool CheckFactorizationLU(double[,] matrix, double[,] lExpected, double[,] uExpected,
-            double[,] lComputed, double[,] uComputed)
+            double[,] lComputed, double[,] uComputed, bool isSingular)
         {
             bool isCorrect = AreEqual(lExpected, lComputed) && AreEqual(uExpected, uComputed);
             if (DecidePrint(isCorrect))
-                printer.PrintFactorizationLU(isCorrect, matrix, lExpected, uExpected, lComputed, uComputed);
+                printer.PrintFactorizationLU(isCorrect, matrix, lExpected, uExpected, lComputed, uComputed, isSingular);
             return isCorrect;
         }
 

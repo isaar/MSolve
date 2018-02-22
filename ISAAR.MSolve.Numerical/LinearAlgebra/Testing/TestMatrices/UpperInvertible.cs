@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
     {
         public const int order = 10;
 
-        public static double[,] matrix = new double[,] {
+        public static readonly double[,] matrix = new double[,] {
             {4.2289,    5.3086,   7.7880,    5.1805,    2.5479,    9.1599,    1.7587,    2.6906,    6.4762,    4.5873},
             { 0,        6.5445,   4.2345,    9.4362,    2.2404,    0.0115,    7.2176,    7.6550,    6.7902,    6.6194},
             { 0,         0,       0.9082,    6.3771,    6.6783,    4.6245,    4.7349,    1.8866,    6.3579,    7.7029},
@@ -25,8 +25,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             { 0,         0,        0,        0,         0,          0,        0,         0,         6.0730,    2.5644},
             { 0,         0,        0,        0,         0,          0,        0,         0,         0,         6.1346}};
 
-        public static double[] lhs = { 0.5822, 0.5407, 0.8699, 0.2648, 0.3181, 0.1192, 0.9398, 0.6456, 0.4795, 0.6393 };
-        public static double[] rhs = Utilities.MatrixOperations.MatrixTimesVector(matrix, lhs);
+        public static readonly double[] lhs = { 0.5822, 0.5407, 0.8699, 0.2648, 0.3181, 0.1192, 0.9398, 0.6456, 0.4795, 0.6393 };
+        public static readonly double[] rhs = Utilities.MatrixOperations.MatrixTimesVector(matrix, lhs);
 
         public static void CheckIndexing()
         {

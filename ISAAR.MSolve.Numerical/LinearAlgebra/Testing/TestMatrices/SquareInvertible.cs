@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
     {
         public const int order = 10;
 
-        public static double[,] matrix = new double[,] {
+        public static readonly double[,] matrix = new double[,] {
             { 1.0000,    2.6667,    7.0000,    5.0000,    2.5000,    9.0000,    6.0000,    2.2500,    4.0000,    3.0000 },
             { 0.0000,    0.3333,    1.0000,   -2.5000,    5.5000,   -7.7500,    2.0000,    5.7500,    3.0000,    2.0000 },
             { 2.0000,    2.0000,    4.0000,    9.0000,    1.7500,    5.0000,    3.5000,    2.0000,    6.0000,    8.0000 },
@@ -28,10 +28,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             { 3.5000,    9.0000,    9.0000,    2.0000,    8.0000,    4.0000,    2.5000,    6.0000,    7.0000,    9.0000 },
             { 3.0000,    7.0000,    9.0000,    4.0000,    2.6667,    9.0000,    8.0000,    5.0000,    7.0000,    3.0000 }};
 
-        public static double[] lhs = { 3.4484, 1.9563, 2.7385, 4.2828, 5.3064, 4.3251, 0.1117, 4.0487, 2.6311, 2.6269 };
-        public static double[] rhs = Utilities.MatrixOperations.MatrixTimesVector(matrix, lhs);
+        public static readonly double[] lhs = { 3.4484, 1.9563, 2.7385, 4.2828, 5.3064, 4.3251, 0.1117, 4.0487, 2.6311, 2.6269 };
+        public static readonly double[] rhs = Utilities.MatrixOperations.MatrixTimesVector(matrix, lhs);
 
-        public static double[,] lower = new double[,] {
+        public static readonly double[,] lower = new double[,] {
             { 1.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000},
             { 0.700000000000000, 1.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000},
             { 0.200000000000000, 0.296878936778343,  1.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000},
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             { 0.200000000000000, 0.101561996458584,  0.345123356180875,  0.393366691999442,  0.151258061047848, -0.165741667413086,  0.355479089484414, -0.373132913343019,  1.000000000000000, 0.000000000000000},
             { 0.066660000000000, 0.229167553739405,  0.540742649585241,  0.391641616972103,  0.581445473311093, -0.628021544221750,  0.073364914263990,  0.198333706840520, -0.659496414881728, 1.000000000000000} };
 
-        public static double[,] upper = new double[,] {
+        public static readonly double[,] upper = new double[,] {
             { 5.000000000000000, 0.666700000000000, 4.500000000000000,  5.000000000000000, 0.250000000000000,  2.333300000000000, 1.500000000000000,  1.250000000000000,  9.000000000000000,  0.750000000000000 },
             { 0.000000000000000, 8.533310000000000, 5.850000000000000, -1.500000000000000, 7.825000000000000,  2.366690000000000, 1.450000000000000,  5.125000000000000,  0.699999999999999,  8.475000000000000 },
             { 0.000000000000000, 0.000000000000000, 4.363258219846695,  4.445318405167514, 0.126922319709468,  7.830719589116065, 5.269525541671404,  0.478495449010993,  1.992184744255161,  0.333951010803546 },
@@ -59,17 +59,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = SquareMatrixMKL.CreateFromArray(matrix);
-            try
-            {
-                var factor = A.FactorLU();
-                (SquareMatrixMKL L, SquareMatrixMKL U) = factor.Expand();
-                comparer.CheckFactorizationLU(matrix, lower, upper, L.CopyToArray2D(), U.CopyToArray2D());
-            }
-            catch (SingularMatrixException)
-            {
-                var printer = new Printer();
-                printer.PrintSingularMatrix(matrix, false);
-            }
+            var factor = A.FactorLU();
+            (SquareMatrixMKL L, SquareMatrixMKL U) = factor.Expand();
+            comparer.CheckFactorizationLU(matrix, lower, upper, L.CopyToArray2D(), U.CopyToArray2D(), factor.IsSingular);
         }
 
         public static void CheckMatrixVectorMult()

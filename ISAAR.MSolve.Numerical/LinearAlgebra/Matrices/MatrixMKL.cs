@@ -66,10 +66,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// must be equal to <see cref="numRows"/> + <see cref="NumColumns"/>. It will not be checked.</param>
         /// <param name="numRows">The number of rows of the matrix</param>
         /// <param name="numColumns">The number of columns of the matrix</param>
-        /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
-        /// False to use <see cref="array1D"/> as its internal storage.</param>
+        /// <param name="copyArray">True to make a deep copy of <see cref="array1D"/>. 
+        /// False (default) to use <see cref="array1D"/> as its internal storage.</param>
         /// <returns></returns>
-        public static MatrixMKL CreateFromArray(double[] array1D, int numRows, int numColumns, bool copyArray = true)
+        public static MatrixMKL CreateFromArray(double[] array1D, int numRows, int numColumns, bool copyArray = false)
         {
             if (copyArray)
             {

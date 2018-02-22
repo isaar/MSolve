@@ -15,17 +15,30 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
     /// triangular matrix U and a permutation matrix P, such that A = P*L*U. This class stores L,U,P in an efficient manner and
     /// provides common methods to use them. 
     /// </summary>
-    public class LUFactorizationMKL
+    public class LUFactorizationMKL: IFactorizationMKL
     {
         private readonly double[] lu;
         private readonly int[] p;
+        private readonly int firstZeroPivot;
 
-        internal LUFactorizationMKL(int order, double[] lowerUpper, int[] permutation)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="order"></param>
+        /// <param name="lowerUpper"></param>
+        /// <param name="permutation"></param>
+        /// <param name="firstZeroPivot">Will be negative if the matrix is invertible.</param>
+        internal LUFactorizationMKL(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot)
         {
             this.Order = order;
             this.lu = lowerUpper;
             this.p = permutation;
+            this.firstZeroPivot = firstZeroPivot;
+            if (firstZeroPivot < 0) this.IsSingular = false;
+            else this.IsSingular = true;
         }
+
+        public bool IsSingular { get; }
 
         /// <summary>
         /// The number of rows or columns of the matrix. 
@@ -40,12 +53,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <returns>The determinant of the original matrix.</returns>
         public double CalcDeterminant()
         {
-            double det = 1.0;
-            for (int i = 0; i < Order; ++i)
+            if (IsSingular) return 0.0;
+            else
             {
-                det *= lu[i * Order + i];
+                double det = 1.0;
+                for (int i = 0; i < Order; ++i)
+                {
+                    det *= lu[i * Order + i];
+                }
+                return det;
             }
-            return det;
         }
 
         // Explicitly composes and returns the L and U matrices. TODO: 1) Use matrix classes instead of arrays, 2) Also return P
@@ -53,11 +70,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         {
             double[] l = Conversions.FullColMajorToFullLowerColMajor(lu, true);
             double[] u = Conversions.FullColMajorToFullUpperColMajor(lu, false);
-            return (SquareMatrixMKL.CreateFromArray(l, false), SquareMatrixMKL.CreateFromArray(u, false));
+            return (SquareMatrixMKL.CreateFromArray(l, Order, false), SquareMatrixMKL.CreateFromArray(u, Order, false));
         }
 
         public DenseVector SolveLinearSystem(DenseVector rhs)
         {
+            // Check if the matrix is singular first
+            if (IsSingular)
+            {
+                string msg = "The factorization has been completed, but U is singular."
+                    + $" The first zero pivot is U[{firstZeroPivot}, {firstZeroPivot}] = 0.";
+                throw new SingularMatrixException(msg);
+            }
+
+            // Back & forward substitution using MKL
             int n = Order;
             double[] b = rhs.CopyToArray();
             int info = MKLUtilities.DefaultInfo;
@@ -76,7 +102,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             }
             else if (info < 0)
             {
-                string msg = string.Format("The {0}th parameter has an illegal value.", -info) 
+                string msg = $"The {-info}th parameter has an illegal value." 
                     + " Please contact the developer responsible for the linear algebra project.";
                 throw new MKLException(msg);
             }

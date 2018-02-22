@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// <summary>
     ///  Lower or upper triangular matrix. Packed storage (only stores the n*(n+1)/2 non zeros) in column major order. Uses MKL.
     /// </summary>
-    class TriangularMatrixMKL: IMatrixViewMKL
+    public class TriangularMatrixMKL: IMatrixViewMKL
     {
         /// <summary>
         /// Packed storage, column major order. 
@@ -65,8 +65,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// will throw a <see cref="IndexOutOfRangeException"/>. This property is not that efficient, due to the necessary bound 
         /// checking.
         /// </summary>
-        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
-        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="NumColumns"/></param>
+        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="Order"/></param>
+        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="Order"/></param>
         /// <returns>The entry with indices i, j</returns>
         public double this[int i, int j]
         {
@@ -143,11 +143,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         ///     <see cref="trianglePosition"/>.</param>
         /// <param name="trianglePosition"><see cref="TriangularMatrixMKL.TrianglePosition.Lower"/> or 
         ///     <see cref="TriangularMatrixMKL.TrianglePosition.Upper"/>.</param>
-        /// <param name="copyArray">True (default) to make a deep copy of <see cref="array1D"/>. 
-        ///     False to use <see cref="array1D"/> as its internal storage.</param>
+        /// <param name="copyArray">True to make a deep copy of <see cref="array1D"/>. 
+        ///     False (default) to use <see cref="array1D"/> as its internal storage.</param>
         /// <returns></returns>
         public static TriangularMatrixMKL CreateFromArray(double[] array1D, TrianglePosition trianglePosition, 
-            bool copyArray = true)
+            bool copyArray = false)
         {
             int order = Conversions.PackedLengthToOrder(array1D.Length);
             if (copyArray)
