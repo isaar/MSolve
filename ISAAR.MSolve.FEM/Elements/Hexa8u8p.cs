@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 
-namespace ISAAR.MSolve.PreProcessor.Elements
+namespace ISAAR.MSolve.FEM.Elements
 {
     public class Hexa8u8p : IPorousFiniteElement
     {

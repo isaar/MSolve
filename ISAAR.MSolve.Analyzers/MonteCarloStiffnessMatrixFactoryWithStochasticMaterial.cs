@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.PreProcessor.Stochastic;
 using Troschuetz.Random.Distributions.Continuous;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Stochastic;
 
 namespace ISAAR.MSolve.Analyzers
 {

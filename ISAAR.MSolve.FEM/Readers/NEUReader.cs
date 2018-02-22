@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace ISAAR.MSolve.PreProcessor.Readers
+namespace ISAAR.MSolve.FEM.Readers
 {
     enum NEUPosition
     {

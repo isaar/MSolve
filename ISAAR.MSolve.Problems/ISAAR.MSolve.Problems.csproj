@@ -44,6 +44,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj">
+      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
+      <Name>ISAAR.MSolve.FEM</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
       <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
       <Name>ISAAR.MSolve.Logging</Name>

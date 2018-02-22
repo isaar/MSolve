@@ -1,10 +1,10 @@
-﻿using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.PreProcessor.Elements;
-using ISAAR.MSolve.PreProcessor.Materials;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Materials;
 
 namespace ISAAR.MSolve.SamplesConsole
 {

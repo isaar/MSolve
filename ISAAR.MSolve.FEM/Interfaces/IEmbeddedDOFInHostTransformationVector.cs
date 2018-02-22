@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.PreProcessor.Embedding;
+using ISAAR.MSolve.FEM.Embedding;
+using ISAAR.MSolve.FEM.Entities;
+
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {

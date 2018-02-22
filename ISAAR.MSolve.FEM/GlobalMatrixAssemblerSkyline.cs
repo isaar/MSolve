@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.PreProcessor
+namespace ISAAR.MSolve.FEM
 {
     public static class GlobalMatrixAssemblerSkyline
     {
@@ -95,7 +96,7 @@ namespace ISAAR.MSolve.PreProcessor
                 }
                 times["addition"] += DateTime.Now - elStart;
             }
-            var totalTime = DateTime.Now - totalStart;    
+            var totalTime = DateTime.Now - totalStart;
             return K;
         }
 

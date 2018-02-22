@@ -123,6 +123,10 @@
     <Compile Include="StaticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj">
+      <Project>{c30e5a92-8060-46eb-8249-4fe4f603de18}</Project>
+      <Name>ISAAR.MSolve.FEM</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
       <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
       <Name>ISAAR.MSolve.Logging</Name>

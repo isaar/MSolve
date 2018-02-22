@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ISAAR.MSolve.FEM.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ISAAR.MSolve.PreProcessor.Embedding
+namespace ISAAR.MSolve.FEM.Embedding
 {
     public class EmbeddedNode
     {

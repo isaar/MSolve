@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ISAAR.MSolve.FEM.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor;
+using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.Analyzers
 {

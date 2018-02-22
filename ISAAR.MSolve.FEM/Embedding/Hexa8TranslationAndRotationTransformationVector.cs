@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor.Elements;
+using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 
-namespace ISAAR.MSolve.PreProcessor.Embedding
+namespace ISAAR.MSolve.FEM.Embedding
 {
     public class Hexa8TranslationAndRotationTransformationVector : IEmbeddedDOFInHostTransformationVector
     {

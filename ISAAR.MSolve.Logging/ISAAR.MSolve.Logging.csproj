@@ -50,6 +50,10 @@
     <Compile Include="StressesLog.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj">
+      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
+      <Name>ISAAR.MSolve.FEM</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
       <Name>ISAAR.MSolve.Numerical</Name>

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
 
-namespace ISAAR.MSolve.PreProcessor.Embedding
+namespace ISAAR.MSolve.FEM.Embedding
 {
     public class SuperElementDOF
     {
