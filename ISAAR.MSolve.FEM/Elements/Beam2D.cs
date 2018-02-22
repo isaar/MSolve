@@ -221,47 +221,6 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         {
             throw new NotImplementedException();
         }
-
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrix2D StiffnessMatrix(Element element)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrix2D MassMatrix(Element element)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrix2D DampingMatrix(Element element)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
-        {
-            throw new NotImplementedException();
-        }
-
-        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
-        {
-            throw new NotImplementedException();
-        }
-
-        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
-        {
-            throw new NotImplementedException();
-        }
-
-        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
     }
 }
