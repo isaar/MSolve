@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{5811FDB6-9B63-48ED-A153-47A673A3CC6F}</ProjectGuid>
+    <ProjectGuid>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ISAAR.MSolve.Analyzers</RootNamespace>
-    <AssemblyName>ISAAR.MSolve.Analyzers</AssemblyName>
+    <RootNamespace>ISAAR.MSolve.FEM</RootNamespace>
+    <AssemblyName>ISAAR.MSolve.FEM</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -26,7 +26,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -77,10 +76,6 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
-      <HintPath>..\packages\Thrower.2.2.2\lib\net40\PommaLabs.Thrower.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -93,52 +88,85 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Troschuetz.Random, Version=4.0.3.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
-      <HintPath>..\packages\Troschuetz.Random.4.0.4\lib\net40\Troschuetz.Random.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\INonLinearSubdomainUpdater.cs" />
-    <Compile Include="Interfaces\ISubdomainGlobalMapping.cs" />
-    <Compile Include="VRFMonteCarloAnalyzerWithStochasticMaterial.cs" />
-    <Compile Include="PolynomialChaosAnalyzer.cs" />
-    <Compile Include="PolynomialChaosSolverPCGMatrixCalculator.cs" />
-    <Compile Include="MonteCarloSolverPCGDirectMatrixCalculator.cs" />
-    <Compile Include="MonteCarloStiffnessMatrixFactoryWithStochasticMaterial.cs" />
-    <Compile Include="MonteCarloAnalyzerWithStochasticMaterial.cs" />
-    <Compile Include="ImplicitIntegrationCoefficients.cs" />
-    <Compile Include="Interfaces\INonLinearProvider.cs" />
-    <Compile Include="Interfaces\INonLinearParentAnalyzer.cs" />
-    <Compile Include="Interfaces\IAnalyzerProvider.cs" />
-    <Compile Include="MonteCarloAnalyzer.cs" />
-    <Compile Include="PowerSpectrumTargetEvaluator.cs" />
-    <Compile Include="Interfaces\IStaticProvider.cs" />
-    <Compile Include="Interfaces\IAnalyzer.cs" />
-    <Compile Include="Interfaces\IImplicitIntegrationProvider.cs" />
-    <Compile Include="LinearAnalyzer.cs" />
-    <Compile Include="NewmarkDynamicAnalyzer.cs" />
-    <Compile Include="NewtonRaphsonNonLinearAnalyzer.cs" />
+    <Compile Include="Entities\Cluster.cs" />
+    <Compile Include="Elements\Hexa8u8pWithStochasticMaterial.cs" />
+    <Compile Include="Interfaces\IMassAccelerationHistoryLoad.cs" />
+    <Compile Include="Entities\MassAccelerationSinusoidalLoad.cs" />
+    <Compile Include="Elements\ConcentratedMass3D.cs" />
+    <Compile Include="Elements\SpringDamper3D.cs" />
+    <Compile Include="Elements\SupportiveClasses\GaussQuadrature.cs" />
+    <Compile Include="Elements\SupportiveClasses\Jacobian3D.cs" />
+    <Compile Include="Elements\SupportiveClasses\ShapeFunctionNaturalDerivatives3D.cs" />
+    <Compile Include="Embedding\Hexa8TranslationAndRotationTransformationVector.cs" />
+    <Compile Include="Embedding\ElementEmbedder.cs" />
+    <Compile Include="Stochastic\GaussianPCFileStochasticCoefficientsProvider.cs" />
+    <Compile Include="GenericDOFEnumerator.cs" />
+    <Compile Include="Embedding\Hexa8TranslationTransformationVector.cs" />
+    <Compile Include="Interfaces\IEmbeddedDOFInHostTransformationVector.cs" />
+    <Compile Include="Interfaces\IFiniteElementDOFEnumerator.cs" />
+    <Compile Include="Interfaces\IPCCoefficientsProvider.cs" />
+    <Compile Include="Interfaces\IPolynomialChaosCoefficients.cs" />
+    <Compile Include="Stochastic\LognormalPCFileStochasticCoefficientsProvider.cs" />
+    <Compile Include="Embedding\EmbeddedNode.cs" />
+    <Compile Include="Stochastic\LognormalFileStochasticCoefficientsProvider.cs" />
+    <Compile Include="Entities\ElementMassAccelerationHistoryLoad.cs" />
+    <Compile Include="Entities\ElementMassAccelerationLoad.cs" />
+    <Compile Include="Providers\ElementPoreMassProvider.cs" />
+    <Compile Include="Providers\ElementStructuralDampingProvider.cs" />
+    <Compile Include="Providers\ElementPoreDampingProvider.cs" />
+    <Compile Include="Providers\ElementPoreStiffnessProvider.cs" />
+    <Compile Include="Providers\ElementStructuralMassProvider.cs" />
+    <Compile Include="Entities\Element.cs" />
+    <Compile Include="Providers\ElementStructuralStiffnessProvider.cs" />
+    <Compile Include="Elements\Beam2D.cs" />
+    <Compile Include="Elements\Beam3D.cs" />
+    <Compile Include="Elements\Hexa8WithStochasticMaterial.cs" />
+    <Compile Include="Elements\Hexa8u8p.cs" />
+    <Compile Include="Elements\Hexa8.cs" />
+    <Compile Include="Embedding\EmbeddedGrouping.cs" />
+    <Compile Include="Stochastic\GaussianFileStochasticCoefficientsProvider.cs" />
+    <Compile Include="GlobalMatrixAssemblerSkyline.cs" />
+    <Compile Include="Interfaces\IStochasticMaterialCoefficientsProvider.cs" />
+    <Compile Include="Interfaces\IStochasticFiniteElementMaterial.cs" />
+    <Compile Include="Interfaces\IStochasticCoefficientsProvider.cs" />
+    <Compile Include="Interfaces\IStochasticFiniteElement.cs" />
+    <Compile Include="Interfaces\IEmbeddedElement.cs" />
+    <Compile Include="Interfaces\IEmbeddedHostElement.cs" />
+    <Compile Include="Interfaces\IPorousFiniteElement.cs" />
+    <Compile Include="Interfaces\IElementMatrixProvider.cs" />
+    <Compile Include="Interfaces\IFiber.cs" />
+    <Compile Include="Interfaces\IFiberFiniteElement.cs" />
+    <Compile Include="Interfaces\IFiniteElement.cs" />
+    <Compile Include="Interfaces\IFiberFiniteElementMaterial.cs" />
+    <Compile Include="Interfaces\IFiberMaterial.cs" />
+    <Compile Include="Interfaces\IFiniteElementMaterial.cs" />
+    <Compile Include="Interfaces\IFiniteElementMaterial3D.cs" />
+    <Compile Include="Interfaces\IStructuralFiniteElement.cs" />
+    <Compile Include="Entities\Load.cs" />
+    <Compile Include="Entities\MassAccelerationHistoryLoad.cs" />
+    <Compile Include="Entities\MassAccelerationLoad.cs" />
+    <Compile Include="Materials\MohrCoulombMaterial.cs" />
+    <Compile Include="Materials\StochasticElasticMaterial3D.cs" />
+    <Compile Include="Materials\VonMisesMaterial3D.cs" />
+    <Compile Include="Materials\ElasticMaterial3D.cs" />
+    <Compile Include="Materials\ElasticMaterial.cs" />
+    <Compile Include="Entities\Model.cs" />
+    <Compile Include="Entities\Node.cs" />
+    <Compile Include="Stochastic\PolynomialChaosCoefficientsCalculator.cs" />
+    <Compile Include="Stochastic\PolynomialChaosCoefficientsFromFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StaticAnalyzer.cs" />
+    <Compile Include="Readers\NEUReader.cs" />
+    <Compile Include="Entities\Subdomain.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
-      <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
-      <Name>ISAAR.MSolve.Logging</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
-      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
+      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
       <Name>ISAAR.MSolve.Numerical</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
-      <Project>{0883B2F7-198A-4404-B13D-22100BF90A31}</Project>
-      <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -147,4 +175,8 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

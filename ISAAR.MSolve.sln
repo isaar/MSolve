@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.PreProcessor", "ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj", "{C30E5A92-8060-46EB-8249-4FE4F603DE18}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Solvers", "ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj", "{0883B2F7-198A-4404-B13D-22100BF90A31}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Analyzers", "ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj", "{5811FDB6-9B63-48ED-A153-47A673A3CC6F}"
@@ -19,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.MaterialsTest"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Numerical", "ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj", "{ACE1FF1D-9550-4583-BDE0-5B821809D045}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.FEM", "ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj", "{C30E5A92-8060-46EB-8249-4FE4F603DE18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,18 +29,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x64.ActiveCfg = Debug|x64
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x64.Build.0 = Debug|x64
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x86.ActiveCfg = Debug|x86
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x86.Build.0 = Debug|x86
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x64.ActiveCfg = Release|x64
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x64.Build.0 = Release|x64
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x86.ActiveCfg = Release|x86
-		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x86.Build.0 = Release|x86
 		{0883B2F7-198A-4404-B13D-22100BF90A31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0883B2F7-198A-4404-B13D-22100BF90A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0883B2F7-198A-4404-B13D-22100BF90A31}.Debug|x64.ActiveCfg = Debug|x64
@@ -125,6 +113,18 @@ Global
 		{ACE1FF1D-9550-4583-BDE0-5B821809D045}.Release|x64.Build.0 = Release|x64
 		{ACE1FF1D-9550-4583-BDE0-5B821809D045}.Release|x86.ActiveCfg = Release|x86
 		{ACE1FF1D-9550-4583-BDE0-5B821809D045}.Release|x86.Build.0 = Release|x86
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x64.ActiveCfg = Debug|x64
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x64.Build.0 = Debug|x64
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x86.ActiveCfg = Debug|x86
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Debug|x86.Build.0 = Debug|x86
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x64.ActiveCfg = Release|x64
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x64.Build.0 = Release|x64
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x86.ActiveCfg = Release|x86
+		{C30E5A92-8060-46EB-8249-4FE4F603DE18}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

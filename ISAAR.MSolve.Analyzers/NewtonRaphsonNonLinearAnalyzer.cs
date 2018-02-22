@@ -7,12 +7,16 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using System.Collections;
+using System.Linq;
 
 namespace ISAAR.MSolve.Analyzers
 {
     public class NewtonRaphsonNonLinearAnalyzer : IAnalyzer
     {
-        private readonly IDictionary<int, ILinearSystem> subdomains;
+        private readonly ILinearSystem[] linearSystems;
+        private readonly INonLinearSubdomainUpdater[] subdomainUpdaters;
+        private readonly ISubdomainGlobalMapping[] mappings;
         private readonly int increments;
         private readonly int totalDOFs;
         private readonly int maxSteps = 120;
@@ -30,11 +34,13 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public NewtonRaphsonNonLinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> subdomains, 
+        public NewtonRaphsonNonLinearAnalyzer(ISolver solver, ILinearSystem[] linearSystems, INonLinearSubdomainUpdater[] subdomainUpdaters, ISubdomainGlobalMapping[] mappings,
             INonLinearProvider provider, int increments, int totalDOFs)
         {
             this.solver = solver;
-            this.subdomains = subdomains;
+            this.subdomainUpdaters = subdomainUpdaters;
+            this.mappings = mappings;
+            this.linearSystems = linearSystems;
             this.provider = provider;
             this.increments = increments;
             this.totalDOFs = totalDOFs;
@@ -53,7 +59,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             foreach (int id in logs.Keys)
                 foreach (var l in logs[id])
-                    l.StoreResults(start, end, subdomains[id].Solution);
+                    l.StoreResults(start, end, linearSystems[id].Solution);
         }
 
         public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
@@ -81,7 +87,7 @@ namespace ISAAR.MSolve.Analyzers
             du.Clear();
             uPlusdu.Clear();
 
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
             {
                 Vector r = new Vector(subdomain.RHS.Length);
                 ((Vector)subdomain.RHS).CopyTo(r.Data, 0);
@@ -90,7 +96,7 @@ namespace ISAAR.MSolve.Analyzers
                 u.Add(subdomain.ID, new Vector(subdomain.RHS.Length));
                 du.Add(subdomain.ID, new Vector(subdomain.RHS.Length));
                 uPlusdu.Add(subdomain.ID, new Vector(subdomain.RHS.Length));
-                subdomain.SubdomainToGlobalVector(((Vector)subdomain.RHS).Data, globalRHS.Data);
+                mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(((Vector)subdomain.RHS).Data, globalRHS.Data);
             }
             rhsNorm = provider.RHSNorm(globalRHS.Data);
         }
@@ -98,13 +104,13 @@ namespace ISAAR.MSolve.Analyzers
         private void UpdateInternalVectors()
         {
             globalRHS.Clear();
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
             {
                 Vector r = new Vector(subdomain.RHS.Length);
                 ((Vector)subdomain.RHS).CopyTo(r.Data, 0);
                 r.Multiply(1 / (double)increments);
                 rhs[subdomain.ID] = r;
-                subdomain.SubdomainToGlobalVector(((Vector)subdomain.RHS).Data, globalRHS.Data);
+                mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(((Vector)subdomain.RHS).Data, globalRHS.Data);
             }
             rhsNorm = provider.RHSNorm(globalRHS.Data);
         }
@@ -116,7 +122,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateRHS(int step)
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
             {
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 rhs[subdomain.ID].CopyTo(subdomainRHS.Data, 0);
@@ -166,7 +172,7 @@ namespace ISAAR.MSolve.Analyzers
         private double CalculateInternalRHS(int currentIncrement, int step)
         {
             globalRHS.Clear();
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
             {
                 if (currentIncrement == 0 && step == 0)
                 {
@@ -184,7 +190,7 @@ namespace ISAAR.MSolve.Analyzers
                     uPlusdu[subdomain.ID].Add(du[subdomain.ID]);
                 }
                 //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
-                Vector internalRHS = (Vector)subdomain.GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);
+                Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);
                 provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);
                     //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
@@ -197,7 +203,7 @@ namespace ISAAR.MSolve.Analyzers
                 subdomainRHS.Clear();
                 for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);
                 subdomainRHS.Subtract(internalRHS);
-                subdomain.SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
+                mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
             }
             double providerRHSNorm = provider.RHSNorm(globalRHS.Data);
             return providerRHSNorm;
@@ -205,38 +211,39 @@ namespace ISAAR.MSolve.Analyzers
 
         private void ClearIncrementalSolutionVector()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
                 du[subdomain.ID].Clear();
         }
 
         private void SplitResidualForcesToSubdomains()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
             {
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 subdomainRHS.Clear();
-                subdomain.SplitGlobalVectorToSubdomain(globalRHS.Data, subdomainRHS.Data);
+                mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SplitGlobalVectorToSubdomain(globalRHS.Data, subdomainRHS.Data);
             }
         }
 
         private void SaveMaterialStateAndUpdateSolution()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
             {
-                subdomain.SaveMaterialState();
+                subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].UpdateState();
                 u[subdomain.ID].Add(du[subdomain.ID]);
             }
         }
 
         private void CopySolutionToSubdomains()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
+            foreach (ILinearSystem subdomain in linearSystems)
                 u[subdomain.ID].CopyTo(((Vector)subdomain.Solution).Data, 0);
         }
 
         private void ClearMaterialStresses()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values) subdomain.ClearMaterialStresses();
+            foreach (ILinearSystem subdomain in linearSystems)
+                subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].ResetState();
         }
 
         public void BuildMatrices()
