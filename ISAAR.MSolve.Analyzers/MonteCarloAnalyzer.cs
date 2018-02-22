@@ -5,12 +5,12 @@ using System.Linq;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor.Stochastic;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Stochastic;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.Analyzers
         private int currentSimulation = -1;
         private readonly int expansionOrder;
         private readonly int simulations;
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
+        private readonly IDictionary<int, ILinearSystem> subdomains;
         //private readonly IDictionary<int, IMatrix2D<double>> matrices;
-        private readonly IDictionary<int, IMatrix2D<double>>[] matrices;
+        private readonly IDictionary<int, IMatrix2D>[] matrices;
         private readonly Model model;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
         private readonly IAnalyzerProvider provider;
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly GaussianFileStochasticCoefficientsProvider coefficientsProvider;
 
         //public MonteCarloAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, double[] stochasticDomain, int expansionOrder, int simulations)
-        public MonteCarloAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, GaussianFileStochasticCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
+        public MonteCarloAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, GaussianFileStochasticCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
         {
             this.childAnalyzer = embeddedAnalyzer;
             this.provider = provider;
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.Analyzers
             this.simulations = simulations;
             this.childAnalyzer.ParentAnalyzer = this;
             //this.matrices = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
-            this.matrices = new Dictionary<int, IMatrix2D<double>>[expansionOrder + 1];
+            this.matrices = new Dictionary<int, IMatrix2D>[expansionOrder + 1];
             this.randomNumbers = new double[simulations][];
             this.coefficientsProvider = coefficientsProvider;
             //this.stochasticDomain = stochasticDomain;
@@ -95,11 +95,11 @@ namespace ISAAR.MSolve.Analyzers
             coefficientsProvider.CurrentOrder = -1;
             childAnalyzer.BuildMatrices();
 
-            matrices[0] = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
+            matrices[0] = new Dictionary<int, IMatrix2D>(subdomains.Count);
             foreach (var subdomain in subdomains.Values)
             {
-                SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)subdomain.Matrix;
-                matrices[0].Add(subdomain.ID, (SkylineMatrix2D<double>)k.Clone());
+                SkylineMatrix2D k = (SkylineMatrix2D)subdomain.Matrix;
+                matrices[0].Add(subdomain.ID, (SkylineMatrix2D)k.Clone());
             }
             for (int i = 0; i < expansionOrder; i++)
             {
@@ -107,11 +107,11 @@ namespace ISAAR.MSolve.Analyzers
                 coefficientsProvider.CurrentOrder = i;
                 childAnalyzer.BuildMatrices();
 
-                matrices[i + 1] = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
+                matrices[i + 1] = new Dictionary<int, IMatrix2D>(subdomains.Count);
                 foreach (var subdomain in subdomains.Values)
                 {
-                    SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)subdomain.Matrix;
-                    matrices[i + 1].Add(subdomain.ID, (SkylineMatrix2D<double>)k.Clone());
+                    SkylineMatrix2D k = (SkylineMatrix2D)subdomain.Matrix;
+                    matrices[i + 1].Add(subdomain.ID, (SkylineMatrix2D)k.Clone());
                 }
             }
 
@@ -145,20 +145,20 @@ namespace ISAAR.MSolve.Analyzers
         {
             var currentRandomNumbers = randomNumbers[currentSimulation];
             var coefficients = new double[] { 1 }.Concat(currentRandomNumbers).ToList<double>();
-            var matricesPerSubdomain = new Dictionary<int, IMatrix2D<double>[]>();
+            var matricesPerSubdomain = new Dictionary<int, IMatrix2D[]>();
             foreach (var subdomain in subdomains.Values)
             {
                 int id = subdomain.ID;
-                var tempMatrices = new IMatrix2D<double>[expansionOrder + 1];
+                var tempMatrices = new IMatrix2D[expansionOrder + 1];
                 for (int i = 0; i <= expansionOrder; i++)
                     tempMatrices[i] = matrices[i][id];
                 matricesPerSubdomain.Add(id, tempMatrices);
             }
 
             foreach (var subdomain in subdomains.Values)
-                subdomain.Matrix = (SkylineMatrix2D<double>)((SkylineMatrix2D<double>)matrices[0][subdomain.ID]).Clone();
+                subdomain.Matrix = (SkylineMatrix2D)((SkylineMatrix2D)matrices[0][subdomain.ID]).Clone();
             foreach (var subdomain in subdomains.Values)
-                subdomain.Matrix.LinearCombination(coefficients, matricesPerSubdomain[subdomain.ID]);
+                ((ILinearlyCombinable)subdomain.Matrix).LinearCombination(coefficients, matricesPerSubdomain[subdomain.ID]);
 
             
             //for (int i = 0; i < expansionOrder; i++)

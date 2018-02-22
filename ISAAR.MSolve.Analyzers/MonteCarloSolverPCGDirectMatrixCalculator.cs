@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.PCGSkyline;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
     public class MonteCarloSolverPCGDirectMatrixCalculator : ISolverPCGMatrixCalculator, ISolverPCGInitialization
     {
-        private SolverPCG<SkylineMatrix2D<double>> solver;
+        private SolverPCG<SkylineMatrix2D> solver;
         private MonteCarloAnalyzerWithStochasticMaterial analyzer;
-        private SkylineMatrix2D<double> preconditioner;
+        private SkylineMatrix2D preconditioner;
 
-        public SolverPCG<SkylineMatrix2D<double>> Solver
+        public SolverPCG<SkylineMatrix2D> Solver
         {
             get { return solver; }
             set { solver = value; }
@@ -31,26 +31,28 @@ namespace ISAAR.MSolve.Analyzers
         {
             get
             {
-                return solver.SubdomainsDictionary.Values.First().RHS.Length;
+                //return solver.SubdomainsDictionary.Values.First().RHS.Length;
+                return solver.LinearSystem.RHS.Length;
             }
         }
 
-        public void Precondition(IVector<double> vIn, IVector<double> vOut)
+        public void Precondition(IVector vIn, IVector vOut)
         {
             //if (analyzer.FactorizedMatrices.Count != 1)
             //    throw new InvalidOperationException("Cannot precondition with more than one subdomains");
 
             //foreach (var m in analyzer.FactorizedMatrices.Values)
             //    m.Solve(vIn, ((Vector<double>)vOut).Data);
-            preconditioner.Solve(vIn, ((Vector<double>)vOut).Data);
+            preconditioner.Solve(vIn, vOut);
         }
 
-        public void MultiplyWithMatrix(IVector<double> vIn, IVector<double> vOut)
+        public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
-            ((SkylineMatrix2D<double>)solver.SubdomainsDictionary.Values.First().Matrix).Multiply(vIn, ((Vector<double>)vOut).Data, 1.0, 0, 0, true);
+            //((SkylineMatrix2D)solver.SubdomainsDictionary.Values.First().Matrix).Multiply(vIn, ((Vector)vOut).Data, 1.0, 0, 0, true);
+            ((SkylineMatrix2D)solver.LinearSystem.Matrix).Multiply(vIn, ((Vector)vOut).Data, 1.0, 0, 0, true);
         }
 
-        public double InitializeAndGetResidual(IList<ISolverSubdomain> subdomains, double[] r, double[] x)
+        public double InitializeAndGetResidual(IList<ILinearSystem> subdomains, IVector r, IVector x)
         {
             double detf = 0;
             double temp = 0;
@@ -58,16 +60,18 @@ namespace ISAAR.MSolve.Analyzers
             if (subdomains.Count != 1)
                 throw new InvalidOperationException("Cannot initialize and calculate residuals with more than one subdomains");
 
-            foreach (ISolverSubdomain subdomain in subdomains)
+            foreach (ILinearSystem subdomain in subdomains)
             {
-                Array.Copy(((Vector<double>)subdomain.RHS).Data, r, subdomain.RHS.Length);
+                r.CopyFrom(0, subdomain.RHS.Length, subdomain.RHS, 0);
+                //Array.Copy(((Vector)subdomain.RHS).Data, r, subdomain.RHS.Length);
+
                 //subdomain.SubdomainToGlobalVector(((Vector<double>)subdomain.RHS).Data, r);
-                var s = (SkylineMatrix2D<double>)subdomain.Matrix;
+                var s = (SkylineMatrix2D)subdomain.Matrix;
 
                 if (preconditioner == null)
                 {
-                    preconditioner = (SkylineMatrix2D<double>)s.Clone();
-                    preconditioner.Factorize(1e-8, new List<Vector<double>>(), new List<int>());
+                    preconditioner = (SkylineMatrix2D)s.Clone();
+                    preconditioner.Factorize(1e-8, new List<IVector>(), new List<int>());
                 }
             }
 

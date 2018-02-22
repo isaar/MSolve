@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Skyline;

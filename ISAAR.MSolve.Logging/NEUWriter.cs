@@ -55,10 +55,10 @@ namespace ISAAR.MSolve.Logging
             { NEUOutputVector.RotationZ, new NEUOutputVectorProperties(8, "Z Rotation", "0,0,8", DOFType.RotZ) }
         };
 
-        private readonly ISolverSubdomain subdomain;
+        private readonly ILinearSystem subdomain;
         private readonly Model model;
 
-        public NEUWriter(Model model, ISolverSubdomain subdomain)
+        public NEUWriter(Model model, ILinearSystem subdomain)
         {
             this.model = model;
             this.subdomain = subdomain;

@@ -4,12 +4,12 @@ using System.Linq;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.Matrices.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 using System.IO;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.Analyzers
         private readonly bool shouldFactorizeMatrices;
         private readonly int expansionOrder;
         private readonly int simulations;
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
-        private readonly IDictionary<int, IMatrix2D<double>>[] matrices;
-        private readonly IList<Dictionary<int, SkylineMatrix2D<double>>> factorizedMatrices = new List<Dictionary<int, SkylineMatrix2D<double>>>();
+        private readonly IDictionary<int, ILinearSystem> subdomains;
+        private readonly IDictionary<int, IMatrix2D>[] matrices;
+        private readonly IList<Dictionary<int, SkylineMatrix2D>> factorizedMatrices = new List<Dictionary<int, SkylineMatrix2D>>();
         private readonly Model model;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
         private readonly IAnalyzerProvider provider;
@@ -32,10 +32,10 @@ namespace ISAAR.MSolve.Analyzers
         private readonly IPCCoefficientsProvider coefficientsProvider;
         private List<int>[] nonZeroPsi;
 
-        public IDictionary<int, IMatrix2D<double>>[] Matrices { get { return matrices; } }
-        public IList<Dictionary<int, SkylineMatrix2D<double>>> FactorizedMatrices { get { return factorizedMatrices; } }
+        public IDictionary<int, IMatrix2D>[] Matrices { get { return matrices; } }
+        public IList<Dictionary<int, SkylineMatrix2D>> FactorizedMatrices { get { return factorizedMatrices; } }
 
-        public PolynomialChaosAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations, bool shouldFactorizeMatrices)
+        public PolynomialChaosAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations, bool shouldFactorizeMatrices)
         {
             this.shouldFactorizeMatrices = shouldFactorizeMatrices;
             this.childAnalyzer = embeddedAnalyzer;
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.Analyzers
             this.expansionOrder = coefficientsProvider.ExpansionOrder;
             this.simulations = simulations;
             this.childAnalyzer.ParentAnalyzer = this;
-            this.matrices = new Dictionary<int, IMatrix2D<double>>[coefficientsProvider.NoOfMatrices + 1];
+            this.matrices = new Dictionary<int, IMatrix2D>[coefficientsProvider.NoOfMatrices + 1];
             this.randomNumbers = new double[simulations][];
             this.coefficientsProvider = coefficientsProvider;
 
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.Analyzers
             //File.WriteAllLines(String.Format(@"randoms.txt", expansionOrder), randoms);
         }
 
-        public PolynomialChaosAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
+        public PolynomialChaosAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, expansionOrder, simulations, true)
         {
         }
@@ -81,15 +81,15 @@ namespace ISAAR.MSolve.Analyzers
         {
             factorizedMatrices.Clear();
             for (int i = 0; i < matrices.Length; i++)
-                factorizedMatrices.Add(new Dictionary<int, SkylineMatrix2D<double>>());
+                factorizedMatrices.Add(new Dictionary<int, SkylineMatrix2D>());
 
             foreach (var sub in subdomains)
             {
                 //for (int i = 0; i < matrices.Length; i++)
                 for (int i = 0; i < 1; i++)
                 {
-                    var m = (SkylineMatrix2D<double>)((SkylineMatrix2D<double>)matrices[i][sub.Key]).Clone();
-                    m.Factorize(1e-32, new List<Vector<double>>(), new List<int>());
+                    var m = (SkylineMatrix2D)((SkylineMatrix2D)matrices[i][sub.Key]).Clone();
+                    m.Factorize(1e-32, new List<IVector>(), new List<int>());
 
                     if (factorizedMatrices[i].ContainsKey(sub.Key))
                         factorizedMatrices[i][sub.Key] = m;
@@ -132,11 +132,11 @@ namespace ISAAR.MSolve.Analyzers
                 coefficientsProvider.CurrentOrder = i;
                 childAnalyzer.BuildMatrices();
 
-                matrices[i + 1] = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
+                matrices[i + 1] = new Dictionary<int, IMatrix2D>(subdomains.Count);
                 foreach (var subdomain in subdomains.Values)
                 {
-                    SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)subdomain.Matrix;
-                    matrices[i + 1].Add(subdomain.ID, (SkylineMatrix2D<double>)k.Clone());
+                    SkylineMatrix2D k = (SkylineMatrix2D)subdomain.Matrix;
+                    matrices[i + 1].Add(subdomain.ID, (SkylineMatrix2D)k.Clone());
                 }
             }
 
@@ -144,11 +144,11 @@ namespace ISAAR.MSolve.Analyzers
             coefficientsProvider.CurrentOrder = -1;
             childAnalyzer.BuildMatrices();
 
-            matrices[0] = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
+            matrices[0] = new Dictionary<int, IMatrix2D>(subdomains.Count);
             foreach (var subdomain in subdomains.Values)
             {
-                SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)subdomain.Matrix;
-                matrices[0].Add(subdomain.ID, (SkylineMatrix2D<double>)k.Clone());
+                SkylineMatrix2D k = (SkylineMatrix2D)subdomain.Matrix;
+                matrices[0].Add(subdomain.ID, (SkylineMatrix2D)k.Clone());
             }
         }
 
