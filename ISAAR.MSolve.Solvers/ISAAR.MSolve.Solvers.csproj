@@ -104,6 +104,7 @@
     <Compile Include="PCG\SolverPCGSimpleSearchVectorCalculator.cs" />
     <Compile Include="PCG\SolverPCGReorthogonalizationSearchVectorCalculator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PSM\SolverPSMMatrixInitialization.cs" />
     <Compile Include="PSM\SolverPSM.cs" />
     <Compile Include="SearchVectors.cs" />
     <Compile Include="Skyline\SolverSkyline.cs" />
@@ -113,10 +114,6 @@
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
       <Name>ISAAR.MSolve.Numerical</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
-      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

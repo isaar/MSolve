@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
@@ -9,23 +8,25 @@ namespace ISAAR.MSolve.Solvers.Skyline
 {
     public class SkylineLinearSystem : ILinearSystem
     {
-        private readonly Subdomain subdomain;
+        private readonly int id;
+        private readonly double[] forces;
         private SkylineMatrix2D stiffnessMatrix;
         // REMOVE
         private SkylineMatrix2D stiffnessMatrixCopy;
         private Vector solution;
 
-        public SkylineLinearSystem(Subdomain subdomain)
+        public SkylineLinearSystem(int id, double[] forces)
         {
-            this.subdomain = subdomain;
-            solution = new Vector(subdomain.TotalDOFs);
+            this.id = id;
+            this.forces = forces;
+            solution = new Vector(forces.Length);
         }
-        
-        #region ISolverSubdomain Members
+
+        #region ILinearSystem Members
 
         public int ID
         {
-            get { return subdomain.ID; }
+            get { return id; }
         }
 
         public IMatrix2D Matrix
@@ -39,72 +40,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IVector RHS
         {
-            get { return new Vector(subdomain.Forces); }
+            get { return new Vector(forces); }
         }
 
         public IVector Solution
         {
             get { return solution; }
             set { solution = (Vector)value; }
-        }
-
-        //public void CloneMatrix()
-        //{
-        //    stiffnessMatrixCopy = (SkylineMatrix2D<double>)stiffnessMatrix.Clone();
-        //}
-
-        public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
-        {
-            //// REMOVE
-            //var forces = new double[solution.Length];
-            //stiffnessMatrixCopy.Multiply(solution, forces);
-            //return new Vector<double>(forces);
-
-            //return subdomain.GetRHSFromSolution(solution, dSolution);
-            throw new NotImplementedException("Check commented line of code above.");
-        }
-
-        public void SaveMaterialState()
-        {
-            subdomain.SaveMaterialState();
-        }
-
-        public void ClearMaterialStresses()
-        {
-            subdomain.ClearMaterialStresses();
-        }
-
-        public void SubdomainToGlobalVector(double[] vIn, double[] vOut)
-        {
-            foreach (int nodeID in subdomain.GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = subdomain.NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = subdomain.NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = subdomain.GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1) vOut[globalDOF] += vIn[localDOF];
-                }
-            }
-        }
-
-        public void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SplitGlobalVectorToSubdomain(double[] vIn, double[] vOut)
-        {
-            foreach (int nodeID in subdomain.GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = subdomain.NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = subdomain.NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = subdomain.GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1) vOut[localDOF] = vIn[globalDOF];
-                }
-            }
         }
 
         #endregion

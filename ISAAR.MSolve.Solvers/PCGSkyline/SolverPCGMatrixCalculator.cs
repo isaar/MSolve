@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
         { 
             get 
             { 
-                return solver.SubdomainsDictionary.Values.First().RHS.Length; 
+                return solver.LinearSystem.RHS.Length; 
             } 
         }
 

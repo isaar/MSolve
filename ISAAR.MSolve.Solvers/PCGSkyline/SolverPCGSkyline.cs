@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Solvers.PCG;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -12,8 +11,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
 {
     public class SolverPCG<T> : IIterativeSolver where T : IMatrix2D
     {
-        private readonly Model model;
-        private readonly Dictionary<int, ILinearSystem> subdomainsDictionary;
+        private readonly ILinearSystem linearSystem;
         private readonly SolverPCG solverPCG;
         private readonly ISolverPCGMatrixCalculator matrixCalculator;
         private readonly ISolverPCGInitialization matrixInitialization;
@@ -24,49 +22,36 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
 
         public IVector VectorX { get { return solverPCG.VectorX; } }
 
-        public SolverPCG(Model model, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator, ISolverPCGInitialization matrixInitialization)
+        public SolverPCG(ILinearSystem linearSystem, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator, ISolverPCGInitialization matrixInitialization)
         {
-            this.model = model;
+            this.linearSystem = linearSystem;
             this.matrixCalculator = matrixCalculator;
             this.matrixInitialization = matrixInitialization;
             this.searchVectorCalculator = searchVectorCalculator;
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
-            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
         }
 
-        public SolverPCG(Model model, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator)
+        public SolverPCG(ILinearSystem linearSystem, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator)
         {
-            this.model = model;
+            this.linearSystem = linearSystem;
             this.matrixCalculator = matrixCalculator;
             this.matrixInitialization = new SolverPCGMatrixInitialization<T>(this);
             this.searchVectorCalculator = searchVectorCalculator;
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
-            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
         }
 
-        public SolverPCG(Model model, ISearchVectorCalculator searchVectorCalculator)
+        public SolverPCG(ILinearSystem linearSystem, ISearchVectorCalculator searchVectorCalculator)
         {
-            this.model = model;
+            this.linearSystem = linearSystem;
             this.matrixCalculator = new SolverPCGMatrixCalculator<T>(this);
             this.matrixInitialization = new SolverPCGMatrixInitialization<T>(this);
             this.searchVectorCalculator = searchVectorCalculator;
             solverPCG = new SolverPCG(matrixCalculator, searchVectorCalculator);
-            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
         }
 
-        private void Initialize(Model model, ISearchVectorCalculator searchVectorCalculator, ISolverPCGMatrixCalculator matrixCalculator)
+        public ILinearSystem LinearSystem
         {
-        }
-
-        public Dictionary<int, ILinearSystem> SubdomainsDictionary
-        {
-            get { return subdomainsDictionary; }
+            get { return linearSystem; }
         }
 
         #region ISolver Members
@@ -94,7 +79,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
             int vectorLength = matrixCalculator.VectorSize;
             x = new Vector(vectorLength);
             r = new Vector(vectorLength);
-            detf = matrixInitialization.InitializeAndGetResidual(subdomainsDictionary.Select(s => s.Value).ToArray<ILinearSystem>(), r, x);
+            detf = matrixInitialization.InitializeAndGetResidual(new[] { linearSystem }, r, x);
             solverPCG.Initialize(x, r, detf);
         }
 
@@ -102,8 +87,7 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
         {
             Solve(20000, 1e-7);
 
-            foreach (ILinearSystem subdomain in subdomainsDictionary.Values)
-                subdomain.Solution = x;
+            linearSystem.Solution = x;
         }
 
         //public void Solve()

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor;
+//using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -12,66 +12,85 @@ namespace ISAAR.MSolve.Solvers.PSM
 {
     public class SolverPSM : IIterativeSolver
     {
-        protected readonly Model model;
         protected readonly Dictionary<int, IMatrix2D> preconditionersDictionary, kiiDictionary;
         private readonly Dictionary<int, ILinearSystem> subdomainsDictionary;
-        private readonly Dictionary<int, List<int>> boundaryDOFsDictionary, internalDOFsDictionary;
+        private readonly Dictionary<int, List<int>> boundaryDOFsDictionary, internalDOFsDictionary, globalBoundaryDOFsDictionary;
+        private int problemSize = 0;
 
         public int CurrentIteration
         {
             get { throw new NotImplementedException(); }
         }
 
-        public SolverPSM(Model model)
+        public Dictionary<int, List<int>> BoundaryDOFsDictionary { get { return boundaryDOFsDictionary; } }
+        public Dictionary<int, List<int>> InternalDOFsDictionary { get { return internalDOFsDictionary; } }
+        public int BoundaryProblemSize { get { return problemSize; } }
+
+        public SolverPSM(ILinearSystem[] linearSystems, Dictionary<int, List<int>> globalBoundaryDOFsDictionary)
         {
-            this.model = model;
-            preconditionersDictionary = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
-            kiiDictionary = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
-            subdomainsDictionary = new Dictionary<int, ILinearSystem>(model.SubdomainsDictionary.Count);
-            boundaryDOFsDictionary = new Dictionary<int, List<int>>(model.SubdomainsDictionary.Count);
-            internalDOFsDictionary = new Dictionary<int, List<int>>(model.SubdomainsDictionary.Count);
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+            preconditionersDictionary = new Dictionary<int, IMatrix2D>(linearSystems.Length);
+            kiiDictionary = new Dictionary<int, IMatrix2D>(linearSystems.Length);
+            subdomainsDictionary = new Dictionary<int, ILinearSystem>(linearSystems.Length);
+            boundaryDOFsDictionary = new Dictionary<int, List<int>>(linearSystems.Length);
+            internalDOFsDictionary = new Dictionary<int, List<int>>(linearSystems.Length);
+            this.globalBoundaryDOFsDictionary = globalBoundaryDOFsDictionary;
+            problemSize = globalBoundaryDOFsDictionary.Max(x => x.Value.Max(v => v));
+            //this.boundaryDOFsDictionary = boundaryDOFsDictionary;
+            //this.internalDOFsDictionary = internalDOFsDictionary;
+            foreach (ILinearSystem subdomain in linearSystems)
             {
-                subdomainsDictionary.Add(subdomain.ID, new SkylineLinearSystem(subdomain));
+                subdomainsDictionary.Add(subdomain.ID, subdomain);
                 boundaryDOFsDictionary.Add(subdomain.ID, new List<int>());
             }
+            BuildDOFDictionaries();
         }
 
-        private void EnumerateBoundaryNodes()
+        private void BuildDOFDictionaries()
         {
-            foreach (Node node in model.NodesDictionary.Values)
+            foreach (var dofList in globalBoundaryDOFsDictionary)
             {
-                int i = 0;
-                foreach (int leftSubdomainID in node.SubdomainsDictionary.Keys)
-                {
-                    int j = -1;
-                    foreach (int rightSubdomainID in node.SubdomainsDictionary.Keys)
-                    {
-                        j++;
-                        if (j <= i) continue;
-
-                        Dictionary<DOFType, int> leftDOFs = model.Subdomains[leftSubdomainID].NodalDOFsDictionary[node.ID];
-                        Dictionary<DOFType, int> rightDOFs = model.Subdomains[rightSubdomainID].NodalDOFsDictionary[node.ID];
-                        foreach (DOFType dofType in leftDOFs.Keys)
-                        {
-                            int leftDOF = leftDOFs[dofType];
-                            int rightDOF = rightDOFs[dofType];
-                            if (leftDOF >= 0 && rightDOF >= 0)
-                            {
-                                if (boundaryDOFsDictionary[leftSubdomainID].IndexOf(leftDOF) < 0)
-                                    boundaryDOFsDictionary[leftSubdomainID].Add(leftDOF);
-                                if (boundaryDOFsDictionary[rightSubdomainID].IndexOf(rightDOF) < 0)
-                                    boundaryDOFsDictionary[rightSubdomainID].Add(rightDOF);
-                            }
-                        }
-                    }
-                    i++;
-                }
+                var internalDOFs = Enumerable.Range(0, subdomainsDictionary[dofList.Key].RHS.Length).Where(x => dofList.Value.Any(v => v != x)).ToList();
+                var boundaryDOFs = Enumerable.Range(0, subdomainsDictionary[dofList.Key].RHS.Length).Where(x => dofList.Value.Any(v => v == x)).ToList();
+                internalDOFsDictionary.Add(dofList.Key, internalDOFs);
+                boundaryDOFsDictionary.Add(dofList.Key, boundaryDOFs);
             }
-
-            foreach (var subdomain in subdomainsDictionary)
-                internalDOFsDictionary.Add(subdomain.Key, model.Subdomains[subdomain.Key].NodalDOFsDictionary.SelectMany(x => x.Value.Values).Except(boundaryDOFsDictionary[subdomain.Key]).OrderBy(x => x).ToList<int>());
         }
+
+        //private void EnumerateBoundaryNodes()
+        //{
+        //    foreach (Node node in model.NodesDictionary.Values)
+        //    {
+        //        int i = 0;
+        //        foreach (int leftSubdomainID in node.SubdomainsDictionary.Keys)
+        //        {
+        //            int j = -1;
+        //            foreach (int rightSubdomainID in node.SubdomainsDictionary.Keys)
+        //            {
+        //                j++;
+        //                if (j <= i) continue;
+
+        //                Dictionary<DOFType, int> leftDOFs = model.Subdomains[leftSubdomainID].NodalDOFsDictionary[node.ID];
+        //                Dictionary<DOFType, int> rightDOFs = model.Subdomains[rightSubdomainID].NodalDOFsDictionary[node.ID];
+        //                foreach (DOFType dofType in leftDOFs.Keys)
+        //                {
+        //                    int leftDOF = leftDOFs[dofType];
+        //                    int rightDOF = rightDOFs[dofType];
+        //                    if (leftDOF >= 0 && rightDOF >= 0)
+        //                    {
+        //                        if (boundaryDOFsDictionary[leftSubdomainID].IndexOf(leftDOF) < 0)
+        //                            boundaryDOFsDictionary[leftSubdomainID].Add(leftDOF);
+        //                        if (boundaryDOFsDictionary[rightSubdomainID].IndexOf(rightDOF) < 0)
+        //                            boundaryDOFsDictionary[rightSubdomainID].Add(rightDOF);
+        //                    }
+        //                }
+        //            }
+        //            i++;
+        //        }
+        //    }
+
+        //    foreach (var subdomain in subdomainsDictionary)
+        //        internalDOFsDictionary.Add(subdomain.Key, model.Subdomains[subdomain.Key].NodalDOFsDictionary.SelectMany(x => x.Value.Values).Except(boundaryDOFsDictionary[subdomain.Key]).OrderBy(x => x).ToList<int>());
+        //}
 
         private void MakeKiiDictionary()
         {
