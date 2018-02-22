@@ -1,8 +1,8 @@
-﻿using System;
+﻿using ISAAR.MSolve.FEM.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Materials
 {

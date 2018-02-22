@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {

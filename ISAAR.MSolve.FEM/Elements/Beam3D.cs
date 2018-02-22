@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor.Embedding;
 using System.IO;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {

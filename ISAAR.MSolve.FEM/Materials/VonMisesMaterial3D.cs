@@ -7,9 +7,9 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 using System;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Materials
 {

@@ -1,5 +1,6 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.PreProcessor.Interfaces;
+﻿using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Providers
 {

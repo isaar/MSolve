@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
@@ -217,6 +218,46 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         }
 
         public void ClearMaterialStresses()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrix2D StiffnessMatrix(Element element)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrix2D MassMatrix(Element element)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrix2D DampingMatrix(Element element)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
             throw new NotImplementedException();
         }
