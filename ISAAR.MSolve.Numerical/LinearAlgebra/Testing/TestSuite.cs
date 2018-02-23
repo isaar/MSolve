@@ -12,10 +12,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            TestIndexing();
-            TestMatrixVectorMultiplication();
-            TestFactorization();
-            TestSystemSolution();
+            //TestIndexing();
+            //TestMatrixVectorMultiplication();
+            //TestFactorization();
+            //TestSystemSolution();
+            TestVectorOperations();
         }
 
         public static void TestFactorization()
@@ -63,7 +64,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             SymmSingular.CheckSystemSolution();
         }
 
-        
+        public static void TestVectorOperations()
+        {
+            DenseVectors.CheckAddition();
+            DenseVectors.CheckAxpy();
+            DenseVectors.CheckDotProduct();
+            DenseVectors.CheckHadamardProduct();
+            DenseVectors.CheckNorm2();
+            DenseVectors.CheckScaling();
+            DenseVectors.CheckSubtraction();
+        }
 
     }
 }

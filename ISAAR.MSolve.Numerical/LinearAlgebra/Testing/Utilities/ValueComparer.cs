@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 {
-    class ValueComparer
+    public class ValueComparer
     {
         private readonly double tolerance;
 

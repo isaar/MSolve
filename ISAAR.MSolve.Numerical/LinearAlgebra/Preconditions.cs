@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
@@ -18,6 +19,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 throw new NonMatchingDimensionsException(message);
             }
                
+        }
+
+        public static void CheckVectorDimensions(VectorMKL vector1, VectorMKL vector2)
+        {
+            if (vector1.Length != vector2.Length)
+            {
+                string message = string.Format("Vector1 has length of {0}, while vector2 has length of {1}",
+                    vector1.Length, vector2.Length);
+                throw new NonMatchingDimensionsException(message);
+            }
+
         }
 
         public static void CheckMatrixDimensionsSame(IMatrixView matrix1, IMatrixView matrix2)

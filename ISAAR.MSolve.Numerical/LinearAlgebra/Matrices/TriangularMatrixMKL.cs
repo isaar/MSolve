@@ -12,6 +12,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 //TODO: Perhaps I should use row major for lower triangular, upper triangular or both.
 //TODO: Perhaps I should have an abstract class that handles everything except the lower/upper specific stuff and concrete
 //  private classes Lower, Upper. The indexer would be faster.
+//TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 {
@@ -82,11 +83,37 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             return isCorrect;
         }
 
+        public void CheckScalarEquality(double expected, double computed)
+        {
+            if (valueComparer.AreEqual(expected, computed)) Console.WriteLine("Correct");
+            else
+            {
+                Console.WriteLine("Incorrect.");
+                Console.WriteLine("Expected vector: " + expected);
+                Console.WriteLine("Computed vector: " + computed);
+            }
+        }
+
         public bool CheckSystemSolution(double[,] matrix, double[] b, double[] xExpected, double[] xComputed)
         {
             bool isCorrect = AreEqual(xExpected, xComputed);
             if (DecidePrint(isCorrect)) printer.PrintSystemSolution(isCorrect, matrix, b, xExpected, xComputed);
             return isCorrect;
+        }
+
+        public void CheckVectorEquality(VectorMKL expected, VectorMKL computed)
+        {
+            if (expected.Equals(computed)) Console.WriteLine("Correct");
+            else
+            {
+                Console.WriteLine("Incorrect.");
+                Console.Write("Expected vector: ");
+                expected.WriteToConsole();
+                Console.WriteLine();
+                Console.Write("Computed vector: ");
+                computed.WriteToConsole();
+                Console.WriteLine();
+            }
         }
 
         private bool DecidePrint(bool isCorrectOperation)
