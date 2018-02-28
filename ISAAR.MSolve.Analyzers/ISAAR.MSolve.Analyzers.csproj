@@ -8,8 +8,6 @@
   <ItemGroup>
     <PackageReference Include="Thrower" Version="4.3.1" />
     <PackageReference Include="Troschuetz.Random" Version="4.2.0" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj" />
