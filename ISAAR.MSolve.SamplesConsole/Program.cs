@@ -25,8 +25,8 @@ namespace ISAAR.MSolve.SamplesConsole
             model.ConnectDataStructures();
 
             var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
             LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
@@ -48,8 +48,8 @@ namespace ISAAR.MSolve.SamplesConsole
             model.ConnectDataStructures();
 
             var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
             LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
             NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystems, 0.5, 0.25, 0.01, 0.1);
