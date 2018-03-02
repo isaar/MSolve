@@ -7,6 +7,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
@@ -73,7 +74,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             return (SquareMatrixMKL.CreateFromArray(l, Order, false), SquareMatrixMKL.CreateFromArray(u, Order, false));
         }
 
-        public DenseVector SolveLinearSystem(DenseVector rhs)
+        public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
             // Check if the matrix is singular first
             if (IsSingular)
@@ -107,7 +108,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 throw new MKLException(msg);
             }
 
-            return DenseVector.CreateFromArray(b, false);
+            return VectorMKL.CreateFromArray(b, false);
         }
     }
 }

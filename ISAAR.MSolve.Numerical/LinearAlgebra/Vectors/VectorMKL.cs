@@ -143,6 +143,30 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// result = thisScalar * this + otherScalar * otherVector
+        /// </summary>
+        /// <returns></returns>
+        public VectorMKL LinearCombination(double thisScalar, double otherScalar, VectorMKL otherVector)
+        {
+            Preconditions.CheckVectorDimensions(this, otherVector);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(data, result, data.Length);
+            CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref result[0], 1);
+            return new VectorMKL(result);
+        }
+
+        /// <summary>
+        /// this = this + scalar * other
+        /// </summary>
+        /// <returns></returns>
+        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, VectorMKL otherVector)
+        {
+            Preconditions.CheckVectorDimensions(this, otherVector);
+            CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
+        }
+
+        /// <summary>
         /// Computes the Hadamard product of two vectors: result[i] = this[i] * other[i]. This is not the dot product.
         /// </summary>
         /// <param name="other"></param>

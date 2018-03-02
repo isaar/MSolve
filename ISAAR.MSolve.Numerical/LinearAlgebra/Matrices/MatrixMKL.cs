@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 //TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
@@ -111,13 +112,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public DenseVector MultiplyRight(DenseVector vector)
+        public VectorMKL MultiplyRight(VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this, vector);
             double[] result = new double[NumRows];
             CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, CBLAS_TRANSPOSE.CblasNoTrans, NumRows, NumColumns,
                 1.0, ref data[0], NumRows, ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return DenseVector.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
+
     }
 }

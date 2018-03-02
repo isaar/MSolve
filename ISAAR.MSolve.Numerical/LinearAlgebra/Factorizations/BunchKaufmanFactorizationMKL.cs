@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
@@ -13,7 +14,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             throw new NotImplementedException();
         }
 
-        DenseVector IFactorizationMKL.SolveLinearSystem(DenseVector rhs)
+        VectorMKL IFactorizationMKL.SolveLinearSystem(VectorMKL rhs)
         {
             throw new NotImplementedException();
         }

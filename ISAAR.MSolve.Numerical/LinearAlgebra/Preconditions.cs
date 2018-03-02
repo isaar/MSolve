@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         //Temporary, till I fix inheritence
-        public static void CheckMultiplicationDimensions(IMatrixViewMKL leftMatrix, DenseVector rightVector)
+        public static void CheckMultiplicationDimensions(IMatrixViewMKL leftMatrix, VectorMKL rightVector)
         {
             if (leftMatrix.NumColumns != rightVector.Length)
             {
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        public static void CheckSystemSolutionDimensions(IMatrixViewMKL matrix, DenseVector rhsVector)
+        public static void CheckSystemSolutionDimensions(IMatrixViewMKL matrix, VectorMKL rhsVector)
         {
             if (matrix.NumRows != rhsVector.Length)
             {

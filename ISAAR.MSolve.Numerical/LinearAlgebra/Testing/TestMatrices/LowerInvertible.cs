@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 {
@@ -44,17 +45,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = TriangularMatrixMKL.CreateFromArray(matrix, TriangularMatrixMKL.TrianglePosition.Lower);
-            var x = DenseVector.CreateFromArray(lhs);
-            DenseVector b = A.MultiplyRight(x);
+            var x = VectorMKL.CreateFromArray(lhs);
+            VectorMKL b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
 
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = DenseVector.CreateFromArray(rhs);
+            var b = VectorMKL.CreateFromArray(rhs);
             var A = TriangularMatrixMKL.CreateFromArray(matrix, TriangularMatrixMKL.TrianglePosition.Lower);
-            DenseVector x = A.SolveLinearSystem(b);
+            VectorMKL x = A.SolveLinearSystem(b);
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
         }
     }

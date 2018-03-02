@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 //TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
@@ -197,13 +198,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public DenseVector MultiplyRight(DenseVector vector)
+        public VectorMKL MultiplyRight(VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this, vector);
             double[] result = new double[NumRows];
             CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
                 1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return DenseVector.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         /// <summary>

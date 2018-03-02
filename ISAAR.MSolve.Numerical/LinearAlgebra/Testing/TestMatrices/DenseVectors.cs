@@ -112,6 +112,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckVectorEquality(expected, temp);
         }
 
+        public static void CheckLinearCombination()
+        {
+            var v1 = VectorMKL.CreateFromArray(vector1);
+            var v2 = VectorMKL.CreateFromArray(vector2);
+            var expected = 2.5 * v1 + -3.5 * v2;
+            var comparer = new Comparer();
+
+            Console.Write("Check LinearCombination(): ");
+            comparer.CheckVectorEquality(expected, v1.LinearCombination(2.5, -3.5, v2));
+
+            Console.Write("Check LinearCombinationIntoThis(): ");
+            var temp = VectorMKL.CreateFromVector(v1);
+            temp.LinearCombinationIntoThis(2.5, -3.5, v2);
+            comparer.CheckVectorEquality(expected, temp);
+        }
+
         public static void CheckHadamardProduct()
         {
             var v1 = VectorMKL.CreateFromArray(vector1);

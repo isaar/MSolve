@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 //TODO: Perhaps I should use row major for lower triangular, upper triangular or both.
 //TODO: Perhaps I should have an abstract class that handles everything except the lower/upper specific stuff and concrete
@@ -186,14 +187,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="Order"/>.</param>
         /// <returns></returns>
-        public DenseVector MultiplyRight(DenseVector vector)
+        public VectorMKL MultiplyRight(VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this, vector);
             double[] result = vector.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpmv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return DenseVector.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         public double CalcDeterminant()
@@ -223,14 +224,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        public DenseVector SolveLinearSystem(DenseVector rhs)
+        public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return DenseVector.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

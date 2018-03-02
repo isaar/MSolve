@@ -15,8 +15,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestIndexing();
             //TestMatrixVectorMultiplication();
             //TestFactorization();
-            //TestSystemSolution();
-            TestVectorOperations();
+            TestSystemSolution();
+            //TestVectorOperations();
         }
 
         public static void TestFactorization()
@@ -40,26 +40,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestMatrixVectorMultiplication()
         {
-            //SquareInvertible.CheckMatrixVectorMult();
-            //SquareSingular.CheckMatrixVectorMult();
-            //SquareSingular1Deficiency.CheckMatrixVectorMult();
-            //LowerInvertible.CheckMatrixVectorMult();
-            //LowerSingular.CheckMatrixVectorMult();
-            //UpperInvertible.CheckMatrixVectorMult();
-            //UpperSingular.CheckMatrixVectorMult();
+            SquareInvertible.CheckMatrixVectorMult();
+            SquareSingular.CheckMatrixVectorMult();
+            SquareSingular1Deficiency.CheckMatrixVectorMult();
+            LowerInvertible.CheckMatrixVectorMult();
+            LowerSingular.CheckMatrixVectorMult();
+            UpperInvertible.CheckMatrixVectorMult();
+            UpperSingular.CheckMatrixVectorMult();
             SymmPositiveDefinite.CheckMatrixVectorMult();
             SymmSingular.CheckMatrixVectorMult();
         }
 
         public static void TestSystemSolution()
         {
-            //SquareInvertible.CheckSystemSolution();
-            //SquareSingular.CheckSystemSolution();
-            //SquareSingular1Deficiency.CheckSystemSolution();
-            //LowerInvertible.CheckSystemSolution();
-            //LowerSingular.CheckSystemSolution();
-            //UpperInvertible.CheckSystemSolution();
-            //UpperSingular.CheckSystemSolution();
+            SquareInvertible.CheckSystemSolution();
+            SquareSingular.CheckSystemSolution();
+            SquareSingular1Deficiency.CheckSystemSolution();
+            LowerInvertible.CheckSystemSolution();
+            LowerSingular.CheckSystemSolution();
+            UpperInvertible.CheckSystemSolution();
+            UpperSingular.CheckSystemSolution();
             SymmPositiveDefinite.CheckSystemSolution();
             SymmSingular.CheckSystemSolution();
         }
@@ -70,6 +70,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             DenseVectors.CheckAxpy();
             DenseVectors.CheckDotProduct();
             DenseVectors.CheckHadamardProduct();
+            DenseVectors.CheckLinearCombination();
             DenseVectors.CheckNorm2();
             DenseVectors.CheckScaling();
             DenseVectors.CheckSubtraction();
