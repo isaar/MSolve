@@ -131,6 +131,7 @@
     <Compile Include="LinearAlgebra\Factorizations\LUFactorization.cs" />
     <Compile Include="LinearAlgebra\Matrices\IMatrixViewMKL.cs" />
     <Compile Include="LinearAlgebra\Matrices\MatrixMKL.cs" />
+    <Compile Include="LinearAlgebra\Matrices\MatrixExtensionsMKL.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricMatrixMKL.cs" />
     <Compile Include="LinearAlgebra\Matrices\TriangularMatrixMKL.cs" />
     <Compile Include="LinearAlgebra\Matrix2D.cs" />

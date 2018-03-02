@@ -157,6 +157,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return array1D;
         }
 
+        public static double[] ColumnMajorToRowMajor(double[] colMajor, int numRows, int numCols)
+        {
+            double[] rowMajor = new double[numRows * numCols];
+            int idxCounter = -1;
+            for (int j = 0; j < numCols; ++j)
+            {
+                for (int i = 0; i < numRows; ++i)
+                {
+                    rowMajor[++idxCounter] = colMajor[j * numRows + i];
+                }
+            }
+            return rowMajor;
+        }
+
         public static double[,] FullColMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];

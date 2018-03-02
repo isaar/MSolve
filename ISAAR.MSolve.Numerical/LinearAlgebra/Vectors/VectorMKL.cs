@@ -75,14 +75,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         }
 
         #region operators 
-        public static VectorMKL operator +(VectorMKL v1, VectorMKL v2)
+        public static VectorMKL operator +(VectorMKL vector1, VectorMKL vector2)
         {
-            return v1.Axpy(1.0, v2);
+            return vector1.Axpy(1.0, vector2);
         }
 
-        public static VectorMKL operator -(VectorMKL v1, VectorMKL v2)
+        public static VectorMKL operator -(VectorMKL vector1, VectorMKL vector2)
         {
-            return v1.Axpy(-1.0, v2); //The order is important
+            return vector1.Axpy(-1.0, vector2); //The order is important
         }
 
         public static VectorMKL operator *(double scalar, VectorMKL vector)
@@ -90,9 +90,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return vector.Scale(scalar);
         }
 
-        public static double operator *(VectorMKL v1, VectorMKL v2)
+        public static double operator *(VectorMKL vector1, VectorMKL vector2)
         {
-            return v1.DotProduct(v2); //Perhaps call BLAS directly
+            return vector1.DotProduct(vector2); //Perhaps call BLAS directly
         }
         #endregion
 

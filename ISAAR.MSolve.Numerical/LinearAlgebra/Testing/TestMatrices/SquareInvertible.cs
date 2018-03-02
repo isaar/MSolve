@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = MatrixMKL.CreateFromArray(matrix);
             var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(x);
+            VectorMKL b = A.MultiplyRight(false, x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
 

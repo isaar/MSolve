@@ -10,45 +10,45 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
     public static class VectorExtensionsMKL
     {
         /// <summary>
-        /// result = v1 + v2
+        /// result = vector1 + vector2
         /// </summary>
-        /// <param name="v1"></param>
-        /// <param name="v2"></param>
+        /// <param name="vector1"></param>
+        /// <param name="vector2"></param>
         /// <returns></returns>
-        public static VectorMKL Add(this VectorMKL v1, VectorMKL v2)
+        public static VectorMKL Add(this VectorMKL vector1, VectorMKL vector2)
         {
-            return v1.Axpy(1.0, v2);
+            return vector1.Axpy(1.0, vector2);
         }
 
         /// <summary>
-        /// v1 = v1 + v2
+        /// vector1 = vector1 + vector2
         /// </summary>
-        /// <param name="v1"></param>
-        /// <param name="v2"></param>
-        public static void AddIntoThis(this VectorMKL v1, VectorMKL v2)
+        /// <param name="vector1"></param>
+        /// <param name="vector2"></param>
+        public static void AddIntoThis(this VectorMKL vector1, VectorMKL vector2)
         {
-            v1.AxpyIntoThis(1.0, v2);
+            vector1.AxpyIntoThis(1.0, vector2);
         }
 
         /// <summary>
-        /// result = v1 - v2
+        /// result = vector1 - vector1
         /// </summary>
-        /// <param name="v1"></param>
-        /// <param name="v2"></param>
+        /// <param name="vector1"></param>
+        /// <param name="vector2"></param>
         /// <returns></returns>
-        public static VectorMKL Subtract(this VectorMKL v1, VectorMKL v2)
+        public static VectorMKL Subtract(this VectorMKL vector1, VectorMKL vector2)
         {
-            return v1.Axpy(-1.0, v2);
+            return vector1.Axpy(-1.0, vector2);
         }
 
         /// <summary>
-        /// v1 = v1 - v2
+        /// vector1 = vector1 - vector2
         /// </summary>
-        /// <param name="v1"></param>
-        /// <param name="v2"></param>
-        public static void SubtractIntoThis(this VectorMKL v1, VectorMKL v2)
+        /// <param name="vector1"></param>
+        /// <param name="vector2"></param>
+        public static void SubtractIntoThis(this VectorMKL vector1, VectorMKL vector2)
         {
-            v1.AxpyIntoThis(-1.0, v2);
+            vector1.AxpyIntoThis(-1.0, vector2);
         }
 
         public static VectorMKL[] RemoveDuplicatesFindMultiplicity()

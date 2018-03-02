@@ -121,6 +121,60 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new MatrixMKL(data, numRows, numColumns);
         }
 
+        #region operators 
+        public static MatrixMKL operator +(MatrixMKL matrix1, MatrixMKL matrix2)
+        {
+            return matrix1.Axpy(1.0, matrix2);
+        }
+
+        public static MatrixMKL operator -(MatrixMKL matrix1, MatrixMKL matrix2)
+        {
+            return matrix1.Axpy(-1.0, matrix2); //The order is important
+        }
+
+        public static MatrixMKL operator *(double scalar, MatrixMKL matrix)
+        {
+            return matrix.Scale(scalar);
+        }
+
+        public static VectorMKL operator *(MatrixMKL matrixLeft, VectorMKL vectorRight)
+        {
+            return matrixLeft.MultiplyRight(false, vectorRight);
+        }
+
+        public static MatrixMKL operator *(MatrixMKL matrixLeft, MatrixMKL matrixRight)
+        {
+            return matrixLeft.MultiplyRight(false, matrixRight);
+        }
+        #endregion
+
+        /// <summary>
+        /// result = this + scalar * other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="scalar"></param>
+        /// <returns></returns>
+        public MatrixMKL Axpy(double scalar, MatrixMKL other)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[this.data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref result[0], 1);
+            return new MatrixMKL(result, NumRows, NumColumns);
+        }
+
+        /// <summary>
+        /// this = this + scalar * other
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="scalar"></param>
+        public void AxpyIntoThis(double scalar, MatrixMKL other)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
+        }
+
         /// <summary>
         /// Copy the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
         /// and length(1) = <see cref="NumColumns"/>. 
@@ -134,7 +188,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public bool Equals(MatrixMKL other, ValueComparer comparer = null)
         {
-            if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
+            //Check each dimension, rather than the lengths of the internal buffers
+            if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false; 
             if (comparer == null) comparer = new ValueComparer(1e-13);
             for (int i = 0; i < this.data.Length; ++i)
             {
@@ -144,17 +199,64 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Matrix vector multiplication, with the vector on the right: matrix * vector.
+        /// result = thisScalar * this + otherScalar * otherMatrix
         /// </summary>
+        /// <returns></returns>
+        public MatrixMKL LinearCombination(double thisScalar, double otherScalar, MatrixMKL otherMatrix)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[this.data.Length];
+            Array.Copy(this.data, result, this.data.Length);
+            CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref result[0], 1);
+            return new MatrixMKL(result, this.NumRows, this.NumColumns);
+        }
+
+        /// <summary>
+        /// this = this + scalar * otherMatrix
+        /// </summary>
+        /// <returns></returns>
+        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, MatrixMKL otherMatrix)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref this.data[0], 1);
+        }
+
+        /// <summary>
+        /// Matrix-vector multiplication, with the vector on the right: matrix * vector or transpose(matrix) * vector.
+        /// </summary>
+        /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
+        ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector)
+        public VectorMKL MultiplyRight(bool transposeThis, VectorMKL vector)
         {
-            Preconditions.CheckMultiplicationDimensions(this, vector);
+            Preconditions.CheckMultiplicationDimensions(this, vector, transposeThis);
             double[] result = new double[NumRows];
-            CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, CBLAS_TRANSPOSE.CblasNoTrans, NumRows, NumColumns,
+            CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
+            CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
                 1.0, ref data[0], NumRows, ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
             return VectorMKL.CreateFromArray(result, false);
+        }
+
+        /// <summary>
+        /// Matrix-matrix multiplication, with the other matrix on the right: this [m x k] * other [k x n] 
+        /// or transpose(this [k x m]) * other [k x n].
+        /// </summary>
+        /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
+        ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
+        /// <param name="other">A matrix with as many rows as the column of this matrix.</param>
+        /// <returns>A matrix with dimensions (m x n)</returns>
+        public MatrixMKL MultiplyRight(bool transposeThis, MatrixMKL other)
+        {
+            Preconditions.CheckMultiplicationDimensions(this, other, transposeThis);
+            double[] result = new double[this.NumRows * other.NumColumns];
+            CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
+            CBlas.Dgemm(CBLAS_LAYOUT.CblasColMajor, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_TRANSPOSE.CblasNoTrans,
+                this.NumRows, other.NumColumns, this.NumColumns,
+                1.0, ref this.data[0], this.NumRows, ref other.data[0], other.NumRows,
+                1.0, ref result[0], this.NumRows);
+            return new MatrixMKL(result, this.NumRows, other.NumColumns);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -163,6 +265,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < data.Length; ++i) accumulator = processEntry(data[i], accumulator);
             // no zeros implied
             return finalize(accumulator);
+        }
+
+        /// <summary>
+        /// result = scalar * this
+        /// </summary>
+        /// <param name="scalar"></param>
+        public MatrixMKL Scale(double scalar)
+        {
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(data, result, data.Length);
+            CBlas.Dscal(data.Length, scalar, ref result[0], 1);
+            return new MatrixMKL(result, NumRows, NumColumns);
+        }
+
+        /// <summary>
+        /// this = scalar * this
+        /// </summary>
+        /// <param name="scalar"></param>
+        public void ScaleIntoThis(double scalar)
+        {
+            CBlas.Dscal(data.Length, scalar, ref data[0], 1);
         }
 
         public void SetAll(double value)
@@ -214,6 +338,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return new MatrixMKL(submatrix, newNumRows, newNumCols);
+        }
+
+        public MatrixMKL Transpose()
+        {
+            //TODO: The wrapper library does not include MKL's blas-like extensions yet. Create my own wrapper or 
+            // piggyback on another BLAS function.
+            double[] transpose = Conversions.ColumnMajorToRowMajor(data, NumRows, NumColumns);
+            return new MatrixMKL(transpose, NumColumns, NumRows);
+        }
+
+        public void TransposeIntoThis()
+        {
+            throw new NotImplementedException("Use mkl_dimatcopy");
         }
 
         public void WriteToConsole(Array2DFormatting format = null)
