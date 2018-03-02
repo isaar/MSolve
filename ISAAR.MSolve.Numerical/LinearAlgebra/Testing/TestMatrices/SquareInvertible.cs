@@ -91,5 +91,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
                 printer.PrintSingularMatrix(matrix);
             }
         }
+
+        public static void Print()
+        {
+            var A = MatrixMKL.CreateFromArray(matrix);
+            Console.Write("Matrix = ");
+            A.WriteToConsole(Commons.Array2DFormatting.Brackets);
+        }
     }
 }

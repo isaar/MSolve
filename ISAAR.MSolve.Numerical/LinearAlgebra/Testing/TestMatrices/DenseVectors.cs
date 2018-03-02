@@ -165,5 +165,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             Console.Write("Check Norm2(): ");
             comparer.CheckScalarEquality(norm2OfVector1, vector.Norm2());
         }
+
+        public static void Print()
+        {
+            var vector = VectorMKL.CreateFromArray(vector1);
+            Console.Write("Vector = ");
+            vector.WriteToConsole(Commons.Array1DFormatting.Brackets);
+        }
     }
 }

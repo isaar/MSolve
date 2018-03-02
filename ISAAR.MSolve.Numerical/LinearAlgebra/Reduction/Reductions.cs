@@ -24,6 +24,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Reduction
                 (nz, min) => 0.0 < min ? 0.0 : min, min => min);
         }
 
+        // Obsolete? The MKL version should be prefered for performance.
         public static double Norm2(this IReducible reducible)
         {
             return reducible.Reduce(0.0, (x, sum) => x + sum, (nz, sum) => sum, sum => Math.Sqrt(sum));

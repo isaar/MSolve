@@ -15,8 +15,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestIndexing();
             //TestMatrixVectorMultiplication();
             //TestFactorization();
-            TestSystemSolution();
+            //TestSystemSolution();
             //TestVectorOperations();
+            TestPrinting();
         }
 
         public static void TestFactorization()
@@ -36,6 +37,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //UpperSingular.CheckIndexing();
             SymmPositiveDefinite.CheckIndexing();
             SymmSingular.CheckIndexing();
+        }
+
+        public static void TestPrinting()
+        {
+            DenseVectors.Print();
+            SquareInvertible.Print();
         }
 
         public static void TestMatrixVectorMultiplication()

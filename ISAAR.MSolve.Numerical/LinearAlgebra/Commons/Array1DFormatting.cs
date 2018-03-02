@@ -9,9 +9,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
     //TODO: add precision, justification
     public class Array1DFormatting
     {
-        public static readonly Array1DFormatting Default = new Array1DFormatting ();
+        public static readonly Array1DFormatting Brackets = new Array1DFormatting("[ ", " ]");
+        public static readonly Array1DFormatting Plain = new Array1DFormatting("", "");
 
-        public Array1DFormatting(string separator = " ", string start="", string end="")
+        public Array1DFormatting(string start, string end, string separator = " ")
         {
             this.Separator = separator;
             this.Start = start;

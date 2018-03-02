@@ -36,18 +36,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             set { data[i] = value; }
         }
 
-        public static VectorMKL CreateZero(int length)
-        {
-            return new VectorMKL(new double[length]);
-        }
-
-        public static VectorMKL CreateWithValue(int length, double value)
-        {
-            double[] data = new double[length];
-            for (int i = 0; i < length; ++i) data[i] = value;
-            return new VectorMKL(data);
-        }
-
         public static VectorMKL CreateFromArray(double[] data, bool copyArray = true)
         {
             if (copyArray)
@@ -57,6 +45,33 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
                 return new VectorMKL(clone);
             }
             else return new VectorMKL(data);
+        }
+
+        /// <summary>
+        /// The original vector will be copied.
+        /// </summary>
+        /// <param name="original"></param>
+        /// <returns></returns>
+        public static VectorMKL CreateFromVector(VectorMKL original)
+        {
+            //TODO: Perhaps this should use BLAS
+            //TODO: Perhaps it should be an instance method CopyToMatrix(). Or the instance method would return an interface.
+            double[] data = original.data;
+            double[] clone = new double[data.Length];
+            Array.Copy(data, clone, data.Length);
+            return new VectorMKL(clone);
+        }
+
+        public static VectorMKL CreateWithValue(int length, double value)
+        {
+            double[] data = new double[length];
+            for (int i = 0; i < length; ++i) data[i] = value;
+            return new VectorMKL(data);
+        }
+
+        public static VectorMKL CreateZero(int length)
+        {
+            return new VectorMKL(new double[length]);
         }
 
         #region operators 
@@ -80,15 +95,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return v1.DotProduct(v2); //Perhaps call BLAS directly
         }
         #endregion
-
-        //Perhaps this should use BLAS
-        public static VectorMKL CreateFromVector(VectorMKL vector)
-        {
-            double[] data = vector.data;
-            double[] clone = new double[data.Length];
-            Array.Copy(data, clone, data.Length);
-            return new VectorMKL(clone);
-        }
 
         /// <summary>
         /// result = this + scalar * other
@@ -257,14 +263,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 
         public void WriteToConsole(Array1DFormatting format = null)
         {
-            if (format == null) format = Array1DFormatting.Default;
+            if (format == null) format = Array1DFormatting.Brackets;
             string separator = format.Separator;
             Console.Write(format.Start);
-            for (int i = 0; i < Length; ++i)
+            Console.Write(data[0]);
+            for (int i = 1; i < Length; ++i)
             {
                 Console.Write(separator + data[i]);
             }
-            Console.WriteLine(separator + format.End);
+            Console.WriteLine(format.End);
         }
 
         /// <summary>
@@ -276,6 +283,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// <param name="format">Formatting options for how to print the vector entries.</param>
         public void WriteToFile(string path, bool append = false, Array1DFormatting format = null)
         {
+            if (format == null) format = Array1DFormatting.Plain;
             //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
             //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
             // but since they are extremely useful they are implemented here for now.
@@ -283,11 +291,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             {
                 string separator = format.Separator;
                 writer.Write(format.Start);
-                for (int i = 0; i < Length; ++i)
+                Console.Write(data[0]);
+                for (int i = 1; i < Length; ++i)
                 {
                     writer.Write(separator + data[i]);
                 }
-                writer.WriteLine(separator + format.End);
+                writer.WriteLine(format.End);
             }
         }
     }
