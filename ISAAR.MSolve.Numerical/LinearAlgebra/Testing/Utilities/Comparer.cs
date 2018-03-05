@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
@@ -74,6 +75,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             bool isCorrect = AreEqual(matrixExpected, matrixComputed);
             if (DecidePrint(isCorrect)) printer.PrintMatrixEquality(isCorrect, matrixExpected, matrixComputed);
             return isCorrect;
+        }
+
+        public void CheckMatrixEquality(MatrixMKL matrixExpected, MatrixMKL matrixComputed)
+        {
+            if (matrixExpected.Equals(matrixComputed)) Console.WriteLine("Correct");
+            else
+            {
+                Console.WriteLine("Incorrect.");
+                Console.Write("Expected matrix: ");
+                matrixExpected.WriteToConsole();
+                Console.WriteLine();
+                Console.Write("Computed matrix: ");
+                matrixComputed.WriteToConsole();
+                Console.WriteLine();
+            }
         }
 
         public bool CheckMatrixVectorMult(double[,] matrix, double[] x, double[] bExpected, double[] bComputed)

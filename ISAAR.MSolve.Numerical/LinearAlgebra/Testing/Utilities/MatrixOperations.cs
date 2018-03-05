@@ -8,30 +8,30 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 {
     public static class MatrixOperations
     {
-        public static double[] Add(double[] a, double[] b)
+        public static double[] LinearCombination(double scalar1, double[] vector1, double scalar2, double[] vector2)
         {
-            int n = a.Length;
-            if (b.Length != n) throw new RankException("Cannot add arrays with different length");
+            int n = vector1.Length;
+            if (vector2.Length != n) throw new RankException("Cannot add arrays with different length");
             var c = new double[n];
             for (int i = 0; i < n; ++i)
             {
-                c[i] = a[i] + b[i];
+                c[i] = scalar1 * vector1[i] + scalar2 * vector2[i];
             }
             return c;
         }
 
-        public static double[,] Add(double[,] a, double[,] b)
+        public static double[,] LinearCombination(double scalar1, double[,] matrix1, double scalar2, double[,] matrix2)
         {
-            int m = a.GetLength(0);
-            int n = a.GetLength(1);
-            if ((b.GetLength(0) != m) || (b.GetLength(1) != n)) throw new RankException(
+            int m = matrix1.GetLength(0);
+            int n = matrix1.GetLength(1);
+            if ((matrix2.GetLength(0) != m) || (matrix2.GetLength(1) != n)) throw new RankException(
                 "Cannot add arrays with different length");
             var c = new double[m, n];
             for (int i = 0; i < m; ++i)
             {
-                for (int j = 0; j < 0; ++j)
+                for (int j = 0; j < n; ++j)
                 {
-                    c[i, j] = a[i, j] + b[i, j];
+                    c[i, j] = scalar1 * matrix1[i, j] + scalar2 * matrix2[i, j];
                 }
             }
             return c;
@@ -60,6 +60,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
                 for (int j = 0; j < n; ++j)
                 {
                     result[i] += matrix[i, j] * vector[j];
+                }
+            }
+            return result;
+        }
+
+        public static double[,] MatrixTimesMatrix(double[,] leftMatrix, double[,] rightMatrix)
+        {
+            if (leftMatrix.GetLength(1) != rightMatrix.GetLength(0)) throw new ArgumentException("Invalid dimensions");
+            double[,] result = new double[leftMatrix.GetLength(0), rightMatrix.GetLength(1)];
+            for (int i = 0; i < leftMatrix.GetLength(0); ++i)
+            {
+                for (int j = 0; j < rightMatrix.GetLength(1); ++j)
+                {
+                    double sum = 0.0;
+                    for (int k = 0; k < leftMatrix.GetLength(1); ++k)
+                    {
+                        sum += leftMatrix[i, k] * rightMatrix[k, j];
+                    }
+                    result[i, j] = sum;
                 }
             }
             return result;
@@ -94,25 +113,42 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         public static double[] Scale(double scalar, double[] vector)
         {
             int n = vector.Length;
+            double[] scaled = new double[n];
             for (int i = 0; i < n; ++i)
             {
-                vector[i] *= scalar;
+                scaled[i] = scalar * vector[i];
             }
-            return vector;
+            return scaled;
         }
 
         public static double[,] Scale(double scalar, double[,] matrix)
         {
             int m = matrix.GetLength(0);
             int n = matrix.GetLength(1);
+            double[,] scaled = new double[m, n];
             for (int i = 0; i < m; ++i)
             {
-                for (int j = 0; j < 0; ++j)
+                for (int j = 0; j < n; ++j)
                 {
-                    matrix[i, j] *= scalar;
+                    scaled[i,j] = scalar * matrix[i, j];
                 }
             }
-            return matrix;
+            return scaled;
+        }
+
+        public static double[,] Transpose(double[,] matrix)
+        {
+            int m = matrix.GetLength(0);
+            int n = matrix.GetLength(1);
+            double[,] transpose = new double[n, m];
+            for (int i = 0; i < m; ++i)
+            {
+                for (int j = 0; j < n; ++j)
+                {
+                    transpose[j, i] = matrix[i, j];
+                }
+            }
+            return transpose;
         }
     }
 }

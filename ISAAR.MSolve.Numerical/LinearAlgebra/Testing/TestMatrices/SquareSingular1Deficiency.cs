@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = MatrixMKL.CreateFromArray(matrix);
             var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(false, x);
+            VectorMKL b = A.MultiplyRight(x, false);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
         public static void CheckSystemSolution()

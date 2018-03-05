@@ -146,9 +146,11 @@
     <Compile Include="LinearAlgebra\Matrices\SquareMatrixMKL.cs" />
     <Compile Include="LinearAlgebra\Testing\BLASlvl1Tests.cs" />
     <Compile Include="LinearAlgebra\Testing\ComputeNETexample.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\DenseMatrices.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\DenseVectors.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\LowerInvertible.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\LowerSingular.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\Rectangular.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareInvertible.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular1Deficiency.cs" />

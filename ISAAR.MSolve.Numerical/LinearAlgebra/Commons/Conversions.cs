@@ -52,11 +52,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             int numRows = array2D.GetLength(0);
             int numColumns = array2D.GetLength(1);
             double[] array1D = new double[numRows * numColumns];
-            for (int j = 0; j < numColumns; ++j)
+            int idxCounter = -1;
+            for (int j = 0; j < numColumns; ++j) //The order of loops is important
             {
                 for (int i = 0; i < numRows; ++i)
                 {
-                    array1D[j * numRows + i] = array2D[i, j];
+                    array1D[++idxCounter] = array2D[i, j];
                 }
             }
             return array1D;
@@ -161,9 +162,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
         {
             double[] rowMajor = new double[numRows * numCols];
             int idxCounter = -1;
-            for (int j = 0; j < numCols; ++j)
+            for (int i = 0; i < numRows; ++i) // The order of loops is important
             {
-                for (int i = 0; i < numRows; ++i)
+                for (int j = 0; j < numCols; ++j)
                 {
                     rowMajor[++idxCounter] = colMajor[j * numRows + i];
                 }

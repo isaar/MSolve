@@ -62,14 +62,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         }
 
         //Temporary, till I fix inheritence
-        public static void CheckMultiplicationDimensions(MatrixMKL leftMatrix, MatrixMKL rightMatrix, bool transposeLeft = false)
+        public static void CheckMultiplicationDimensions(MatrixMKL leftMatrix, MatrixMKL rightMatrix)
         {
-            int k = transposeLeft ? leftMatrix.NumRows : leftMatrix.NumColumns;
-            if (k != rightMatrix.NumRows)
+            if (leftMatrix.NumColumns != rightMatrix.NumRows)
             {
-                int m = transposeLeft ? leftMatrix.NumColumns : leftMatrix.NumRows;
-                string message = $"Left matrix has dimensions ({m}x{k}), while right matrix has dimensions " +
-                    $"({rightMatrix.NumRows}x{rightMatrix.NumColumns})";
+                string message = $"Left matrix has dimensions ({leftMatrix.NumRows}x{leftMatrix.NumColumns}),"
+                    + $" while right matrix has dimensions ({rightMatrix.NumRows}x{rightMatrix.NumColumns})";
+                throw new NonMatchingDimensionsException(message);
+            }
+        }
+
+        public static void CheckMultiplicationDimensions(int leftColumns, int rightRows)
+        {
+            if (leftColumns != rightRows)
+            {
+                string message = $"Left matrix has {leftColumns} columns, while right matrix has {rightRows} rows";
                 throw new NonMatchingDimensionsException(message);
             }
         }

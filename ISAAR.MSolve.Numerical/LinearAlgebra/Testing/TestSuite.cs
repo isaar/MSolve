@@ -17,6 +17,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestFactorization();
             //TestSystemSolution();
             //TestVectorOperations();
+            //TestMatrixOperations();
             //TestPrinting();
         }
 
@@ -47,6 +48,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestMatrixVectorMultiplication()
         {
+            Rectangular.CheckMatrixVectorMult();
             SquareInvertible.CheckMatrixVectorMult();
             SquareSingular.CheckMatrixVectorMult();
             SquareSingular1Deficiency.CheckMatrixVectorMult();
@@ -81,6 +83,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             DenseVectors.CheckNorm2();
             DenseVectors.CheckScaling();
             DenseVectors.CheckSubtraction();
+        }
+
+        public static void TestMatrixOperations()
+        {
+            DenseMatrices.CheckScaling();
+            DenseMatrices.CheckAddition();
+            DenseMatrices.CheckSubtraction();
+            DenseMatrices.CheckLinearCombination();
+            DenseMatrices.CheckTransposition();
+            DenseMatrices.CheckMatrixMultiplication();
         }
 
     }

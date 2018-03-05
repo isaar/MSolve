@@ -139,12 +139,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public static VectorMKL operator *(MatrixMKL matrixLeft, VectorMKL vectorRight)
         {
-            return matrixLeft.MultiplyRight(false, vectorRight);
+            return matrixLeft.MultiplyRight(vectorRight, false);
         }
 
         public static MatrixMKL operator *(MatrixMKL matrixLeft, MatrixMKL matrixRight)
         {
-            return matrixLeft.MultiplyRight(false, matrixRight);
+            return matrixLeft.MultiplyRight(matrixRight, false, false);
         }
         #endregion
 
@@ -225,17 +225,33 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <summary>
         /// Matrix-vector multiplication, with the vector on the right: matrix * vector or transpose(matrix) * vector.
         /// </summary>
+        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
-        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(bool transposeThis, VectorMKL vector)
+        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
         {
-            Preconditions.CheckMultiplicationDimensions(this, vector, transposeThis);
-            double[] result = new double[NumRows];
-            CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
+            int leftRows, leftCols;
+            CBLAS_TRANSPOSE transpose;
+            if (transposeThis)
+            {
+                transpose = CBLAS_TRANSPOSE.CblasTrans;
+                leftRows = NumColumns;
+                leftCols = NumRows;
+            }
+            else
+            {
+                transpose = CBLAS_TRANSPOSE.CblasNoTrans;
+                leftRows = NumRows;
+                leftCols = NumColumns;
+            }
+
+            Preconditions.CheckMultiplicationDimensions(leftCols, vector.Length);
+            double[] result = new double[leftRows];
             CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
-                1.0, ref data[0], NumRows, ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
+                1.0, ref data[0], NumRows, 
+                ref vector.InternalData[0], 1, 
+                0.0, ref result[0], 1);
             return VectorMKL.CreateFromArray(result, false);
         }
 
@@ -243,20 +259,49 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// Matrix-matrix multiplication, with the other matrix on the right: this [m x k] * other [k x n] 
         /// or transpose(this [k x m]) * other [k x n].
         /// </summary>
+        /// <param name="other">A matrix with as many rows as the column of this matrix.</param>
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
-        /// <param name="other">A matrix with as many rows as the column of this matrix.</param>
+        /// <param name="transposeOther">Set to true to transpose other (the right matrix). Unless the transpose matrix is used in 
+        ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <returns>A matrix with dimensions (m x n)</returns>
-        public MatrixMKL MultiplyRight(bool transposeThis, MatrixMKL other)
+        public MatrixMKL MultiplyRight(MatrixMKL other, bool transposeThis = false, bool transposeOther = false)
         {
-            Preconditions.CheckMultiplicationDimensions(this, other, transposeThis);
-            double[] result = new double[this.NumRows * other.NumColumns];
-            CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
-            CBlas.Dgemm(CBLAS_LAYOUT.CblasColMajor, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_TRANSPOSE.CblasNoTrans,
-                this.NumRows, other.NumColumns, this.NumColumns,
-                1.0, ref this.data[0], this.NumRows, ref other.data[0], other.NumRows,
-                1.0, ref result[0], this.NumRows);
-            return new MatrixMKL(result, this.NumRows, other.NumColumns);
+            int leftRows, leftCols, rightRows, rightCols;
+            CBLAS_TRANSPOSE transposeLeft, transposeRight;
+            if (transposeThis)
+            {
+                transposeLeft = CBLAS_TRANSPOSE.CblasTrans;
+                leftRows = this.NumColumns;
+                leftCols = this.NumRows;
+            }
+            else
+            {
+                transposeLeft = CBLAS_TRANSPOSE.CblasNoTrans;
+                leftRows = this.NumRows;
+                leftCols = this.NumColumns;
+            }
+            if (transposeOther)
+            {
+                transposeRight = CBLAS_TRANSPOSE.CblasTrans;
+                rightRows = other.NumColumns;
+                rightCols = other.NumRows;
+            }
+            else
+            {
+                transposeRight = CBLAS_TRANSPOSE.CblasNoTrans;
+                rightRows = other.NumRows;
+                rightCols = other.NumColumns;
+            }
+
+            Preconditions.CheckMultiplicationDimensions(leftCols, rightRows);
+            double[] result = new double[leftRows * rightCols];
+            CBlas.Dgemm(CBLAS_LAYOUT.CblasColMajor, transposeLeft, transposeRight,
+                leftRows, rightCols, leftCols,
+                1.0, ref this.data[0], this.NumRows, 
+                ref other.data[0], other.NumRows,
+                1.0, ref result[0], leftRows);
+            return new MatrixMKL(result, leftRows, rightCols);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -368,7 +413,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             Console.Write(format.RowEnd);
 
             // Subsequent rows
-            for (int i = 0; i < NumRows; ++i)
+            for (int i = 1; i < NumRows; ++i)
             {
                 Console.Write(format.RowSeparator + format.RowStart);
                 Console.Write(data[i]);
@@ -408,7 +453,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 writer.Write(format.RowEnd);
 
                 // Subsequent rows
-                for (int i = 0; i < NumRows; ++i)
+                for (int i = 1; i < NumRows; ++i)
                 {
                     writer.Write(format.RowSeparator + format.RowStart);
                     writer.Write(data[i]);
