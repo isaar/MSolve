@@ -13,9 +13,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         public static void TestAll()
         {
             //TestIndexing();
-            TestMatrixVectorMultiplication();
-            //TestFactorization();
-            //TestSystemSolution();
+            //TestMatrixVectorMultiplication();
+            TestFactorization();
+            TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
             //TestPrinting();
@@ -23,11 +23,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestFactorization()
         {
-            //SquareInvertible.CheckFactorization();
-            //SquareSingular.CheckFactorization();
-            //SquareSingular1Deficiency.CheckFactorization();
-            SymmPositiveDefinite.CheckFactorization();
-            SymmSingular.CheckFactorization();
+            SquareInvertible.CheckFactorization();
+            SquareSingular.CheckFactorization();
+            SquareSingular1Deficiency.CheckFactorization();
+            //SymmPositiveDefinite.CheckFactorization();
+            //SymmSingular.CheckFactorization();
         }
 
         public static void TestIndexing()
@@ -65,12 +65,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             SquareInvertible.CheckSystemSolution();
             SquareSingular.CheckSystemSolution();
             SquareSingular1Deficiency.CheckSystemSolution();
-            LowerInvertible.CheckSystemSolution();
-            LowerSingular.CheckSystemSolution();
-            UpperInvertible.CheckSystemSolution();
-            UpperSingular.CheckSystemSolution();
-            SymmPositiveDefinite.CheckSystemSolution();
-            SymmSingular.CheckSystemSolution();
+            //LowerInvertible.CheckSystemSolution();
+            //LowerSingular.CheckSystemSolution();
+            //UpperInvertible.CheckSystemSolution();
+            //UpperSingular.CheckSystemSolution();
+            //SymmPositiveDefinite.CheckSystemSolution();
+            //SymmSingular.CheckSystemSolution();
         }
 
         public static void TestVectorOperations()

@@ -187,10 +187,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Conversions.PackedUpperColMajorToArray2D(data, Order);
         }
 
-        public SquareMatrixMKL CopyToGeneralMatrix()
+        public MatrixMKL CopyToGeneralMatrix()
         {
             double[] fullData = Conversions.PackedUpperColMajorToFullSymmColMajor(data, Order);
-            return SquareMatrixMKL.CreateFromArray(fullData, Order, false);
+            return MatrixMKL.CreateFromArray(fullData, Order, Order, false);
         }
 
         /// <summary>

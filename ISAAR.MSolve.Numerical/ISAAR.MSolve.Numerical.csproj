@@ -143,7 +143,6 @@
     <Compile Include="LinearAlgebra\ShortcutOperations.cs" />
     <Compile Include="LinearAlgebra\SkylineMatrix2D.cs" />
     <Compile Include="LinearAlgebra\SquareDenseMatrix.cs" />
-    <Compile Include="LinearAlgebra\Matrices\SquareMatrixMKL.cs" />
     <Compile Include="LinearAlgebra\Testing\BLASlvl1Tests.cs" />
     <Compile Include="LinearAlgebra\Testing\ComputeNETexample.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\DenseMatrices.cs" />

@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
+using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -26,6 +28,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             this.NumRows = numRows;
             this.NumColumns = numColumns;
         }
+
+        public bool IsSquare { get { return NumRows == NumColumns; } }
 
         /// <summary>
         /// The number of columns of the matrix. 
@@ -121,31 +125,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new MatrixMKL(data, numRows, numColumns);
         }
 
-        #region operators 
-        public static MatrixMKL operator +(MatrixMKL matrix1, MatrixMKL matrix2)
-        {
-            return matrix1.Axpy(1.0, matrix2);
-        }
-
-        public static MatrixMKL operator -(MatrixMKL matrix1, MatrixMKL matrix2)
-        {
-            return matrix1.Axpy(-1.0, matrix2); //The order is important
-        }
-
-        public static MatrixMKL operator *(double scalar, MatrixMKL matrix)
-        {
-            return matrix.Scale(scalar);
-        }
-
-        public static VectorMKL operator *(MatrixMKL matrixLeft, VectorMKL vectorRight)
-        {
-            return matrixLeft.MultiplyRight(vectorRight, false);
-        }
-
+        #region operators (use extension operators when the become available)
+        public static MatrixMKL operator +(MatrixMKL matrix1, MatrixMKL matrix2) 
+            => matrix1.Axpy(1.0, matrix2);
+        public static MatrixMKL operator -(MatrixMKL matrix1, MatrixMKL matrix2) 
+            => matrix1.Axpy(-1.0, matrix2);
+        public static MatrixMKL operator *(double scalar, MatrixMKL matrix) 
+            => matrix.Scale(scalar);
+        public static VectorMKL operator *(MatrixMKL matrixLeft, VectorMKL vectorRight) 
+            => matrixLeft.MultiplyRight(vectorRight, false);
         public static MatrixMKL operator *(MatrixMKL matrixLeft, MatrixMKL matrixRight)
-        {
-            return matrixLeft.MultiplyRight(matrixRight, false, false);
-        }
+            => matrixLeft.MultiplyRight(matrixRight, false, false);
         #endregion
 
         /// <summary>
@@ -175,6 +165,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
         }
 
+        public double CalcDeterminant()
+        {
+            return FactorLU().CalcDeterminant();
+        }
+
         /// <summary>
         /// Copy the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
         /// and length(1) = <see cref="NumColumns"/>. 
@@ -196,6 +191,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 if (!comparer.AreEqual(this.data[i], other.data[i])) return false;
             }
             return true;
+        }
+
+        public LUFactorizationMKL FactorLU()
+        {
+            if (IsSquare) return LUFactorizationMKL.CalcFactorization(NumRows, data);
+            else throw new NonMatchingDimensionsException("Cannot apply LU factorization to a rectangular matrix.");
+        }
+
+        public MatrixMKL Invert()
+        {
+            return FactorLU().InvertInPlace();
         }
 
         /// <summary>

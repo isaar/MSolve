@@ -18,25 +18,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
     /// </summary>
     public class LUFactorizationMKL: IFactorizationMKL
     {
-        private readonly double[] lu;
-        private readonly int[] p;
+        // Perhaps a smaller tolerance is appropriate, since the "almost zero" will propagate during back & forward substitution.
+        private const double PivotTolerance = 1e-13;
+
+        private readonly double[] lowerUpper;
+        private readonly int[] permutation;
         private readonly int firstZeroPivot;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="order"></param>
-        /// <param name="lowerUpper"></param>
-        /// <param name="permutation"></param>
-        /// <param name="firstZeroPivot">Will be negative if the matrix is invertible.</param>
-        internal LUFactorizationMKL(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot)
+        private LUFactorizationMKL(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot, bool isSingular)
         {
             this.Order = order;
-            this.lu = lowerUpper;
-            this.p = permutation;
+            this.lowerUpper = lowerUpper;
+            this.permutation = permutation;
             this.firstZeroPivot = firstZeroPivot;
-            if (firstZeroPivot < 0) this.IsSingular = false;
-            else this.IsSingular = true;
+            this.IsSingular = isSingular;
         }
 
         public bool IsSingular { get; }
@@ -45,6 +40,54 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// The number of rows or columns of the matrix. 
         /// </summary>
         public int Order { get; }
+
+        /// <summary>
+        /// Calculates the LUP factorization of a square matrix, such that A = P * L * U. Requires an extra O(n^2 + n) 
+        /// available memory.
+        /// </summary>
+        /// <param name="order">The number of rows/columns of the square matrix.</param>
+        /// <param name="originalColMajorMatrix">The internal buffer stroring the matrix entries in column major order. It will 
+        ///     be copied and not altered, thus you should not copy it yourself.</param>
+        /// <param name="pivotTolerance"></param>
+        /// <returns></returns>
+        public static LUFactorizationMKL CalcFactorization(int order, double[] originalColMajorMatrix, 
+            double pivotTolerance = LUFactorizationMKL.PivotTolerance)
+        {
+            // Copy matrix. This may exceed available memory and needs an extra O(n^2) accesses. 
+            // To avoid these, use the ~InPlace version.
+            double[] lowerUpper = new double[originalColMajorMatrix.Length];
+            Array.Copy(originalColMajorMatrix, lowerUpper, originalColMajorMatrix.Length);
+
+            // Call MKL
+            int[] permutation = new int[order];
+            int info = MKLUtilities.DefaultInfo;
+            Lapack.Dgetrf(ref order, ref order, ref lowerUpper[0], ref order, ref permutation[0], ref info);
+
+            // Check MKL execution
+            if (info == MKLUtilities.DefaultInfo)
+            {
+                // first check the default info value, since it lies in the other intervals.
+                // info == dafeult => the MKL call did not succeed. 
+                // info > 0 should not be returned at all by MKL, but it is here for completion.
+                throw new MKLException("Something went wrong with the MKL call."
+                    + " Please contact the developer responsible for the linear algebra project.");
+            }
+            else if (info < 0)
+            {
+                string msg = string.Format("The {0}th parameter has an illegal value.", -info)
+                    + " Please contact the developer responsible for the linear algebra project.";
+                throw new MKLException(msg);
+            }
+
+            int firstZeroPivot = int.MinValue;
+            if (info > 0) firstZeroPivot = info - 1;
+            else if (Math.Abs(lowerUpper[order * order - 1]) <= pivotTolerance)
+            {
+                // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
+                firstZeroPivot = order - 1;
+            }
+            return new LUFactorizationMKL(order, lowerUpper, permutation, firstZeroPivot, (firstZeroPivot >= 0));
+        }
 
         /// <summary>
         /// Calculates the determinant of the original matrix. det(A) = det(L*U) = det(L)*det(U). 
@@ -60,18 +103,38 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 double det = 1.0;
                 for (int i = 0; i < Order; ++i)
                 {
-                    det *= lu[i * Order + i];
+                    det *= lowerUpper[i * Order + i];
                 }
                 return det;
             }
         }
 
         // Explicitly composes and returns the L and U matrices. TODO: 1) Use matrix classes instead of arrays, 2) Also return P
-        public (SquareMatrixMKL lower, SquareMatrixMKL upper) Expand()
+        public (MatrixMKL lower, MatrixMKL upper) Expand()
         {
-            double[] l = Conversions.FullColMajorToFullLowerColMajor(lu, true);
-            double[] u = Conversions.FullColMajorToFullUpperColMajor(lu, false);
-            return (SquareMatrixMKL.CreateFromArray(l, Order, false), SquareMatrixMKL.CreateFromArray(u, Order, false));
+            double[] l = Conversions.FullColMajorToFullLowerColMajor(lowerUpper, true);
+            double[] u = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, false);
+            return (MatrixMKL.CreateFromArray(l, Order, Order, false), MatrixMKL.CreateFromArray(u, Order, Order, false));
+        }
+
+        /// <summary>
+        /// Inverts the original matrix. The inverse is stored in a different buffer than the factorized matrix.
+        /// </summary>
+        /// <returns></returns>
+        public MatrixMKL Invert()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Inverts the original matrix without creating a new buffer. The inverse is replaces the factorized matrix. Therefore 
+        /// this object should not be used again.
+        /// </summary>
+        /// <returns></returns>
+        public MatrixMKL InvertInPlace()
+        {
+            // would be cool if I could set the data structures to 0
+            throw new NotImplementedException();
         }
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)
@@ -90,7 +153,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             int info = MKLUtilities.DefaultInfo;
             int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int ldb = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dgetrs("N", ref n, ref nRhs, ref lu[0], ref n, ref p[0], ref b[0], ref ldb, ref info);
+            Lapack.Dgetrs("N", ref n, ref nRhs, ref lowerUpper[0], ref n, ref permutation[0], ref b[0], ref ldb, ref info);
 
             // Check MKL execution
             if ((info == MKLUtilities.DefaultInfo) || (info > 0)) 
@@ -109,6 +172,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             }
 
             return VectorMKL.CreateFromArray(b, false);
-        }
+        } 
     }
 }
