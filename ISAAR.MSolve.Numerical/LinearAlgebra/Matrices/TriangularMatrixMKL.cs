@@ -189,7 +189,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <returns></returns>
         public VectorMKL MultiplyRight(VectorMKL vector)
         {
-            Preconditions.CheckMultiplicationDimensions(this, vector);
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = vector.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpmv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,

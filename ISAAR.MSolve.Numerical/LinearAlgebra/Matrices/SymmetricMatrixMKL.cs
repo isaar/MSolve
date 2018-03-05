@@ -200,7 +200,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <returns></returns>
         public VectorMKL MultiplyRight(VectorMKL vector)
         {
-            Preconditions.CheckMultiplicationDimensions(this, vector);
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = new double[NumRows];
             CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
                 1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);

@@ -5,7 +5,6 @@ using System.Text;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    // Perhaps this can be replaced with the built-in RankException
     class NonMatchingDimensionsException: Exception
     {
         public NonMatchingDimensionsException()

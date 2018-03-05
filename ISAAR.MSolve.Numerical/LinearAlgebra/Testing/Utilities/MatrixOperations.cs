@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.Exceptions;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 {
@@ -11,7 +12,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         public static double[] LinearCombination(double scalar1, double[] vector1, double scalar2, double[] vector2)
         {
             int n = vector1.Length;
-            if (vector2.Length != n) throw new RankException("Cannot add arrays with different length");
+            if (vector2.Length != n) throw new NonMatchingDimensionsException("Cannot add arrays with different length");
             var c = new double[n];
             for (int i = 0; i < n; ++i)
             {
@@ -24,7 +25,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         {
             int m = matrix1.GetLength(0);
             int n = matrix1.GetLength(1);
-            if ((matrix2.GetLength(0) != m) || (matrix2.GetLength(1) != n)) throw new RankException(
+            if ((matrix2.GetLength(0) != m) || (matrix2.GetLength(1) != n)) throw new NonMatchingDimensionsException(
                 "Cannot add arrays with different length");
             var c = new double[m, n];
             for (int i = 0; i < m; ++i)
@@ -40,7 +41,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         public static double DotProduct(double[] a, double[] b)
         {
             int n = a.Length;
-            if (b.Length != n) throw new RankException("Cannot add arrays with different length");
+            if (b.Length != n) throw new NonMatchingDimensionsException("Cannot add arrays with different length");
             double sum = 0.0;
             for (int i = 0; i < n; ++i)
             {
@@ -53,7 +54,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
         {
             int m = matrix.GetLength(0);
             int n = matrix.GetLength(1);
-            if (vector.Length != n) throw new ArgumentException("Invalid dimensions");
+            if (vector.Length != n) throw new NonMatchingDimensionsException("Invalid dimensions");
             double[] result = new double[m];
             for (int i = 0; i < m; ++i)
             {
@@ -67,7 +68,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 
         public static double[,] MatrixTimesMatrix(double[,] leftMatrix, double[,] rightMatrix)
         {
-            if (leftMatrix.GetLength(1) != rightMatrix.GetLength(0)) throw new ArgumentException("Invalid dimensions");
+            if (leftMatrix.GetLength(1) != rightMatrix.GetLength(0))
+                throw new NonMatchingDimensionsException("Invalid dimensions");
             double[,] result = new double[leftMatrix.GetLength(0), rightMatrix.GetLength(1)];
             for (int i = 0; i < leftMatrix.GetLength(0); ++i)
             {
