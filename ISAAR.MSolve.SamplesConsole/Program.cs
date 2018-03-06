@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.SamplesConsole
             SolverSkyline solver = new SolverSkyline(linearSystems[1]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
             LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystems, 0.5, 0.25, 0.01, 0.1);
+            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystems, 0.25, 0.5, 0.01, 0.1);
 
             analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 420 });
 
@@ -63,7 +63,8 @@ namespace ISAAR.MSolve.SamplesConsole
 
         static void Main(string[] args)
         {
-            SolveBuildingInNoSoilSmall();
+            //SolveBuildingInNoSoilSmall();
+            TrussExample.Run();
         }
     }
 }
