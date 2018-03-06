@@ -14,7 +14,8 @@ namespace ISAAR.MSolve.FEM.Elements
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[6] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private readonly IFiniteElementMaterial material;
+        private readonly double youngModulus;
+        private readonly double poissonRatio;
         private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private const int hostDofsPerNode = 3;
         private const int embeddedDofsPerNode = 6;
@@ -38,13 +39,14 @@ namespace ISAAR.MSolve.FEM.Elements
         public double MomentOfInertiaPolar { get; set; }
         public IList<EmbeddedNode> EmbeddedNodes { get { return embeddedNodes; } }
 
-        public Beam3D(IFiniteElementMaterial material)
+        public Beam3D(double youngModulus, double poissonRatio)
         {
-            this.material = material;
+            this.youngModulus = youngModulus;
+            this.poissonRatio = poissonRatio;
         }
 
-        public Beam3D(IFiniteElementMaterial material, Node[] rot1Nodes, Node[] rot2Nodes)
-            : this(material)
+        public Beam3D(double youngModulus, double poissonRatio, Node[] rot1Nodes, Node[] rot2Nodes)
+            : this(youngModulus, poissonRatio)
         {
             if (rot1Nodes != null && rot1Nodes.Length != 4)
                 throw new ArgumentException("Dependent nodes quantity for rotation1 has to be four.");
@@ -56,13 +58,13 @@ namespace ISAAR.MSolve.FEM.Elements
             InitializeDOFsWhenNoRotations();
         }
 
-        public Beam3D(IFiniteElementMaterial material, IFiniteElementDOFEnumerator dofEnumerator) : this(material)
+        public Beam3D(double youngModulus, double poissonRatio, IFiniteElementDOFEnumerator dofEnumerator) : this(youngModulus, poissonRatio)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public Beam3D(IFiniteElementMaterial material, Node[] rot1Nodes, Node[] rot2Nodes, IFiniteElementDOFEnumerator dofEnumerator)
-            : this(material, rot1Nodes, rot2Nodes)
+        public Beam3D(double youngModulus, double poissonRatio, Node[] rot1Nodes, Node[] rot2Nodes, IFiniteElementDOFEnumerator dofEnumerator)
+            : this(youngModulus, poissonRatio, rot1Nodes, rot2Nodes)
         {
             this.dofEnumerator = dofEnumerator;
         }
@@ -78,21 +80,21 @@ namespace ISAAR.MSolve.FEM.Elements
             if (rotNodes[0] == null && rotNodes[1] == null) return;
 
             DOFType[] translationalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.Z };
-            dofsWhenNoRotations = new DOFType[][] { translationalDOFTypes, translationalDOFTypes, 
-                translationalDOFTypes, translationalDOFTypes, translationalDOFTypes, translationalDOFTypes, 
+            dofsWhenNoRotations = new DOFType[][] { translationalDOFTypes, translationalDOFTypes,
+                translationalDOFTypes, translationalDOFTypes, translationalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes, translationalDOFTypes };
             noOfDOFs = 30;
 
             if (rotNodes[0] == null)
             {
-                dofsWhenNoRotations = new DOFType[][] { nodalDOFTypes, translationalDOFTypes, translationalDOFTypes, 
+                dofsWhenNoRotations = new DOFType[][] { nodalDOFTypes, translationalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes };
                 noOfDOFs = 21;
             }
 
             if (rotNodes[1] == null)
             {
-                dofsWhenNoRotations = new DOFType[][] { translationalDOFTypes, nodalDOFTypes, translationalDOFTypes, 
+                dofsWhenNoRotations = new DOFType[][] { translationalDOFTypes, nodalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes };
                 noOfDOFs = 21;
             }
@@ -335,8 +337,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     //if (embeddedNodes.Where(x => x.Node == node).FirstOrDefault() != null)
                     //{
-                        //d.Add(node, uniqueDOFTypes);
-                        //l.Add(new Tuple<Node, IList<DOFType>>(node, uniqueDOFTypes));
+                    //d.Add(node, uniqueDOFTypes);
+                    //l.Add(new Tuple<Node, IList<DOFType>>(node, uniqueDOFTypes));
                     //}
                     if (!d.ContainsKey(node))
                         d.Add(node, uniqueDOFTypes);
@@ -402,7 +404,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private IMatrix2D StiffnessMatrixPure(Element element)
         {
-            var m = (material as IFiniteElementMaterial3D);
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
             double z2 = Math.Pow(element.Nodes[1].Z - element.Nodes[0].Z, 2);
@@ -410,10 +411,10 @@ namespace ISAAR.MSolve.FEM.Elements
             double L2 = L * L;
             double L3 = L2 * L;
             //double EIx = m.YoungModulus * MomentOfInertiaX;
-            double EIy = m.YoungModulus * MomentOfInertiaY;
-            double EIz = m.YoungModulus * MomentOfInertiaZ;
-            double GJL = m.YoungModulus * L * MomentOfInertiaPolar / (2 * (1 + m.PoissonRatio));
-            double EAL = m.YoungModulus * SectionArea * L;
+            double EIy = this.youngModulus * MomentOfInertiaY;
+            double EIz = this.youngModulus * MomentOfInertiaZ;
+            double GJL = this.youngModulus * L * MomentOfInertiaPolar / (2 * (1 + this.poissonRatio));
+            double EAL = this.youngModulus * SectionArea * L;
             var stiffnessMatrix = new SymmetricMatrix2D(new double[] { EAL, 0, 0, 0, 0, 0, -EAL, 0, 0, 0, 0, 0,
                 12*EIz*L3, 0, 0, 0, 6*EIz*L2, 0, -12*EIz*L3, 0, 0, 0, 6*EIz*L2,
                 12*EIy*L3, 0, -6*EIy*L2, 0, 0, 0, -12*EIy*L3, 0, -6*EIy*L2, 0,
@@ -421,7 +422,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 4*EIy*L, 0, 0, 0, 6*EIy*L2, 0, 2*EIy*L, 0,
                 4*EIz*L, 0, -6*EIz*L2, 0, 0, 0, 2*EIz*L,
                 EAL, 0, 0, 0, 0, 0,
-                12*EIz*L3, 0, 0, 0, -6*EIz*L2, 
+                12*EIz*L3, 0, 0, 0, -6*EIz*L2,
                 12*EIy*L3, 0, 6*EIy*L2, 0,
                 GJL, 0, 0,
                 4*EIy*L, 0,
@@ -433,7 +434,7 @@ namespace ISAAR.MSolve.FEM.Elements
             beamTransformation[0, 0] = (element.Nodes[1].X - element.Nodes[0].X) * L;
             beamTransformation[0, 1] = (element.Nodes[1].Y - element.Nodes[0].Y) * L;
             beamTransformation[0, 2] = (element.Nodes[1].Z - element.Nodes[0].Z) * L;
-    
+
             //beamTransformation[2, 0] = refx[0];
             //beamTransformation[2, 1] = refx[1];
             //beamTransformation[2, 2] = refx[2];
@@ -451,13 +452,13 @@ namespace ISAAR.MSolve.FEM.Elements
             beamTransformation[2, 0] = beamTransformation[0, 1] * beamTransformation[1, 2] - beamTransformation[0, 2] * beamTransformation[1, 1];
             beamTransformation[2, 1] = beamTransformation[0, 2] * beamTransformation[1, 0] - beamTransformation[0, 0] * beamTransformation[1, 2];
             beamTransformation[2, 2] = beamTransformation[0, 0] * beamTransformation[1, 1] - beamTransformation[0, 1] * beamTransformation[1, 0];
- 
+
             for (int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
                 {
                     beamTransformation[i + 3, j + 3] = beamTransformation[i, j];
                     beamTransformation[i + 6, j + 6] = beamTransformation[i, j];
-                    beamTransformation[i + 9, j + 9] = beamTransformation[i, j];      
+                    beamTransformation[i + 9, j + 9] = beamTransformation[i, j];
                 }
 
             return new SymmetricMatrix2D(beamTransformation.Transpose() * stiffnessMatrix.ToMatrix2D() * beamTransformation);
@@ -578,7 +579,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0,
                 halfMass, 0, 0, 0, 0, 0,
-                halfMass, 0, 0, 0, 0, 
+                halfMass, 0, 0, 0, 0,
                 halfMass, 0, 0, 0,
                 0, 0, 0,
                 0, 0,
@@ -681,12 +682,11 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public bool MaterialModified
         {
-            get { return material.Modified; }
+            get { return false; }
         }
 
         public void ResetMaterialModified()
         {
-            material.ResetModified();
         }
 
         public void ClearMaterialStresses()
@@ -719,9 +719,9 @@ namespace ISAAR.MSolve.FEM.Elements
             if (index >= 2)
                 throw new ArgumentException(String.Format("GetInternalNodalDOFs: Node {0} not found in element {1}.", node.ID, element.ID));
 
-            return index == 0 ? new Dictionary<DOFType, int>() { 
+            return index == 0 ? new Dictionary<DOFType, int>() {
                 { DOFType.X, 0 }, { DOFType.Y, 1 }, { DOFType.Z, 2 }, { DOFType.RotX, 3 }, { DOFType.RotY, 4 }, { DOFType.RotZ, 5 } } :
-                new Dictionary<DOFType, int>() { 
+                new Dictionary<DOFType, int>() {
                 { DOFType.X, 6 }, { DOFType.Y, 7 }, { DOFType.Z, 8 }, { DOFType.RotX, 9 }, { DOFType.RotY, 10 }, { DOFType.RotZ, 11 } };
         }
 
