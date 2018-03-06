@@ -13,6 +13,8 @@ namespace ISAAR.MSolve.FEM.Interfaces
         void SaveState();
         void ClearStresses();
         IFiberMaterial Clone(IFiberFiniteElementMaterial parent);
+        double YoungModulus { get; set; }
+        double PoissonRatio { get; set; } //It might be useless
         //double YoungModulusElastic { get; set; }
     }
 }

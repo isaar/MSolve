@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.Pore };
         private readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected IFiniteElementMaterial3D[] materialsAtGaussPoints;
+        protected IIsotropicFiniteElementMaterial3D[] materialsAtGaussPoints;
         protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         #region Fortran imports
@@ -97,14 +97,14 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public Hexa8u8p(IFiniteElementMaterial3D material)
+        public Hexa8u8p(IIsotropicFiniteElementMaterial3D material)
         {
-            materialsAtGaussPoints = new IFiniteElementMaterial3D[Hexa8u8p.iInt3];
+            materialsAtGaussPoints = new IIsotropicFiniteElementMaterial3D[Hexa8u8p.iInt3];
             for (int i = 0; i < Hexa8u8p.iInt3; i++)
-                materialsAtGaussPoints[i] = (IFiniteElementMaterial3D)material.Clone();
+                materialsAtGaussPoints[i] = (IIsotropicFiniteElementMaterial3D)material.Clone();
         }
 
-        public Hexa8u8p(IFiniteElementMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator) : this(material)
+        public Hexa8u8p(IIsotropicFiniteElementMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator) : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }

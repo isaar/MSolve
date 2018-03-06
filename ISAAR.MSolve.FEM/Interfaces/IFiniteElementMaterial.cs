@@ -10,8 +10,6 @@ namespace ISAAR.MSolve.FEM.Interfaces
         int ID { get; }
         bool Modified { get; }
         void ResetModified();
-        double YoungModulus { get; set; }
-        double PoissonRatio { get; set; }
         double[] Coordinates { get; set; }
     }
 }

@@ -20,14 +20,14 @@ namespace ISAAR.MSolve.FEM.Elements
             new double[] { -0.8611363115941, -0.3399810435849, 0.3399810435849, 0.8611363115941 } 
         };
 
-        public Hexa8u8pWithStochasticMaterial(IStochasticFiniteElementMaterial material)
+        public Hexa8u8pWithStochasticMaterial(IStochasticIsotropicFiniteElementMaterial material)
         {
-            materialsAtGaussPoints = new IFiniteElementMaterial3D[iInt3];
+            materialsAtGaussPoints = new IIsotropicFiniteElementMaterial3D[iInt3];
             for (int i = 0; i < iInt3; i++)
-                materialsAtGaussPoints[i] = (IStochasticFiniteElementMaterial)material.Clone();
+                materialsAtGaussPoints[i] = (IStochasticIsotropicFiniteElementMaterial)material.Clone();
         }
 
-        public Hexa8u8pWithStochasticMaterial(IStochasticFiniteElementMaterial material, Hexa8Memoizer memoizer)
+        public Hexa8u8pWithStochasticMaterial(IStochasticIsotropicFiniteElementMaterial material, Hexa8Memoizer memoizer)
             : base(material)
         {
             this.memoizer = memoizer;
