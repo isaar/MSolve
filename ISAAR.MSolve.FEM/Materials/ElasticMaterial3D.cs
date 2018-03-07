@@ -1,13 +1,16 @@
 ﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Interfaces;
+using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
     public class ElasticMaterial3D : IFiniteElementMaterial3D
     {
         private readonly double[] strains = new double[6];
+        private readonly double[] incrementalStrains = new double[6];
         private readonly double[] stresses = new double[6];
+        private double[] stressesNew = new double[6];
         private double[,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
@@ -37,6 +40,19 @@ namespace ISAAR.MSolve.FEM.Materials
             s.Data.CopyTo(stresses, 0);
 
             return afE;
+        }
+
+        private void CalculateNextStressStrainPoint()
+        {
+            var stressesElastic = new double[6];
+            for (int i = 0; i < 6; i++)
+            {
+                stressesElastic[i] = this.stresses[i];
+                for (int j = 0; j < 6; j++)
+                    stressesElastic[i] += this.constitutiveMatrix[i, j] * this.incrementalStrains[j];
+            }
+
+            this.stressesNew = stressesElastic;
         }
 
         #region IFiniteElementMaterial Members
@@ -70,27 +86,30 @@ namespace ISAAR.MSolve.FEM.Materials
             }
         }
 
-        public void UpdateMaterial(double[] strains)
+        public void UpdateMaterial(double[] strainsIncrement)
         {
-            //throw new NotImplementedException();
-
-            strains.CopyTo(this.strains, 0);
+            Array.Copy(strainsIncrement, this.incrementalStrains, 6);
             constitutiveMatrix = GetConstitutiveMatrix();
+            this.CalculateNextStressStrainPoint();
         }
 
         public void ClearState()
         {
-            //throw new NotImplementedException();
+            Array.Clear(constitutiveMatrix, 0, constitutiveMatrix.Length);
+            Array.Clear(incrementalStrains, 0, incrementalStrains.Length);
+            Array.Clear(stresses, 0, stresses.Length);
+            Array.Clear(stressesNew, 0, stressesNew.Length);
         }
 
         public void SaveState()
         {
-            //throw new NotImplementedException();
+            Array.Copy(this.stressesNew, this.stresses, 6);
         }
 
         public void ClearStresses()
         {
-            //throw new NotImplementedException();
+            Array.Clear(this.stresses, 0, 6);
+            Array.Clear(this.stressesNew, 0, 6);
         }
 
         #endregion
