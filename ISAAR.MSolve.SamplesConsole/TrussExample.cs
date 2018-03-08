@@ -40,7 +40,6 @@ namespace ISAAR.MSolve.SamplesConsole
             double loadY = 300;
             double sectionArea = 1.5;
 
-
             IList<Node> nodes = TrussExample.CreateNodes();
 
             Model trussModel = new Model();

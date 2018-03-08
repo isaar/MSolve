@@ -183,7 +183,6 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
 
         #endregion
 
-
         #region IFiniteElement Members
 
 

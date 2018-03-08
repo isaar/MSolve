@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.FEM.Interfaces
+namespace ISAAR.MSolve.Materials.Interfaces
 {
     public interface IStochasticIsotropicFiniteElementMaterial : IIsotropicFiniteElementMaterial3D //maybe we don't need it?? the interface members are unused
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {

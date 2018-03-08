@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ISAAR.MSolve.FEM.Interfaces
+namespace ISAAR.MSolve.Materials.Interfaces
 {
     public interface IFiberMaterial : IFiniteElementMaterial
     {

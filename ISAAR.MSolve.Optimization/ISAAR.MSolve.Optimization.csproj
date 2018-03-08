@@ -172,6 +172,10 @@
       <Project>{8CC2C512-2F07-4E6F-8E04-FC62F1B04186}</Project>
       <Name>ISAAR.MSolve.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj">
+      <Project>{9C0A357F-0F2E-403B-A5E3-A127C383589F}</Project>
+      <Name>ISAAR.MSolve.Materials</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
       <Name>ISAAR.MSolve.Numerical</Name>

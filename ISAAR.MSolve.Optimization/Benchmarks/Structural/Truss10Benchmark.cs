@@ -101,7 +101,6 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 double poissonRatio = 0.3;
                 double loadP = 100;
 
-
                 Model model = new Model();
 
                 IList<Node> nodes = new List<Node>();

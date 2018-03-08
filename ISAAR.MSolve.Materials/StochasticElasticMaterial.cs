@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+
 
 namespace ISAAR.MSolve.FEM.Materials
 {

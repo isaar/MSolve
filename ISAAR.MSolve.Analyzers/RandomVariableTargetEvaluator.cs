@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 using Troschuetz.Random;
 using Troschuetz.Random.Distributions.Continuous;
 
