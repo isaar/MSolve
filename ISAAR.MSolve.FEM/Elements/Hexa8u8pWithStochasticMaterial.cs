@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     for (int i3 = 0; i3 < iInt; i3++)
                     {
                         iPos = i1 * iInt2 + i2 * iInt + i3;
-                        var e = ((Matrix2D)((IStochasticFiniteElementMaterial)materialsAtGaussPoints[iPos]).GetConstitutiveMatrix(GetStochasticPoints(element, i1, i2, i3)));
+                        var e = ((Matrix2D)((IStochasticIsotropicFiniteElementMaterial)materialsAtGaussPoints[iPos]).GetConstitutiveMatrix(GetStochasticPoints(element, i1, i2, i3)));
                         for (int j = 0; j < 6; j++)
                             for (int k = 0; k < 6; k++)
                                 afE[iPos, j, k] = e[j, k];
