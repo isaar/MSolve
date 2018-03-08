@@ -13,7 +13,6 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.FEM.Materials;
 
 namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
 {
