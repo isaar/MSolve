@@ -14,19 +14,19 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[2] { DOFType.X, DOFType.Y };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private readonly IFiniteElementMaterial material;
+        private readonly double youngModulus;
         private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
         public double SectionArea { get; set; }
 
-        public Rod2D(IFiniteElementMaterial material)
+        public Rod2D(double youngModulus)
         {
-            this.material = material;
+            this.youngModulus = youngModulus;
         }
 
-        public Rod2D(IFiniteElementMaterial material, IFiniteElementDOFEnumerator dofEnumerator)
-            : this(material)
+        public Rod2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
+            : this(youngModulus)
         {
             this.dofEnumerator = dofEnumerator;
         }
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             double[] localStresses = new double[2]; // In local natural system there are 2 dofs
             transformation.Multiply(new Vector(globalStresses), localStresses);
             // If Stress1 = localStresses[1] > 0 => tension. Else compression
-            return localStresses[1]; 
+            return localStresses[1];
         }
 
         #region IElementType Members
@@ -100,9 +100,9 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
             double s2 = s * s;
             double cs = c * s;
-            double E = (material as ElasticMaterial).YoungModulus;
+            double E = this.youngModulus;
             double A = SectionArea;
-            
+
             return dofEnumerator.GetTransformedMatrix(
                 new Matrix2D(new double[,]
                 {
@@ -118,7 +118,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);
-            
+
             double totalMass = Density * SectionArea * L;
 
             return new Matrix2D(new double[,]
@@ -183,26 +183,17 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
 
         #endregion
 
-        #region IStructuralFiniteElement Members
-
-        public IFiniteElementMaterial Material
-        {
-            get { return material; }
-        }
-
-        #endregion
 
         #region IFiniteElement Members
 
 
         public bool MaterialModified
         {
-            get { return material.Modified; }
+            get { return false; }
         }
 
         public void ResetMaterialModified()
         {
-            material.ResetModified();
         }
 
         #endregion

@@ -101,7 +101,6 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 double poissonRatio = 0.3;
                 double loadP = 100;
 
-                ElasticMaterial material = new ElasticMaterial() { YoungModulus = youngModulus, PoissonRatio = poissonRatio };
 
                 Model model = new Model();
 
@@ -127,16 +126,16 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
 
                 IList<Element> elements = new List<Element>();
 
-                var element1 = new Element() { ID = 1, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[0] } };
-                var element2 = new Element() { ID = 2, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[1] } };
-                var element3 = new Element() { ID = 3, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[2] } };
-                var element4 = new Element() { ID = 4, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[3] } };
-                var element5 = new Element() { ID = 5, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[4] } };
-                var element6 = new Element() { ID = 6, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[5] } };
-                var element7 = new Element() { ID = 7, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[6] } };
-                var element8 = new Element() { ID = 8, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[7] } };
-                var element9 = new Element() { ID = 9, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[8] } };
-                var element10 = new Element() { ID = 10, ElementType = new Rod2D(material) { Density = 0.1, SectionArea = x[9] } };
+                var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[0] } };
+                var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[1] } };
+                var element3 = new Element() { ID = 3, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[2] } };
+                var element4 = new Element() { ID = 4, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[3] } };
+                var element5 = new Element() { ID = 5, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[4] } };
+                var element6 = new Element() { ID = 6, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[5] } };
+                var element7 = new Element() { ID = 7, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[6] } };
+                var element8 = new Element() { ID = 8, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[7] } };
+                var element9 = new Element() { ID = 9, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[8] } };
+                var element10 = new Element() { ID = 10, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[9] } };
 
                 element1.AddNode(model.NodesDictionary[3]);
                 element1.AddNode(model.NodesDictionary[5]);
