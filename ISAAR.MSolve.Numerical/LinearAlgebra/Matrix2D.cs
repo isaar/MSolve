@@ -149,6 +149,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Vector(c);
         }
 
+        public static Matrix2D operator *(Matrix2D A, double scalar)
+        {
+            Matrix2D AA = new Matrix2D(A.Rows, A.Columns);
+            for (int i = 0; i < A.Rows; i++)
+            for (int j = 0; j < A.Columns; j++)
+                AA[i, j] = A[i, j] * scalar;
+            return AA;
+        }
+
         public void SVD(double[] w, double[,] v)
         {
             //      double precision a(nm,n),w(n),u(nm,n),v(nm,n),rv1(n)
