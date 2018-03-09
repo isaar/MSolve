@@ -1,6 +1,7 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.FEM.Interfaces
+namespace ISAAR.MSolve.Materials.Interfaces
 {
     public interface IFiniteElementMaterial3D : IFiniteElementMaterial
     {

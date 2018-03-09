@@ -4,34 +4,33 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Beam2D : IStructuralFiniteElement
+    public class EulerBeam2D : IStructuralFiniteElement
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private readonly IFiniteElementMaterial material;
+        private readonly double youngModulus;
         private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
         public double SectionArea { get; set; }
         public double MomentOfInertia { get; set; }
 
-        public Beam2D(IFiniteElementMaterial material)
+        public EulerBeam2D(double youngModulus)
         {
-            this.material = material;
+            this.youngModulus = youngModulus;
         }
 
-        public Beam2D(IFiniteElementMaterial material, IFiniteElementDOFEnumerator dofEnumerator)
-            : this(material)
+        public EulerBeam2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
+            : this(youngModulus)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator 
-        { 
+        public IFiniteElementDOFEnumerator DOFEnumerator
+        {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
@@ -73,7 +72,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double c2 = c * c;
             double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
             double s2 = s * s;
-            double EL = material.YoungModulus / L;
+            double EL = this.youngModulus / L;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;
@@ -130,7 +129,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double dAL420 = Density * SectionArea * L / 420;
 
             double totalMass = Density * SectionArea * L;
-            double totalMassOfDiagonalTerms = 2*dAL420*(140*c2+156*s2) + 2*dAL420*(140*s2+156*c2);
+            double totalMassOfDiagonalTerms = 2 * dAL420 * (140 * c2 + 156 * s2) + 2 * dAL420 * (140 * s2 + 156 * c2);
             double scale = totalMass / totalMassOfDiagonalTerms;
 
             return new SymmetricMatrix2D(new double[] { dAL420*(140*c2+156*s2)*scale, 0, 0, 0, 0, 0,
@@ -187,26 +186,16 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #endregion
 
-        #region IStructuralFiniteElement Members
-
-        public IFiniteElementMaterial Material
-        {
-            get { return material; }
-        }
-
-        #endregion
-
         #region IFiniteElement Members
 
 
         public bool MaterialModified
         {
-            get { return material.Modified; }
+            get { return false; }
         }
 
         public void ResetMaterialModified()
         {
-            material.ResetModified();
         }
 
         #endregion

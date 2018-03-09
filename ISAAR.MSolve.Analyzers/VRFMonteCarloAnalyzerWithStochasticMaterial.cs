@@ -12,6 +12,7 @@ using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {

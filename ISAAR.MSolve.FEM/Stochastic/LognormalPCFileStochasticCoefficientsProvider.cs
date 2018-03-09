@@ -6,6 +6,7 @@ using System.IO;
 using System.Globalization;
 using System.Diagnostics;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Stochastic
 {

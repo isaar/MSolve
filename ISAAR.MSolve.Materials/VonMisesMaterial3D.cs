@@ -6,10 +6,11 @@
 //   Class for 3D Von Mises materials.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
-using System;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System;
+
 
 namespace ISAAR.MSolve.FEM.Materials
 {
@@ -17,7 +18,7 @@ namespace ISAAR.MSolve.FEM.Materials
     ///   Class for 3D Von Mises materials.
     /// </summary>
     /// <a href = "http://en.wikipedia.org/wiki/Von_Mises_yield_criterion">Wikipedia -Von Mises yield criterion</a>
-    public class VonMisesMaterial3D : IFiniteElementMaterial3D
+    public class VonMisesMaterial3D : IIsotropicFiniteElementMaterial3D
     {
         /// <summary>
         ///   The Poisson ratio value of an incompressible solid.

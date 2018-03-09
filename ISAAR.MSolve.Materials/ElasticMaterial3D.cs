@@ -1,11 +1,11 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class ElasticMaterial3D : IFiniteElementMaterial3D
+    public class ElasticMaterial3D : IIsotropicFiniteElementMaterial3D
     {
         private readonly double[] strains = new double[6];
         private readonly double[] incrementalStrains = new double[6];
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.FEM.Materials
         #region IFiniteElementMaterial3D Members
 
         public double[] Stresses { get { return stresses; } }
-        
+
         public IMatrix2D ConstitutiveMatrix
         {
             get

@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Tests
             model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
 
             HexaSimpleCantileverBeam.MakeCantileverBeam(model, 0, 0, 0, model.NodesDictionary.Count + 1, model.ElementsDictionary.Count + 1, 1);
-            
+
             model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[16], DOF = DOFType.Z });
             model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[17], DOF = DOFType.Z });
             model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[18], DOF = DOFType.Z });
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.Tests
             };
 
             for (int i = 0; i < expectedDisplacements.Length; i++)
-                Assert.Equal(expectedDisplacements[i], linearSystems[1].Solution[i],10);
+                Assert.Equal(expectedDisplacements[i], linearSystems[1].Solution[i], 10);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.Tests
 
 
             // Create a new Beam2D element
-            var beam = new Beam2D(material)
+            var beam = new EulerBeam2D(youngModulus)
             {
                 SectionArea = 1,
                 MomentOfInertia = .1
@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.Tests
 
 
             // Create a new Beam2D element
-            var beam = new Beam2D(material)
+            var beam = new EulerBeam2D(youngModulus)
             {
                 SectionArea = 1,
                 MomentOfInertia = .1
@@ -221,7 +221,7 @@ namespace ISAAR.MSolve.Tests
             model.ConnectDataStructures();
             #endregion
 
-            var linearSystems = new Dictionary<int, ILinearSystem>(); 
+            var linearSystems = new Dictionary<int, ILinearSystem>();
             linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
             SolverSkyline solver = new SolverSkyline(linearSystems[1]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
@@ -233,7 +233,7 @@ namespace ISAAR.MSolve.Tests
             stohasticAnalyzer.Initialize();
             stohasticAnalyzer.Solve();
 
-            Assert.Equal(-2.08333333333333333e-5,stohasticAnalyzer.MonteCarloMeanValue,8);
+            Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
 
     }

@@ -1,11 +1,12 @@
-﻿using System;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System;
+
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class StochasticElasticMaterial3D : IStochasticFiniteElementMaterial, IFiniteElementMaterial3D
+    public class StochasticElasticMaterial3D : IStochasticFiniteElementMaterial, IIsotropicFiniteElementMaterial3D//why do we need both interfaces?? IIsotropicFiniteElementMaterial3D or IStochasticIsotropicFiniteElementMaterial will be fine. 
     {
         private IStochasticMaterialCoefficientsProvider coefficientsProvider;
         private readonly double[] strains = new double[6];

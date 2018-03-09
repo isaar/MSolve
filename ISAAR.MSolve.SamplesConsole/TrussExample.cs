@@ -40,8 +40,6 @@ namespace ISAAR.MSolve.SamplesConsole
             double loadY = 300;
             double sectionArea = 1.5;
 
-            ElasticMaterial material = new ElasticMaterial() { YoungModulus = youngMod, PoissonRatio = poisson };
-
             IList<Node> nodes = TrussExample.CreateNodes();
 
             Model trussModel = new Model();
@@ -59,8 +57,8 @@ namespace ISAAR.MSolve.SamplesConsole
             trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
 
 
-            var element1 = new Element() { ID = 1, ElementType = new Rod2D(material) { Density = 1, SectionArea = sectionArea} };
-            var element2 = new Element() { ID = 2, ElementType = new Rod2D(material) { Density = 1, SectionArea = sectionArea} };
+            var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea} };
+            var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea} };
 
             element1.AddNode(trussModel.NodesDictionary[1]);
             element1.AddNode(trussModel.NodesDictionary[3]);
