@@ -115,6 +115,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             for (int i = 0; i < data.Length; i++) v1Data[i] -= v2Data[i];
         }
 
+        public Vector CrossProduct(IVector v)
+        {
+            Vector crossProduct = new Vector(3);
+            crossProduct[0] = data[1] * v[2] - v[1] * data[2];
+            crossProduct[1] = data[2] * v[0] - v[2] * data[0];
+            crossProduct[2] = data[0] * v[1] - v[0] * data[1];
+            return crossProduct;
+        }
+
         #region IVector<T> Members
 
         public int Length
