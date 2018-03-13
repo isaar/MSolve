@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Problems", "IS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.SamplesConsole", "ISAAR.MSolve.SamplesConsole\ISAAR.MSolve.SamplesConsole.csproj", "{D9DD38A2-0CB4-43D7-8754-06251DD37D63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.MaterialsTest", "ISAAR.MSolve.MaterialsTest\ISAAR.MSolve.MaterialsTest.csproj", "{7AE1D753-3E72-4574-B841-A4F46E7A7244}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.MaterialsTest", "ISAAR.MSolve.MaterialsTest\ISAAR.MSolve.MaterialsTest.csproj", "{7AE1D753-3E72-4574-B841-A4F46E7A7244}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Numerical", "ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj", "{ACE1FF1D-9550-4583-BDE0-5B821809D045}"
 EndProject
@@ -25,9 +25,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Optimization",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.OptimizationTests", "ISAAR.MSolve.OptimizationTests\ISAAR.MSolve.OptimizationTests.csproj", "{1542AAEC-9D06-4599-9803-55BD63244540}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Materials", "ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj", "{9C0A357F-0F2E-403B-A5E3-A127C383589F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Materials", "ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj", "{9C0A357F-0F2E-403B-A5E3-A127C383589F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.IGA", "ISAAR.MSolve.IGA\ISAAR.MSolve.IGA.csproj", "{40E033C3-7E49-4DDB-95F9-4590521F1254}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.IGA", "ISAAR.MSolve.IGA\ISAAR.MSolve.IGA.csproj", "{40E033C3-7E49-4DDB-95F9-4590521F1254}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,6 +183,18 @@ Global
 		{9C0A357F-0F2E-403B-A5E3-A127C383589F}.Release|x64.Build.0 = Release|Any CPU
 		{9C0A357F-0F2E-403B-A5E3-A127C383589F}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C0A357F-0F2E-403B-A5E3-A127C383589F}.Release|x86.Build.0 = Release|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Debug|x64.Build.0 = Debug|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Debug|x86.Build.0 = Debug|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Release|x64.ActiveCfg = Release|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Release|x64.Build.0 = Release|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Release|x86.ActiveCfg = Release|Any CPU
+		{40E033C3-7E49-4DDB-95F9-4590521F1254}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
