@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials.Interfaces;
+using Troschuetz.Random;
+using Troschuetz.Random.Distributions.Continuous;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -18,7 +20,8 @@ namespace ISAAR.MSolve.Analyzers
         private double wu, period;
         private int nptsSff, frequencyCounter;
         private double[] randomVariables = new double[0];
-
+        private double[] phi;
+        
         public PowerSpectrumTargetEvaluatorCoefficientsProvider(double b, double spectrumStandardDeviation, double cutoffError, int nPhi, int nptsVRF, DOFType randomFieldDirection,
             double frequencyIncrement = 0.1, int frequencyIntervals = 256, double tolerance = 1e-10)
         {
@@ -53,9 +56,11 @@ namespace ISAAR.MSolve.Analyzers
 
         private double SpectralDensity(double omega)
         {
-            return Math.Pow(spectrumStandardDeviation, 2) * b / (Math.PI * (1 + Math.Pow(b, 2) * Math.Pow(omega, 2)));
+            return .5/Math.PI * Math.Pow(spectrumStandardDeviation, 2) * Math.Sqrt(Math.PI * b) *
+                Math.Exp(-.25 * b * Math.Pow(omega, 2));
+            //Math.Pow(spectrumStandardDeviation, 2) * b / (Math.PI * (1 + Math.Pow(b, 2) * Math.Pow(omega, 2))));
         }
-
+        
         private void Calculate()
         {
             //const int N = 128;
@@ -88,7 +93,7 @@ namespace ISAAR.MSolve.Analyzers
                 sffTarget[i] = SpectralDensity(dw / 2 + i * dw);
             }
             period = 2d * Math.PI / dw;
-            nptsSff = (int)(period * wu / Math.PI);
+            nptsSff = (int)(period * wu / Math.PI);            
         }
 
         public double GetCoefficient(double meanValue, double[] coordinates)
@@ -99,11 +104,27 @@ namespace ISAAR.MSolve.Analyzers
             //var T = period;
             //var n_wu = 20;
             //var Npts = 30;
-            var dw = wu / (double)nptsVRF;
+            var dw = wu / (double)frequencyIntervals;
+            int i = 0;
+            double randomCoefficient = 0;
+            while (i < frequencyIntervals)
+            {
+                randomCoefficient += Math.Sqrt(2) * Math.Sqrt(2 * SpectralDensity(dw / 2 + i * dw) * dw) *
+                                     (Math.Cos((dw / 2 + i * dw) * coordinates[(int)randomFieldDirection - 1] +
+                                     phi[i]));
+                i++;
+            }
 
-            return meanValue * (1 + (Math.Sqrt(2) * spectrumStandardDeviation * 
-                Math.Cos((dw / 2 + CurrentFrequency * dw) * coordinates[(int)randomFieldDirection - 1] + 
-                (CurrentMCS * 2d * Math.PI / (double)nPhi + 2d * Math.PI / (2d * nPhi)))));
+            if (randomCoefficient >= .9) 
+            {
+                randomCoefficient = .9;
+            }
+            else if (randomCoefficient <= -.9)
+            {
+                randomCoefficient = -.9;
+            }
+
+            return meanValue / (1 + randomCoefficient);
 
             //w = dw/2:dw:wu;
             ////omega = dw/2:dw:wu;
@@ -150,9 +171,18 @@ namespace ISAAR.MSolve.Analyzers
 
         public double[] RandomVariables
         {
-            get { return randomVariables; }
+            get
+            {
+                
+                return randomVariables; }
             set
             {
+                phi = new double[frequencyIntervals];
+                var Phi = new ContinuousUniformDistribution(0d, 2d * Math.PI);
+                for (int i = 0; i < frequencyIntervals; i++)
+                {
+                    phi[i] = Phi.NextDouble();
+                }
                 //changedVariables = true;
                 randomVariables = value;
             }
