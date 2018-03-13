@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Runtime;
@@ -12,6 +13,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -233,12 +235,13 @@ namespace ISAAR.MSolve.Analyzers
         {
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[1][DOFType.X];
+            int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[2][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
             //int dofNo = model.Subdomains[36].NodalDOFsDictionary[6051][DOFType.Y];
             string[] values = new string[simulations];
+            double[] numberValues = new double[simulations];
             var fileName = String.Format(@"{0}-{1}-{2}.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
             var fileNameIterations = String.Format(@"{0}-{1}-{2}-Iters.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
             var fileNameTimes = String.Format(@"{0}-{1}-{2}-Times.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
@@ -274,6 +277,7 @@ namespace ISAAR.MSolve.Analyzers
                 times["solution"] += DateTime.Now - e;
                 GCSettings.LatencyMode = GCLatencyMode.Batch;
                 values[i - simulationStartFrom] = subdomains[1].Solution[dofNo].ToString();
+                numberValues[i - simulationStartFrom] = subdomains[1].Solution[dofNo];
                 //values[i] = subdomains[36].Solution[dofNo].ToString();
 
                 //values[i] = matrixMagnitudes[i].ToString();
@@ -290,11 +294,16 @@ namespace ISAAR.MSolve.Analyzers
                     sw.WriteLine(String.Format("Total iterations: {0}", totalIterations.ToString()));
                 }
             }
+            MonteCarloMeanValue = numberValues.Average();
+            double sumOfSquaresOfDifferences = numberValues.Select(val => (val - MonteCarloMeanValue) * (val - MonteCarloMeanValue)).Sum();
+            MonteCarloStandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / numberValues.Length);
             times["all"] = DateTime.Now - start;
 
             //File.WriteAllLines(String.Format(@"{0}-{1}.txt", fileNameForLogging, expansionOrder), values);
         }
 
+        public double MonteCarloMeanValue { get; set; }
+        public double MonteCarloStandardDeviation { get; set; }
         private void MakePreconditioner(int simulation)
         {
             int matrixNo = matrixOrder[simulation + blockSize / 2];
