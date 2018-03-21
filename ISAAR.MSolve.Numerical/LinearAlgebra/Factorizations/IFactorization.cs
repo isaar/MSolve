@@ -11,9 +11,9 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 // Gauss-Jordan.
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
-    public interface IFactorizationMKL
+    public interface IFactorization
     {
         double CalcDeterminant();
-        VectorMKL SolveLinearSystem(VectorMKL rhs);
+        Vector SolveLinearSystem(Vectors.VectorMKL rhs);
     }
 }

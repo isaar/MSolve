@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckIndexing()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularMatrixMKL.CreateFromArray(matrix, TriangularMatrixMKL.TrianglePosition.Lower);
+            var A = TriangularMatrix.CreateFromArray(matrix, TriangularMatrix.TrianglePosition.Lower);
             var reconstructed = new double[order, order];
             for (int i = 0; i < order; ++i)
             {
@@ -44,18 +44,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularMatrixMKL.CreateFromArray(matrix, TriangularMatrixMKL.TrianglePosition.Lower);
-            var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(x);
+            var A = TriangularMatrix.CreateFromArray(matrix, TriangularMatrix.TrianglePosition.Lower);
+            var x = Vectors.VectorMKL.CreateFromArray(lhs);
+            Vectors.VectorMKL b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
 
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = VectorMKL.CreateFromArray(rhs);
-            var A = TriangularMatrixMKL.CreateFromArray(matrix, TriangularMatrixMKL.TrianglePosition.Lower);
-            VectorMKL x = A.SolveLinearSystem(b);
+            var b = Vectors.VectorMKL.CreateFromArray(rhs);
+            var A = TriangularMatrix.CreateFromArray(matrix, TriangularMatrix.TrianglePosition.Lower);
+            Vectors.VectorMKL x = A.SolveLinearSystem(b);
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
         }
     }

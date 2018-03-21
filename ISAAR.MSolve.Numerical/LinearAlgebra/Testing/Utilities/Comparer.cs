@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             return isCorrect;
         }
 
-        public void CheckMatrixEquality(MatrixMKL matrixExpected, MatrixMKL matrixComputed)
+        public void CheckMatrixEquality(Matrix matrixExpected, Matrix matrixComputed)
         {
             if (matrixExpected.Equals(matrixComputed)) Console.WriteLine("Correct");
             else
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             return isCorrect;
         }
 
-        public void CheckVectorEquality(VectorMKL expected, VectorMKL computed)
+        public void CheckVectorEquality(Vectors.VectorMKL expected, Vectors.VectorMKL computed)
         {
             if (expected.Equals(computed)) Console.WriteLine("Correct");
             else

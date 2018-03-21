@@ -13,7 +13,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 //TODO: tensor product, vector2D, vector3D
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 {
-    public class VectorMKL: IReducible
+    public class VectorMKL: IVectorView
     {
         private readonly double[] data;
 
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="other"></param>
         /// <param name="scalar"></param>
-        public void AxpyIntoThis(double scalar, VectorMKL other)
+        public void AxpyInPlace(double scalar, VectorMKL other)
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
@@ -131,10 +131,46 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return clone;
         }
 
-        public double DotProduct(VectorMKL other)
+        public VectorMKL DoPointwise(IVectorView other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
-            return CBlas.Ddot(Length, ref this.data[0], 1, ref other.data[0], 1);
+            double[] result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(data[i], other[i]);
+            return new VectorMKL(result);
+        }
+
+        public void DoPointwiseInPlace(VectorMKL other, Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckVectorDimensions(this, other);
+            for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
+        }
+
+        public VectorMKL DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            double[] result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = unaryOperation(data[i]);
+            return new VectorMKL(result);
+        }
+
+        public void DoToAllEntriesInPlace(Func<double, double> unaryOperation)
+        {
+            for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
+        }
+
+        public double DotProduct(IVectorView other)
+        {
+            Preconditions.CheckVectorDimensions(this, other);
+            if (other is VectorMKL)
+            {
+                double[] rawDataOther = ((VectorMKL)other).InternalData;
+                return CBlas.Ddot(Length, ref this.data[0], 1, ref rawDataOther[0], 1);
+            }
+            else
+            {
+                double result = 0.0;
+                for (int i = 0; i < data.Length; ++i) result += data[i] * other[i];
+                return result;
+            }
         }
 
         public bool Equals(VectorMKL other, ValueComparer comparer = null)
@@ -166,33 +202,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// this = this + scalar * other
         /// </summary>
         /// <returns></returns>
-        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, VectorMKL otherVector)
+        public void LinearCombinationInPlace(double thisScalar, double otherScalar, VectorMKL otherVector)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
-        }
-
-        /// <summary>
-        /// Computes the Hadamard product of two vectors: result[i] = this[i] * other[i]. This is not the dot product.
-        /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
-        public VectorMKL MultiplyPointwise(VectorMKL other)
-        {
-            Preconditions.CheckVectorDimensions(this, other);
-            double[] result = new double[data.Length];
-            for (int i = 0; i < data.Length; ++i) result[i] = this.data[i] * other.data[i];
-            return new VectorMKL(result);
-        }
-
-        /// <summary>
-        /// Computes the Hadamard product of two vectors: this[i] = this[i] * other[i]. This is not the dot product.
-        /// </summary>
-        /// <param name="other"></param>
-        public void MultiplyPointwiseIntoThis(VectorMKL other)
-        {
-            Preconditions.CheckVectorDimensions(this, other);
-            for (int i = 0; i < data.Length; ++i) this.data[i] *= other.data[i];
         }
 
         public double Norm2()

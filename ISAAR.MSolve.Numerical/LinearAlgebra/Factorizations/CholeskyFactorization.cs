@@ -11,11 +11,11 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
-    public class CholeskyFactorizationMKL: IFactorizationMKL
+    public class CholeskyFactorization: IFactorization
     {
         private readonly double[] data;
 
-        internal CholeskyFactorizationMKL(double[] upperData, int order)
+        internal CholeskyFactorization(double[] upperData, int order)
         {
             this.data = upperData;
             this.Order = order;
@@ -41,12 +41,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             return det;
         }
 
-        public TriangularMatrixMKL GetUpperTriangle()
+        public TriangularMatrix GetUpperTriangle()
         {
-            return TriangularMatrixMKL.CreateFromArray(data, TriangularMatrixMKL.TrianglePosition.Upper, true);
+            return TriangularMatrix.CreateFromArray(data, TriangularMatrix.TrianglePosition.Upper, true);
         }
 
-        public VectorMKL SolveLinearSystem(VectorMKL rhs)
+        public Vector SolveLinearSystem(Vectors.VectorMKL rhs)
         {
             // Call MKL
             int n = Order;
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 throw new MKLException(msg);
             }
 
-            return VectorMKL.CreateFromArray(b, false);
+            return Vectors.VectorMKL.CreateFromArray(b, false);
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
-    public static class MatrixExtensionsMKL
+    public static class MatrixExtensions
     {
         /// <summary>
         /// result = matrix1 + matrix2
@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="matrix1"></param>
         /// <param name="matrix2"></param>
         /// <returns></returns>
-        public static MatrixMKL Add(this MatrixMKL matrix1, MatrixMKL matrix2)
+        public static Matrix Add(this Matrix matrix1, Matrix matrix2)
         {
             return matrix1.Axpy(1.0, matrix2);
         }
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="matrix1"></param>
         /// <param name="matrix2"></param>
-        public static void AddIntoThis(this MatrixMKL matrix1, MatrixMKL matrix2)
+        public static void AddIntoThis(this Matrix matrix1, Matrix matrix2)
         {
             matrix1.AxpyIntoThis(1.0, matrix2);
         }
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="matrix1"></param>
         /// <param name="matrix2"></param>
         /// <returns></returns>
-        public static MatrixMKL Subtract(this MatrixMKL matrix1, MatrixMKL matrix2)
+        public static Matrix Subtract(this Matrix matrix1, Matrix matrix2)
         {
             return matrix1.Axpy(-1.0, matrix2);
         }
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="matrix1"></param>
         /// <param name="matrix2"></param>
-        public static void SubtractIntoThis(this MatrixMKL matrix1, MatrixMKL matrix2)
+        public static void SubtractIntoThis(this Matrix matrix1, Matrix matrix2)
         {
             matrix1.AxpyIntoThis(-1.0, matrix2);
         }

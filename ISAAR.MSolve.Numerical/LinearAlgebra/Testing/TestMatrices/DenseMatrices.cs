@@ -32,16 +32,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckScaling()
         {
-            var m1 = MatrixMKL.CreateFromArray(matrixRect);
+            var m1 = Matrix.CreateFromArray(matrixRect);
             double scalar = 5.0;
-            var expected = MatrixMKL.CreateFromArray(rectTimes5);
+            var expected = Matrix.CreateFromArray(rectTimes5);
             var comparer = new Comparer();
 
             Console.Write("Check Scale(): ");
             comparer.CheckMatrixEquality(expected, m1.Scale(5.0));
 
             Console.Write("Check ScaleIntoThis(): ");
-            var temp = MatrixMKL.CreateFromMatrix(m1);
+            var temp = Matrix.CreateFromMatrix(m1);
             temp.ScaleIntoThis(scalar);
             comparer.CheckMatrixEquality(expected, temp);
 
@@ -51,9 +51,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckAddition()
         {
-            var m1 = MatrixMKL.CreateFromArray(matrixSquare);
-            var m2 = MatrixMKL.CreateFromArray(matrixSymm);
-            var expected = MatrixMKL.CreateFromArray(squarePlusSymm);
+            var m1 = Matrix.CreateFromArray(matrixSquare);
+            var m2 = Matrix.CreateFromArray(matrixSymm);
+            var expected = Matrix.CreateFromArray(squarePlusSymm);
             var comparer = new Comparer();
 
             Console.Write("Check operator +: ");
@@ -62,9 +62,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckSubtraction()
         {
-            var m1 = MatrixMKL.CreateFromArray(matrixSquare);
-            var m2 = MatrixMKL.CreateFromArray(matrixSymm);
-            var expected = MatrixMKL.CreateFromArray(squareMinusSymm);
+            var m1 = Matrix.CreateFromArray(matrixSquare);
+            var m2 = Matrix.CreateFromArray(matrixSymm);
+            var expected = Matrix.CreateFromArray(squareMinusSymm);
             var comparer = new Comparer();
 
             Console.Write("Check operator -: ");
@@ -74,27 +74,27 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckLinearCombination()
         {
             double scalar1 = 2.0;
-            var m1 = MatrixMKL.CreateFromArray(matrixSquare);
+            var m1 = Matrix.CreateFromArray(matrixSquare);
             double scalar2 = 3.5;
-            var m2 = MatrixMKL.CreateFromArray(matrixSymm);
-            var expected = MatrixMKL.CreateFromArray(comboSquareAndSymm);
+            var m2 = Matrix.CreateFromArray(matrixSymm);
+            var expected = Matrix.CreateFromArray(comboSquareAndSymm);
             var comparer = new Comparer();
 
             Console.Write("Check LinearCombination(): ");
             comparer.CheckMatrixEquality(expected, m1.LinearCombination(scalar1, scalar2, m2));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
-            var temp = MatrixMKL.CreateFromMatrix(m1);
+            var temp = Matrix.CreateFromMatrix(m1);
             temp.LinearCombinationIntoThis(scalar1, scalar2, m2);
             comparer.CheckMatrixEquality(expected, temp);
         }
 
         public static void CheckTransposition()
         {
-            var m1 = MatrixMKL.CreateFromArray(matrixSymm);
-            var m2 = MatrixMKL.CreateFromArray(matrixRect);
-            var expectedTransposeM1 = MatrixMKL.CreateFromArray(matrixSymm);
-            var expectedTransposeM2 = MatrixMKL.CreateFromArray(transposeRect);
+            var m1 = Matrix.CreateFromArray(matrixSymm);
+            var m2 = Matrix.CreateFromArray(matrixRect);
+            var expectedTransposeM1 = Matrix.CreateFromArray(matrixSymm);
+            var expectedTransposeM2 = Matrix.CreateFromArray(transposeRect);
             var comparer = new Comparer();
 
             Console.Write("Check Transpose() rectangular: ");
@@ -106,10 +106,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckMatrixMultiplication()
         {
-            var m1 = MatrixMKL.CreateFromArray(matrixSquare);
-            var m2 = MatrixMKL.CreateFromArray(matrixRect);
-            var expectedM1TimesM2 = MatrixMKL.CreateFromArray(squareTimesRect);
-            var expectedTransposeM2TimesM1 = MatrixMKL.CreateFromArray(transposeRectTimesSquare);
+            var m1 = Matrix.CreateFromArray(matrixSquare);
+            var m2 = Matrix.CreateFromArray(matrixRect);
+            var expectedM1TimesM2 = Matrix.CreateFromArray(squareTimesRect);
+            var expectedTransposeM2TimesM1 = Matrix.CreateFromArray(transposeRectTimesSquare);
             var comparer = new Comparer();
 
             Console.Write("Check MultiplyRight() without transposition: ");

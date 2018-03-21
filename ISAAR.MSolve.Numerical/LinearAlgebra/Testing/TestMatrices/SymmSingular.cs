@@ -34,12 +34,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckFactorization()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrixMKL.CreateFromArray(matrix);
+            var A = SymmetricMatrix.CreateFromArray(matrix);
 
             try
             {
                 var factor = A.FactorCholesky();
-                TriangularMatrixMKL U = factor.GetUpperTriangle();
+                TriangularMatrix U = factor.GetUpperTriangle();
                 comparer.CheckFactorizationCholesky(matrix, upper, U.CopyToArray2D());
             }
             catch (IndefiniteMatrixException)
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckIndexing()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrixMKL.CreateFromArray(matrix);
+            var A = SymmetricMatrix.CreateFromArray(matrix);
             var reconstructed = new double[order, order];
             for (int i = 0; i < order; ++i)
             {
@@ -64,17 +64,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrixMKL.CreateFromArray(matrix);
-            var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(x);
+            var A = SymmetricMatrix.CreateFromArray(matrix);
+            var x = Vectors.VectorMKL.CreateFromArray(lhs);
+            Vectors.VectorMKL b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
 
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = VectorMKL.CreateFromArray(rhs);
-            var A = SymmetricMatrixMKL.CreateFromArray(matrix);
+            var b = Vectors.VectorMKL.CreateFromArray(rhs);
+            var A = SymmetricMatrix.CreateFromArray(matrix);
             try
             {
                 var factor = A.FactorCholesky();

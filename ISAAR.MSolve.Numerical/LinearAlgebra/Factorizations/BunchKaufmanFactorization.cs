@@ -7,14 +7,14 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
-    public class BunchKaufmanFactorizationMKL : IFactorizationMKL
+    public class BunchKaufmanFactorization : IFactorization
     {
-        double IFactorizationMKL.CalcDeterminant()
+        double IFactorization.CalcDeterminant()
         {
             throw new NotImplementedException();
         }
 
-        VectorMKL IFactorizationMKL.SolveLinearSystem(VectorMKL rhs)
+        Vector IFactorization.SolveLinearSystem(Vectors.VectorMKL rhs)
         {
             throw new NotImplementedException();
         }

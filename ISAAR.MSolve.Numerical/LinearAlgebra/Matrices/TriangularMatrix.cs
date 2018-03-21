@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// <summary>
     ///  Lower or upper triangular matrix. Packed storage (only stores the n*(n+1)/2 non zeros) in column major order. Uses MKL.
     /// </summary>
-    public class TriangularMatrixMKL: IMatrixViewMKL
+    public class TriangularMatrix: IMatrixView
     {
         /// <summary>
         /// Packed storage, column major order. 
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         private readonly double[] data;
 
-        private TriangularMatrixMKL(double[] data, int order, TrianglePosition triangle)
+        private TriangularMatrix(double[] data, int order, TrianglePosition triangle)
         {
             this.data = data;
             this.Order = order;
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public int Order { get; }
 
         /// <summary>
-        /// see cref="TriangularMatrixMKL.TrianglePosition.Lower"/> or <see cref="TriangularMatrixMKL.TrianglePosition.Upper"/>.
+        /// see cref="TriangularMatrixMKL.TrianglePosition.Lower"/> or <see cref="TriangularMatrix.TrianglePosition.Upper"/>.
         /// </summary>
         public TrianglePosition Triangle { get; }
 
@@ -109,15 +109,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Create a new <see cref="TriangularMatrixMKL"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
+        /// Create a new <see cref="TriangularMatrix"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
         /// provided array. The array entries will be copied.
         /// </summary>
         /// <param name="array2D">A 2-dimensional containing the elements of the matrix. 
         ///     Its lengths in both dimensions must be the same.</param>
-        /// <param name="triangle"><see cref="TriangularMatrixMKL.TrianglePosition.Lower"/> or 
-        ///     <see cref="TriangularMatrixMKL.TrianglePosition.Upper"/>.</param>
+        /// <param name="triangle"><see cref="TriangularMatrix.TrianglePosition.Lower"/> or 
+        ///     <see cref="TriangularMatrix.TrianglePosition.Upper"/>.</param>
         /// <returns></returns>
-        public static TriangularMatrixMKL CreateFromArray(double[,] array2D, TrianglePosition trianglePosition)
+        public static TriangularMatrix CreateFromArray(double[,] array2D, TrianglePosition trianglePosition)
         {
             int numRows = array2D.GetLength(0);
             int numCols = array2D.GetLength(1);
@@ -129,26 +129,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
             if (trianglePosition == TrianglePosition.Lower)
             {
-                return new TriangularMatrixMKL(Conversions.Array2DToPackedLowerColMajor(array2D), numRows, trianglePosition);
+                return new TriangularMatrix(Conversions.Array2DToPackedLowerColMajor(array2D), numRows, trianglePosition);
             }
             else
             {
-                return new TriangularMatrixMKL(Conversions.Array2DToPackedUpperColMajor(array2D), numRows, trianglePosition);
+                return new TriangularMatrix(Conversions.Array2DToPackedUpperColMajor(array2D), numRows, trianglePosition);
             }
         }
 
         /// <summary>
-        /// Create a new <see cref="TriangularMatrixMKL"/> from a provided array. The array can be copied (for extra safety)
+        /// Create a new <see cref="TriangularMatrix"/> from a provided array. The array can be copied (for extra safety)
         /// or not (for extra performance).
         /// </summary>
         /// <param name="array1D">A 1-dimensional array containing the elements of the matrix in column major order and matching 
         ///     <see cref="trianglePosition"/>.</param>
-        /// <param name="trianglePosition"><see cref="TriangularMatrixMKL.TrianglePosition.Lower"/> or 
-        ///     <see cref="TriangularMatrixMKL.TrianglePosition.Upper"/>.</param>
+        /// <param name="trianglePosition"><see cref="TriangularMatrix.TrianglePosition.Lower"/> or 
+        ///     <see cref="TriangularMatrix.TrianglePosition.Upper"/>.</param>
         /// <param name="copyArray">True to make a deep copy of <see cref="array1D"/>. 
         ///     False (default) to use <see cref="array1D"/> as its internal storage.</param>
         /// <returns></returns>
-        public static TriangularMatrixMKL CreateFromArray(double[] array1D, TrianglePosition trianglePosition, 
+        public static TriangularMatrix CreateFromArray(double[] array1D, TrianglePosition trianglePosition, 
             bool copyArray = false)
         {
             int order = Conversions.PackedLengthToOrder(array1D.Length);
@@ -156,11 +156,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             {
                 var clone = new double[array1D.Length];
                 Array.Copy(array1D, clone, array1D.Length);
-                return new TriangularMatrixMKL(clone, order, trianglePosition);
+                return new TriangularMatrix(clone, order, trianglePosition);
             }
             else
             {
-                return new TriangularMatrixMKL(array1D, order, trianglePosition);
+                return new TriangularMatrix(array1D, order, trianglePosition);
             }
         }
 
@@ -187,14 +187,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="Order"/>.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector)
+        public Vector MultiplyRight(Vectors.VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = vector.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpmv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vectors.VectorMKL.CreateFromArray(result, false);
         }
 
         public double CalcDeterminant()
@@ -224,14 +224,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        public VectorMKL SolveLinearSystem(VectorMKL rhs)
+        public Vector SolveLinearSystem(Vectors.VectorMKL rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vectors.VectorMKL.CreateFromArray(result, false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

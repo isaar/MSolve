@@ -42,16 +42,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckAddition()
         {
-            var v1 = VectorMKL.CreateFromArray(vector1);
-            var v2 = VectorMKL.CreateFromArray(vector2);
-            var expected = VectorMKL.CreateFromArray(sum);
+            var v1 = Vectors.VectorMKL.CreateFromArray(vector1);
+            var v2 = Vectors.VectorMKL.CreateFromArray(vector2);
+            var expected = Vectors.VectorMKL.CreateFromArray(sum);
             var comparer = new Comparer();
 
             Console.Write("Check Add(): ");
             comparer.CheckVectorEquality(expected, v1.Add(v2));
 
             Console.Write("Check AddIntoThis(): ");
-            var temp = VectorMKL.CreateFromVector(v1);
+            var temp = Vectors.VectorMKL.CreateFromVector(v1);
             temp.AddIntoThis(v2);
             comparer.CheckVectorEquality(expected, temp);
 
@@ -61,16 +61,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckSubtraction()
         {
-            var v1 = VectorMKL.CreateFromArray(vector1);
-            var v2 = VectorMKL.CreateFromArray(vector2);
-            var expected = VectorMKL.CreateFromArray(difference);
+            var v1 = Vectors.VectorMKL.CreateFromArray(vector1);
+            var v2 = Vectors.VectorMKL.CreateFromArray(vector2);
+            var expected = Vectors.VectorMKL.CreateFromArray(difference);
             var comparer = new Comparer();
 
             Console.Write("Check Subtract(): ");
             comparer.CheckVectorEquality(expected, v1.Subtract(v2));
 
             Console.Write("Check SubtractIntoThis(): ");
-            var temp = VectorMKL.CreateFromVector(v1);
+            var temp = Vectors.VectorMKL.CreateFromVector(v1);
             temp.SubtractIntoThis(v2);
             comparer.CheckVectorEquality(expected, temp);
 
@@ -80,15 +80,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckScaling()
         {
-            var vector = VectorMKL.CreateFromArray(vector1);
-            var expected = VectorMKL.CreateFromArray(vector1Times2);
+            var vector = Vectors.VectorMKL.CreateFromArray(vector1);
+            var expected = Vectors.VectorMKL.CreateFromArray(vector1Times2);
             var comparer = new Comparer();
 
             Console.Write("Check Scale(): ");
             comparer.CheckVectorEquality(expected, vector.Scale(scalar1));
 
             Console.Write("Check ScaleIntoThis(): ");
-            var temp = VectorMKL.CreateFromVector(vector);
+            var temp = Vectors.VectorMKL.CreateFromVector(vector);
             temp.ScaleIntoThis(scalar1);
             comparer.CheckVectorEquality(expected, temp);
 
@@ -98,24 +98,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckAxpy()
         {
-            var v1 = VectorMKL.CreateFromArray(vector1);
-            var v2 = VectorMKL.CreateFromArray(vector2);
-            var expected = VectorMKL.CreateFromArray(vector1PlusVector2Times3);
+            var v1 = Vectors.VectorMKL.CreateFromArray(vector1);
+            var v2 = Vectors.VectorMKL.CreateFromArray(vector2);
+            var expected = Vectors.VectorMKL.CreateFromArray(vector1PlusVector2Times3);
             var comparer = new Comparer();
 
             Console.Write("Check Axpy(): ");
             comparer.CheckVectorEquality(expected, v1.Axpy(scalar2, v2));
 
             Console.Write("Check AxpyIntoThis(): ");
-            var temp = VectorMKL.CreateFromVector(v1);
-            temp.AxpyIntoThis(scalar2, v2);
+            var temp = Vectors.VectorMKL.CreateFromVector(v1);
+            temp.AxpyInPlace(scalar2, v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 
         public static void CheckLinearCombination()
         {
-            var v1 = VectorMKL.CreateFromArray(vector1);
-            var v2 = VectorMKL.CreateFromArray(vector2);
+            var v1 = Vectors.VectorMKL.CreateFromArray(vector1);
+            var v2 = Vectors.VectorMKL.CreateFromArray(vector2);
             var expected = 2.5 * v1 + -3.5 * v2;
             var comparer = new Comparer();
 
@@ -123,31 +123,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckVectorEquality(expected, v1.LinearCombination(2.5, -3.5, v2));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
-            var temp = VectorMKL.CreateFromVector(v1);
-            temp.LinearCombinationIntoThis(2.5, -3.5, v2);
+            var temp = Vectors.VectorMKL.CreateFromVector(v1);
+            temp.LinearCombinationInPlace(2.5, -3.5, v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 
         public static void CheckHadamardProduct()
         {
-            var v1 = VectorMKL.CreateFromArray(vector1);
-            var v2 = VectorMKL.CreateFromArray(vector2);
-            var expected = VectorMKL.CreateFromArray(hadamardProduct);
+            var v1 = Vectors.VectorMKL.CreateFromArray(vector1);
+            var v2 = Vectors.VectorMKL.CreateFromArray(vector2);
+            var expected = Vectors.VectorMKL.CreateFromArray(hadamardProduct);
             var comparer = new Comparer();
 
             Console.Write("Check MultiplyPointwise(): ");
             comparer.CheckVectorEquality(expected, v1.MultiplyPointwise(v2));
 
             Console.Write("Check MultiplyPointwiseIntoThis(): ");
-            var temp = VectorMKL.CreateFromVector(v1);
-            temp.MultiplyPointwiseIntoThis(v2);
+            var temp = Vectors.VectorMKL.CreateFromVector(v1);
+            temp.MultiplyPointwiseInPlace(v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 
         public static void CheckDotProduct()
         {
-            var v1 = VectorMKL.CreateFromArray(vector1);
-            var v2 = VectorMKL.CreateFromArray(vector2);
+            var v1 = Vectors.VectorMKL.CreateFromArray(vector1);
+            var v2 = Vectors.VectorMKL.CreateFromArray(vector2);
             var comparer = new Comparer();
 
             Console.Write("Check DotProduct(): ");
@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckNorm2()
         {
-            var vector = VectorMKL.CreateFromArray(vector1);
+            var vector = Vectors.VectorMKL.CreateFromArray(vector1);
             var comparer = new Comparer();
 
             Console.Write("Check Norm2(): ");
@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void Print()
         {
-            var vector = VectorMKL.CreateFromArray(vector1);
+            var vector = Vectors.VectorMKL.CreateFromArray(vector1);
             Console.Write("Vector = ");
             vector.WriteToConsole(Commons.Array1DFormatting.Brackets);
         }

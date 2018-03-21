@@ -60,25 +60,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckFactorization()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = MatrixMKL.CreateFromArray(matrix);
+            var A = Matrix.CreateFromArray(matrix);
             var factor = A.FactorLU();
-            (MatrixMKL L, MatrixMKL U) = factor.Expand();
+            (Matrix L, Matrix U) = factor.Expand();
             comparer.CheckFactorizationLU(matrix, lower, upper, L.CopyToArray2D(), U.CopyToArray2D(), factor.IsSingular);
         }
 
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = MatrixMKL.CreateFromArray(matrix);
-            var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(x, false);
+            var A = Matrix.CreateFromArray(matrix);
+            var x = Vectors.VectorMKL.CreateFromArray(lhs);
+            Vectors.VectorMKL b = A.MultiplyRight(x, false);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = VectorMKL.CreateFromArray(rhs);
-            var A = MatrixMKL.CreateFromArray(matrix);
+            var b = Vectors.VectorMKL.CreateFromArray(rhs);
+            var A = Matrix.CreateFromArray(matrix);
             try
             {
                 var factor = A.FactorLU();

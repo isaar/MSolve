@@ -27,7 +27,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// <param name="vector2"></param>
         public static void AddIntoThis(this VectorMKL vector1, VectorMKL vector2)
         {
-            vector1.AxpyIntoThis(1.0, vector2);
+            vector1.AxpyInPlace(1.0, vector2);
+        }
+
+        /// <summary>
+        /// Computes the Hadamard product of two vectors: result[i] = this[i] * other[i]. This is not the dot product.
+        /// </summary>
+        /// <param name="vector1"></param>
+        /// <param name="vector2"></param>
+        /// <returns></returns>
+        public static VectorMKL MultiplyPointwise(this VectorMKL vector1, VectorMKL vector2)
+        {
+            return vector1.DoPointwise(vector2, (x1, x2) => x1 * x2);
+        }
+
+        /// <summary>
+        /// Computes the Hadamard product of two vectors: this[i] = this[i] * other[i]. This is not the dot product.
+        /// </summary>
+        /// <param name="vector1"></param>
+        /// <param name="vector2"></param>
+        public static void MultiplyPointwiseInPlace(this VectorMKL vector1, VectorMKL vector2)
+        {
+            vector1.DoPointwiseInPlace(vector2, (x1, x2) => x1 * x2);
         }
 
         /// <summary>
@@ -48,7 +69,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// <param name="vector2"></param>
         public static void SubtractIntoThis(this VectorMKL vector1, VectorMKL vector2)
         {
-            vector1.AxpyIntoThis(-1.0, vector2);
+            vector1.AxpyInPlace(-1.0, vector2);
         }
 
         public static VectorMKL[] RemoveDuplicatesFindMultiplicity()

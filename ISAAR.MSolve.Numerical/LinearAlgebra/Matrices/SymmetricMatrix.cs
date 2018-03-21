@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// Symmetric matrix. Only the upper triangle is stored in Packed format (only stores the n*(n+1)/2 non zeros) and column 
     /// major order. Uses MKL.
     /// </summary>
-    public class SymmetricMatrixMKL: IMatrixViewMKL
+    public class SymmetricMatrix: IMatrixView
     {
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         private readonly double[] data;
 
-        private SymmetricMatrixMKL(double[] data, int order, DefiniteProperty definiteness)
+        private SymmetricMatrix(double[] data, int order, DefiniteProperty definiteness)
         {
             this.data = data;
             this.Definiteness = definiteness;
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// Used to query if the matrix is positive definite etc. Usually this is not known beforehand, which corresponds to
         /// <see cref="DefiniteProperty.Unknown"/>. Cholesky factorization reveals this and sets this property to
         /// <see cref="DefiniteProperty.PositiveDefinite"/> or <see cref="DefiniteProperty.Indefinite"/>. Mutating the matrix 
-        /// will reset it to <see cref="DefiniteProperty.Unknown"/>. If the <see cref="SymmetricMatrixMKL"/> is created from a 
+        /// will reset it to <see cref="DefiniteProperty.Unknown"/>. If the <see cref="SymmetricMatrix"/> is created from a 
         /// known matrix/array, the caller can assume responsibility for setting this property. WARNING: only set this propetry 
         /// if you are absolutely sure. 
         /// </summary>
@@ -96,15 +96,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Create a new <see cref="SymmetricMatrixMKL"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
+        /// Create a new <see cref="SymmetricMatrix"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
         /// provided array. The array entries will be copied.
         /// </summary>
         /// <param name="array2D">A 2-dimensional containing the elements of the whole matrix. Its lengths in both dimensions 
         ///     must be the same.</param>
         /// <param name="definiteness">If the caller knows that the matrix is positive definite, etc, he can set this property 
-        ///     during creation of the <see cref="SymmetricMatrixMKL"/> object.</param>
+        ///     during creation of the <see cref="SymmetricMatrix"/> object.</param>
         /// <returns></returns>
-        public static SymmetricMatrixMKL CreateFromArray(double[,] array2D, 
+        public static SymmetricMatrix CreateFromArray(double[,] array2D, 
             DefiniteProperty definiteness = DefiniteProperty.Unknown)
         {
             int numRows = array2D.GetLength(0);
@@ -114,11 +114,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 string msg = string.Format("Provided array must have the same dimensions, but was ({0}x{1})", numRows, numCols);
                 throw new NonMatchingDimensionsException(msg);
             }
-            return new SymmetricMatrixMKL(Conversions.Array2DToPackedUpperColMajor(array2D), numRows, definiteness);
+            return new SymmetricMatrix(Conversions.Array2DToPackedUpperColMajor(array2D), numRows, definiteness);
         }
 
         /// <summary>
-        /// Create a new <see cref="SymmetricMatrixMKL"/> from a provided array. The array can be copied (for extra safety)
+        /// Create a new <see cref="SymmetricMatrix"/> from a provided array. The array can be copied (for extra safety)
         /// or not (for extra performance).
         /// </summary>
         /// <param name="array1D">A 1-dimensional array containing the elements of the upper triangle of the matrix in column 
@@ -127,11 +127,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         ///     value is provided, these will not be checked. If no value is provided, the order will be calculated from 
         ///     <see cref="array1D"/> instead.</param>
         /// <param name="definiteness">If the caller knows that the matrix is positive definite etc., he can set this property 
-        ///     during creation of the <see cref="SymmetricMatrixMKL"/> object.</param>
+        ///     during creation of the <see cref="SymmetricMatrix"/> object.</param>
         /// <param name="copyArray">True to make a deep copy of <see cref="array1D"/>. 
         ///     False (default) to use <see cref="array1D"/> as its internal storage.</param>
         /// <returns></returns>
-        public static SymmetricMatrixMKL CreateFromArray(double[] array1D, int order = 0,
+        public static SymmetricMatrix CreateFromArray(double[] array1D, int order = 0,
             DefiniteProperty definiteness = DefiniteProperty.Unknown, bool copyArray = false)
         {
             int n = (order == 0) ? Conversions.PackedLengthToOrder(array1D.Length) : order;
@@ -139,21 +139,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             {
                 var clone = new double[array1D.Length];
                 Array.Copy(array1D, clone, array1D.Length);
-                return new SymmetricMatrixMKL(clone, n, definiteness);
+                return new SymmetricMatrix(clone, n, definiteness);
             }
-            else return new SymmetricMatrixMKL(array1D, n, definiteness);
+            else return new SymmetricMatrix(array1D, n, definiteness);
         }
 
         /// <summary>
-        /// Create a new <see cref="SymmetricMatrixMKL"/> with the specified order and all entries equal to 0.
+        /// Create a new <see cref="SymmetricMatrix"/> with the specified order and all entries equal to 0.
         /// </summary> 
         /// <param name="order">The number of rows or columns of the matrix.</param>
         /// <returns></returns>
-        public static SymmetricMatrixMKL CreateZero(int order)
+        public static SymmetricMatrix CreateZero(int order)
         {
             double[] data = new double[order * order];
             //This matrix will be used as a canvas, thus we cannot infer that it is indefinite yet.
-            return new SymmetricMatrixMKL(data, order, DefiniteProperty.Unknown); 
+            return new SymmetricMatrix(data, order, DefiniteProperty.Unknown); 
         }
 
         /// <summary>
@@ -187,10 +187,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Conversions.PackedUpperColMajorToArray2D(data, Order);
         }
 
-        public MatrixMKL CopyToGeneralMatrix()
+        public Matrix CopyToGeneralMatrix()
         {
             double[] fullData = Conversions.PackedUpperColMajorToFullSymmColMajor(data, Order);
-            return MatrixMKL.CreateFromArray(fullData, Order, Order, false);
+            return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
         /// <summary>
@@ -198,13 +198,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector)
+        public Vector MultiplyRight(Vectors.VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = new double[NumRows];
             CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
                 1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vectors.VectorMKL.CreateFromArray(result, false);
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         ///     that are not positive definite. Therefore set it to false if you are sure that the matrix is not positive
         ///     definite.</param>
         /// <returns></returns>
-        public IFactorizationMKL Factorize(bool tryCholesky = true)
+        public IFactorization Factorize(bool tryCholesky = true)
         {
             // This should throw an exception if the posdef assumption is wrong.
             if (Definiteness == DefiniteProperty.PositiveDefinite) return FactorCholesky();  
@@ -232,7 +232,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return FactorBunchKaufman();
         }
 
-        public BunchKaufmanFactorizationMKL FactorBunchKaufman()
+        public BunchKaufmanFactorization FactorBunchKaufman()
         {
             throw new NotImplementedException();
         }
@@ -242,7 +242,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// matrix is not positive definite.
         /// </summary>
         /// <returns></returns>
-        public CholeskyFactorizationMKL FactorCholesky()
+        public CholeskyFactorization FactorCholesky()
         {
             // Copy matrix. This may exceed available memory and needs an extra O(n^2) accesses. 
             // To avoid these, use the ~InPlace version.
@@ -278,7 +278,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
 
             Definiteness = DefiniteProperty.PositiveDefinite;
-            return new CholeskyFactorizationMKL(upper, n);
+            return new CholeskyFactorization(upper, n);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
