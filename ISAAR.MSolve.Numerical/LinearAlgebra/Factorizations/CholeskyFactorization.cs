@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             return TriangularMatrix.CreateFromArray(data, TriangularMatrix.TrianglePosition.Upper, true);
         }
 
-        public Vector SolveLinearSystem(Vectors.VectorMKL rhs)
+        public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
             // Call MKL
             int n = Order;
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 throw new MKLException(msg);
             }
 
-            return Vectors.VectorMKL.CreateFromArray(b, false);
+            return VectorMKL.CreateFromArray(b, false);
         }
     }
 }

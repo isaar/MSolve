@@ -14,11 +14,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         int Length { get; }
       
         double[] CopyToArray();
-        Vector DoPointwise(IVectorView other, Func<double, double, double> operation);
-        Vector DoToAllEntries(Func<double, double> operation);
+        VectorMKL DoPointwise(IVectorView other, Func<double, double, double> operation);
+        VectorMKL DoToAllEntries(Func<double, double> operation);
         double DotProduct(IVectorView vector);
-        Vector Slice(int[] indices);
-        Vector Slice(int startInclusive, int endExclusive);
+        VectorMKL Slice(int[] indices);
+        VectorMKL Slice(int startInclusive, int endExclusive);
         void WriteToConsole(Array1DFormatting format = null);
         void WriteToFile(string path, bool append = false, Array1DFormatting format = null);
     }

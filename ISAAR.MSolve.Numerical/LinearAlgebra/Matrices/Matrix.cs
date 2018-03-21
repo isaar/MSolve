@@ -362,7 +362,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vectors.VectorMKL) return MultiplyRight((Vectors.VectorMKL)vector, transposeThis);
+            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -373,7 +373,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(Vectors.VectorMKL vector, bool transposeThis = false)
+        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
         {
             int leftRows, leftCols;
             CBLAS_TRANSPOSE transpose;

@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 //TODO: align data using mkl_malloc
@@ -58,6 +59,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// The number of rows or columns of the matrix.
         /// </summary>
         public int Order { get; }
+
+        public int NumNonZeros => throw new NotImplementedException();
 
         /// <summary>
         /// The entry with row index = i and column index = j. Setting an entry A[i, j] = value, will also set A[j, i] = value. Therefore the matrix will stay symmetric 
@@ -198,13 +201,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public Vector MultiplyRight(Vectors.VectorMKL vector)
+        public VectorMKL MultiplyRight(VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = new double[NumRows];
             CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
                 1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return Vectors.VectorMKL.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         /// <summary>
@@ -286,6 +289,60 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         {
             return i + (j * (j + 1)) / 2;
         }
-        
+
+        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(IMatrixView other, ValueComparer comparer = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView Slice(int[] rowIndices, int[] colIndices)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView Transpose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToConsole(Array2DFormatting format = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

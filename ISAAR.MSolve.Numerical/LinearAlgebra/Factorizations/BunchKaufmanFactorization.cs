@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             throw new NotImplementedException();
         }
 
-        Vector IFactorization.SolveLinearSystem(Vectors.VectorMKL rhs)
+        VectorMKL IFactorization.SolveLinearSystem(VectorMKL rhs)
         {
             throw new NotImplementedException();
         }

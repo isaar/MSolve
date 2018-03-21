@@ -35,11 +35,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = Matrix.CreateFromArray(matrix);
-            var x5 = Vectors.VectorMKL.CreateFromArray(lhs5);
-            var x10 = Vectors.VectorMKL.CreateFromArray(lhs10);
+            var x5 = VectorMKL.CreateFromArray(lhs5);
+            var x10 = VectorMKL.CreateFromArray(lhs10);
 
-            Vectors.VectorMKL b5 = A.MultiplyRight(x5, false);
-            Vectors.VectorMKL b10 = A.MultiplyRight(x10, true);
+            VectorMKL b5 = A.MultiplyRight(x5, false);
+            VectorMKL b10 = A.MultiplyRight(x10, true);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, b5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, b10.InternalData);
         }

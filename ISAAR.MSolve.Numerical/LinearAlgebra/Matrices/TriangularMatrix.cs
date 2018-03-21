@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 //TODO: Perhaps I should use row major for lower triangular, upper triangular or both.
@@ -61,6 +62,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// see cref="TriangularMatrixMKL.TrianglePosition.Lower"/> or <see cref="TriangularMatrix.TrianglePosition.Upper"/>.
         /// </summary>
         public TrianglePosition Triangle { get; }
+
+        public int NumNonZeros => throw new NotImplementedException();
 
         /// <summary>
         /// The entry with row index = i and column index = j. Warning: trying to set an entry outside the non-zero triangle 
@@ -187,14 +190,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="Order"/>.</param>
         /// <returns></returns>
-        public Vector MultiplyRight(Vectors.VectorMKL vector)
+        public VectorMKL MultiplyRight(VectorMKL vector)
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = vector.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpmv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return Vectors.VectorMKL.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         public double CalcDeterminant()
@@ -224,14 +227,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        public Vector SolveLinearSystem(Vectors.VectorMKL rhs)
+        public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
             CBLAS_UPLO uplo = (Triangle == TrianglePosition.Lower) ? CBLAS_UPLO.CblasLower : CBLAS_UPLO.CblasUpper;
             CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, uplo, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return Vectors.VectorMKL.CreateFromArray(result, false);
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -244,6 +247,61 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         private int Index1DUpperColMajor(int i, int j)
         {
             return i + (j * (j + 1)) / 2;
+        }
+
+        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(IMatrixView other, ValueComparer comparer = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView Slice(int[] rowIndices, int[] colIndices)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView Transpose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToConsole(Array2DFormatting format = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
+        {
+            throw new NotImplementedException();
         }
     }
 }

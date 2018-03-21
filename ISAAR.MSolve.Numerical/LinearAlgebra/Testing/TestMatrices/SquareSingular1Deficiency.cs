@@ -70,14 +70,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = Matrix.CreateFromArray(matrix);
-            var x = Vectors.VectorMKL.CreateFromArray(lhs);
-            Vectors.VectorMKL b = A.MultiplyRight(x, false);
+            var x = VectorMKL.CreateFromArray(lhs);
+            VectorMKL b = A.MultiplyRight(x, false);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = Vectors.VectorMKL.CreateFromArray(rhs);
+            var b = VectorMKL.CreateFromArray(rhs);
             var A = Matrix.CreateFromArray(matrix);
             try
             {

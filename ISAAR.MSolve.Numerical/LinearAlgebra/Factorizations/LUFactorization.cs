@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             throw new NotImplementedException();
         }
 
-        public Vector SolveLinearSystem(Vectors.VectorMKL rhs)
+        public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
             // Check if the matrix is singular first
             if (IsSingular)
@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 throw new MKLException(msg);
             }
 
-            return Vectors.VectorMKL.CreateFromArray(b, false);
+            return VectorMKL.CreateFromArray(b, false);
         } 
     }
 }

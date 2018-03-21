@@ -14,6 +14,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
     public interface IFactorization
     {
         double CalcDeterminant();
-        Vector SolveLinearSystem(Vectors.VectorMKL rhs);
+        VectorMKL SolveLinearSystem(VectorMKL rhs);
     }
 }
