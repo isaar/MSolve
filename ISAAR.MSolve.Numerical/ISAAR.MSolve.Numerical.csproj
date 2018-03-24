@@ -118,6 +118,7 @@
     <Compile Include="LinearAlgebra\Factorizations\LUFactorization.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Vectors\IVectorView.cs" />
     <Compile Include="LinearAlgebra\Matrices\IMatrixView.cs" />
     <Compile Include="LinearAlgebra\Matrices\Matrix.cs" />
@@ -160,9 +161,51 @@
     <Compile Include="LinearAlgebra\VectorExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="libs\libamd.exp" />
+    <None Include="libs\libamd.lib" />
+    <None Include="libs\libbtf.exp" />
+    <None Include="libs\libbtf.lib" />
+    <None Include="libs\libcamd.exp" />
+    <None Include="libs\libcamd.lib" />
+    <None Include="libs\libccolamd.exp" />
+    <None Include="libs\libccolamd.lib" />
+    <None Include="libs\libcholmod.exp" />
+    <None Include="libs\libcholmod.lib" />
+    <None Include="libs\libcolamd.exp" />
+    <None Include="libs\libcolamd.lib" />
+    <None Include="libs\libcxsparse.exp" />
+    <None Include="libs\libcxsparse.lib" />
+    <None Include="libs\libklu.exp" />
+    <None Include="libs\libklu.lib" />
+    <None Include="libs\libldl.exp" />
+    <None Include="libs\libldl.lib" />
+    <None Include="libs\libspqr.exp" />
+    <None Include="libs\libspqr.lib" />
+    <None Include="libs\libumfpack.exp" />
+    <None Include="libs\libumfpack.lib" />
+    <None Include="libs\suitesparseconfig.lib" />
+    <None Include="libs\suitesparse_utilities.exp" />
+    <None Include="libs\suitesparse_utilities.iobj" />
+    <None Include="libs\suitesparse_utilities.ipdb" />
+    <None Include="libs\suitesparse_utilities.lib" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="libs\libamd.dll" />
+    <Content Include="libs\libbtf.dll" />
+    <Content Include="libs\libcamd.dll" />
+    <Content Include="libs\libccolamd.dll" />
+    <Content Include="libs\libcholmod.dll" />
+    <Content Include="libs\libcolamd.dll" />
+    <Content Include="libs\libcxsparse.dll" />
+    <Content Include="libs\libklu.dll" />
+    <Content Include="libs\libldl.dll" />
+    <Content Include="libs\libspqr.dll" />
+    <Content Include="libs\libumfpack.dll" />
+    <Content Include="libs\suitesparse_utilities.dll" />
+    <Content Include="libs\suitesparse_utilities.exe" />
+    <Content Include="libs\suitesparse_utilities.pdb" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

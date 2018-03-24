@@ -12,10 +12,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
+            TestSuiteSparse.Run();
             //TestIndexing();
             //TestMatrixVectorMultiplication();
-            TestFactorization();
-            TestSystemSolution();
+            //TestFactorization();
+            //TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
             //TestPrinting();
