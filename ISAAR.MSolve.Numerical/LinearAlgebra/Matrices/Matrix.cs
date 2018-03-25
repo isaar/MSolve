@@ -50,13 +50,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <summary>
         /// The entry with row index = i and column index = j. 
         /// </summary>
-        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
-        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="NumColumns"/></param>
+        /// <param name="rowIdx">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
+        /// <param name="colIdx">The column index: 0 &lt;= j &lt; <see cref="NumColumns"/></param>
         /// <returns>The entry with indices i, j</returns>
-        public double this[int i, int j]
+        public double this[int rowIdx, int colIdx]
         {
-            get { return data[j * NumRows + i]; }
-            set { data[j * NumRows + i] = value; }
+            get { return data[colIdx * NumRows + rowIdx]; }
+            set { data[colIdx * NumRows + rowIdx] = value; }
         }
 
         /// <summary>
