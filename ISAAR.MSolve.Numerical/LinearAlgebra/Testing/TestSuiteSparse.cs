@@ -42,23 +42,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         public static void ExampleMatrixClasses()
         {
             // Define linear system
-            //var matrixDOK = new SymmetricDOKColMajor(4);
-            //matrixDOK[0, 0] = 4.0; matrixDOK[0, 2] = 2.0;
-            //matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
-            //matrixDOK[2, 2] = 8.0;
-            //matrixDOK[3, 3] = 9.0;
-            //SymmetricCSC matrixCSC = matrixDOK.ToSymmetricCSC();
-
-            const int n = 4;
-            const int nnz = 7;
-            int[] colOffsets = new int[n + 1] { 0, 1, 2, 5, nnz };
-            int[] rowIndices = new int[nnz] { 0, 1, 0, 1, 2, 1, 3 };
-            double[] values = new double[nnz] { 4.0, 10.0, 2.0, 1.0, 8.0, 3.0, 9.0 };
-            SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
             var rhs = VectorMKL.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
+            var matrixDOK = new SymmetricDOKColMajor(4);
+            matrixDOK[0, 0] = 4.0; matrixDOK[0, 2] = 2.0;
+            matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
+            matrixDOK[2, 2] = 8.0;
+            matrixDOK[3, 3] = 9.0;
+            SymmetricCSC matrixCSC = matrixDOK.ToSymmetricCSC();
 
-            //matrixDOK.WriteToConsole();
-            //matrixCSC.WriteToConsole();
+            //const int n = 4;
+            //const int nnz = 7;
+            //int[] colOffsets = new int[n + 1] { 0, 1, 2, 5, nnz };
+            //int[] rowIndices = new int[nnz] { 0, 1, 0, 1, 2, 1, 3 };
+            //double[] values = new double[nnz] { 4.0, 10.0, 2.0, 1.0, 8.0, 3.0, 9.0 };
+            //SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
+
+            Console.WriteLine("Matrix DOK: ");
+            matrixDOK.WriteToConsole();
+            Console.WriteLine("Matrix CSC: ");
+            matrixCSC.WriteToConsole();
 
             //Solve it using SuiteSparse
             using (SuiteSparseCholesky factor = matrixCSC.FactorCholesky())

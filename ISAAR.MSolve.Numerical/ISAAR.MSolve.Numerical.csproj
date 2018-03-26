@@ -123,6 +123,7 @@
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
     <Compile Include="LinearAlgebra\Matrices\IIndexable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
+    <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Vectors\IVectorView.cs" />
     <Compile Include="LinearAlgebra\Matrices\IMatrixView.cs" />
@@ -166,50 +167,124 @@
     <Compile Include="LinearAlgebra\VectorExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="lib\libamd.exp" />
-    <None Include="lib\libamd.lib" />
-    <None Include="lib\libbtf.exp" />
-    <None Include="lib\libbtf.lib" />
-    <None Include="lib\libcamd.exp" />
-    <None Include="lib\libcamd.lib" />
-    <None Include="lib\libccolamd.exp" />
-    <None Include="lib\libccolamd.lib" />
-    <None Include="lib\libcholmod.exp" />
-    <None Include="lib\libcholmod.lib" />
-    <None Include="lib\libcolamd.exp" />
-    <None Include="lib\libcolamd.lib" />
-    <None Include="lib\libcxsparse.exp" />
-    <None Include="lib\libcxsparse.lib" />
-    <None Include="lib\libklu.exp" />
-    <None Include="lib\libklu.lib" />
-    <None Include="lib\libldl.exp" />
-    <None Include="lib\libldl.lib" />
-    <None Include="lib\libspqr.exp" />
-    <None Include="lib\libspqr.lib" />
-    <None Include="lib\libumfpack.exp" />
-    <None Include="lib\libumfpack.lib" />
-    <None Include="lib\suitesparseconfig.lib" />
-    <None Include="lib\suitesparse_utilities.exp" />
-    <None Include="lib\suitesparse_utilities.iobj" />
+    <None Include="lib\libamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libbtf.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libbtf.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libccolamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libccolamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcholmod.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcholmod.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcolamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcolamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcxsparse.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcxsparse.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libklu.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libklu.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libldl.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libldl.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libspqr.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libspqr.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libumfpack.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libumfpack.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparseconfig.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparse_utilities.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparse_utilities.iobj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="lib\suitesparse_utilities.ipdb" />
-    <None Include="lib\suitesparse_utilities.lib" />
+    <None Include="lib\suitesparse_utilities.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\libamd.dll" />
-    <Content Include="lib\libbtf.dll" />
-    <Content Include="lib\libcamd.dll" />
-    <Content Include="lib\libccolamd.dll" />
-    <Content Include="lib\libcholmod.dll" />
-    <Content Include="lib\libcolamd.dll" />
-    <Content Include="lib\libcxsparse.dll" />
-    <Content Include="lib\libklu.dll" />
-    <Content Include="lib\libldl.dll" />
-    <Content Include="lib\libspqr.dll" />
-    <Content Include="lib\libumfpack.dll" />
-    <Content Include="lib\suitesparse_utilities.dll" />
-    <Content Include="lib\suitesparse_utilities.exe" />
-    <Content Include="lib\suitesparse_utilities.pdb" />
+    <Content Include="lib\libamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libbtf.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libccolamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcholmod.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcolamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcxsparse.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libklu.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libldl.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libspqr.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libumfpack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\suitesparse_utilities.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
