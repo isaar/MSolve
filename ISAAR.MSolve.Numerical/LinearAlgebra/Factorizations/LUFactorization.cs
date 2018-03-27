@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         public static LUFactorization CalcFactorization(int order, double[] originalColMajorMatrix, 
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) accesses. 
+            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
             // To avoid these, use the ~InPlace version.
             double[] lowerUpper = new double[originalColMajorMatrix.Length];
             Array.Copy(originalColMajorMatrix, lowerUpper, originalColMajorMatrix.Length);

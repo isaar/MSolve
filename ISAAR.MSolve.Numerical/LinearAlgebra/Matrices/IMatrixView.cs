@@ -32,6 +32,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         IMatrixView Transpose();
 
         void WriteToConsole(Array2DFormatting format = null);
-        void WriteToFile(string path, bool append = false, Array2DFormatting format = null);
+        void WriteToFile(string path, bool append = false, Array2DFormatting format = null); //Perhaps the fromater must be a static field, since it depends on each matrix type
     }
 }

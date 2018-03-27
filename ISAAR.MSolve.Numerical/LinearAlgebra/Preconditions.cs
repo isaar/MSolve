@@ -17,9 +17,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                
         }
 
-        public static void CheckSameMatrixDimensions(IMatrixView matrix1, IMatrixView matrix2)
+        public static bool AreSameMatrixDimensions(IIndexable2D matrix1, IIndexable2D matrix2)
         {
-            if ((matrix1.NumRows != matrix2.NumRows) != (matrix1.NumColumns != matrix2.NumColumns))
+            if ((matrix1.NumRows != matrix2.NumRows) || (matrix1.NumColumns != matrix2.NumColumns)) return false;
+            else return true;
+        }
+
+        public static void CheckSameMatrixDimensions(IIndexable2D matrix1, IIndexable2D matrix2)
+        {
+            if ((matrix1.NumRows != matrix2.NumRows) || (matrix1.NumColumns != matrix2.NumColumns))
             {
                 string message = string.Format(
                     "Matrix1 has dimensions ({0}x{1}), while matrix2 has dimensions ({2}x{3})",
@@ -28,7 +34,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        public static void CheckMultiplicationDimensions(IMatrixView leftMatrix, IMatrixView rightMatrix)
+        public static void CheckMultiplicationDimensions(IIndexable2D leftMatrix, IIndexable2D rightMatrix)
         {
             if (leftMatrix.NumColumns != rightMatrix.NumRows)
             {
@@ -49,7 +55,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        public static void CheckSystemSolutionDimensions(IMatrixView matrix, IVectorView rhsVector)
+        public static void CheckSystemSolutionDimensions(IIndexable2D matrix, IVectorView rhsVector)
         {
             if (matrix.NumRows != rhsVector.Length)
             {
