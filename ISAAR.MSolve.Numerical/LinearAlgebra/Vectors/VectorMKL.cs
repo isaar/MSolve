@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 
@@ -272,6 +273,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             double[] subvector = new double[newLength];
             for (int i = 0; i < newLength; ++i) subvector[i] = data[startInclusive + i];
             return new VectorMKL(subvector);
+        }
+
+        /// <summary>
+        /// Doesn't copy anything. Remove this once the design is cleaned. 
+        /// </summary>
+        /// <returns></returns>
+        public IVectorOLD ToLegacyVector()
+        {
+            return new Vector(data);
         }
 
         public void WriteToConsole(Array1DFormatting format = null)
