@@ -306,7 +306,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         // WARNING: The heaviside enriched dofs are slightly off!
         private void CheckSolution()
         {
-            var analysis = new LinearStaticAnalysis(model);
+            //var analysis = new LinearStaticAnalysisSkyline(model);
+            var analysis = new LinearStaticAnalysisCSC(model);
             analysis.Solve();
             var displacements = new List<double>();
 
@@ -345,7 +346,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void PrintDisplacements()
         {
-            var analysis = new LinearStaticAnalysis(model);
+            var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
             double[] solution = new double[analysis.Solution.Length];
             analysis.Solution.CopyTo(solution, 0);

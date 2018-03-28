@@ -50,7 +50,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
                         //"********************************** Iteration {0} **********************************", iteration);
                     crack.UpdateEnrichments();
                     model.EnumerateDofs();
-                    var embeddedAnalysis = new LinearStaticAnalysis(model);
+                    //var embeddedAnalysis = new LinearStaticAnalysisSkyline(model);
+                    var embeddedAnalysis = new LinearStaticAnalysisCSC(model);
                     embeddedAnalysis.Solve();
 
                     double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();

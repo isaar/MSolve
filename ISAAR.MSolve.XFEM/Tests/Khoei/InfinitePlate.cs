@@ -371,7 +371,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private IVectorOLD Solve()
         {
             model.EnumerateDofs();
-            var analysis = new LinearStaticAnalysis(model);
+            var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
             return analysis.Solution;
         }

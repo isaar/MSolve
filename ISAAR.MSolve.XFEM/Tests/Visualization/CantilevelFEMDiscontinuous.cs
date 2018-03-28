@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         private static IVectorOLD Solve(Model2D model)
         {
             model.EnumerateDofs();
-            var analysis = new LinearStaticAnalysis(model);
+            var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
             return analysis.Solution;
         }

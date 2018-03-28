@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Gmsh
         public Tuple<XNode2D, double> FindMaxDisplacement(Model2D model)
         {
             model.EnumerateDofs();
-            var analysis = new LinearStaticAnalysis(model);
+            var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
 
             double min = double.MaxValue;

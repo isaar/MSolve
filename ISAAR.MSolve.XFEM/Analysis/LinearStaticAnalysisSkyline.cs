@@ -19,13 +19,13 @@ namespace ISAAR.MSolve.XFEM.Analysis
     /// The linear analyzer and the solver should not compose the linear system. It should be passed as an argument to Solve.
     /// The linear system should be instantiated with the Matrix and the rhs.
     /// </summary>
-    class LinearStaticAnalysis
+    class LinearStaticAnalysisSkyline: ILinearStaticAnalysis
     {
         private readonly Model2D model;
         private ISolver solver; // A solver devoid of linear system must be passed into the constructor
         public IVectorOLD Solution { get; private set; }
 
-        public LinearStaticAnalysis(Model2D model)
+        public LinearStaticAnalysisSkyline(Model2D model)
         {
             this.model = model;
         }
