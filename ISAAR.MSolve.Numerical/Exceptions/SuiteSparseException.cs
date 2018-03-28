@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    class SuiteSparseException : Exception
+    public class SuiteSparseException : Exception
     {
         public SuiteSparseException()
         { }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    class IndefiniteMatrixException : Exception
+    public class IndefiniteMatrixException : Exception
     {
         public IndefiniteMatrixException()
         { }
