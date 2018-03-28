@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 var test = new InfinitePlateInclinedCrack(crackAnglesDegrees[i], 
                     crackLength / crackLengthOverElementSize,
                     jIntegralRadiusOverElementSize);
-                IVector solution = test.Solve();
+                IVectorOLD solution = test.Solve();
                 PropagationResults results = test.Propagate(solution);
                 analyticJintegrals[i] = (double)results.referenceJIntegral;
                 analyticSIFs1[i] = (double)results.referenceSIF1;
@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private IVector Solve()
+        private IVectorOLD Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysis(model);
@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private PropagationResults Propagate(IVector solution)
+        private PropagationResults Propagate(IVectorOLD solution)
         {
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
             double[] totalFreeDisplacements = new double[solution.Length];

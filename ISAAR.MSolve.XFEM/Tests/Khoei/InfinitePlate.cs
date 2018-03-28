@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(defaultCrackAngleDegrees, crackLength / crackLengthsOverElementSize[i],
                     defaultJIntegralRadusOverElementSize, defaultEnrichmentRadiusOverElementSize);
-                IVector solution = test.Solve();
+                IVectorOLD solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(crackLength / report.tipElementSize);
                 Console.Write(" " + report.analyticJIntegral);
@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(defaultCrackAngleDegrees, crackLength / defaultCrackLengthOverElementSize,
                     jIntegralRadiiOverElementSize[i], defaultEnrichmentRadiusOverElementSize);
-                IVector solution = test.Solve();
+                IVectorOLD solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(report.jIntegralRadiusOverElementSize);
                 Console.Write(" " + report.analyticJIntegral);
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(defaultCrackAngleDegrees, crackLength / defaultCrackLengthOverElementSize,
                     defaultJIntegralRadusOverElementSize, enrichmentRadiiOverElementSize[i]);
-                IVector solution = test.Solve();
+                IVectorOLD solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(report.enrichmentRadiusOverElementSize);
                 Console.Write(" " + report.analyticJIntegral);
@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(crackAnglesDegrees[i], crackLength / defaultCrackLengthOverElementSize,
                     defaultJIntegralRadusOverElementSize, defaultEnrichmentRadiusOverElementSize);
-                IVector solution = test.Solve();
+                IVectorOLD solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(report.crackAngleDegrees);
                 Console.Write(" " + report.analyticJIntegral);
@@ -368,7 +368,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private IVector Solve()
+        private IVectorOLD Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysis(model);
@@ -376,7 +376,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private Report Propagate(IVector solution)
+        private Report Propagate(IVectorOLD solution)
         {
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
             double[] totalFreeDisplacements = new double[solution.Length];

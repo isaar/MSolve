@@ -1,0 +1,85 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
+{
+    class TestSuiteSparse
+    {
+        public static void ExampleRawArrays()
+        {
+            // Define linear system
+            const int n = 4;
+            const int nnz = 7;
+            int[] colOffsets = new int[n + 1] { 0, 1, 2, 5, nnz };
+            int[] rowIndices = new int[nnz] { 0, 1, 0, 1, 2, 1, 3 };
+            double[] values = new double[nnz] { 4.0, 10.0, 2.0, 1.0, 8.0, 3.0, 9.0 };
+            double[] rhs = new double[n] { 6.0, 14.0, 11.0, 12.0 };
+            double[] solution = new double[n];
+
+            // Solve it using SuiteSparse
+            IntPtr handle = SuiteSparseUtilities.CreateCommon();
+            int status = SuiteSparseUtilities.FactorizeCSCUpper(n, nnz, values, rowIndices, colOffsets, out IntPtr factor, handle);
+            if (status != -1)
+            {
+                Console.WriteLine("Factorization failed");
+                return;
+            }
+            SuiteSparseUtilities.Solve(n, factor, rhs, solution, handle);
+            SuiteSparseUtilities.DestroyFactor(ref factor, handle);
+            SuiteSparseUtilities.DestroyCommon(ref handle);
+
+            ProcessResult(solution);
+        }
+
+        public static void ExampleMatrixClasses()
+        {
+            // Define linear system
+            var rhs = VectorMKL.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
+            var matrixDOK = new SymmetricDOKColMajor(4);
+            matrixDOK[0, 0] = 4.0; matrixDOK[0, 2] = 2.0;
+            matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
+            matrixDOK[2, 2] = 8.0;
+            matrixDOK[3, 3] = 9.0;
+            SymmetricCSC matrixCSC = matrixDOK.ToSymmetricCSC();
+
+            //const int n = 4;
+            //const int nnz = 7;
+            //int[] colOffsets = new int[n + 1] { 0, 1, 2, 5, nnz };
+            //int[] rowIndices = new int[nnz] { 0, 1, 0, 1, 2, 1, 3 };
+            //double[] values = new double[nnz] { 4.0, 10.0, 2.0, 1.0, 8.0, 3.0, 9.0 };
+            //SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
+
+            Console.WriteLine("Matrix DOK: ");
+            matrixDOK.WriteToConsole();
+            Console.WriteLine("Matrix CSC: ");
+            matrixCSC.WriteToConsole();
+
+            //Solve it using SuiteSparse
+            using (SuiteSparseCholesky factor = matrixCSC.FactorCholesky())
+            {
+                VectorMKL solution = factor.SolveLinearSystem(rhs);
+                ProcessResult(solution.CopyToArray());
+            }
+        }
+
+        private static void ProcessResult(double[] solution)
+        {
+            double[] expected = { 1.0, 1.0, 1.0, 1.0 };
+            Comparer comparer = new Comparer(Comparer.PrintMode.Never, 1e-6);
+            if (comparer.AreEqual(expected, solution)) Console.WriteLine("The linear system has been solved correctly.");
+            else Console.WriteLine("ERROR in solving the linear system.");
+            Console.Write("expected solution = ");
+            VectorMKL.CreateFromArray(expected).WriteToConsole();
+            Console.Write("computed solution = ");
+            VectorMKL.CreateFromArray(solution).WriteToConsole();
+        }
+    }
+}

@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             throw new NotImplementedException();
         }
 
-        public void Multiply(IVector vIn, double[] vOut)
+        public void Multiply(IVectorOLD vIn, double[] vOut)
         {
             if (Rows != vIn.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             Array.Clear(vOut, 0, vOut.Length);

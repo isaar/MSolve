@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Solvers.PCG
                 diagonalPreconditioner[i] = 1d / linearSystem.Matrix[i, i];
         }
 
-        public void Precondition(IVector vIn, IVector vOut)
+        public void Precondition(IVectorOLD vIn, IVectorOLD vOut)
         {
             for (int i = 0; i < vIn.Length; i++)
                 vOut[i] = diagonalPreconditioner[i] * vIn[i];

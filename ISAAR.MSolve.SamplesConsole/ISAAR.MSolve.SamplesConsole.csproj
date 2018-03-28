@@ -14,7 +14,7 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,7 +25,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ISAAR.MSolve.SamplesConsole.Linear_Algebra.TestMatrixOperations</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
@@ -53,6 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeamBuildingBuilder.cs" />
+    <Compile Include="Linear Algebra\TestMatrixOperations.cs" />
+    <Compile Include="Linear Algebra\TestMKLInstallation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -73,13 +78,13 @@
       <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
       <Name>ISAAR.MSolve.Numerical</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
-      <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
-      <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj">
       <Project>{5811fdb6-9b63-48ed-a153-47a673a3cc6f}</Project>
       <Name>ISAAR.MSolve.Analyzers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
+      <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
+      <Name>ISAAR.MSolve.Solvers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

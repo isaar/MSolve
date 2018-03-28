@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             IMatrixLinearSystem subdomain = linearSystem;
             if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized) return;
 
-            List<IVector> zems = new List<IVector>();
+            List<IVectorOLD> zems = new List<IVectorOLD>();
             List<int> zemColumns = new List<int>();
             SkylineMatrix2D m = (SkylineMatrix2D)subdomain.Matrix;
 

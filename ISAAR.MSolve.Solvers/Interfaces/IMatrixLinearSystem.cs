@@ -6,7 +6,7 @@ namespace ISAAR.MSolve.Solvers.Interfaces
     {
         int ID { get; }
         IMatrix2D Matrix { get; set; }
-        IVector RHS { get; }
-        IVector Solution { get; set;  }
+        IVectorOLD RHS { get; }
+        IVectorOLD Solution { get; set;  }
     }
 }

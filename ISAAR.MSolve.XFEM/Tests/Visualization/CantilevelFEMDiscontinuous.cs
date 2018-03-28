@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         public static void Main()
         {
             Model2D model = CreateModel();
-            IVector solution = Solve(model);
+            IVectorOLD solution = Solve(model);
             WriteOutput(model, solution);
         }
 
@@ -75,7 +75,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return model;
         }
 
-        private static IVector Solve(Model2D model)
+        private static IVectorOLD Solve(Model2D model)
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysis(model);
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return analysis.Solution;
         }
 
-        private static void WriteOutput(Model2D model, IVector solution)
+        private static void WriteOutput(Model2D model, IVectorOLD solution)
         {
             var writer = new DiscontinuousMeshVTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);

@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Solvers
 {
     public static class SearchVectors
     {
-        public static void CalculateReorthogonalizedSearchVector(IVector z, IVector p, IList<IVector> ps, IList<IVector> qs)
+        public static void CalculateReorthogonalizedSearchVector(IVectorOLD z, IVectorOLD p, IList<IVectorOLD> ps, IList<IVectorOLD> qs)
         {
             int procs = VectorExtensions.AffinityCount;
 
@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.Solvers
             }
         }
 
-        public static double CalculateReorthogonalizedGradient(IVector p, IVector q, IVector r, IList<IVector> ps, IList<IVector> qs)
+        public static double CalculateReorthogonalizedGradient(IVectorOLD p, IVectorOLD q, IVectorOLD r, IList<IVectorOLD> ps, IList<IVectorOLD> qs)
         {
             ps.Add(new Vector(p.Length));
             qs.Add(new Vector(q.Length));
@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.Solvers
             return a / b;
         }
 
-        public static bool InitializeStartingVectorFromReorthogonalizedSearchVectors(IVector x, IVector b, IList<IVector> ps, IList<IVector> qs)
+        public static bool InitializeStartingVectorFromReorthogonalizedSearchVectors(IVectorOLD x, IVectorOLD b, IList<IVectorOLD> ps, IList<IVectorOLD> qs)
         {
             if (ps.Count == 0) return false;
 

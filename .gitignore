@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# Large packages
+packages/Compute.Winx64.IntelMKL.2018.1.156.1/

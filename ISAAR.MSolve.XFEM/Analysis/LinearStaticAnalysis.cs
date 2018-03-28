@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     {
         private readonly Model2D model;
         private ISolver solver; // A solver devoid of linear system must be passed into the constructor
-        public IVector Solution { get; private set; }
+        public IVectorOLD Solution { get; private set; }
 
         public LinearStaticAnalysis(Model2D model)
         {

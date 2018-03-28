@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.Analyzers
 
         #region INonLinearParentAnalyzer Members
 
-        public double[] GetOtherRHSComponents(int id, IVector currentSolution)
+        public double[] GetOtherRHSComponents(int id, IVectorOLD currentSolution)
         {
             return new double[currentSolution.Length];
         }
