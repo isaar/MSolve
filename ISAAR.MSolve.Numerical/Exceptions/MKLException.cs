@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    class MKLException : Exception
+    public class MKLException : Exception
     {
         public MKLException()
         { }

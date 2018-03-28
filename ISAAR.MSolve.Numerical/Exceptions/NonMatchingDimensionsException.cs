@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    class NonMatchingDimensionsException: Exception
+    public class NonMatchingDimensionsException: Exception
     {
         public NonMatchingDimensionsException()
         { }
