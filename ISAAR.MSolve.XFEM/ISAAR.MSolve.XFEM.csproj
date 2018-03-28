@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ISAAR.MSolve.XFEM</RootNamespace>
     <AssemblyName>ISAAR.MSolve.XFEM</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -34,9 +34,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBpropagationBelytschko</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
+      <HintPath>..\packages\Thrower.2.2.2\lib\net46\PommaLabs.Thrower.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
