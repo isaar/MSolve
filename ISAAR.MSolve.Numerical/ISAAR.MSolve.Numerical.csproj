@@ -126,6 +126,7 @@
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
+    <Compile Include="LinearAlgebra\Testing\Utilities\MatrixComparer.cs" />
     <Compile Include="LinearAlgebra\Vectors\IVectorView.cs" />
     <Compile Include="LinearAlgebra\Matrices\IMatrixView.cs" />
     <Compile Include="LinearAlgebra\Matrices\Matrix.cs" />

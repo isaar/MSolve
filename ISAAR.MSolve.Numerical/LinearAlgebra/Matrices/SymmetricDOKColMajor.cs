@@ -4,12 +4,14 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     /// <summary>
     /// Use this class for building a symmetric sparse matrix, not for operations. Convert to other matrix formats once finished 
-    /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored.
+    /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored. This class is 
+    /// optimized for building global positive definite matrices, where there is at least 1 entry per column (like in FEM).
     /// </summary>
     public class SymmetricDOKColMajor : IIndexable2D
     {
@@ -49,10 +51,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
+        #region global matrix building 
         /// <summary>
         /// If the entry already exists: the new value is added to the existing one: this[rowIdx, colIdx] += value. 
         /// Otherwise the entry is inserted with the new value: this[rowIdx, colIdx] = value.
         /// Use this method instead of this[rowIdx, colIdx] += value, as it is an optimized version.
+        /// Warning: Be careful not to add to both an entry and its symmetric, unless this is what you want.
         /// </summary>
         /// <param name="rowIdx"></param>
         /// <param name="colIdx"></param>
@@ -67,6 +71,93 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else data[colIdx][rowIdx] = value;
             //The Dictionary data[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
         }
+
+        /// <summary>
+        /// Use this method if you are sure that the all relevant global dofs are above or on the diagonal.
+        /// </summary>
+        public void AddSubmatrixAboveDiagonal(IIndexable2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary< int, int> elementColsToGlobalCols)
+        { 
+            foreach (var colPair in elementColsToGlobalCols) // Col major ordering
+            {
+                int elementCol = colPair.Key;
+                int globalCol = colPair.Value;
+                foreach (var rowPair in elementRowsToGlobalRows)
+                { 
+                    int elementRow = rowPair.Key;
+                    int globalRow = rowPair.Value;
+                    double valueToAdd = elementMatrix[elementRow, elementCol];
+                    if (data[globalCol].TryGetValue(globalRow, out double oldValue))
+                    {
+                        data[globalCol][globalRow] = valueToAdd + oldValue;
+                    }
+                    else data[globalCol][globalRow] = valueToAdd;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Use this method if you are sure that the all relevant global dofs are under or on the diagonal of this matrix.
+        /// </summary>
+        public void AddSubmatrixUnderDiagonal(IIndexable2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        {
+            foreach (var rowPair in elementRowsToGlobalRows) // Transpose(Col major ordering) = Row major ordering
+            {
+                int elementRow = rowPair.Key;
+                int globalRow = rowPair.Value;
+                foreach (var colPair in elementColsToGlobalCols)
+                {
+                    int elementCol = colPair.Key;
+                    int globalCol = colPair.Value;
+                    double valueToAdd = elementMatrix[elementRow, elementCol];
+                    // Transpose the access on the global matrix only. 
+                    // This is equivalent to calling the indexer for each lower triangle entry, but without the explicit swap.
+                    if (data[globalRow].TryGetValue(globalCol, out double oldValue))
+                    {
+                        data[globalRow][globalCol] = valueToAdd + oldValue;
+                    }
+                    else data[globalRow][globalCol] = valueToAdd;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Only the global dofs above the diagonal of this matrix will be added. Use this for symmetric submatrices that are 
+        /// mapped to symmetric global dofs (e.g. in FEM).
+        /// </summary>
+        public void AddUpperPartOfSubmatrix(IIndexable2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        {
+            /* 
+             * TODO: Ideally the Dictionaries would be replaced with 2 arrays (or their container e.g. BiList) for 
+             * faster look-up. The arrays should be sorted on the global dofs. Then I could decide if a submatrix is above, under 
+             * or crossing the diagonal and only expose a single AddSubmatrix() method. This would call the relevant private 
+             * method Perhaps I can also get rid of all the ifs in this method. Perhaps I also could get rid of the ifs in the 
+             * crossing case by setting by using correct loops.  
+             */
+            foreach (var colPair in elementColsToGlobalCols) // Col major ordering
+            {
+                int elementCol = colPair.Key;
+                int globalCol = colPair.Value;
+                foreach (var rowPair in elementRowsToGlobalRows)
+                {
+                    int globalRow = rowPair.Value;
+                    if (globalRow <= globalCol)
+                    {
+                        int elementRow = rowPair.Key;
+                        double valueToAdd = elementMatrix[elementRow, elementCol];
+                        if (data[globalCol].TryGetValue(globalRow, out double oldValue))
+                        {
+                            data[globalCol][globalRow] = valueToAdd + oldValue;
+                        }
+                        else data[globalCol][globalRow] = valueToAdd;
+                    }
+                }
+            }
+        }
+
+        #endregion
 
         public SymmetricCSC ToSymmetricCSC()
         {
