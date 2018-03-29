@@ -6,7 +6,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 {
     public interface IVectorView: IReducible
     {

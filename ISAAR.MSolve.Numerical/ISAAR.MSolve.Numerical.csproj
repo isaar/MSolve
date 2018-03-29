@@ -106,6 +106,7 @@
     <Compile Include="Exceptions\MKLException.cs" />
     <Compile Include="Exceptions\NonMatchingDimensionsException.cs" />
     <Compile Include="Exceptions\SingularMatrixException.cs" />
+    <Compile Include="Exceptions\SparsityPatternModifiedException.cs" />
     <Compile Include="Exceptions\SuiteSparseException.cs" />
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
