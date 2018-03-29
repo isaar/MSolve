@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.XFEM.Analysis
 {
+    // TODO: The Analyzer should be separate from the solver.
     interface ILinearStaticAnalysis
     {
         IVectorOLD Solution { get; }

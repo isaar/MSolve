@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             using (SuiteSparseCholesky factorization = matrix.ToSymmetricCSC().FactorCholesky())
             {
                 VectorMKL solution = factorization.SolveLinearSystem(rhs);
-                Solution = new Vector(solution.CopyToArray()); //TODO: add method VectorMKL.ToOld() temporarily.
+                Solution = solution.ToLegacyVector();
             }
         }
 
