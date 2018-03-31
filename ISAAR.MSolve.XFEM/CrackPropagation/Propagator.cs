@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -169,7 +169,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 EvaluatedInterpolation2D evaluatedInterpolation = 
                     element.Interpolation.EvaluateAt(element.Nodes, naturalGP);
                 ICartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
-                Matrix2D constitutive = 
+                Matrix constitutive = 
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 
                 // State 1

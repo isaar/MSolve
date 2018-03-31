@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -15,7 +15,6 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -64,21 +63,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.InitializeGeometry(point1, point2);
             crack.UpdateEnrichments();
 
-            SymmetricMatrix2D stiffnessStd = bodyElement.BuildStandardStiffnessMatrix();
-            Matrix2D stiffnessStdEnr;
-            SymmetricMatrix2D stiffnessEnr;
-            bodyElement.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
-
-            stiffnessStd.Scale(1e-6);
-            stiffnessStdEnr.Scale(1e-6);
-            stiffnessEnr.Scale(1e-6);
-
+            Matrix stiffnessStd = bodyElement.BuildStandardStiffnessMatrix();
+            bodyElement.BuildEnrichedStiffnessMatrices(out Matrix stiffnessStdEnr, out Matrix stiffnessEnr);
+            
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            MatrixUtilities.PrintDense(stiffnessStd);
+            stiffnessStd.Scale(1e-6).WriteToConsole();
             Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            MatrixUtilities.PrintDense(stiffnessStdEnr);
+            stiffnessStdEnr.Scale(1e-6).WriteToConsole();
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            MatrixUtilities.PrintDense(stiffnessEnr);
+            stiffnessEnr.Scale(1e-6).WriteToConsole();
         }
 
         private static void IsoparametricQuad4BimaterialTest(XNode2D[] nodes)
@@ -106,21 +99,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             enrichmentItem.EnrichNode(nodes[2]);
             enrichmentItem.EnrichNode(nodes[3]);
 
-            SymmetricMatrix2D stiffnessStd = element.BuildStandardStiffnessMatrix();
-            Matrix2D stiffnessStdEnr;
-            SymmetricMatrix2D stiffnessEnr;
-            element.BuildEnrichedStiffnessMatrices(out stiffnessStdEnr, out stiffnessEnr);
 
-            stiffnessStd.Scale(1e-6);
-            stiffnessStdEnr.Scale(1e-6);
-            stiffnessEnr.Scale(1e-6);
+            Matrix stiffnessStd = element.BuildStandardStiffnessMatrix();
+            element.BuildEnrichedStiffnessMatrices(out Matrix stiffnessStdEnr, out Matrix stiffnessEnr);
 
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            MatrixUtilities.PrintDense(stiffnessStd);
+            stiffnessStd.Scale(1e-6).WriteToConsole();
             Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            MatrixUtilities.PrintDense(stiffnessStdEnr);
+            stiffnessStdEnr.Scale(1e-6).WriteToConsole();
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            MatrixUtilities.PrintDense(stiffnessEnr);
+            stiffnessEnr.Scale(1e-6).WriteToConsole();
         }
 
         static void Main(string[] args)

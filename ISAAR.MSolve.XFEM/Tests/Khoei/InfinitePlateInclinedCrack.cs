@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 var test = new InfinitePlateInclinedCrack(crackAnglesDegrees[i], 
                     crackLength / crackLengthOverElementSize,
                     jIntegralRadiusOverElementSize);
-                IVectorOLD solution = test.Solve();
+                VectorMKL solution = test.Solve();
                 PropagationResults results = test.Propagate(solution);
                 analyticJintegrals[i] = (double)results.referenceJIntegral;
                 analyticSIFs1[i] = (double)results.referenceSIF1;
@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private IVectorOLD Solve()
+        private VectorMKL Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -297,12 +297,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private PropagationResults Propagate(IVectorOLD solution)
+        private PropagationResults Propagate(VectorMKL solution)
         {
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-            double[] totalFreeDisplacements = new double[solution.Length];
-            solution.CopyTo(totalFreeDisplacements, 0);
-           
+            double[] totalFreeDisplacements = solution.CopyToArray(); // TODO: Use Vector instead of double[] in the framework
+
 
             // Start tip propagation
             var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,

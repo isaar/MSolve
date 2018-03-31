@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
-    class Jacobian2D
+    class Jacobian2D //TODO: need special 2x2 Matrix class probably
     {
         private const double DETERMINANT_TOLERANCE = 0.00000001; // This needs to be in a static settings class.
         private const int DIMENSION = 2;
 
-        private readonly Matrix2D inverseJ; // I need a Matrix view for this
+        private readonly Matrix inverseJ; // I need a Matrix view for this
         public double Determinant { get; }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         public Jacobian2D(IReadOnlyList<ICartesianPoint2D> nodes, double[,] naturalDerivatives)
         {
             // The original matrix is not stored. Only the inverse and the determinant
-            Matrix2D jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
+            Matrix jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
             Determinant = CalculateDeterminant(jacobianMatrix);
             inverseJ = CalculateInverseJacobian(jacobianMatrix);
         }
@@ -37,10 +37,10 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return new Tuple<double, double>(derivativeX, derivativeY);
         }
 
-        private static Matrix2D CalculateJacobianMatrix(IReadOnlyList<ICartesianPoint2D> nodes, 
+        private static Matrix CalculateJacobianMatrix(IReadOnlyList<ICartesianPoint2D> nodes, 
             double[,] naturalDerivatives)
         {
-            var J = new Matrix2D(DIMENSION, DIMENSION);
+            var J = Matrix.CreateZero(DIMENSION, DIMENSION);
             for (int nodeIndex = 0; nodeIndex < nodes.Count; ++nodeIndex)
             {
                 double x = nodes[nodeIndex].X;
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return J;
         }
 
-        private double CalculateDeterminant(Matrix2D jacobianMatrix)
+        private double CalculateDeterminant(Matrix jacobianMatrix)
         {
             double det = jacobianMatrix[0, 0] * jacobianMatrix[1, 1] - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
             if (det < DETERMINANT_TOLERANCE)
@@ -68,9 +68,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return det;
         }
 
-        private Matrix2D CalculateInverseJacobian(Matrix2D jacobianMatrix)
+        private Matrix CalculateInverseJacobian(Matrix jacobianMatrix)
         {
-            var invJ = new Matrix2D(DIMENSION, DIMENSION);
+            var invJ = Matrix.CreateZero(DIMENSION, DIMENSION);
             invJ[0, 0] = jacobianMatrix[1, 1] / Determinant;
             invJ[0, 1] = -jacobianMatrix[0, 1] / Determinant;
             invJ[1, 0] = -jacobianMatrix[1, 0] / Determinant;

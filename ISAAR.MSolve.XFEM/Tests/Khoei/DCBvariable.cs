@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.XFEM.Assemblers;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
@@ -24,12 +22,10 @@ using ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
-using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
@@ -56,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 {
                     var test = new DCBvariable(meshElements[i], jIntegralRadiiOverElementSize[j]);
                     //test.CheckJintegralCountour();
-                    IVectorOLD solution = test.Solve();
+                    VectorMKL solution = test.Solve();
                     //test.CheckSolution(solution);
                     Tuple<double, double> results = test.Propagate(solution);
 
@@ -195,7 +191,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private IVectorOLD Solve()
+        private VectorMKL Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -203,7 +199,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private void CheckSolution(IVectorOLD solution)
+        private void CheckSolution(VectorMKL solution)
         {
             var finder = new EntityFinder(model, 1e-6);
             List<XContinuumElement2D> mouthElements = finder.FindElementsThatContains(CRACK_MOUTH);
@@ -231,7 +227,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
         }
 
-        private Tuple<double, double> Propagate(IVectorOLD solution)
+        private Tuple<double, double> Propagate(VectorMKL solution)
         {
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
             propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
@@ -240,8 +236,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
 
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-            double[] totalFreeDisplacements = new double[solution.Length];
-            solution.CopyTo(totalFreeDisplacements, 0);
+            double[] totalFreeDisplacements = solution.CopyToArray(); // TODO: Use Vector instead of double[] in the framework
 
             double growthAngle, growthIncrement;
             propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements, 

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Analysis
 {
     // TODO: The Analyzer should be separate from the solver.
     interface ILinearStaticAnalysis
     {
-        IVectorOLD Solution { get; }
+        VectorMKL Solution { get; }
 
         void Initialize();
         void Solve();

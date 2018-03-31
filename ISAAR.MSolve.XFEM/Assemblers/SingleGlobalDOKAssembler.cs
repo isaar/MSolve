@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.XFEM.Elements;
@@ -21,32 +19,30 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     static class SingleGlobalDOKAssembler
     {
-        public static void BuildGlobalMatrix(Model2D model,
-            out SymmetricDOKColMajor Kff, out Matrix2D Kfc)
+        public static (SymmetricDOKColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model)
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
             int allFreeDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            Kff = new SymmetricDOKColMajor(allFreeDofsCount);
+            SymmetricDOKColMajor Kff = new SymmetricDOKColMajor(allFreeDofsCount);
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Kfc = new Matrix2D(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount,
+            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount,
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // Element matrices
-                SymmetricMatrix2D kss = element.BuildStandardStiffnessMatrix();
-                element.BuildEnrichedStiffnessMatrices(out Matrix2D kes, 
-                    out SymmetricMatrix2D kee);
+                Matrix kss = element.BuildStandardStiffnessMatrix();
+                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
 
                 // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
                 // 2) The Elements have two versions of BuildStiffness(). 
                 // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
-                Matrix2D kse = kes.Transpose(); 
+                Matrix kse = kes.Transpose(); 
 
                 // Element to global dofs mappings
                 // TODO: perhaps that could be done during the assembly to avoid iterating over the dofs twice
@@ -67,13 +63,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             // Test the global matrices
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out SkylineMatrix2D KuuExpected, out Matrix2D KucExpected);
             //Console.WriteLine("Check Kuu: ");
-            //CheckMatrixKuu(Kuu, KuuExpected);
+            //CheckMatrix(Kuu, KuuExpected);
             //Console.WriteLine();
             //Console.WriteLine("Check Kuc: ");
-            //CheckMatrixKuc(Kuc, KucExpected);
+            //CheckMatrix(Kuc, KucExpected);
+            return (Kff, Kfc);
         }
 
-        private static void AddElementToGlobalMatrix(SymmetricDOKColMajor globalMatrix, IMatrix2D elementMatrix,
+        private static void AddElementToGlobalMatrix(SymmetricDOKColMajor globalMatrix, Matrix elementMatrix,
             IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
             foreach (var rowPair in elementRowsToGlobalRows)
@@ -109,7 +106,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         /// <param name="elementMatrix"></param>
         /// <param name="elementRowsToGlobalRows"></param>
         /// <param name="elementColsToGlobalCols"></param>
-        private static void AddElementToGlobalMatrix(Matrix2D globalMatrix, IMatrix2D elementMatrix,
+        private static void AddElementToGlobalMatrix(Matrix globalMatrix, Matrix elementMatrix,
             IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
             foreach (var rowPair in elementRowsToGlobalRows)
@@ -126,35 +123,16 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             }
         }
 
-        private static void CheckMatrixKuu(IIndexable2D computed, IMatrix2D expected)
+        private static void CheckMatrix(Matrix computed, Matrix expected)
         {
             ValueComparer comparer = new ValueComparer(1e-6);
-            if ((computed.NumRows != expected.Rows) || (computed.NumColumns != expected.Columns))
+            if ((computed.NumRows != expected.NumRows) || (computed.NumColumns != expected.NumColumns))
             {
                 Console.WriteLine("Invalid dimensions");
             }
             for (int i = 0; i < computed.NumRows; ++i)
             {
                 for (int j = 0; j < computed.NumColumns; ++j)
-                {
-                    if (!comparer.AreEqual(computed[i, j], expected[i, j]))
-                    {
-                        Console.WriteLine($"Computed[{i}, {j}] = {computed[i, j]}   -   Expected[{i}, {j}] = {expected[i, j]}");
-                    }
-                }
-            }
-        }
-
-        private static void CheckMatrixKuc(IMatrix2D computed, IMatrix2D expected)
-        {
-            ValueComparer comparer = new ValueComparer(1e-6);
-            if ((computed.Rows != expected.Rows) || (computed.Columns != expected.Columns))
-            {
-                Console.WriteLine("Invalid dimensions");
-            }
-            for (int i = 0; i < computed.Rows; ++i)
-            {
-                for (int j = 0; j < computed.Columns; ++j)
                 {
                     if (!comparer.AreEqual(computed[i, j], expected[i, j]))
                     {

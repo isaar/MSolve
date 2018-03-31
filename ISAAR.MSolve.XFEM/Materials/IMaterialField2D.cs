@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Materials
         double GetPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
         double GetEquivalentPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
         double GetThicknessAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
-        Matrix2D CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        Matrix CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
 
         /// <summary>
         /// Used in material stochasticity, XFEM inclusions, etc

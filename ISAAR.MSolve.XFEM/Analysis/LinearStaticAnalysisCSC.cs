@@ -4,16 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 //using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Analysis
@@ -21,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     class LinearStaticAnalysisCSC: ILinearStaticAnalysis
     {
         private readonly Model2D model;
-        public IVectorOLD Solution { get; private set; }
+        public VectorMKL Solution { get; private set; }
 
         public LinearStaticAnalysisCSC(Model2D model)
         {
@@ -37,8 +33,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             (SymmetricDOKColMajor matrix, VectorMKL rhs) = ReduceToSimpleLinearSystem();
             using (SuiteSparseCholesky factorization = matrix.ToSymmetricCSC().FactorCholesky())
             {
-                VectorMKL solution = factorization.SolveLinearSystem(rhs);
-                Solution = solution.ToLegacyVector();
+                Solution = factorization.SolveLinearSystem(rhs);
             }
         }
 
@@ -66,17 +61,12 @@ namespace ISAAR.MSolve.XFEM.Analysis
             /// i) Kuu * uu = Fu - Kuc * uc = Feff
             /// ii) uu = Kuu \ Feff
             /// 
-            SingleGlobalDOKAssembler.BuildGlobalMatrix(model, out SymmetricDOKColMajor Kuu, out Matrix2D Kuc);
+            (SymmetricDOKColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             VectorMKL Fu = VectorMKL.CreateFromArray(model.CalculateFreeForces(), false); //TODO fix MKL dlls
             double[] uc = model.CalculateConstrainedDisplacements();
-
-            // TODO: The linear algebra library is ridiculously cumbersome and limited.
-            double[] KlcTimesUc = new double[Kuc.Rows];
-            Kuc.Multiply(new Vector(uc), KlcTimesUc);
-            VectorMKL Feff = Fu - VectorMKL.CreateFromArray(KlcTimesUc, false);
-
+            VectorMKL Feff = Fu - Kuc * VectorMKL.CreateFromArray(uc);
             return (Kuu, Feff);
         }
     }

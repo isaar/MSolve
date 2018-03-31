@@ -3,41 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
     static class MatrixPrinter
     {
-        public static void PrintElementMatrix(int elementId, Matrix2D k)
+        public static void PrintElementMatrix(int elementId, Matrix k)
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("K = ");
-            MatrixUtilities.PrintDense(k);
+            k.WriteToConsole();
             Console.WriteLine("\n");
         }
 
-        public static void PrintElementMatrices(int elementId, SymmetricMatrix2D kss,
-            Matrix2D kes, SymmetricMatrix2D kee)
+        public static void PrintElementMatrices(int elementId, Matrix kss, Matrix kes, Matrix kee)
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("Kss = ");
-            MatrixUtilities.PrintDense(kss);
+            kss.WriteToConsole();
             Console.WriteLine();
             Console.WriteLine("Kes = ");
-            MatrixUtilities.PrintDense(kes);
+            kes.WriteToConsole();
             Console.WriteLine();
             Console.WriteLine("Kee = ");
-            MatrixUtilities.PrintDense(kee);
+            kee.WriteToConsole();
             Console.WriteLine("\n");
         }
 
-        public static void PrintGlobalMatrix(Matrix2D matrix)
+        public static void PrintGlobalMatrix(Matrix matrix)
         {
             Console.WriteLine("Global matrix:");
             Console.WriteLine("K = ");
-            MatrixUtilities.PrintDense(matrix);
+            matrix.WriteToConsole();
             Console.WriteLine("\n");
         }
     }

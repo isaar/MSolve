@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
@@ -22,7 +22,6 @@ using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.Output;
 using ISAAR.MSolve.XFEM.Output.VTK;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -87,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(defaultCrackAngleDegrees, crackLength / crackLengthsOverElementSize[i],
                     defaultJIntegralRadusOverElementSize, defaultEnrichmentRadiusOverElementSize);
-                IVectorOLD solution = test.Solve();
+                VectorMKL solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(crackLength / report.tipElementSize);
                 Console.Write(" " + report.analyticJIntegral);
@@ -115,7 +114,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(defaultCrackAngleDegrees, crackLength / defaultCrackLengthOverElementSize,
                     jIntegralRadiiOverElementSize[i], defaultEnrichmentRadiusOverElementSize);
-                IVectorOLD solution = test.Solve();
+                VectorMKL solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(report.jIntegralRadiusOverElementSize);
                 Console.Write(" " + report.analyticJIntegral);
@@ -144,7 +143,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(defaultCrackAngleDegrees, crackLength / defaultCrackLengthOverElementSize,
                     defaultJIntegralRadusOverElementSize, enrichmentRadiiOverElementSize[i]);
-                IVectorOLD solution = test.Solve();
+                VectorMKL solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(report.enrichmentRadiusOverElementSize);
                 Console.Write(" " + report.analyticJIntegral);
@@ -172,7 +171,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 var test = new InfinitePlate(crackAnglesDegrees[i], crackLength / defaultCrackLengthOverElementSize,
                     defaultJIntegralRadusOverElementSize, defaultEnrichmentRadiusOverElementSize);
-                IVectorOLD solution = test.Solve();
+                VectorMKL solution = test.Solve();
                 Report report = test.Propagate(solution);
                 Console.Write(report.crackAngleDegrees);
                 Console.Write(" " + report.analyticJIntegral);
@@ -368,7 +367,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private IVectorOLD Solve()
+        private VectorMKL Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -376,12 +375,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private Report Propagate(IVectorOLD solution)
+        private Report Propagate(VectorMKL solution)
         {
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-            double[] totalFreeDisplacements = new double[solution.Length];
-            solution.CopyTo(totalFreeDisplacements, 0);
-
+            double[] totalFreeDisplacements = solution.CopyToArray(); // TODO: Use Vector instead of double[] in the framework
 
             // Start tip propagation
             var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, 

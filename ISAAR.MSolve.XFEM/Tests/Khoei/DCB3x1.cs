@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -23,7 +22,6 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -34,10 +32,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
     class DCB3x1
     {
         private static readonly bool integrationWithTriangles = false;
-        private static Matrix2D expectedK_Node6;
-        private static Matrix2D expectedK_Node7_El1;
-        private static Matrix2D expectedK_Node7_El2;
-        private static Matrix2D expectedK_Node7_Global;
+        private static Matrix expectedK_Node6;
+        private static Matrix expectedK_Node7_El1;
+        private static Matrix expectedK_Node7_El2;
+        private static Matrix expectedK_Node7_Global;
         private static double[] expectedSolutionNodes5_6 =
             { -8.17e-3, -50e-3, -8.17e-3, 50e-3, 15.69e-3, 49.88e-3, -15.69e-3, 49.88e-3 };
 
@@ -51,8 +49,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 { -0.481, -0.240, 0.962, 0.481 },
                 { -0.240, -0.962, 0.481, 1.923 }
             };
-            expectedK_Node6 = new Matrix2D(array);
-            expectedK_Node6.Scale(1e6);
+            expectedK_Node6 = Matrix.CreateFromArray(array);
+            expectedK_Node6.ScaleIntoThis(1e6);
         }
 
         private static void StiffnessNode7Element1()
@@ -71,8 +69,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 { 0.378, -0.055, 0.134, 0.465, -1.869, 0.909, -1.386, 0.685, 3.081, -0.859 },
                 { -0.337, -0.358, 0.537, 3.07, 0.939, -2.729, 0.645, -2.804, -0.859, 4.694 }
             };
-            expectedK_Node7_El1 = new Matrix2D(array);
-            expectedK_Node7_El1.Scale(1e6);
+            expectedK_Node7_El1 = Matrix.CreateFromArray(array);
+            expectedK_Node7_El1.ScaleIntoThis(1e6);
         }
 
         private static void StiffnessNode7Element2()
@@ -91,8 +89,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                { 0.600, -0.156, 1.561, -0.753, -0.843, 0.234, -1.317, 0.330, 0.869, -0.282 },
                { -0.087, 0.417, -0.610, 3.713, 0.223, -1.222, 0.322, -1.973, -0.282, 1.180 }
             };
-            expectedK_Node7_El2 = new Matrix2D(array);
-            expectedK_Node7_El2.Scale(1e6);
+            expectedK_Node7_El2 = Matrix.CreateFromArray(array);
+            expectedK_Node7_El2.ScaleIntoThis(1e6);
         }
 
         private static void StiffnessNode7Global()
@@ -111,8 +109,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 { 0.979, -0.211, 1.695, -0.289, -2.712, 1.142, -2.703, 1.015, 3.950, -1.141 },
                 { -0.424, 0.059, -0.073, 6.783, 1.162, -3.951, 0.966, -4.777, -1.141, 5.874 }
             };
-            expectedK_Node7_Global = new Matrix2D(array);
-            expectedK_Node7_Global.Scale(1e6);
+            expectedK_Node7_Global = Matrix.CreateFromArray(array);
+            expectedK_Node7_Global.ScaleIntoThis(1e6);
         }
 
         static DCB3x1()
@@ -238,15 +236,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckStiffnessNode6()
         {
-            Matrix2D Kes;
-            SymmetricMatrix2D Kee;
-            SymmetricMatrix2D Kss = model.Elements[2].BuildStandardStiffnessMatrix();
-            model.Elements[2].BuildEnrichedStiffnessMatrices(out Kes, out Kee);
+            Matrix Kss = model.Elements[2].BuildStandardStiffnessMatrix();
+            model.Elements[2].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
             //PrintElementMatrices(Kss, Kes, Kee, 1e-6);
 
             int[] stdDofsNode6 = new int[] { 4, 5 }; // All nodes: 0-1, 2-3, 4-5, 6-7 (2 dofs/node)
             int[] enrDofsNode6 = new int[] { 10, 11 }; // All nodes: 0-7, 8-9, 10-11, 12-19 (2 or 8 dofs/node)
-            Matrix2D node6Submatrix = checker.ExtractRelevant(Kss, Kes, Kee, stdDofsNode6, enrDofsNode6);
+            Matrix node6Submatrix = checker.ExtractRelevant(Kss, Kes, Kee, stdDofsNode6, enrDofsNode6);
             RoundMatrix(node6Submatrix);
             Console.Write("Checking stiffness submatrix of node 6 - element 2: ");
             checker.Check(expectedK_Node6, node6Submatrix);
@@ -254,15 +250,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckStiffnessNode7Element1()
         {
-            Matrix2D Kes;
-            SymmetricMatrix2D Kee;
-            SymmetricMatrix2D Kss = model.Elements[1].BuildStandardStiffnessMatrix();
-            model.Elements[1].BuildEnrichedStiffnessMatrices(out Kes, out Kee);
+            Matrix Kss = model.Elements[1].BuildStandardStiffnessMatrix();
+            model.Elements[1].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
             //PrintElementMatrices(Kss, Kes, Kee, 1e-6);
 
             int[] stdDofsNode7 = new int[] { 4, 5 }; // All nodes: 0-1, 2-3, 4-5, 6-7 (2 dofs/node)
             int[] enrDofsNode7 = new int[] { 16, 17, 18, 19, 20, 21, 22, 23 }; // All nodes: 0-7, 8-15, 16-23, 24-31 (8 dofs/node)
-            Matrix2D node7Submatrix = checker.ExtractRelevant(Kss, Kes, Kee, stdDofsNode7, enrDofsNode7);
+            Matrix node7Submatrix = checker.ExtractRelevant(Kss, Kes, Kee, stdDofsNode7, enrDofsNode7);
             RoundMatrix(node7Submatrix);
             Console.Write("Checking stiffness submatrix of node 7 - element 1: ");
             checker.Check(expectedK_Node7_El1, node7Submatrix);
@@ -270,15 +264,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckStiffnessNode7Element2()
         {
-            Matrix2D Kes;
-            SymmetricMatrix2D Kee;
-            SymmetricMatrix2D Kss = model.Elements[2].BuildStandardStiffnessMatrix();
-            model.Elements[2].BuildEnrichedStiffnessMatrices(out Kes, out Kee);
+            Matrix Kss = model.Elements[2].BuildStandardStiffnessMatrix();
+            model.Elements[2].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
             //PrintElementMatrices(Kss, Kes, Kee, 1e-6);
 
             int[] stdDofsNode7 = new int[] { 6, 7 }; // All nodes: 0-1, 2-3, 4-5, 6-7 (2 dofs/node)
             int[] enrDofsNode7 = new int[] { 12, 13, 14, 15, 16, 17, 18, 19 }; // All nodes: 0-7, 8-9, 10-11, 12-19 (2 or 8 dofs/node)
-            Matrix2D node7Submatrix = checker.ExtractRelevant(Kss, Kes, Kee, stdDofsNode7, enrDofsNode7);
+            Matrix node7Submatrix = checker.ExtractRelevant(Kss, Kes, Kee, stdDofsNode7, enrDofsNode7);
             RoundMatrix(node7Submatrix);
             Console.Write("Checking stiffness submatrix of node 7 - element 2: ");
             checker.Check(expectedK_Node7_El2, node7Submatrix);
@@ -286,16 +278,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckGlobalStiffnessNode7()
         {
-            SkylineMatrix2D Kuu;
-            Matrix2D Kuc;
-            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kuu, out Kuc);
+            (SymmetricDOKColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
 
             var dofsOfNode7 = new List<int>();
             foreach (int dof in model.DofEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             foreach (int dof in model.DofEnumerator.GetArtificialDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             dofsOfNode7.Sort();
 
-            Matrix2D node7Submatrix = checker.ExtractRelevant(Kuu, dofsOfNode7);
+            Matrix node7Submatrix = checker.ExtractRelevant(Kuu, dofsOfNode7);
             RoundMatrix(node7Submatrix);
             Console.Write("Checking stiffness submatrix of node 7 - global: ");
             //Console.WriteLine("Knode7 = ");
@@ -333,10 +323,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine("\n-------------------- Element Matrices ------------------");
             for (int i = 0; i < model.Elements.Count; ++i)
             {
-                Matrix2D Kes;
-                SymmetricMatrix2D Kee;
-                SymmetricMatrix2D Kss = model.Elements[i].BuildStandardStiffnessMatrix();
-                model.Elements[i].BuildEnrichedStiffnessMatrices(out Kes, out Kee);
+                Matrix Kss = model.Elements[i].BuildStandardStiffnessMatrix();
+                model.Elements[i].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
 
                 Console.WriteLine("Element " + i);
                 PrintElementMatrices(Kss, Kes, Kee, 1e-6);
@@ -348,8 +336,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         {
             var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
-            double[] solution = new double[analysis.Solution.Length];
-            analysis.Solution.CopyTo(solution, 0);
+            double[] solution = analysis.Solution.CopyToArray(); //TODO: Use Vector instead of double[] in all classes.
             double[,] nodalDisplacements = model.DofEnumerator.GatherNodalDisplacements(model, solution);
 
 
@@ -365,32 +352,26 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine(model.DofEnumerator.GatherArtificialNodalDisplacements(model, solution));
         }
 
-        private void PrintElementMatrices(SymmetricMatrix2D kss, Matrix2D kes, SymmetricMatrix2D kee, double scale)
+        private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)
         {
-            var scaledKss = new SymmetricMatrix2D((double[])kss.Data.Clone());
-            scaledKss.Scale(scale);
             Console.WriteLine("Kss = " + 1/scale + " * ");
-            MatrixUtilities.PrintDense(scaledKss);
+            kss.Scale(scale).WriteToConsole();
             Console.WriteLine();
 
-            var scaledKes = new Matrix2D((double[,])kes.Data.Clone());
-            scaledKes.Scale(scale);
             Console.WriteLine("Kes = " + 1 / scale + " * ");
-            MatrixUtilities.PrintDense(scaledKes);
+            kes.Scale(scale).WriteToConsole();
             Console.WriteLine();
 
-            var scaledKee = new SymmetricMatrix2D((double[])kee.Data.Clone());
-            scaledKee.Scale(scale);
             Console.WriteLine("Kee = " + 1 / scale + " * ");
-            MatrixUtilities.PrintDense(scaledKee);
+            kee.Scale(scale).WriteToConsole();
             Console.WriteLine();
         }
 
-        private void RoundMatrix(IMatrix2D matrix)
+        private void RoundMatrix(Matrix matrix) //TODO: add this as a Matrix method and in an interface returning a copy ofc
         {
-            for (int r = 0; r < matrix.Rows; ++r)
+            for (int r = 0; r < matrix.NumRows; ++r)
             {
-                for (int c = 0; c < matrix.Columns; ++c)
+                for (int c = 0; c < matrix.NumColumns; ++c)
                 {
                     matrix[r, c] = 1e6 * Math.Round(matrix[r, c] * 1e-6, 3);
                 }

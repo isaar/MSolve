@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
@@ -36,10 +37,11 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // Element matrices
-                SymmetricMatrix2D elementMatrixStdStd = element.BuildStandardStiffnessMatrix();
-                Matrix2D elementMatrixEnrStd;
-                SymmetricMatrix2D elementMatrixEnrEnr;
-                element.BuildEnrichedStiffnessMatrices(out elementMatrixEnrStd, out elementMatrixEnrEnr);
+                IMatrix2D elementMatrixStdStd = element.BuildStandardStiffnessMatrix().ToLegacyMatrix();
+                
+                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+                IMatrix2D elementMatrixEnrStd = kes.ToLegacyMatrix();
+                IMatrix2D elementMatrixEnrEnr = kee.ToLegacyMatrix();
 
                 // Element to global dofs mappings
                 // TODO: perhaps that could be done during the assembly to avoid iterating over the dofs twice

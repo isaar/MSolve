@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Output;
@@ -31,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         public static void Main()
         {
             Model2D model = CreateModel();
-            IVectorOLD solution = Solve(model);
+            VectorMKL solution = Solve(model);
             WriteOutput(model, solution);
         }
 
@@ -74,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return model;
         }
 
-        private static IVectorOLD Solve(Model2D model)
+        private static VectorMKL Solve(Model2D model)
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -82,13 +80,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return analysis.Solution;
         }
 
-        private static void WriteOutput(Model2D model, IVectorOLD solution)
+        private static void WriteOutput(Model2D model, VectorMKL solution)
         {
             var writer = new VTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);
 
-            double[] solutionArry = new double[solution.Length];
-            solution.CopyTo(solutionArry, 0);
+            double[] solutionArry = solution.CopyToArray(); //TODO: change the framework to work with Vector instead of double[]
 
             var displacementsOutput = new DisplacementOutput(model);
             double[,] nodalDisplacements = displacementsOutput.FindNodalDisplacements(solutionArry);

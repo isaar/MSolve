@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -55,8 +56,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
                     embeddedAnalysis.Solve();
 
                     double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-                    double[] totalFreeDisplacements = new double[embeddedAnalysis.Solution.Length];
-                    embeddedAnalysis.Solution.CopyTo(totalFreeDisplacements, 0);
+                    double[] totalFreeDisplacements = embeddedAnalysis.Solution.CopyToArray(); //TODO: Better to pass the vector instead
 
                     double growthAngle, growthIncrement;
                     propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,

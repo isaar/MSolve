@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.XFEM.Output
                     element.Interpolation.EvaluateAt(element.Nodes, naturalNodes[i]);
                 DenseMatrix displacementGradient = element.CalculateDisplacementFieldGradient(
                     naturalNodes[i], evaluatedInterpolation, standardDisplacements, enrichedDisplacements);
-                Matrix2D constitutive = 
+                Matrix constitutive = 
                     element.Material.CalculateConstitutiveMatrixAt(naturalNodes[i], evaluatedInterpolation);
                 nodalStresses[element.Nodes[i]] = element.CalculateStressTensor(displacementGradient, constitutive);
             }

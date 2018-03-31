@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -14,6 +14,7 @@ using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
+
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -38,24 +39,25 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.Material = material;
         }
 
-        public SymmetricMatrix2D BuildStiffnessMatrix()
+        public Matrix BuildStiffnessMatrix()
         {
-            var stiffness = new SymmetricMatrix2D(DofsCount);
+            var stiffness = Matrix.CreateZero(DofsCount, DofsCount);
             foreach (GaussPoint2D gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
                 // Calculate the necessary quantities for the integration
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     elementType.Interpolation.EvaluateOnlyDerivativesAt(Nodes, gaussPoint);
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
-                Matrix2D constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
-                Matrix2D deformation = CalculateDeformationMatrix(evaluatedInterpolation);
+                Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
+                Matrix deformation = CalculateDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
-                Matrix2D partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                partial.Scale(thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight); // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
-                Debug.Assert(partial.Rows == DofsCount);
-                Debug.Assert(partial.Columns == DofsCount);
-                MatrixUtilities.AddPartialToSymmetricTotalMatrix(partial, stiffness);
+                Matrix partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
+                double dVolume = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight; // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications 
+                stiffness.AxpyIntoThis(dVolume, partial);
+                Debug.Assert(partial.NumRows == DofsCount);
+                Debug.Assert(partial.NumColumns == DofsCount);
+                
             }
             return stiffness;
         }
@@ -70,9 +72,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
         ///     integration point</param>
         /// <returns></returns>
-        public Matrix2D CalculateDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
+        public Matrix CalculateDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            var deformationMatrix = new Matrix2D(3, DofsCount);
+            var deformationMatrix = Matrix.CreateZero(3, DofsCount);
             for (int nodeIndex = 0; nodeIndex < Nodes.Count; ++nodeIndex)
             {
                 int col1 = 2 * nodeIndex;
@@ -117,7 +119,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix2D constitutive)
+        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix constitutive)
         {
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];

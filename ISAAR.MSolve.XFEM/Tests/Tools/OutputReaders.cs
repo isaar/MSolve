@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Integration.Points;
 
 
@@ -82,10 +82,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         /// <param name="path"></param>
         /// <param name="elementsCount"></param>
         /// <returns></returns>
-        public static Matrix2D[] ReadElementStiffnessMatrices(string path, int elementsCount)
+        public static Matrix[] ReadElementStiffnessMatrices(string path, int elementsCount)
         {
             string[] lines = File.ReadAllLines(path);
-            var elementMatrices = new Matrix2D[elementsCount];
+            var elementMatrices = new Matrix[elementsCount];
 
             const int START = -1;
             int currentElement = START;
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                     {
                         int rows = currentMatrix.Count;
                         int cols = currentMatrix[0].Count;
-                        Matrix2D finishedMatrix = new Matrix2D(rows, cols);
+                        Matrix finishedMatrix = Matrix.CreateZero(rows, cols);
                         for (int r = 0; r < rows; ++r)
                         {
                             for (int c = 0; c < cols; ++c)
@@ -139,14 +139,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static Matrix2D ReadGlobalStiffnessMatrix(string path)
+        public static Matrix ReadGlobalStiffnessMatrix(string path)
         {
             string[] lines = File.ReadAllLines(path);
             int order = lines.Length;
             string lastLine = lines[lines.Length - 1];
             if (string.IsNullOrEmpty(lastLine) || string.IsNullOrWhiteSpace(lastLine)) --order; //Last row might have output an extra newline
 
-            var matrix = new Matrix2D(order, order);
+            var matrix = Matrix.CreateZero(order, order);
             for (int row = 0; row < order; ++row)
             {
                 string[] words = lines[row].Split(' ');

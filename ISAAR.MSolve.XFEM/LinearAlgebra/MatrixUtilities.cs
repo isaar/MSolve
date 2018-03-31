@@ -4,8 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.LinearAlgebra
@@ -16,55 +15,26 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
     /// </summary>
     static class MatrixUtilities
     {
-        public static void AddPartialToTotalMatrix(Matrix2D partialMatrix, Matrix2D totalMatrix)
-        {
-            Debug.Assert(partialMatrix.Rows == totalMatrix.Rows, "Non matching rows");
-            Debug.Assert(partialMatrix.Columns == totalMatrix.Columns, "Non matching columns");
-            for (int row = 0; row < totalMatrix.Rows; ++row)
-            {
-                for (int col = 0; col < totalMatrix.Columns; ++col)
-                {
-                    totalMatrix[row, col] += partialMatrix[row, col];
-                }
-            }
-        }
+        //public static void AddPartialToSymmetricTotalMatrix(Matrix partialMatrix,
+        //    SymmetricMatrix totalMatrix)
+        //{
+        //    Debug.Assert(partialMatrix.NumRows == totalMatrix.NumRows, "Non matching rows");
+        //    Debug.Assert(partialMatrix.NumColumns == totalMatrix.NumColumns, "Non matching columns");
+        //    for (int row = 0; row < totalMatrix.NumRows; ++row)
+        //    {
+        //        for (int col = row; col < totalMatrix.NumColumns; ++col)
+        //        {
+        //            totalMatrix[row, col] += partialMatrix[row, col];
+        //        }
+        //    }
+        //}
 
-        public static void AddPartialToSymmetricTotalMatrix(Matrix2D partialMatrix,
-            SymmetricMatrix2D totalMatrix)
-        {
-            Debug.Assert(partialMatrix.Rows == totalMatrix.Rows, "Non matching rows");
-            Debug.Assert(partialMatrix.Columns == totalMatrix.Columns, "Non matching columns");
-            for (int row = 0; row < totalMatrix.Rows; ++row)
-            {
-                for (int col = row; col < totalMatrix.Columns; ++col)
-                {
-                    totalMatrix[row, col] += partialMatrix[row, col];
-                }
-            }
-        }
-
-        public static void PrintDense(IMatrix2D matrix)
+        public static void PrintUpperTriangleDense(IMatrixView matrix)
         {
             StringBuilder builder = new StringBuilder();
-            for (int row = 0; row < matrix.Rows; ++row)
+            for (int row = 0; row < matrix.NumRows; ++row)
             {
-                for (int col = 0; col < matrix.Columns; ++col)
-                {
-                    builder.Append(matrix[row, col]);
-                    builder.Append(' ');
-                }
-                builder.Append("\n");
-            }
-            builder.Append("\n");
-            Console.Write(builder.ToString());
-        }
-
-        public static void PrintUpperTriangleDense(IMatrix2D matrix)
-        {
-            StringBuilder builder = new StringBuilder();
-            for (int row = 0; row < matrix.Rows; ++row)
-            {
-                for (int col = 0; col < matrix.Columns; ++col)
+                for (int col = 0; col < matrix.NumColumns; ++col)
                 {
                     if (col < row) builder.Append(0.0);
                     else builder.Append(matrix[row, col]);
@@ -82,18 +52,17 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
         /// <param name="matrix"></param>
         /// <param name="oldToNewIndices"></param>
         /// <returns></returns>
-        public static Matrix2D Reorder(IMatrix2D matrix, int[] oldToNewIndices)
+        public static Matrix Reorder(IIndexable2D matrix, int[] oldToNewIndices) // TODO: add this to Matrix or as an extension method
         {
-            int order = matrix.Rows;
-            if (order != matrix.Columns) throw new ArgumentException("The matrix must be square");
-            if (order != oldToNewIndices.Length) throw new NonMatchingDimensionsException(
+            if (matrix.NumRows != matrix.NumColumns) throw new ArgumentException("The matrix must be square");
+            if (matrix.NumRows != oldToNewIndices.Length) throw new NonMatchingDimensionsException(
                 "Mismatch in the dimensions of the matrix and the permutation array");
 
-            var newMatrix = new Matrix2D(order, order);
-            for (int row = 0; row < order; ++row)
+            var newMatrix = Matrix.CreateZero(matrix.NumRows, matrix.NumRows);
+            for (int row = 0; row < matrix.NumRows; ++row)
             {
                 int newRow = oldToNewIndices[row];
-                for (int col = 0; col < order; ++col)
+                for (int col = 0; col < matrix.NumColumns; ++col)
                 {
                     newMatrix[newRow, oldToNewIndices[col]] = matrix[row, col];
                 }

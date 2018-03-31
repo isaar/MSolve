@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Materials;
@@ -85,9 +85,9 @@ namespace ISAAR.MSolve.XFEM.Tests.FEM
             var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
             var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, 
                 new SimpleIntegration2D(), material);
-            SymmetricMatrix2D k = element.BuildStiffnessMatrix();
+            Matrix k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
-            MatrixUtilities.PrintDense(k);
+            k.WriteToConsole();
         }
 
         public static void Main()

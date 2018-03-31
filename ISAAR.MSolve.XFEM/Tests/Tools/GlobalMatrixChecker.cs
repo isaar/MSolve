@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Assemblers;
-using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -33,11 +30,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         public void PrintGlobalMatrix(Model2D model, bool nodeMajorReordering = false)
         {
             Console.WriteLine("Global stiffness matrix:");
-            SkylineMatrix2D Kff;
-            Matrix2D Kfc;
-            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
+            //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
+            (SymmetricDOKColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
-            MatrixUtilities.PrintDense(MatrixUtilities.Reorder(Kff, permutation));
+            MatrixUtilities.Reorder(Kff, permutation).WriteToConsole();
         }
 
         public void CheckGlobalMatrix(Model2D model)
@@ -47,23 +43,22 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             bool isCorrect = true;
 
             // Retrieve the matrices
-            Matrix2D expectedMatrix = OutputReaders.ReadGlobalStiffnessMatrix(expectedMatrixPath);
-            SkylineMatrix2D Kff;
-            Matrix2D Kfc;
-            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
+            IMatrixView expectedMatrix = OutputReaders.ReadGlobalStiffnessMatrix(expectedMatrixPath);
+            //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
+            (SymmetricDOKColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
-            IMatrix2D actualMatrix = MatrixUtilities.Reorder(Kff, permutation);
+            IMatrixView actualMatrix = MatrixUtilities.Reorder(Kff, permutation);
 
             // Check dimensions first
-            if (actualMatrix.Rows != expectedMatrix.Rows)
+            if (actualMatrix.NumRows != expectedMatrix.NumRows)
                 throw new ArgumentException("The 2 global matrices have non matching rows.");
-            if (actualMatrix.Columns != expectedMatrix.Columns)
+            if (actualMatrix.NumColumns != expectedMatrix.NumColumns)
                 throw new ArgumentException("The 2 global matrices have non matching columns.");
 
             // Check each entry
-            for (int row = 0; row < actualMatrix.Rows; ++row)
+            for (int row = 0; row < actualMatrix.NumRows; ++row)
             {
-                for (int col = 0; col < actualMatrix.Columns; ++col)
+                for (int col = 0; col < actualMatrix.NumColumns; ++col)
                 {
                     if (!comparer.AreEqual(actualMatrix[row, col], expectedMatrix[row, col]))
                     {

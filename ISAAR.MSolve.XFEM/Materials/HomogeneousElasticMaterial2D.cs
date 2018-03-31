@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 
@@ -61,9 +61,9 @@ namespace ISAAR.MSolve.XFEM.Materials
         public double GetThicknessAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousThickness; }
         
-        public Matrix2D CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public Matrix CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
-            var matrix = new Matrix2D(3, 3);
+            var matrix = Matrix.CreateZero(3, 3);
             double eqE = HomogeneousEquivalentYoungModulus;
             double eqV = HomogeneousEquivalentPoissonRatio;
             double scalar = eqE / (1 - eqV * eqV);

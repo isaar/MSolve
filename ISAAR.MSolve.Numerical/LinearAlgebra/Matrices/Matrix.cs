@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -488,6 +489,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return new Matrix(submatrix, newNumRows, newNumCols);
+        }
+
+        /// <summary>
+        /// Doesn't copy anything. Remove this once the design is cleaned. 
+        /// </summary>
+        /// <returns></returns>
+        public IMatrix2D ToLegacyMatrix()
+        {
+            return new Matrix2D(CopyToArray2D());
         }
 
         IMatrixView IMatrixView.Transpose()

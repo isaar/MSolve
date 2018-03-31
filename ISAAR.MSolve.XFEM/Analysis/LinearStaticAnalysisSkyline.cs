@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -23,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     {
         private readonly Model2D model;
         private ISolver solver; // A solver devoid of linear system must be passed into the constructor
-        public IVectorOLD Solution { get; private set; }
+        public VectorMKL Solution { get; private set; }
 
         public LinearStaticAnalysisSkyline(Model2D model)
         {
@@ -40,7 +41,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             solver = new SolverFBSubstitution(ls);
             solver.Initialize();
             solver.Solve();
-            Solution = ls.Solution;
+            double[] solutionArray = new double[ls.Solution.Length];
+            ls.Solution.CopyTo(solutionArray, 0);
+            Solution = VectorMKL.CreateFromArray(solutionArray);
         }
 
         public void PrintSolution()

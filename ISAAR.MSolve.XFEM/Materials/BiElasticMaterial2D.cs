@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -120,7 +120,7 @@ namespace ISAAR.MSolve.XFEM.Materials
             return IsMaterial1(point, interpolation) ? Thickness1 : Thickness2;
         }
 
-        public Matrix2D CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public Matrix CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             double eqE, eqV;
             if (IsMaterial1(point, interpolation))
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.XFEM.Materials
             }
 
             double scalar = eqE / (1 - eqV * eqV);
-            var matrix = new Matrix2D(3, 3);
+            var matrix = Matrix.CreateZero(3, 3);
             matrix[0, 0] = scalar;
             matrix[0, 1] = scalar * eqV;
             matrix[1, 0] = scalar * eqV;

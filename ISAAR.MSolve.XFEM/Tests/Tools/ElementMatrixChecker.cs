@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Checking element stiffness matrices...");
 
-            Matrix2D[] correctMatrices = 
+            Matrix[] correctMatrices = 
                 OutputReaders.ReadElementStiffnessMatrices(expectedMatricesPath, elements.Count);
             for (int el = 0; el < elements.Count; ++el)
             {
@@ -35,26 +35,24 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 bool isOk = true;
 
                 // Retrieve the matrices
-                Matrix2D correctK = correctMatrices[el];
+                Matrix correctK = correctMatrices[el];
                 XContinuumElement2D element = elements[el];
-                SymmetricMatrix2D kss, kee;
-                Matrix2D kes;
-                kss = element.BuildStandardStiffnessMatrix();
-                element.BuildEnrichedStiffnessMatrices(out kes, out kee);
+                Matrix kss = element.BuildStandardStiffnessMatrix();
+                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
 
 
                 // Check dimensions first
                 //int stdDofsCount = element.StandardFiniteElement.DofsCount;
                 //int enrDofsCount = element.CountArtificialDofs();
-                if (kss.Rows + kes.Rows != correctK.Rows)
+                if (kss.NumRows + kes.NumRows != correctK.NumRows)
                     throw new ArgumentException(builder.Append("Non matching rows.").ToString());
-                if (kss.Columns + kee.Columns != correctK.Columns)
+                if (kss.NumColumns + kee.NumColumns != correctK.NumColumns)
                     throw new ArgumentException(builder.Append("Non matching columns.").ToString());
 
                 // Check Kss entrywise
-                for (int row = 0; row < kss.Rows; ++row)
+                for (int row = 0; row < kss.NumRows; ++row)
                 {
-                    for (int col = 0; col < kss.Columns; ++col)
+                    for (int col = 0; col < kss.NumColumns; ++col)
                     {
                         if (!comparer.AreEqual(kss[row, col], correctK[row, col]))
                         {
@@ -66,11 +64,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 builder.Append("\n");
 
                 // Check Kes entrywise
-                for (int row = 0; row < kes.Rows; ++row)
+                for (int row = 0; row < kes.NumRows; ++row)
                 {
-                    for (int col = 0; col < kes.Columns; ++col)
+                    for (int col = 0; col < kes.NumColumns; ++col)
                     {
-                        if (!comparer.AreEqual(kes[row, col], correctK[kss.Rows + row, col]))
+                        if (!comparer.AreEqual(kes[row, col], correctK[kss.NumRows + row, col]))
                         {
                             isOk = false;
                             builder.Append("Error at Kes[" + row + ", " + col + "], ");
@@ -80,11 +78,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 builder.Append("\n");
 
                 // Check Kee entrywise
-                for (int row = 0; row < kee.Rows; ++row)
+                for (int row = 0; row < kee.NumRows; ++row)
                 {
-                    for (int col = 0; col < kee.Columns; ++col)
+                    for (int col = 0; col < kee.NumColumns; ++col)
                     {
-                        if (!comparer.AreEqual(kee[row, col], correctK[kss.Rows + row, kss.Columns + col]))
+                        if (!comparer.AreEqual(kee[row, col], correctK[kss.NumRows + row, kss.NumColumns + col]))
                         {
                             isOk = false;
                             builder.Append("Error at Kee[" + row + ", " + col + "], ");
