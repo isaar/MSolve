@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Numerical.Exceptions;
+﻿using System;
+using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -6,6 +7,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
     static class Preconditions
     {
+        public static void CheckIndices(IIndexable2D matrix, int rowIdx, int colIdx)
+        {
+            if ((rowIdx < 0) || (rowIdx >= matrix.NumRows))
+            {
+                throw new IndexOutOfRangeException($"Row index {rowIdx} was outside the range"
+                    + $" [0, number_of_rows={matrix.NumRows})");
+            }
+            if ((colIdx < 0) || (colIdx >= matrix.NumColumns))
+            {
+                throw new IndexOutOfRangeException($"Column index {colIdx} was outside the range"
+                    + $" [0, number_of_columns={matrix.NumColumns})");
+            }
+        }
+
         public static void CheckVectorDimensions(IVectorView vector1, IVectorView vector2)
         {
             if (vector1.Length != vector2.Length)

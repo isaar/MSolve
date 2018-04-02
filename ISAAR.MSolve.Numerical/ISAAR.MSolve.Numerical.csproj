@@ -122,9 +122,12 @@
     <Compile Include="LinearAlgebra\Factorizations\SuiteSparseCholesky.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
+    <Compile Include="LinearAlgebra\Matrices\CSCMatrix.cs" />
+    <Compile Include="LinearAlgebra\Matrices\CSRMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\IIndexable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\SparseRect.cs" />
     <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixComparer.cs" />
     <Compile Include="LinearAlgebra\Vectors\IVectorView.cs" />
