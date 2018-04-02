@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
@@ -13,7 +15,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored. This class is 
     /// optimized for building global positive definite matrices, where there is at least 1 entry per column (like in FEM).
     /// </summary>
-    public class SymmetricDOKColMajor : IIndexable2D
+    public class SymmetricDOKColMajor : IIndexable2D, ISparseMatrix, IWriteable
     {
         /// <summary>
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 
@@ -159,6 +161,36 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         #endregion
 
+        public int CountNonZeros()
+        {
+            int count = 0;
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                foreach (var rowVal in data[j])
+                {
+                    if (rowVal.Key == j) ++count;
+                    else count += 2; //Each upper triangle entries haa a corresponding lower triangle entry.
+                }
+            }
+            return count;
+        }
+
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+        {
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                foreach (var rowVal in data[j])
+                {
+                    if (rowVal.Key == j) yield return (rowVal.Key, j, rowVal.Value);
+                    else //Each upper triangle entries haa a corresponding lower triangle entry.
+                    {
+                        yield return (rowVal.Key, j, rowVal.Value);
+                        yield return (j, rowVal.Key, rowVal.Value);
+                    }
+                }
+            }
+        }
+
         public SymmetricCSC ToSymmetricCSC()
         {
             int[] colOffsets = new int[NumColumns + 1];
@@ -184,6 +216,42 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
 
             return new SymmetricCSC(values, rowIndices, colOffsets, false);
+        }
+
+        public void WriteToConsole()
+        {
+            var formatter = new SparseMatrixFormatting();
+            foreach (var (row, col, value) in EnumerateNonZeros())
+            {
+                // TODO: Redundant boxing, unboxing. Iterate the private structures explicitly.
+                Console.WriteLine(formatter.FormatNonZeroEntry(row, col, value));
+            }
+        }
+
+        /// <summary>
+        /// Write the entries of the matrix to a specified file. If the file doesn't exist a new one will be created.
+        /// </summary>
+        /// <param name="path">The path of the file and its extension.</param>
+        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
+        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
+        public void WriteToFile(string path, bool append = false)
+        {
+            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
+            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
+            // but since they are extremely useful they are implemented here for now.
+            using (var writer = new StreamWriter(path, append))
+            {
+                var formatter = new SparseMatrixFormatting();
+                foreach (var (row, col, value) in EnumerateNonZeros())
+                {
+                    // TODO: Redundant boxing, unboxing. Iterate the private structures explicitly.
+                    writer.WriteLine(formatter.FormatNonZeroEntry(row, col, value));
+                }
+
+#if DEBUG
+                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
+#endif
+            }
         }
 
         /// <summary>

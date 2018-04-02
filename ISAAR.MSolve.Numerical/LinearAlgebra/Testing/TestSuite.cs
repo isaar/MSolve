@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
-            //TestPrinting();
+            TestPrinting();
         }
 
         public static void TestFactorization()

@@ -335,14 +335,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             throw new NotImplementedException();
         }
 
-        public void WriteToConsole(Array2DFormatting format = null)
+        public void WriteToConsole()
         {
-            throw new NotImplementedException();
+            MatrixExtensions.WriteToConsole(this);
         }
 
-        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
+        public void WriteToFile(string path, bool append = false)
         {
-            throw new NotImplementedException();
+            MatrixExtensions.WriteToFile(this, path, append);
         }
     }
 }

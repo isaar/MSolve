@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 
@@ -16,6 +17,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 {
     public class VectorMKL: IVectorView
     {
+        public static Array1DFormatting Formatter { get; set; } = Array1DFormatting.Plain;
+
         private readonly double[] data;
 
         private VectorMKL(double[] data)
@@ -284,17 +287,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return new Vector(data);
         }
 
-        public void WriteToConsole(Array1DFormatting format = null)
+        public void WriteToConsole()
         {
-            if (format == null) format = Array1DFormatting.Brackets;
-            string separator = format.Separator;
-            Console.Write(format.Start);
+            string separator = Formatter.Separator;
+            Console.Write(Formatter.Start);
             Console.Write(data[0]);
             for (int i = 1; i < Length; ++i)
             {
                 Console.Write(separator + data[i]);
             }
-            Console.WriteLine(format.End);
+            Console.WriteLine(Formatter.End);
         }
 
         /// <summary>
@@ -303,23 +305,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// <param name="path">The path of the file and its extension.</param>
         /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
         ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        /// <param name="format">Formatting options for how to print the vector entries.</param>
-        public void WriteToFile(string path, bool append = false, Array1DFormatting format = null)
+        public void WriteToFile(string path, bool append = false)
         {
-            if (format == null) format = Array1DFormatting.Plain;
             //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
             //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
             // but since they are extremely useful they are implemented here for now.
             using (var writer = new StreamWriter(path, append))
             {
-                string separator = format.Separator;
-                writer.Write(format.Start);
+                string separator = Formatter.Separator;
+                writer.Write(Formatter.Start);
                 Console.Write(data[0]);
                 for (int i = 1; i < Length; ++i)
                 {
                     writer.Write(separator + data[i]);
                 }
-                writer.WriteLine(format.End);
+                writer.WriteLine(Formatter.End);
             }
         }
     }

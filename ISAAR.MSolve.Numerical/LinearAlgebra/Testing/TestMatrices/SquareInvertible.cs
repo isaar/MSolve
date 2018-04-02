@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 {
@@ -96,7 +97,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var A = Matrix.CreateFromArray(matrix);
             Console.Write("Matrix = ");
-            A.WriteToConsole(Commons.Array2DFormatting.Brackets);
+            Matrix.Formatter = Array2DFormatting.Brackets;
+            A.WriteToConsole();
         }
     }
 }

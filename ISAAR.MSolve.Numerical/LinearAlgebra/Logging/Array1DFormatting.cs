@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Logging
 {
     //TODO: add precision, justification
     public class Array1DFormatting

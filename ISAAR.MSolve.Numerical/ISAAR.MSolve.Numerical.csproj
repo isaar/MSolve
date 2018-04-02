@@ -110,8 +110,8 @@
     <Compile Include="Exceptions\SuiteSparseException.cs" />
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
-    <Compile Include="LinearAlgebra\Commons\Array1DFormatting.cs" />
-    <Compile Include="LinearAlgebra\Commons\Array2DFormatting.cs" />
+    <Compile Include="LinearAlgebra\Logging\Array1DFormatting.cs" />
+    <Compile Include="LinearAlgebra\Logging\Array2DFormatting.cs" />
     <Compile Include="LinearAlgebra\Commons\MKLUtilities.cs" />
     <Compile Include="LinearAlgebra\Commons\DefiniteProperty.cs" />
     <Compile Include="LinearAlgebra\Commons\SuiteSparseUtilities.cs" />
@@ -122,9 +122,12 @@
     <Compile Include="LinearAlgebra\Factorizations\SuiteSparseCholesky.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
+    <Compile Include="LinearAlgebra\Logging\IWriteable.cs" />
+    <Compile Include="LinearAlgebra\Logging\SparseMatrixFormatting.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSCMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSRMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\IIndexable2D.cs" />
+    <Compile Include="LinearAlgebra\Matrices\ISparseMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SparseRect.cs" />

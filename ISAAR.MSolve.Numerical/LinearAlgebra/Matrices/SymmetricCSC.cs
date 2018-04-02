@@ -247,7 +247,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
+        public void WriteToFile(string path, bool append = false)
         {
             using (var writer = new StreamWriter(path, append))
             {

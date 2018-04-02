@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     //TODO: Use MKL with descriptors
-    public class CSCMatrix: IIndexable2D
+    public class CSCMatrix: IIndexable2D, IWriteable
     {
+        public static bool WriteRawArrays { get; set; } = true;
+
         private readonly double[] values;
         private readonly int[] rowIndices;
         private readonly int[] colOffsets;
@@ -21,19 +25,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             this.colOffsets = colOffsets;
             this.NumRows = numRows;
             this.NumColumns = numCols;
-            this.NumNonZeros = values.Length;
         }
 
         /// <summary>
         /// The number of columns of the matrix. 
         /// </summary>
         public int NumColumns { get; }
-
-        /// <summary>
-        /// Only structural non zeros
-        /// </summary>
-        /// <returns></returns>
-        public int NumNonZeros { get; }
 
         /// <summary>
         /// The number of rows of the matrix.
@@ -74,6 +71,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CSCMatrix(numRows, numCols, values, rowIndices, colOffsets);
         }
 
+        public int CountNonZeros()
+        {
+            return values.Length;
+        }
+
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+        {
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int colStart = colOffsets[j]; //inclusive
+                int colEnd = colOffsets[j + 1]; //exclusive
+                for (int k = colStart; k < colEnd; ++k)
+                {
+                    yield return (rowIndices[k], j, values[k]);
+                }
+            }
+        }
+
         public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
         {
             if (transposeThis)
@@ -110,6 +125,98 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     }
                 }
                 return VectorMKL.CreateFromArray(result, false);
+            }
+        }
+
+        public void WriteToConsole()
+        {
+            if (WriteRawArrays)
+            {
+                Console.WriteLine("Values:");
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    Console.Write(values[i]);
+                    Console.Write(" ");
+                }
+                Console.WriteLine("Row indices:");
+                for (int i = 0; i < rowIndices.Length; ++i)
+                {
+                    Console.Write(rowIndices[i]);
+                    Console.Write(" ");
+                }
+                Console.WriteLine("Column offsets:");
+                for (int i = 0; i < colOffsets.Length; ++i)
+                {
+                    Console.Write(colOffsets[i]);
+                    Console.Write(" ");
+                }
+            }
+            else
+            {
+                var formatter = new SparseMatrixFormatting();
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    int colStart = colOffsets[j]; //inclusive
+                    int colEnd = colOffsets[j + 1]; //exclusive
+                    for (int k = colStart; k < colEnd; ++k)
+                    {
+                        Console.WriteLine(formatter.FormatNonZeroEntry(rowIndices[k], j, values[k]));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Write the entries of the matrix to a specified file. If the file doesn't exist a new one will be created.
+        /// </summary>
+        /// <param name="path">The path of the file and its extension.</param>
+        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
+        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
+        public void WriteToFile(string path, bool append = false)
+        {
+            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
+            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
+            // but since they are extremely useful they are implemented here for now.
+            using (var writer = new StreamWriter(path, append))
+            {
+                if (WriteRawArrays)
+                {
+                    writer.WriteLine("Values:");
+                    for (int i = 0; i < values.Length; ++i)
+                    {
+                        writer.Write(values[i]);
+                        writer.Write(" ");
+                    }
+                    writer.WriteLine("Row indices:");
+                    for (int i = 0; i < rowIndices.Length; ++i)
+                    {
+                        writer.Write(rowIndices[i]);
+                        writer.Write(" ");
+                    }
+                    writer.WriteLine("Column offsets:");
+                    for (int i = 0; i < colOffsets.Length; ++i)
+                    {
+                        writer.Write(colOffsets[i]);
+                        writer.Write(" ");
+                    }
+                }
+                else
+                {
+                    var formatter = new SparseMatrixFormatting();
+                    for (int j = 0; j < NumColumns; ++j)
+                    {
+                        int colStart = colOffsets[j]; //inclusive
+                        int colEnd = colOffsets[j + 1]; //exclusive
+                        for (int k = colStart; k < colEnd; ++k)
+                        {
+                            writer.WriteLine(formatter.FormatNonZeroEntry(rowIndices[k], j, values[k]));
+                        }
+                    }
+                }
+
+#if DEBUG
+                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
+#endif
             }
         }
 

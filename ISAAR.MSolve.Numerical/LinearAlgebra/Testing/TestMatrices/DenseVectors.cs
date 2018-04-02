@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -170,7 +171,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var vector = VectorMKL.CreateFromArray(vector1);
             Console.Write("Vector = ");
-            vector.WriteToConsole(Commons.Array1DFormatting.Brackets);
+            VectorMKL.Formatter = Array1DFormatting.Brackets;
+            vector.WriteToConsole();
         }
     }
 }

@@ -9,6 +9,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -21,6 +22,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix: IMatrixView
     {
+        public static Array2DFormatting Formatter { get; set; } = Array2DFormatting.Plain;
+
         protected readonly double[] data;
 
         protected Matrix(double[] data, int numRows, int numColumns)
@@ -262,8 +265,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
                 return true;
             }
-            else if (this.NumNonZeros != other.NumNonZeros) return other.Equals(this, comparer);
-            else return false;
+            else return other.Equals(this, comparer);
         }
 
         public LUFactorization FactorLU()
@@ -518,32 +520,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             throw new NotImplementedException("Use mkl_dimatcopy");
         }
 
-        public void WriteToConsole(Array2DFormatting format = null)
+        public void WriteToConsole()
         {
-            if (format == null) format = Array2DFormatting.Brackets;
-            Console.Write(format.ArrayStart);
+            Console.Write(Formatter.ArrayStart);
 
             // First row
-            Console.Write(format.RowSeparator + format.RowStart);
+            Console.Write(Formatter.RowSeparator + Formatter.RowStart);
             Console.Write(data[0]);
             for (int j = 1; j < NumColumns; ++j)
             {
-                Console.Write(format.ColSeparator + data[j * NumRows]);
+                Console.Write(Formatter.ColSeparator + data[j * NumRows]);
             }
-            Console.Write(format.RowEnd);
+            Console.Write(Formatter.RowEnd);
 
             // Subsequent rows
             for (int i = 1; i < NumRows; ++i)
             {
-                Console.Write(format.RowSeparator + format.RowStart);
+                Console.Write(Formatter.RowSeparator + Formatter.RowStart);
                 Console.Write(data[i]);
                 for (int j = 1; j < NumColumns; ++j)
                 {
-                    Console.Write(format.ColSeparator + data[j * NumRows + i]);
+                    Console.Write(Formatter.ColSeparator + data[j * NumRows + i]);
                 }
-                Console.Write(format.RowEnd);
+                Console.Write(Formatter.RowEnd);
             }
-            Console.Write(format.RowSeparator + format.ArrayEnd);
+            Console.Write(Formatter.RowSeparator + Formatter.ArrayEnd);
         }
 
         /// <summary>
@@ -552,38 +553,36 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="path">The path of the file and its extension.</param>
         /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
         ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        /// <param name="format">Formatting options for how to print the vector entries.</param>
-        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
+        public void WriteToFile(string path, bool append = false)
         {
-            if (format == null) format = Array2DFormatting.Plain;
             //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
             //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
             // but since they are extremely useful they are implemented here for now.
             using (var writer = new StreamWriter(path, append))
             {
-                writer.Write(format.ArrayStart);
+                writer.Write(Formatter.ArrayStart);
 
                 // First row
-                writer.Write(format.RowSeparator + format.RowStart);
+                writer.Write(Formatter.RowSeparator + Formatter.RowStart);
                 writer.Write(data[0]);
                 for (int j = 1; j < NumColumns; ++j)
                 {
-                    writer.Write(format.ColSeparator + data[j * NumRows]);
+                    writer.Write(Formatter.ColSeparator + data[j * NumRows]);
                 }
-                writer.Write(format.RowEnd);
+                writer.Write(Formatter.RowEnd);
 
                 // Subsequent rows
                 for (int i = 1; i < NumRows; ++i)
                 {
-                    writer.Write(format.RowSeparator + format.RowStart);
+                    writer.Write(Formatter.RowSeparator + Formatter.RowStart);
                     writer.Write(data[i]);
                     for (int j = 1; j < NumColumns; ++j)
                     {
-                        writer.Write(format.ColSeparator + data[j * NumRows + i]);
+                        writer.Write(Formatter.ColSeparator + data[j * NumRows + i]);
                     }
-                    writer.Write(format.RowEnd);
+                    writer.Write(Formatter.RowEnd);
                 }
-                writer.Write(format.RowSeparator + format.ArrayEnd);
+                writer.Write(Formatter.RowSeparator + Formatter.ArrayEnd);
 
 #if DEBUG
                 writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.

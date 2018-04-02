@@ -4,19 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
-    public interface IMatrixView: IIndexable2D
+    public interface IMatrixView: IIndexable2D, IWriteable
     {
-        /// <summary>
-        /// Only structural non zeros
-        /// </summary>
-        /// <returns></returns>
-        int NumNonZeros { get; }
-
         IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation);
         IMatrixView DoToAllEntries(Func<double, double> unaryOperation);
 
@@ -31,8 +26,5 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
 
         IMatrixView Transpose();
-
-        void WriteToConsole(Array2DFormatting format = null);
-        void WriteToFile(string path, bool append = false, Array2DFormatting format = null); //Perhaps the fromater must be a static field, since it depends on each matrix type
     }
 }
