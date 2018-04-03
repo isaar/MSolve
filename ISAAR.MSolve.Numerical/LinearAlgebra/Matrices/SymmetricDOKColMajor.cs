@@ -193,7 +193,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-            return MatrixExtensions.AreEqual(this, other, tolerance);
+            return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
         public SymmetricCSC ToSymmetricCSC()

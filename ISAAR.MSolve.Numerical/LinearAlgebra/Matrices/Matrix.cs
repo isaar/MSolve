@@ -191,13 +191,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
 
-        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
+        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix) return DoPointwise((Matrix)other, binaryOperation);
-            else return other.DoPointwise(this, binaryOperation);
+            if (other is Matrix) return DoEntrywise((Matrix)other, binaryOperation);
+            else return other.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
         }
 
-        public Matrix DoPointwise(Matrix other, Func<double, double, double> binaryOperation)
+        public Matrix DoEntrywise(Matrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
             var result = new double[NumRows * NumColumns];
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(result, NumRows, NumColumns);
         }
 
-        public void DoPointwiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
             for (int j = 0; j < NumColumns; ++j)
@@ -225,7 +225,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        IEntrywiseOperable IEntrywiseOperable.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
@@ -252,7 +252,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-
             if (other is Matrix)
             {
                 //Check each dimension, rather than the lengths of the internal buffers
@@ -265,7 +264,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
                 return true;
             }
-            else return other.Equals(this, tolerance);
+            else return other.Equals(this, tolerance); // To avoid accessing zero entries
         }
 
         public LUFactorization FactorLU()

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -11,7 +12,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     //TODO: Use MKL with descriptors
-    public class CSCMatrix: IIndexable2D, IWriteable
+    public class CSCMatrix: IEntrywiseOperable, IIndexable2D, IWriteable
     {
         public static bool WriteRawArrays { get; set; } = true;
 
@@ -72,9 +73,87 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CSCMatrix(numRows, numCols, values, rowIndices, colOffsets);
         }
 
+        public Matrix CopyToFullMatrix()
+        {
+            Matrix fullMatrix = Matrix.CreateZero(this.NumRows, this.NumColumns);
+            for (int j = 0; j < this.NumColumns; ++j) //Row major order
+            {
+                int colStart = colOffsets[j]; //inclusive
+                int colEnd = colOffsets[j + 1]; //exclusive
+                for (int k = colStart; k < colEnd; ++k)
+                {
+                    fullMatrix[rowIndices[k], j] = values[k];
+                }
+            }
+            return fullMatrix;
+        }
+
         public int CountNonZeros()
         {
             return values.Length;
+        }
+
+        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        {
+            if (other is CSCMatrix otherCSC) // In case both matrices have the exact same index arrays
+            {
+                if ((this.rowIndices == otherCSC.rowIndices) && (this.colOffsets == otherCSC.colOffsets))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] resultValues = new double[values.Length];
+                    for (int i = 0; i < values.Length; ++i)
+                    {
+                        resultValues[i] = binaryOperation(this.values[i], otherCSC.values[i]);
+                    }
+                    return new CSCMatrix(NumRows, NumColumns, resultValues, rowIndices, colOffsets);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
+            return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+        }
+
+        public void DoEntrywiseIntoThis(CSCMatrix other, Func<double, double, double> binaryOperation)
+        {
+            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+            if ((this.rowIndices != other.rowIndices) || (this.colOffsets != other.colOffsets))
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the index arrays are the same");
+            }
+            for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
+        }
+
+        IEntrywiseOperable IEntrywiseOperable.DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            // Only apply the operation on non zero entries
+            double[] newValues = new double[values.Length];
+            for (int i = 0; i < values.Length; ++i) newValues[i] = unaryOperation(values[i]);
+
+            if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0)) // The same sparsity pattern can be used.
+            {
+                // Copy the index arrays. TODO: See if we can use the same index arrays (e.g. if this class does not change them (it shouldn't))
+                int[] rowIndicesCopy = new int[rowIndices.Length];
+                Array.Copy(rowIndices, rowIndicesCopy, rowIndices.Length);
+                int[] colOffsetsCopy = new int[colOffsets.Length];
+                Array.Copy(colOffsets, colOffsetsCopy, colOffsets.Length);
+                return new CSCMatrix(NumRows, NumColumns, newValues, rowIndicesCopy, colOffsetsCopy);
+            }
+            else // The sparsity is destroyed. Revert to a full matrix.
+            {
+                return new CSCMatrix(NumRows, NumColumns, newValues, rowIndices, colOffsets).CopyToFullMatrix();
+            }
+        }
+
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0))
+            {
+                for (int i = 0; i < values.Length; ++i) values[i] = unaryOperation(values[i]);
+            }
+            else
+            {
+                throw new SparsityPatternModifiedException("This operation will change the sparsity pattern");
+            }
         }
 
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
@@ -245,7 +324,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Return the index into values and colIndices arrays, if the (rowIdx, colIdx) entry is within the pattern. 
+        /// Return the index into values and rowIndices arrays, if the (rowIdx, colIdx) entry is within the pattern. 
         /// Otherwise returns -1.
         /// </summary>
         /// <param name="rowIdx"></param>

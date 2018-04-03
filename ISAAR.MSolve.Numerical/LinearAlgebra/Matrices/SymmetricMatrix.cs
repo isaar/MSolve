@@ -196,6 +196,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
+        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        {
+            return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+        }
+
+        public IEntrywiseOperable DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            var result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i)
+            {
+                result[i] = unaryOperation(data[i]);
+            }
+            return new SymmetricMatrix(result, NumRows, DefiniteProperty.Unknown);
+        }
+
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
+        {
+            return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
         /// <summary>
         /// Matrix vector multiplication, with the vector on the right: matrix * vector.
         /// </summary>
@@ -284,25 +304,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CholeskyFactorization(upper, n);
         }
 
+        public void WriteToConsole()
+        {
+            DenseStrategies.WriteToConsole(this);
+        }
+
+        public void WriteToFile(string path, bool append = false)
+        {
+            DenseStrategies.WriteToFile(this, path, append);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int Find1DIndex(int i, int j)
         {
             return i + (j * (j + 1)) / 2;
-        }
-
-        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
-        {
-            return MatrixExtensions.AreEqual(this, other, tolerance);
         }
 
         public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
@@ -320,29 +335,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             throw new NotImplementedException();
         }
 
-        public IMatrixView Slice(int[] rowIndices, int[] colIndices)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-        {
-            throw new NotImplementedException();
-        }
-
         public IMatrixView Transpose()
         {
             throw new NotImplementedException();
-        }
-
-        public void WriteToConsole()
-        {
-            MatrixExtensions.WriteToConsole(this);
-        }
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            MatrixExtensions.WriteToFile(this, path, append);
         }
     }
 }

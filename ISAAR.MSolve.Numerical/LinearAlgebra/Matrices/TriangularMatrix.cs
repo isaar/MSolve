@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -64,6 +65,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public TrianglePosition Triangle { get; }
 
         public int NumNonZeros => throw new NotImplementedException();
+
+        int IIndexable2D.NumColumns => throw new NotImplementedException();
+
+        int IIndexable2D.NumRows => throw new NotImplementedException();
+
+        double IIndexable2D.this[int rowIdx, int colIdx] => throw new NotImplementedException();
 
         /// <summary>
         /// The entry with row index = i and column index = j. Warning: trying to set an entry outside the non-zero triangle 
@@ -222,6 +229,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return det;
         }
 
+        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        {
+            return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+        }
+
+        public IEntrywiseOperable DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            var result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i)
+            {
+                result[i] = unaryOperation(data[i]);
+            }
+            return new TriangularMatrix(result, NumRows, Triangle);
+        }
+
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
+        {
+            return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
         /// <summary>
         /// WARNING: No exception will be thrown if the matrix is singular.
         /// </summary>
@@ -237,6 +264,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return VectorMKL.CreateFromArray(result, false);
         }
 
+        public void WriteToConsole()
+        {
+            DenseStrategies.WriteToConsole(this);
+        }
+
+        public void WriteToFile(string path, bool append = false)
+        {
+            DenseStrategies.WriteToFile(this, path, append);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int Index1DLowerColMajor(int i, int j)
         {
@@ -247,21 +284,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         private int Index1DUpperColMajor(int i, int j)
         {
             return i + (j * (j + 1)) / 2;
-        }
-
-        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
-        {
-            return MatrixExtensions.AreEqual(this, other, tolerance);
         }
 
         public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
@@ -279,29 +301,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             throw new NotImplementedException();
         }
 
-        public IMatrixView Slice(int[] rowIndices, int[] colIndices)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-        {
-            throw new NotImplementedException();
-        }
-
         public IMatrixView Transpose()
         {
             throw new NotImplementedException();
         }
 
-        public void WriteToConsole()
-        {
-            MatrixExtensions.WriteToConsole(this);
-        }
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            MatrixExtensions.WriteToFile(this, path, append);
-        }
     }
 }

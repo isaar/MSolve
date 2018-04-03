@@ -126,6 +126,8 @@
     <Compile Include="LinearAlgebra\Logging\SparseMatrixFormatting.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSCMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSRMatrix.cs" />
+    <Compile Include="LinearAlgebra\Matrices\DenseStrategies.cs" />
+    <Compile Include="LinearAlgebra\Matrices\IEntrywiseOperable.cs" />
     <Compile Include="LinearAlgebra\Matrices\IIndexable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\ISliceable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\ISparseMatrix.cs" />
