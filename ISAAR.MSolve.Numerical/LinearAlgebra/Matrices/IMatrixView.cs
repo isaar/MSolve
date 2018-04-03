@@ -21,10 +21,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
         IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false);
 
-        //Perhaps these should return dense matrices directly
-        IMatrixView Slice(int[] rowIndices, int[] colIndices);
-        IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
-
         IMatrixView Transpose();
     }
 }

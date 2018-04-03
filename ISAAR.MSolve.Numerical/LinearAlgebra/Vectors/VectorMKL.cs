@@ -15,7 +15,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 //TODO: tensor product, vector2D, vector3D
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 {
-    public class VectorMKL: IVectorView
+    public class VectorMKL: IVectorView, ISliceable1D
     {
         public static Array1DFormatting Formatter { get; set; } = Array1DFormatting.Plain;
 

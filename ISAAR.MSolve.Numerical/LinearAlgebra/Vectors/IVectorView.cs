@@ -18,7 +18,5 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         VectorMKL DoPointwise(IVectorView other, Func<double, double, double> operation);
         VectorMKL DoToAllEntries(Func<double, double> operation);
         double DotProduct(IVectorView vector);
-        VectorMKL Slice(int[] indices);
-        VectorMKL Slice(int startInclusive, int endExclusive);
     }
 }

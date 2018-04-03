@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// <summary>
     /// General matrix. Dense (full) storage. Uses MKL. Stored as 1D column major array.
     /// </summary>
-    public class Matrix: IMatrixView
+    public class Matrix: IMatrixView, ISliceable2D
     {
         public static Array2DFormatting Formatter { get; set; } = Array2DFormatting.Plain;
 
@@ -437,11 +437,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < data.Length; ++i) data[i] = value;
         }
 
-        IMatrixView IMatrixView.Slice(int[] rowIndices, int[] colIndices)
-        {
-            return Slice(rowIndices, colIndices);
-        }
-
         /// <summary>
         /// Returns a subvector containing only the entries at the provided row and column indices
         /// </summary>
@@ -462,11 +457,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return new Matrix(submatrix, rowIndices.Length, colIndices.Length);
-        }
-
-        IMatrixView IMatrixView.Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-        {
-            return Slice(rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
         }
 
         /// <summary>
@@ -491,6 +481,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return new Matrix(submatrix, newNumRows, newNumCols);
+        }
+
+        public VectorMKL SliceColumn(int colIndex)
+        {
+            double[] result = new double[NumRows];
+            Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
+            return VectorMKL.CreateFromArray(data, false);
+        }
+
+        public VectorMKL SliceRow(int rowIndex)
+        {
+            double[] result = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                result[j] = data[j * NumRows + rowIndex];
+            }
+            return VectorMKL.CreateFromArray(result, false);
         }
 
         /// <summary>
