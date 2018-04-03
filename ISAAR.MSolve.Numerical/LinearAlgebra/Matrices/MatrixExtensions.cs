@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
@@ -52,7 +53,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             matrix1.AxpyIntoThis(-1.0, matrix2);
         }
 
-        public static void WriteToConsole(IIndexable2D matrix, Array2DFormatting format = null)
+        internal static bool AreEqual(IIndexable2D matrix1, IIndexable2D matrix2, double tolerance = 1e-13)
+        {
+            if ((matrix1.NumRows != matrix2.NumRows) || (matrix1.NumColumns != matrix2.NumColumns)) return false;
+            var comparer = new ValueComparer(1e-13);
+            for (int j = 0; j < matrix1.NumColumns; ++j)
+            {
+                for (int i = 0; i < matrix1.NumRows; ++i)
+                {
+                    if (!comparer.AreEqual(matrix1[i, j], matrix2[i, j])) return false;
+                }
+            }
+            return true;
+        }
+
+        internal static void WriteToConsole(IIndexable2D matrix, Array2DFormatting format = null)
         {
             if (format == null) format = Array2DFormatting.Brackets;
             Console.Write(format.ArrayStart);
@@ -80,7 +95,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             Console.Write(format.RowSeparator + format.ArrayEnd);
         }
 
-        public static void WriteToFile(IIndexable2D matrix, string path, bool append = false, Array2DFormatting format = null)
+        internal static void WriteToFile(IIndexable2D matrix, string path, bool append = false, Array2DFormatting format = null)
         {
             if (format == null) format = Array2DFormatting.Brackets;
             //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 

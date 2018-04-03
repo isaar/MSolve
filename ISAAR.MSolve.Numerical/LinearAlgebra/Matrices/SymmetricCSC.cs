@@ -167,19 +167,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             
         }
 
-        public bool Equals(IIndexable2D other, ValueComparer comparer = null)
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-            if (!Preconditions.AreSameMatrixDimensions(this, other)) return false;
-            if (comparer == null) comparer = new ValueComparer(1e-13);
-            // All entries must be checked. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
-            for (int j = 0; j < this.NumColumns; ++j)
-            {
-                for (int i = 0; i < this.NumRows; ++i)
-                {
-                    if (!comparer.AreEqual(this[i, j], other[i, j])) return false;
-                }
-            }
-            return true;
+            return MatrixExtensions.AreEqual(this, other, tolerance);
         }
 
         public SuiteSparseCholesky FactorCholesky()

@@ -15,8 +15,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation);
         IMatrixView DoToAllEntries(Func<double, double> unaryOperation);
 
-        bool Equals(IMatrixView other, ValueComparer comparer = null);
-
         IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
         IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
         IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false);

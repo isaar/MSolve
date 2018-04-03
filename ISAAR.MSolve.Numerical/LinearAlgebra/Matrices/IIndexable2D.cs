@@ -26,5 +26,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="colIdx">The column index: 0 &lt;= colIdx &lt; <see cref="NumColumns"/></param>
         /// <returns>The entry with indices i, j</returns>
         double this[int rowIdx, int colIdx] { get; }
+
+        bool Equals(IIndexable2D other, double tolerance = 1e-13);
     }
 }

@@ -111,5 +111,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(matrix, csrReconstructed);
             comparer.CheckMatrixEquality(matrix, cscReconstructed);
         }
+
+        public static void CheckEquals()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var full = Matrix.CreateFromArray(matrix);
+            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            if (csr.Equals(full)) Console.WriteLine("CSR.Equals() works fine.");
+            else Console.WriteLine("Error in CSR.Equals().");
+            if (csc.Equals(full)) Console.WriteLine("CSC.Equals() works fine.");
+            else Console.WriteLine("Error in CSC.Equals().");
+            if ( (full.Equals(csr)) && (full.Equals(csc)) ) Console.WriteLine("Matrix.Equals() works fine.");
+            else Console.WriteLine("Error in Matrix.Equals().");
+        }
     }
 }

@@ -250,22 +250,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        public bool Equals(IMatrixView other, ValueComparer comparer = null)
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
 
             if (other is Matrix)
             {
-                double[] otherData = ((Matrix)other).data;
                 //Check each dimension, rather than the lengths of the internal buffers
                 if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
-                if (comparer == null) comparer = new ValueComparer(1e-13);
+                double[] otherData = ((Matrix)other).data;
+                var comparer = new ValueComparer(1e-13);
                 for (int i = 0; i < this.data.Length; ++i)
                 {
                     if (!comparer.AreEqual(this.data[i], otherData[i])) return false;
                 }
                 return true;
             }
-            else return other.Equals(this, comparer);
+            else return other.Equals(this, tolerance);
         }
 
         public LUFactorization FactorLU()

@@ -14,13 +14,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
-            TestIndexing();
-            TestMatrixVectorMultiplication();
+            //TestIndexing();
+            CheckEquality();
+            //TestMatrixVectorMultiplication();
             //TestFactorization();
             //TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
-            TestPrinting();
+            //TestPrinting();
+        }
+
+        public static void CheckEquality()
+        {
+            SparseRect.CheckEquals();
         }
 
         public static void TestFactorization()

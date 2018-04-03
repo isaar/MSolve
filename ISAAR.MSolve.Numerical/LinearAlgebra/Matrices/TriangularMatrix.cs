@@ -259,9 +259,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             throw new NotImplementedException();
         }
 
-        public bool Equals(IMatrixView other, ValueComparer comparer = null)
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-            throw new NotImplementedException();
+            return MatrixExtensions.AreEqual(this, other, tolerance);
         }
 
         public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)

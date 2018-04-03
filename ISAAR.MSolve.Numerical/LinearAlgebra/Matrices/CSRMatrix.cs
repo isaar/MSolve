@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
@@ -88,6 +89,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     yield return (i, colIndices[k], values[k]);
                 }
             }
+        }
+
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
+        {
+            if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
+            var comparer = new ValueComparer(1e-13);
+            for (int i = 0; i < NumRows; ++i)
+            {
+                int rowStart = rowOffsets[i]; //inclusive
+                int rowEnd = rowOffsets[i + 1]; //exclusive
+                int previousCol = 0;
+                for (int k = rowStart; k < rowEnd; ++k)
+                {
+                    int col = colIndices[k];
+                    for (int j = previousCol; j < col; ++j) // zero entries between the stored ones
+                    {
+                        if (!comparer.AreEqual(0.0, other[i, j])) return false;
+                    }
+                    if (!comparer.AreEqual(values[k], other[i, col])) return false; // Non zero entry
+                    previousCol = col + 1;
+                }
+            }
+            return true; //At this point all entries have been checked and are equal
         }
 
         public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
