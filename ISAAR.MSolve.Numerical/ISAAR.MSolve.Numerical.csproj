@@ -133,6 +133,10 @@
     <Compile Include="LinearAlgebra\Matrices\ISliceable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\ISparseMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\ITransposable.cs" />
+    <Compile Include="LinearAlgebra\Matrices\SparseFormats\CSCFormat.cs" />
+    <Compile Include="LinearAlgebra\Matrices\SparseFormats\CSRFormat.cs" />
+    <Compile Include="LinearAlgebra\Matrices\SparseFormats\ISparseFormat.cs" />
+    <Compile Include="LinearAlgebra\Matrices\SparseFormats\SymCSCFormat.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\TriangularLower.cs" />
