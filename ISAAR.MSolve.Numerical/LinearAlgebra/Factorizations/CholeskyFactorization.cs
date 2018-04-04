@@ -41,9 +41,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             return det;
         }
 
-        public TriangularMatrix GetUpperTriangle()
+        public TriangularUpper GetUpperTriangle()
         {
-            return TriangularMatrix.CreateFromArray(data, TriangularMatrix.TrianglePosition.Upper, true);
+            return TriangularUpper.CreateFromArray(data, true);
         }
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)

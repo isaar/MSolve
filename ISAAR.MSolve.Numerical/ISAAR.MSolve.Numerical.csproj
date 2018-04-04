@@ -133,6 +133,7 @@
     <Compile Include="LinearAlgebra\Matrices\ISparseMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
+    <Compile Include="LinearAlgebra\Matrices\TriangularLower.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SparseRect.cs" />
     <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixComparer.cs" />
@@ -142,7 +143,7 @@
     <Compile Include="LinearAlgebra\Matrices\Matrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\MatrixExtensions.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricMatrix.cs" />
-    <Compile Include="LinearAlgebra\Matrices\TriangularMatrix.cs" />
+    <Compile Include="LinearAlgebra\Matrices\TriangularUpper.cs" />
     <Compile Include="LinearAlgebra\Matrix2D.cs" />
     <Compile Include="LinearAlgebra\Interfaces\IMatrix2D.cs" />
     <Compile Include="LinearAlgebra\Interfaces\IVectorOLD.cs" />

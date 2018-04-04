@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             try
             {
                 var factor = A.FactorCholesky();
-                TriangularMatrix U = factor.GetUpperTriangle();
+                TriangularUpper U = factor.GetUpperTriangle();
                 comparer.CheckFactorizationCholesky(matrix, upper, U.CopyToArray2D());
             }
             catch (IndefiniteMatrixException)

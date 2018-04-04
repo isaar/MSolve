@@ -14,11 +14,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
-            //TestIndexing();
-            CheckEquality();
-            //TestMatrixVectorMultiplication();
+            TestIndexing();
+            //CheckEquality();
+            TestMatrixVectorMultiplication();
             //TestFactorization();
-            //TestSystemSolution();
+            TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
             //TestPrinting();
@@ -40,13 +40,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestIndexing()
         {
-            //LowerInvertible.CheckIndexing();
-            //LowerSingular.CheckIndexing();
+            LowerInvertible.CheckIndexing();
+            LowerSingular.CheckIndexing();
             //UpperInvertible.CheckIndexing();
             //UpperSingular.CheckIndexing();
             //SymmPositiveDefinite.CheckIndexing();
             //SymmSingular.CheckIndexing();
-            SparseRect.CheckIndexing();
+            //SparseRect.CheckIndexing();
         }
 
         public static void TestPrinting()
@@ -61,22 +61,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SquareInvertible.CheckMatrixVectorMult();
             //SquareSingular.CheckMatrixVectorMult();
             //SquareSingular1Deficiency.CheckMatrixVectorMult();
-            //LowerInvertible.CheckMatrixVectorMult();
-            //LowerSingular.CheckMatrixVectorMult();
+            LowerInvertible.CheckMatrixVectorMult();
+            LowerSingular.CheckMatrixVectorMult();
             //UpperInvertible.CheckMatrixVectorMult();
             //UpperSingular.CheckMatrixVectorMult();
             //SymmPositiveDefinite.CheckMatrixVectorMult();
             //SymmSingular.CheckMatrixVectorMult();
-            SparseRect.CheckMatrixVectorMult();
+            //SparseRect.CheckMatrixVectorMult();
         }
 
         public static void TestSystemSolution()
         {
-            SquareInvertible.CheckSystemSolution();
-            SquareSingular.CheckSystemSolution();
-            SquareSingular1Deficiency.CheckSystemSolution();
-            //LowerInvertible.CheckSystemSolution();
-            //LowerSingular.CheckSystemSolution();
+            //SquareInvertible.CheckSystemSolution();
+            //SquareSingular.CheckSystemSolution();
+            //SquareSingular1Deficiency.CheckSystemSolution();
+            LowerInvertible.CheckSystemSolution();
+            LowerSingular.CheckSystemSolution();
             //UpperInvertible.CheckSystemSolution();
             //UpperSingular.CheckSystemSolution();
             //SymmPositiveDefinite.CheckSystemSolution();

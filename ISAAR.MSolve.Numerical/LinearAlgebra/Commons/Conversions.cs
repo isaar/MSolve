@@ -191,6 +191,34 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
         /// <param name="full"></param>
         /// <param name="unitDiagonal"></param>
         /// <returns></returns>
+        public static double[] FullColMajorToFullLowerRowMajor(double[] full, bool unitDiagonal)
+        {
+            int n = FullLengthToOrder(full.Length);
+            double[] lower = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = j + 1; i < n; ++i)
+                {
+                    lower[i * n + j] = full[j * n + i]; // lower is row major, full is col major
+                }
+            }
+            if (unitDiagonal)
+            {
+                for (int d = 0; d < n; ++d) lower[d * n + d] = 1.0;
+            }
+            else
+            {
+                for (int d = 0; d < n; ++d) lower[d * n + d] = full[d * n + d];
+            }
+            return lower;
+        }
+
+        /// <summary>
+        /// Extract the lower part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <param name="unitDiagonal"></param>
+        /// <returns></returns>
         public static double[] FullColMajorToFullLowerColMajor(double[] full, bool unitDiagonal)
         {
             int n = FullLengthToOrder(full.Length);
