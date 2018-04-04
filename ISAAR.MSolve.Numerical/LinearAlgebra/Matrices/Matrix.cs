@@ -177,7 +177,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public double CalcDeterminant()
         {
-            return FactorLU().CalcDeterminant();
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                return AnalyticFormulas.Matrix2x2ColMajorDeterminant(data);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                return AnalyticFormulas.Matrix3x3ColMajorDeterminant(data);
+            }
+            else return FactorLU().CalcDeterminant();
         }
 
         /// <summary>
@@ -270,12 +278,42 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public LUFactorization FactorLU()
         {
             if (IsSquare) return LUFactorization.CalcFactorization(NumRows, data);
-            else throw new NonMatchingDimensionsException("Cannot apply LU factorization to a rectangular matrix.");
+            else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
         }
 
         public Matrix Invert()
         {
-            return FactorLU().InvertInPlace();
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix2x2ColMajorInvert(data);
+                return new Matrix(inverse, 2, 2);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
+                return new Matrix(inverse, 3, 3);
+            }
+            else return FactorLU().InvertInPlace();
+        }
+
+        public (Matrix inverse, double determinant) InvertAndDetermninat()
+        {
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix2x2ColMajorInvert(data);
+                return (new Matrix(inverse, 2, 2), det);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
+                return (new Matrix(inverse, 3, 3), det);
+            }
+            else
+            {
+                LUFactorization factor = FactorLU();
+                return (factor.InvertInPlace(), factor.CalcDeterminant());
+            }
+                
         }
 
         /// <summary>

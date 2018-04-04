@@ -110,6 +110,7 @@
     <Compile Include="Exceptions\SuiteSparseException.cs" />
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
+    <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
     <Compile Include="LinearAlgebra\Logging\Array1DFormatting.cs" />
     <Compile Include="LinearAlgebra\Logging\Array2DFormatting.cs" />
     <Compile Include="LinearAlgebra\Commons\MKLUtilities.cs" />
