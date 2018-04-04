@@ -98,18 +98,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
             var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
-            var csrReconstructed = new double[numRows, numCols];
-            var cscReconstructed = new double[numRows, numCols];
-            for (int i = 0; i < numRows; ++i)
-            {
-                for (int j = 0; j < numCols; ++j)
-                {
-                    csrReconstructed[i, j] = csr[i, j];
-                    cscReconstructed[i, j] = csc[i, j];
-                }
-            }
-            comparer.CheckMatrixEquality(matrix, csrReconstructed);
-            comparer.CheckMatrixEquality(matrix, cscReconstructed);
+            comparer.CheckMatrixEquality(matrix, csr.CopyToFullMatrix().CopyToArray2D());
+            comparer.CheckMatrixEquality(matrix, csc.CopyToFullMatrix().CopyToArray2D());
         }
 
         public static void CheckEquals()
@@ -124,6 +114,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             else Console.WriteLine("Error in CSC.Equals().");
             if ( (full.Equals(csr)) && (full.Equals(csc)) ) Console.WriteLine("Matrix.Equals() works fine.");
             else Console.WriteLine("Error in Matrix.Equals().");
+        }
+
+        public static void CheckTransposition()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            var csrTrans = csr.Transpose(false);
+            var cscTrans = csc.Transpose(false);
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTrans.CopyToFullMatrix().CopyToArray2D());
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTrans.CopyToFullMatrix().CopyToArray2D());
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     ///  layout see 
     ///  <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// </summary>
-    public class TriangularUpper: IEntrywiseOperable, IIndexable2D, IWriteable
+    public class TriangularUpper: IEntrywiseOperable, IIndexable2D, ITransposable, IWriteable
     {
         /// <summary>
         /// Packed storage, column major order: U[i, j] = data[i + j*(2*n-j-1)/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -134,12 +134,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public Matrix CopyToFullMatrix()
         {
-            Matrix fullMatrix = Matrix.CreateZero(Order, Order);
-            for (int j = 0; j < Order; ++j) //Column major order
-            {
-                for (int i = 0; i <= j; ++i) fullMatrix[i, j] = data[FindIndex1D(i, j)];
-            }
-            return fullMatrix;
+            // TODO: This won't work if the implementation of Matrix changes
+            double[] fullArray = Conversions.PackedUpperColMajorToFullColMajor(data, Order);
+            return Matrix.CreateFromArray(fullArray, Order, Order, false);
         }
 
         public double CalcDeterminant()
@@ -209,6 +206,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, 
                 Order, ref data[0], ref result[0], 1);
             return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public ITransposable Transpose()
+        {
+            return Transpose(true);
+        }
+
+        public TriangularLower Transpose(bool copyInternalArray)
+        {
+            return TriangularLower.CreateFromArray(data, copyInternalArray); // trans(upper col major) = lower row major
         }
 
         public void WriteToConsole()

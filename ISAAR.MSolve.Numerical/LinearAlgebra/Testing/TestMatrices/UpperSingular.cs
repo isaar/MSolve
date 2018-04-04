@@ -61,5 +61,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             VectorMKL x = A.SolveLinearSystem(b);
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
         }
+
+        public static void CheckTransposition()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var A = TriangularUpper.CreateFromArray(matrix);
+            var transA = A.Transpose(false);
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
+        }
     }
 }

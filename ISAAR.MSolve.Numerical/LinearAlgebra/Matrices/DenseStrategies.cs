@@ -68,6 +68,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             Console.Write(format.RowSeparator + format.ArrayEnd);
         }
 
+        internal static Matrix Transpose(ITransposable matrix)
+        {
+            var result = Matrix.CreateZero(matrix.NumColumns, matrix.NumRows);
+            for (int j = 0; j < matrix.NumColumns; ++j)
+            {
+                for (int i = 0; i < matrix.NumRows; ++i)
+                {
+                    result[j, i] = matrix[i, j];
+                }
+            }
+            return result;
+        }
+
         internal static void WriteToFile(IIndexable2D matrix, string path, bool append = false, Array2DFormatting format = null)
         {
             if (format == null) format = Array2DFormatting.Brackets;

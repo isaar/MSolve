@@ -508,7 +508,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix2D(CopyToArray2D());
         }
 
-        IMatrixView IMatrixView.Transpose()
+        ITransposable ITransposable.Transpose()
         {
             return Transpose();
         }

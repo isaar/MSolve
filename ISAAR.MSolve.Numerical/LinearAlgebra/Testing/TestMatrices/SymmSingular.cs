@@ -53,12 +53,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = SymmetricMatrix.CreateFromArray(matrix);
-            var reconstructed = new double[order, order];
-            for (int i = 0; i < order; ++i)
-            {
-                for (int j = 0; j < order; ++j) reconstructed[i, j] = A[i, j];
-            }
-            comparer.CheckMatrixEquality(matrix, reconstructed);
+            comparer.CheckMatrixEquality(matrix, A.CopyToArray2D());
         }
 
         public static void CheckMatrixVectorMult()
@@ -86,6 +81,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
                 var printer = new Printer();
                 printer.PrintIndefiniteMatrix(matrix);
             }
+        }
+
+        public static void CheckTransposition()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var A = SymmetricMatrix.CreateFromArray(matrix);
+            var transA = A.Transpose(false);
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
         }
     }
 }

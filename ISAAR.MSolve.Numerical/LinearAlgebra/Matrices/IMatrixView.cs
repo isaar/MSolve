@@ -10,12 +10,10 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
-    public interface IMatrixView: IEntrywiseOperable, IIndexable2D, IWriteable
+    public interface IMatrixView: IEntrywiseOperable, IIndexable2D, ITransposable, IWriteable
     {
         IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
         IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
         IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false);
-
-        IMatrixView Transpose();
     }
 }

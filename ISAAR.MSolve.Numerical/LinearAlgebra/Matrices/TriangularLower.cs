@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     ///  layout see 
     ///  <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// </summary>
-    public class TriangularLower: IEntrywiseOperable, IIndexable2D, IWriteable
+    public class TriangularLower: IEntrywiseOperable, IIndexable2D, ITransposable, IWriteable
     {
         /// <summary>
         /// Packed storage, row major order: L[i, j] = data[j + (i+1)*i/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -119,17 +119,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         ///     with the upper triangular entries of the matrix</returns>
         public double[,] CopyToArray2D()
         {
-            return Conversions.PackedUpperColMajorToArray2D(data);
+            return Conversions.PackedLowerRowMajorToArray2D(data);
         }
 
         public Matrix CopyToFullMatrix()
         {
-            Matrix fullMatrix = Matrix.CreateZero(Order, Order);
-            for (int i = 0; i < Order; ++i) //Row major order
-            {
-                for (int j = 0; j <= i; ++j) fullMatrix[i, j] = data[FindIndex1D(i, j)];
-            }
-            return fullMatrix;
+            // TODO: This won't work if the implementation of Matrix changes
+            double[] fullArray = Conversions.PackedLowerRowMajorToFullColMajor(data, Order); 
+            return Matrix.CreateFromArray(fullArray, Order, Order, false);
         }
 
         public double CalcDeterminant()
@@ -201,6 +198,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             CBlas.Dtpsv(CBLAS_LAYOUT.CblasRowMajor, CBLAS_UPLO.CblasLower, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
                 Order, ref data[0], ref result[0], 1);
             return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public ITransposable Transpose()
+        {
+            return Transpose(true);
+        }
+
+        public TriangularUpper Transpose(bool copyInternalArray)
+        {
+            return TriangularUpper.CreateFromArray(data, copyInternalArray); // trans(lower row major) = upper col major
         }
 
         public void WriteToConsole()

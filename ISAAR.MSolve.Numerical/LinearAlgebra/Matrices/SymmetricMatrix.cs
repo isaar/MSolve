@@ -187,7 +187,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// with the entries of the matrix</returns>
         public double[,] CopyToArray2D()
         {
-            return Conversions.PackedUpperColMajorToArray2D(data, Order);
+            return Conversions.PackedUpperColMajorToArray2DSymm(data, Order);
         }
 
         public Matrix CopyToGeneralMatrix()
@@ -214,20 +214,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             return DenseStrategies.AreEqual(this, other, tolerance);
-        }
-
-        /// <summary>
-        /// Matrix vector multiplication, with the vector on the right: matrix * vector.
-        /// </summary>
-        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
-        /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector)
-        {
-            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
-            double[] result = new double[NumRows];
-            CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
-                1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
         }
 
         /// <summary>
@@ -304,6 +290,45 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CholeskyFactorization(upper, n);
         }
 
+        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Matrix vector multiplication, with the vector on the right: matrix * vector.
+        /// </summary>
+        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
+        /// <returns></returns>
+        public VectorMKL MultiplyRight(VectorMKL vector)
+        {
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
+            double[] result = new double[NumRows];
+            CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
+                1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
+            return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public ITransposable Transpose()
+        {
+            return Transpose(true);
+        }
+
+        public SymmetricMatrix Transpose(bool copyInternalArray)
+        {
+            return SymmetricMatrix.CreateFromArray(data, Order, Definiteness, copyInternalArray);
+        }
+
         public void WriteToConsole()
         {
             DenseStrategies.WriteToConsole(this);
@@ -320,24 +345,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return i + (j * (j + 1)) / 2;
         }
 
-        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView Transpose()
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

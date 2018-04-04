@@ -14,11 +14,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
-            TestIndexing();
+            //TestIndexing();
             //CheckEquality();
-            TestMatrixVectorMultiplication();
+            //TestMatrixVectorMultiplication();
+            TestTransposition();
             //TestFactorization();
-            TestSystemSolution();
+            //TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
             //TestPrinting();
@@ -81,6 +82,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //UpperSingular.CheckSystemSolution();
             //SymmPositiveDefinite.CheckSystemSolution();
             //SymmSingular.CheckSystemSolution();
+        }
+
+        public static void TestTransposition()
+        {
+            DenseMatrices.CheckTransposition();
+            LowerInvertible.CheckTransposition();
+            LowerSingular.CheckTransposition();
+            UpperInvertible.CheckTransposition();
+            UpperSingular.CheckTransposition();
+            SymmPositiveDefinite.CheckTransposition();
+            SymmSingular.CheckTransposition();
+            SparseRect.CheckTransposition();
         }
 
         public static void TestVectorOperations()

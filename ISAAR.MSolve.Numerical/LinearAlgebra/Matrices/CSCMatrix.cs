@@ -12,7 +12,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     //TODO: Use MKL with descriptors
-    public class CSCMatrix: IEntrywiseOperable, IIndexable2D, IWriteable
+    public class CSCMatrix: IEntrywiseOperable, IIndexable2D, ISparseMatrix, ITransposable, IWriteable
     {
         public static bool WriteRawArrays { get; set; } = true;
 
@@ -229,6 +229,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
                 return VectorMKL.CreateFromArray(result, false);
             }
+        }
+
+        public ITransposable Transpose()
+        {
+            return Transpose(true);
+        }
+
+        public CSRMatrix Transpose(bool copyInternalArrays)
+        {
+            if (copyInternalArrays)
+            {
+                double[] valuesCopy = new double[values.Length];
+                Array.Copy(values, valuesCopy, values.Length);
+                int[] rowIndicesCopy = new int[rowIndices.Length];
+                Array.Copy(rowIndices, rowIndicesCopy, rowIndices.Length);
+                int[] colOffsetsCopy = new int[colOffsets.Length];
+                Array.Copy(colOffsets, colOffsetsCopy, colOffsets.Length);
+                return CSRMatrix.CreateFromArrays(NumColumns, NumRows, valuesCopy, rowIndicesCopy, colOffsetsCopy, false);
+            }
+            else return CSRMatrix.CreateFromArrays(NumColumns, NumRows, values, rowIndices, colOffsets, false);
         }
 
         public void WriteToConsole()

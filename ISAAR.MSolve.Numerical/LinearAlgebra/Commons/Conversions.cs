@@ -374,6 +374,41 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return array2D;
         }
 
+        public static double[,] PackedUpperColMajorToArray2DSymm(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[, ] array2D = new double[n, n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < j; ++i)
+                {
+                    double val = packed[i + (j * (j + 1)) / 2]; ;
+                    array2D[i, j] = val;
+                    array2D[j, i] = val;
+                }
+            }
+            for (int i = 0; i < n; ++i) // The diagonal entries need to be proceessed only once.
+            {
+                array2D[i, i] = packed[i + (i * (i + 1)) / 2];
+            }
+            return array2D;
+        }
+
+        public static double[] PackedUpperColMajorToFullColMajor(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[] full = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    double val = packed[i + (j * (j + 1)) / 2]; ;
+                    full[j * n + i] = val;
+                }
+            }
+            return full;
+        }
+
         /// <summary>
         /// Converts a symmetric matrix from packed column major format to full column major format.
         /// </summary>
@@ -417,6 +452,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
                 }
             }
             return array2D;
+        }
+
+        public static double[] PackedLowerRowMajorToFullColMajor(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[] full = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    double val = packed[j + ((i + 1) * i) / 2]; ;
+                    full[j * n + i] = val;
+                }
+            }
+            return full;
         }
 
         public static int FullLengthToOrder(int length)
