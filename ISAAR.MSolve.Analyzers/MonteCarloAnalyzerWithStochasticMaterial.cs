@@ -198,12 +198,12 @@ namespace ISAAR.MSolve.Analyzers
                     for (int j = 0; j < expansionOrder; j++)
                         randomNumbers[i][j] = n.NextDouble();
                 }
-                using (var sw = File.CreateText(String.Format(@"randoms{0}.txt", expansionOrder)))
-                {
-                    for (int j = 0; j < expansionOrder; j++)
-                        for (int i = 0; i < simulations; i++)
-                            sw.WriteLine(randomNumbers[i][j]);
-                }
+                //using (var sw = File.CreateText(String.Format(@"randoms{0}.txt", expansionOrder)))
+                //{
+                //    for (int j = 0; j < expansionOrder; j++)
+                //        for (int i = 0; i < simulations; i++)
+                //            sw.WriteLine(randomNumbers[i][j]);
+                //}
             }
             else
             {
@@ -235,7 +235,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[2][DOFType.Y];
+            int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[10][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
@@ -276,8 +276,8 @@ namespace ISAAR.MSolve.Analyzers
 
                 times["solution"] += DateTime.Now - e;
                 GCSettings.LatencyMode = GCLatencyMode.Batch;
-                values[i - simulationStartFrom] = subdomains[1].Solution[dofNo].ToString();
-                numberValues[i - simulationStartFrom] = subdomains[1].Solution[dofNo];
+                values[i - simulationStartFrom] = subdomains[0].Solution[dofNo].ToString();
+                numberValues[i - simulationStartFrom] = subdomains[0].Solution[dofNo];
                 //values[i] = subdomains[36].Solution[dofNo].ToString();
 
                 //values[i] = matrixMagnitudes[i].ToString();
@@ -285,14 +285,14 @@ namespace ISAAR.MSolve.Analyzers
                     sw.WriteLine(values[i - simulationStartFrom]);
                 using (sw = File.AppendText(fileNameIterations))
                     sw.WriteLine(iterationCount[i - simulationStartFrom].ToString());
-                using (sw = File.CreateText(fileNameTimes))
-                {
-                    sw.WriteLine(String.Format("Elements: {0}", times["element"].ToString()));
-                    sw.WriteLine(String.Format("Factorize: {0}", times["factorize"].ToString()));
-                    sw.WriteLine(String.Format("Solution: {0}", times["solution"].ToString()));
-                    sw.WriteLine(String.Format("All: {0}", times["all"].ToString()));
-                    sw.WriteLine(String.Format("Total iterations: {0}", totalIterations.ToString()));
-                }
+                //using (sw = File.CreateText(fileNameTimes))
+                //{
+                //    sw.WriteLine(String.Format("Elements: {0}", times["element"].ToString()));
+                //    sw.WriteLine(String.Format("Factorize: {0}", times["factorize"].ToString()));
+                //    sw.WriteLine(String.Format("Solution: {0}", times["solution"].ToString()));
+                //    sw.WriteLine(String.Format("All: {0}", times["all"].ToString()));
+                //    sw.WriteLine(String.Format("Total iterations: {0}", totalIterations.ToString()));
+                //}
             }
             MonteCarloMeanValue = numberValues.Average();
             double sumOfSquaresOfDifferences = numberValues.Select(val => (val - MonteCarloMeanValue) * (val - MonteCarloMeanValue)).Sum();
