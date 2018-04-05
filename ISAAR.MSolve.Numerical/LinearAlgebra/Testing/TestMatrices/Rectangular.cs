@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -42,6 +43,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             VectorMKL b10 = A.MultiplyRight(x10, true);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, b5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, b10.InternalData);
+        }
+
+        public static void Print()
+        {
+            var A = Matrix.CreateFromArray(matrix);
+            Console.WriteLine("Rectangular matrix = ");
+            var writer = new FullMatrixWriter(A);
+            writer.WriteToConsole();
         }
     }
 }

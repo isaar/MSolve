@@ -7,7 +7,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 {
@@ -96,9 +96,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void Print()
         {
             var A = Matrix.CreateFromArray(matrix);
-            Console.Write("Matrix = ");
-            Matrix.Formatter = Array2DFormatting.Brackets;
-            A.WriteToConsole();
+            Console.WriteLine("Square invertible matrix = ");
+            var writer = new FullMatrixWriter(A);
+            writer.WriteToConsole();
         }
     }
 }

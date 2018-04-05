@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
@@ -84,10 +85,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             {
                 Console.WriteLine("Incorrect.");
                 Console.Write("Expected matrix: ");
-                matrixExpected.WriteToConsole();
+                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
                 Console.WriteLine();
                 Console.Write("Computed matrix: ");
-                matrixComputed.WriteToConsole();
+                (new FullMatrixWriter(matrixComputed)).WriteToConsole();
                 Console.WriteLine();
             }
         }
@@ -124,10 +125,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             {
                 Console.WriteLine("Incorrect.");
                 Console.Write("Expected vector: ");
-                expected.WriteToConsole();
+                (new FullVectorWriter(expected)).WriteToConsole();
                 Console.WriteLine();
                 Console.Write("Computed vector: ");
-                computed.WriteToConsole();
+                (new FullVectorWriter(computed)).WriteToConsole();
                 Console.WriteLine();
             }
         }

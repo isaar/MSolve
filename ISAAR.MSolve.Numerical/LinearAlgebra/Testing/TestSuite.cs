@@ -17,12 +17,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestIndexing();
             //CheckEquality();
             //TestMatrixVectorMultiplication();
-            TestTransposition();
+            //TestTransposition();
             //TestFactorization();
             //TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
-            //TestPrinting();
+            TestWriting();
         }
 
         public static void CheckEquality()
@@ -50,10 +50,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SparseRect.CheckIndexing();
         }
 
-        public static void TestPrinting()
+        public static void TestWriting()
         {
             DenseVectors.Print();
+            Console.WriteLine();
+            Rectangular.Print();
+            Console.WriteLine();
             SquareInvertible.Print();
+            Console.WriteLine();
+            SquareSingular.Print();
+            Console.WriteLine();
+            SquareSingular1Deficiency.Print();
+            Console.WriteLine();
+            LowerInvertible.Print();
+            Console.WriteLine();
+            LowerSingular.Print();
+            Console.WriteLine();
+            UpperInvertible.Print();
+            Console.WriteLine();
+            UpperSingular.Print();
+            Console.WriteLine();
+            SymmPositiveDefinite.Print();
+            Console.WriteLine();
+            SymmSingular.Print();
+            Console.WriteLine();
+            SparseRect.Print();
         }
 
         public static void TestMatrixVectorMultiplication()

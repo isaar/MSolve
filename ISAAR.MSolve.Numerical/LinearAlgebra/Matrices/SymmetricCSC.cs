@@ -198,7 +198,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         {
             throw new NotImplementedException();
         }
-        
+
         public Matrix ToFullMatrix()
         {
             Matrix fullMatrix = Matrix.CreateZero(this.NumRows, this.NumColumns);
@@ -212,60 +212,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return fullMatrix;
-        }
-
-        // To write the full matrix use the extension IIndexable.WriteToConsole()
-        public void WriteToConsole()
-        {
-            Console.WriteLine("Values:");
-            for (int i = 0; i < values.Length; ++i)
-            {
-                Console.Write(values[i]);
-                Console.Write(" ");
-            }
-            Console.WriteLine("Row indices:");
-            for (int i = 0; i < rowIndices.Length; ++i)
-            {
-                Console.Write(rowIndices[i]);
-                Console.Write(" ");
-            }
-            Console.WriteLine("Column offsets:");
-            for (int i = 0; i < colOffsets.Length; ++i)
-            {
-                Console.Write(colOffsets[i]);
-                Console.Write(" ");
-            }
-        }
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            using (var writer = new StreamWriter(path, append))
-            {
-                writer.WriteLine("Values:");
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    writer.Write(values[i]);
-                    writer.Write(" ");
-                }
-                writer.WriteLine("Row indices:");
-                for (int i = 0; i < rowIndices.Length; ++i)
-                {
-                    writer.Write(rowIndices[i]);
-                    writer.Write(" ");
-                }
-                writer.WriteLine("Column offsets:");
-                for (int i = 0; i < colOffsets.Length; ++i)
-                {
-                    writer.Write(colOffsets[i]);
-                    writer.Write(" ");
-                }
-
-#if DEBUG
-                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
-#endif
-            }
-
-            
         }
 
         /// <summary>

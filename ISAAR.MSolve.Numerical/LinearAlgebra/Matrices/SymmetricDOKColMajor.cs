@@ -5,8 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
@@ -15,7 +14,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored. This class is 
     /// optimized for building global positive definite matrices, where there is at least 1 entry per column (like in FEM).
     /// </summary>
-    public class SymmetricDOKColMajor : IIndexable2D, ISparseMatrix, IWriteable
+    public class SymmetricDOKColMajor : ISparseMatrix
     {
         /// <summary>
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 
@@ -196,7 +195,41 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
+        //Perhaps there should be a dedicated symmetric CSC format, identical to CSC.
+        public SparseFormat GetSparseFormat()
+        {
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays();
+            var format = new SparseFormat();
+            format.RawValuesTitle = "Values";
+            format.RawValuesArray = values;
+            format.RawIndexArrays.Add("Row indices", rowIndices);
+            format.RawIndexArrays.Add("Column offsets", colOffsets);
+            return format;
+        }
+
         public SymmetricCSC ToSymmetricCSC()
+        {
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays();
+            return new SymmetricCSC(values, rowIndices, colOffsets, false);
+        }
+
+        /// <summary>
+        /// Perhaps this should be manually inlined. Testing needed.
+        /// </summary>
+        /// <param name="rowIdx"></param>
+        /// <param name="colIdx"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ProcessIndices(ref int rowIdx, ref int colIdx)
+        {
+            if (rowIdx > colIdx)
+            {
+                int swap = rowIdx;
+                rowIdx = colIdx;
+                colIdx = swap;
+            }
+        }
+
+        private (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCSCArrays()
         {
             int[] colOffsets = new int[NumColumns + 1];
             int nnz = 0;
@@ -220,59 +253,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
 
-            return new SymmetricCSC(values, rowIndices, colOffsets, false);
-        }
-
-        public void WriteToConsole()
-        {
-            var formatter = new SparseMatrixFormatting();
-            foreach (var (row, col, value) in EnumerateNonZeros())
-            {
-                // TODO: Redundant boxing, unboxing. Iterate the private structures explicitly.
-                Console.WriteLine(formatter.FormatNonZeroEntry(row, col, value));
-            }
-        }
-
-        /// <summary>
-        /// Write the entries of the matrix to a specified file. If the file doesn't exist a new one will be created.
-        /// </summary>
-        /// <param name="path">The path of the file and its extension.</param>
-        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
-        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        public void WriteToFile(string path, bool append = false)
-        {
-            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
-            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
-            // but since they are extremely useful they are implemented here for now.
-            using (var writer = new StreamWriter(path, append))
-            {
-                var formatter = new SparseMatrixFormatting();
-                foreach (var (row, col, value) in EnumerateNonZeros())
-                {
-                    // TODO: Redundant boxing, unboxing. Iterate the private structures explicitly.
-                    writer.WriteLine(formatter.FormatNonZeroEntry(row, col, value));
-                }
-
-#if DEBUG
-                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
-#endif
-            }
-        }
-
-        /// <summary>
-        /// Perhaps this should be manually inlined. Testing needed.
-        /// </summary>
-        /// <param name="rowIdx"></param>
-        /// <param name="colIdx"></param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ProcessIndices(ref int rowIdx, ref int colIdx)
-        {
-            if (rowIdx > colIdx)
-            {
-                int swap = rowIdx;
-                rowIdx = colIdx;
-                colIdx = swap;
-            }
+            return (values, rowIndices, colOffsets);
         }
     }
 }

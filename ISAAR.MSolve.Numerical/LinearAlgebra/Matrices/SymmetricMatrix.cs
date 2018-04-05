@@ -329,16 +329,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return SymmetricMatrix.CreateFromArray(data, Order, Definiteness, copyInternalArray);
         }
 
-        public void WriteToConsole()
-        {
-            DenseStrategies.WriteToConsole(this);
-        }
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            DenseStrategies.WriteToFile(this, path, append);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int Find1DIndex(int i, int j)
         {

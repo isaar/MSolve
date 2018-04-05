@@ -9,7 +9,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -22,8 +22,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix: IMatrixView, ISliceable2D
     {
-        public static Array2DFormatting Formatter { get; set; } = Array2DFormatting.Plain;
-
         protected readonly double[] data;
 
         protected Matrix(double[] data, int numRows, int numColumns)
@@ -562,76 +560,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public void TransposeIntoThis()
         {
             throw new NotImplementedException("Use mkl_dimatcopy");
-        }
-
-        public void WriteToConsole()
-        {
-            Console.Write(Formatter.ArrayStart);
-
-            // First row
-            Console.Write(Formatter.RowSeparator + Formatter.RowStart);
-            Console.Write(data[0]);
-            for (int j = 1; j < NumColumns; ++j)
-            {
-                Console.Write(Formatter.ColSeparator + data[j * NumRows]);
-            }
-            Console.Write(Formatter.RowEnd);
-
-            // Subsequent rows
-            for (int i = 1; i < NumRows; ++i)
-            {
-                Console.Write(Formatter.RowSeparator + Formatter.RowStart);
-                Console.Write(data[i]);
-                for (int j = 1; j < NumColumns; ++j)
-                {
-                    Console.Write(Formatter.ColSeparator + data[j * NumRows + i]);
-                }
-                Console.Write(Formatter.RowEnd);
-            }
-            Console.Write(Formatter.RowSeparator + Formatter.ArrayEnd);
-        }
-
-        /// <summary>
-        /// Write the entries of the matrix to a specified file. If the file doesn't exist a new one will be created.
-        /// </summary>
-        /// <param name="path">The path of the file and its extension.</param>
-        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
-        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        public void WriteToFile(string path, bool append = false)
-        {
-            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
-            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
-            // but since they are extremely useful they are implemented here for now.
-            using (var writer = new StreamWriter(path, append))
-            {
-                writer.Write(Formatter.ArrayStart);
-
-                // First row
-                writer.Write(Formatter.RowSeparator + Formatter.RowStart);
-                writer.Write(data[0]);
-                for (int j = 1; j < NumColumns; ++j)
-                {
-                    writer.Write(Formatter.ColSeparator + data[j * NumRows]);
-                }
-                writer.Write(Formatter.RowEnd);
-
-                // Subsequent rows
-                for (int i = 1; i < NumRows; ++i)
-                {
-                    writer.Write(Formatter.RowSeparator + Formatter.RowStart);
-                    writer.Write(data[i]);
-                    for (int j = 1; j < NumColumns; ++j)
-                    {
-                        writer.Write(Formatter.ColSeparator + data[j * NumRows + i]);
-                    }
-                    writer.Write(Formatter.RowEnd);
-                }
-                writer.Write(Formatter.RowSeparator + Formatter.ArrayEnd);
-
-#if DEBUG
-                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
-#endif
-            }
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -74,6 +75,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             VectorMKL b = A.MultiplyRight(x, false);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
+
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -90,6 +92,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
                 var printer = new Printer();
                 printer.PrintSingularMatrix(matrix);
             }
+        }
+
+        public static void Print()
+        {
+            var A = Matrix.CreateFromArray(matrix);
+            Console.WriteLine("Square singular matrix = ");
+            var writer = new FullMatrixWriter(A);
+            writer.WriteToConsole();
         }
     }
 }

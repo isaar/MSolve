@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 {
@@ -63,6 +64,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var A = TriangularLower.CreateFromArray(matrix);
             var transA = A.Transpose(false);
             comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
+        }
+
+        public static void Print()
+        {
+            var A = TriangularLower.CreateFromArray(matrix);
+            Console.WriteLine("Lower singular matrix = ");
+            var writer = new FullMatrixWriter(A); // TODO: implement triangular printer
+            writer.WriteToConsole();
         }
     }
 }

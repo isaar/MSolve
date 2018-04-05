@@ -6,14 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     //TODO: Use MKL with descriptors
-    public class CSRMatrix: IEntrywiseOperable, IIndexable2D, ISparseMatrix, ITransposable, IWriteable
+    public class CSRMatrix: IEntrywiseOperable, IIndexable2D, ISparseMatrix, ITransposable
     {
         public static bool WriteRawArrays { get; set; } = true;
 
@@ -94,19 +94,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return values.Length;
         }
 
-        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
-        {
-            for (int i = 0; i < NumRows; ++i)
-            {
-                int rowStart = rowOffsets[i]; //inclusive
-                int rowEnd = rowOffsets[i + 1]; //exclusive
-                for (int k = rowStart; k < rowEnd; ++k)
-                {
-                    yield return (i, colIndices[k], values[k]);
-                }
-            }
-        }
-
         public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
         {
             if (other is CSRMatrix otherCSR) // In case both matrices have the exact same index arrays
@@ -170,6 +157,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+        {
+            for (int i = 0; i < NumRows; ++i)
+            {
+                int rowStart = rowOffsets[i]; //inclusive
+                int rowEnd = rowOffsets[i + 1]; //exclusive
+                for (int k = rowStart; k < rowEnd; ++k)
+                {
+                    yield return (i, colIndices[k], values[k]);
+                }
+            }
+        }
+
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
@@ -191,6 +191,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return true; //At this point all entries have been checked and are equal
+        }
+
+        public SparseFormat GetSparseFormat()
+        {
+            var format = new SparseFormat();
+            format.RawValuesTitle = "Values";
+            format.RawValuesArray = values;
+            format.RawIndexArrays.Add("Column indices", colIndices);
+            format.RawIndexArrays.Add("Row offsets", rowOffsets);
+            return format;
         }
 
         public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
@@ -249,98 +259,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 return CSCMatrix.CreateFromArrays(NumColumns, NumRows, valuesCopy, colIndicesCopy, rowOffsetsCopy, false);
             }
             else return CSCMatrix.CreateFromArrays(NumColumns, NumRows, values, colIndices, rowOffsets, false);
-        }
-
-        public void WriteToConsole()
-        {
-            if (WriteRawArrays)
-            {
-                Console.WriteLine("Values:");
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    Console.Write(values[i]);
-                    Console.Write(" ");
-                }
-                Console.WriteLine("Column indices:");
-                for (int i = 0; i < colIndices.Length; ++i)
-                {
-                    Console.Write(colIndices[i]);
-                    Console.Write(" ");
-                }
-                Console.WriteLine("Row offsets:");
-                for (int i = 0; i < rowOffsets.Length; ++i)
-                {
-                    Console.Write(rowOffsets[i]);
-                    Console.Write(" ");
-                }
-            }
-            else
-            {
-                var formatter = new SparseMatrixFormatting();
-                for (int i = 0; i < NumRows; ++i)
-                {
-                    int rowStart = rowOffsets[i]; //inclusive
-                    int rowEnd = rowOffsets[i + 1]; //exclusive
-                    for (int k = rowStart; k < rowEnd; ++k)
-                    {
-                       Console.WriteLine(formatter.FormatNonZeroEntry(i, colIndices[k], values[k]));
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Write the entries of the matrix to a specified file. If the file doesn't exist a new one will be created.
-        /// </summary>
-        /// <param name="path">The path of the file and its extension.</param>
-        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
-        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        public void WriteToFile(string path, bool append = false)
-        {
-            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
-            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
-            // but since they are extremely useful they are implemented here for now.
-            using (var writer = new StreamWriter(path, append))
-            {
-                if (WriteRawArrays)
-                {
-                    writer.WriteLine("Values:");
-                    for (int i = 0; i < values.Length; ++i)
-                    {
-                        writer.Write(values[i]);
-                        writer.Write(" ");
-                    }
-                    writer.WriteLine("Column indices:");
-                    for (int i = 0; i < colIndices.Length; ++i)
-                    {
-                        writer.Write(colIndices[i]);
-                        writer.Write(" ");
-                    }
-                    writer.WriteLine("Row offsets:");
-                    for (int i = 0; i < rowOffsets.Length; ++i)
-                    {
-                        writer.Write(rowOffsets[i]);
-                        writer.Write(" ");
-                    }
-                }
-                else
-                {
-                    var formatter = new SparseMatrixFormatting();
-                    for (int i = 0; i < NumRows; ++i)
-                    {
-                        int rowStart = rowOffsets[i]; //inclusive
-                        int rowEnd = rowOffsets[i + 1]; //exclusive
-                        for (int k = rowStart; k < rowEnd; ++k)
-                        {
-                            writer.WriteLine(formatter.FormatNonZeroEntry(i, colIndices[k], values[k]));
-                        }
-                    }
-                }
-
-#if DEBUG
-                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
-#endif
-            }
         }
 
         /// <summary>

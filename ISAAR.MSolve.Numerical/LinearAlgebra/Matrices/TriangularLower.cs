@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     ///  layout see 
     ///  <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// </summary>
-    public class TriangularLower: IEntrywiseOperable, IIndexable2D, ITransposable, IWriteable
+    public class TriangularLower: IEntrywiseOperable, IIndexable2D, ITransposable
     {
         /// <summary>
         /// Packed storage, row major order: L[i, j] = data[j + (i+1)*i/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -208,16 +208,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public TriangularUpper Transpose(bool copyInternalArray)
         {
             return TriangularUpper.CreateFromArray(data, copyInternalArray); // trans(lower row major) = upper col major
-        }
-
-        public void WriteToConsole()
-        {
-            DenseStrategies.WriteToConsole(this);
-        }
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            DenseStrategies.WriteToFile(this, path, append);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

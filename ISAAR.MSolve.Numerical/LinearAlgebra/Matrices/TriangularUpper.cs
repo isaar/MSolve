@@ -8,7 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     ///  layout see 
     ///  <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// </summary>
-    public class TriangularUpper: IEntrywiseOperable, IIndexable2D, ITransposable, IWriteable
+    public class TriangularUpper: IEntrywiseOperable, IIndexable2D, ITransposable
     {
         /// <summary>
         /// Packed storage, column major order: U[i, j] = data[i + j*(2*n-j-1)/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -51,8 +51,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// The number of rows or columns of the square matrix.
         /// </summary>
         public int Order { get; }
-
-        double IIndexable2D.this[int rowIdx, int colIdx] => throw new NotImplementedException();
 
         /// <summary>
         /// The entry with row index = rowIdx and column index = colIdx. Warning: if you try to set an entry outside the non-zero
@@ -98,8 +96,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new TriangularUpper(Conversions.Array2DToPackedUpperColMajor(array2D), numRows);
         }
         
-
-
         /// <summary>
         /// Create a new <see cref="TriangularUpper"/> from a provided array. The array can be copied (for extra safety)
         /// or not (for extra performance).
@@ -216,16 +212,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public TriangularLower Transpose(bool copyInternalArray)
         {
             return TriangularLower.CreateFromArray(data, copyInternalArray); // trans(upper col major) = lower row major
-        }
-
-        public void WriteToConsole()
-        {
-            DenseStrategies.WriteToConsole(this);
-        }
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            DenseStrategies.WriteToFile(this, path, append);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

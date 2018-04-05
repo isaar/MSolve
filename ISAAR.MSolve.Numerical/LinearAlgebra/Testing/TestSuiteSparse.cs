@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -58,9 +59,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
 
             Console.WriteLine("Matrix DOK: ");
-            matrixDOK.WriteToConsole();
+            (new FullMatrixWriter(matrixDOK)).WriteToConsole();
             Console.WriteLine("Matrix CSC: ");
-            matrixCSC.WriteToConsole();
+            (new FullMatrixWriter(matrixCSC)).WriteToConsole();
 
             //Solve it using SuiteSparse
             using (SuiteSparseCholesky factor = matrixCSC.FactorCholesky())
@@ -77,9 +78,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             if (comparer.AreEqual(expected, solution)) Console.WriteLine("The linear system has been solved correctly.");
             else Console.WriteLine("ERROR in solving the linear system.");
             Console.Write("expected solution = ");
-            VectorMKL.CreateFromArray(expected).WriteToConsole();
+            (new Array1DWriter(expected)).WriteToConsole();
             Console.Write("computed solution = ");
-            VectorMKL.CreateFromArray(solution).WriteToConsole();
+            (new Array1DWriter(solution)).WriteToConsole();
         }
     }
 }
