@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.FEM.Problems.Structural.Constitutive;
-using ISAAR.MSolve.FEM.Problems.SupportiveClasses;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
-namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
+namespace ISAAR.MSolve.FEM.Elements
 {
     public class Quad4 : IStructuralFiniteElement, IEmbeddedHostElement
     {
