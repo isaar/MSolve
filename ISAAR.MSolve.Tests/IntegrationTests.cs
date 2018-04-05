@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.SamplesConsole;
@@ -151,7 +153,6 @@ namespace ISAAR.MSolve.Tests
             Assert.Equal(-2.08333333333333333e-5, linearSystems[1].Solution[1], 10);
         }
 
-
         [Fact]
         private static void SolveRandomVariableBeam2DWithMonteCarlo()
         {
@@ -234,6 +235,82 @@ namespace ISAAR.MSolve.Tests
             stohasticAnalyzer.Solve();
 
             Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
+        }
+
+        [Fact]
+        private static void SolveQuadCantileverDecompositionTest()
+        {
+            #region Quad Cantilever Model
+            VectorExtensions.AssignTotalAffinityCount();
+            double youngModulus = 3.0e07;
+            double poissonRatio = 0.3;
+            double nodalLoad = 1000;
+
+            // Create a new elastic 2D material
+            ElasticMaterial2D material = new ElasticMaterial2D()
+            {
+                YoungModulus = youngModulus,
+                PoissonRatio = poissonRatio
+            };
+            // Model creation
+            Model model = new Model();
+
+            // Add a single subdomain to the model
+            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+            // Add nodes to the nodes dictonary of the model
+            int indexNode = 0;
+            for (int i = 0; i < 25; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    model.NodesDictionary.Add(indexNode, new Node()
+                    {
+                        ID = indexNode++,
+                        X = i,
+                        Y = j,
+                        Z = 0.0
+                    });
+                }
+            }
+
+            // Constrain left nodes of the model
+            for (int i = 0; i < 5; i++)
+            {
+                model.NodesDictionary[i].Constraints.Add(DOFType.X);
+                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+            }
+
+            int indexElement = 0;
+            for (int i = 0; i < 24; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    var element = new Element()
+                    {
+                        ID = indexElement,
+                        ElementType = new Quad4(material)
+                    };
+                    element.AddNode(model.NodesDictionary[i * 5 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 5 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 5 + j + 1]);
+                    element.AddNode(model.NodesDictionary[i * 5 + j + 1]);
+                    model.ElementsDictionary.Add(indexElement, element);
+                    model.SubdomainsDictionary[0].ElementsDictionary.Add(indexElement++, element);
+
+                }
+            }
+            // Add nodal load values to node 3
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+
+            // Needed in order to make all the required data structures
+            model.ConnectDataStructures();
+
+            #endregion
+            
+            AutomaticDomainDecomposer domainDecomposer = new AutomaticDomainDecomposer(model, 3);
+            domainDecomposer.UpdateModel();
+
         }
 
     }
