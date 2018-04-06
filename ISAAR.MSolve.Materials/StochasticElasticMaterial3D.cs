@@ -71,8 +71,8 @@ namespace ISAAR.MSolve.FEM.Materials
         #region IFiniteElementMaterial3D Members
 
         public double[] Stresses { get { return new double[6]; } }
-        
-        public IMatrix2D ConstitutiveMatrix
+
+        public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {

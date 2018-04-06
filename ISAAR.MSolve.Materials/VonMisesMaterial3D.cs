@@ -41,18 +41,18 @@ namespace ISAAR.MSolve.FEM.Materials
         private static readonly double[,] SupportiveMatrixForConsistentConstitutiveMatrix = new[,]
             {
                 {
-                   0, -1, -1, 0, 0, 0 
+                   0, -1, -1, 0, 0, 0
                 }, {
-                      -1, 0, -1, 0, 0, 0, 
+                      -1, 0, -1, 0, 0, 0,
                    }, {
-                         -1, -1, 0, 0, 0, 0 
+                         -1, -1, 0, 0, 0, 0
                       }, {
-                            0, 0, 0, 0.5, 0, 0 
-                         }, 
+                            0, 0, 0, 0.5, 0, 0
+                         },
                 {
-                   0, 0, 0, 0, 0.5, 0 
+                   0, 0, 0, 0, 0.5, 0
                 }, {
-                      0, 0, 0, 0, 0, 0.5 
+                      0, 0, 0, 0, 0, 0.5
                    }
             };
 
@@ -195,7 +195,7 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <value>
         ///   The constitutive matrix.
         /// </value>
-        public IMatrix2D ConstitutiveMatrix
+        public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.FEM.Materials
                     this.UpdateMaterial(new double[6]);
                 }
 
-                return new Matrix2D(this.constitutiveMatrix);
+                return new ElasticityTensorContinuum3D(this.constitutiveMatrix);
             }
         }
 
@@ -341,12 +341,12 @@ namespace ISAAR.MSolve.FEM.Materials
 
             VonMisesMaterial3D m = new VonMisesMaterial3D(
                 this.youngModulus, this.poissonRatio, this.yieldStress, this.hardeningRatio)
-                {
-                    modified = this.Modified,
-                    plasticStrain = this.plasticStrain,
-                    incrementalStrains = strainsCopy,
-                    stresses = stressesCopy
-                };
+            {
+                modified = this.Modified,
+                plasticStrain = this.plasticStrain,
+                incrementalStrains = strainsCopy,
+                stresses = stressesCopy
+            };
             return m;
         }
 
@@ -543,7 +543,7 @@ namespace ISAAR.MSolve.FEM.Materials
         public double[] GetStressDeviator(double[] stresses)
         {
             var hydrostaticStress = this.GetMeanStress(stresses);
-            var stressDeviator = new double[] 
+            var stressDeviator = new double[]
             {
                 stresses[0] - hydrostaticStress,
                 stresses[1] - hydrostaticStress,

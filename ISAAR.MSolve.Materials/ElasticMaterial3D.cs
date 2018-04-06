@@ -77,12 +77,12 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public double[] Stresses { get { return stresses; } }
 
-        public IMatrix2D ConstitutiveMatrix
+        public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
                 if (constitutiveMatrix == null) UpdateMaterial(new double[6]);
-                return new Matrix2D(constitutiveMatrix);
+                return new ElasticityTensorContinuum3D(constitutiveMatrix);
             }
         }
 

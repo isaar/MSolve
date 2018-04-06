@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Materials
         private double _youngModulus;
         public double YoungModulus
         {
-            get {return CoefficientsProvider.GetCoefficient(0, null); }
+            get { return CoefficientsProvider.GetCoefficient(0, null); }
             set { _youngModulus = value; }
         }
 
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Materials
         public double[] GetStochasticMaterialProperties(double[] coordinates)
         {
             double stochasticYoungModulus = CoefficientsProvider.GetCoefficient(YoungModulus, coordinates);
-            return new double[] { stochasticYoungModulus,  PoissonRatio};
+            return new double[] { stochasticYoungModulus, PoissonRatio };
         }
 
         #region IFiniteElementMaterialMembers
@@ -47,7 +48,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public double[] Stresses => throw new NotImplementedException();
 
-        public IMatrix2D ConstitutiveMatrix => throw new NotImplementedException();
+        public ElasticityTensorContinuum3D ConstitutiveMatrix => throw new NotImplementedException();
 
         public void ResetModified()
         {
@@ -56,7 +57,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public object Clone()
         {
-            return new StochasticElasticMaterial (CoefficientsProvider) { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
+            return new StochasticElasticMaterial(CoefficientsProvider) { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
         }
         #endregion
 
