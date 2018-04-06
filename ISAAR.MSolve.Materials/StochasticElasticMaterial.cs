@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.FEM.Materials
             get { return false; }
         }
 
-        public double[] Stresses => throw new NotImplementedException();
+        public StressStrainVectorContinuum3D Stresses => throw new NotImplementedException();
 
         public ElasticityTensorContinuum3D ConstitutiveMatrix => throw new NotImplementedException();
 

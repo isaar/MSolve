@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.FEM.Materials
         private double[] stressesNew = new double[6];
         private readonly double youngModulus, shearModulus, poissonRatio, cohesion, friction, dilation;
 
-        public double[] Stresses
+        public StressStrainVectorContinuum3D Stresses
         {
-            get { return stressesNew; }
+            get { return new StressStrainVectorContinuum3D(stressesNew); }
         }
 
         public ElasticityTensorContinuum3D ConstitutiveMatrix

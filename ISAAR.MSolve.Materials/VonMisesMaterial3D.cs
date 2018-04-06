@@ -297,11 +297,11 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <remarks>
         ///   <a href = "http://en.wikipedia.org/wiki/Stress_%28mechanics%29">Stress (mechanics)</a>
         /// </remarks>
-        public double[] Stresses
+        public StressStrainVectorContinuum3D Stresses
         {
             get
             {
-                return this.stressesNew;
+                return new StressStrainVectorContinuum3D(this.stressesNew);
             }
         }
 

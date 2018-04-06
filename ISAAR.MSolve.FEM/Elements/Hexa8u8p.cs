@@ -327,7 +327,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 materialsAtGaussPoints[i].UpdateMaterial(dStrains);
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
