@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace ISAAR.MSolve.Materials.Interfaces
     public interface IStochasticContinuumMaterial3D : IContinuumMaterial3D
     {
         IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
-        IMatrix2D GetConstitutiveMatrix(double[] coordinates);
+        ElasticityTensorContinuum3D GetConstitutiveMatrix(double[] coordinates);
     }
 }

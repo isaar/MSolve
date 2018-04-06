@@ -122,9 +122,9 @@ namespace ISAAR.MSolve.FEM.Materials
             set { coefficientsProvider = value; }
         }
 
-        public IMatrix2D GetConstitutiveMatrix(double[] coordinates)
+        public ElasticityTensorContinuum3D GetConstitutiveMatrix(double[] coordinates)
         {
-            return new Matrix2D(GetConstitutiveMatrixInternal(coordinates));
+            return new ElasticityTensorContinuum3D(GetConstitutiveMatrixInternal(coordinates));
         }
 
         #endregion

@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region IStochasticFiniteElementMaterial
 
-        public IMatrix2D GetConstitutiveMatrix(double[] coordinates)
+        public ElasticityTensorContinuum3D GetConstitutiveMatrix(double[] coordinates)
         {
             throw new NotImplementedException();
         }
