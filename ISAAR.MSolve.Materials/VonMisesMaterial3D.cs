@@ -201,7 +201,7 @@ namespace ISAAR.MSolve.FEM.Materials
             {
                 if (this.constitutiveMatrix == null)
                 {
-                    this.UpdateMaterial(new double[6]);
+                    this.UpdateMaterial(new StressStrainVectorContinuum3D(new double[6]));
                 }
 
                 return new ElasticityTensorContinuum3D(this.constitutiveMatrix);
@@ -392,9 +392,9 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Updates the element's material with the provided incremental strains.
         /// </summary>
         /// <param name = "strainsIncrement">The incremental strains to use for the next step.</param>
-        public void UpdateMaterial(double[] strainsIncrement)
+        public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
         {
-            Array.Copy(strainsIncrement, this.incrementalStrains, 6);
+            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
             //this.incrementalStrains = strainsIncrement.DeepClone();
             this.CalculateNextStressStrainPoint();
         }

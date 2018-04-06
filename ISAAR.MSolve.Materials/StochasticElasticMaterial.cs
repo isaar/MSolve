@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Materials
             throw new NotImplementedException();
         }
 
-        public void UpdateMaterial(double[] strains)
+        public void UpdateMaterial(StressStrainVectorContinuum3D strains)
         {
             throw new NotImplementedException();
         }

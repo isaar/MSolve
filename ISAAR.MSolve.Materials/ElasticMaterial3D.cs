@@ -81,14 +81,14 @@ namespace ISAAR.MSolve.FEM.Materials
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(new double[6]);
+                if (constitutiveMatrix == null) UpdateMaterial(new StressStrainVectorContinuum3D(new double[6]));
                 return new ElasticityTensorContinuum3D(constitutiveMatrix);
             }
         }
 
-        public void UpdateMaterial(double[] strainsIncrement)
+        public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
         {
-            Array.Copy(strainsIncrement, this.incrementalStrains, 6);
+            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
             constitutiveMatrix = GetConstitutiveMatrix();
             this.CalculateNextStressStrainPoint();
         }

@@ -38,9 +38,9 @@ namespace ISAAR.MSolve.FEM.Materials
             get { return new ElasticityTensorContinuum3D(constitutiveMatrix); }
         }
 
-        public void UpdateMaterial(double[] strainsIncrement)
+        public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
         {
-            Array.Copy(strainsIncrement, this.incrementalStrains, 6);
+            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
             this.CalculateNextStressStrainPoint();
         }
 

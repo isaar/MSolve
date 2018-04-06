@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Materials.Interfaces
     {
         StressStrainVectorContinuum3D Stresses { get; }
         ElasticityTensorContinuum3D ConstitutiveMatrix { get; }
-        void UpdateMaterial(double[] strains);
+        void UpdateMaterial(StressStrainVectorContinuum3D strains);
         void ClearState();
         void SaveState();
         void ClearStresses();
