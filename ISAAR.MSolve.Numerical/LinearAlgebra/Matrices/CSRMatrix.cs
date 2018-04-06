@@ -10,6 +10,15 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
+
+// TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
+// caller, depending on if it is a matrix, a transposed matrix, a vector, etc. Compare its performance with the verbose code and 
+// also try inlining. C preprocessor macros would be actually useful here. Otherwise, move all that boilerplate code to a 
+// CSRStrategies static class.
+// TODO: In matrix-matrix/vector multiplications: perhaps I should work with a column major array directly instead of an output   
+// Matrix and an array instead of an output Vector.
+// TODO: perhaps optimizations if (other is Matrix) are needed, to directly index into its raw col major array.
+// The access paterns are always the same
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     //TODO: Use MKL with descriptors
@@ -203,6 +212,197 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return format;
         }
 
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            // TODO: Throwing exceptions when csr is on the right seems attractive.
+            if (transposeThis) // Compute one output column at a time. TODO: perhaps 1 row at a time.
+            {
+                if (transposeOther)
+                {
+                    Preconditions.CheckMultiplicationDimensions(other.NumRows, this.NumColumns);
+                    var result = Matrix.CreateZero(other.NumColumns, this.NumRows);
+                    for (int c = 0; c < result.NumColumns; ++c) // Compute one output column at a time
+                    {
+                        int rowStart = rowOffsets[c]; //inclusive
+                        int rowEnd = rowOffsets[c + 1]; //exclusive
+                        for (int i = 0; i < other.NumColumns; ++i)
+                        {
+                            double dot = 0.0;
+                            for (int k = rowStart; k < rowEnd; ++k) // other.col[i] * transpose(csr).col[j] = other.col[i] * csr.row[j]
+                            {
+                                dot += values[k] * other[colIndices[k], i]; 
+                            }
+                            result[i, c] = dot;
+                        }
+                    }
+                    return result;
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(other.NumColumns, this.NumColumns);
+                    var result = Matrix.CreateZero(other.NumRows, this.NumRows);
+                    for (int c = 0; c < result.NumColumns; ++c) // Compute one output column at a time.
+                    {
+                        int csrRowStart = rowOffsets[c]; //inclusive
+                        int csrRowEnd = rowOffsets[c + 1]; //exclusive
+                        for (int i = 0; i < other.NumRows; ++i)
+                        {
+                            double dot = 0.0;
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // other.row[i] * transpose(csr).col[j] = other.row[i] * csr.row[j]
+                            {
+                                dot += values[k] * other[i, colIndices[k]]; 
+                            }
+                            result[i, c] = dot;
+                        }
+                    }
+                    return result;
+                }
+            }
+            else // Compute one output row at a time. TODO: not efficent for the col major output matrix.
+            {
+                if (transposeOther)
+                {
+                    Preconditions.CheckMultiplicationDimensions(other.NumRows, this.NumRows);
+                    var result = Matrix.CreateZero(other.NumColumns, this.NumColumns);
+                    for (int r = 0; r < result.NumRows; ++r) // Compute one output row at a time.
+                    {
+                        // x * A = linear combination of rows of A with the entries of x as coefficients,
+                        // where x is row r of transpose(other matrix).
+                        for (int i = 0; i < this.NumRows; ++i)
+                        {
+                            double scalar = other[i, r];
+                            int csrRowStart = rowOffsets[i]; //inclusive
+                            int csrRowEnd = rowOffsets[i + 1]; //exclusive
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // sum(other[i,r] * csr.row[i]))
+                            {
+                                result[r, colIndices[k]] += scalar * values[k];
+                            }
+                        }
+                    }
+                    return result;
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(other.NumColumns, this.NumRows);
+                    var result = Matrix.CreateZero(other.NumRows, this.NumColumns);
+                    for (int r = 0; r < result.NumRows; ++r) // Compute one output row at a time.
+                    {
+                        // x * A = linear combination of rows of A with the entries of x as coefficients,
+                        // where x is row r of the other matrix.
+                        for (int i = 0; i < this.NumRows; ++i)
+                        {
+                            double scalar = other[r, i];
+                            int csrRowStart = rowOffsets[i]; //inclusive
+                            int csrRowEnd = rowOffsets[i + 1]; //exclusive
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // sum(other[r,i] * csr.row[i]))
+                            {
+                                result[r, colIndices[k]] += scalar * values[k];
+                            }
+                        }
+                    }
+                    return result;
+                }
+            }
+        }
+
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            if (transposeThis)
+            {
+                if (transposeOther)
+                {
+                    Preconditions.CheckMultiplicationDimensions(this.NumRows, other.NumColumns);
+                    var result = Matrix.CreateZero(this.NumColumns, other.NumRows);
+                    for (int c = 0; c < result.NumColumns; ++c) // Compute one output column at a time
+                    {
+                        // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients, 
+                        // where x is column c of the other matrix
+                        for (int i = 0; i < this.NumRows; ++i)
+                        {
+                            double scalar = other[c, i]; 
+                            int csrRowStart = rowOffsets[i]; //inclusive
+                            int csrRowEnd = rowOffsets[i + 1]; //exclusive
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // sum(other[c,i] * transpose(csr.col[c])) = sum(other[c,i] * csr.row[c])
+                            {
+                                result[colIndices[k], c] += scalar * values[k];
+                            }
+                        }
+                    }
+                    return result;
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(this.NumRows, other.NumRows);
+                    var result = Matrix.CreateZero(this.NumColumns, other.NumColumns);
+                    for (int c = 0; c < result.NumColumns; ++c) // Compute one output column at a time
+                    {
+                        // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients, 
+                        // where x is column c of the other matrix
+                        for (int i = 0; i < this.NumRows; ++i)
+                        {
+                            double scalar = other[i, c]; 
+                            int csrRowStart = rowOffsets[i]; //inclusive
+                            int csrRowEnd = rowOffsets[i + 1]; //exclusive
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // sum(other[i,c] * transpose(csr.col[c])) = sum(other[i,c] * csr.row[c])
+                            {
+                                result[colIndices[k], c] += scalar * values[k];
+                            }
+                        }
+                    }
+                    return result;
+                }
+            }
+            else
+            {
+                if (transposeOther)
+                {
+                    Preconditions.CheckMultiplicationDimensions(this.NumColumns, other.NumColumns);
+                    var result = Matrix.CreateZero(this.NumRows, other.NumRows);
+                    for (int c = 0; c < result.NumColumns; ++c) // Compute one output column at a time
+                    {
+                        for (int i = 0; i < this.NumRows; ++i)
+                        {
+                            double dot = 0.0;
+                            int csrRowStart = rowOffsets[i]; //inclusive
+                            int csrRowEnd = rowOffsets[i + 1]; //exclusive
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // csr.row[i] * other.row[c]
+                            {
+                                dot += values[k] * other[c, colIndices[k]];
+                            }
+                            result[i, c] = dot;
+                        }
+                    }
+                    return result;
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(this.NumColumns, other.NumRows);
+                    var result = Matrix.CreateZero(this.NumRows, other.NumColumns);
+                    for (int c = 0; c < result.NumColumns; ++c) // Compute one output column at a time
+                    {
+                        for (int i = 0; i < this.NumRows; ++i)
+                        {
+                            double dot = 0.0;
+                            int csrRowStart = rowOffsets[i]; //inclusive
+                            int csrRowEnd = rowOffsets[i + 1]; //exclusive
+                            for (int k = csrRowStart; k < csrRowEnd; ++k) // csr.row[i] * other.col[c]
+                            {
+                                dot += values[k] * other[colIndices[k], c];
+                            }
+                            result[i, c] = dot;
+                        }
+                    }
+                    return result;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <param name="transposeThis">If this method is called multiple times with transposeThis = true, consider using a CSC instead</param>
+        /// <returns></returns>
         public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
         {
             if (transposeThis)
@@ -279,7 +479,5 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
             return -1;
         }
-
-        
     }
 }

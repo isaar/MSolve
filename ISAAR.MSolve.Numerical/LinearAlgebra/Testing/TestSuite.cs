@@ -17,12 +17,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestIndexing();
             //CheckEquality();
             //TestMatrixVectorMultiplication();
+            TestMatrixMatrixMultiplication();
             //TestTransposition();
             //TestFactorization();
             //TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
-            TestWriting();
+            //TestWriting();
         }
 
         public static void CheckEquality()
@@ -90,6 +91,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SymmPositiveDefinite.CheckMatrixVectorMult();
             //SymmSingular.CheckMatrixVectorMult();
             //SparseRect.CheckMatrixVectorMult();
+        }
+
+        public static void TestMatrixMatrixMultiplication()
+        {
+            SparseRect.CheckMatrixMatrixMult();
         }
 
         public static void TestSystemSolution()

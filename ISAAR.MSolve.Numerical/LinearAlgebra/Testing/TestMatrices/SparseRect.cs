@@ -76,6 +76,116 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static readonly double[] lhs10 = { 7.5025, 9.8100, 2.3352, 0.9623, 3.8458, 5.0027, 5.7026, 9.7663, 4.9286, 4.0088 };
         public static readonly double[] rhs10 = { 38.358004392, 42.386998564, 39.584157392, 117.750301553, 40.799145145 };
 
+        public static void CheckMatrixMatrixMult()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var matrix5x5 = Matrix.CreateFromArray(SquareInvertible.matrix).Slice(0, 5, 0, 5); //TODO: add a 5x5 matrix and its products
+            var matrix10x10 = Matrix.CreateFromArray(SquareInvertible.matrix);
+            var thisTimesMatrix5x5 = 
+                MatrixOperations.MatrixTimesMatrix(matrix, matrix5x5.CopyToArray2D());
+            var thisTimesTransposeMatrix5x5 = 
+                MatrixOperations.MatrixTimesMatrix(matrix, matrix5x5.Transpose().CopyToArray2D());
+            var transposeThisTimesMatrix10x10 = MatrixOperations.MatrixTimesMatrix(
+                MatrixOperations.Transpose(matrix), matrix10x10.CopyToArray2D());
+            var transposeThisTimesTransposeMatrix10x10 = MatrixOperations.MatrixTimesMatrix(
+                MatrixOperations.Transpose(matrix), matrix10x10.Transpose().CopyToArray2D());
+            var matrix10x10TimesThis = 
+                MatrixOperations.MatrixTimesMatrix(matrix10x10.CopyToArray2D(), matrix);
+            var transposeMatrix10x10TimesThis = 
+                MatrixOperations.MatrixTimesMatrix(matrix10x10.Transpose().CopyToArray2D(), matrix);
+            var matrix5x5TimesTransposeThis = 
+                MatrixOperations.MatrixTimesMatrix(matrix5x5.CopyToArray2D(), MatrixOperations.Transpose(matrix));
+            var transposeMatrix5x5TimesTransposeThis =
+                MatrixOperations.MatrixTimesMatrix(matrix5x5.Transpose().CopyToArray2D(), MatrixOperations.Transpose(matrix));
+
+            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+
+            // CSR: Right multiplications
+            Console.WriteLine();
+            Console.WriteLine("CSR * dense: ");
+            Matrix csrTimesMatrix5x5 = csr.MultiplyRight(matrix5x5, false, false);
+            comparer.CheckMatrixEquality(thisTimesMatrix5x5, csrTimesMatrix5x5.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("CSR * transpose(dense): ");
+            Matrix csrTimesTransposeMatrix5x5 = csr.MultiplyRight(matrix5x5, false, true);
+            comparer.CheckMatrixEquality(thisTimesTransposeMatrix5x5, csrTimesTransposeMatrix5x5.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(CSR) * dense: ");
+            Matrix transposeCsrTimesMatrix10x10 = csr.MultiplyRight(matrix10x10, true, false);
+            comparer.CheckMatrixEquality(transposeThisTimesMatrix10x10, transposeCsrTimesMatrix10x10.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(CSR) * transpose(dense): ");
+            Matrix transposeCsrTimesTransposeMatrix10x10 = csr.MultiplyRight(matrix10x10, true, true);
+            comparer.CheckMatrixEquality(transposeThisTimesTransposeMatrix10x10, transposeCsrTimesTransposeMatrix10x10.CopyToArray2D());
+
+            //CSR: Left multiplications
+            Console.WriteLine();
+            Console.WriteLine("dense * CSR: ");
+            Matrix matrix10x10TimesCSR = csr.MultiplyLeft(matrix10x10, false, false);
+            comparer.CheckMatrixEquality(matrix10x10TimesThis, matrix10x10TimesCSR.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(dense) * CSR: ");
+            Matrix transposeMatrix10x10TimesCSR = csr.MultiplyLeft(matrix10x10, false, true);
+            comparer.CheckMatrixEquality(transposeMatrix10x10TimesThis, transposeMatrix10x10TimesCSR.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("dense * transpose(CSR): ");
+            Matrix matrix5x5TimesTransposeCSR = csr.MultiplyLeft(matrix5x5, true, false);
+            comparer.CheckMatrixEquality(matrix5x5TimesTransposeThis, matrix5x5TimesTransposeCSR.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(dense) * transpose(CSR): ");
+            Matrix transposeMatrix5x5TimesTransposeCSR = csr.MultiplyLeft(matrix5x5, true, true);
+            comparer.CheckMatrixEquality(transposeMatrix5x5TimesTransposeThis, transposeMatrix5x5TimesTransposeCSR.CopyToArray2D());
+
+            // CSC: Right multiplications
+            Console.WriteLine();
+            Console.WriteLine("CSC * dense: ");
+            Matrix cscTimesMatrix5x5 = csc.MultiplyRight(matrix5x5, false, false);
+            comparer.CheckMatrixEquality(thisTimesMatrix5x5, cscTimesMatrix5x5.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("CSC * transpose(dense): ");
+            Matrix cscTimesTransposeMatrix5x5 = csc.MultiplyRight(matrix5x5, false, true);
+            comparer.CheckMatrixEquality(thisTimesTransposeMatrix5x5, cscTimesTransposeMatrix5x5.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(CSC) * dense: ");
+            Matrix transposeCscTimesMatrix10x10 = csc.MultiplyRight(matrix10x10, true, false);
+            comparer.CheckMatrixEquality(transposeThisTimesMatrix10x10, transposeCscTimesMatrix10x10.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(CSC) * transpose(dense): ");
+            Matrix transposeCscTimesTransposeMatrix10x10 = csc.MultiplyRight(matrix10x10, true, true);
+            comparer.CheckMatrixEquality(transposeThisTimesTransposeMatrix10x10, transposeCscTimesTransposeMatrix10x10.CopyToArray2D());
+
+            //CSC: Left multiplications
+            Console.WriteLine();
+            Console.WriteLine("dense * CSC: ");
+            Matrix matrix10x10TimesCSC = csc.MultiplyLeft(matrix10x10, false, false);
+            comparer.CheckMatrixEquality(matrix10x10TimesThis, matrix10x10TimesCSC.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(dense) * CSC: ");
+            Matrix transposeMatrix10x10TimesCSC = csc.MultiplyLeft(matrix10x10, false, true);
+            comparer.CheckMatrixEquality(transposeMatrix10x10TimesThis, transposeMatrix10x10TimesCSC.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("dense * transpose(CSC): ");
+            Matrix matrix5x5TimesTransposeCSC = csc.MultiplyLeft(matrix5x5, true, false);
+            comparer.CheckMatrixEquality(matrix5x5TimesTransposeThis, matrix5x5TimesTransposeCSC.CopyToArray2D());
+
+            Console.WriteLine();
+            Console.WriteLine("transpose(dense) * transpose(CSC): ");
+            Matrix transposeMatrix5x5TimesTransposeCSC = csc.MultiplyLeft(matrix5x5, true, true);
+            comparer.CheckMatrixEquality(transposeMatrix5x5TimesTransposeThis, transposeMatrix5x5TimesTransposeCSC.CopyToArray2D());
+        }
+
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
