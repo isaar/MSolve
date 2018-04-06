@@ -5,7 +5,7 @@ using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class ElasticMaterial3D : IIsotropicFiniteElementMaterial3D
+    public class ElasticMaterial3D : IIsotropicContinuumMaterial3D
     {
         private readonly double[] strains = new double[6];
         private readonly double[] incrementalStrains = new double[6];

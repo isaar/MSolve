@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class StochasticElasticMaterial : IStochasticFiniteElementMaterial
+    public class StochasticElasticMaterial : IStochasticContinuumMaterial3D
     {
         public IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
 

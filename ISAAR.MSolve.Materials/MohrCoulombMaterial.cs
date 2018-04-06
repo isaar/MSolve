@@ -15,7 +15,7 @@ using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class MohrCoulombMaterial : IIsotropicFiniteElementMaterial3D
+    public class MohrCoulombMaterial : IIsotropicContinuumMaterial3D
     {
         private const double PoissonRatioForIncompressibleSolid = 0.5;
         private bool modified;

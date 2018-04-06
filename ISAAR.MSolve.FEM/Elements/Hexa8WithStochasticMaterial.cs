@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
     public class Hexa8WithStochasticMaterial : Hexa8
     {
-        protected readonly new IStochasticFiniteElementMaterial[] materialsAtGaussPoints;
+        protected readonly new IStochasticContinuumMaterial3D[] materialsAtGaussPoints;
         protected readonly Hexa8Memoizer memoizer;
 
         private static double[][] integrationPoints = new double[][] 
@@ -40,14 +40,14 @@ namespace ISAAR.MSolve.FEM.Elements
             new double[] { -0.8611363115941, -0.3399810435849, 0.3399810435849, 0.8611363115941 } 
         };
 
-        public Hexa8WithStochasticMaterial(IStochasticFiniteElementMaterial material)
+        public Hexa8WithStochasticMaterial(IStochasticContinuumMaterial3D material)
         {
-            materialsAtGaussPoints = new IStochasticFiniteElementMaterial[iInt3];
+            materialsAtGaussPoints = new IStochasticContinuumMaterial3D[iInt3];
             for (int i = 0; i < iInt3; i++)
-                materialsAtGaussPoints[i] = (IStochasticFiniteElementMaterial)material.Clone();
+                materialsAtGaussPoints[i] = (IStochasticContinuumMaterial3D)material.Clone();
         }
 
-        public Hexa8WithStochasticMaterial(IStochasticFiniteElementMaterial material, Hexa8Memoizer memoizer) : this(material)
+        public Hexa8WithStochasticMaterial(IStochasticContinuumMaterial3D material, Hexa8Memoizer memoizer) : this(material)
         {
             this.memoizer = memoizer;
         }
