@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
@@ -40,7 +41,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return result;
         }
 
-        internal static Matrix Transpose(ITransposable matrix)
+        internal static Matrix Transpose(IMatrixView matrix)
         {
             var result = Matrix.CreateZero(matrix.NumColumns, matrix.NumRows);
             for (int j = 0; j < matrix.NumColumns; ++j)
@@ -51,6 +52,110 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return result;
+        }
+
+        internal static Matrix Multiply(IMatrixView matrix1, IMatrixView matrix2, bool transpose1, bool transpose2)
+        {
+            if (transpose1)
+            {
+                if (transpose2)
+                {
+                    Preconditions.CheckMultiplicationDimensions(matrix1.NumRows, matrix2.NumColumns);
+                    var result = Matrix.CreateZero(matrix1.NumColumns, matrix2.NumRows);
+                    for (int i = 0; i < result.NumRows; ++i)
+                    {
+                        for (int j = 0; j < result.NumColumns; ++j)
+                        {
+                            for (int k = 0; k < matrix1.NumRows; ++k)
+                            {
+                                result[i, j] = matrix1[k, i] * matrix2[j, k];
+                            }
+                        }
+                    }
+                    return result;
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(matrix1.NumRows, matrix2.NumRows);
+                    var result = Matrix.CreateZero(matrix1.NumColumns, matrix2.NumColumns);
+                    for (int i = 0; i < result.NumRows; ++i)
+                    {
+                        for (int j = 0; j < result.NumColumns; ++j)
+                        {
+                            for (int k = 0; k < matrix1.NumRows; ++k)
+                            {
+                                result[i, j] = matrix1[k, i] * matrix2[k, j];
+                            }
+                        }
+                    }
+                    return result;
+                }
+            }
+            else
+            {
+                if (transpose2)
+                {
+                    Preconditions.CheckMultiplicationDimensions(matrix1.NumColumns, matrix2.NumColumns);
+                    var result = Matrix.CreateZero(matrix1.NumRows, matrix2.NumRows);
+                    for (int i = 0; i < result.NumRows; ++i)
+                    {
+                        for (int j = 0; j < result.NumColumns; ++j)
+                        {
+                            for (int k = 0; k < matrix1.NumColumns; ++k)
+                            {
+                                result[i, j] = matrix1[i, k] * matrix2[j, k];
+                            }
+                        }
+                    }
+                    return result;
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(matrix1.NumColumns, matrix2.NumRows);
+                    var result = Matrix.CreateZero(matrix1.NumRows, matrix2.NumColumns);
+                    for (int i = 0; i < result.NumRows; ++i)
+                    {
+                        for (int j = 0; j < result.NumColumns; ++j)
+                        {
+                            for (int k = 0; k <matrix1.NumColumns; ++k)
+                            {
+                                result[i, j] = matrix1[i, k] * matrix2[k, j];
+                            }
+                        }
+                    }
+                    return result;
+                }
+            }
+        }
+
+        internal static VectorMKL Multiply(IMatrixView matrix, IVectorView vector, bool transposeMatrix)
+        {
+            if (transposeMatrix)
+            {
+                Preconditions.CheckMultiplicationDimensions(matrix.NumRows, vector.Length);
+                var result = VectorMKL.CreateZero(matrix.NumColumns);
+                for (int i = 0; i < result.Length; ++i)
+                {
+                    for (int j = 0; j < vector.Length; ++j)
+                    {
+                        result[i] = matrix[j, i] * vector[j];
+                    }
+                }
+                return result;
+            }
+            else
+            {
+                Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, vector.Length);
+                var result = VectorMKL.CreateZero(matrix.NumRows);
+                for (int i = 0; i < result.Length; ++i)
+                {
+                    for (int j = 0; j < vector.Length; ++j)
+                    {
+                        result[i] = matrix[j, i] * vector[j];
+                    }
+                }
+                return result;
+            }
         }
     }
 }

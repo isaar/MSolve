@@ -197,7 +197,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
 
-        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is Matrix) return DoEntrywise((Matrix)other, binaryOperation);
             else return other.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        IEntrywiseOperable IEntrywiseOperable.DoToAllEntries(Func<double, double> unaryOperation)
+        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
@@ -338,12 +338,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref this.data[0], 1);
         }
 
-        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             return other.MultiplyRight(this, transposeOther, transposeThis);
         }
 
-        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             if (other is Matrix) return MultiplyRight((Matrix)other, transposeThis);
             else return other.MultiplyLeft(this, transposeOther, transposeThis);
@@ -398,7 +398,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(result, leftRows, rightCols);
         }
 
-        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
             else throw new NotImplementedException();
@@ -439,10 +439,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
-            double accumulator = identityValue;
-            for (int i = 0; i < data.Length; ++i) accumulator = processEntry(data[i], accumulator);
+            double aggregator = identityValue;
+            for (int i = 0; i < data.Length; ++i) aggregator = processEntry(data[i], aggregator);
             // no zeros implied
-            return finalize(accumulator);
+            return finalize(aggregator);
         }
 
         /// <summary>
@@ -544,7 +544,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix2D(CopyToArray2D());
         }
 
-        ITransposable ITransposable.Transpose()
+        IMatrixView IMatrixView.Transpose()
         {
             return Transpose();
         }

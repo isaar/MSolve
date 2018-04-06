@@ -9,6 +9,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -23,7 +24,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     ///  layout see 
     ///  <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// </summary>
-    public class TriangularUpper: IEntrywiseOperable, IIndexable2D, ITransposable
+    public class TriangularUpper: IMatrixView
     {
         /// <summary>
         /// Packed storage, column major order: U[i, j] = data[i + j*(2*n-j-1)/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -143,12 +144,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return det;
         }
 
-        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: this can be optimized.
         }
 
-        public IEntrywiseOperable DoToAllEntries(Func<double, double> unaryOperation)
+        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
         {
             if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0)) // The same sparsity pattern can be used.
             {
@@ -173,6 +174,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            return DenseStrategies.Multiply(other, this, transposeOther, transposeThis);
+        }
+
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
+        }
+
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            else throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Matrix-vector multiplication, with the vector on the right: matrix * vector or transpose(matrix) * vector.
         /// </summary>
@@ -190,6 +207,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return VectorMKL.CreateFromArray(result, false);
         }
 
+        public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
+        {
+            double aggregator = identityValue;
+            int nnz = data.Length;
+            for (int i = 0; i < nnz; ++i) aggregator = processEntry(data[i], aggregator);
+            aggregator = processZeros(Order * Order - nnz, aggregator);
+            return finalize(aggregator);
+        }
+
         /// <summary>
         /// WARNING: No exception will be thrown if the matrix is singular.
         /// </summary>
@@ -204,7 +230,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return VectorMKL.CreateFromArray(result, false);
         }
 
-        public ITransposable Transpose()
+        public IMatrixView Transpose()
         {
             return Transpose(true);
         }

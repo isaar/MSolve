@@ -8,6 +8,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -196,12 +197,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
-        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             return DenseStrategies.DoEntrywise(this, other, binaryOperation);
         }
 
-        public IEntrywiseOperable DoToAllEntries(Func<double, double> unaryOperation)
+        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
         {
             var result = new double[data.Length];
             for (int i = 0; i < data.Length; ++i)
@@ -290,19 +291,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CholeskyFactorization(upper, n);
         }
 
-        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
-            throw new NotImplementedException();
+            return DenseStrategies.Multiply(other, this, transposeOther, transposeThis);
         }
 
-        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
-            throw new NotImplementedException();
+            return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
-        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            throw new NotImplementedException();
+            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            else throw new NotImplementedException();
         }
 
         /// <summary>
@@ -319,7 +321,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return VectorMKL.CreateFromArray(result, false);
         }
 
-        public ITransposable Transpose()
+        public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
+        {
+            double aggregator = identityValue;
+            for (int j = 0; j < data.Length; ++j)
+            {
+                aggregator = processEntry(data[Find1DIndex(j, j)], aggregator);
+                for (int i = 0; i < j; ++j)
+                {
+                    // A[j,i] = A[i,j], but doubling it will not work for all reductions
+                    int idx1D = Find1DIndex(i, j);
+                    aggregator = processEntry(data[idx1D], aggregator);
+                    aggregator = processEntry(data[idx1D], aggregator); 
+                }
+            }
+            // no zeros implied
+            return finalize(aggregator);
+        }
+
+        public IMatrixView Transpose()
         {
             return Transpose(true);
         }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -20,7 +21,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
     //TODO: Use MKL with descriptors
-    public class CSCMatrix: IEntrywiseOperable, IIndexable2D, ISparseMatrix, ITransposable
+    public class CSCMatrix: IMatrixView, ISparseMatrix
     {
         public static bool WriteRawArrays { get; set; } = true;
 
@@ -101,7 +102,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return values.Length;
         }
 
-        public IEntrywiseOperable DoEntrywise(IEntrywiseOperable other, Func<double, double, double> binaryOperation)
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is CSCMatrix otherCSC) // In case both matrices have the exact same index arrays
             {
@@ -131,7 +132,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
         }
 
-        IEntrywiseOperable IEntrywiseOperable.DoToAllEntries(Func<double, double> unaryOperation)
+        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
         {
             // Only apply the operation on non zero entries
             double[] newValues = new double[values.Length];
@@ -396,6 +397,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            else throw new NotImplementedException();
+        }
+
         public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
         {
             if (transposeThis)
@@ -435,7 +442,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        public ITransposable Transpose()
+        public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
+        {
+            double aggregator = identityValue;
+            int nnz = values.Length;
+            for (int i = 0; i < nnz; ++i) aggregator = processEntry(values[i], aggregator);
+            aggregator = processZeros(NumRows * NumColumns - nnz, aggregator);
+            return finalize(aggregator);
+        }
+
+        public IMatrixView Transpose()
         {
             return Transpose(true);
         }
