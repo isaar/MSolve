@@ -6,7 +6,7 @@ using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class StochasticElasticMaterial3D : IStochasticContinuumMaterial3D, IIsotropicContinuumMaterial3D//why do we need both interfaces?? IIsotropicFiniteElementMaterial3D or IStochasticIsotropicFiniteElementMaterial will be fine. 
+    public class StochasticElasticMaterial3D : IStochasticIsotropicContinuumMaterial3D, IIsotropicContinuumMaterial3D//why do we need both interfaces?? IIsotropicFiniteElementMaterial3D or IStochasticIsotropicFiniteElementMaterial will be fine. 
     {
         private IStochasticMaterialCoefficientsProvider coefficientsProvider;
         private readonly double[] strains = new double[6];
