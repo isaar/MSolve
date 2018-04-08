@@ -13,11 +13,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         public static void TestAll()
         {
             //TestSuiteSparse.ExampleRawArrays();
-            //TestSuiteSparse.ExampleMatrixClasses();
+            TestSuiteSparse.ExampleMatrixClasses();
             //TestIndexing();
             //CheckEquality();
             //TestMatrixVectorMultiplication();
-            TestMatrixMatrixMultiplication();
+            //TestMatrixMatrixMultiplication();
             //TestTransposition();
             //TestFactorization();
             //TestSystemSolution();

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -44,12 +45,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             // Define linear system
             var rhs = VectorMKL.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
-            var matrixDOK = new SymmetricDOKColMajor(4);
+            var matrixDOK = new DOKSymmetricColMajor(4);
             matrixDOK[0, 0] = 4.0; matrixDOK[0, 2] = 2.0;
             matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
             matrixDOK[2, 2] = 8.0;
             matrixDOK[3, 3] = 9.0;
-            SymmetricCSC matrixCSC = matrixDOK.ToSymmetricCSC();
+            SymmetricCSC matrixCSC = matrixDOK.ToSymmetricCSC(true);
 
             //const int n = 4;
             //const int nnz = 7;

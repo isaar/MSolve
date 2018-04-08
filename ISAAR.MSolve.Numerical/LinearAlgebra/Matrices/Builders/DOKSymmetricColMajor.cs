@@ -7,27 +7,33 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
 {
     /// <summary>
     /// Use this class for building a symmetric sparse matrix, not for operations. Convert to other matrix formats once finished 
     /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored. This class is 
     /// optimized for building global positive definite matrices, where there is at least 1 entry per column (like in FEM).
     /// </summary>
-    public class SymmetricDOKColMajor : ISparseMatrix
+    public class DOKSymmetricColMajor : ISparseMatrix
     {
         /// <summary>
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 
         /// is usually at least 1 non zero entry in each column. Otherwise this data structure wastes space, but if there were  
         /// many empty rows, perhaps another matrix format is more appropriate.
         /// To get the value: data[colIdx][rowIdx] = value. 
-        /// To get the row-value subdictionary: data[colIdx] = SortedDictionary[int, double]
-        /// TODO: Perhaps a Dictionary should be used instead of SortedDictionary and only sort each column independently before 
-        /// converting. Dictionary is much more efficient for insertion, which will usually happen more than once for each entry. 
+        /// To get the row-value subdictionary: data[colIdx] = Dictionary[int, double]
+        /// TODO: Things to benchmark (keys = row indices): 
+        /// 1) Dictionary + sort on converting: copy unordered keys and values to arrays and sort both arrays according to keys 
+        /// 2) Dictionary + sort on converting: Use LINQ to sort key-value pairs and then copy each one to the arrays
+        /// 3) SortedDictionary: O(log(n)) insertion but already ordered. Some entries are inserted more than once though!
+        /// However this is wasteful if the sparse matrix doesn't need to be ordered. Thus I should use IDictionary and provide 
+        /// static methods for Skyline (descending keys), CSC (ascending keys) or unordered (can use simple Dictionary)
+        /// Perhaps a Dictionary should be used instead of SortedDictionary and only sort each column independently before 
+        /// converting.
         /// </summary>
         private readonly Dictionary<int, double>[] data;
 
-        public SymmetricDOKColMajor(int numCols)
+        public DOKSymmetricColMajor(int numCols)
         {
             this.data = new Dictionary<int, double>[numCols];
             for (int j = 0; j < numCols; ++j) this.data[j] = new Dictionary<int, double>(); // Initial capacity may be optimized.
@@ -198,7 +204,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         //Perhaps there should be a dedicated symmetric CSC format, identical to CSC.
         public SparseFormat GetSparseFormat()
         {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays();
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(false);
             var format = new SparseFormat();
             format.RawValuesTitle = "Values";
             format.RawValuesArray = values;
@@ -207,9 +213,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return format;
         }
 
-        public SymmetricCSC ToSymmetricCSC()
+        /// <summary>
+        /// Creates a CSC matrix, containing only the upper triangular entries.
+        /// </summary>
+        /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
+        ///     colOffsets[j+1] in ascending order. False to leave them unordered (slight performance gain).</param>
+        /// <returns></returns>
+        public SymmetricCSC ToSymmetricCSC(bool sortRowsOfEachCol)
         {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays();
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(sortRowsOfEachCol);
             return new SymmetricCSC(values, rowIndices, colOffsets, false);
         }
 
@@ -229,7 +241,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        private (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCSCArrays()
+        /// <summary>
+        /// Creates the CSC arrays, containing only the upper triangular entries.
+        /// </summary>
+        /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
+        ///     colOffsets[j+1] in ascending order. False to leave them unordered (slight performance gain).</param>
+        /// <returns></returns>
+        private (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
         {
             int[] colOffsets = new int[NumColumns + 1];
             int nnz = 0;
@@ -245,11 +263,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             int counter = 0;
             for (int j = 0; j < NumColumns; ++j)
             {
-                foreach (var rowVal in data[j])
+                if (sortRowsOfEachCol)
                 {
-                    rowIndices[counter] = rowVal.Key;
-                    values[counter] = rowVal.Value;
-                    ++counter;
+                    foreach (var rowVal in data[j].OrderBy(pair => pair.Key))
+                    {
+                        rowIndices[counter] = rowVal.Key;
+                        values[counter] = rowVal.Value;
+                        ++counter;
+                    }
+                }
+                else
+                {
+                    foreach (var rowVal in data[j])
+                    {
+                        rowIndices[counter] = rowVal.Key;
+                        values[counter] = rowVal.Value;
+                        ++counter;
+                    }
                 }
             }
 

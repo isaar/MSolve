@@ -139,7 +139,7 @@
     <Compile Include="LinearAlgebra\Matrices\ISparseMatrix.cs" />
     <Compile Include="LinearAlgebra\Output\SparseFormat.cs" />
     <Compile Include="LinearAlgebra\Matrices\SymmetricCSC.cs" />
-    <Compile Include="LinearAlgebra\Matrices\SymmetricDOKColMajor.cs" />
+    <Compile Include="LinearAlgebra\Matrices\Builders\DOKSymmetricColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\TriangularLower.cs" />
     <Compile Include="LinearAlgebra\Output\TriangularWriter.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SparseRect.cs" />
@@ -307,6 +307,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
