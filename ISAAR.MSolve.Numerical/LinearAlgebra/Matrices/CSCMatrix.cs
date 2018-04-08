@@ -20,8 +20,12 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 // The access paterns are always the same
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
-    //TODO: Use MKL with descriptors
-    public class CSCMatrix: IMatrixView, ISparseMatrix
+    /// <summary>
+    /// This class is optimized for matrix-vector and matrix-matrix multiplications, where the CSC matrix is on the right 
+    /// untransposed or on the left transposed. The other combinations are more efficient using <see cref="CSRMatrix"/>. To build
+    /// a <see cref="CSCMatrix"/> conveniently, use <see cref="Builders.DOKColMajor"/>. 
+    /// </summary>
+    public class CSCMatrix: IMatrixView, ISparseMatrix //TODO: Use MKL with descriptors
     {
         public static bool WriteRawArrays { get; set; } = true;
 

@@ -26,6 +26,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return true;
         }
 
+        internal static double[,] CopyToArray2D(IIndexable2D matrix)
+        {
+            var result = new double[matrix.NumRows, matrix.NumColumns];
+            for (int j = 0; j < matrix.NumColumns; ++j)
+            {
+                for (int i = 0; i < matrix.NumRows; ++i)
+                {
+                    result[i, j] = matrix[i, j];
+                }
+            }
+            return result;
+        }
+
         internal static Matrix DoEntrywise(IIndexable2D matrix1, IIndexable2D matrix2, 
             Func<double, double, double> binaryOperation)
         {

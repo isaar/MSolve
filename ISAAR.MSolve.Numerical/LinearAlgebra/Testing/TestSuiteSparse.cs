@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
             matrixDOK[2, 2] = 8.0;
             matrixDOK[3, 3] = 9.0;
-            SymmetricCSC matrixCSC = matrixDOK.ToSymmetricCSC(true);
+            SymmetricCSC matrixCSC = matrixDOK.BuildSymmetricCSCMatrix(true);
 
             //const int n = 4;
             //const int nnz = 7;

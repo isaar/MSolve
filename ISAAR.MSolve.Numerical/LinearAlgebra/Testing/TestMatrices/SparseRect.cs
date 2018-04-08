@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -75,6 +76,37 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static readonly double[] lhs10 = { 7.5025, 9.8100, 2.3352, 0.9623, 3.8458, 5.0027, 5.7026, 9.7663, 4.9286, 4.0088 };
         public static readonly double[] rhs10 = { 38.358004392, 42.386998564, 39.584157392, 117.750301553, 40.799145145 };
+
+        public static void CheckBuilders()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var dokRowMajor = new DOKRowMajor(numRows, numCols);
+            var dokColMajor = new DOKColMajor(numRows, numCols);
+            for (int i = 0; i < numRows; ++i)
+            {
+                for (int j = 0; j < numCols; ++j)
+                {
+                    if (matrix[i, j] != 0.0)
+                    {
+                        dokRowMajor[i, j] = matrix[i, j];
+                        dokColMajor[i, j] = matrix[i, j];
+                    }
+                }
+            }
+            Console.WriteLine();
+            Console.WriteLine("Checking DOKRowMajor indexer: ");
+            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokRowMajor));
+            Console.WriteLine();
+            Console.WriteLine("Checking DOKColMajor indexer: ");
+            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokColMajor));
+
+            Console.WriteLine();
+            Console.WriteLine("Checking DOKRowMajor to CSR conversion: ");
+            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokRowMajor.BuildCSRMatrix(true)));
+            Console.WriteLine();
+            Console.WriteLine("Checking DOKColMajor to CSC conversion: ");
+            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokColMajor.BuildCSCMatrix(true)));
+        }
 
         public static void CheckMatrixMatrixMult()
         {

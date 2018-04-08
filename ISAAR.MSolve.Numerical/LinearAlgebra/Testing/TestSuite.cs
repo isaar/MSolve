@@ -13,7 +13,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         public static void TestAll()
         {
             //TestSuiteSparse.ExampleRawArrays();
-            TestSuiteSparse.ExampleMatrixClasses();
+            //TestSuiteSparse.ExampleMatrixClasses();
+            TestBuilders();
             //TestIndexing();
             //CheckEquality();
             //TestMatrixVectorMultiplication();
@@ -26,7 +27,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestWriting();
         }
 
-        public static void CheckEquality()
+        public static void TestBuilders()
+        {
+            SparseRect.CheckBuilders();
+        }
+
+        public static void TestEquality()
         {
             SparseRect.CheckEquals();
         }

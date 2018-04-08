@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 
         /// is usually at least 1 non zero entry in each column. Otherwise this data structure wastes space, but if there were  
         /// many empty rows, perhaps another matrix format is more appropriate.
-        /// To get the value: data[colIdx][rowIdx] = value. 
-        /// To get the row-value subdictionary: data[colIdx] = Dictionary[int, double]
+        /// To get the value: columns[colIdx][rowIdx] = value. 
+        /// To get the row-value subdictionary: columns[colIdx] = Dictionary[int, double]
         /// TODO: Things to benchmark (keys = row indices): 
         /// 1) Dictionary + sort on converting: copy unordered keys and values to arrays and sort both arrays according to keys 
         /// 2) Dictionary + sort on converting: Use LINQ to sort key-value pairs and then copy each one to the arrays
@@ -31,30 +31,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         /// Perhaps a Dictionary should be used instead of SortedDictionary and only sort each column independently before 
         /// converting.
         /// </summary>
-        private readonly Dictionary<int, double>[] data;
+        private readonly Dictionary<int, double>[] columns;
 
         public DOKSymmetricColMajor(int numCols)
         {
-            this.data = new Dictionary<int, double>[numCols];
-            for (int j = 0; j < numCols; ++j) this.data[j] = new Dictionary<int, double>(); // Initial capacity may be optimized.
+            this.columns = new Dictionary<int, double>[numCols];
+            for (int j = 0; j < numCols; ++j) this.columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
             this.NumColumns = numCols;
         }
 
         public int NumColumns { get; }
         public int NumRows { get { return NumColumns; } }
 
+        // Perhaps I should check indices
         public double this[int rowIdx, int colIdx]
         {
             get
             {
                 ProcessIndices(ref rowIdx, ref colIdx);
-                if (data[colIdx].TryGetValue(rowIdx, out double val)) return val;
+                if (columns[colIdx].TryGetValue(rowIdx, out double val)) return val;
                 else return 0.0;
             }
             set //not thread safe
             {
                 ProcessIndices(ref rowIdx, ref colIdx);
-                data[colIdx][rowIdx] = value;
+                columns[colIdx][rowIdx] = value;
             }
         }
 
@@ -71,12 +72,54 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         public void AddToEntry(int rowIdx, int colIdx, double value)
         {
             ProcessIndices(ref rowIdx, ref colIdx);
-            if (data[colIdx].TryGetValue(rowIdx, out double oldValue))
+            if (columns[colIdx].TryGetValue(rowIdx, out double oldValue))
             {
-                data[colIdx][rowIdx] = value + oldValue;
+                columns[colIdx][rowIdx] = value + oldValue;
             }
-            else data[colIdx][rowIdx] = value;
-            //The Dictionary data[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
+            else columns[colIdx][rowIdx] = value;
+            //The Dictionary columns[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
+        }
+
+        /// <summary>
+        /// Use this method if 1) both the global DOK and the element matrix are symmetric and 2) the rows and columns correspond
+        /// to the same degrees of freedom. The caller is responsible for making sure that both matrices are symmetric and that 
+        /// the dimensions and dofs of the element matrix and dof mappings match.
+        /// </summary>
+        /// <param name="elementMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
+        ///     symmetric and its <see cref="IIndexable2D.NumColumns"/> = <see cref="IIndexable2D.NumRows"/> must be equal to
+        ///     elemenDofs.Length = globalDofs.Length.</param>
+        /// <param name="elementDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
+        ///     (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
+        /// <param name="globalDofs">The entries in the global matrix where element matrix entries will be added to. Specificaly,
+        ///     pairs of (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
+        public void AddSubmatrixSymmetric(IIndexable2D elementMatrix, int[] elementDofs, int[] globalDofs)
+        {
+            int n = elementDofs.Length;
+            for (int j = 0; j < n; ++j)
+            {
+                int elementCol = elementDofs[j];
+                int globalCol = globalDofs[j];
+
+                //Diagonal entry
+                if (columns[globalCol].TryGetValue(globalCol, out double oldGlobalDiagValue))
+                {
+                    columns[globalCol][globalCol] = elementMatrix[elementCol, elementCol] + oldGlobalDiagValue;
+                }
+                else columns[globalCol][globalCol] = elementMatrix[elementCol, elementCol];
+
+                //Non diagonal entries
+                for (int i = 0; i <= j; ++i)
+                {
+                    int elementRow = elementDofs[j];
+                    int globalRow = globalDofs[j];
+                    double newGlobalValue = elementMatrix[elementRow, elementCol];
+                    if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
+                    {
+                        newGlobalValue += oldGlobalValue;
+                    }
+                    columns[globalCol][globalRow] = newGlobalValue;
+                }
+            }
         }
 
         /// <summary>
@@ -93,12 +136,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
                 { 
                     int elementRow = rowPair.Key;
                     int globalRow = rowPair.Value;
-                    double valueToAdd = elementMatrix[elementRow, elementCol];
-                    if (data[globalCol].TryGetValue(globalRow, out double oldValue))
+                    double elementValue = elementMatrix[elementRow, elementCol];
+                    if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
                     {
-                        data[globalCol][globalRow] = valueToAdd + oldValue;
+                        columns[globalCol][globalRow] = elementValue + oldGlobalValue;
                     }
-                    else data[globalCol][globalRow] = valueToAdd;
+                    else columns[globalCol][globalRow] = elementValue;
                 }
             }
         }
@@ -117,14 +160,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
                 {
                     int elementCol = colPair.Key;
                     int globalCol = colPair.Value;
-                    double valueToAdd = elementMatrix[elementRow, elementCol];
+                    double elementValue = elementMatrix[elementRow, elementCol];
                     // Transpose the access on the global matrix only. 
                     // This is equivalent to calling the indexer for each lower triangle entry, but without the explicit swap.
-                    if (data[globalRow].TryGetValue(globalCol, out double oldValue))
+                    if (columns[globalRow].TryGetValue(globalCol, out double oldGlobalValue))
                     {
-                        data[globalRow][globalCol] = valueToAdd + oldValue;
+                        columns[globalRow][globalCol] = elementValue + oldGlobalValue;
                     }
-                    else data[globalRow][globalCol] = valueToAdd;
+                    else columns[globalRow][globalCol] = elementValue;
                 }
             }
         }
@@ -140,7 +183,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
              * TODO: Ideally the Dictionaries would be replaced with 2 arrays (or their container e.g. BiList) for 
              * faster look-up. The arrays should be sorted on the global dofs. Then I could decide if a submatrix is above, under 
              * or crossing the diagonal and only expose a single AddSubmatrix() method. This would call the relevant private 
-             * method Perhaps I can also get rid of all the ifs in this method. Perhaps I also could get rid of the ifs in the 
+             * method. Perhaps I can also get rid of all the ifs in this method. Perhaps I also could get rid of the ifs in the 
              * crossing case by setting by using correct loops.  
              */
             foreach (var colPair in elementColsToGlobalCols) // Col major ordering
@@ -153,12 +196,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
                     if (globalRow <= globalCol)
                     {
                         int elementRow = rowPair.Key;
-                        double valueToAdd = elementMatrix[elementRow, elementCol];
-                        if (data[globalCol].TryGetValue(globalRow, out double oldValue))
+                        double elementValue = elementMatrix[elementRow, elementCol];
+                        if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
                         {
-                            data[globalCol][globalRow] = valueToAdd + oldValue;
+                            columns[globalCol][globalRow] = elementValue + oldGlobalValue;
                         }
-                        else data[globalCol][globalRow] = valueToAdd;
+                        else columns[globalCol][globalRow] = elementValue;
                     }
                 }
             }
@@ -166,12 +209,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
 
         #endregion
 
+        /// <summary>
+        /// Creates a CSC matrix, containing only the upper triangular entries.
+        /// </summary>
+        /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
+        ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
+        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
+        ///     be faster during creation of the CSC matrix.</param>
+        /// <returns></returns>
+        public SymmetricCSC BuildSymmetricCSCMatrix(bool sortRowsOfEachCol)
+        {
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(sortRowsOfEachCol);
+            return new SymmetricCSC(values, rowIndices, colOffsets, false);
+        }
+
         public int CountNonZeros()
         {
             int count = 0;
             for (int j = 0; j < NumColumns; ++j)
             {
-                foreach (var rowVal in data[j])
+                foreach (var rowVal in columns[j])
                 {
                     if (rowVal.Key == j) ++count;
                     else count += 2; //Each upper triangle entries haa a corresponding lower triangle entry.
@@ -184,7 +241,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         {
             for (int j = 0; j < NumColumns; ++j)
             {
-                foreach (var rowVal in data[j])
+                foreach (var rowVal in columns[j])
                 {
                     if (rowVal.Key == j) yield return (rowVal.Key, j, rowVal.Value);
                     else //Each upper triangle entries haa a corresponding lower triangle entry.
@@ -213,17 +270,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
             return format;
         }
 
-        /// <summary>
-        /// Creates a CSC matrix, containing only the upper triangular entries.
-        /// </summary>
-        /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
-        ///     colOffsets[j+1] in ascending order. False to leave them unordered (slight performance gain).</param>
-        /// <returns></returns>
-        public SymmetricCSC ToSymmetricCSC(bool sortRowsOfEachCol)
-        {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(sortRowsOfEachCol);
-            return new SymmetricCSC(values, rowIndices, colOffsets, false);
-        }
+        
 
         /// <summary>
         /// Perhaps this should be manually inlined. Testing needed.
@@ -245,7 +292,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         /// Creates the CSC arrays, containing only the upper triangular entries.
         /// </summary>
         /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
-        ///     colOffsets[j+1] in ascending order. False to leave them unordered (slight performance gain).</param>
+        ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
+        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
+        ///     be faster during creation of the CSC matrix.</param>
         /// <returns></returns>
         private (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
         {
@@ -254,7 +303,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
             for (int j = 0; j < NumColumns; ++j)
             {
                 colOffsets[j] = nnz;
-                nnz += data[j].Count;
+                nnz += columns[j].Count;
             }
             colOffsets[NumColumns] = nnz; //The last CSC entry is nnz.
 
@@ -265,7 +314,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
             {
                 if (sortRowsOfEachCol)
                 {
-                    foreach (var rowVal in data[j].OrderBy(pair => pair.Key))
+                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key))
                     {
                         rowIndices[counter] = rowVal.Key;
                         values[counter] = rowVal.Value;
@@ -274,7 +323,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
                 }
                 else
                 {
-                    foreach (var rowVal in data[j])
+                    foreach (var rowVal in columns[j])
                     {
                         rowIndices[counter] = rowVal.Key;
                         values[counter] = rowVal.Value;
