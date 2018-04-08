@@ -269,6 +269,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return upper;
         }
 
+        /// <summary>
+        /// Extract the upper part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToPackedUpperColMajor(double[] full, int order)
+        {
+            //int n = FullLengthToOrder(full.Length);
+            int n = order;
+            double[] upper = new double[(n * (n + 1)) / 2];
+            int counter = 0; // Simplifies indexing but the outer and inner loops cannot be interchanged
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    upper[counter] = full[j * n + i];
+                    ++counter; // Clearer than post-incrementing during indexing.
+                }
+            }
+            return upper;
+        }
+
         public static double[,] FullRowMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];

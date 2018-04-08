@@ -54,6 +54,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="original"></param>
         /// <returns></returns>
+        public static VectorMKL CreateFromVector(IVectorView original)
+        {
+            if (original is VectorMKL casted) return CreateFromVector(casted);
+            double[] clone = new double[original.Length];
+            for (int i = 0; i < clone.Length; ++i) clone[i] = original[i];
+            return new VectorMKL(clone);
+        }
+
+        /// <summary>
+        /// The original vector will be copied.
+        /// </summary>
+        /// <param name="original"></param>
+        /// <returns></returns>
         public static VectorMKL CreateFromVector(VectorMKL original)
         {
             //TODO: Perhaps this should use BLAS
@@ -88,6 +101,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         }
 
         public static VectorMKL operator *(double scalar, VectorMKL vector)
+        {
+            return vector.Scale(scalar);
+        }
+
+        public static VectorMKL operator *(VectorMKL vector, double scalar)
         {
             return vector.Scale(scalar);
         }
@@ -131,6 +149,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             double[] clone = new double[data.Length];
             Array.Copy(data, clone, data.Length);
             return clone;
+        }
+
+        public void CopyToArray(int sourceIndex, double[] destinationArray, int destinationIndex, int length)
+        {
+            Array.Copy(data, sourceIndex, destinationArray, destinationIndex, length);
+        }
+
+        /// <summary>
+        /// Copy length consecutive entries from sourceVector starting at sourceIndex, to this object starting at 
+        /// destinationIndex.
+        /// </summary>
+        /// <param name="destinationIndex">Where to start writing in this object.</param>
+        /// <param name="sourceVector">The vector containing the entries to be copied.</param>
+        /// <param name="sourceIndex">Where to start reading in the source vector.</param>
+        /// <param name="length">The number of entries to be copied.</param>
+        public void CopyFromVector(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length) 
+        {
+            //TODO: Perhaps a syntax closer to Array, 
+            // e.g. Vector.Copy(sourceVector, sourceIndex, destinationVector, destinationIndex, length)
+            for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
         }
 
         public VectorMKL DoPointwise(IVectorView other, Func<double, double, double> binaryOperation)

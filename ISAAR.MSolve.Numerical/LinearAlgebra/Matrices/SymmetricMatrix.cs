@@ -84,22 +84,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Sets A[<see cref="i"/>, <see cref="j"/>] = A[<see cref="j"/>, <see cref="i"/>] = <see cref="value"/>. Not efficient.
-        /// </summary>
-        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="Order"/></param>
-        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="Order"/></param>
-        public void SetSymmetric(int i, int j, double value) //TODO: Should I add an efficient version without error checking.
-        {
-            Definiteness = DefiniteProperty.Unknown;
-            if ((i < 0) || (i >= Order) || (j < 0) || (j >= Order))
-            {
-                throw new IndexOutOfRangeException($"Invalid indices: ({i}, {j})");
-            }
-            if (i <= j) data[Find1DIndex(i, j)] = value;
-            else data[Find1DIndex(j, i)] = value;
-        }
-
-        /// <summary>
         /// Create a new <see cref="SymmetricMatrix"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
         /// provided array. The array entries will be copied.
         /// </summary>
@@ -149,6 +133,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// The caller is responsible for the original matrix being symmetric
+        /// </summary>
+        /// <param name="originalMatrix"></param>
+        /// <returns></returns>
+        public static SymmetricMatrix CreateFromMatrix(Matrix originalMatrix)
+        {
+            double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.InternalData, originalMatrix.NumColumns);
+            return new SymmetricMatrix(data, originalMatrix.NumColumns, DefiniteProperty.Unknown);
+        }
+
+        public static SymmetricMatrix CreateFromMatrix(SymmetricMatrix originalMatrix)
+        {
+            return new SymmetricMatrix(originalMatrix.data, originalMatrix.Order, originalMatrix.Definiteness);
+        }
+
+        /// <summary>
         /// Create a new <see cref="SymmetricMatrix"/> with the specified order and all entries equal to 0.
         /// </summary> 
         /// <param name="order">The number of rows or columns of the matrix.</param>
@@ -159,6 +159,33 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             //This matrix will be used as a canvas, thus we cannot infer that it is indefinite yet.
             return new SymmetricMatrix(data, order, DefiniteProperty.Unknown); 
         }
+
+        #region operators (use extension operators when they become available)
+        public static SymmetricMatrix operator +(SymmetricMatrix matrix1, SymmetricMatrix matrix2) 
+            => matrix1.DoEntrywise(matrix2, (x, y) => x + y);
+
+        public static SymmetricMatrix operator -(SymmetricMatrix matrix1, SymmetricMatrix matrix2) 
+            => matrix1.DoEntrywise(matrix2, (x, y) => x - y);
+
+        public static SymmetricMatrix operator *(double scalar, SymmetricMatrix matrix) 
+            => matrix.DoToAllEntries(x => scalar * x);
+
+        public static SymmetricMatrix operator *(SymmetricMatrix matrix, double scalar) 
+            => matrix.DoToAllEntries(x => scalar * x);
+
+        public static IMatrixView operator *(SymmetricMatrix matrixLeft, IMatrixView matrixRight)
+            => matrixLeft.MultiplyRight(matrixRight, false, false);
+
+        public static IMatrixView operator *(IMatrixView matrixLeft, SymmetricMatrix matrixRight)
+            => matrixRight.MultiplyLeft(matrixLeft, false, false);
+
+        public static VectorMKL operator *(SymmetricMatrix matrixLeft, VectorMKL vectorRight)
+            => matrixLeft.MultiplyRight(vectorRight, false);
+
+        public static VectorMKL operator *(VectorMKL vectorLeft, SymmetricMatrix matrixRight)
+            => matrixRight.MultiplyRight(vectorLeft, true);
+
+        #endregion
 
         /// <summary>
         /// Calculate the determinant of this matrix.
@@ -199,10 +226,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+            if (other is SymmetricMatrix casted) return DoEntrywise(casted, binaryOperation);
+            else return DenseStrategies.DoEntrywise(this, other, binaryOperation);
         }
 
-        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
+        public SymmetricMatrix DoEntrywise(SymmetricMatrix other, Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            double[] result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
+            return new SymmetricMatrix(result, Order, DefiniteProperty.Unknown);
+        }
+
+        public void DoEntrywiseIntoThis(SymmetricMatrix other, Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], other.data[i]);
+            Definiteness = DefiniteProperty.Unknown;
+        }
+
+        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            return DoToAllEntries(unaryOperation);
+        }
+
+        public SymmetricMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             var result = new double[data.Length];
             for (int i = 0; i < data.Length; ++i)
@@ -337,6 +385,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
             // no zeros implied
             return finalize(aggregator);
+        }
+
+        /// <summary>
+        /// Sets A[<see cref="i"/>, <see cref="j"/>] = A[<see cref="j"/>, <see cref="i"/>] = <see cref="value"/>. Not efficient.
+        /// </summary>
+        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="Order"/></param>
+        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="Order"/></param>
+        public void SetSymmetric(int i, int j, double value) //TODO: Should I add an efficient version without error checking.
+        {
+            Definiteness = DefiniteProperty.Unknown;
+            if ((i < 0) || (i >= Order) || (j < 0) || (j >= Order))
+            {
+                throw new IndexOutOfRangeException($"Invalid indices: ({i}, {j})");
+            }
+            if (i <= j) data[Find1DIndex(i, j)] = value;
+            else data[Find1DIndex(j, i)] = value;
         }
 
         public IMatrixView Transpose()

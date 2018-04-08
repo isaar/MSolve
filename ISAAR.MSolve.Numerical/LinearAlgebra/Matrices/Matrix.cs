@@ -50,6 +50,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public int NumRows { get; }
 
         /// <summary>
+        /// TODO: make this package-private. It should only be used for passing raw arrays to linear algebra libraries.
+        /// </summary>
+        internal double[] InternalData { get { return data; } }
+
+        /// <summary>
         /// The entry with row index = i and column index = j. 
         /// </summary>
         /// <param name="rowIdx">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
@@ -142,8 +147,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             => matrixLeft.MultiplyRight(matrixRight, false, false);
         public static VectorMKL operator *(Matrix matrixLeft, VectorMKL vectorRight)
             => matrixLeft.MultiplyRight(vectorRight, false);
-        public static VectorMKL operator *(VectorMKL vectorRight, Matrix matrixLeft)
-            => matrixLeft.MultiplyRight(vectorRight, true);
+        public static VectorMKL operator *(VectorMKL vectorLeft, Matrix matrixRight)
+            => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
         /// <summary>
@@ -199,36 +204,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix) return DoEntrywise((Matrix)other, binaryOperation);
+            if (other is Matrix casted) return DoEntrywise(casted, binaryOperation);
             else return other.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
         }
 
         public Matrix DoEntrywise(Matrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
-            var result = new double[NumRows * NumColumns];
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                for (int i = 0; i < NumRows; ++i)
-                {
-                    int idx = j * NumRows + NumColumns;
-                    result[idx] = binaryOperation(this.data[idx], other.data[idx]);
-                }
-            }
+            var result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
             return new Matrix(result, NumRows, NumColumns);
         }
 
         public void DoEntrywiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                for (int i = 0; i < NumRows; ++i)
-                {
-                    int idx = j * NumRows + NumColumns;
-                    this.data[idx] = binaryOperation(this.data[idx], other.data[idx]);
-                }
-            }
+            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], other.data[i]);
         }
 
         IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
@@ -533,6 +524,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 result[j] = data[j * NumRows + rowIndex];
             }
             return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public void SVD(double[] w, double[,] v)
+        {
+            DenseStrategies.SVD(this, w, v);
         }
 
         /// <summary>
