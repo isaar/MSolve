@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
-    public class SkylineMatrix: IIndexable2D, ISparseMatrix
+    public class SkylineMatrix: IMatrixView, ISparseMatrix
     {
         /// <summary>
         /// Contains the non zero superdiagonal entries of the matrix in column major order, starting from the diagonal and going
@@ -84,6 +87,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SkylineMatrix(order, values, diagOffsets);
         }
 
+        public static SkylineMatrix CreateFromMatrix(SkylineMatrix originalMatrix)
+        {
+            int n = originalMatrix.NumColumns;
+            int nnz = originalMatrix.values.Length;
+            double[] valuesCopy = new double[nnz];
+            Array.Copy(originalMatrix.values, valuesCopy, nnz);
+            int[] diagOffsetsCopy = new int[n + 1];
+            Array.Copy(originalMatrix.diagOffsets, diagOffsetsCopy, n + 1);
+            return new SkylineMatrix(n, valuesCopy, diagOffsetsCopy);
+        }
+
         public static SkylineMatrix CreateZeroWithPattern(int order, int[] diagOffsets, bool checkInput)
         {
             if (checkInput)
@@ -98,9 +112,88 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SkylineMatrix(order, new double[nnz], diagOffsets);
         }
 
+        public Matrix CopyToFullMatrix()
+        {
+            Matrix fullMatrix = Matrix.CreateZero(this.NumColumns, this.NumColumns);
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int colOffset = diagOffsets[j];
+                int columnTop = j - diagOffsets[j + 1] + colOffset + 1;
+                fullMatrix[j, j] = values[colOffset]; // diagonal entry
+                for (int i = columnTop; i < j; ++i) // non zero entries stored above diagonal
+                {
+                    double value = colOffset + j - i;
+                    fullMatrix[j, i] = value;
+                    fullMatrix[i, j] = value; 
+                }
+            }
+            return fullMatrix;
+        }
+
         public int CountNonZeros()
         {
             return values.Length;
+        }
+
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
+            {
+                if (this.diagOffsets == otherSKY.diagOffsets)
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] resultValues = new double[values.Length];
+                    for (int i = 0; i < values.Length; ++i)
+                    {
+                        resultValues[i] = binaryOperation(this.values[i], otherSKY.values[i]);
+                    }
+                    return new SkylineMatrix(NumColumns, resultValues, diagOffsets);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
+            return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+        }
+
+        public void DoEntrywiseIntoThis(SkylineMatrix other, Func<double, double, double> binaryOperation)
+        {
+            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+            if (this.diagOffsets != other.diagOffsets)
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the index arrays are the same");
+            }
+            for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
+        }
+
+        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            // Only apply the operation on non zero entries
+            double[] newValues = new double[values.Length];
+            for (int i = 0; i < values.Length; ++i) newValues[i] = unaryOperation(values[i]);
+
+            if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0)) // The same sparsity pattern can be used.
+            {
+                // Copy the index arrays. TODO: See if we can use the same index arrays (e.g. if this class does not change them (it shouldn't))
+                int[] diagOffsetsCopy = new int[diagOffsets.Length];
+                Array.Copy(diagOffsets, diagOffsetsCopy, diagOffsets.Length);
+                return new SkylineMatrix(NumColumns, newValues, diagOffsetsCopy);
+            }
+            else // The sparsity is destroyed. Revert to a full matrix.
+            {
+                return new SkylineMatrix(NumColumns, newValues, diagOffsets).CopyToFullMatrix();
+            }
+        }
+
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0))
+            {
+                for (int i = 0; i < values.Length; ++i) values[i] = unaryOperation(values[i]);
+            }
+            else
+            {
+                throw new SparsityPatternModifiedException("This operation will change the sparsity pattern");
+            }
         }
 
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
@@ -148,6 +241,108 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             format.RawValuesArray = values;
             format.RawIndexArrays.Add("Diagonal offsets", diagOffsets);
             return format;
+        }
+
+        /// <summary>
+        /// Not optimized yet.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
+        /// <param name="transposeOther"></param>
+        /// <returns></returns>
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            return DenseStrategies.Multiply(other, this, transposeOther, transposeThis);
+        }
+
+        /// <summary>
+        /// Not optimized yet.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
+        /// <param name="transposeOther"></param>
+        /// <returns></returns>
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
+        }
+
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performance considerations: Only accesses the matrix entries once, but the result vector entries will be accessed 
+        /// multiple times. 
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
+        /// <returns></returns>
+        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
+        {
+            int n = vector.Length;
+            Preconditions.CheckMultiplicationDimensions(NumColumns, n);
+            double[] result = new double[n];
+            // A*x = (L+D)*x + U*x
+            // (L+D)*x is easy, since the non zero entries of row i left of the diagonal are stored contiguously in column i and
+            // we can easily take its dot product with the vector.
+            // U*x is trickier, since we cannot access contiguously the non zero entries of row i. Instead think of it as
+            // U*x = linear combination of columns of U (accessed contiguously) with the entries of vector as coefficients. Then 
+            // we can deal with them while we process the next columns (i, n-1]. This way the matrix is only indexed once, but 
+            // not the result vector entry result[i].
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int diagonal = diagOffsets[j];
+                int columnTop = j - diagOffsets[j + 1] + diagonal + 1;
+                double linearCombinationCoeff = vector[j];
+                // Dot product of the (L+D) part of the row * vector
+                double dotLower = values[diagonal] * vector[j]; // Contribution of diagonal entry
+                for (int i = diagonal - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
+                {
+                    double aij = values[diagonal + i - j]; // Thus the matrix is only indexed once
+
+                    // Contribution of the L part of the row, which is identical to the stored column j.
+                    // Thus A[j,i]=A[i,j] and sum(A[i,j]*x[j]) = sum(A[i,j]*x[i])
+                    dotLower += aij * vector[i];
+
+                    // Contribution of the U part of the column: result += coefficient * column j of U. This will update all rows
+                    // [columnTop, j) of the result vector need to be updated to account for the current column j. 
+                    result[i] += aij * linearCombinationCoeff;
+                }
+                // Column j alters rows [0,j) of the result vector, thus this should be the 1st time result[j] is written.
+                Debug.Assert(result[j] == 0); 
+                result[j] = dotLower; // contribution of the (L+D) part of the row. 
+            }
+            return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
+        {
+            double aggregator = identityValue;
+            int nnz = values.Length;
+            for (int i = 0; i < nnz; ++i) aggregator = processEntry(values[i], aggregator);
+            aggregator = processZeros(NumColumns * NumColumns - nnz, aggregator);
+            return finalize(aggregator);
+        }
+
+        public IMatrixView Transpose()
+        {
+            return Transpose(true);
+        }
+
+        public SkylineMatrix Transpose(bool copyInternalArrays)
+        {
+            if (copyInternalArrays)
+            {
+                double[] valuesCopy = new double[values.Length];
+                Array.Copy(values, valuesCopy, values.Length);
+                int[] diagOffsetsCopy = new int[diagOffsets.Length];
+                Array.Copy(diagOffsets, diagOffsetsCopy, diagOffsets.Length);
+                return new SkylineMatrix(NumColumns, valuesCopy, diagOffsetsCopy);
+            }
+            else return new SkylineMatrix(NumColumns, values, diagOffsets);
         }
 
         /// <summary>

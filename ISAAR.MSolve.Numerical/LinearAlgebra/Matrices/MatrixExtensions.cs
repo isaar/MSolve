@@ -55,6 +55,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         #region linear combinations
         // Telescopic methods are much, much more convenient than using lists of matrices and coefficients
+        // TODO: Perhaps I should have an axpy method (implemented using BLAS lvl1) on IMatrixView and make LinearCombination 
+        // use that one, while being generic. 
+        // TODO: I cannot do the same with sparse matrices, since DoEntrywise is not a closed operation. Since these will be used
+        // for global matrices, I need the combination to write into one of the provided matrices.
+        // TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
+        // that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
+        // TODO: All in all I am against any LinearCombination method. It is not that difficult to call axpy twice in a dynamic 
+        // analyzer.
+
         public static IMatrixView LinearCombination(double coefficient1, IMatrixView matrix1, double coefficient2, 
             IMatrixView matrix2, double coefficient3, IMatrixView matrix3)
         {
@@ -92,15 +101,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             result.DoEntrywiseIntoThis(matrix3, (x, x3) => x + coefficient3 * x3);
             return result;
         }
-
-        public static SymmetricMatrix LinearCombination(double coefficient1, SymmetricMatrix matrix1, double coefficient2, 
-            SymmetricMatrix matrix2, double coefficient3, SymmetricMatrix matrix3, double coefficient4, SymmetricMatrix matrix4)
-        {
-            SymmetricMatrix result = LinearCombination(coefficient1, matrix1, coefficient2, matrix2, coefficient3, matrix3);
-            result.DoEntrywiseIntoThis(matrix4, (x, x4) => x + coefficient4 * x4);
-            return result;
-        }
-
         #endregion
     }
 }
