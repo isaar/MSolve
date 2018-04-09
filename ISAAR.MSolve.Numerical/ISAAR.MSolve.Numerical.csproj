@@ -113,6 +113,7 @@
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKRowMajor.cs" />
+    <Compile Include="LinearAlgebra\Matrices\SkylineMatrix.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DFormatting.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DWriter.cs" />
     <Compile Include="LinearAlgebra\Output\Array2DFormatting.cs" />
