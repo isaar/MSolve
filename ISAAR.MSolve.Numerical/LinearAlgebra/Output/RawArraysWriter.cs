@@ -23,24 +23,71 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Output
 
         public static INumericFormat NumericFormat { get; set; } = new GeneralNumericFormat();
 
+        /// <summary>
+        /// Each internal array is written to a different file. All these files have a common prefix, chosen by the user, and 
+        /// a suffix corresponding to the purpose of each array.
+        /// </summary>
+        public void WriteToMultipleFiles(string pathBase)
+        {
+            string path = Path.GetDirectoryName(pathBase);
+            string nameOnly = Path.GetFileNameWithoutExtension(pathBase);
+            string ext = Path.GetExtension(pathBase);
+            SparseFormat sparseFormat = matrix.GetSparseFormat();
+
+            // Values array
+            string suffix = "-" + sparseFormat.RawValuesTitle.ToLower();
+            string valuesPath = path + "\\" + nameOnly + suffix + ext; // Not too sure about the \\
+            using (var writer = new StreamWriter(valuesPath))
+            {
+#if DEBUG
+                writer.AutoFlush = true; // To look at intermediate output at certain breakpoints
+#endif
+                WriteArray(sparseFormat.RawValuesArray, writer);
+            }
+
+            // Indexing arrays
+            foreach (var nameArrayPair in sparseFormat.RawIndexArrays)
+            {
+                suffix = "-" + nameArrayPair.Key.ToLower();
+                string indexerPath = path + "\\" + nameOnly + suffix + ext; // Not too sure about the \\
+                using (var writer = new StreamWriter(indexerPath))
+                {
+#if DEBUG
+                    writer.AutoFlush = true; // To look at intermediate output at certain breakpoints
+#endif
+                    WriteArray(nameArrayPair.Value, writer);
+                }
+            }
+        }
+
         protected override void WriteToStream(StreamWriter writer)
         {
             SparseFormat sparseFormat = matrix.GetSparseFormat();
             writer.Write(sparseFormat.RawValuesTitle + ": ");
             if (titlesOnOtherLines) writer.WriteLine();
-            WriteArray<double>(sparseFormat.RawValuesArray, writer);
+            WriteArray(sparseFormat.RawValuesArray, writer);
 
-            foreach (KeyValuePair<string, IReadOnlyList<int>> pair in sparseFormat.RawIndexArrays)
+            foreach (var nameArrayPair in sparseFormat.RawIndexArrays)
             {
                 if (spaceBetweenArrays) writer.WriteLine();
                 writer.WriteLine(); // otherwise everything would be on the same line
-                writer.Write(pair.Key + ": ");
+                writer.Write(nameArrayPair.Key + ": ");
                 if (titlesOnOtherLines) writer.WriteLine();
-                WriteArray<int>(pair.Value, writer);
+                WriteArray(nameArrayPair.Value, writer);
             }
         }
 
-        private static void WriteArray<T>(IReadOnlyList<T> array, StreamWriter writer) //TODO: perhaps move it to abstract class
+        private static void WriteArray(IReadOnlyList<int> array, StreamWriter writer) //TODO: perhaps move it to abstract class
+        {
+            int last = array.Count - 1;
+            for (int i = 0; i < last; ++i)
+            {
+                writer.Write(array[i] + " ");
+            }
+            writer.Write(array[last]);
+        }
+
+        private static void WriteArray(IReadOnlyList<double> array, StreamWriter writer) //TODO: perhaps move it to abstract class
         {
             string numberFormat = NumericFormat.GetRealNumberFormat();
             int last = array.Count - 1;

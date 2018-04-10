@@ -112,6 +112,8 @@
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
     <Compile Include="LinearAlgebra\Factorizations\SkylineCholesky.cs" />
+    <Compile Include="LinearAlgebra\Input\SkylineMatrixReader.cs" />
+    <Compile Include="LinearAlgebra\Input\SymmetricMatrixReader.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKRowMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\SkylineMatrix.cs" />
