@@ -69,6 +69,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
+        public static SkylineMatrix CopyFromMatrix(SkylineMatrix originalMatrix)
+        {
+            int n = originalMatrix.NumColumns;
+            int nnz = originalMatrix.values.Length;
+            double[] valuesCopy = new double[nnz];
+            Array.Copy(originalMatrix.values, valuesCopy, nnz);
+            int[] diagOffsetsCopy = new int[n + 1];
+            Array.Copy(originalMatrix.diagOffsets, diagOffsetsCopy, n + 1);
+            return new SkylineMatrix(n, valuesCopy, diagOffsetsCopy);
+        }
+
         public static SkylineMatrix CreateFromArrays(int order, double[] values, int[] diagOffsets, bool checkInput)
         {
             if (checkInput)
@@ -85,17 +96,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return new SkylineMatrix(order, values, diagOffsets);
-        }
-
-        public static SkylineMatrix CreateFromMatrix(SkylineMatrix originalMatrix)
-        {
-            int n = originalMatrix.NumColumns;
-            int nnz = originalMatrix.values.Length;
-            double[] valuesCopy = new double[nnz];
-            Array.Copy(originalMatrix.values, valuesCopy, nnz);
-            int[] diagOffsetsCopy = new int[n + 1];
-            Array.Copy(originalMatrix.diagOffsets, diagOffsetsCopy, n + 1);
-            return new SkylineMatrix(n, valuesCopy, diagOffsetsCopy);
         }
 
         public static SkylineMatrix CreateZeroWithPattern(int order, int[] diagOffsets, bool checkInput)

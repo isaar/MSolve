@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(expected, m1.Scale(5.0));
 
             Console.Write("Check ScaleIntoThis(): ");
-            var temp = Matrix.CreateFromMatrix(m1);
+            var temp = Matrix.CopyFromMatrix(m1);
             temp.ScaleIntoThis(scalar);
             comparer.CheckMatrixEquality(expected, temp);
 
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(expected, m1.LinearCombination(scalar1, scalar2, m2));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
-            var temp = Matrix.CreateFromMatrix(m1);
+            var temp = Matrix.CopyFromMatrix(m1);
             temp.LinearCombinationIntoThis(scalar1, scalar2, m2);
             comparer.CheckMatrixEquality(expected, temp);
         }

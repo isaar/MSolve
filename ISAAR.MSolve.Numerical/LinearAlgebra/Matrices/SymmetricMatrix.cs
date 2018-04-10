@@ -83,6 +83,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
+        public static SymmetricMatrix CopyFromMatrix(SymmetricMatrix originalMatrix)
+        {
+            return new SymmetricMatrix(originalMatrix.data, originalMatrix.Order, originalMatrix.Definiteness);
+        }
+
         /// <summary>
         /// Create a new <see cref="SymmetricMatrix"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
         /// provided array. The array entries will be copied.
@@ -141,11 +146,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         {
             double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.InternalData, originalMatrix.NumColumns);
             return new SymmetricMatrix(data, originalMatrix.NumColumns, DefiniteProperty.Unknown);
-        }
-
-        public static SymmetricMatrix CreateFromMatrix(SymmetricMatrix originalMatrix)
-        {
-            return new SymmetricMatrix(originalMatrix.data, originalMatrix.Order, originalMatrix.Definiteness);
         }
 
         /// <summary>
