@@ -21,6 +21,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Output
             this.titlesOnOtherLines = titlesOnOtherLines;
         }
 
+        public static INumericFormat NumericFormat { get; set; } = new GeneralNumericFormat();
+
         protected override void WriteToStream(StreamWriter writer)
         {
             SparseFormat sparseFormat = matrix.GetSparseFormat();
@@ -40,10 +42,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Output
 
         private static void WriteArray<T>(IReadOnlyList<T> array, StreamWriter writer) //TODO: perhaps move it to abstract class
         {
+            string numberFormat = NumericFormat.GetRealNumberFormat();
             int last = array.Count - 1;
             for (int i = 0; i < last; ++i)
             {
-                writer.Write(array[i] + " ");
+                writer.Write(string.Format(numberFormat, array[i]) + " ");
             }
             writer.Write(array[last]);
         }

@@ -130,10 +130,14 @@
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
     <Compile Include="LinearAlgebra\Output\Array2DWriter.cs" />
     <Compile Include="LinearAlgebra\Output\CoordinateTextFileWriter.cs" />
+    <Compile Include="LinearAlgebra\Output\ExponentialFormat.cs" />
     <Compile Include="LinearAlgebra\Output\FullMatrixWriter.cs" />
     <Compile Include="LinearAlgebra\Output\FullVectorWriter.cs" />
+    <Compile Include="LinearAlgebra\Output\GeneralNumericFormat.cs" />
+    <Compile Include="LinearAlgebra\Output\INumericFormat.cs" />
     <Compile Include="LinearAlgebra\Output\MatrixMarketWriter.cs" />
     <Compile Include="LinearAlgebra\Output\MatrixWriter.cs" />
+    <Compile Include="LinearAlgebra\Output\FixedPointFormat.cs" />
     <Compile Include="LinearAlgebra\Output\RawArraysWriter.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSCMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSRMatrix.cs" />

@@ -127,7 +127,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void Print()
         {
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-
+            INumericFormat storedDefault = FullMatrixWriter.NumericFormat;
+            FullMatrixWriter.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
             Console.WriteLine("Skyline (full) = ");
             (new FullMatrixWriter(skyline)).WriteToConsole();
             Console.WriteLine();
@@ -137,6 +138,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             Console.WriteLine("Skyline (sparse entries) = ");
             (new CoordinateTextFileWriter(skyline)).WriteToConsole();
             Console.WriteLine();
+            FullMatrixWriter.NumericFormat = storedDefault;
         }
     }
 }

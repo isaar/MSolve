@@ -17,13 +17,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Output
             this.matrix = matrix;
         }
 
+        public static INumericFormat NumericFormat { get; set; } = new GeneralNumericFormat();
+
         protected override void WriteToStream(StreamWriter writer)
         {
+            string numberFormat = NumericFormat.GetRealNumberFormat();
             writer.Write($"{matrix.NumRows} {matrix.NumColumns} {matrix.CountNonZeros()}");
             foreach (var (row, col, val) in matrix.EnumerateNonZeros())
             {
                 writer.WriteLine();
-                writer.Write($"{row} {col} {val}");
+                writer.Write($"{row} {col} ");
+                writer.Write(numberFormat, val);
             }
         }
     }

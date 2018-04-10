@@ -18,14 +18,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Output
             this.vector = vector;
         }
 
+        public static INumericFormat NumericFormat { get; set; } = new ExponentialFormat { NumDecimalDigits = 6 };
+
         protected override void WriteToStream(StreamWriter writer)
         {
+            string numberFormat = NumericFormat.GetRealNumberFormat();
             string separator = format.Separator;
             writer.Write(format.Start);
-            Console.Write(vector[0]);
+            writer.Write(string.Format(numberFormat, vector[0]));
             for (int i = 1; i < vector.Length; ++i)
             {
-                writer.Write(separator + vector[i]);
+                writer.Write(separator + string.Format(numberFormat, vector[i]));
             }
             writer.WriteLine(format.End);
         }
