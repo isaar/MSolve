@@ -80,5 +80,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 throw new NonMatchingDimensionsException(message);
             }
         }
+
+        public static void CheckSystemSolutionDimensions(int matrixRows, int matrixColumns, int rhsVectorLength)
+        {
+            if (matrixRows != rhsVectorLength)
+            {
+                string message = $"Matrix has dimensions ({matrixRows}x{matrixColumns}), while the right hand side vector has"
+                    + $" dimensions ({rhsVectorLength}x1)";
+                throw new NonMatchingDimensionsException(message);
+            }
+        }
     }
 }

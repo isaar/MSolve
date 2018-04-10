@@ -139,6 +139,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
+            Preconditions.CheckSystemSolutionDimensions(this.Order, this.Order, rhs.Length);
             // Check if the matrix is singular first
             if (IsSingular)
             {

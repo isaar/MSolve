@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
@@ -19,13 +20,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// Contains the non zero superdiagonal entries of the matrix in column major order, starting from the diagonal and going
         /// upwards. Its length is nnz.
         /// </summary>
-        private readonly double[] values;
+        private double[] values;
 
         /// <summary>
         /// Contains the indices into values of the diagonal entries of the matrix. Its length = order + 1, with the last entry
         /// being equal to nnz.
         /// </summary>
-        private readonly int[] diagOffsets;
+        private int[] diagOffsets;
 
         private SkylineMatrix(int order, double[] values, int[] diagOffsets)
         {
@@ -71,16 +72,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public static SkylineMatrix CopyFromMatrix(SkylineMatrix originalMatrix)
         {
-            int n = originalMatrix.NumColumns;
-            int nnz = originalMatrix.values.Length;
-            double[] valuesCopy = new double[nnz];
-            Array.Copy(originalMatrix.values, valuesCopy, nnz);
-            int[] diagOffsetsCopy = new int[n + 1];
-            Array.Copy(originalMatrix.diagOffsets, diagOffsetsCopy, n + 1);
-            return new SkylineMatrix(n, valuesCopy, diagOffsetsCopy);
+            return CreateFromArrays(originalMatrix.NumColumns, originalMatrix.values, originalMatrix.diagOffsets, true, false);
         }
 
-        public static SkylineMatrix CreateFromArrays(int order, double[] values, int[] diagOffsets, bool checkInput)
+        public static SkylineMatrix CreateFromArrays(int order, double[] values, int[] diagOffsets, 
+            bool copyArrays, bool checkInput)
         {
             if (checkInput)
             {
@@ -95,7 +91,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                         + " of non zero entries, but was " + diagOffsets[diagOffsets.Length - 1]);
                 }
             }
-            return new SkylineMatrix(order, values, diagOffsets);
+            if (copyArrays)
+            {
+                double[] valuesCopy = new double[values.Length];
+                Array.Copy(values, valuesCopy, values.Length);
+                int[] diagOffsetsCopy = new int[diagOffsets.Length];
+                Array.Copy(diagOffsets, diagOffsetsCopy, diagOffsets.Length);
+                return new SkylineMatrix(order, valuesCopy, diagOffsetsCopy);
+            }
+            else return new SkylineMatrix(order, values, diagOffsets);
         }
 
         public static SkylineMatrix CreateZeroWithPattern(int order, int[] diagOffsets, bool checkInput)
@@ -112,6 +116,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SkylineMatrix(order, new double[nnz], diagOffsets);
         }
 
+        public double[,] CopyToArray2D()
+        {
+            double[,] array2D = new double[NumColumns, NumColumns];
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int colOffset = diagOffsets[j];
+                int columnTop = j - diagOffsets[j + 1] + colOffset + 1;
+                array2D[j, j] = values[colOffset]; // diagonal entry
+                for (int i = columnTop; i < j; ++i) // non zero entries stored above diagonal
+                {
+                    double value = values[colOffset + j - i];
+                    array2D[j, i] = value;
+                    array2D[i, j] = value;
+                }
+            }
+            return array2D;
+        }
+
         public Matrix CopyToFullMatrix()
         {
             Matrix fullMatrix = Matrix.CreateZero(this.NumColumns, this.NumColumns);
@@ -122,7 +144,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 fullMatrix[j, j] = values[colOffset]; // diagonal entry
                 for (int i = columnTop; i < j; ++i) // non zero entries stored above diagonal
                 {
-                    double value = colOffset + j - i;
+                    double value = values[colOffset + j - i];
                     fullMatrix[j, i] = value;
                     fullMatrix[i, j] = value; 
                 }
@@ -205,7 +227,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 yield return (j, j, values[colOffset]); // diagonal entry
                 for (int i = columnTop; i < j; ++i)
                 {
-                    double value = colOffset + j - i;
+                    double value = values[colOffset + j - i];
                     yield return (i, j, value);
                     yield return (j, i, value);
                 }
@@ -226,12 +248,42 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
                 for (int i = columnTop; i < j; ++i) // non zero entries of column, excluding diafonal
                 {
-                    double value = colOffset + j - i;
+                    double value = values[colOffset + j - i];
                     if (!(comparer.AreEqual(value, other[i, j]) && comparer.AreEqual(value, other[j, i]))) return false;
                 }
                 if (!comparer.AreEqual(values[colOffset], other[j, j])) return false; // non zero diagonal entry
             }
             return true; // At this point all entries have been checked and are equal
+        }
+
+        /// <summary>
+        /// Calculate the cholesky factorization. The matrix must be positive definite, otherwise an
+        /// <see cref="IndefiniteMatrixException"/> will be thrown. If inPlace is set to true, this object must not be used 
+        /// again, otherwise a <see cref="NullReferenceException"/> will be thrown.
+        /// </summary>
+        /// <param name="inPlace">False, to copy the internal non zero entries before factorization. True, to overwrite them with
+        ///     the factorized data, thus saving memory and time. However, that will make this object unusable, so you MUST NOT 
+        ///     call any other members afterwards.</param>
+        /// <param name="tolerance">If a diagonal entry is closer to zero than this tolerance, an 
+        ///     <see cref="IndefiniteMatrixException"/> exception will be thrown.</param>
+        /// <returns></returns>
+        public SkylineCholesky FactorCholesky(bool inPlace, double tolerance = SkylineCholesky.PivotTolerance)
+        {
+            if (inPlace)
+            {
+                var factor = SkylineCholesky.CalcFactorization(NumColumns, values, diagOffsets);
+                // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                values = null;
+                diagOffsets = null;
+                return factor;
+            }
+            else
+            {
+                double[] valuesCopy = new double[values.Length];
+                Array.Copy(values, valuesCopy, values.Length);
+                return SkylineCholesky.CalcFactorization(NumColumns, values, diagOffsets);
+            }
         }
 
         public SparseFormat GetSparseFormat()
@@ -294,14 +346,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             // not the result vector entry result[i].
             for (int j = 0; j < NumColumns; ++j)
             {
-                int diagonal = diagOffsets[j];
-                int columnTop = j - diagOffsets[j + 1] + diagonal + 1;
+                int diagOffset = diagOffsets[j];
+                int columnTop = j - diagOffsets[j + 1] + diagOffset + 1;
                 double linearCombinationCoeff = vector[j];
                 // Dot product of the (L+D) part of the row * vector
-                double dotLower = values[diagonal] * vector[j]; // Contribution of diagonal entry
-                for (int i = diagonal - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
+                double dotLower = values[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
+                for (int i = j - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
                 {
-                    double aij = values[diagonal + i - j]; // Thus the matrix is only indexed once
+                    double aij = values[diagOffset + j - i]; // Thus the matrix is only indexed once
 
                     // Contribution of the L part of the row, which is identical to the stored column j.
                     // Thus A[j,i]=A[i,j] and sum(A[i,j]*x[j]) = sum(A[i,j]*x[i])
@@ -312,7 +364,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     result[i] += aij * linearCombinationCoeff;
                 }
                 // Column j alters rows [0,j) of the result vector, thus this should be the 1st time result[j] is written.
-                Debug.Assert(result[j] == 0); 
+                Debug.Assert(result[j] == 0);
                 result[j] = dotLower; // contribution of the (L+D) part of the row. 
             }
             return VectorMKL.CreateFromArray(result, false);
@@ -334,15 +386,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public SkylineMatrix Transpose(bool copyInternalArrays)
         {
-            if (copyInternalArrays)
-            {
-                double[] valuesCopy = new double[values.Length];
-                Array.Copy(values, valuesCopy, values.Length);
-                int[] diagOffsetsCopy = new int[diagOffsets.Length];
-                Array.Copy(diagOffsets, diagOffsetsCopy, diagOffsets.Length);
-                return new SkylineMatrix(NumColumns, valuesCopy, diagOffsetsCopy);
-            }
-            else return new SkylineMatrix(NumColumns, values, diagOffsets);
+            return CreateFromArrays(NumColumns, values, diagOffsets, copyInternalArrays, false);
         }
 
         /// <summary>
@@ -351,7 +395,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="rowIdx"></param>
         /// <param name="colIdx"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ProcessIndices(ref int rowIdx, ref int colIdx)
+        internal static void ProcessIndices(ref int rowIdx, ref int colIdx)
         {
             if (rowIdx > colIdx)
             {

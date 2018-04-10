@@ -14,17 +14,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
-            TestBuilders();
-            //TestIndexing();
-            //CheckEquality();
-            //TestMatrixVectorMultiplication();
+            //TestBuilders();
+            TestIndexing();
+            TestEquality();
+            TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestTransposition();
-            //TestFactorization();
-            //TestSystemSolution();
+            TestFactorization();
+            TestSystemSolution();
             //TestVectorOperations();
             //TestMatrixOperations();
-            //TestWriting();
+            TestWriting();
         }
 
         public static void TestBuilders()
@@ -34,54 +34,59 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestEquality()
         {
-            SparseRect.CheckEquals();
+            //SparseRect.CheckEquals();
+            SparsePositiveDefinite.CheckEquals();
         }
 
         public static void TestFactorization()
         {
-            SquareInvertible.CheckFactorization();
-            SquareSingular.CheckFactorization();
-            SquareSingular1Deficiency.CheckFactorization();
+            //SquareInvertible.CheckFactorization();
+            //SquareSingular.CheckFactorization();
+            //SquareSingular1Deficiency.CheckFactorization();
             //SymmPositiveDefinite.CheckFactorization();
             //SymmSingular.CheckFactorization();
+            SparsePositiveDefinite.CheckFactorization();
         }
 
         public static void TestIndexing()
         {
-            LowerInvertible.CheckIndexing();
-            LowerSingular.CheckIndexing();
+            //LowerInvertible.CheckIndexing();
+            //LowerSingular.CheckIndexing();
             //UpperInvertible.CheckIndexing();
             //UpperSingular.CheckIndexing();
             //SymmPositiveDefinite.CheckIndexing();
             //SymmSingular.CheckIndexing();
             //SparseRect.CheckIndexing();
+            SparsePositiveDefinite.CheckIndexing();
         }
 
         public static void TestWriting()
         {
-            DenseVectors.Print();
+            //DenseVectors.Print();
+            //Console.WriteLine();
+            //Rectangular.Print();
+            //Console.WriteLine();
+            //SquareInvertible.Print();
+            //Console.WriteLine();
+            //SquareSingular.Print();
+            //Console.WriteLine();
+            //SquareSingular1Deficiency.Print();
+            //Console.WriteLine();
+            //LowerInvertible.Print();
+            //Console.WriteLine();
+            //LowerSingular.Print();
+            //Console.WriteLine();
+            //UpperInvertible.Print();
+            //Console.WriteLine();
+            //UpperSingular.Print();
+            //Console.WriteLine();
+            //SymmPositiveDefinite.Print();
+            //Console.WriteLine();
+            //SymmSingular.Print();
+            //Console.WriteLine();
+            //SparseRect.Print();
+            SparsePositiveDefinite.Print();
             Console.WriteLine();
-            Rectangular.Print();
-            Console.WriteLine();
-            SquareInvertible.Print();
-            Console.WriteLine();
-            SquareSingular.Print();
-            Console.WriteLine();
-            SquareSingular1Deficiency.Print();
-            Console.WriteLine();
-            LowerInvertible.Print();
-            Console.WriteLine();
-            LowerSingular.Print();
-            Console.WriteLine();
-            UpperInvertible.Print();
-            Console.WriteLine();
-            UpperSingular.Print();
-            Console.WriteLine();
-            SymmPositiveDefinite.Print();
-            Console.WriteLine();
-            SymmSingular.Print();
-            Console.WriteLine();
-            SparseRect.Print();
         }
 
         public static void TestMatrixVectorMultiplication()
@@ -90,13 +95,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SquareInvertible.CheckMatrixVectorMult();
             //SquareSingular.CheckMatrixVectorMult();
             //SquareSingular1Deficiency.CheckMatrixVectorMult();
-            LowerInvertible.CheckMatrixVectorMult();
-            LowerSingular.CheckMatrixVectorMult();
+            //LowerInvertible.CheckMatrixVectorMult();
+            //LowerSingular.CheckMatrixVectorMult();
             //UpperInvertible.CheckMatrixVectorMult();
             //UpperSingular.CheckMatrixVectorMult();
             //SymmPositiveDefinite.CheckMatrixVectorMult();
             //SymmSingular.CheckMatrixVectorMult();
             //SparseRect.CheckMatrixVectorMult();
+            SparsePositiveDefinite.CheckMatrixVectorMult();
         }
 
         public static void TestMatrixMatrixMultiplication()
@@ -109,12 +115,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SquareInvertible.CheckSystemSolution();
             //SquareSingular.CheckSystemSolution();
             //SquareSingular1Deficiency.CheckSystemSolution();
-            LowerInvertible.CheckSystemSolution();
-            LowerSingular.CheckSystemSolution();
+            //LowerInvertible.CheckSystemSolution();
+            //LowerSingular.CheckSystemSolution();
             //UpperInvertible.CheckSystemSolution();
             //UpperSingular.CheckSystemSolution();
             //SymmPositiveDefinite.CheckSystemSolution();
             //SymmSingular.CheckSystemSolution();
+            SparsePositiveDefinite.CheckSystemSolution();
         }
 
         public static void TestTransposition()

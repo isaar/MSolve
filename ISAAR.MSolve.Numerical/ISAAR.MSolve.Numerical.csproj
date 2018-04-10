@@ -111,6 +111,7 @@
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\SkylineCholesky.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKRowMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\SkylineMatrix.cs" />
@@ -145,6 +146,7 @@
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKSymmetricColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\TriangularLower.cs" />
     <Compile Include="LinearAlgebra\Output\TriangularWriter.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\SparsePositiveDefinite.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SparseRect.cs" />
     <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixComparer.cs" />

@@ -118,6 +118,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else return new TriangularUpper(array1D, order);
         }
 
+        public static TriangularUpper CreateZero(int order)
+        {
+            var data = new double[(order * (order + 1)) / 2];
+            return new TriangularUpper(data, order);
+        }
+
         /// <summary>
         /// Copy the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
         /// and length(1) = <see cref="Order"/>. 
