@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     ///  layout see 
     ///  <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// </summary>
-    public class TriangularUpper: IMatrixView
+    public class TriangularUpper: IMatrix
     {
         /// <summary>
         /// Packed storage, column major order: U[i, j] = data[i + j*(2*n-j-1)/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -140,6 +140,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new TriangularUpper(result, NumColumns);
         }
 
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is TriangularUpper casted) AxpyIntoThis(casted, otherCoefficient);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix is also upper triangular.");
+        }
+
         public void AxpyIntoThis(TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -177,6 +184,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: this can be optimized.
         }
 
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is TriangularUpper casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix is also upper triangular.");
+        }
+
+        public void DoEntrywiseIntoThis(TriangularUpper other, Func<double, double, double> binaryOperation)
+        {
+            //TODO: Aren't there any operations that would change the sparsity pattern, even if the other matrix is upper triangular?
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], other.data[i]);
+        }
+
         public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
         {
             if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0)) // The same sparsity pattern can be used.
@@ -194,6 +215,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     for (int i = 0; i <= j; ++i) fullMatrix[i, j] = unaryOperation(data[FindIndex1D(i, j)]);
                 }
                 return fullMatrix;
+            }
+        }
+
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
+        }
+
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0))
+            {
+                for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
+            }
+            else
+            {
+                throw new SparsityPatternModifiedException("This operation will change the sparsity pattern");
             }
         }
 
@@ -216,6 +254,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             Array.Copy(this.data, result, data.Length);
             CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
             return new TriangularUpper(result, NumColumns);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is TriangularUpper casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix is also upper triangular.");
         }
 
         public void LinearCombinationIntoThis(double thisCoefficient, TriangularUpper otherMatrix, double otherCoefficient)
@@ -264,6 +309,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < nnz; ++i) aggregator = processEntry(data[i], aggregator);
             aggregator = processZeros(Order * Order - nnz, aggregator);
             return finalize(aggregator);
+        }
+
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
+        {
+            this[rowIdx, colIdx] = value;
         }
 
         /// <summary>

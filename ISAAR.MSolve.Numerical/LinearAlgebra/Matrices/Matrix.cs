@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// <summary>
     /// General matrix. Dense (full) storage. Uses MKL. Stored as 1D column major array.
     /// </summary>
-    public class Matrix: IMatrixView, ISliceable2D
+    public class Matrix: IMatrix, ISliceable2D
     {
         protected readonly double[] data;
 
@@ -167,6 +167,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(result, NumRows, NumColumns);
         }
 
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is Matrix casted) AxpyIntoThis(casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        this.data[j * NumRows + i] += otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+        }
+
         public void AxpyIntoThis(Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -211,6 +227,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(result, NumRows, NumColumns);
         }
 
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is Matrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, other);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        int index1D = j * NumRows + i;
+                        this.data[index1D] = binaryOperation(this.data[index1D], other[i, j]);
+                    }
+                }
+            }
+        }
+
         public void DoEntrywiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
@@ -230,6 +263,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 result[i] = unaryOperation(data[i]);
             }
             return new Matrix(result, NumRows, NumColumns);
+        }
+
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
         }
 
         // Ok for a DenseMatrix, but for sparse formats some operation (e.g scale) maintain the sparsity pattern,
@@ -313,6 +351,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             Array.Copy(this.data, result, data.Length);
             CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
             return new Matrix(result, NumRows, NumColumns);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is Matrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        int index1D = j * NumRows + i;
+                        this.data[index1D] = thisCoefficient * this.data[index1D] + otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
         }
 
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
@@ -453,6 +508,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public void SetAll(double value)
         {
             for (int i = 0; i < data.Length; ++i) data[i] = value;
+        }
+
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
+        {
+            data[colIdx * NumRows + rowIdx] = value;
         }
 
         /// <summary>

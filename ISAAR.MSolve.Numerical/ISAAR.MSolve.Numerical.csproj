@@ -103,11 +103,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions\IndefiniteMatrixException.cs" />
+    <Compile Include="Exceptions\MatrixPatternException.cs" />
     <Compile Include="Exceptions\MKLException.cs" />
     <Compile Include="Exceptions\NonMatchingDimensionsException.cs" />
     <Compile Include="Exceptions\SingularMatrixException.cs" />
     <Compile Include="Exceptions\SparsityPatternModifiedException.cs" />
     <Compile Include="Exceptions\SuiteSparseException.cs" />
+    <Compile Include="Exceptions\SymmetricPatternException.cs" />
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
@@ -116,6 +118,8 @@
     <Compile Include="LinearAlgebra\Input\SymmetricMatrixReader.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKRowMajor.cs" />
+    <Compile Include="LinearAlgebra\Matrices\IMatrix.cs" />
+    <Compile Include="LinearAlgebra\Matrices\ISymmetricMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\SkylineMatrix.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DFormatting.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DWriter.cs" />

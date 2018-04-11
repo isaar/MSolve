@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// transposed or on the left untransposed. The other combinations are more efficient using <see cref="CSCMatrix"/>. To build
     /// a <see cref="CSRMatrix"/> conveniently, use <see cref="Builders.DOKRowMajor"/>. 
     /// </summary>
-    public class CSRMatrix: IMatrixView, ISparseMatrix //TODO: Use MKL with descriptors
+    public class CSRMatrix: IMatrix, ISparseMatrix //TODO: Use MKL with descriptors
     {
         public static bool WriteRawArrays { get; set; } = true;
 
@@ -121,6 +121,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CSRMatrix(NumRows, NumColumns, resultValues, this.colIndices, this.rowOffsets);
         }
 
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is CSRMatrix casted) AxpyIntoThis(casted, otherCoefficient);
+            else throw new SparsityPatternModifiedException(
+                 "This operation is legal only if the other matrix has the same sparsity pattern");
+        }
+
         public void AxpyIntoThis(CSRMatrix otherMatrix, double otherCoefficient)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
@@ -171,6 +178,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return DenseStrategies.DoEntrywise(this, other, binaryOperation);
         }
 
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is CSRMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix has the same sparsity pattern");
+        }
+
         public void DoEntrywiseIntoThis(CSRMatrix other, Func<double, double, double> binaryOperation)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
@@ -200,6 +214,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             {
                 return new CSRMatrix(NumRows, NumColumns, newValues, colIndices, rowOffsets).CopyToFullMatrix();
             }
+        }
+
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
         }
 
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
@@ -276,6 +295,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
             // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
             return DenseStrategies.LinearCombination(this, thisCoefficient, otherMatrix, otherCoefficient);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is CSRMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
         public void LinearCombinationIntoThis(double thisCoefficient, CSRMatrix otherMatrix, double otherCoefficient)
@@ -530,6 +556,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < nnz; ++i) aggregator = processEntry(values[i], aggregator);
             aggregator = processZeros(NumRows * NumColumns - nnz, aggregator);
             return finalize(aggregator);
+        }
+
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
+        {
+            int index = FindIndexOf(rowIdx, colIdx);
+            if (index == -1) throw new SparsityPatternModifiedException($"Cannot write to zero entry ({rowIdx}, {colIdx}).");
+            else values[index] = value;
         }
 
         public IMatrixView Transpose()

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    public class SparsityPatternModifiedException: Exception
+    public class SparsityPatternModifiedException: MatrixPatternException
     {
         public SparsityPatternModifiedException()
         { }

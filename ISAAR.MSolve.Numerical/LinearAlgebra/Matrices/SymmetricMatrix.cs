@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// Symmetric matrix. Only the upper triangle is stored in Packed format (only stores the n*(n+1)/2 non zeros) and column 
     /// major order. Uses MKL.
     /// </summary>
-    public class SymmetricMatrix: IMatrixView
+    public class SymmetricMatrix: IMatrix, ISymmetricMatrix
     {
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -203,6 +203,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
         }
 
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) AxpyIntoThis(casted, otherCoefficient);
+            else if (otherMatrix is ISymmetricMatrix otherSYM)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        this.data[Find1DIndex(i, j)] += otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+            else
+            {
+                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+            }
+        }
+
         public void AxpyIntoThis(SymmetricMatrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -261,6 +281,27 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, Order, DefiniteProperty.Unknown);
         }
 
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is SymmetricMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else if (other is ISymmetricMatrix otherSYM)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, other);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        int index1D = Find1DIndex(i, j);
+                        this.data[index1D] = binaryOperation(this.data[index1D], other[i, j]);
+                    }
+                }
+            }
+            else
+            {
+                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+            }
+        }
+
         public void DoEntrywiseIntoThis(SymmetricMatrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
@@ -281,6 +322,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 result[i] = unaryOperation(data[i]);
             }
             return new SymmetricMatrix(result, NumRows, DefiniteProperty.Unknown);
+        }
+
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
+        }
+
+        void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            for (int i = 0; i < NumRows * NumColumns; ++i)
+            {
+                data[i] = unaryOperation(data[i]);
+            }
         }
 
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
@@ -378,6 +432,27 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
         }
 
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else if (otherMatrix is ISymmetricMatrix otherSYM)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        int index1D = Find1DIndex(i, j);
+                        this.data[index1D] = thisCoefficient * this.data[index1D] + otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+            else
+            {
+                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+            }
+        }
+
         public void LinearCombinationIntoThis(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -433,20 +508,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
-        /// <summary>
-        /// Sets A[<see cref="i"/>, <see cref="j"/>] = A[<see cref="j"/>, <see cref="i"/>] = <see cref="value"/>. Not efficient.
-        /// </summary>
-        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="Order"/></param>
-        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="Order"/></param>
-        public void SetSymmetric(int i, int j, double value) //TODO: Should I add an efficient version without error checking.
+        // Not very efficient
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
             Definiteness = DefiniteProperty.Unknown;
-            if ((i < 0) || (i >= Order) || (j < 0) || (j >= Order))
+            if ((rowIdx < 0) || (rowIdx >= Order) || (colIdx < 0) || (colIdx >= Order))
             {
-                throw new IndexOutOfRangeException($"Invalid indices: ({i}, {j})");
+                throw new IndexOutOfRangeException($"Invalid indices: ({rowIdx}, {colIdx})");
             }
-            if (i <= j) data[Find1DIndex(i, j)] = value;
-            else data[Find1DIndex(j, i)] = value;
+            if (rowIdx <= colIdx) data[Find1DIndex(rowIdx, colIdx)] = value;
+            else data[Find1DIndex(colIdx, rowIdx)] = value;
         }
 
         public IMatrixView Transpose()

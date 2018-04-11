@@ -15,7 +15,9 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 {
-    public class SkylineMatrix: IMatrixView, ISparseMatrix
+    // TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
+    // that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
+    public class SkylineMatrix: IMatrix, ISparseMatrix, ISymmetricMatrix
     {
         /// <summary>
         /// Contains the non zero superdiagonal entries of the matrix in column major order, starting from the diagonal and going
@@ -150,6 +152,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
         }
 
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SkylineMatrix casted) AxpyIntoThis(casted, otherCoefficient);
+            else throw new SparsityPatternModifiedException(
+                 "This operation is legal only if the other matrix has the same sparsity pattern");
+        }
+
         public void AxpyIntoThis(SkylineMatrix otherMatrix, double otherCoefficient)
         {
             if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
@@ -240,6 +249,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return DenseStrategies.DoEntrywise(this, other, binaryOperation);
         }
 
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is SkylineMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix has the same sparsity pattern");
+        }
+
         public void DoEntrywiseIntoThis(SkylineMatrix other, Func<double, double, double> binaryOperation)
         {
             if (HasSameIndexer(other)) // no need to check dimensions if the indexing arrays are the same
@@ -291,6 +307,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             {
                 return new SkylineMatrix(NumColumns, newValues, diagOffsets).CopyToFullMatrix();
             }
+        }
+
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
         }
 
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
@@ -398,6 +419,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
             // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
             return DenseStrategies.LinearCombination(this, thisCoefficient, otherMatrix, otherCoefficient);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SkylineMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else throw new SparsityPatternModifiedException(
+                "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
         public void LinearCombinationIntoThis(double thisCoefficient, SkylineMatrix otherMatrix, double otherCoefficient)
@@ -517,6 +545,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < nnz; ++i) aggregator = processEntry(values[i], aggregator);
             aggregator = processZeros(NumColumns * NumColumns - nnz, aggregator);
             return finalize(aggregator);
+        }
+
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
+        {
+            this[rowIdx, colIdx] = value;
         }
 
         public IMatrixView Transpose()
