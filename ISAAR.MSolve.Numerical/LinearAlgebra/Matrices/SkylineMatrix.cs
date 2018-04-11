@@ -152,12 +152,31 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public void AxpyIntoThis(SkylineMatrix otherMatrix, double otherCoefficient)
         {
-            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if (!HasSameIndexer(otherMatrix))
+            if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
             {
-                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+                CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref this.values[0], 1);
             }
-            CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref this.values[0], 1);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    // Check if the current column of this matrix is tall enough
+                    int thisDiagOffset = this.diagOffsets[j];
+                    int otherDiagOffset = otherMatrix.diagOffsets[j];
+                    int thisColTop = j - this.diagOffsets[j + 1] + thisDiagOffset + 1;
+                    int otherColTop = j - this.diagOffsets[j + 1] + otherDiagOffset + 1;
+                    if (thisColTop < otherColTop) throw new SparsityPatternModifiedException(
+                        $"Column {j} of this matrix is shorter, which would result in overflow");
+
+                    // Do the operation between the two columns. The column of this matrix is taller or equal to the other one.
+                    for (int i = j; i >= otherColTop; --i) // non zero entries of shortest=other column, including diagonal
+                    {
+                        this.values[thisDiagOffset + j - i] += otherCoefficient * otherMatrix.values[otherDiagOffset + j - i];
+                    }
+                    // Don't do anything to the non zero entries of the above the shortest=other column (this[i,j] += a*0)
+                }
+            }
         }
 
         public double[,] CopyToArray2D()
@@ -223,12 +242,36 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public void DoEntrywiseIntoThis(SkylineMatrix other, Func<double, double, double> binaryOperation)
         {
-            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if (!HasSameIndexer(other))
+            if (HasSameIndexer(other)) // no need to check dimensions if the indexing arrays are the same
             {
-                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+                for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
             }
-            for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, other);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    // Check if the current column of this matrix is tall enough
+                    int thisDiagOffset = this.diagOffsets[j];
+                    int otherDiagOffset = other.diagOffsets[j];
+                    int thisColTop = j - this.diagOffsets[j + 1] + thisDiagOffset + 1;
+                    int otherColTop = j - this.diagOffsets[j + 1] + otherDiagOffset + 1;
+                    if (thisColTop < otherColTop) throw new SparsityPatternModifiedException(
+                        $"Column {j} of this matrix is shorter, which would result in overflow");
+
+                    // Do the operation between the two columns. The column of this matrix is taller or equal to the other one.
+                    for (int i = j; i >= otherColTop; --i) // non zero entries of shortest column, including diagonal
+                    {
+                        int thisIndex = thisDiagOffset + j - i;
+                        this.values[thisIndex] = binaryOperation(this.values[thisIndex], other.values[otherDiagOffset + j - i]);
+                    }
+                    for (int i = otherColTop - 1; i >= thisColTop; --i) // non zero entries of the above the shortest column
+                    {
+                        int thisIndex = thisDiagOffset + j - i;
+                        this.values[thisIndex] = binaryOperation(this.values[thisIndex], other.values[otherDiagOffset + j - i]);
+                    }
+                }
+            }
         }
 
         IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
@@ -359,12 +402,37 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public void LinearCombinationIntoThis(double thisCoefficient, SkylineMatrix otherMatrix, double otherCoefficient)
         {
-            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if (!HasSameIndexer(otherMatrix))
+            if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
             {
-                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+                CBlas.Daxpby(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, thisCoefficient, ref this.values[0], 1);
             }
-            CBlas.Daxpby(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, thisCoefficient, ref this.values[0], 1);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    // Check if the current column of this matrix is tall enough
+                    int thisDiagOffset = this.diagOffsets[j];
+                    int otherDiagOffset = otherMatrix.diagOffsets[j];
+                    int thisColTop = j - this.diagOffsets[j + 1] + thisDiagOffset + 1;
+                    int otherColTop = j - this.diagOffsets[j + 1] + otherDiagOffset + 1;
+                    if (thisColTop < otherColTop) throw new SparsityPatternModifiedException(
+                        $"Column {j} of this matrix is shorter, which would result in overflow");
+
+                    // Do the operation between the two columns. The column of this matrix is taller or equal to the other one.
+                    for (int i = j; i >= otherColTop; --i) // non zero entries of shortest column, including diagonal
+                    {
+                        int thisIndex = thisDiagOffset + j - i;
+                        this.values[thisIndex] = thisCoefficient * this.values[thisIndex] 
+                            + otherCoefficient * otherMatrix.values[otherDiagOffset + j - i];
+                    }
+                    for (int i = otherColTop - 1; i >= thisColTop; --i) // non zero entries of the above the shortest column
+                    {
+                        int thisIndex = thisDiagOffset + j - i;
+                        this.values[thisIndex] = thisCoefficient * this.values[thisIndex];
+                    }
+                }
+            }            
         }
 
         /// <summary>
