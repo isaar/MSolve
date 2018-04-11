@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
@@ -116,6 +117,49 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new SkylineMatrix(order, new double[nnz], diagOffsets);
         }
 
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
+            {
+                if (HasSameIndexer(otherSKY))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] resultValues = new double[values.Length];
+                    Array.Copy(this.values, resultValues, values.Length);
+                    CBlas.Daxpy(values.Length, otherCoefficient, ref otherSKY.values[0], 1, ref resultValues[0], 1);
+                    return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
+            return DenseStrategies.LinearCombination(this, 1.0, otherMatrix, otherCoefficient);
+        }
+
+        public SkylineMatrix Axpy(SkylineMatrix otherMatrix, double otherCoefficient)
+        {
+            // Conceptually it is not wrong to so this, even if the indexers are different, but how would I implement it.
+            if (!HasSameIndexer(otherMatrix))
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+            }
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] resultValues = new double[values.Length];
+            Array.Copy(this.values, resultValues, values.Length);
+            CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref resultValues[0], 1);
+            // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+            return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
+        }
+
+        public void AxpyIntoThis(SkylineMatrix otherMatrix, double otherCoefficient)
+        {
+            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+            if (!HasSameIndexer(otherMatrix))
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+            }
+            CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref this.values[0], 1);
+        }
+
         public double[,] CopyToArray2D()
         {
             double[,] array2D = new double[NumColumns, NumColumns];
@@ -161,7 +205,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         {
             if (other is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
             {
-                if (this.diagOffsets == otherSKY.diagOffsets)
+                if (HasSameIndexer(otherSKY))
                 {
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
@@ -180,9 +224,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public void DoEntrywiseIntoThis(SkylineMatrix other, Func<double, double, double> binaryOperation)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if (this.diagOffsets != other.diagOffsets)
+            if (!HasSameIndexer(other))
             {
-                throw new SparsityPatternModifiedException("Only allowed if the index arrays are the same");
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
             }
             for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
         }
@@ -295,6 +339,34 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return format;
         }
 
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
+            {
+                if (HasSameIndexer(otherSKY))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] resultValues = new double[values.Length];
+                    Array.Copy(this.values, resultValues, values.Length);
+                    CBlas.Daxpby(values.Length, otherCoefficient, ref otherSKY.values[0], 1, thisCoefficient, ref this.values[0], 1);
+                    return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
+            return DenseStrategies.LinearCombination(this, thisCoefficient, otherMatrix, otherCoefficient);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, SkylineMatrix otherMatrix, double otherCoefficient)
+        {
+            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+            if (!HasSameIndexer(otherMatrix))
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+            }
+            CBlas.Daxpby(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, thisCoefficient, ref this.values[0], 1);
+        }
+
         /// <summary>
         /// Not optimized yet.
         /// </summary>
@@ -403,6 +475,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 rowIdx = colIdx;
                 colIdx = swap;
             }
+        }
+
+        private bool HasSameIndexer(SkylineMatrix other)
+        {
+            return this.diagOffsets == other.diagOffsets;
         }
     }
 }

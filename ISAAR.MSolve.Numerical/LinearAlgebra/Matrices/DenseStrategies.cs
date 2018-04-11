@@ -54,6 +54,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return result;
         }
 
+        internal static Matrix LinearCombination(IIndexable2D matrix1, double coefficient1, IIndexable2D matrix2, 
+            double coefficient2)
+        {
+            Preconditions.CheckSameMatrixDimensions(matrix1, matrix2);
+            var result = Matrix.CreateZero(matrix1.NumRows, matrix1.NumColumns);
+            for (int j = 0; j < matrix1.NumColumns; ++j)
+            {
+                for (int i = 0; i < matrix1.NumRows; ++i)
+                {
+                    result[i, j] = coefficient1 * matrix1[i, j] + coefficient2 * matrix2[i, j];
+                }
+            }
+            return result;
+        }
+
         internal static Matrix Transpose(IMatrixView matrix)
         {
             var result = Matrix.CreateZero(matrix.NumColumns, matrix.NumRows);

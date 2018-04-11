@@ -81,11 +81,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check LinearCombination(): ");
-            comparer.CheckMatrixEquality(expected, m1.LinearCombination(scalar1, scalar2, m2));
+            comparer.CheckMatrixEquality(expected, m1.LinearCombination(scalar1, m2, scalar2));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
             var temp = Matrix.CopyFromMatrix(m1);
-            temp.LinearCombinationIntoThis(scalar1, scalar2, m2);
+            temp.LinearCombinationIntoThis(scalar1, m2, scalar2);
             comparer.CheckMatrixEquality(expected, temp);
         }
 

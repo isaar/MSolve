@@ -12,14 +12,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     public static class MatrixExtensions
     {
         /// <summary>
-        /// result = matrix1 + matrix2
+        /// result[i, j] = matrix1[i, j] + matrix2[i, j]
         /// </summary>
         /// <param name="matrix1"></param>
         /// <param name="matrix2"></param>
         /// <returns></returns>
-        public static Matrix Add(this Matrix matrix1, Matrix matrix2)
+        public static IMatrixView Add(this IMatrixView matrix1, IMatrixView matrix2)
         {
-            return matrix1.Axpy(1.0, matrix2);
+            return matrix1.Axpy(matrix2, 1.0);
         }
 
         /// <summary>
@@ -29,18 +29,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="matrix2"></param>
         public static void AddIntoThis(this Matrix matrix1, Matrix matrix2)
         {
-            matrix1.AxpyIntoThis(1.0, matrix2);
+            matrix1.AxpyIntoThis(matrix2, 1.0);
+        }
+
+        public static IMatrixView Scale(this IMatrixView matrix, double scalar)
+        {
+            return matrix.DoToAllEntries(x => scalar * x);
+        }
+
+        public static void ScaleIntoThis(this Matrix matrix, double scalar)
+        {
+            matrix.DoToAllEntriesIntoThis(x => scalar * x);
         }
 
         /// <summary>
-        /// result = matrix1 - matrix2
+        /// result[i, j] = matrix1[i, j] - matrix2[i, j]
         /// </summary>
         /// <param name="matrix1"></param>
         /// <param name="matrix2"></param>
         /// <returns></returns>
-        public static Matrix Subtract(this Matrix matrix1, Matrix matrix2)
+        public static IMatrixView Subtract(this IMatrixView matrix1, IMatrixView matrix2)
         {
-            return matrix1.Axpy(-1.0, matrix2);
+            return matrix1.Axpy(matrix2, - 1.0);
         }
 
         /// <summary>
@@ -50,7 +60,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="matrix2"></param>
         public static void SubtractIntoThis(this Matrix matrix1, Matrix matrix2)
         {
-            matrix1.AxpyIntoThis(-1.0, matrix2);
+            matrix1.AxpyIntoThis(matrix2 ,- 1.0);
         }
 
         #region linear combinations
@@ -64,25 +74,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         // TODO: All in all I am against any LinearCombination method. It is not that difficult to call axpy twice in a dynamic 
         // analyzer.
 
-        public static IMatrixView LinearCombination(double coefficient1, IMatrixView matrix1, double coefficient2, 
-            IMatrixView matrix2, double coefficient3, IMatrixView matrix3)
-        {
-            IMatrixView result = matrix1.DoEntrywise(matrix2, (x1, x2) => coefficient1 * x1 + coefficient2 * x2);
-            return result.DoEntrywise(matrix3, (x, x3) => x + coefficient3 * x3);
-        }
-
-        public static IMatrixView LinearCombination(double coefficient1, IMatrixView matrix1, double coefficient2, 
-            IMatrixView matrix2, double coefficient3, IMatrixView matrix3, double coefficient4, IMatrixView matrix4)
-        {
-            IMatrixView result = LinearCombination(coefficient1, matrix1, coefficient2, matrix2, coefficient3, matrix3);
-            return result.DoEntrywise(matrix4, (x, x4) => x + coefficient4 * x4);
-        }
-
         public static Matrix LinearCombination(double coefficient1, Matrix matrix1, double coefficient2, Matrix matrix2, 
             double coefficient3, Matrix matrix3)
         {
-            Matrix result = matrix1.LinearCombination(coefficient1, coefficient2, matrix2);
-            result.AxpyIntoThis(coefficient3, matrix3);
+            Matrix result = matrix1.LinearCombination(coefficient1, matrix2, coefficient2);
+            result.AxpyIntoThis(matrix3, coefficient3);
             return result;
         }
 
@@ -90,7 +86,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             double coefficient3, Matrix matrix3, double coefficient4, Matrix matrix4) 
         {
             Matrix result = LinearCombination(coefficient1, matrix1, coefficient2, matrix2, coefficient3, matrix3);
-            result.AxpyIntoThis(coefficient4, matrix4);
+            result.AxpyIntoThis(matrix4, coefficient4);
             return result;
         }
 

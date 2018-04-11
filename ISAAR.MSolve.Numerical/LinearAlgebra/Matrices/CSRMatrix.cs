@@ -88,6 +88,49 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new CSRMatrix(numRows, numCols, values, colIndices, rowOffsets);
         }
 
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is CSRMatrix otherCSR) // In case both matrices have the exact same index arrays
+            {
+                if (HasSameIndexer(otherCSR))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] resultValues = new double[values.Length];
+                    Array.Copy(this.values, resultValues, values.Length);
+                    CBlas.Daxpy(values.Length, otherCoefficient, ref otherCSR.values[0], 1, ref resultValues[0], 1);
+                    return new CSRMatrix(NumRows, NumColumns, resultValues, this.colIndices, this.rowOffsets);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
+            return DenseStrategies.LinearCombination(this, 1.0, otherMatrix, otherCoefficient);
+        }
+
+        public CSRMatrix Axpy(CSRMatrix otherMatrix, double otherCoefficient)
+        {
+            // Conceptually it is not wrong to so this, even if the indexers are different, but how would I implement it.
+            if (!HasSameIndexer(otherMatrix)) 
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+            }
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] resultValues = new double[values.Length];
+            Array.Copy(this.values, resultValues, values.Length);
+            CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref resultValues[0], 1);
+            // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+            return new CSRMatrix(NumRows, NumColumns, resultValues, this.colIndices, this.rowOffsets);
+        }
+
+        public void AxpyIntoThis(CSRMatrix otherMatrix, double otherCoefficient)
+        {
+            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+            if (!HasSameIndexer(otherMatrix))
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+            }
+            CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref this.values[0], 1);
+        }
+
         public Matrix CopyToFullMatrix()
         {
             Matrix fullMatrix = Matrix.CreateZero(this.NumRows, this.NumColumns);
@@ -112,7 +155,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         {
             if (other is CSRMatrix otherCSR) // In case both matrices have the exact same index arrays
             {
-                if ((this.colIndices == otherCSR.colIndices) && (this.rowOffsets == otherCSR.rowOffsets))
+                if (HasSameIndexer(otherCSR))
                 {
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
@@ -131,9 +174,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public void DoEntrywiseIntoThis(CSRMatrix other, Func<double, double, double> binaryOperation)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if ((this.colIndices != other.colIndices) || (this.rowOffsets != other.rowOffsets))
+            if (!HasSameIndexer(other))
             {
-                throw new SparsityPatternModifiedException("Only allowed if the index arrays are the same");
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
             }
             for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
         }
@@ -215,6 +258,34 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             format.RawIndexArrays.Add("Column indices", colIndices);
             format.RawIndexArrays.Add("Row offsets", rowOffsets);
             return format;
+        }
+
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is CSRMatrix otherCSR) // In case both matrices have the exact same index arrays
+            {
+                if (HasSameIndexer(otherCSR))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] resultValues = new double[values.Length];
+                    Array.Copy(this.values, resultValues, values.Length);
+                    CBlas.Daxpby(values.Length, otherCoefficient, ref otherCSR.values[0], 1, thisCoefficient, ref this.values[0], 1);
+                    return new CSRMatrix(NumRows, NumColumns, resultValues, this.colIndices, this.rowOffsets);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
+            return DenseStrategies.LinearCombination(this, thisCoefficient, otherMatrix, otherCoefficient);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, CSRMatrix otherMatrix, double otherCoefficient)
+        {
+            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+            if (!HasSameIndexer(otherMatrix))
+            {
+                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+            }
+            CBlas.Daxpby(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, thisCoefficient, ref this.values[0], 1);
         }
 
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
@@ -498,6 +569,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 if (colIndices[k] == colIdx) return k;
             }
             return -1;
+        }
+
+        private bool HasSameIndexer(CSRMatrix other)
+        {
+            return (this.colIndices == other.colIndices) && (this.rowOffsets == other.rowOffsets);
         }
     }
 }

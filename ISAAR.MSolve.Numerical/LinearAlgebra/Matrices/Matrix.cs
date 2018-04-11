@@ -139,8 +139,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         #region operators (use extension operators when they become available)
-        public static Matrix operator +(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(1.0, matrix2);
-        public static Matrix operator -(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(-1.0, matrix2);
+        public static Matrix operator +(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(matrix2, 1.0);
+        public static Matrix operator -(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(matrix2, -1.0);
         public static Matrix operator *(double scalar, Matrix matrix) => matrix.Scale(scalar);
         public static Matrix operator *(Matrix matrix, double scalar)=> matrix.Scale(scalar);
         public static Matrix operator *(Matrix matrixLeft, Matrix matrixRight)
@@ -151,31 +151,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
-        /// <summary>
-        /// result = this + scalar * other
-        /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
-        /// <returns></returns>
-        public Matrix Axpy(double scalar, Matrix other)
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
+            if (otherMatrix is Matrix casted) return Axpy(casted, otherCoefficient);
+            else return otherMatrix.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
+        }
+
+        public Matrix Axpy(Matrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
-            double[] result = new double[this.data.Length];
+            double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref result[0], 1);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
-        /// <summary>
-        /// this = this + scalar * other
-        /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
-        public void AxpyIntoThis(double scalar, Matrix other)
+        public void AxpyIntoThis(Matrix otherMatrix, double otherCoefficient)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
-            CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
         }
 
         public double CalcDeterminant()
@@ -302,31 +297,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 LUFactorization factor = FactorLU();
                 return (factor.InvertInPlace(), factor.CalcDeterminant());
             }
-                
         }
 
-        /// <summary>
-        /// result = thisScalar * this + otherScalar * otherMatrix
-        /// </summary>
-        /// <returns></returns>
-        public Matrix LinearCombination(double thisScalar, double otherScalar, Matrix otherMatrix)
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is Matrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else return otherMatrix.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
+        }
+
+        public Matrix LinearCombination(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
-            double[] result = new double[this.data.Length];
-            Array.Copy(this.data, result, this.data.Length);
-            CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref result[0], 1);
-            return new Matrix(result, this.NumRows, this.NumColumns);
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            return new Matrix(result, NumRows, NumColumns);
         }
 
-        /// <summary>
-        /// this = this + scalar * otherMatrix
-        /// </summary>
-        /// <returns></returns>
-        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, Matrix otherMatrix)
+        public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref this.data[0], 1);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
         }
 
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)

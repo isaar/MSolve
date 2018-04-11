@@ -112,6 +112,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else return new TriangularLower(array1D, order);
         }
 
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is TriangularLower casted) return Axpy(casted, otherCoefficient);
+            else return DoEntrywise(otherMatrix, (x1, x2) => x1 + otherCoefficient * x2); //TODO: optimize this
+        }
+
+        public TriangularLower Axpy(TriangularLower otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
+            return new TriangularLower(result, NumRows);
+        }
+
+        public void AxpyIntoThis(TriangularLower otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
+        }
+
         /// <summary>
         /// Copy the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
         /// and length(1) = <see cref="Order"/>. 
@@ -168,6 +190,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is TriangularLower casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else return DoEntrywise(otherMatrix, (x1, x2) => thisCoefficient * x1 + otherCoefficient * x2); //TODO: optimize this
+        }
+
+        public TriangularLower LinearCombination(double thisCoefficient, TriangularLower otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            return new TriangularLower(result, NumRows);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, TriangularLower otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
         }
 
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)

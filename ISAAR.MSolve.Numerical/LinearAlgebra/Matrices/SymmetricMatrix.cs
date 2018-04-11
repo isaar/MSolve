@@ -187,6 +187,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         #endregion
 
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) return Axpy(casted, otherCoefficient);
+            else return DoEntrywise(otherMatrix, (x1, x2) => x1 + otherCoefficient * x2); //TODO: optimize this
+        }
+
+        public SymmetricMatrix Axpy(SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
+            return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
+        }
+
+        public void AxpyIntoThis(SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
+            this.Definiteness = DefiniteProperty.Unknown;
+        }
+
         /// <summary>
         /// Calculate the determinant of this matrix.
         /// If <see cref="Definiteness"/> != <see cref="DefiniteProperty.PositiveDefinite"/>, the calculation will be very 
@@ -227,7 +250,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SymmetricMatrix casted) return DoEntrywise(casted, binaryOperation);
-            else return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+            else return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: optimize this
         }
 
         public SymmetricMatrix DoEntrywise(SymmetricMatrix other, Func<double, double, double> binaryOperation)
@@ -337,6 +360,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
             Definiteness = DefiniteProperty.PositiveDefinite;
             return new CholeskyFactorization(upper, n);
+        }
+
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else return DoEntrywise(otherMatrix, (x1, x2) => thisCoefficient * x1 + otherCoefficient * x2); //TODO: optimize this
+        }
+
+        public SymmetricMatrix LinearCombination(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            this.Definiteness = DefiniteProperty.Unknown;
         }
 
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
