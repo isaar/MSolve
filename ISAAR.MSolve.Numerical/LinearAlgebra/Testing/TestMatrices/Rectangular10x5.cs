@@ -58,6 +58,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             {  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000 },
             {  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000 }};
 
+        /// <summary>
+        /// This vector is not in the column space of the matrix. Thus the linear system can only be solved approximately, 
+        /// via least squares.
+        /// </summary>
+        public static readonly double[] rhsNotInColspace = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+
+        /// <summary>
+        /// Solution of the least squares system <see cref="matrix"/> * <see cref="lsqSolution"/> ~= <see cref="rhsNotInColspace"/>.
+        /// </summary>
+        public static readonly double[] lsqSolution = { 1.073134012122104, -0.126789906548218, 1.420147230082810, 1.877832570455326, -1.117439931920276 };
+
         public static void CheckFactorizationQR()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -69,8 +80,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             Console.WriteLine("Check QR factorization: ");
             comparer.CheckMatrixEquality(factorQ, Q.CopyToArray2D());
             comparer.CheckMatrixEquality(factorR, R.CopyToArray2D());
-            (new FullMatrixWriter(Q)).WriteToConsole();
-            (new FullMatrixWriter(R)).WriteToConsole();
         }
 
         public static void CheckMatrixVectorMult()
@@ -84,6 +93,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             VectorMKL b10 = A.MultiplyRight(x10, true);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, b5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, b10.InternalData);
+        }
+
+        public static void CheckSolutionLeastSquares()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var A = Matrix.CreateFromArray(matrix);
+            QRFactorization QR = A.FactorQR();
+
+            // RHS is in the column space
+            var b1 = VectorMKL.CreateFromArray(rhs5);
+            var x1 = QR.SolveLeastSquares(b1);
+            Console.WriteLine("Check least squares solution for a rhs vector in the column space: ");
+            comparer.CheckVectorEquality(VectorMKL.CreateFromArray(lhs5), x1);
+
+            // RHS is not in the column space
+            var b2 = VectorMKL.CreateFromArray(rhsNotInColspace);
+            var x2 = QR.SolveLeastSquares(b2);
+            Console.WriteLine("\nCheck least squares solution for a rhs vector outside the column space: ");
+            comparer.CheckVectorEquality(VectorMKL.CreateFromArray(lsqSolution), x2);
         }
 
         public static void Print()
