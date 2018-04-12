@@ -8,6 +8,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.MKL;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
@@ -46,28 +47,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// available memory.
         /// </summary>
         /// <param name="order">The number of rows/columns of the square matrix.</param>
-        /// <param name="originalColMajorMatrix">The internal buffer stroring the matrix entries in column major order. It will 
-        ///     be copied and not altered, thus you should not copy it yourself.</param>
+        /// <param name="matrix">The internal buffer stroring the matrix entries in column major order. It will 
+        ///     be overwritten.</param>
         /// <param name="pivotTolerance"></param>
         /// <returns></returns>
-        public static LUFactorization CalcFactorization(int order, double[] originalColMajorMatrix, 
+        public static LUFactorization CalcFactorization(int order, double[] matrix, 
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-            // To avoid these, use the ~InPlace version.
-            double[] lowerUpper = new double[originalColMajorMatrix.Length];
-            Array.Copy(originalColMajorMatrix, lowerUpper, originalColMajorMatrix.Length);
-
             // Call MKL
             int[] permutation = new int[order];
             int info = MKLUtilities.DefaultInfo;
-            Lapack.Dgetrf(ref order, ref order, ref lowerUpper[0], ref order, ref permutation[0], ref info);
+            Lapack.Dgetrf(ref order, ref order, ref matrix[0], ref order, ref permutation[0], ref info);
 
             // Check MKL execution
             if (info == MKLUtilities.DefaultInfo)
             {
                 // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
+                // info == default => the MKL call did not succeed. 
                 // info > 0 should not be returned at all by MKL, but it is here for completion.
                 throw new MKLException("Something went wrong with the MKL call."
                     + " Please contact the developer responsible for the linear algebra project.");
@@ -81,12 +77,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
             int firstZeroPivot = int.MinValue;
             if (info > 0) firstZeroPivot = info - 1;
-            else if (Math.Abs(lowerUpper[order * order - 1]) <= pivotTolerance)
+            else if (Math.Abs(matrix[order * order - 1]) <= pivotTolerance)
             {
                 // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
                 firstZeroPivot = order - 1;
             }
-            return new LUFactorization(order, lowerUpper, permutation, firstZeroPivot, (firstZeroPivot >= 0));
+            return new LUFactorization(order, matrix, permutation, firstZeroPivot, (firstZeroPivot >= 0));
         }
 
         /// <summary>

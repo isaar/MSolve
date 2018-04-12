@@ -113,6 +113,7 @@
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\QRFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\SkylineCholesky.cs" />
     <Compile Include="LinearAlgebra\Input\SkylineMatrixReader.cs" />
     <Compile Include="LinearAlgebra\Input\SymmetricMatrixReader.cs" />
@@ -124,9 +125,9 @@
     <Compile Include="LinearAlgebra\Output\Array1DFormatting.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DWriter.cs" />
     <Compile Include="LinearAlgebra\Output\Array2DFormatting.cs" />
-    <Compile Include="LinearAlgebra\Commons\MKLUtilities.cs" />
+    <Compile Include="MKL\MKLUtilities.cs" />
     <Compile Include="LinearAlgebra\Commons\DefiniteProperty.cs" />
-    <Compile Include="LinearAlgebra\Commons\SuiteSparseUtilities.cs" />
+    <Compile Include="SuiteSparse\SuiteSparseUtilities.cs" />
     <Compile Include="LinearAlgebra\Factorizations\BunchKaufmanFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\CholeskyFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\IFactorization.cs" />
@@ -156,9 +157,10 @@
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKSymmetricColMajor.cs" />
     <Compile Include="LinearAlgebra\Matrices\TriangularLower.cs" />
     <Compile Include="LinearAlgebra\Output\TriangularWriter.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestLibs\TestMKL.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SparsePositiveDefinite.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SparseRect.cs" />
-    <Compile Include="LinearAlgebra\Testing\TestSuiteSparse.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestLibs\TestSuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixComparer.cs" />
     <Compile Include="LinearAlgebra\Vectors\ISliceable1D.cs" />
     <Compile Include="LinearAlgebra\Vectors\IVectorView.cs" />
@@ -174,13 +176,13 @@
     <Compile Include="LinearAlgebra\Reduction\IReducible.cs" />
     <Compile Include="LinearAlgebra\Reduction\Reductions.cs" />
     <Compile Include="LinearAlgebra\SkylineMatrix2D.cs" />
-    <Compile Include="LinearAlgebra\Testing\BLASlvl1Tests.cs" />
-    <Compile Include="LinearAlgebra\Testing\ComputeNETexample.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestLibs\BLASlvl1Tests.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestLibs\ComputeNETexample.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\DenseMatrices.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\DenseVectors.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\LowerInvertible.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\LowerSingular.cs" />
-    <Compile Include="LinearAlgebra\Testing\TestMatrices\Rectangular.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\Rectangular10x5.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareInvertible.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular1Deficiency.cs" />
@@ -196,6 +198,7 @@
     <Compile Include="LinearAlgebra\Testing\Utilities\ValueComparer.cs" />
     <Compile Include="LinearAlgebra\Vectors\VectorExtensionsMKL.cs" />
     <Compile Include="LinearAlgebra\Vectors\VectorMKL.cs" />
+    <Compile Include="MKL\LAPACKE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LinearAlgebra\Sparse2D.cs" />
     <Compile Include="LinearAlgebra\SymmetricMatrix2D.cs" />
@@ -321,6 +324,7 @@
     <Content Include="lib\suitesparse_utilities.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="MKL\lapacke.h" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

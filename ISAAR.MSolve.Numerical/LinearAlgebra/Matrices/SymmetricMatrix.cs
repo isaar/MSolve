@@ -9,8 +9,8 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.MKL;
 
 //TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices

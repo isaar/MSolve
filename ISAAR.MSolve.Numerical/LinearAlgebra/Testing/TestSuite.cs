@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
@@ -12,19 +13,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
+            //TestMarshaling();
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
             //TestBuilders();
             //TestIndexing();
             //TestEquality();
+            TestFactorization();
+            //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            //TestTransposition();
-            //TestFactorization();
             //TestSystemSolution();
+            //TestTransposition();
             //TestVectorOperations();
-            //TestMatrixOperations();
-            TestWriting();
+            //TestWriting();
+        }
+
+        public static void TestMarshaling()
+        {
+            TestMKL.TestDgemv();
+            TestMKL.TestDgetrf_Dgetrs();
         }
 
         public static void TestBuilders()
@@ -40,12 +48,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestFactorization()
         {
+            // Triangulations
             //SquareInvertible.CheckFactorization();
             //SquareSingular.CheckFactorization();
             //SquareSingular1Deficiency.CheckFactorization();
             //SymmPositiveDefinite.CheckFactorization();
             //SymmSingular.CheckFactorization();
-            SparsePositiveDefinite.CheckFactorization();
+            //SparsePositiveDefinite.CheckFactorization();
+
+            // Orthogonalizations
+            Rectangular10x5.CheckFactorizationQR();
         }
 
         public static void TestIndexing()
@@ -64,7 +76,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             DenseVectors.Print();
             Console.WriteLine();
-            Rectangular.Print();
+            Rectangular10x5.Print();
             Console.WriteLine();
             SquareInvertible.Print();
             Console.WriteLine();

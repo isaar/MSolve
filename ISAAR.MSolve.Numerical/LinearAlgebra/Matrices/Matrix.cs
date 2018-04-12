@@ -299,8 +299,23 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public LUFactorization FactorLU()
         {
-            if (IsSquare) return LUFactorization.CalcFactorization(NumRows, data);
+            if (IsSquare)
+            {
+                // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
+                // To avoid these, set "inPlace=true".
+                return LUFactorization.CalcFactorization(NumColumns, CopyInternalData());
+            }
             else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
+        }
+
+        /// <summary>
+        /// Calculates the QR factorization of a matrix, such that A = Q*R. Requires an extra O(m*n + min(m,n)) 
+        /// available memory.
+        /// </summary>
+        /// <returns></returns>
+        public QRFactorization FactorQR()
+        {
+            return QRFactorization.CalcFactorization(NumRows, NumColumns, CopyInternalData());
         }
 
         public Matrix Invert()
@@ -608,6 +623,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public void TransposeIntoThis()
         {
             throw new NotImplementedException("Use mkl_dimatcopy");
+        }
+
+        private double[] CopyInternalData()
+        {
+            double[] dataCopy = new double[data.Length];
+            Array.Copy(data, dataCopy, data.Length);
+            return dataCopy;
         }
     }
 }

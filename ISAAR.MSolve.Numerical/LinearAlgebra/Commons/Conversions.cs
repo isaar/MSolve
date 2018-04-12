@@ -270,6 +270,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
         }
 
         /// <summary>
+        /// Extract the superdiagonal part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullUpperColMajor(int numRows, int numCols, double[] full)
+        {
+            double[] upper = new double[full.Length];
+            for (int j = 0; j < numCols; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    upper[j * numRows + i] = full[j * numRows + i];
+                }
+            }
+            return upper;
+        }
+
+        /// <summary>
         /// Extract the upper part only. Both I/O are column major with full storage.
         /// </summary>
         /// <param name="full"></param>

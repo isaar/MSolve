@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
+namespace ISAAR.MSolve.Numerical.SuiteSparse
 {
     internal static class SuiteSparseUtilities
     {

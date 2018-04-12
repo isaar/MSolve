@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.SuiteSparse;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {

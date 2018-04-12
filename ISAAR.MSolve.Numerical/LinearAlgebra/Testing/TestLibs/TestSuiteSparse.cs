@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.SuiteSparse;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs
 {
     class TestSuiteSparse
     {
