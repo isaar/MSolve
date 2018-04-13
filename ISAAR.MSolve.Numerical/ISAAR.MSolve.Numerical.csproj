@@ -113,8 +113,9 @@
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\CholeskyFull.cs" />
     <Compile Include="LinearAlgebra\Factorizations\QRFactorization.cs" />
-    <Compile Include="LinearAlgebra\Factorizations\SkylineCholesky.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\CholeskySkyline.cs" />
     <Compile Include="LinearAlgebra\Input\SkylineMatrixReader.cs" />
     <Compile Include="LinearAlgebra\Input\SymmetricMatrixReader.cs" />
     <Compile Include="LinearAlgebra\Matrices\Builders\DOKColMajor.cs" />
@@ -129,10 +130,10 @@
     <Compile Include="LinearAlgebra\Commons\DefiniteProperty.cs" />
     <Compile Include="SuiteSparse\SuiteSparseUtilities.cs" />
     <Compile Include="LinearAlgebra\Factorizations\BunchKaufmanFactorization.cs" />
-    <Compile Include="LinearAlgebra\Factorizations\CholeskyFactorization.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\CholeskyPacked.cs" />
     <Compile Include="LinearAlgebra\Factorizations\IFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\LUFactorization.cs" />
-    <Compile Include="LinearAlgebra\Factorizations\SuiteSparseCholesky.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\CholeskySuiteSparse.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ILinearlyCombinable.cs" />
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
     <Compile Include="LinearAlgebra\Output\Array2DWriter.cs" />

@@ -377,7 +377,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// matrix is not positive definite.
         /// </summary>
         /// <returns></returns>
-        public CholeskyFactorization FactorCholesky()
+        public CholeskyPacked FactorCholesky()
         {
             // Copy matrix. This may exceed available memory and needs an extra O(n^2) accesses. 
             // To avoid these, use the ~InPlace version.
@@ -386,7 +386,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
             // Call MKL
             int n = Order;
-            int[] permutation = new int[n];
             int info = MKLUtilities.DefaultInfo;
             Lapack.Dpptrf("U", ref n, ref upper[0], ref info);
 
@@ -413,7 +412,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
 
             Definiteness = DefiniteProperty.PositiveDefinite;
-            return new CholeskyFactorization(upper, n);
+            return new CholeskyPacked(upper, n);
         }
 
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)

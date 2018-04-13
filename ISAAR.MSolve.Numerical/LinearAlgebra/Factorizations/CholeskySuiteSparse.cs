@@ -9,19 +9,19 @@ using ISAAR.MSolve.Numerical.SuiteSparse;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
-    public class SuiteSparseCholesky : IFactorization, IDisposable
+    public class CholeskySuiteSparse : IFactorization, IDisposable
     {
         private IntPtr common;
         private IntPtr factorizedMatrix;
 
-        private SuiteSparseCholesky(int order, IntPtr suiteSparseCommon, IntPtr factorizedMatrix)
+        private CholeskySuiteSparse(int order, IntPtr suiteSparseCommon, IntPtr factorizedMatrix)
         {
             this.Order = order;
             this.common = suiteSparseCommon;
             this.factorizedMatrix = factorizedMatrix;
         }
 
-        ~SuiteSparseCholesky()
+        ~CholeskySuiteSparse()
         {
             ReleaseResources();
         }
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// </summary>
         public int Order { get; }
 
-        public static SuiteSparseCholesky CalcFactorization(int order, int nonZerosUpper, double[] values, int[] rowIndices,
+        public static CholeskySuiteSparse Factorize(int order, int nonZerosUpper, double[] values, int[] rowIndices,
             int[] colOffsets)
         {
             IntPtr common = SuiteSparseUtilities.CreateCommon();
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 throw new SuiteSparseException("The matrix not being positive definite."
                     + $" Cholesky failed at column {status} (0-based indexing).");
             }
-            else return new SuiteSparseCholesky(order, common, factorizedMatrix);
+            else return new CholeskySuiteSparse(order, common, factorizedMatrix);
         }
 
         public double CalcDeterminant()

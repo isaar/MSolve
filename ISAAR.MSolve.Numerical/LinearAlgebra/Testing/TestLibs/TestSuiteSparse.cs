@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs
             (new FullMatrixWriter(matrixCSC)).WriteToConsole();
 
             //Solve it using SuiteSparse
-            using (SuiteSparseCholesky factor = matrixCSC.FactorCholesky())
+            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky())
             {
                 VectorMKL solution = factor.SolveLinearSystem(rhs);
                 ProcessResult(solution.CopyToArray());

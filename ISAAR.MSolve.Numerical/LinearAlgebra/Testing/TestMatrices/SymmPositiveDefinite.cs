@@ -42,15 +42,32 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             { 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 2.765149064841803, 0.033206016423912 },
             { 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 3.055401743667175 } };
 
+        public const double determinant = 1161566697.17954;
+
         public static void CheckFactorization()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrix.CreateFromArray(matrix);
 
+            // Using SymmetricMatrix
+            var Asymm = SymmetricMatrix.CreateFromArray(matrix);
+            try
+            {
+                var factor = Asymm.FactorCholesky();
+                TriangularUpper U = factor.GetUpperTriangle();
+                comparer.CheckFactorizationCholesky(matrix, upper, U.CopyToArray2D());
+            }
+            catch (IndefiniteMatrixException)
+            {
+                var printer = new Printer();
+                printer.PrintIndefiniteMatrix(matrix);
+            }
+
+            // Using full Matrix
+            var A = Matrix.CreateFromArray(matrix);
             try
             {
                 var factor = A.FactorCholesky();
-                TriangularUpper U = factor.GetUpperTriangle();
+                Matrix U = factor.GetFactorU();
                 comparer.CheckFactorizationCholesky(matrix, upper, U.CopyToArray2D());
             }
             catch (IndefiniteMatrixException)
@@ -67,6 +84,37 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(matrix, A.CopyToArray2D());
         }
 
+        public static void CheckInverse()
+        {
+            // Using SymmetricMatrix
+            var Asymm = SymmetricMatrix.CreateFromArray(matrix);
+            try
+            {
+                var factor = Asymm.FactorCholesky();
+                double det = factor.CalcDeterminant();
+                Console.WriteLine($"Determinant expected = {determinant}. Determinant computed = {det}.");
+            }
+            catch (IndefiniteMatrixException)
+            {
+                var printer = new Printer();
+                printer.PrintIndefiniteMatrix(matrix);
+            }
+
+            // Using full Matrix
+            var A = Matrix.CreateFromArray(matrix);
+            try
+            {
+                var factor = A.FactorCholesky();
+                double det = factor.CalcDeterminant();
+                Console.WriteLine($"Determinant expected = {determinant}. Determinant computed = {det}.");
+            }
+            catch (IndefiniteMatrixException)
+            {
+                var printer = new Printer();
+                printer.PrintIndefiniteMatrix(matrix);
+            }
+        }
+
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -80,9 +128,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var b = VectorMKL.CreateFromArray(rhs);
-            var A = SymmetricMatrix.CreateFromArray(matrix);
+            // Using SymmetricMatrix
             try
             {
+                var Asymm = SymmetricMatrix.CreateFromArray(matrix);
+                var factor = Asymm.FactorCholesky();
+                var x = factor.SolveLinearSystem(b);
+                comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
+            }
+            catch (IndefiniteMatrixException)
+            {
+                var printer = new Printer();
+                printer.PrintIndefiniteMatrix(matrix);
+            }
+
+            // Using full Matrix
+            try
+            {
+                var A = Matrix.CreateFromArray(matrix);
                 var factor = A.FactorCholesky();
                 var x = factor.SolveLinearSystem(b);
                 comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);

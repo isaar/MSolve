@@ -172,9 +172,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
-        public SuiteSparseCholesky FactorCholesky()
+        public CholeskySuiteSparse FactorCholesky()
         {
-            return SuiteSparseCholesky.CalcFactorization(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets);
+            return CholeskySuiteSparse.Factorize(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets);
         }
 
         /// <summary>

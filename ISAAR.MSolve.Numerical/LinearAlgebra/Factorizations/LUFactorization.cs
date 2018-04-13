@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         ///     be overwritten.</param>
         /// <param name="pivotTolerance"></param>
         /// <returns></returns>
-        public static LUFactorization CalcFactorization(int order, double[] matrix, 
+        public static LUFactorization Factorize(int order, double[] matrix,
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
             // Call MKL

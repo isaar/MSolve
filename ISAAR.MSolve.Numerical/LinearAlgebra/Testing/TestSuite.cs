@@ -17,6 +17,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
             //TestBuilders();
+            TestInverse();
             //TestIndexing();
             //TestEquality();
             TestFactorization();
@@ -52,12 +53,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SquareInvertible.CheckFactorization();
             //SquareSingular.CheckFactorization();
             //SquareSingular1Deficiency.CheckFactorization();
-            //SymmPositiveDefinite.CheckFactorization();
+            SymmPositiveDefinite.CheckFactorization();
             //SymmSingular.CheckFactorization();
             //SparsePositiveDefinite.CheckFactorization();
 
             // Orthogonalizations
-            Rectangular10x5.CheckFactorizationQR();
+            //Rectangular10x5.CheckFactorizationQR();
         }
 
         public static void TestIndexing()
@@ -70,6 +71,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SymmSingular.CheckIndexing();
             //SparseRect.CheckIndexing();
             SparsePositiveDefinite.CheckIndexing();
+        }
+
+        public static void TestInverse()
+        {
+            SymmPositiveDefinite.CheckInverse();
         }
 
         public static void TestWriting()
@@ -132,12 +138,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //LowerSingular.CheckSystemSolution();
             //UpperInvertible.CheckSystemSolution();
             //UpperSingular.CheckSystemSolution();
-            //SymmPositiveDefinite.CheckSystemSolution();
+            SymmPositiveDefinite.CheckSystemSolution();
             //SymmSingular.CheckSystemSolution();
             //SparsePositiveDefinite.CheckSystemSolution();
 
             // Least squares systems
-            Rectangular10x5.CheckSolutionLeastSquares();
+            //Rectangular10x5.CheckSolutionLeastSquares();
         }
 
         public static void TestTransposition()

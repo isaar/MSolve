@@ -375,11 +375,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <param name="tolerance">If a diagonal entry is closer to zero than this tolerance, an 
         ///     <see cref="IndefiniteMatrixException"/> exception will be thrown.</param>
         /// <returns></returns>
-        public SkylineCholesky FactorCholesky(bool inPlace, double tolerance = SkylineCholesky.PivotTolerance)
+        public CholeskySkyline FactorCholesky(bool inPlace, double tolerance = CholeskySkyline.PivotTolerance)
         {
             if (inPlace)
             {
-                var factor = SkylineCholesky.CalcFactorization(NumColumns, values, diagOffsets);
+                var factor = CholeskySkyline.Factorize(NumColumns, values, diagOffsets);
                 // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
@@ -390,7 +390,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             {
                 double[] valuesCopy = new double[values.Length];
                 Array.Copy(values, valuesCopy, values.Length);
-                return SkylineCholesky.CalcFactorization(NumColumns, values, diagOffsets);
+                return CholeskySkyline.Factorize(NumColumns, values, diagOffsets);
             }
         }
 

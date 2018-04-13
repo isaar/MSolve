@@ -10,14 +10,14 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
-    public class SkylineCholesky : IIndexable2D, ISparseMatrix
+    public class CholeskySkyline : IIndexable2D, ISparseMatrix
     {
         public const double PivotTolerance = 1e-15;
 
         private readonly double[] values;
         private readonly int[] diagOffsets;
 
-        private SkylineCholesky(int order, double[] values, int[] diagOffsets)
+        private CholeskySkyline(int order, double[] values, int[] diagOffsets)
         {
             this.NumColumns = order;
             this.values = values;
@@ -56,13 +56,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <param name="skyValues">The non zero entries of the original <see cref="SkylineMatrix"/>. They will  be
         ///     overwritten.</param>
         /// <param name="skyDiagOffsets">The indexes of the diagonal entries into skyValues. They will be stored as is inside
-        ///     the new <see cref="SkylineCholesky"/> object. However they do not need copying, since they will not be altered
+        ///     the new <see cref="CholeskySkyline"/> object. However they do not need copying, since they will not be altered
         ///     during or after the factorization.</param>
         /// <param name="tolerance">If a diagonal entry is closer to zero than this tolerance, an 
         ///     <see cref="IndefiniteMatrixException"/> exception will be thrown.</param>
         /// <returns></returns>
-        public static SkylineCholesky CalcFactorization(int order, double[] skyValues, int[] skyDiagOffsets, 
-            double tolerance = SkylineCholesky.PivotTolerance)
+        public static CholeskySkyline Factorize(int order, double[] skyValues, int[] skyDiagOffsets, 
+            double tolerance = CholeskySkyline.PivotTolerance)
         {
             // Copied from Stavroulakis code.
             var zemCols = new List<int>();
@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 }
             }
             //isFactorized = true; // not needed here
-            if (order < 2) return new SkylineCholesky(order, skyValues, skyDiagOffsets);
+            if (order < 2) return new CholeskySkyline(order, skyValues, skyDiagOffsets);
 
             for (int ifl = 0; ifl < kFix; ifl++)
             {
@@ -165,7 +165,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             {
                 throw new IndefiniteMatrixException("Cholesky factorization can only applied to positive definite matrices.");
             }
-            return new SkylineCholesky(order, skyValues, skyDiagOffsets);
+            return new CholeskySkyline(order, skyValues, skyDiagOffsets);
         }
 
         public int CountNonZeros()

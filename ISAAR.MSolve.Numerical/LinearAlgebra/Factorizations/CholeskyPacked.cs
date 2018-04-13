@@ -11,11 +11,11 @@ using ISAAR.MSolve.Numerical.MKL;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
-    public class CholeskyFactorization: IFactorization
+    public class CholeskyPacked: IFactorization
     {
         private readonly double[] data;
 
-        internal CholeskyFactorization(double[] upperData, int order)
+        internal CholeskyPacked(double[] upperData, int order)
         {
             this.data = upperData;
             this.Order = order;
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             {
                 det *= data[i + (i * (i + 1)) / 2];
             }
-            return det;
+            return det * det;
         }
 
         public TriangularUpper GetUpperTriangle()

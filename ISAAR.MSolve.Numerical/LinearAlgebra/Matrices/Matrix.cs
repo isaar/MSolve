@@ -297,13 +297,24 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else return other.Equals(this, tolerance); // To avoid accessing zero entries
         }
 
+        public CholeskyFull FactorCholesky()
+        {
+            if (IsSquare)
+            {
+                // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
+                // To avoid these, set "inPlace=true".
+                return CholeskyFull.Factorize(NumColumns, CopyInternalData());
+            }
+            else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
+        }
+
         public LUFactorization FactorLU()
         {
             if (IsSquare)
             {
                 // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
                 // To avoid these, set "inPlace=true".
-                return LUFactorization.CalcFactorization(NumColumns, CopyInternalData());
+                return LUFactorization.Factorize(NumColumns, CopyInternalData());
             }
             else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
         }
@@ -315,7 +326,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <returns></returns>
         public QRFactorization FactorQR()
         {
-            return QRFactorization.CalcFactorization(NumRows, NumColumns, CopyInternalData());
+            return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         public Matrix Invert()

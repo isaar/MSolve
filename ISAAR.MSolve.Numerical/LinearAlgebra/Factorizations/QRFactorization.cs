@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <param name="matrix">The internal buffer storing the matrix entries in column major order. It will 
         ///     be overwritten with factorization data.</param>
         /// <returns></returns>
-        public static QRFactorization CalcFactorization(int numRows, int numCols, double[] matrix)
+        public static QRFactorization Factorize(int numRows, int numCols, double[] matrix)
         {
             if (numRows < numCols)
             {
