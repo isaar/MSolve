@@ -341,7 +341,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
                 return new Matrix(inverse, 3, 3);
             }
-            else return FactorLU().InvertInPlace();
+            else return FactorLU().Invert(true);
         }
 
         public (Matrix inverse, double determinant) InvertAndDetermninat()
@@ -359,7 +359,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else
             {
                 LUFactorization factor = FactorLU();
-                return (factor.InvertInPlace(), factor.CalcDeterminant());
+                return (factor.Invert(true), factor.CalcDeterminant());
             }
         }
 

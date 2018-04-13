@@ -20,11 +20,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             TestInverse();
             //TestIndexing();
             //TestEquality();
-            TestFactorization();
+            //TestFactorization();
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            TestSystemSolution();
+            //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
             //TestWriting();
@@ -75,6 +75,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void TestInverse()
         {
+            SquareInvertible.CheckInverse();
             SymmPositiveDefinite.CheckInverse();
         }
 

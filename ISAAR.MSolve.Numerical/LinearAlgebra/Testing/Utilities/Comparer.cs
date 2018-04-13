@@ -102,13 +102,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 
         public void CheckScalarEquality(double expected, double computed)
         {
-            if (valueComparer.AreEqual(expected, computed)) Console.WriteLine("Correct");
-            else
-            {
-                Console.WriteLine("Incorrect.");
-                Console.WriteLine("Expected vector: " + expected);
-                Console.WriteLine("Computed vector: " + computed);
-            }
+            bool isCorrect = valueComparer.AreEqual(expected, computed);
+            if (isCorrect) Console.Write("Correct. ");
+            else Console.Write("Incorrect. ");
+            if (DecidePrint(isCorrect)) Console.WriteLine($"expected = {expected}, computed = {computed}");
         }
 
         public bool CheckSystemSolution(double[,] matrix, double[] b, double[] xExpected, double[] xComputed)

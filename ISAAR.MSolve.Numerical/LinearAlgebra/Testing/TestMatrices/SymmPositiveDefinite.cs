@@ -44,6 +44,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public const double determinant = 1161566697.17954;
 
+        public static readonly double[,] inverse = new double[,] {
+            {  1.15036865934732e-001,   -4.39532821775264e-003,   2.42037551285770e-003, -5.97442668250739e-003, -6.90720784369428e-003, -5.95113316951374e-003, -4.47671372388698e-003, -3.83803697247067e-003, -5.02329472415375e-003, -6.71622551868538e-003 },
+            { -4.39532821775264e-003,    1.36732896698586e-001,  -5.75169213114003e-003, -3.03503313527466e-003, -4.92435739258999e-003, -2.38087837250887e-003, -1.63915778627162e-003, -1.11803335814405e-002, -6.12024602474453e-003, -1.05313557472777e-002 },
+            {  2.42037551285770e-003,   -5.75169213114003e-003,   1.60325077112127e-001, -5.41279316018277e-003, -7.68848261959135e-003, -6.76133191373731e-003, -4.07388870269966e-003, -7.54515406778568e-003, -1.04002539890800e-002, -6.29854537225606e-003 },
+            { -5.97442668250739e-003,   -3.03503313527466e-003,  -5.41279316018277e-003,  1.33253132115769e-001, -7.09955954426047e-003, -9.40120824258935e-003, -1.22461377827815e-002,  3.39760670285888e-004, -5.57539070903115e-003, -2.74544183434557e-003 },
+            { -6.90720784369428e-003,   -4.92435739258999e-003,  -7.68848261959135e-003, -7.09955954426047e-003,  1.13451942211347e-001, -2.44301774738121e-003, -2.20996709440458e-003, -6.50308607590307e-003, -8.43523792979407e-003, -3.58326599023808e-003 },
+            { -5.95113316951374e-003,   -2.38087837250887e-003,  -6.76133191373731e-003, -9.40120824258935e-003, -2.44301774738121e-003,  9.79882099638576e-002, -3.42245325864104e-003, -7.77186111730655e-003, -3.94470775148731e-003, -5.80050621175504e-003 },
+            { -4.47671372388698e-003,   -1.63915778627162e-003,  -4.07388870269966e-003, -1.22461377827815e-002, -2.20996709440458e-003, -3.42245325864104e-003,  1.36133387065973e-001, -9.98325470041244e-003, -4.51446541537761e-003, -1.50440957718562e-003 },
+            { -3.83803697247067e-003,   -1.11803335814405e-002,  -7.54515406778568e-003,  3.39760670285888e-004, -6.50308607590307e-003, -7.77186111730655e-003, -9.98325470041244e-003,  1.37773923159142e-001, -2.76274802050418e-003, -5.86189359820442e-003 },
+            { -5.02329472415375e-003,   -6.12024602474453e-003,  -1.04002539890800e-002, -5.57539070903115e-003, -8.43523792979407e-003, -3.94470775148731e-003, -4.51446541537761e-003, -2.76274802050418e-003,  1.30801943186731e-001, -1.28635721186656e-003 },
+            { -6.71622551868538e-003,   -1.05313557472777e-002,  -6.29854537225606e-003, -2.74544183434557e-003, -3.58326599023808e-003, -5.80050621175504e-003, -1.50440957718562e-003, -5.86189359820442e-003, -1.28635721186656e-003,  1.07118222072671e-001 }};
+
         public static void CheckFactorization()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -86,13 +98,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckInverse()
         {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
             // Using SymmetricMatrix
             var Asymm = SymmetricMatrix.CreateFromArray(matrix);
             try
             {
                 var factor = Asymm.FactorCholesky();
-                double det = factor.CalcDeterminant();
-                Console.WriteLine($"Determinant expected = {determinant}. Determinant computed = {det}.");
+                double detComputed = factor.CalcDeterminant();
+                Console.Write("Positive definite matrix as SymmetricMatrix - Determinant: ");
+                comparer.CheckScalarEquality(determinant, detComputed);
+                SymmetricMatrix Ainv = factor.Invert(false);
+                Console.Write("Positive definite matrix as SymmetricMatrix - Inverse: ");
+                comparer.CheckMatrixEquality(inverse, Ainv.CopyToArray2D());
             }
             catch (IndefiniteMatrixException)
             {
@@ -105,8 +122,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             try
             {
                 var factor = A.FactorCholesky();
-                double det = factor.CalcDeterminant();
-                Console.WriteLine($"Determinant expected = {determinant}. Determinant computed = {det}.");
+                double detComputed = factor.CalcDeterminant();
+                Console.Write("Positive definite matrix as Matrix - Determinant: ");
+                comparer.CheckScalarEquality(determinant, detComputed);
+                Matrix Ainv = factor.Invert(false);
+                Console.Write("Positive definite matrix as Matrix - Inverse: ");
+                comparer.CheckMatrixEquality(inverse, Ainv.CopyToArray2D());
             }
             catch (IndefiniteMatrixException)
             {

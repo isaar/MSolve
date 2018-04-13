@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.MKL
 {
+    // TODO: add a method that checks negative infos. It is basically the same everywhere in MKL. Only positive infos change 
+    // depending on the function.
     static class MKLUtilities
     {
         /// <summary>

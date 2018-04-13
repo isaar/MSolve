@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 
+// TODO: Replace Compute.NET functions with th LAPACKE interface for triangulations (~trf) and system solutions (~trs)
+// TODO: Wrap these methods with ones using enums, which will then call MKL with the correct arguments.
 namespace ISAAR.MSolve.Numerical.MKL
 {
     // This works because the dlls are copied due to Compute.NET. If that library is removed or different dlls need to be used, I 
@@ -19,6 +21,8 @@ namespace ISAAR.MSolve.Numerical.MKL
         public const char LAPACK_HERMITIAN_TRANSPOSE = 'C';
         public const char LAPACK_SIDE_LEFT = 'L';
         public const char LAPACK_SIDE_RIGHT = 'R';
+        public const char LAPACK_UPPER = 'U';
+        public const char LAPACK_LOWER = 'L';
 
         /// <summary>
         /// Full matrix-vector multiplication. Covered by Compute.NET. I just implemented it for practice and testing purposes.
@@ -57,6 +61,13 @@ namespace ISAAR.MSolve.Numerical.MKL
         /// </summary>
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dgetrf")]
         internal static extern int Dgetrf(int matrixLayout, int m, int n, double[] A, int ldA, int[] iPiv);
+
+        /// <summary>
+        /// Inversion of matrix in full format, that underwent LU factorization by 
+        /// <see cref="Lapack.Dgetrf(ref int, ref int, ref double, ref int, ref int, ref int)"/>. 
+        /// </summary>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dgetri")]
+        internal static extern int Dgetri(int matrixLayout, int n, double[] A, int ldA, int[] iPiv);
 
         /// <summary>
         /// Linear system solution using the full LU factorization from <see cref="Dgetrf(int, int, int, double[], int, int[])"/>.
@@ -141,5 +152,19 @@ namespace ISAAR.MSolve.Numerical.MKL
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dorgqr")]
         internal static extern int Dorgqr(int matrixLayout, int m, int n, int k, double[] A, int ldA, double[] Tau);
 
+
+        /// <summary>
+        /// Inversion of positive definite matrix in full format, that underwent cholesky factorization by 
+        /// <see cref="Lapack.Dpotrf(string, ref int, ref double, ref int, ref int)"/>. 
+        /// </summary>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpotri")]
+        internal static extern int Dpotri(int matrixLayout, char uplo, int n, double[] A, int ldA);
+
+        /// <summary>
+        /// Inversion of positive definite matrix in packed format, that underwent cholesky factorization by 
+        /// <see cref="Lapack.Dpptrf(string, ref int, ref double, ref int)"/>. 
+        /// </summary>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptri")]
+        internal static extern int Dpptri(int matrixLayout, char uplo, int n, double[] Ap);
     }
 }

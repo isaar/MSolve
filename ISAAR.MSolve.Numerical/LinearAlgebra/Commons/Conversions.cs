@@ -172,6 +172,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return rowMajor;
         }
 
+        // TODO: This is no longer a conversion per se. I need to organize these methods
+        public static void CopyUpperToLowerColMajor(double[] squareFullMatrix, int order)
+        {
+            for (int j = 0; j < order; ++j)
+            {
+                for (int i = 0; i < j; ++i)
+                {
+                    squareFullMatrix[i * order + j] = squareFullMatrix[j * order + i];
+                }
+            }
+        }
+
         public static double[,] FullColMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];
