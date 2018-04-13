@@ -21,16 +21,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs
             double beta = 0.0;
             int incX = 1;
             int incY = 1;
-            int m = Rectangular10x5.numRows;
-            int n = Rectangular10x5.numCols;
+            int m = RectangularFullColRank.numRows;
+            int n = RectangularFullColRank.numCols;
             int ldA = m;
-            double[] A = Conversions.Array2DToFullColMajor(Rectangular10x5.matrix);
-            double[] X = Rectangular10x5.lhs5;
+            double[] A = Conversions.Array2DToFullColMajor(RectangularFullColRank.matrix);
+            double[] X = RectangularFullColRank.lhs5;
             double[] Y = new double[m];
             LAPACKE.Dgemv(layout, transA, m, n, alpha, A, ldA, X, incX, beta, Y, incY);
 
             Comparer comparer = new Comparer();
-            if (comparer.AreEqual(Rectangular10x5.rhs5, Y)) Console.WriteLine("CBLAS.Dgemv() was successful");
+            if (comparer.AreEqual(RectangularFullColRank.rhs5, Y)) Console.WriteLine("CBLAS.Dgemv() was successful");
             else Console.WriteLine("CBLAS.Dgemv() failed");
         }
 

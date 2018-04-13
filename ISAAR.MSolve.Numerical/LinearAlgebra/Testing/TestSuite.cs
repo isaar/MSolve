@@ -17,10 +17,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
             //TestBuilders();
-            TestInverse();
+            //TestInverse();
             //TestIndexing();
             //TestEquality();
-            //TestFactorization();
+            TestFactorization();
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
@@ -53,12 +53,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //SquareInvertible.CheckFactorization();
             //SquareSingular.CheckFactorization();
             //SquareSingular1Deficiency.CheckFactorization();
-            SymmPositiveDefinite.CheckFactorization();
+            //SymmPositiveDefinite.CheckFactorization();
             //SymmSingular.CheckFactorization();
             //SparsePositiveDefinite.CheckFactorization();
 
             // Orthogonalizations
-            //Rectangular10x5.CheckFactorizationQR();
+            RectangularFullColRank.CheckFactorizationQR();
+            RectangularFullColRank.CheckFactorizationLQ();
         }
 
         public static void TestIndexing()
@@ -83,7 +84,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
         {
             DenseVectors.Print();
             Console.WriteLine();
-            Rectangular10x5.Print();
+            RectangularFullColRank.Print();
             Console.WriteLine();
             SquareInvertible.Print();
             Console.WriteLine();

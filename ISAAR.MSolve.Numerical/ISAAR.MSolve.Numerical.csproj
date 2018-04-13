@@ -113,7 +113,9 @@
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
+    <Compile Include="LinearAlgebra\Commons\ArrayManipulations.cs" />
     <Compile Include="LinearAlgebra\Factorizations\CholeskyFull.cs" />
+    <Compile Include="LinearAlgebra\Factorizations\LQFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\QRFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\CholeskySkyline.cs" />
     <Compile Include="LinearAlgebra\Input\SkylineMatrixReader.cs" />
@@ -183,7 +185,7 @@
     <Compile Include="LinearAlgebra\Testing\TestMatrices\DenseVectors.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\LowerInvertible.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\LowerSingular.cs" />
-    <Compile Include="LinearAlgebra\Testing\TestMatrices\Rectangular10x5.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestMatrices\RectangularFullColRank.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareInvertible.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular.cs" />
     <Compile Include="LinearAlgebra\Testing\TestMatrices\SquareSingular1Deficiency.cs" />

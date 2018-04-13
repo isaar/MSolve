@@ -12,7 +12,8 @@ using ISAAR.MSolve.Numerical.MKL;
 
 // TODO: Perhaps I should use the QR with pivoting
 // TODO: Add the option to specify if the diagonal entries of A are non diagonal.
-// TODO: Handle the case when m < n.
+// TODO: Handle the case when m < n. That would be a RQ factorization.
+// TODO: I think least squares only work if the columns of A are independent. This is not taken care of so far.
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
     /// <summary>
@@ -44,7 +45,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         public int NumRows { get; }
 
         /// <summary>
-        /// Calculates the QR factorization of a matrix, such that A = Q*R. Requires an extra O(min(m,n)) available memory.
+        /// Calculates the QR factorization of a matrix, such that A = Q*R. Requires an extra 
+        /// min(<paramref name="numRows"/>, <paramref name="numCols"/>) available memory.
         /// </summary>
         /// <param name="numRows">The number of rows of the matrix.</param>
         /// <param name="numCols">The number of columns of the matrix.</param>
@@ -55,58 +57,78 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         {
             if (numRows < numCols)
             {
-                throw new NotImplementedException("For now, the number of rows must be greater than the number of columns");
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
 
             // Call MKL
-            int minDim = Math.Min(numRows, numCols);
+            int m = numRows;
+            int n = numCols;
+            int ldA = m;
+            int minDim = Math.Min(m, n); //TODO: this is known to be numCols (though it may change in the future)
             double[] tau = new double[minDim];
             int info = MKLUtilities.DefaultInfo;
-            info = LAPACKE.Dgeqrf(LAPACKE.LAPACK_COL_MAJOR, numRows, numCols, matrix, numRows, tau);
+            info = LAPACKE.Dgeqrf(LAPACKE.LAPACK_COL_MAJOR, m, n, matrix, ldA, tau);
 
             // Check MKL execution
             if (info == 0) return new QRFactorization(numRows, numCols, matrix, tau);
             else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
-        public Matrix GenerateQ()
+        public Matrix GetFactorQ()
         {
             if (NumRows < NumColumns)
             {
-                throw new NotImplementedException("For now, the number of rows must be greater than the number of columns");
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
-            double[] q = new double[NumRows * NumRows]; // larger than reflectorsAndR (numRows * numCols)
-            Array.Copy(reflectorsAndR, q, reflectorsAndR.Length);
+            int m = NumRows;
+            int n = m;
+            int k = NumColumns;
+            int ldA = m;
+            // We need a larger buffer for Q (m-by-m) > reflectorsAndR (m-by-p)
+            double[] q = ArrayManipulations.ResizeColsColMajor(NumRows, NumColumns, NumRows, reflectorsAndR);
             int info = MKLUtilities.DefaultInfo;
-            info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, NumRows, NumRows, NumColumns, q, NumRows, tau);
+            info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
+
+            // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumRows, false);
             else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
-        public Matrix GenerateR()
+        public Matrix GetFactorR()
         {
             if (NumRows < NumColumns)
             {
-                throw new NotImplementedException("For now, the number of rows must be greater than the number of columns");
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
-            double[] r = Conversions.FullColMajorToFullUpperColMajor(NumRows, NumColumns, reflectorsAndR);
+            double[] r = Conversions.FullColMajorToFullUpperColMajorRect(NumRows, NumColumns, reflectorsAndR);
             return Matrix.CreateFromArray(r , NumRows, NumColumns, false);
         }
 
+        /// <summary>
+        /// Warning: the columns of the original matrix must be independent for this to work.
+        /// </summary>
+        /// <param name="rhs">A vector that may lie outside the column space of the original matrix. Its length must be equal to 
+        /// <see cref="NumRows"/></param>
+        /// <returns></returns>
         public VectorMKL SolveLeastSquares(VectorMKL rhs)
         {
             if (NumRows < NumColumns)
             {
-                throw new NotImplementedException("For now, the number of rows must be greater than the number of columns");
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
 
             // Least squares: x = inv(A^T * A) * A^T * b = inv(R) * Q^T * b, where b is the right hand side vector. 
             // Step 1: c = Q^T * b. Q is m-by-m, b is m-by-1 => c is m-by-1
             Preconditions.CheckMultiplicationDimensions(NumRows, rhs.Length);
             double[] c = rhs.CopyToArray();
+            int m = rhs.Length;
+            int nRhs = 1; // rhs = m-by-1
+            int k = tau.Length;
+            int ldA = m;
+            int ldC = m;
             int infoMult = MKLUtilities.DefaultInfo;
             infoMult = LAPACKE.Dormqr(LAPACKE.LAPACK_COL_MAJOR, LAPACKE.LAPACK_SIDE_LEFT, LAPACKE.LAPACK_TRANSPOSE,
-                rhs.Length, 1, tau.Length, reflectorsAndR, NumRows, tau, c, rhs.Length);
+                m, nRhs, k, reflectorsAndR, ldA, tau, c, ldC);
 
             // Check MKL execution
             if (infoMult != 0) throw MKLUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0

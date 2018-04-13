@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
     {
         public static readonly double[,] matrixSquare = SquareSingular.matrix;
         public static readonly double[,] matrixSymm = SymmPositiveDefinite.matrix;
-        public static readonly double[,] matrixRect = Rectangular10x5.matrix;
+        public static readonly double[,] matrixRect = RectangularFullColRank.matrix;
 
         public static readonly double[,] rectTimes5 = 
             MatrixOperations.Scale(5.0, matrixRect); 

@@ -254,6 +254,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
         }
 
         /// <summary>
+        /// Extract the lower trapezoid (subdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
+        /// rectangular matrices.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullLowerColMajorRect(int numRows, int numCols, double[] full)
+        {
+            if (numRows > numCols) throw new NotImplementedException("For now: numRows <= numCols");
+            double[] lower = new double[full.Length];
+            for (int j = 0; j < numRows; ++j) // numRows < numCols, so this will not scan past the square submatrix that contains the diagonal
+            {
+                for (int i = j; i < numRows; ++i) // this will scan all rows of the relevant columns
+                {
+                    lower[j * numRows + i] = full[j * numRows + i];
+                }
+            }
+            return lower;
+        }
+
+        /// <summary>
         /// Extract the upper part only. Both I/O are column major with full storage.
         /// </summary>
         /// <param name="full"></param>
@@ -282,16 +302,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
         }
 
         /// <summary>
-        /// Extract the superdiagonal part only. Both I/O are column major with full storage.
+        /// Extract the upper trapezoid (superdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
+        /// rectangular matrices.
         /// </summary>
         /// <param name="full"></param>
         /// <returns></returns>
-        public static double[] FullColMajorToFullUpperColMajor(int numRows, int numCols, double[] full)
+        public static double[] FullColMajorToFullUpperColMajorRect(int numRows, int numCols, double[] full)
         {
+            if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
             double[] upper = new double[full.Length];
-            for (int j = 0; j < numCols; ++j)
+            for (int j = 0; j < numCols; ++j) // numCols < numRows, so this will scan all columns
             {
-                for (int i = 0; i <= j; ++i)
+                for (int i = 0; i <= j; ++i) // numCols < numRows, so this will not scan past the square submatrix that contains the diagonal
                 {
                     upper[j * numRows + i] = full[j * numRows + i];
                 }

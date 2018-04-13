@@ -25,6 +25,19 @@ namespace ISAAR.MSolve.Numerical.MKL
         public const char LAPACK_LOWER = 'L';
 
         /// <summary>
+        /// LQ factorization of a full <paramref name="m"/>-by-<paramref name="n"/> matrix.
+        /// </summary>
+        /// <param name="matrixLayout"></param>
+        /// <param name="m"></param>
+        /// <param name="n"></param>
+        /// <param name="A"></param>
+        /// <param name="ldA"></param>
+        /// <param name="Tau"></param>
+        /// <returns></returns>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dgelqf")]
+        internal static extern int Dgelqf(int matrixLayout, int m, int n, double[] A, int ldA, double[] Tau);
+
+        /// <summary>
         /// Full matrix-vector multiplication. Covered by Compute.NET. I just implemented it for practice and testing purposes.
         /// </summary>
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_dgemv")]
@@ -126,6 +139,30 @@ namespace ISAAR.MSolve.Numerical.MKL
             int m, int n, int k, double[] A, int ldA, double[] Tau, double[] C, int ldC);
 
         /// <summary>
+        /// Generates the orthogonal matrix Q from the LQ factorization created by 
+        /// <see cref="Dgelqf(int, int, int, double[], int, double[])"/>.
+        /// </summary>
+        /// <param name="matrixLayout"></param>
+        /// <param name="n">The order of the orthogonal matrix Q (<paramref name="n"/> ≥ 0). WARNING: equal to the number of 
+        ///     columns of the original matrix, rather than the number of rows.</param>
+        /// <param name="m">The number of rows of Q to be computed (0 ≤ <paramref name="m"/> ≤ <paramref name="n"/>). 
+        ///     To generate the whole matrix Q, use <paramref name="m"/> = <paramref name="n"/>.</param>
+        /// <param name="k">The number of elementary reflectors whose product defines the matrix Q (0 ≤ <paramref name="k"/>
+        ///     ≤ <paramref name="m"/>). To generate the whole matrix Q, use: <paramref name="k"/> = p, where p = number of
+        ///     rows of the original matrix (if <paramref name="n"/> ≥ p).</param>
+        /// <param name="A">WARNING: To get the whole matrix Q, you must allocate enough space = 
+        ///     <paramref name="n"/>-by-<paramref name="n"/>, although the factorized data only need 
+        ///     p-by-<paramref name="n"/>.</param>
+        /// <param name="ldA">The leading dimension of <paramref name="A"/>; at least max(1, <paramref name="m"/>) for column 
+        ///     major layout and max(1, <paramref name="n"/>) for row major layout.</param>
+        /// <param name="Tau">Array returned by <see cref="Dgelqf(int, int, int, double[], int, double[])"/>. Contains scalars 
+        ///     that define elementary reflectors for the matrix Q in its decomposition in a product of elementary reflectors.
+        ///     The size of <paramref name="Tau"/> must be at least max(1, <paramref name="k"/>)</param>
+        /// <returns></returns>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dorglq")]
+        internal static extern int Dorglq(int matrixLayout, int m, int n, int k, double[] A, int ldA, double[] Tau);
+
+        /// <summary>
         /// Generates the orthogonal matrix Q from the QR factorization created by 
         /// <see cref="Dgeqrf(int, int, int, double[], int, double[])"/>.
         /// </summary>
@@ -142,7 +179,9 @@ namespace ISAAR.MSolve.Numerical.MKL
         ///     if <paramref name="m"/> ≥ p) The elements below the diagonal, with the array <paramref name="Tau"/>, present the 
         ///     orthogonal matrix Q as a product of min(<paramref name="m"/>, p) elementary reflectors. The size of 
         ///     <paramref name="A"/> is max(1, <paramref name="ldA"/> * <paramref name="n"/>) for column major layout and 
-        ///     max(1, <paramref name="ldA"/> * <paramref name="m"/>) for row major layout.</param>
+        ///     max(1, <paramref name="ldA"/> * <paramref name="m"/>) for row major layout. WARNING: To get the whole matrix Q, 
+        ///     you must allocate enough space = <paramref name="m"/>-by-<paramref name="m"/>, although the factorized data only
+        ///     need <paramref name="m"/>-by-p.</param>
         /// <param name="ldA">The leading dimension of <paramref name="A"/>; at least max(1, <paramref name="m"/>) for column 
         ///     major layout and max(1, <paramref name="n"/>) for row major layout.</param>
         /// <param name="Tau">Array returned by <see cref="Dgeqrf(int, int, int, double[], int, double[])"/>. Contains scalars 

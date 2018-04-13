@@ -308,6 +308,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
         }
 
+        /// <summary>
+        /// Calculates the LQ factorization of a matrix with <see cref="NumRows"/> &lt;= <see cref="NumColumns"/>, such that
+        /// A = L*Q. Requires an extra 
+        /// <see cref="NumRows"/>*<see cref="NumColumns"/> + min(<see cref="NumRows"/>,<see cref="NumColumns"/>) available
+        /// memory. 
+        /// </summary>
+        /// <returns></returns>
+        public LQFactorization FactorLQ()
+        {
+            return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
+        }
+
         public LUFactorization FactorLU()
         {
             if (IsSquare)
@@ -320,8 +332,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Calculates the QR factorization of a matrix, such that A = Q*R. Requires an extra O(m*n + min(m,n)) 
-        /// available memory.
+        /// Calculates the QR factorization of a matrix with <see cref="NumRows"/> &gt;= <see cref="NumColumns"/>, such that
+        /// A = Q*R. Requires an extra 
+        /// <see cref="NumRows"/>*<see cref="NumColumns"/> + min(<see cref="NumRows"/>,<see cref="NumColumns"/>) available 
+        /// memory. 
         /// </summary>
         /// <returns></returns>
         public QRFactorization FactorQR()
