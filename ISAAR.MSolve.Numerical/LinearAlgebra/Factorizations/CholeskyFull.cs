@@ -49,28 +49,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             Lapack.Dpotrf("U", ref order, ref matrix[0], ref order, ref info);
 
             // Check MKL execution
-            if (info == MKLUtilities.DefaultInfo)
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == default => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
+            if (info == 0) return new CholeskyFull(order, matrix);
             else if (info > 0)
             {
                 string msg = $"The leading minor of order {info-1} (and therefore the matrix itself) is not"
                 + " positive-definite, and the factorization could not be completed.";
                 throw new IndefiniteMatrixException(msg);
             }
-
-            return new CholeskyFull(order, matrix);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -80,9 +66,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <returns></returns>
         public double CalcDeterminant()
         {
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
-
+            CheckOverwritten();
             double det = 1.0;
             for (int i = 0; i < Order; ++i)
             {
@@ -93,8 +77,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
         public Matrix GetFactorU()
         {
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+            CheckOverwritten();
             double[] u = Conversions.FullColMajorToFullUpperColMajor(data, false);
             return Matrix.CreateFromArray(u, Order, Order, false);
         }
@@ -110,9 +93,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <returns></returns>
         public Matrix Invert(bool inPlace)
         {
-            // Check if the matrix is suitable for inversion
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+            CheckOverwritten();
 
             // Call MKL
             int info = MKLUtilities.DefaultInfo;
@@ -132,30 +113,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
             // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(inverse, Order, Order, false);
-            else if ((info == MKLUtilities.DefaultInfo) || (info > 0))
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                throw new MKLException($"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else // (info > 0) this should not happen
+            else if (info > 0) // this should not have happened
             {
                 throw new IndefiniteMatrixException($"The leading minor of order {info - 1} (and therefore the matrix itself)"
                 + "is not positive-definite, and the factorization could not be completed.");
             }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+            CheckOverwritten();
             Preconditions.CheckSystemSolutionDimensions(this.Order, this.Order, rhs.Length);
 
             // Back & forward substitution using MKL
@@ -167,22 +135,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             Lapack.Dpotrs("U", ref n, ref nRhs, ref data[0], ref n, ref b[0], ref ldb, ref info);
 
             // Check MKL execution
-            if ((info == MKLUtilities.DefaultInfo) || (info > 0))
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
+            if (info == 0) return VectorMKL.CreateFromArray(b, false);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+        }
 
-            return VectorMKL.CreateFromArray(b, false);
+        private void CheckOverwritten()
+        {
+            if (IsOverwritten) throw new InvalidOperationException(
+                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
         }
     }
 }

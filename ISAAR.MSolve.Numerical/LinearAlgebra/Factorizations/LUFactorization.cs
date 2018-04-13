@@ -10,6 +10,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.MKL;
 
+// TODO: When returning L & U, use Triangular matrices. Also return P.
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
     /// <summary>
@@ -64,7 +65,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
             // Check MKL execution
             int firstZeroPivot = int.MinValue;
-            if (info == 0)
+            if (info == 0) // Supposedly everything went ok
             {
                 if (Math.Abs(matrix[order * order - 1]) <= pivotTolerance)
                 {
@@ -78,20 +79,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 firstZeroPivot = info - 1;
                 return new LUFactorization(order, matrix, permutation, firstZeroPivot, true);
             }
-            else if (info == MKLUtilities.DefaultInfo)
-            {
-                // first check the default info value, since it is negative.
-                // info == default => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else // (info < 0)
-            {
-                string msg = string.Format("The {0}th parameter has an illegal value.", -info)
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }            
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -102,9 +90,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <returns>The determinant of the original matrix.</returns>
         public double CalcDeterminant()
         {
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
-
+            CheckOverwritten();
             if (IsSingular) return 0.0;
             else
             {
@@ -117,15 +103,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             }
         }
 
-        // Explicitly composes and returns the L and U matrices. TODO: 1) Use matrix classes instead of arrays, 2) Also return P
-        public (Matrix lower, Matrix upper) Expand()
+        /// <summary>
+        /// Explicitly composes and returns the lower triangular matrix L. 
+        /// </summary>
+        /// <returns></returns>
+        public Matrix GetFactorL()
         {
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+            CheckOverwritten();
+            double[] l = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, true);
+            return Matrix.CreateFromArray(l, Order, Order, false);
+        }
 
-            double[] l = Conversions.FullColMajorToFullLowerColMajor(lowerUpper, true);
+        /// <summary>
+        /// Explicitly composes and returns the upper triangular matrix U. 
+        /// </summary>
+        /// <returns></returns>
+        public Matrix GetFactorU()
+        {
+            CheckOverwritten();
             double[] u = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, false);
-            return (Matrix.CreateFromArray(l, Order, Order, false), Matrix.CreateFromArray(u, Order, Order, false));
+            return Matrix.CreateFromArray(u, Order, Order, false);
         }
 
         /// <summary>
@@ -140,8 +137,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         public Matrix Invert(bool inPlace)
         {
             // Check if the matrix is suitable for inversion
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+            CheckOverwritten();
             if (IsSingular) throw new SingularMatrixException("The factorization has been completed, but U is singular."
                 + $" The first zero pivot is U[{firstZeroPivot}, {firstZeroPivot}] = 0.");
 
@@ -162,32 +158,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
             // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(inverse, Order, Order, false);
-            else if ((info == MKLUtilities.DefaultInfo) || (info > 0))
-            {
-                // first check the default info value, since it is negative.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                throw new MKLException($"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else  // (info > 0) This should not happen
+            else  if (info > 0) // This should not have happened though
             {
                 throw new SingularMatrixException($"The {info - 1} diagonal element of factor U is zero, U is singular and the"
                     + "inversion could not be completed.");
             }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
-
+            CheckOverwritten();
             Preconditions.CheckSystemSolutionDimensions(this.Order, this.Order, rhs.Length);
+
             // Check if the matrix is singular first
             if (IsSingular)
             {
@@ -206,20 +189,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
             // Check MKL execution
             if (info == 0) return VectorMKL.CreateFromArray(b, false);
-            else if ((info == MKLUtilities.DefaultInfo) || (info > 0)) 
-            {
-                // first check the default info value, since it is negative.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else // (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value." 
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         } 
+
+        private void CheckOverwritten()
+        {
+            if (IsOverwritten) throw new InvalidOperationException(
+                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+        }
     }
 }

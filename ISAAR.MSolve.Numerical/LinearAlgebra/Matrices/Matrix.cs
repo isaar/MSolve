@@ -344,7 +344,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             else return FactorLU().Invert(true);
         }
 
-        public (Matrix inverse, double determinant) InvertAndDetermninat()
+        public (Matrix inverse, double determinant) InvertAndDetermninant()
         {
             if ((NumRows == 2) && (NumColumns == 2))
             {

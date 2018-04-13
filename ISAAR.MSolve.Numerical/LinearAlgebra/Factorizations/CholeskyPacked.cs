@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
     {
         private readonly double[] data;
 
-        internal CholeskyPacked(double[] upperData, int order)
+        private CholeskyPacked(int order, double[] upperData)
         {
             this.data = upperData;
             this.Order = order;
@@ -32,12 +32,37 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         public int Order { get; }
 
         /// <summary>
+        /// Calculates the cholesky factorization of a square matrix, such that A = transpose(U) * U. If the matrix is not 
+        /// positive definite an <see cref="IndefiniteMatrixException"/> will be thrown.
+        /// </summary>
+        /// <param name="order"></param>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
+        public static CholeskyPacked Factorize(int order, double[] matrix)
+        {
+            // Call MKL
+            int info = MKLUtilities.DefaultInfo;
+            Lapack.Dpptrf("U", ref order, ref matrix[0], ref info);
+
+            // Check MKL execution
+            if (info == 0) return new CholeskyPacked(order, matrix);
+            else if (info > 0)
+            {
+                string msg = "The leading minor of order " + (info - 1) + " (and therefore the matrix itself) is not"
+                + " positive-definite, and the factorization could not be completed.";
+                throw new IndefiniteMatrixException(msg);
+            }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
+        }
+
+        /// <summary>
         /// Calculates the determinant of the original matrix. A = U^T*U => det(A) = det(U^T)* det(U) => det(A) = (det(U))^2,
         /// where det(U) = U[0,0] * U[1,1] * ... * U[n,n]
         /// </summary>
         /// <returns></returns>
         public double CalcDeterminant()
         {
+            CheckOverwritten();
             double det = 1.0;
             for (int i = 0; i < Order; ++i)
             {
@@ -46,8 +71,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             return det * det;
         }
 
-        public TriangularUpper GetUpperTriangle()
+        public TriangularUpper GetFactorU()
         {
+            CheckOverwritten();
             return TriangularUpper.CreateFromArray(data, true);
         }
 
@@ -62,9 +88,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <returns></returns>
         public SymmetricMatrix Invert(bool inPlace)
         {
-            // Check if the matrix is suitable for inversion
-            if (IsOverwritten) throw new InvalidOperationException(
-                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+            CheckOverwritten();
 
             // Call MKL
             int info = MKLUtilities.DefaultInfo;
@@ -83,28 +107,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             
             // Check MKL execution
             if (info == 0) return SymmetricMatrix.CreateFromArray(inverse, Order, DefiniteProperty.PositiveDefinite);
-            else if ((info == MKLUtilities.DefaultInfo) || (info > 0))
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                throw new MKLException($"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else // (info > 0) this should not happen
+            else if (info > 0) // this should not have happened
             {
                 throw new IndefiniteMatrixException($"The leading minor of order {info - 1} (and therefore the matrix itself)"
                 + "is not positive-definite, and the factorization could not be completed.");
             }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
+            CheckOverwritten();
+
             // Call MKL
             int n = Order;
             double[] b = rhs.CopyToArray();
@@ -114,22 +128,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             Lapack.Dpptrs("U", ref n, ref nRhs, ref data[0], ref b[0], ref ldb, ref info);
 
             // Check MKL execution
-            if ((info == MKLUtilities.DefaultInfo) || (info > 0))
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
+            if (info == 0) return VectorMKL.CreateFromArray(b, false);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+        }
 
-            return VectorMKL.CreateFromArray(b, false);
+        private void CheckOverwritten()
+        {
+            if (IsOverwritten) throw new InvalidOperationException(
+                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
         }
     }
 }

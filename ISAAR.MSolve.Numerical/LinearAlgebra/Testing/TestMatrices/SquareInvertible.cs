@@ -77,7 +77,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = Matrix.CreateFromArray(matrix);
             var factor = A.FactorLU();
-            (Matrix L, Matrix U) = factor.Expand();
+            var L = factor.GetFactorL();
+            var U = factor.GetFactorU();
             comparer.CheckFactorizationLU(matrix, lower, upper, L.CopyToArray2D(), U.CopyToArray2D(), factor.IsSingular);
         }
 

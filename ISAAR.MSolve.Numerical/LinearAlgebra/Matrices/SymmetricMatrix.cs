@@ -379,40 +379,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// <returns></returns>
         public CholeskyPacked FactorCholesky()
         {
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) accesses. 
-            // To avoid these, use the ~InPlace version.
-            double[] upper = new double[data.Length];
-            Array.Copy(data, upper, data.Length);
-
-            // Call MKL
-            int n = Order;
-            int info = MKLUtilities.DefaultInfo;
-            Lapack.Dpptrf("U", ref n, ref upper[0], ref info);
-
-            // Check MKL execution
-            if (info == MKLUtilities.DefaultInfo)
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
-            else if (info > 0)
-            {
-                string msg = "The leading minor of order " + (info -1) + " (and therefore the matrix itself) is not"
-                + " positive-definite, and the factorization could not be completed.";
-                throw new IndefiniteMatrixException(msg);
-            }
-
-            Definiteness = DefiniteProperty.PositiveDefinite;
-            return new CholeskyPacked(upper, n);
+            var factor = CholeskyPacked.Factorize(Order, data);
+            Definiteness = DefiniteProperty.PositiveDefinite; // An exception would have been thrown otherwise.
+            return factor;
         }
 
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)

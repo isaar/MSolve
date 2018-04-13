@@ -65,22 +65,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             info = LAPACKE.Dgeqrf(LAPACKE.LAPACK_COL_MAJOR, numRows, numCols, matrix, numRows, tau);
 
             // Check MKL execution
-            if (info == MKLUtilities.DefaultInfo)
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == default => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = string.Format("The {0}th parameter has an illegal value.", -info)
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
-
-            return new QRFactorization(numRows, numCols, matrix, tau);
+            if (info == 0) return new QRFactorization(numRows, numCols, matrix, tau);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         public Matrix GenerateQ()
@@ -91,8 +77,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             }
             double[] q = new double[NumRows * NumRows]; // larger than reflectorsAndR (numRows * numCols)
             Array.Copy(reflectorsAndR, q, reflectorsAndR.Length);
-            LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, NumRows, NumRows, NumColumns, q, NumRows, tau);
-            return Matrix.CreateFromArray(q, NumRows, NumRows, false);
+            int info = MKLUtilities.DefaultInfo;
+            info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, NumRows, NumRows, NumColumns, q, NumRows, tau);
+            if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumRows, false);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         public Matrix GenerateR()
@@ -121,21 +109,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 rhs.Length, 1, tau.Length, reflectorsAndR, NumRows, tau, c, rhs.Length);
 
             // Check MKL execution
-            if ((infoMult == MKLUtilities.DefaultInfo) || (infoMult > 0))
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (infoMult < 0)
-            {
-                string msg = $"The {-infoMult}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
-
+            if (infoMult != 0) throw MKLUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
+            
             // Step 2: R * x = c, with R being m-by-n and upper trapezoidal (because m >= n).
             // Decomposing R: [R1; 0] * x = [c1 ; c2 ] => R1 * x = c1 => R1 * x = c1, with R1 being n-by-n, upper triangular
             // and stored in the factorized col major data. c1 and x are both n-by-1. The information stored in c2 is lost due to
@@ -148,7 +123,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             int incC = 1; // step in rhs array, which is the same c used for Q^T * b
             CBlas.Dtrsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
                 n, ref reflectorsAndR[0], ldR, ref c[0], incC);
-            // TODO: Check output of BLAS somehow
+            // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
             return VectorMKL.CreateFromArray(c, false);
         }
     }
