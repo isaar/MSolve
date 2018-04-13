@@ -253,6 +253,68 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return CBlas.Dnrm2(Length, ref data[0], 1);
         }
 
+        /// <summary>
+        /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
+        /// the requested Knot. The multiplicity of a single Knot can be derived using the exported multiplicity vector. 
+        /// The entries of this <see cref="VectorMKL"/> will be sorted.
+        /// </summary>
+        /// <returns></returns>
+        public VectorMKL[] RemoveDuplicatesFindMultiplicity()
+        {
+            Array.Sort(data);
+            HashSet<double> set = new HashSet<double>();
+            int indexSingles = 0;
+            double[] singles = new double[data.Length];
+
+            int[] multiplicity = new int[data.Length];
+            int counterMultiplicity = 0;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                // If same integer is already present then add method will return
+                // FALSE
+                if (set.Add(data[i]) == true)
+                {
+                    singles[indexSingles] = data[i];
+
+                    multiplicity[indexSingles] = counterMultiplicity;
+                    indexSingles++;
+
+                }
+                else
+                {
+                    counterMultiplicity++;
+                }
+            }
+            int numberOfZeros = 0;
+            for (int i = data.Length - 1; i >= 0; i--)
+            {
+                if (singles[i] == 0)
+                {
+                    numberOfZeros++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            VectorMKL[] singlesMultiplicityVectors = new VectorMKL[2];
+
+            singlesMultiplicityVectors[0] = VectorMKL.CreateZero(data.Length - numberOfZeros);
+            for (int i = 0; i < data.Length - numberOfZeros; i++)
+            {
+                singlesMultiplicityVectors[0][i] = singles[i];
+            }
+
+            singlesMultiplicityVectors[1] = VectorMKL.CreateZero(data.Length - numberOfZeros);
+            for (int i = 0; i < data.Length - numberOfZeros; i++)
+            {
+                singlesMultiplicityVectors[1][i] = multiplicity[i];
+            }
+
+            return singlesMultiplicityVectors;
+        }
+
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
             double accumulator = identityValue;

@@ -71,10 +71,5 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         {
             vector1.AxpyInPlace(-1.0, vector2);
         }
-
-        public static VectorMKL[] RemoveDuplicatesFindMultiplicity()
-        {
-            throw new NotImplementedException("I kinda forgot why dimtsap wanted this...");
-        }
     }
 }
