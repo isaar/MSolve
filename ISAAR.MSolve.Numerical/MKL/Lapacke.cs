@@ -90,54 +90,6 @@ namespace ISAAR.MSolve.Numerical.MKL
         internal static extern int Dgetrs(int matrixLayout, char transA, int n, int nRhs, 
             double[] A, int ldA, int[] iPiv, double[] B, int ldB);
 
-
-        /// <summary>
-        /// Multiply the rhs matrix (or vector) by the orthogonal matrix Q created by 
-        /// <see cref="Dgeqrf(int, int, int, double[], int, double[])"/> or its transpose.
-        /// </summary>
-        /// <param name="matrixLayout">Specifies whether the matrix storage layout is row major (<see cref="LAPACK_ROW_MAJOR"/>) 
-        ///     or column major (<see cref="LAPACK_COL_MAJOR"/>).</param>
-        /// <param name="side"> Must be either <see cref="LAPACK_SIDE_LEFT"/> or <see cref="LAPACK_SIDE_RIGHT"/>. If 
-        ///     <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/>, Q or Q^T is multiplied to <paramref name="C"/> from the
-        ///     left. If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/>, Q or Q^T is multiplied to 
-        ///     <paramref name="C"/> from the right.</param>
-        /// <param name="transQ">Must be either <see cref="LAPACK_NO_TRANSPOSE"/> or <see cref="LAPACK_TRANSPOSE"/>. If 
-        ///     <paramref name="transQ"/> = <see cref="LAPACK_NO_TRANSPOSE"/>, the routine multiplies <paramref name="C"/> by Q. 
-        ///     If trans='T'<paramref name="transQ"/> = <see cref="LAPACK_TRANSPOSE"/>, the routine multiplies 
-        ///     <paramref name="C"/> by Q^T.</param>
-        /// <param name="m">The number of rows in the matrix <paramref name="C"/> (<paramref name="m"/> ≥ 0).</param>
-        /// <param name="n">The number of columns in the matrix <paramref name="C"/> (<paramref name="n"/> ≥ 0).</param>
-        /// <param name="k">The number of elementary reflectors whose product defines the matrix Q. Constraints:        
-        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/> : 0 ≤ <paramref name="k"/> ≤ <paramref name="m"/>.
-        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/> : 0 ≤ <paramref name="k"/> ≤ <paramref name="n"/>.</param>
-        /// <param name="A">Array returned by <see cref="Dgeqrf(int, int, int, double[], int, double[])"/>. The elements on and 
-        ///     above the diagonal contain upper trapezoidal matrix R. The elements below the diagonal, with the array 
-        ///     <paramref name="Tau"/>, present the orthogonal matrix Q as a product of elementary reflectors. The size of 
-        ///     <paramref name="A"/> is max(1, <paramref name="ldA"/> * <paramref name="k"/>) for column major layout, 
-        ///     max(1, <paramref name="ldA"/> * <paramref name="m"/>) for row major layout and <paramref name="side"/> = 
-        ///     <see cref="LAPACK_SIDE_LEFT"/> and max(1, <paramref name="ldA"/> * <paramref name="n"/>) for row major layout and
-        ///     <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/>.</param>
-        /// <param name="ldA">The leading dimension of <paramref name="A"/>. Constraints:
-        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/> : <paramref name="ldA"/> ≥ 
-        ///     max(1, <paramref name="m"/>) for column major layout and max(1, <paramref name="k"/>) for row major layout.
-        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/> : <paramref name="ldA"/> ≥ 
-        ///     max(1, <paramref name="n"/>) for column major layout and max(1, <paramref name="k"/>) for row major layout.
-        ///     </param>
-        /// <param name="Tau">Array returned by <see cref="Dgeqrf(int, int, int, double[], int, double[])"/>. Contains scalars 
-        ///     that define elementary reflectors for the matrix Q in its decomposition in a product of elementary reflectors. 
-        ///     The size of <paramref name="Tau"/> must be at least max(1, <paramref name="k"/>).</param>
-        /// <param name="C">Array containing the <paramref name="m"/>-by<paramref name="n"/> right hand side matrix. Its size is
-        ///     max(1, <paramref name="ldC"/> * <paramref name="n"/>) for column major layout and 
-        ///     max(1, <paramref name="ldC"/> * <paramref name="m"/>) for row major layout. Overwritten by the product Q * C, 
-        ///     Q^T * C, C * Q, or C * Q^T (specified by <paramref name="side"/> and <paramref name="transQ"/>).</param>
-        /// <param name="ldC">The leading dimension of <paramref name="C"/>. Constraints:  <paramref name="ldC"/> ≥
-        ///     max(1, <paramref name="m"/>) for column major layout and max(1, <paramref name="n"/>) for row major layout.
-        ///     </param>
-        /// <returns></returns>
-        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dormqr")]
-        internal static extern int Dormqr(int matrixLayout, char side, char transQ,
-            int m, int n, int k, double[] A, int ldA, double[] Tau, double[] C, int ldC);
-
         /// <summary>
         /// Generates the orthogonal matrix Q from the LQ factorization created by 
         /// <see cref="Dgelqf(int, int, int, double[], int, double[])"/>.
@@ -191,6 +143,92 @@ namespace ISAAR.MSolve.Numerical.MKL
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dorgqr")]
         internal static extern int Dorgqr(int matrixLayout, int m, int n, int k, double[] A, int ldA, double[] Tau);
 
+        /// <summary>
+        /// Multiply an <paramref name="m"/>-by-<paramref name="n"/> (or vector) by the orthogonal matrix Q created by 
+        /// <see cref="Dgelqf(int, int, int, double[], int, double[])"/> or its transpose.
+        /// </summary>
+        /// <param name="matrixLayout">Specifies whether the matrix storage layout is row major (<see cref="LAPACK_ROW_MAJOR"/>) 
+        ///     or column major (<see cref="LAPACK_COL_MAJOR"/>).</param>
+        /// <param name="side"> Must be either <see cref="LAPACK_SIDE_LEFT"/> or <see cref="LAPACK_SIDE_RIGHT"/>. If 
+        ///     <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/>, Q or Q^T is multiplied to <paramref name="C"/> from the
+        ///     left. If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/>, Q or Q^T is multiplied to 
+        ///     <paramref name="C"/> from the right.</param>
+        /// <param name="transQ">Must be either <see cref="LAPACK_NO_TRANSPOSE"/> or <see cref="LAPACK_TRANSPOSE"/>. If 
+        ///     <paramref name="transQ"/> = <see cref="LAPACK_NO_TRANSPOSE"/>, the routine multiplies <paramref name="C"/> by Q. 
+        ///     If trans='T'<paramref name="transQ"/> = <see cref="LAPACK_TRANSPOSE"/>, the routine multiplies 
+        ///     <paramref name="C"/> by Q^T.</param>
+        /// <param name="m">The number of rows in the matrix <paramref name="C"/> (<paramref name="m"/> ≥ 0).</param>
+        /// <param name="n">The number of columns in the matrix <paramref name="C"/> (<paramref name="n"/> ≥ 0).</param>
+        /// <param name="k">The number of elementary reflectors whose product defines the matrix Q. Constraints:        
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/> : 0 ≤ <paramref name="k"/> ≤ <paramref name="m"/>.
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/> : 0 ≤ <paramref name="k"/> ≤ <paramref name="n"/>.</param>
+        /// <param name="A"></param>
+        /// <param name="ldA">The leading dimension of <paramref name="A"/>. Constraints:
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/> : <paramref name="ldA"/> ≥ 
+        ///     max(1, <paramref name="k"/>) for column major layout and max(1, <paramref name="m"/>) for row major layout.
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/> : <paramref name="ldA"/> ≥ 
+        ///     max(1, <paramref name="k"/>) for column major layout and max(1, <paramref name="n"/>) for row major layout.
+        ///     </param>
+        /// <param name="Tau">Array returned by <see cref="Dgelqf(int, int, int, double[], int, double[])"/>. Contains scalars 
+        ///     that define elementary reflectors for the matrix Q in its decomposition in a product of elementary reflectors. 
+        ///     The size of <paramref name="Tau"/> must be at least max(1, <paramref name="k"/>).</param>
+        /// <param name="C">Array containing the <paramref name="m"/>-by<paramref name="n"/> right hand side matrix. Its size is
+        ///     max(1, <paramref name="ldC"/> * <paramref name="n"/>) for column major layout and 
+        ///     max(1, <paramref name="ldC"/> * <paramref name="m"/>) for row major layout. Overwritten by the product Q * C, 
+        ///     Q^T * C, C * Q, or C * Q^T (specified by <paramref name="side"/> and <paramref name="transQ"/>).</param>
+        /// <param name="ldC">The leading dimension of <paramref name="C"/>. Constraints:  <paramref name="ldC"/> ≥
+        ///     max(1, <paramref name="m"/>) for column major layout and max(1, <paramref name="n"/>) for row major layout.</param>
+        /// <returns></returns>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dormlq")]
+        internal static extern int Dormlq(int matrixLayout, char side, char transQ,
+            int m, int n, int k, double[] A, int ldA, double[] Tau, double[] C, int ldC);
+
+        /// <summary>
+        /// Multiply an <paramref name="m"/>-by-<paramref name="n"/> matrix (or vector) by the orthogonal matrix Q created by 
+        /// <see cref="Dgeqrf(int, int, int, double[], int, double[])"/> or its transpose.
+        /// </summary>
+        /// <param name="matrixLayout">Specifies whether the matrix storage layout is row major (<see cref="LAPACK_ROW_MAJOR"/>) 
+        ///     or column major (<see cref="LAPACK_COL_MAJOR"/>).</param>
+        /// <param name="side"> Must be either <see cref="LAPACK_SIDE_LEFT"/> or <see cref="LAPACK_SIDE_RIGHT"/>. If 
+        ///     <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/>, Q or Q^T is multiplied to <paramref name="C"/> from the
+        ///     left. If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/>, Q or Q^T is multiplied to 
+        ///     <paramref name="C"/> from the right.</param>
+        /// <param name="transQ">Must be either <see cref="LAPACK_NO_TRANSPOSE"/> or <see cref="LAPACK_TRANSPOSE"/>. If 
+        ///     <paramref name="transQ"/> = <see cref="LAPACK_NO_TRANSPOSE"/>, the routine multiplies <paramref name="C"/> by Q. 
+        ///     If trans='T'<paramref name="transQ"/> = <see cref="LAPACK_TRANSPOSE"/>, the routine multiplies 
+        ///     <paramref name="C"/> by Q^T.</param>
+        /// <param name="m">The number of rows in the matrix <paramref name="C"/> (<paramref name="m"/> ≥ 0).</param>
+        /// <param name="n">The number of columns in the matrix <paramref name="C"/> (<paramref name="n"/> ≥ 0).</param>
+        /// <param name="k">The number of elementary reflectors whose product defines the matrix Q. Constraints:        
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/> : 0 ≤ <paramref name="k"/> ≤ <paramref name="m"/>.
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/> : 0 ≤ <paramref name="k"/> ≤ <paramref name="n"/>.</param>
+        /// <param name="A">Array returned by <see cref="Dgeqrf(int, int, int, double[], int, double[])"/>. The elements on and 
+        ///     above the diagonal contain upper trapezoidal matrix R. The elements below the diagonal, with the array 
+        ///     <paramref name="Tau"/>, present the orthogonal matrix Q as a product of elementary reflectors. The size of 
+        ///     <paramref name="A"/> is max(1, <paramref name="ldA"/> * <paramref name="k"/>) for column major layout, 
+        ///     max(1, <paramref name="ldA"/> * <paramref name="m"/>) for row major layout and <paramref name="side"/> = 
+        ///     <see cref="LAPACK_SIDE_LEFT"/> and max(1, <paramref name="ldA"/> * <paramref name="n"/>) for row major layout and
+        ///     <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/>.</param>
+        /// <param name="ldA">The leading dimension of <paramref name="A"/>. Constraints:
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_LEFT"/> : <paramref name="ldA"/> ≥ 
+        ///     max(1, <paramref name="m"/>) for column major layout and max(1, <paramref name="k"/>) for row major layout.
+        ///     If <paramref name="side"/> = <see cref="LAPACK_SIDE_RIGHT"/> : <paramref name="ldA"/> ≥ 
+        ///     max(1, <paramref name="n"/>) for column major layout and max(1, <paramref name="k"/>) for row major layout.
+        ///     </param>
+        /// <param name="Tau">Array returned by <see cref="Dgeqrf(int, int, int, double[], int, double[])"/>. Contains scalars 
+        ///     that define elementary reflectors for the matrix Q in its decomposition in a product of elementary reflectors. 
+        ///     The size of <paramref name="Tau"/> must be at least max(1, <paramref name="k"/>).</param>
+        /// <param name="C">Array containing the <paramref name="m"/>-by<paramref name="n"/> right hand side matrix. Its size is
+        ///     max(1, <paramref name="ldC"/> * <paramref name="n"/>) for column major layout and 
+        ///     max(1, <paramref name="ldC"/> * <paramref name="m"/>) for row major layout. Overwritten by the product Q * C, 
+        ///     Q^T * C, C * Q, or C * Q^T (specified by <paramref name="side"/> and <paramref name="transQ"/>).</param>
+        /// <param name="ldC">The leading dimension of <paramref name="C"/>. Constraints:  <paramref name="ldC"/> ≥
+        ///     max(1, <paramref name="m"/>) for column major layout and max(1, <paramref name="n"/>) for row major layout.
+        ///     </param>
+        /// <returns></returns>
+        [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dormqr")]
+        internal static extern int Dormqr(int matrixLayout, char side, char transQ,
+            int m, int n, int k, double[] A, int ldA, double[] Tau, double[] C, int ldC);
 
         /// <summary>
         /// Inversion of positive definite matrix in full format, that underwent cholesky factorization by 

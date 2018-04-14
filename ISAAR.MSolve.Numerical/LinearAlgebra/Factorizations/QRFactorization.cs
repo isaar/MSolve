@@ -108,18 +108,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// Warning: the columns of the original matrix must be independent for this to work.
         /// </summary>
         /// <param name="rhs">A vector that may lie outside the column space of the original matrix. Its length must be equal to 
-        /// <see cref="NumRows"/></param>
+        ///     <see cref="NumRows"/></param>
         /// <returns></returns>
-        public VectorMKL SolveLeastSquares(VectorMKL rhs)
+        public VectorMKL SolveLeastSquares(VectorMKL rhs) //TODO: perhaps I should use the driver routines of LAPACKE
         {
             if (NumRows < NumColumns)
             {
                 throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
+            Preconditions.CheckSystemSolutionDimensions(NumRows, NumColumns, rhs.Length);
 
             // Least squares: x = inv(A^T * A) * A^T * b = inv(R) * Q^T * b, where b is the right hand side vector. 
             // Step 1: c = Q^T * b. Q is m-by-m, b is m-by-1 => c is m-by-1
-            Preconditions.CheckMultiplicationDimensions(NumRows, rhs.Length);
             double[] c = rhs.CopyToArray();
             int m = rhs.Length;
             int nRhs = 1; // rhs = m-by-1
