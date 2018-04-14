@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.MKL;

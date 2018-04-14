@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.MKL;
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             int k = NumColumns;
             int ldA = m;
             // We need a larger buffer for Q (m-by-m) > reflectorsAndR (m-by-p)
-            double[] q = ArrayManipulations.ResizeColsColMajor(NumRows, NumColumns, NumRows, reflectorsAndR);
+            double[] q = ArrayColMajor.ResizeCols(NumRows, NumColumns, NumRows, reflectorsAndR);
             int info = MKLUtilities.DefaultInfo;
             info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
 

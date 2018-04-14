@@ -113,7 +113,7 @@
     <Compile Include="Interfaces\IFileReadable.cs" />
     <Compile Include="Interfaces\IFileWriteable.cs" />
     <Compile Include="LinearAlgebra\Commons\AnalyticFormulas.cs" />
-    <Compile Include="LinearAlgebra\Commons\ArrayManipulations.cs" />
+    <Compile Include="LinearAlgebra\ArrayManipulations\ArrayColMajor.cs" />
     <Compile Include="LinearAlgebra\Factorizations\CholeskyFull.cs" />
     <Compile Include="LinearAlgebra\Factorizations\LQFactorization.cs" />
     <Compile Include="LinearAlgebra\Factorizations\QRFactorization.cs" />
@@ -195,7 +195,7 @@
     <Compile Include="LinearAlgebra\Testing\TestMatrices\UpperSingular.cs" />
     <Compile Include="LinearAlgebra\Testing\TestSuite.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\Comparer.cs" />
-    <Compile Include="LinearAlgebra\Commons\Conversions.cs" />
+    <Compile Include="LinearAlgebra\ArrayManipulations\Conversions.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\MatrixOperations.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\Printer.cs" />
     <Compile Include="LinearAlgebra\Testing\Utilities\ValueComparer.cs" />

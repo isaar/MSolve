@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
@@ -150,6 +150,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public static VectorMKL operator *(VectorMKL vectorLeft, Matrix matrixRight)
             => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
+
+        public Matrix AppendBottom(Matrix other)
+        {
+            Preconditions.CheckSameColDimension(this, other);
+            double[] result = ArrayColMajor.JoinVertically(this.NumRows, this.NumColumns, this.data,
+                other.NumRows, other.NumColumns, other.data);
+            return new Matrix(result, this.NumRows + other.NumColumns, NumColumns);
+        }
+
+        public Matrix AppendRight(Matrix other)
+        {
+            Preconditions.CheckSameRowDimension(this, other);
+            double[] result = ArrayColMajor.JoinHorizontally(this.NumRows, this.NumColumns, this.data,
+                other.NumRows, other.NumColumns, other.data);
+            return new Matrix(result, NumRows, this.NumColumns + other.NumColumns);
+        }
 
         public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
@@ -550,9 +566,35 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < data.Length; ++i) data[i] = value;
         }
 
+        public void SetColumn(int colIdx, VectorMKL colValues)
+        {
+            Preconditions.CheckIndexCol(this, colIdx);
+            Preconditions.CheckSameRowDimension(this, colValues);
+            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, colValues.InternalData);
+        }
+
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
             data[colIdx * NumRows + rowIdx] = value;
+        }
+
+        public void SetRow(int rowIdx, VectorMKL rowValues)
+        {
+            Preconditions.CheckIndexRow(this, rowIdx);
+            Preconditions.CheckSameColDimension(this, rowValues);
+            ArrayColMajor.SetRow(NumRows, NumColumns, data, rowIdx, rowValues.InternalData);
+        }
+
+        public void SetSubmatrix(int rowStart, int colStart, Matrix submatrix)
+        {
+            Preconditions.CheckIndices(this, rowStart, colStart);
+            if ((rowStart + submatrix.NumRows > this.NumRows) || (colStart + submatrix.NumColumns > this.NumColumns))
+            {
+                throw new NonMatchingDimensionsException("The submatrix doesn't fit inside this matrix, at least when starting"
+                    + " from the specified entry.");
+            }
+            ArrayColMajor.SetSubmatrix(this.NumRows, this.NumColumns, this.data, rowStart, colStart, 
+                submatrix.NumRows, submatrix.NumColumns, submatrix.data);
         }
 
         /// <summary>

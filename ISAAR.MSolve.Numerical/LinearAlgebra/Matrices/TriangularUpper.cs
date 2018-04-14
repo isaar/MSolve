@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;

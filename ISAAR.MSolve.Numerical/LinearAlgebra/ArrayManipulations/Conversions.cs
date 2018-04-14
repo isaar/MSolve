@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations
 {
     // TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
     public static class Conversions

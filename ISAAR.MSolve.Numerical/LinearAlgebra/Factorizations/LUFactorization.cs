@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.MKL;
