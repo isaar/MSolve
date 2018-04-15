@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Output
 {
-    class Array2DWriterMatrixWriter: MatrixWriter
+    class Array2DWriter: MatrixWriter
     {
         private readonly Array2DFormatting format;
         private readonly double[,] matrix;
 
-        public Array2DWriterMatrixWriter(double[,] matrix, Array2DFormatting format = null)
+        public Array2DWriter(double[,] matrix, Array2DFormatting format = null)
         {
             this.format = (format == null) ? Array2DFormatting.Plain : format;
             this.matrix = matrix;

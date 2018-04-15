@@ -117,17 +117,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 
         public void CheckVectorEquality(VectorMKL expected, VectorMKL computed)
         {
-            if (expected.Equals(computed)) Console.WriteLine("Correct");
-            else
-            {
-                Console.WriteLine("Incorrect.");
-                Console.Write("Expected vector: ");
-                (new FullVectorWriter(expected)).WriteToConsole();
-                Console.WriteLine();
-                Console.Write("Computed vector: ");
-                (new FullVectorWriter(computed)).WriteToConsole();
-                Console.WriteLine();
-            }
+            bool isCorrect = expected.Equals(computed);
+            if (DecidePrint(isCorrect)) printer.PrintVectorEquality(isCorrect, expected.InternalData, computed.InternalData);
         }
 
         private bool DecidePrint(bool isCorrectOperation)

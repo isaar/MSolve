@@ -131,6 +131,53 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         #endregion
 
         /// <summary>
+        /// Creates the CSC arrays.
+        /// </summary>
+        /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
+        ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
+        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
+        ///     be faster during creation of the CSC matrix.</param>
+        /// <returns></returns>
+        public (double[] values, int[] rowIndices, int[] columnOffsets) BuildCSCArrays(bool sortRowsOfEachCol)
+        {
+            int[] colOffsets = new int[NumColumns + 1];
+            int nnz = 0;
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                colOffsets[j] = nnz;
+                nnz += columns[j].Count;
+            }
+            colOffsets[NumColumns] = nnz; //The last CSC entry is nnz.
+
+            int[] rowIndices = new int[nnz];
+            double[] values = new double[nnz];
+            int counter = 0;
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                if (sortRowsOfEachCol)
+                {
+                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key))
+                    {
+                        rowIndices[counter] = rowVal.Key;
+                        values[counter] = rowVal.Value;
+                        ++counter;
+                    }
+                }
+                else
+                {
+                    foreach (var rowVal in columns[j])
+                    {
+                        rowIndices[counter] = rowVal.Key;
+                        values[counter] = rowVal.Value;
+                        ++counter;
+                    }
+                }
+            }
+
+            return (values, rowIndices, colOffsets);
+        }
+
+        /// <summary>
         /// Creates a CSC matrix.
         /// </summary>
         /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
@@ -176,53 +223,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
             format.RawIndexArrays.Add("Row indices", rowIndices);
             format.RawIndexArrays.Add("Column offsets", colOffsets);
             return format;
-        }
-
-        /// <summary>
-        /// Creates the CSC arrays.
-        /// </summary>
-        /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 
-        ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
-        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
-        ///     be faster during creation of the CSC matrix.</param>
-        /// <returns></returns>
-        private (double[] values, int[] rowIndices, int[] columnOffsets) BuildCSCArrays(bool sortRowsOfEachCol)
-        {
-            int[] colOffsets = new int[NumColumns + 1];
-            int nnz = 0;
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                colOffsets[j] = nnz;
-                nnz += columns[j].Count;
-            }
-            colOffsets[NumColumns] = nnz; //The last CSC entry is nnz.
-
-            int[] rowIndices = new int[nnz];
-            double[] values = new double[nnz];
-            int counter = 0;
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                if (sortRowsOfEachCol)
-                {
-                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key))
-                    {
-                        rowIndices[counter] = rowVal.Key;
-                        values[counter] = rowVal.Value;
-                        ++counter;
-                    }
-                }
-                else
-                {
-                    foreach (var rowVal in columns[j])
-                    {
-                        rowIndices[counter] = rowVal.Key;
-                        values[counter] = rowVal.Value;
-                        ++counter;
-                    }
-                }
-            }
-
-            return (values, rowIndices, colOffsets);
         }
     }
 }

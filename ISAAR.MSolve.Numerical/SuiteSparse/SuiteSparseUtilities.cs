@@ -38,6 +38,13 @@ namespace ISAAR.MSolve.Numerical.SuiteSparse
         internal static extern int FactorizeCSCUpper(int order, int nnz, double[] values, int[] rowIndices, int[] colOffsets, 
             out IntPtr factorizedMatrix, IntPtr common);
 
+        [DllImport("suitesparse_utilities.dll", EntryPoint = "util_row_add")]
+        internal static extern int RowAdd(int order, IntPtr factorizedMatrix, int rowIdx, int vectorNnz, 
+            double[] vectorValues, int[] vectorRowIndices, int[] vectorColOffsets, IntPtr common);
+
+        [DllImport("suitesparse_utilities.dll", EntryPoint = "util_row_delete")]
+        internal static extern int RowDelete(IntPtr factorizedMatrix, int rowIdx, IntPtr common);
+
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_solve")]
         internal static extern void Solve(int order, IntPtr factorizedMatrix, double[] rhs, double[] outSolution, IntPtr common);
     }

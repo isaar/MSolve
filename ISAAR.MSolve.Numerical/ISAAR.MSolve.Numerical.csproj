@@ -128,6 +128,7 @@
     <Compile Include="LinearAlgebra\Output\Array1DFormatting.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DWriter.cs" />
     <Compile Include="LinearAlgebra\Output\Array2DFormatting.cs" />
+    <Compile Include="LinearAlgebra\Testing\TestLibs\TestSuiteSparseUpdate.cs" />
     <Compile Include="MKL\MKLUtilities.cs" />
     <Compile Include="LinearAlgebra\Commons\DefiniteProperty.cs" />
     <Compile Include="SuiteSparse\SuiteSparseUtilities.cs" />
