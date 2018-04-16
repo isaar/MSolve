@@ -19,8 +19,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         int Length { get; }
       
         double[] CopyToArray();
-        VectorMKL DoPointwise(IVectorView other, Func<double, double, double> operation);
-        VectorMKL DoToAllEntries(Func<double, double> operation);
+        IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation);
+        IVectorView DoToAllEntries(Func<double, double> unaryOperation);
         double DotProduct(IVectorView vector);
     }
 }

@@ -4,11 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
 {
     internal static class DenseStrategies
     {
@@ -36,6 +37,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     result[i, j] = matrix[i, j];
                 }
             }
+            return result;
+        }
+
+        internal static VectorMKL DoEntrywise(IVectorView vector1, IVectorView vector2,
+            Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckVectorDimensions(vector1, vector2);
+            var result = VectorMKL.CreateZero(vector1.Length);
+            for (int i = 0; i < vector1.Length; ++i) result[i] = binaryOperation(vector1[i], vector2[i]);
             return result;
         }
 

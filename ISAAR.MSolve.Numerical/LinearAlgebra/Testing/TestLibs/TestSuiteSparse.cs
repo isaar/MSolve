@@ -101,7 +101,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs
                 matrixExpected.SetSubmatrix(0, 0, original.Slice(0, i + 1, 0, i + 1));
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
                 (new FullMatrixWriter(matrixExpected)).WriteToConsole();
-                factor.AddRow(i, matrixExpected.SliceRow(i));
+                VectorMKL newRowVector = matrixExpected.SliceRow(i);
+                var newRow = new Dictionary<int, double>();
+                for (int j = 0; j < newRowVector.Length; ++j)
+                {
+                    if (newRowVector[j] != 0) newRow.Add(j, newRowVector[j]);
+                }
+                factor.AddRow(i, SparseVector.CreateFromDictionary(matrixExpected.NumColumns, newRow));
 
                 // Solve new linear system
                 Console.WriteLine("\nCheck linear system solution");

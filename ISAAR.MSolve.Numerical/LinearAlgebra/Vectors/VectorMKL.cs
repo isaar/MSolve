@@ -171,18 +171,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
         }
 
-        public VectorMKL DoPointwise(IVectorView other, Func<double, double, double> binaryOperation)
+        public IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is VectorMKL casted) return DoEntrywise(other, binaryOperation);
+            else return other.DoEntrywise(this, binaryOperation);
+        }
+
+        public VectorMKL DoEntrywise(VectorMKL other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
             double[] result = new double[data.Length];
-            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(data[i], other[i]);
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
             return new VectorMKL(result);
         }
 
-        public void DoPointwiseInPlace(VectorMKL other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(VectorMKL other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
             for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
+        }
+
+        IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            return DoToAllEntries(unaryOperation);
         }
 
         public VectorMKL DoToAllEntries(Func<double, double> unaryOperation)
@@ -192,25 +203,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return new VectorMKL(result);
         }
 
-        public void DoToAllEntriesInPlace(Func<double, double> unaryOperation)
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
         }
 
         public double DotProduct(IVectorView other)
         {
-            Preconditions.CheckVectorDimensions(this, other);
             if (other is VectorMKL)
             {
+                Preconditions.CheckVectorDimensions(this, other);
                 double[] rawDataOther = ((VectorMKL)other).InternalData;
                 return CBlas.Ddot(Length, ref this.data[0], 1, ref rawDataOther[0], 1);
             }
-            else
-            {
-                double result = 0.0;
-                for (int i = 0; i < data.Length; ++i) result += data[i] * other[i];
-                return result;
-            }
+            else return other.DotProduct(this); // Let the more complex/efficient object operate.
         }
 
         public bool Equals(VectorMKL other, ValueComparer comparer = null)

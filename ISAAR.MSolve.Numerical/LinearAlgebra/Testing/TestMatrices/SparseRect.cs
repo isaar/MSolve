@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;

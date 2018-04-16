@@ -55,13 +55,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 
         /// <summary>
         /// Update row (same as column) <paramref name="rowIdx"/> of the factorized matrix to the one it would have if 
-        /// <paramref name="rowValues"/> was set as the <paramref name="rowIdx"/>-th row/col of the original matrix and then the 
+        /// <paramref name="newRow"/> was set as the <paramref name="rowIdx"/>-th row/col of the original matrix and then the 
         /// factorization was computed. The existing <paramref name="rowIdx"/>-th row/column of the original matrix must be equal 
         /// to the <paramref name="rowIdx"/>-th row/col of the identity matrix. 
         /// </summary>
         /// <param name="rowIdx"></param>
-        /// <param name="rowValues"></param>
-        public void AddRow(int rowIdx, VectorMKL rowValues) //TODO: The row should be input as a sparse CSC matrix with dimensions order-by-1
+        /// <param name="newRow"></param>
+        public void AddRow(int rowIdx, SparseVector newRow) //TODO: The row should be input as a sparse CSC matrix with dimensions order-by-1
         {
             //TODO: use Preconditions for these tests and implement IIndexable2D.
             if ((rowIdx < 0) || (rowIdx >= Order))
@@ -69,21 +69,16 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 throw new IndexOutOfRangeException($"Cannot access row {rowIdx} in a"
                     + $" {Order}-by-{Order} matrix");
             }
-            if (rowValues.Length != Order)
+            if (newRow.Length != Order)
             {
                 throw new NonMatchingDimensionsException($"The new row/column must have the same number of rows as this"
-                    + $"{Order}-by-{Order} factorized matrix, but was {rowValues.Length}-by-1");
+                    + $"{Order}-by-{Order} factorized matrix, but was {newRow.Length}-by-1");
             }
 
-            DOKColMajor dok = new DOKColMajor(Order, 1);
-            for (int i = 0; i < Order; ++i)
-            {
-                if (rowValues[i] != 0) dok[i, 0] = rowValues[i];
-            }
-            (double[] values, int[] rowIndices, int[] colOffsets) = dok.BuildCSCArrays(false);
-
+            int nnz = newRow.CountNonZeros();
+            int[] colOffsets = { 0, nnz };
             int status = SuiteSparseUtilities.RowAdd(Order, factorizedMatrix, rowIdx, 
-                values.Length, values, rowIndices, colOffsets, common);
+                nnz, newRow.InternalValues, newRow.InternalRowIndices, colOffsets, common);
             if (status != 1)
             {
                 throw new SuiteSparseException("Rows addition did not succeed. This could be caused by insufficent memory");

@@ -128,7 +128,7 @@
     <Compile Include="LinearAlgebra\Output\Array1DFormatting.cs" />
     <Compile Include="LinearAlgebra\Output\Array1DWriter.cs" />
     <Compile Include="LinearAlgebra\Output\Array2DFormatting.cs" />
-    <Compile Include="LinearAlgebra\Testing\TestLibs\TestSuiteSparseUpdate.cs" />
+    <Compile Include="LinearAlgebra\Vectors\SparseVector.cs" />
     <Compile Include="MKL\MKLUtilities.cs" />
     <Compile Include="LinearAlgebra\Commons\DefiniteProperty.cs" />
     <Compile Include="SuiteSparse\SuiteSparseUtilities.cs" />
@@ -152,7 +152,7 @@
     <Compile Include="LinearAlgebra\Output\RawArraysWriter.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSCMatrix.cs" />
     <Compile Include="LinearAlgebra\Matrices\CSRMatrix.cs" />
-    <Compile Include="LinearAlgebra\Matrices\DenseStrategies.cs" />
+    <Compile Include="LinearAlgebra\Commons\DenseStrategies.cs" />
     <Compile Include="LinearAlgebra\Matrices\IIndexable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\ISliceable2D.cs" />
     <Compile Include="LinearAlgebra\Matrices\ISparseMatrix.cs" />

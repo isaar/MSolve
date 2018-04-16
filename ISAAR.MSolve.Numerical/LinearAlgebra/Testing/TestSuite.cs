@@ -184,10 +184,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
 
         public static void SuiteSparse()
         {
-            //TestSuiteSparse.ExampleRawArrays();
-            //TestSuiteSparse.ExampleMatrixClasses();
-            //TestSuiteSparseUpdate.CheckRowAddition();
-            TestSuiteSparse.CheckRowDeletion();
+            TestSuiteSparse.ExampleRawArrays();
+            TestSuiteSparse.ExampleMatrixClasses();
+            TestSuiteSparse.CheckRowAddition();
+            //TestSuiteSparse.CheckRowDeletion();
         }
     }
 }

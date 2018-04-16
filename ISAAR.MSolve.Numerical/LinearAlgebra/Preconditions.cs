@@ -13,17 +13,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             else return true;
         }
 
-        public static void CheckIndices(IIndexable2D matrix, int rowIdx, int colIdx)
+        public static void CheckIndex1D(IVectorView vector, int idx)
         {
-            if ((rowIdx < 0) || (rowIdx >= matrix.NumRows))
+            if ((idx < 0) || (idx >= vector.Length))
             {
-                throw new IndexOutOfRangeException($"Cannot access row {rowIdx} in a"
-                    + $" {matrix.NumRows}-by-{matrix.NumColumns} matrix");
-            }
-            if ((colIdx < 0) || (colIdx >= matrix.NumColumns))
-            {
-                throw new IndexOutOfRangeException($"Cannot access column {colIdx} in a"
-                    + $" {matrix.NumRows}-by-{matrix.NumColumns} matrix");
+                throw new IndexOutOfRangeException($"Cannot access index {idx} in a vector with length = {vector.Length}");
             }
         }
 
@@ -41,6 +35,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             if ((rowIdx < 0) || (rowIdx >= matrix.NumRows))
             {
                 throw new IndexOutOfRangeException($"Cannot access row {rowIdx} in a"
+                    + $" {matrix.NumRows}-by-{matrix.NumColumns} matrix");
+            }
+        }
+
+        public static void CheckIndices(IIndexable2D matrix, int rowIdx, int colIdx)
+        {
+            if ((rowIdx < 0) || (rowIdx >= matrix.NumRows))
+            {
+                throw new IndexOutOfRangeException($"Cannot access row {rowIdx} in a"
+                    + $" {matrix.NumRows}-by-{matrix.NumColumns} matrix");
+            }
+            if ((colIdx < 0) || (colIdx >= matrix.NumColumns))
+            {
+                throw new IndexOutOfRangeException($"Cannot access column {colIdx} in a"
                     + $" {matrix.NumRows}-by-{matrix.NumColumns} matrix");
             }
         }
