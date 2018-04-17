@@ -81,8 +81,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckBuilders()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var dokRowMajor = new DOKRowMajor(numRows, numCols);
-            var dokColMajor = new DOKColMajor(numRows, numCols);
+            var dokRowMajor = DOKRowMajor.CreateEmpty(numRows, numCols);
+            var dokColMajor = DOKColMajor.CreateEmpty(numRows, numCols);
             for (int i = 0; i < numRows; ++i)
             {
                 for (int j = 0; j < numCols; ++j)

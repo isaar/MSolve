@@ -21,10 +21,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         /// </summary>
         private readonly Dictionary<int, double>[] columns;
 
-        public DOKColMajor(int numRows, int numCols)
+        private DOKColMajor(int numRows, int numCols, Dictionary<int, double>[] columns)
         {
-            this.columns = new Dictionary<int, double>[numCols];
-            for (int j = 0; j < numCols; ++j) this.columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            this.columns = columns;
             this.NumRows = numRows;
             this.NumColumns = numCols;
         }
@@ -44,6 +43,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
             {
                 columns[colIdx][rowIdx] = value;
             }
+        }
+
+        public static DOKColMajor CreateEmpty(int numRows, int numCols)
+        {
+            var columns = new Dictionary<int, double>[numCols];
+            for (int j = 0; j < numCols; ++j) columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            return new DOKColMajor(numRows, numCols, columns);
+        }
+
+        public static DOKColMajor CreateIdentity(int order)
+        {
+            var columns = new Dictionary<int, double>[order];
+            for (int j = 0; j < order; ++j)
+            {
+                var idenityCol = new Dictionary<int, double>(); //Initial capacity may be optimized.
+                idenityCol[j] = 1.0;
+                columns[j] = idenityCol;
+            }
+            return new DOKColMajor(order, order, columns);
         }
 
         #region global matrix building 

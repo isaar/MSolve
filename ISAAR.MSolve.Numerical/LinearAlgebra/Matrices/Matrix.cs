@@ -119,6 +119,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
+        public static Matrix CreateIdentity(int order)
+        {
+            double[] data = new double[order * order];
+            for (int j = 0; j < order; ++j) data[j * order + j] = 1.0;
+            return new Matrix(data, order, order);
+        }
+
         public static Matrix CreateWithValue(int numRows, int numColumns, double value)
         {
             double[] data = new double[numRows * numColumns];

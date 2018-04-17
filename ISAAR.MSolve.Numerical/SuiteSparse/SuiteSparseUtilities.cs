@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Numerical.SuiteSparse
 
         /// <summary>
         /// Deletes a row and column from an cholesky factorization. After updating the kth row and column of L will be equal to 
-	    /// the kth row and column of the identity matrix.Returns 1 if the method succeeds, 0 otherwise.
+        /// the kth row and column of the identity matrix.Returns 1 if the method succeeds, 0 otherwise.
         /// </summary>
         /// <param name="factorizedMatrix">The LDL' factorization of the matrix. It will be modified.</param>
         /// <param name="rowIdx">Index of row/column to delete.</param>

@@ -34,11 +34,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         /// </summary>
         private readonly Dictionary<int, double>[] columns;
 
-        public DOKSymmetricColMajor(int numCols)
+        private DOKSymmetricColMajor(int order, Dictionary<int, double>[] columns)
         {
-            this.columns = new Dictionary<int, double>[numCols];
-            for (int j = 0; j < numCols; ++j) this.columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
-            this.NumColumns = numCols;
+            this.columns = columns;
+            this.NumColumns = order;
         }
 
         public int NumColumns { get; }
@@ -58,6 +57,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
                 ProcessIndices(ref rowIdx, ref colIdx);
                 columns[colIdx][rowIdx] = value;
             }
+        }
+
+        public static DOKSymmetricColMajor CreateEmpty(int order)
+        {
+            var columns = new Dictionary<int, double>[order];
+            for (int j = 0; j < order; ++j) columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            return new DOKSymmetricColMajor(order, columns);
+        }
+
+        public static DOKSymmetricColMajor CreateIdentity(int order)
+        {
+            var columns = new Dictionary<int, double>[order];
+            for (int j = 0; j < order; ++j) 
+            {
+                var idenityCol = new Dictionary<int, double>(); //Initial capacity may be optimized.
+                idenityCol[j] = 1.0;
+                columns[j] = idenityCol; 
+            }
+            return new DOKSymmetricColMajor(order, columns);
         }
 
         #region global matrix building 

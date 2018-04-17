@@ -21,10 +21,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
         /// </summary>
         private readonly Dictionary<int, double>[] rows;
 
-        public DOKRowMajor(int numRows, int numCols)
+        private DOKRowMajor(int numRows, int numCols, Dictionary<int, double>[] rows)
         {
-            this.rows = new Dictionary<int, double>[numRows];
-            for (int i = 0; i < numRows; ++i) this.rows[i] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            this.rows = rows;
             this.NumRows = numRows;
             this.NumColumns = numCols;
         }
@@ -44,6 +43,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders
             {
                 rows[rowIdx][colIdx] = value;
             }
+        }
+
+        public static DOKRowMajor CreateEmpty(int numRows, int numCols)
+        {
+            var rows = new Dictionary<int, double>[numCols];
+            for (int i = 0; i < numCols; ++i) rows[i] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            return new DOKRowMajor(numRows, numCols, rows);
+        }
+
+        public static DOKRowMajor CreateIdentity(int order)
+        {
+            var rows = new Dictionary<int, double>[order];
+            for (int j = 0; j < order; ++j)
+            {
+                var idenityRow = new Dictionary<int, double>(); //Initial capacity may be optimized.
+                idenityRow[j] = 1.0;
+                rows[j] = idenityRow;
+            }
+            return new DOKRowMajor(order, order, rows);
         }
 
         #region global matrix building 
