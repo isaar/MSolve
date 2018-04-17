@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         public static CholeskySuiteSparse Factorize(int order, int nonZerosUpper, double[] values, int[] rowIndices,
             int[] colOffsets)
         {
-            IntPtr common = SuiteSparseUtilities.CreateCommon();
+            IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
             int status = SuiteSparseUtilities.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets, 
                 out IntPtr factorizedMatrix, common);
             if (status == -2)

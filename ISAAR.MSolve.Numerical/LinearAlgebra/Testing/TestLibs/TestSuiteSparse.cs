@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs
             double[] solution = new double[n];
 
             // Solve it using SuiteSparse
-            IntPtr handle = SuiteSparseUtilities.CreateCommon();
+            IntPtr handle = SuiteSparseUtilities.CreateCommon(0, 0);
             int status = SuiteSparseUtilities.FactorizeCSCUpper(n, nnz, values, rowIndices, colOffsets, out IntPtr factor, handle);
             if (status != -1)
             {

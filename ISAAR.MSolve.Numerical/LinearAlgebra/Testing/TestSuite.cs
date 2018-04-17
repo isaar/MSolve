@@ -29,6 +29,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             //TestWriting();
         }
 
+        public static void SuiteSparse()
+        {
+            //TestSuiteSparse.ExampleRawArrays();
+            //TestSuiteSparse.ExampleMatrixClasses();
+            TestSuiteSparse.CheckRowAddition();
+            TestSuiteSparse.CheckRowDeletion();
+        }
+
         public static void TestMarshaling()
         {
             TestMKL.TestDgemv();
@@ -180,14 +188,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
             DenseMatrices.CheckLinearCombination();
             DenseMatrices.CheckTransposition();
             DenseMatrices.CheckMatrixMultiplication();
-        }
-
-        public static void SuiteSparse()
-        {
-            TestSuiteSparse.ExampleRawArrays();
-            TestSuiteSparse.ExampleMatrixClasses();
-            TestSuiteSparse.CheckRowAddition();
-            //TestSuiteSparse.CheckRowDeletion();
-        }
+        } 
     }
 }
