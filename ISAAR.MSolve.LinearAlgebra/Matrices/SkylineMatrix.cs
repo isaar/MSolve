@@ -488,9 +488,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
-        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -501,7 +501,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="vector"></param>
         /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
+        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
             int n = vector.Length;
             Preconditions.CheckMultiplicationDimensions(NumColumns, n);
@@ -536,7 +536,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Debug.Assert(result[j] == 0);
                 result[j] = dotLower; // contribution of the (L+D) part of the row. 
             }
-            return VectorMKL.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

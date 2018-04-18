@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 {
                     var test = new DCBvariable(meshElements[i], jIntegralRadiiOverElementSize[j]);
                     //test.CheckJintegralCountour();
-                    VectorMKL solution = test.Solve();
+                    Vector solution = test.Solve();
                     //test.CheckSolution(solution);
                     Tuple<double, double> results = test.Propagate(solution);
 
@@ -191,7 +191,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private VectorMKL Solve()
+        private Vector Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -199,7 +199,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private void CheckSolution(VectorMKL solution)
+        private void CheckSolution(Vector solution)
         {
             var finder = new EntityFinder(model, 1e-6);
             List<XContinuumElement2D> mouthElements = finder.FindElementsThatContains(CRACK_MOUTH);
@@ -227,7 +227,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
         }
 
-        private Tuple<double, double> Propagate(VectorMKL solution)
+        private Tuple<double, double> Propagate(Vector solution)
         {
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
             propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,

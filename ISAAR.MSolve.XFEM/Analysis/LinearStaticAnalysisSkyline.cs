@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Interfaces;
@@ -24,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     {
         private readonly Model2D model;
         private ISolver solver; // A solver devoid of linear system must be passed into the constructor
-        public VectorMKL Solution { get; private set; }
+        public Vector Solution { get; private set; }
 
         public LinearStaticAnalysisSkyline(Model2D model)
         {
@@ -43,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             solver.Solve();
             double[] solutionArray = new double[ls.Solution.Length];
             ls.Solution.CopyTo(solutionArray, 0);
-            Solution = VectorMKL.CreateFromArray(solutionArray);
+            Solution = Vector.CreateFromArray(solutionArray);
         }
 
         public void PrintSolution()
@@ -69,13 +68,14 @@ namespace ISAAR.MSolve.XFEM.Analysis
             /// To solve the system (for the unknowns ul):
             /// i) Kuu * uu = Fu - Kuc * uc = Feff
             /// ii) uu = Kuu \ Feff
-            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out SkylineMatrix2D Kuu, out Matrix Kuc);
+            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, 
+                out Numerical.LinearAlgebra.SkylineMatrix2D Kuu, out Matrix Kuc);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            VectorMKL Fu = VectorMKL.CreateFromArray(model.CalculateFreeForces());
-            VectorMKL uc = VectorMKL.CreateFromArray(model.CalculateConstrainedDisplacements());
-            VectorMKL KlcTimesUc = Kuc * uc;
-            VectorMKL Feff = Fu - Kuc * uc;
+            Vector Fu = Vector.CreateFromArray(model.CalculateFreeForces());
+            Vector uc = Vector.CreateFromArray(model.CalculateConstrainedDisplacements());
+            Vector KlcTimesUc = Kuc * uc;
+            Vector Feff = Fu - Kuc * uc;
 
             SkylineLinearSystem ls = new SkylineLinearSystem(0, Feff.CopyToArray());
             ls.Matrix = Kuu;

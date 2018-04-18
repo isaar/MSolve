@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         public static void Main()
         {
             Model2D model = CreateModel();
-            VectorMKL solution = Solve(model);
+            Vector solution = Solve(model);
             WriteOutput(model, solution);
         }
 
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return model;
         }
 
-        private static VectorMKL Solve(Model2D model)
+        private static Vector Solve(Model2D model)
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return analysis.Solution;
         }
 
-        private static void WriteOutput(Model2D model, VectorMKL solution)
+        private static void WriteOutput(Model2D model, Vector solution)
         {
             var writer = new DiscontinuousMeshVTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);

@@ -218,7 +218,6 @@
     <Compile Include="Utilities\InterpolationUtilities.cs" />
     <Compile Include="Utilities\ITable.cs" />
     <Compile Include="Utilities\MathUtilities.cs" />
-    <Compile Include="Utilities\MatrixUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
     <Compile Include="Utilities\EntityFinder.cs" />
     <Compile Include="Utilities\NonMatchingDimensionsException.cs" />

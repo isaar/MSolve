@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -17,11 +15,11 @@ using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 //TODO: tensor product, vector2D, vector3D
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
-    public class VectorMKL: IVectorView, ISliceable1D
+    public class Vector: IVectorView, ISliceable1D
     {
         private readonly double[] data;
 
-        private VectorMKL(double[] data)
+        private Vector(double[] data)
         {
             this.data = data;
             this.Length = data.Length;
@@ -40,15 +38,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             set { data[i] = value; }
         }
 
-        public static VectorMKL CreateFromArray(double[] data, bool copyArray = false)
+        public static Vector CreateFromArray(double[] data, bool copyArray = false)
         {
             if (copyArray)
             {
                 double[] clone = new double[data.Length];
                 Array.Copy(data, clone, data.Length);
-                return new VectorMKL(clone);
+                return new Vector(clone);
             }
-            else return new VectorMKL(data);
+            else return new Vector(data);
         }
 
         /// <summary>
@@ -56,48 +54,48 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="original"></param>
         /// <returns></returns>
-        public static VectorMKL CreateFromVector(IVectorView original)
+        public static Vector CreateFromVector(IVectorView original)
         {
-            if (original is VectorMKL casted) return CreateFromVector(casted);
+            if (original is Vector casted) return CreateFromVector(casted);
             double[] clone = new double[original.Length];
             for (int i = 0; i < clone.Length; ++i) clone[i] = original[i];
-            return new VectorMKL(clone);
+            return new Vector(clone);
         }
 
-        public static VectorMKL CreateWithValue(int length, double value)
+        public static Vector CreateWithValue(int length, double value)
         {
             double[] data = new double[length];
             for (int i = 0; i < length; ++i) data[i] = value;
-            return new VectorMKL(data);
+            return new Vector(data);
         }
 
-        public static VectorMKL CreateZero(int length)
+        public static Vector CreateZero(int length)
         {
-            return new VectorMKL(new double[length]);
+            return new Vector(new double[length]);
         }
 
         #region operators 
-        public static VectorMKL operator +(VectorMKL vector1, VectorMKL vector2)
+        public static Vector operator +(Vector vector1, Vector vector2)
         {
             return vector1.Axpy(1.0, vector2);
         }
 
-        public static VectorMKL operator -(VectorMKL vector1, VectorMKL vector2)
+        public static Vector operator -(Vector vector1, Vector vector2)
         {
             return vector1.Axpy(-1.0, vector2); //The order is important
         }
 
-        public static VectorMKL operator *(double scalar, VectorMKL vector)
+        public static Vector operator *(double scalar, Vector vector)
         {
             return vector.Scale(scalar);
         }
 
-        public static VectorMKL operator *(VectorMKL vector, double scalar)
+        public static Vector operator *(Vector vector, double scalar)
         {
             return vector.Scale(scalar);
         }
 
-        public static double operator *(VectorMKL vector1, VectorMKL vector2)
+        public static double operator *(Vector vector1, Vector vector2)
         {
             return vector1.DotProduct(vector2); //Perhaps call BLAS directly
         }
@@ -109,14 +107,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="other"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
-        public VectorMKL Axpy(double scalar, VectorMKL other)
+        public Vector Axpy(double scalar, Vector other)
         {
             Preconditions.CheckVectorDimensions(this, other);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
             CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref result[0], 1);
-            return new VectorMKL(result);
+            return new Vector(result);
         }
 
         /// <summary>
@@ -124,16 +122,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="other"></param>
         /// <param name="scalar"></param>
-        public void AxpyInPlace(double scalar, VectorMKL other)
+        public void AxpyInPlace(double scalar, Vector other)
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
         }
 
-        public VectorMKL Copy()
+        public Vector Copy()
         {
             //TODO: Perhaps this should use BLAS
-            return VectorMKL.CreateFromArray(data, true);
+            return Vector.CreateFromArray(data, true);
         }
 
         //Perhaps this should use BLAS
@@ -166,19 +164,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 
         public IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation)
         {
-            if (other is VectorMKL casted) return DoEntrywise(other, binaryOperation);
+            if (other is Vector casted) return DoEntrywise(other, binaryOperation);
             else return other.DoEntrywise(this, binaryOperation);
         }
 
-        public VectorMKL DoEntrywise(VectorMKL other, Func<double, double, double> binaryOperation)
+        public Vector DoEntrywise(Vector other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
             double[] result = new double[data.Length];
             for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
-            return new VectorMKL(result);
+            return new Vector(result);
         }
 
-        public void DoEntrywiseIntoThis(VectorMKL other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(Vector other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
             for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
@@ -189,11 +187,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return DoToAllEntries(unaryOperation);
         }
 
-        public VectorMKL DoToAllEntries(Func<double, double> unaryOperation)
+        public Vector DoToAllEntries(Func<double, double> unaryOperation)
         {
             double[] result = new double[data.Length];
             for (int i = 0; i < data.Length; ++i) result[i] = unaryOperation(data[i]);
-            return new VectorMKL(result);
+            return new Vector(result);
         }
 
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
@@ -203,16 +201,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 
         public double DotProduct(IVectorView other)
         {
-            if (other is VectorMKL)
+            if (other is Vector)
             {
                 Preconditions.CheckVectorDimensions(this, other);
-                double[] rawDataOther = ((VectorMKL)other).InternalData;
+                double[] rawDataOther = ((Vector)other).InternalData;
                 return CBlas.Ddot(Length, ref this.data[0], 1, ref rawDataOther[0], 1);
             }
             else return other.DotProduct(this); // Let the more complex/efficient object operate.
         }
 
-        public bool Equals(VectorMKL other, ValueComparer comparer = null)
+        public bool Equals(Vector other, ValueComparer comparer = null)
         {
             if (this.Length != other.Length) return false;
             if (comparer == null) comparer = new ValueComparer(1e-13);
@@ -227,21 +225,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// result = thisScalar * this + otherScalar * otherVector
         /// </summary>
         /// <returns></returns>
-        public VectorMKL LinearCombination(double thisScalar, double otherScalar, VectorMKL otherVector)
+        public Vector LinearCombination(double thisScalar, double otherScalar, Vector otherVector)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
             CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref result[0], 1);
-            return new VectorMKL(result);
+            return new Vector(result);
         }
 
         /// <summary>
         /// this = this + scalar * other
         /// </summary>
         /// <returns></returns>
-        public void LinearCombinationInPlace(double thisScalar, double otherScalar, VectorMKL otherVector)
+        public void LinearCombinationInPlace(double thisScalar, double otherScalar, Vector otherVector)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
@@ -255,10 +253,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
         /// the requested Knot. The multiplicity of a single Knot can be derived using the exported multiplicity vector. 
-        /// The entries of this <see cref="VectorMKL"/> will be sorted.
+        /// The entries of this <see cref="Vector"/> will be sorted.
         /// </summary>
         /// <returns></returns>
-        public VectorMKL[] RemoveDuplicatesFindMultiplicity()
+        public Vector[] RemoveDuplicatesFindMultiplicity()
         {
             Array.Sort(data);
             HashSet<double> set = new HashSet<double>();
@@ -297,15 +295,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     break;
                 }
             }
-            VectorMKL[] singlesMultiplicityVectors = new VectorMKL[2];
+            Vector[] singlesMultiplicityVectors = new Vector[2];
 
-            singlesMultiplicityVectors[0] = VectorMKL.CreateZero(data.Length - numberOfZeros);
+            singlesMultiplicityVectors[0] = Vector.CreateZero(data.Length - numberOfZeros);
             for (int i = 0; i < data.Length - numberOfZeros; i++)
             {
                 singlesMultiplicityVectors[0][i] = singles[i];
             }
 
-            singlesMultiplicityVectors[1] = VectorMKL.CreateZero(data.Length - numberOfZeros);
+            singlesMultiplicityVectors[1] = Vector.CreateZero(data.Length - numberOfZeros);
             for (int i = 0; i < data.Length - numberOfZeros; i++)
             {
                 singlesMultiplicityVectors[1][i] = multiplicity[i];
@@ -323,7 +321,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         //TODO: perhaps I should transfer this to a permutation matrix (implemented as a vector)
-        public VectorMKL Reorder(IReadOnlyList<int> permutation, bool oldToNew)
+        public Vector Reorder(IReadOnlyList<int> permutation, bool oldToNew)
         {
             if (permutation.Count != Length)
             {
@@ -339,20 +337,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             {
                 for (int i = 0; i < Length; ++i) reordered[i] = data[permutation[i]];
             }
-            return new VectorMKL(reordered);
+            return new Vector(reordered);
         }
 
         /// <summary>
         /// result = scalar * this
         /// </summary>
         /// <param name="scalar"></param>
-        public VectorMKL Scale(double scalar)
+        public Vector Scale(double scalar)
         {
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
             CBlas.Dscal(Length, scalar, ref result[0], 1);
-            return new VectorMKL(result);
+            return new Vector(result);
         }
 
         /// <summary>
@@ -374,11 +372,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="indices">Indices of the entries to be returned. They must be 0 &lt; = i &lt; <see cref="Length"/>.</param>
         /// <returns></returns>
-        public VectorMKL Slice(int[] indices)
+        public Vector Slice(int[] indices)
         {
             double[] subvector = new double[indices.Length];
             for (int i = 0; i < indices.Length; ++i) subvector[i] = data[indices[i]];
-            return new VectorMKL(subvector);
+            return new Vector(subvector);
         }
 
         /// <summary>
@@ -387,21 +385,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="startInclusive">The first index from which to copy entries.</param>
         /// <param name="endExclusive">The index after the last one until which to copy entries.</param>
         /// <returns></returns>
-        public VectorMKL Slice(int startInclusive, int endExclusive)
+        public Vector Slice(int startInclusive, int endExclusive)
         {
             int newLength = endExclusive - startInclusive;
             double[] subvector = new double[newLength];
             for (int i = 0; i < newLength; ++i) subvector[i] = data[startInclusive + i];
-            return new VectorMKL(subvector);
+            return new Vector(subvector);
         }
 
         /// <summary>
         /// Doesn't copy anything. Remove this once the design is cleaned. 
         /// </summary>
         /// <returns></returns>
-        public IVector ToLegacyVector()
+        public Numerical.LinearAlgebra.Interfaces.IVector ToLegacyVector()
         {
-            return new Vector(data);
+            return new Numerical.LinearAlgebra.Vector(data);
         }
     }
 }

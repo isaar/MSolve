@@ -269,9 +269,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
-        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -282,14 +282,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
+        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
             CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
             Preconditions.CheckMultiplicationDimensions(Order, vector.Length);
             double[] result = vector.CopyToArray();
             CBlas.Dtpmv(CBLAS_LAYOUT.CblasRowMajor, CBLAS_UPLO.CblasLower, transpose, CBLAS_DIAG.CblasNonUnit, Order,
                 ref data[0], ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -311,13 +311,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        public VectorMKL SolveLinearSystem(VectorMKL rhs)
+        public Vector SolveLinearSystem(Vector rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
             CBlas.Dtpsv(CBLAS_LAYOUT.CblasRowMajor, CBLAS_UPLO.CblasLower, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
                 Order, ref data[0], ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public IMatrixView Transpose()

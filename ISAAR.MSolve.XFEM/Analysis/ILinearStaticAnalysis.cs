@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     // TODO: The Analyzer should be separate from the solver.
     interface ILinearStaticAnalysis
     {
-        VectorMKL Solution { get; }
+        Vector Solution { get; }
 
         void Initialize();
         void Solve();

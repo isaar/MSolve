@@ -123,9 +123,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return result;
         }
 
-        public VectorMKL CopyToFullVector()
+        public Vector CopyToFullVector()
         {
-            return VectorMKL.CreateFromArray(CopyToArray(), false);
+            return Vector.CreateFromArray(CopyToArray(), false);
         }
 
         public int CountNonZeros()

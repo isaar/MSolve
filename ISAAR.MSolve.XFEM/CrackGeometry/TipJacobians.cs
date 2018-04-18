@@ -34,12 +34,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public double[] TransformScalarFieldDerivativesLocalPolarToLocalCartesian(double[] gradient)
         {
-            return (VectorMKL.CreateFromArray(gradient) * inverseJacobianPolarToLocal).CopyToArray();
+            return (Vector.CreateFromArray(gradient) * inverseJacobianPolarToLocal).CopyToArray();
         }
 
         public double[] TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(double[] gradient)
         {
-            return (VectorMKL.CreateFromArray(gradient) * inverseJacobianPolarToGlobal).CopyToArray();
+            return (Vector.CreateFromArray(gradient) * inverseJacobianPolarToGlobal).CopyToArray();
         }
 
         /// <summary>

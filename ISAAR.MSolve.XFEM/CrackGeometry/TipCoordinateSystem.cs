@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             RotationMatrixGlobalToLocal = Matrix.CreateFromArray(new double[,] { { cosa, sina }, { -sina, cosa } });
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
             localCoordinatesOfGlobalOrigin = RotationMatrixGlobalToLocal.
-                MultiplyRight(VectorMKL.CreateFromArray(new double[] { -tipCoordinates.X, -tipCoordinates.Y }), false).
+                MultiplyRight(Vector.CreateFromArray(new double[] { -tipCoordinates.X, -tipCoordinates.Y }), false).
                 CopyToArray(); //TODO: Replace double[] with Vector
 
             DeterminantOfJacobianGlobalToLocalCartesian = 1.0; // det = (cosa)^2 +(sina)^2 = 1
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public ICartesianPoint2D TransformPointGlobalCartesianToLocalCartesian(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = (RotationMatrixGlobalToLocal * VectorMKL.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
+            double[] rotated = (RotationMatrixGlobalToLocal * Vector.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
                 CopyToArray();
             double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
             double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public PolarPoint2D TransformPointGlobalCartesianToLocalPolar(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = (RotationMatrixGlobalToLocal * VectorMKL.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
+            double[] rotated = (RotationMatrixGlobalToLocal * Vector.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
                 CopyToArray();
             double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
             double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public double[] TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(double[] gradient)
 
         {
-            return (VectorMKL.CreateFromArray(gradient, false) * TransposeRotationMatrixGlobalToLocal).CopyToArray();
+            return (Vector.CreateFromArray(gradient, false) * TransposeRotationMatrixGlobalToLocal).CopyToArray();
         }
 
         /// <summary>

@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 var test = new InfinitePlateInclinedCrack(crackAnglesDegrees[i], 
                     crackLength / crackLengthOverElementSize,
                     jIntegralRadiusOverElementSize);
-                VectorMKL solution = test.Solve();
+                Vector solution = test.Solve();
                 PropagationResults results = test.Propagate(solution);
                 analyticJintegrals[i] = (double)results.referenceJIntegral;
                 analyticSIFs1[i] = (double)results.referenceSIF1;
@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private VectorMKL Solve()
+        private Vector Solve()
         {
             model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return analysis.Solution;
         }
 
-        private PropagationResults Propagate(VectorMKL solution)
+        private PropagationResults Propagate(Vector solution)
         {
             double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
             double[] totalFreeDisplacements = solution.CopyToArray(); // TODO: Use Vector instead of double[] in the framework

@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
     class LinearStaticAnalysisCSC: ILinearStaticAnalysis
     {
         private readonly Model2D model;
-        public VectorMKL Solution { get; private set; }
+        public Vector Solution { get; private set; }
 
         public LinearStaticAnalysisCSC(Model2D model)
         {
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
 
         public void Solve()
         {
-            (DOKSymmetricColMajor matrix, VectorMKL rhs) = ReduceToSimpleLinearSystem();
+            (DOKSymmetricColMajor matrix, Vector rhs) = ReduceToSimpleLinearSystem();
             using (CholeskySuiteSparse factorization = matrix.BuildSymmetricCSCMatrix(true).FactorCholesky())
             {
                 Solution = factorization.SolveLinearSystem(rhs);
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             }
         }
 
-        private (DOKSymmetricColMajor matrix, VectorMKL rhs) ReduceToSimpleLinearSystem()
+        private (DOKSymmetricColMajor matrix, Vector rhs) ReduceToSimpleLinearSystem()
         {
             /// The extended linear system is:
             /// [Kcc Kcu; Kuc Kuu] * [uc; uu] = [Fc; Fu]
@@ -65,9 +65,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            VectorMKL Fu = VectorMKL.CreateFromArray(model.CalculateFreeForces(), false); //TODO fix MKL dlls
-            VectorMKL uc = VectorMKL.CreateFromArray(model.CalculateConstrainedDisplacements());
-            VectorMKL Feff = Fu - Kuc * uc;
+            Vector Fu = Vector.CreateFromArray(model.CalculateFreeForces(), false); //TODO fix MKL dlls
+            Vector uc = Vector.CreateFromArray(model.CalculateConstrainedDisplacements());
+            Vector Feff = Fu - Kuc * uc;
             return (Kuu, Feff);
         }
     }

@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     {
         Matrix Slice(int[] rowIndices, int[] colIndices);
         Matrix Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
-        VectorMKL SliceColumn(int colIndex);
-        VectorMKL SliceRow(int rowIndex);
+        Vector SliceColumn(int colIndex);
+        Vector SliceRow(int rowIndex);
     }
 }

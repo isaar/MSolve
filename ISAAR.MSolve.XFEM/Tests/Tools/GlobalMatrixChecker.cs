@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
             (DOKSymmetricColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
-            (new FullMatrixWriter(MatrixUtilities.Reorder(Kff, permutation))).WriteToConsole();
+            (new FullMatrixWriter(Kff.Reorder(permutation, true))).WriteToConsole();
         }
 
         public void CheckGlobalMatrix(Model2D model)
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
             (DOKSymmetricColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
-            IMatrixView actualMatrix = MatrixUtilities.Reorder(Kff, permutation);
+            IMatrixView actualMatrix = Kff.Reorder(permutation, true);
 
             // Check dimensions first
             if (actualMatrix.NumRows != expectedMatrix.NumRows)

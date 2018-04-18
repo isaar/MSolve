@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             GC.SuppressFinalize(this);
         }
 
-        public VectorMKL SolveLinearSystem(VectorMKL rhs)
+        public Vector SolveLinearSystem(Vector rhs)
         {
             if (factorizedMatrix == IntPtr.Zero)
             {
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
             double[] solution = new double[rhs.Length];
             SuiteSparseUtilities.Solve(Order, factorizedMatrix, rhs.InternalData, solution, common);
-            return VectorMKL.CreateFromArray(solution, false);
+            return Vector.CreateFromArray(solution, false);
         }
 
         /// <summary>

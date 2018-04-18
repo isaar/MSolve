@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <param name="rhs">A vector that may lie outside the column space of the original matrix. Its length must be equal to 
         ///     <see cref="NumRows"/></param>
         /// <returns></returns>
-        public VectorMKL SolveLeastSquares(VectorMKL rhs) //TODO: perhaps I should use the driver routines of LAPACKE
+        public Vector SolveLeastSquares(Vector rhs) //TODO: perhaps I should use the driver routines of LAPACKE
         {
             if (NumRows < NumColumns)
             {
@@ -146,7 +146,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             CBlas.Dtrsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
                 n, ref reflectorsAndR[0], ldR, ref c[0], incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
-            return VectorMKL.CreateFromArray(c, false);
+            return Vector.CreateFromArray(c, false);
         }
     }
 }

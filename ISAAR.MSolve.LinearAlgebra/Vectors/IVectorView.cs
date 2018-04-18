@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
     /// It supports common operations that do not mutate the underlying vector. If you need to store a vector and then pass it
-    /// around or allow acceess to it, consider using this interface instead of <see cref="VectorMKL"/> for extra safety.
+    /// around or allow acceess to it, consider using this interface instead of <see cref="Vector"/> for extra safety.
     /// </summary>
     public interface IVectorView: IReducible
     {
