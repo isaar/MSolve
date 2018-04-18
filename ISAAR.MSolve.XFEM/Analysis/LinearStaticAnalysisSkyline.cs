@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
+using ISAAR.MSolve.XFEM.Utilities;
 
-
+//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Analysis
 {
     /// <summary>
@@ -69,20 +69,15 @@ namespace ISAAR.MSolve.XFEM.Analysis
             /// To solve the system (for the unknowns ul):
             /// i) Kuu * uu = Fu - Kuc * uc = Feff
             /// ii) uu = Kuu \ Feff
-            SkylineMatrix2D Kuu;
-            Matrix2D Kuc;
-            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kuu, out Kuc);
+            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out SkylineMatrix2D Kuu, out Matrix Kuc);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            double[] Fu = model.CalculateFreeForces(); 
-            double[] uc = model.CalculateConstrainedDisplacements();
+            VectorMKL Fu = VectorMKL.CreateFromArray(model.CalculateFreeForces());
+            VectorMKL uc = VectorMKL.CreateFromArray(model.CalculateConstrainedDisplacements());
+            VectorMKL KlcTimesUc = Kuc * uc;
+            VectorMKL Feff = Fu - Kuc * uc;
 
-            // TODO: The linear algebra library is ridiculously cumbersome and limited.
-            double[] KlcTimesUc = new double[Kuc.Rows];
-            Kuc.Multiply(new Vector(uc), KlcTimesUc);
-            double[] Feff = MatrixUtilities.Substract(Fu, KlcTimesUc);
-
-            SkylineLinearSystem ls = new SkylineLinearSystem(0, Feff);
+            SkylineLinearSystem ls = new SkylineLinearSystem(0, Feff.CopyToArray());
             ls.Matrix = Kuu;
             return ls;
         }

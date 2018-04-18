@@ -17,7 +17,6 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -173,10 +172,10 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 
                 // State 1
-                DenseMatrix globalDisplacementGradState1 = element.CalculateDisplacementFieldGradient(
+                Matrix globalDisplacementGradState1 = element.CalculateDisplacementFieldGradient(
                     naturalGP, evaluatedInterpolation, standardNodalDisplacements, enrichedNodalDisplacements);
                 Tensor2D globalStressState1 = element.CalculateStressTensor(globalDisplacementGradState1, constitutive);
-                DenseMatrix localDisplacementGradState1 = tipSystem.
+                Matrix localDisplacementGradState1 = tipSystem.
                     TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(globalDisplacementGradState1);
                 Tensor2D localStressTensorState1 = tipSystem.
                     TransformTensorGlobalCartesianToLocalCartesian(globalStressState1);
@@ -213,8 +212,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             }
         }
 
-        private static double ComputeJIntegrand(double[] weightGrad, DenseMatrix displGrad1, Tensor2D stress1,
-            DenseMatrix displGrad2, Tensor2D strain2, Tensor2D stress2)
+        private static double ComputeJIntegrand(double[] weightGrad, Matrix displGrad1, Tensor2D stress1,
+            Matrix displGrad2, Tensor2D strain2, Tensor2D stress2)
         {
             // Unrolled to greatly reduce mistakes. Alternatively Einstein notation products could be implementated
             // in Tensor2D (like the tensor-tensor multiplication is), but still some parts would have to be unrolled.

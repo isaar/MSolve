@@ -12,7 +12,6 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
 
 
@@ -98,10 +97,10 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        protected DenseMatrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation,
+        protected Matrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation,
             double[] nodalDisplacements)
         {
-            double[,] displacementGradient = new double[2, 2];
+            var displacementGradient = Matrix.CreateZero(2, 2);
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
                 double displacementX = nodalDisplacements[2 * nodeIdx];
@@ -114,12 +113,12 @@ namespace ISAAR.MSolve.XFEM.Elements
                 displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * displacementY;
                 displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * displacementY;
             }
-            return new DenseMatrix(displacementGradient);
+            return displacementGradient;
         }
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        protected Tensor2D CalculateStressTensor(DenseMatrix displacementFieldGradient, Matrix constitutive)
+        protected Tensor2D CalculateStressTensor(Matrix displacementFieldGradient, Matrix constitutive)
         {
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];

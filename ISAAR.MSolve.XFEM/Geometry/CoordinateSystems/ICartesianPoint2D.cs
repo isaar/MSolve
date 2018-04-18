@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 {
     interface ICartesianPoint2D

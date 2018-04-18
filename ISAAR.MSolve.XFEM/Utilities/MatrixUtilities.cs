@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
-using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.LinearAlgebra
+//TODO: Replace double[] with Vector
+namespace ISAAR.MSolve.XFEM.Utilities
 {
     /// <summary>
     /// TODO: Some of these could be extension methods, but effort should be spent into implementing them in the  
@@ -15,20 +15,6 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
     /// </summary>
     static class MatrixUtilities
     {
-        //public static void AddPartialToSymmetricTotalMatrix(Matrix partialMatrix,
-        //    SymmetricMatrix totalMatrix)
-        //{
-        //    Debug.Assert(partialMatrix.NumRows == totalMatrix.NumRows, "Non matching rows");
-        //    Debug.Assert(partialMatrix.NumColumns == totalMatrix.NumColumns, "Non matching columns");
-        //    for (int row = 0; row < totalMatrix.NumRows; ++row)
-        //    {
-        //        for (int col = row; col < totalMatrix.NumColumns; ++col)
-        //        {
-        //            totalMatrix[row, col] += partialMatrix[row, col];
-        //        }
-        //    }
-        //}
-
         public static void PrintUpperTriangleDense(IMatrixView matrix)
         {
             StringBuilder builder = new StringBuilder();
@@ -68,16 +54,6 @@ namespace ISAAR.MSolve.XFEM.LinearAlgebra
                 }
             }
             return newMatrix;
-        }
-
-        public static double[] Substract(double[] vector1, double[] vector2)
-        {
-            if (vector1.Length != vector2.Length) throw new NonMatchingDimensionsException(
-                "Vector 1 length  = " + vector1.Length + ", but vector 2 length = " + vector2.Length);
-
-            double[] result = new double[vector1.Length];
-            for (int i = 0; i < vector1.Length; ++i) result[i] = vector1[i] - vector2[i];
-            return result;
         }
     }
 }

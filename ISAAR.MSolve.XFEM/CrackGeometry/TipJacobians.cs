@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 
+//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     // Perhaps I should not expose this class, but use it privately in TipCoordinateSystem and have batch methods when 
@@ -14,8 +16,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     class TipJacobians
     {
         private readonly TipCoordinateSystem tipSystem;
-        private readonly DenseMatrix inverseJacobianPolarToLocal;
-        private readonly DenseMatrix inverseJacobianPolarToGlobal;
+        private readonly Matrix inverseJacobianPolarToLocal;
+        private readonly Matrix inverseJacobianPolarToGlobal;
 
         public TipJacobians(TipCoordinateSystem tipSystem, PolarPoint2D polarCoordinates)
         {
@@ -24,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double r = polarCoordinates.R;
             double cosTheta = Math.Cos(polarCoordinates.Theta);
             double sinTheta = Math.Sin(polarCoordinates.Theta);
-            inverseJacobianPolarToLocal = new DenseMatrix(new double[,] 
+            inverseJacobianPolarToLocal = Matrix.CreateFromArray(new double[,] 
                 { { cosTheta, sinTheta }, {-sinTheta / r , cosTheta / r } });
 
             inverseJacobianPolarToGlobal = inverseJacobianPolarToLocal * tipSystem.RotationMatrixGlobalToLocal;
@@ -32,12 +34,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public double[] TransformScalarFieldDerivativesLocalPolarToLocalCartesian(double[] gradient)
         {
-            return gradient * inverseJacobianPolarToLocal;
+            return (VectorMKL.CreateFromArray(gradient) * inverseJacobianPolarToLocal).CopyToArray();
         }
 
         public double[] TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(double[] gradient)
         {
-            return gradient * inverseJacobianPolarToGlobal;
+            return (VectorMKL.CreateFromArray(gradient) * inverseJacobianPolarToGlobal).CopyToArray();
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         ///     field, thus:    gradient = [Fr,r Fr,theta; Ftheta,r Ftheta,theta],
         ///     where Fi,j is the derivative of component i w.r.t. coordinate j</param>
         /// <returns></returns>
-        public DenseMatrix TransformVectorFieldDerivativesLocalPolarToLocalCartesian(DenseMatrix gradient)
+        public Matrix TransformVectorFieldDerivativesLocalPolarToLocalCartesian(Matrix gradient)
         {
             return gradient * inverseJacobianPolarToLocal;
         }

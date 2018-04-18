@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Tensors;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 
 namespace ISAAR.MSolve.XFEM.Output
 {
@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Output
         {
             EvaluatedInterpolation2D evaluatedInterpolation =
                element.Interpolation.EvaluateAt(element.Nodes, point);
-            DenseMatrix displacementGradient = element.CalculateDisplacementFieldGradient(
+            Matrix displacementGradient = element.CalculateDisplacementFieldGradient(
                 point, evaluatedInterpolation, standardDisplacements, enrichedDisplacements);
 
             double strainXX = displacementGradient[0, 0];

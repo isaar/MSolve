@@ -11,8 +11,8 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
-//using ISAAR.MSolve.XFEM.Utilities;
 
+//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Analysis
 {
     class LinearStaticAnalysisCSC: ILinearStaticAnalysis
@@ -66,8 +66,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             VectorMKL Fu = VectorMKL.CreateFromArray(model.CalculateFreeForces(), false); //TODO fix MKL dlls
-            double[] uc = model.CalculateConstrainedDisplacements();
-            VectorMKL Feff = Fu - Kuc * VectorMKL.CreateFromArray(uc);
+            VectorMKL uc = VectorMKL.CreateFromArray(model.CalculateConstrainedDisplacements());
+            VectorMKL Feff = Fu - Kuc * uc;
             return (Kuu, Feff);
         }
     }

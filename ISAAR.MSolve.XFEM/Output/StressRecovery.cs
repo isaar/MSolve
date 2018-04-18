@@ -8,7 +8,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Output
@@ -89,7 +88,7 @@ namespace ISAAR.MSolve.XFEM.Output
             {
                 EvaluatedInterpolation2D evaluatedInterpolation =
                     element.Interpolation.EvaluateAt(element.Nodes, naturalNodes[i]);
-                DenseMatrix displacementGradient = element.CalculateDisplacementFieldGradient(
+                Matrix displacementGradient = element.CalculateDisplacementFieldGradient(
                     naturalNodes[i], evaluatedInterpolation, standardDisplacements, enrichedDisplacements);
                 Matrix constitutive = 
                     element.Material.CalculateConstitutiveMatrixAt(naturalNodes[i], evaluatedInterpolation);

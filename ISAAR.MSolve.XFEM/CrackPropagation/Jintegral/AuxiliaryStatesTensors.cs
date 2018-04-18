@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Tensors;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
@@ -18,14 +18,14 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
         /// represented in the local cartesian system of the crack tip. The differentation is also w.r.t. the tip local
         /// cartesian coordinates. Matrix dimensions: 2x2.
         /// </summary>
-        public DenseMatrix DisplacementGradientMode1 { get; }
+        public Matrix DisplacementGradientMode1 { get; }
 
         /// <summary>
         /// The derivatives of the displacement field of an imaginary pure Mode II (sliding crack extension) state 
         /// represented in the local cartesian system of the crack tip. The differentation is also w.r.t. the tip local 
         /// cartesian coordinates. Matrix dimensions: 2x2.
         /// </summary>
-        public DenseMatrix DisplacementGradientMode2 { get; }
+        public Matrix DisplacementGradientMode2 { get; }
 
         /// <summary>
         /// The strain tensor of an imaginary pure Mode I (opening crack extension) state represented in the local
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
         /// </summary>
         public Tensor2D StressTensorMode2 { get; }
 
-        public AuxiliaryStatesTensors(DenseMatrix displacementGradientMode1, DenseMatrix displacementGradientMode2,
+        public AuxiliaryStatesTensors(Matrix displacementGradientMode1, Matrix displacementGradientMode2,
             Tensor2D strainTensorMode1, Tensor2D strainTensorMode2, 
             Tensor2D stressTensorMode1, Tensor2D stressTensorMode2)
         {

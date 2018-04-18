@@ -8,7 +8,6 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools

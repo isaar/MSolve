@@ -7,6 +7,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Utilities;
 
+//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
     // TODO: The cartesian global to cartesian local to polar system transformation and the jacobian should be 

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Tensors;
-using ISAAR.MSolve.XFEM.LinearAlgebra;
 
-
+//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     //TODO: decide what data structures (arrays, tuples, matrix & vector classes I will use as arguments, return types 
@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly double[] localCoordinatesOfGlobalOrigin;
 
         public double RotationAngle { get; }
-        public DenseMatrix RotationMatrixGlobalToLocal { get; }
-        public DenseMatrix TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
+        public Matrix RotationMatrixGlobalToLocal { get; }
+        public Matrix TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
 
         /// <summary>
         /// det(J_globToLoc) = det(Q) = (cosa)^2 + (sina)^2 = 1
@@ -40,17 +40,19 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
             double cosa = Math.Cos(tipRotationAngle);
             double sina = Math.Sin(tipRotationAngle);
-            RotationMatrixGlobalToLocal = new DenseMatrix(new double[,] { { cosa, sina }, { -sina, cosa } });
+            RotationMatrixGlobalToLocal = Matrix.CreateFromArray(new double[,] { { cosa, sina }, { -sina, cosa } });
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
-            localCoordinatesOfGlobalOrigin = RotationMatrixGlobalToLocal.MultiplyRight(
-                new double[] { -tipCoordinates.X, -tipCoordinates.Y });
+            localCoordinatesOfGlobalOrigin = RotationMatrixGlobalToLocal.
+                MultiplyRight(VectorMKL.CreateFromArray(new double[] { -tipCoordinates.X, -tipCoordinates.Y }), false).
+                CopyToArray(); //TODO: Replace double[] with Vector
 
             DeterminantOfJacobianGlobalToLocalCartesian = 1.0; // det = (cosa)^2 +(sina)^2 = 1
         }
 
         public ICartesianPoint2D TransformPointGlobalCartesianToLocalCartesian(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
+            double[] rotated = (RotationMatrixGlobalToLocal * VectorMKL.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
+                CopyToArray();
             double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
             double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
             return new CartesianPoint2D(x1, x2);
@@ -67,7 +69,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public PolarPoint2D TransformPointGlobalCartesianToLocalPolar(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
+            double[] rotated = (RotationMatrixGlobalToLocal * VectorMKL.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
+                CopyToArray();
             double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
             double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
             double r = Math.Sqrt(x1 * x1 + x2 * x2);
@@ -83,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public double[] TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(double[] gradient)
 
         {
-            return gradient * TransposeRotationMatrixGlobalToLocal;
+            return (VectorMKL.CreateFromArray(gradient, false) * TransposeRotationMatrixGlobalToLocal).CopyToArray();
         }
 
         /// <summary>
@@ -93,7 +96,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         ///     field, thus:    gradient = [Fx,x Fx,y; Fy,x Fy,y],
         ///     where Fi,j is the derivative of component i w.r.t. coordinate j</param>
         /// <returns></returns>
-        public DenseMatrix TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(DenseMatrix gradient)
+        public Matrix TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(Matrix gradient)
         {
             return RotationMatrixGlobalToLocal * (gradient * TransposeRotationMatrixGlobalToLocal);
         }

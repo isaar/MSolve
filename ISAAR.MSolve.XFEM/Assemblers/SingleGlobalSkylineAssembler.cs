@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     static class SingleGlobalSkylineAssembler
     {
         public static void BuildGlobalMatrix(Model2D model, 
-            out SkylineMatrix2D globalMatrixLhsLhs, out Matrix2D globalMatrixLhsCon)
+            out SkylineMatrix2D globalMatrixLhsLhs, out Matrix globalMatrixLhsCon)
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
@@ -31,17 +31,15 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            globalMatrixLhsCon = new Matrix2D(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount, 
+            globalMatrixLhsCon = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount, 
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // Element matrices
-                IMatrix2D elementMatrixStdStd = element.BuildStandardStiffnessMatrix().ToLegacyMatrix();
-                
-                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-                IMatrix2D elementMatrixEnrStd = kes.ToLegacyMatrix();
-                IMatrix2D elementMatrixEnrEnr = kee.ToLegacyMatrix();
+               Matrix kss = element.BuildStandardStiffnessMatrix();
+               element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+
 
                 // Element to global dofs mappings
                 // TODO: perhaps that could be done during the assembly to avoid iterating over the dofs twice
@@ -52,12 +50,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     dofEnumerator.MatchElementToGlobalArtificialDofsOf(element);
 
                 // Add the element contributions to the global matrices
-                AddElementToGlobalMatrix(globalMatrixLhsLhs, elementMatrixStdStd, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(globalMatrixLhsLhs, elementMatrixEnrStd, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(globalMatrixLhsLhs, elementMatrixEnrEnr, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsLhs, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsLhs, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsLhs, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
 
-                AddElementToGlobalMatrix(globalMatrixLhsCon, elementMatrixStdStd, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
-                AddElementToGlobalMatrix(globalMatrixLhsCon, elementMatrixEnrStd, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsCon, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(globalMatrixLhsCon, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
             }
         }
 
@@ -106,7 +104,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return rowHeights;
         }
 
-        private static void AddElementToGlobalMatrix(SkylineMatrix2D globalMatrix, IMatrix2D elementMatrix,
+        private static void AddElementToGlobalMatrix(SkylineMatrix2D globalMatrix, IMatrixView elementMatrix,
             IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
             foreach (var rowPair in elementRowsToGlobalRows)
@@ -136,7 +134,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
         // TODO: The global matrix should be sparse. Probably in CSR/DOK format
-        private static void AddElementToGlobalMatrix(Matrix2D globalMatrix, IMatrix2D elementMatrix,
+        private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrixView elementMatrix,
             IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
             foreach (var rowPair in elementRowsToGlobalRows)
