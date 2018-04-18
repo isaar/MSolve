@@ -230,7 +230,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
                 }
                 
             }
-            return (VectorMKL.CreateFromArray(diag), upper); 
+            return (VectorMKL.CreateFromArray(diag, false), upper); 
         }
 
         public SparseFormat GetSparseFormat()

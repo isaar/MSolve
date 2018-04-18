@@ -74,13 +74,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        public static SkylineMatrix CopyFromMatrix(SkylineMatrix originalMatrix)
-        {
-            return CreateFromArrays(originalMatrix.NumColumns, originalMatrix.values, originalMatrix.diagOffsets, true, false);
-        }
-
         public static SkylineMatrix CreateFromArrays(int order, double[] values, int[] diagOffsets, 
-            bool copyArrays, bool checkInput)
+            bool checkInput, bool copyArrays = false)
         {
             if (checkInput)
             {
@@ -187,6 +182,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                     // Don't do anything to the non zero entries of the above the shortest=other column (this[i,j] += a*0)
                 }
             }
+        }
+
+        public SkylineMatrix Copy()
+        {
+            return CreateFromArrays(NumColumns, values, diagOffsets, false, true);
         }
 
         public double[,] CopyToArray2D()
@@ -560,7 +560,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public SkylineMatrix Transpose(bool copyInternalArrays)
         {
-            return CreateFromArrays(NumColumns, values, diagOffsets, copyInternalArrays, false);
+            return CreateFromArrays(NumColumns, values, diagOffsets, false, copyInternalArrays);
         }
 
         /// <summary>

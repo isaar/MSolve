@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             set { data[i] = value; }
         }
 
-        public static VectorMKL CreateFromArray(double[] data, bool copyArray = true)
+        public static VectorMKL CreateFromArray(double[] data, bool copyArray = false)
         {
             if (copyArray)
             {
@@ -60,21 +60,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             if (original is VectorMKL casted) return CreateFromVector(casted);
             double[] clone = new double[original.Length];
             for (int i = 0; i < clone.Length; ++i) clone[i] = original[i];
-            return new VectorMKL(clone);
-        }
-
-        /// <summary>
-        /// The original vector will be copied.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <returns></returns>
-        public static VectorMKL CreateFromVector(VectorMKL original)
-        {
-            //TODO: Perhaps this should use BLAS
-            //TODO: Perhaps it should be an instance method CopyToMatrix(). Or the instance method would return an interface.
-            double[] data = original.data;
-            double[] clone = new double[data.Length];
-            Array.Copy(data, clone, data.Length);
             return new VectorMKL(clone);
         }
 
@@ -142,6 +127,12 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
+        }
+
+        public VectorMKL Copy()
+        {
+            //TODO: Perhaps this should use BLAS
+            return VectorMKL.CreateFromArray(data, true);
         }
 
         //Perhaps this should use BLAS

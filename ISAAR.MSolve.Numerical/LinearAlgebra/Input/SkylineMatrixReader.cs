@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Input
             //double[] mData = data as double[];
             //for (int i = 0; i < lines.Length; i++) mData[i] = Convert.ToDouble(lines[i]);
 
-            return SkylineMatrix.CreateFromArrays(diagOffsets.Length - 1, values, diagOffsets, false, true);
+            return SkylineMatrix.CreateFromArrays(diagOffsets.Length - 1, values, diagOffsets, true, false);
         }
     }
 }
