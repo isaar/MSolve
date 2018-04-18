@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 Debug.Assert(partial.NumRows == StandardDofsCount);
                 Debug.Assert(partial.NumColumns == StandardDofsCount);
                 double dV = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight; // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
-                stiffness.AxpyIntoThis(dV, partial);
+                stiffness.AxpyIntoThis(partial, dV);
             }
             return stiffness;
         }
@@ -134,10 +134,10 @@ namespace ISAAR.MSolve.XFEM.Elements
                 Matrix transposeBenrTimesConstitutive = Benr.Transpose() * constitutive; // cache the result
 
                 Matrix Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
-                stiffnessEnrichedStandard.AxpyIntoThis(dVolume, Kes);
+                stiffnessEnrichedStandard.AxpyIntoThis(Kes, dVolume);
 
                 Matrix Kee = transposeBenrTimesConstitutive * Benr;  // enriched-enriched part
-                stiffnessEnriched.AxpyIntoThis(dVolume, Kee);
+                stiffnessEnriched.AxpyIntoThis(Kee, dVolume);
             }
         }
 

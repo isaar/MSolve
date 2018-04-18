@@ -6,9 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 //TODO: align data using mkl_malloc
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// Symmetric matrix. Only the upper triangle is stored in Packed format (only stores the n*(n+1)/2 non zeros) and column 
     /// major order. Uses MKL.
     /// </summary>
-    public class SymmetricMatrix: IMatrixView
+    public class SymmetricMatrix: IMatrix, ISymmetricMatrix
     {
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -82,20 +83,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        /// <summary>
-        /// Sets A[<see cref="i"/>, <see cref="j"/>] = A[<see cref="j"/>, <see cref="i"/>] = <see cref="value"/>. Not efficient.
-        /// </summary>
-        /// <param name="i">The row index: 0 &lt;= i &lt; <see cref="Order"/></param>
-        /// <param name="j">The column index: 0 &lt;= j &lt; <see cref="Order"/></param>
-        public void SetSymmetric(int i, int j, double value) //TODO: Should I add an efficient version without error checking.
+        public static SymmetricMatrix CopyFromMatrix(SymmetricMatrix originalMatrix)
         {
-            Definiteness = DefiniteProperty.Unknown;
-            if ((i < 0) || (i >= Order) || (j < 0) || (j >= Order))
-            {
-                throw new IndexOutOfRangeException($"Invalid indices: ({i}, {j})");
-            }
-            if (i <= j) data[Find1DIndex(i, j)] = value;
-            else data[Find1DIndex(j, i)] = value;
+            return new SymmetricMatrix(originalMatrix.data, originalMatrix.Order, originalMatrix.Definiteness);
         }
 
         /// <summary>
@@ -148,6 +138,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// The caller is responsible for the original matrix being symmetric
+        /// </summary>
+        /// <param name="originalMatrix"></param>
+        /// <returns></returns>
+        public static SymmetricMatrix CreateFromMatrix(Matrix originalMatrix)
+        {
+            double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.InternalData, originalMatrix.NumColumns);
+            return new SymmetricMatrix(data, originalMatrix.NumColumns, DefiniteProperty.Unknown);
+        }
+
+        /// <summary>
         /// Create a new <see cref="SymmetricMatrix"/> with the specified order and all entries equal to 0.
         /// </summary> 
         /// <param name="order">The number of rows or columns of the matrix.</param>
@@ -157,6 +158,76 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             double[] data = new double[order * order];
             //This matrix will be used as a canvas, thus we cannot infer that it is indefinite yet.
             return new SymmetricMatrix(data, order, DefiniteProperty.Unknown); 
+        }
+
+        #region operators (use extension operators when they become available)
+        public static SymmetricMatrix operator +(SymmetricMatrix matrix1, SymmetricMatrix matrix2) 
+            => matrix1.DoEntrywise(matrix2, (x, y) => x + y);
+
+        public static SymmetricMatrix operator -(SymmetricMatrix matrix1, SymmetricMatrix matrix2) 
+            => matrix1.DoEntrywise(matrix2, (x, y) => x - y);
+
+        public static SymmetricMatrix operator *(double scalar, SymmetricMatrix matrix) 
+            => matrix.DoToAllEntries(x => scalar * x);
+
+        public static SymmetricMatrix operator *(SymmetricMatrix matrix, double scalar) 
+            => matrix.DoToAllEntries(x => scalar * x);
+
+        public static IMatrixView operator *(SymmetricMatrix matrixLeft, IMatrixView matrixRight)
+            => matrixLeft.MultiplyRight(matrixRight, false, false);
+
+        public static IMatrixView operator *(IMatrixView matrixLeft, SymmetricMatrix matrixRight)
+            => matrixRight.MultiplyLeft(matrixLeft, false, false);
+
+        public static VectorMKL operator *(SymmetricMatrix matrixLeft, VectorMKL vectorRight)
+            => matrixLeft.MultiplyRight(vectorRight, false);
+
+        public static VectorMKL operator *(VectorMKL vectorLeft, SymmetricMatrix matrixRight)
+            => matrixRight.MultiplyRight(vectorLeft, true);
+
+        #endregion
+
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) return Axpy(casted, otherCoefficient);
+            else return DoEntrywise(otherMatrix, (x1, x2) => x1 + otherCoefficient * x2); //TODO: optimize this
+        }
+
+        public SymmetricMatrix Axpy(SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
+            return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
+        }
+
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) AxpyIntoThis(casted, otherCoefficient);
+            else if (otherMatrix is ISymmetricMatrix otherSYM)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        this.data[Find1DIndex(i, j)] += otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+            else
+            {
+                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+            }
+        }
+
+        public void AxpyIntoThis(SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
+            this.Definiteness = DefiniteProperty.Unknown;
         }
 
         /// <summary>
@@ -187,7 +258,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// with the entries of the matrix</returns>
         public double[,] CopyToArray2D()
         {
-            return Conversions.PackedUpperColMajorToArray2D(data, Order);
+            return Conversions.PackedUpperColMajorToArray2DSymm(data, Order);
         }
 
         public Matrix CopyToGeneralMatrix()
@@ -196,18 +267,79 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
-        /// <summary>
-        /// Matrix vector multiplication, with the vector on the right: matrix * vector.
-        /// </summary>
-        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
-        /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector)
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
-            double[] result = new double[NumRows];
-            CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
-                1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            if (other is SymmetricMatrix casted) return DoEntrywise(casted, binaryOperation);
+            else return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: optimize this
+        }
+
+        public SymmetricMatrix DoEntrywise(SymmetricMatrix other, Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            double[] result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
+            return new SymmetricMatrix(result, Order, DefiniteProperty.Unknown);
+        }
+
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is SymmetricMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else if (other is ISymmetricMatrix otherSYM)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, other);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        int index1D = Find1DIndex(i, j);
+                        this.data[index1D] = binaryOperation(this.data[index1D], other[i, j]);
+                    }
+                }
+            }
+            else
+            {
+                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+            }
+        }
+
+        public void DoEntrywiseIntoThis(SymmetricMatrix other, Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], other.data[i]);
+            Definiteness = DefiniteProperty.Unknown;
+        }
+
+        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            return DoToAllEntries(unaryOperation);
+        }
+
+        public SymmetricMatrix DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            var result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i)
+            {
+                result[i] = unaryOperation(data[i]);
+            }
+            return new SymmetricMatrix(result, NumRows, DefiniteProperty.Unknown);
+        }
+
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
+        }
+
+        void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            for (int i = 0; i < NumRows * NumColumns; ++i)
+            {
+                data[i] = unaryOperation(data[i]);
+            }
+        }
+
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
+        {
+            return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
         /// <summary>
@@ -245,104 +377,144 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         /// matrix is not positive definite.
         /// </summary>
         /// <returns></returns>
-        public CholeskyFactorization FactorCholesky()
+        public CholeskyPacked FactorCholesky()
         {
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) accesses. 
-            // To avoid these, use the ~InPlace version.
-            double[] upper = new double[data.Length];
-            Array.Copy(data, upper, data.Length);
+            var factor = CholeskyPacked.Factorize(Order, data);
+            Definiteness = DefiniteProperty.PositiveDefinite; // An exception would have been thrown otherwise.
+            return factor;
+        }
 
-            // Call MKL
-            int n = Order;
-            int[] permutation = new int[n];
-            int info = MKLUtilities.DefaultInfo;
-            Lapack.Dpptrf("U", ref n, ref upper[0], ref info);
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else return DoEntrywise(otherMatrix, (x1, x2) => thisCoefficient * x1 + otherCoefficient * x2); //TODO: optimize this
+        }
 
-            // Check MKL execution
-            if (info == MKLUtilities.DefaultInfo)
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value."
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
-            else if (info > 0)
-            {
-                string msg = "The leading minor of order " + (info -1) + " (and therefore the matrix itself) is not"
-                + " positive-definite, and the factorization could not be completed.";
-                throw new IndefiniteMatrixException(msg);
-            }
+        public SymmetricMatrix LinearCombination(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
+        }
 
-            Definiteness = DefiniteProperty.PositiveDefinite;
-            return new CholeskyFactorization(upper, n);
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is SymmetricMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else if (otherMatrix is ISymmetricMatrix otherSYM)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        int index1D = Find1DIndex(i, j);
+                        this.data[index1D] = thisCoefficient * this.data[index1D] + otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+            else
+            {
+                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+            }
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            this.Definiteness = DefiniteProperty.Unknown;
+        }
+
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            return DenseStrategies.Multiply(other, this, transposeOther, transposeThis);
+        }
+
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        {
+            return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
+        }
+
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        {
+            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Matrix vector multiplication, with the vector on the right: matrix * vector.
+        /// </summary>
+        /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
+        /// <returns></returns>
+        public VectorMKL MultiplyRight(VectorMKL vector)
+        {
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
+            double[] result = new double[NumRows];
+            CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
+                1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
+            return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
+        {
+            double aggregator = identityValue;
+            for (int j = 0; j < data.Length; ++j)
+            {
+                aggregator = processEntry(data[Find1DIndex(j, j)], aggregator);
+                for (int i = 0; i < j; ++j)
+                {
+                    // A[j,i] = A[i,j], but doubling it will not work for all reductions
+                    int idx1D = Find1DIndex(i, j);
+                    aggregator = processEntry(data[idx1D], aggregator);
+                    aggregator = processEntry(data[idx1D], aggregator); 
+                }
+            }
+            // no zeros implied
+            return finalize(aggregator);
+        }
+
+        // Not very efficient
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
+        {
+            Definiteness = DefiniteProperty.Unknown;
+            if ((rowIdx < 0) || (rowIdx >= Order) || (colIdx < 0) || (colIdx >= Order))
+            {
+                throw new IndexOutOfRangeException($"Invalid indices: ({rowIdx}, {colIdx})");
+            }
+            if (rowIdx <= colIdx) data[Find1DIndex(rowIdx, colIdx)] = value;
+            else data[Find1DIndex(colIdx, rowIdx)] = value;
+        }
+
+        public IMatrixView Transpose()
+        {
+            return Transpose(true);
+        }
+
+        public SymmetricMatrix Transpose(bool copyInternalArray)
+        {
+            return SymmetricMatrix.CreateFromArray(data, Order, Definiteness, copyInternalArray);
+        }
+
+
+        public void WriteToFile(string path, bool append = false)
+        {
+            using (var writer = new System.IO.StreamWriter(path, append))
+            {
+#if DEBUG
+                writer.AutoFlush = true; // To look at intermediate output at certain breakpoints
+#endif
+                for (int i = 0; i < data.Length; ++i)
+                    writer.WriteLine(data[i].ToString("g17", new System.Globalization.CultureInfo("en-US", false).NumberFormat));
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int Find1DIndex(int i, int j)
         {
             return i + (j * (j + 1)) / 2;
-        }
-
-        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Equals(IMatrixView other, ValueComparer comparer = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView Slice(int[] rowIndices, int[] colIndices)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatrixView Transpose()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void WriteToConsole(Array2DFormatting format = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
-        {
-            throw new NotImplementedException();
         }
     }
 }

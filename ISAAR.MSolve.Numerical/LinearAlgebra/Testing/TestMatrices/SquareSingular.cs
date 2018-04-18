@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -61,7 +62,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = Matrix.CreateFromArray(matrix);
             var factor = A.FactorLU();
-            (Matrix L, Matrix U) = factor.Expand();
+            var L = factor.GetFactorL();
+            var U = factor.GetFactorU();
             comparer.CheckFactorizationLU(matrix, lower, upper, L.CopyToArray2D(), U.CopyToArray2D(), factor.IsSingular);
         }
 
@@ -90,6 +92,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
                 var printer = new Printer();
                 printer.PrintSingularMatrix(matrix);
             }
+        }
+
+        public static void Print()
+        {
+            var A = Matrix.CreateFromArray(matrix);
+            Console.WriteLine("Square singular matrix = ");
+            var writer = new FullMatrixWriter(A);
+            writer.WriteToConsole();
         }
     }
 }

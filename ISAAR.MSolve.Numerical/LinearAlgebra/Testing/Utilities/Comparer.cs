@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
@@ -84,10 +85,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             {
                 Console.WriteLine("Incorrect.");
                 Console.Write("Expected matrix: ");
-                matrixExpected.WriteToConsole();
+                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
                 Console.WriteLine();
                 Console.Write("Computed matrix: ");
-                matrixComputed.WriteToConsole();
+                (new FullMatrixWriter(matrixComputed)).WriteToConsole();
                 Console.WriteLine();
             }
         }
@@ -101,13 +102,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 
         public void CheckScalarEquality(double expected, double computed)
         {
-            if (valueComparer.AreEqual(expected, computed)) Console.WriteLine("Correct");
-            else
-            {
-                Console.WriteLine("Incorrect.");
-                Console.WriteLine("Expected vector: " + expected);
-                Console.WriteLine("Computed vector: " + computed);
-            }
+            bool isCorrect = valueComparer.AreEqual(expected, computed);
+            if (isCorrect) Console.Write("Correct. ");
+            else Console.Write("Incorrect. ");
+            if (DecidePrint(isCorrect)) Console.WriteLine($"expected = {expected}, computed = {computed}");
         }
 
         public bool CheckSystemSolution(double[,] matrix, double[] b, double[] xExpected, double[] xComputed)
@@ -119,17 +117,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 
         public void CheckVectorEquality(VectorMKL expected, VectorMKL computed)
         {
-            if (expected.Equals(computed)) Console.WriteLine("Correct");
-            else
-            {
-                Console.WriteLine("Incorrect.");
-                Console.Write("Expected vector: ");
-                expected.WriteToConsole();
-                Console.WriteLine();
-                Console.Write("Computed vector: ");
-                computed.WriteToConsole();
-                Console.WriteLine();
-            }
+            bool isCorrect = expected.Equals(computed);
+            if (DecidePrint(isCorrect)) printer.PrintVectorEquality(isCorrect, expected.InternalData, computed.InternalData);
         }
 
         private bool DecidePrint(bool isCorrectOperation)

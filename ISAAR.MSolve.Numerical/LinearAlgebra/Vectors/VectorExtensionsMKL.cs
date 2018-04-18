@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// <returns></returns>
         public static VectorMKL MultiplyPointwise(this VectorMKL vector1, VectorMKL vector2)
         {
-            return vector1.DoPointwise(vector2, (x1, x2) => x1 * x2);
+            return vector1.DoEntrywise(vector2, (x1, x2) => x1 * x2);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         /// <param name="vector2"></param>
         public static void MultiplyPointwiseInPlace(this VectorMKL vector1, VectorMKL vector2)
         {
-            vector1.DoPointwiseInPlace(vector2, (x1, x2) => x1 * x2);
+            vector1.DoEntrywiseIntoThis(vector2, (x1, x2) => x1 * x2);
         }
 
         /// <summary>
@@ -70,11 +70,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         public static void SubtractIntoThis(this VectorMKL vector1, VectorMKL vector2)
         {
             vector1.AxpyInPlace(-1.0, vector2);
-        }
-
-        public static VectorMKL[] RemoveDuplicatesFindMultiplicity()
-        {
-            throw new NotImplementedException("I kinda forgot why dimtsap wanted this...");
         }
     }
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.LinearAlgebra;
@@ -31,9 +33,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Global stiffness matrix:");
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
-            (SymmetricDOKColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
+            (DOKSymmetricColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
-            MatrixUtilities.Reorder(Kff, permutation).WriteToConsole();
+            (new FullMatrixWriter(MatrixUtilities.Reorder(Kff, permutation))).WriteToConsole();
         }
 
         public void CheckGlobalMatrix(Model2D model)
@@ -45,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             // Retrieve the matrices
             IMatrixView expectedMatrix = OutputReaders.ReadGlobalStiffnessMatrix(expectedMatrixPath);
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
-            (SymmetricDOKColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
+            (DOKSymmetricColMajor Kff, Matrix Kfc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath));
             IMatrixView actualMatrix = MatrixUtilities.Reorder(Kff, permutation);
 

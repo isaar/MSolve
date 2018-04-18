@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.MKL;
 
+// TODO: When returning L & U, use Triangular matrices. Also return P.
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
 {
     /// <summary>
@@ -32,7 +34,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             this.permutation = permutation;
             this.firstZeroPivot = firstZeroPivot;
             this.IsSingular = isSingular;
+            this.IsOverwritten = false;
         }
+
+        public bool IsOverwritten { get; private set; }
 
         public bool IsSingular { get; }
 
@@ -46,47 +51,35 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// available memory.
         /// </summary>
         /// <param name="order">The number of rows/columns of the square matrix.</param>
-        /// <param name="originalColMajorMatrix">The internal buffer stroring the matrix entries in column major order. It will 
-        ///     be copied and not altered, thus you should not copy it yourself.</param>
+        /// <param name="matrix">The internal buffer stroring the matrix entries in column major order. It will 
+        ///     be overwritten.</param>
         /// <param name="pivotTolerance"></param>
         /// <returns></returns>
-        public static LUFactorization CalcFactorization(int order, double[] originalColMajorMatrix, 
+        public static LUFactorization Factorize(int order, double[] matrix,
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-            // To avoid these, use the ~InPlace version.
-            double[] lowerUpper = new double[originalColMajorMatrix.Length];
-            Array.Copy(originalColMajorMatrix, lowerUpper, originalColMajorMatrix.Length);
-
             // Call MKL
             int[] permutation = new int[order];
             int info = MKLUtilities.DefaultInfo;
-            Lapack.Dgetrf(ref order, ref order, ref lowerUpper[0], ref order, ref permutation[0], ref info);
+            Lapack.Dgetrf(ref order, ref order, ref matrix[0], ref order, ref permutation[0], ref info);
 
             // Check MKL execution
-            if (info == MKLUtilities.DefaultInfo)
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = string.Format("The {0}th parameter has an illegal value.", -info)
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
-
             int firstZeroPivot = int.MinValue;
-            if (info > 0) firstZeroPivot = info - 1;
-            else if (Math.Abs(lowerUpper[order * order - 1]) <= pivotTolerance)
+            if (info == 0) // Supposedly everything went ok
             {
-                // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
-                firstZeroPivot = order - 1;
+                if (Math.Abs(matrix[order * order - 1]) <= pivotTolerance)
+                {
+                    // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
+                    firstZeroPivot = order - 1;
+                }
+                return new LUFactorization(order, matrix, permutation, firstZeroPivot, (firstZeroPivot >= 0));
             }
-            return new LUFactorization(order, lowerUpper, permutation, firstZeroPivot, (firstZeroPivot >= 0));
+            else if (info > 0)
+            {
+                firstZeroPivot = info - 1;
+                return new LUFactorization(order, matrix, permutation, firstZeroPivot, true);
+            }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -97,6 +90,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
         /// <returns>The determinant of the original matrix.</returns>
         public double CalcDeterminant()
         {
+            CheckOverwritten();
             if (IsSingular) return 0.0;
             else
             {
@@ -109,36 +103,74 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             }
         }
 
-        // Explicitly composes and returns the L and U matrices. TODO: 1) Use matrix classes instead of arrays, 2) Also return P
-        public (Matrix lower, Matrix upper) Expand()
+        /// <summary>
+        /// Explicitly composes and returns the lower triangular matrix L. 
+        /// </summary>
+        /// <returns></returns>
+        public Matrix GetFactorL()
         {
-            double[] l = Conversions.FullColMajorToFullLowerColMajor(lowerUpper, true);
+            CheckOverwritten();
+            double[] l = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, true);
+            return Matrix.CreateFromArray(l, Order, Order, false);
+        }
+
+        /// <summary>
+        /// Explicitly composes and returns the upper triangular matrix U. 
+        /// </summary>
+        /// <returns></returns>
+        public Matrix GetFactorU()
+        {
+            CheckOverwritten();
             double[] u = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, false);
-            return (Matrix.CreateFromArray(l, Order, Order, false), Matrix.CreateFromArray(u, Order, Order, false));
+            return Matrix.CreateFromArray(u, Order, Order, false);
         }
 
         /// <summary>
-        /// Inverts the original matrix. The inverse is stored in a different buffer than the factorized matrix.
+        /// Inverts the original square matrix. The matrix must be non singular, otherwise an
+        /// <see cref="SingularMatrixException"/> will be thrown. If <paramref name="inPlace"/> is set to true, this object must 
+        /// not be used again, otherwise a <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
+        /// <param name="inPlace">False, to copy the internal factorization data before inversion. True, to overwrite it with
+        ///     the inverse matrix, thus saving memory and time. However, that will make this object unusable, so you MUST NOT 
+        ///     call any other members afterwards.</param>
         /// <returns></returns>
-        public Matrix Invert()
+        public Matrix Invert(bool inPlace)
         {
-            throw new NotImplementedException();
-        }
+            // Check if the matrix is suitable for inversion
+            CheckOverwritten();
+            if (IsSingular) throw new SingularMatrixException("The factorization has been completed, but U is singular."
+                + $" The first zero pivot is U[{firstZeroPivot}, {firstZeroPivot}] = 0.");
 
-        /// <summary>
-        /// Inverts the original matrix without creating a new buffer. The inverse is replaces the factorized matrix. Therefore 
-        /// this object should not be used again.
-        /// </summary>
-        /// <returns></returns>
-        public Matrix InvertInPlace()
-        {
-            // would be cool if I could set the data structures to 0
-            throw new NotImplementedException();
+            // Call MKL
+            int info = MKLUtilities.DefaultInfo;
+            double[] inverse;
+            if (inPlace)
+            {
+                inverse = lowerUpper;
+                IsOverwritten = true;
+            }
+            else
+            {
+                inverse = new double[lowerUpper.Length];
+                Array.Copy(lowerUpper, inverse, lowerUpper.Length);
+            }
+            info = LAPACKE.Dgetri(LAPACKE.LAPACK_COL_MAJOR, Order, inverse, Order, permutation);
+
+            // Check MKL execution
+            if (info == 0) return Matrix.CreateFromArray(inverse, Order, Order, false);
+            else  if (info > 0) // This should not have happened though
+            {
+                throw new SingularMatrixException($"The {info - 1} diagonal element of factor U is zero, U is singular and the"
+                    + "inversion could not be completed.");
+            }
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         public VectorMKL SolveLinearSystem(VectorMKL rhs)
         {
+            CheckOverwritten();
+            Preconditions.CheckSystemSolutionDimensions(this.Order, this.Order, rhs.Length);
+
             // Check if the matrix is singular first
             if (IsSingular)
             {
@@ -156,22 +188,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations
             Lapack.Dgetrs("N", ref n, ref nRhs, ref lowerUpper[0], ref n, ref permutation[0], ref b[0], ref ldb, ref info);
 
             // Check MKL execution
-            if ((info == MKLUtilities.DefaultInfo) || (info > 0)) 
-            {
-                // first check the default info value, since it lies in the other intervals.
-                // info == dafeult => the MKL call did not succeed. 
-                // info > 0 should not be returned at all by MKL, but it is here for completion.
-                throw new MKLException("Something went wrong with the MKL call."
-                    + " Please contact the developer responsible for the linear algebra project.");
-            }
-            else if (info < 0)
-            {
-                string msg = $"The {-info}th parameter has an illegal value." 
-                    + " Please contact the developer responsible for the linear algebra project.";
-                throw new MKLException(msg);
-            }
-
-            return VectorMKL.CreateFromArray(b, false);
+            if (info == 0) return VectorMKL.CreateFromArray(b, false);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         } 
+
+        private void CheckOverwritten()
+        {
+            if (IsOverwritten) throw new InvalidOperationException(
+                "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
+        }
     }
 }

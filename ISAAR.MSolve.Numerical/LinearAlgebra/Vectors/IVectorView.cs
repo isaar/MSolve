@@ -3,23 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 {
+    /// <summary>
+    /// It supports common operations that do not mutate the underlying vector. If you need to store a vector and then pass it
+    /// around or allow acceess to it, consider using this interface instead of <see cref="VectorMKL"/> for extra safety.
+    /// </summary>
     public interface IVectorView: IReducible
     {
         double this[int index] { get; }
         int Length { get; }
       
         double[] CopyToArray();
-        VectorMKL DoPointwise(IVectorView other, Func<double, double, double> operation);
-        VectorMKL DoToAllEntries(Func<double, double> operation);
+        IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation);
+        IVectorView DoToAllEntries(Func<double, double> unaryOperation);
         double DotProduct(IVectorView vector);
-        VectorMKL Slice(int[] indices);
-        VectorMKL Slice(int startInclusive, int endExclusive);
-        void WriteToConsole(Array1DFormatting format = null);
-        void WriteToFile(string path, bool append = false, Array1DFormatting format = null);
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
@@ -13,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("K = ");
-            k.WriteToConsole();
+            (new FullMatrixWriter(k)).WriteToConsole();
             Console.WriteLine("\n");
         }
 
@@ -21,13 +22,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Element " + elementId + ":");
             Console.WriteLine("Kss = ");
-            kss.WriteToConsole();
+            (new FullMatrixWriter(kss)).WriteToConsole();
             Console.WriteLine();
             Console.WriteLine("Kes = ");
-            kes.WriteToConsole();
+            (new FullMatrixWriter(kes)).WriteToConsole();
             Console.WriteLine();
             Console.WriteLine("Kee = ");
-            kee.WriteToConsole();
+            (new FullMatrixWriter(kee)).WriteToConsole();
             Console.WriteLine("\n");
         }
 
@@ -35,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Global matrix:");
             Console.WriteLine("K = ");
-            matrix.WriteToConsole();
+            (new FullMatrixWriter(matrix)).WriteToConsole();
             Console.WriteLine("\n");
         }
     }

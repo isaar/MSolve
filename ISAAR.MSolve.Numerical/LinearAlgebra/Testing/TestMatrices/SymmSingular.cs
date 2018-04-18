@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 {
@@ -39,7 +40,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             try
             {
                 var factor = A.FactorCholesky();
-                TriangularMatrix U = factor.GetUpperTriangle();
+                TriangularUpper U = factor.GetFactorU();
                 comparer.CheckFactorizationCholesky(matrix, upper, U.CopyToArray2D());
             }
             catch (IndefiniteMatrixException)
@@ -53,12 +54,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = SymmetricMatrix.CreateFromArray(matrix);
-            var reconstructed = new double[order, order];
-            for (int i = 0; i < order; ++i)
-            {
-                for (int j = 0; j < order; ++j) reconstructed[i, j] = A[i, j];
-            }
-            comparer.CheckMatrixEquality(matrix, reconstructed);
+            comparer.CheckMatrixEquality(matrix, A.CopyToArray2D());
         }
 
         public static void CheckMatrixVectorMult()
@@ -86,6 +82,22 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
                 var printer = new Printer();
                 printer.PrintIndefiniteMatrix(matrix);
             }
+        }
+
+        public static void CheckTransposition()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var A = SymmetricMatrix.CreateFromArray(matrix);
+            var transA = A.Transpose(false);
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
+        }
+
+        public static void Print()
+        {
+            var A = SymmetricMatrix.CreateFromArray(matrix);
+            Console.WriteLine("Symmetric singular matrix = ");
+            var writer = new FullMatrixWriter(A); // TODO: implement triangular printer
+            writer.WriteToConsole();
         }
     }
 }

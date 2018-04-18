@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.Exceptions;
+using ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -19,7 +20,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
     /// <summary>
     /// General matrix. Dense (full) storage. Uses MKL. Stored as 1D column major array.
     /// </summary>
-    public class Matrix: IMatrixView
+    public class Matrix: IMatrix, ISliceable2D
     {
         protected readonly double[] data;
 
@@ -49,15 +50,35 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         public int NumRows { get; }
 
         /// <summary>
+        /// TODO: make this package-private. It should only be used for passing raw arrays to linear algebra libraries.
+        /// </summary>
+        internal double[] InternalData { get { return data; } }
+
+        /// <summary>
         /// The entry with row index = i and column index = j. 
         /// </summary>
         /// <param name="rowIdx">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
         /// <param name="colIdx">The column index: 0 &lt;= j &lt; <see cref="NumColumns"/></param>
         /// <returns>The entry with indices i, j</returns>
-        public double this[int rowIdx, int colIdx]
+        public double this[int rowIdx, int colIdx] //TODO: Should I add bound checking?
         {
             get { return data[colIdx * NumRows + rowIdx]; }
             set { data[colIdx * NumRows + rowIdx] = value; }
+        }
+
+        /// <summary>
+        /// The original matrix will be copied.
+        /// </summary>
+        /// <param name="original"></param>
+        /// <returns></returns>
+        public static Matrix CopyFromMatrix(Matrix original)
+        {
+            //TODO: Perhaps this should use BLAS. 
+            //TODO: Perhaps it should be an instance method CopyToMatrix(). Or the instance method would return an interface.
+            double[] data = original.data;
+            double[] clone = new double[data.Length];
+            Array.Copy(data, clone, data.Length);
+            return new Matrix(clone, original.NumRows, original.NumColumns);
         }
 
         /// <summary>
@@ -98,19 +119,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        /// <summary>
-        /// The original matrix will be copied.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <returns></returns>
-        public static Matrix CreateFromMatrix(Matrix original) 
+        public static Matrix CreateIdentity(int order)
         {
-            //TODO: Perhaps this should use BLAS. 
-            //TODO: Perhaps it should be an instance method CopyToMatrix(). Or the instance method would return an interface.
-            double[] data = original.data;
-            double[] clone = new double[data.Length];
-            Array.Copy(data, clone, data.Length);
-            return new Matrix(clone, original.NumRows, original.NumColumns);
+            double[] data = new double[order * order];
+            for (int j = 0; j < order; ++j) data[j * order + j] = 1.0;
+            return new Matrix(data, order, order);
         }
 
         public static Matrix CreateWithValue(int numRows, int numColumns, double value)
@@ -133,48 +146,83 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
         }
 
         #region operators (use extension operators when they become available)
-        public static Matrix operator +(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(1.0, matrix2);
-        public static Matrix operator -(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(-1.0, matrix2);
+        public static Matrix operator +(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(matrix2, 1.0);
+        public static Matrix operator -(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(matrix2, -1.0);
         public static Matrix operator *(double scalar, Matrix matrix) => matrix.Scale(scalar);
         public static Matrix operator *(Matrix matrix, double scalar)=> matrix.Scale(scalar);
         public static Matrix operator *(Matrix matrixLeft, Matrix matrixRight)
             => matrixLeft.MultiplyRight(matrixRight, false, false);
         public static VectorMKL operator *(Matrix matrixLeft, VectorMKL vectorRight)
             => matrixLeft.MultiplyRight(vectorRight, false);
-        public static VectorMKL operator *(VectorMKL vectorRight, Matrix matrixLeft)
-            => matrixLeft.MultiplyRight(vectorRight, true);
+        public static VectorMKL operator *(VectorMKL vectorLeft, Matrix matrixRight)
+            => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
-        /// <summary>
-        /// result = this + scalar * other
-        /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
-        /// <returns></returns>
-        public Matrix Axpy(double scalar, Matrix other)
+        public Matrix AppendBottom(Matrix other)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
+            Preconditions.CheckSameColDimension(this, other);
+            double[] result = ArrayColMajor.JoinVertically(this.NumRows, this.NumColumns, this.data,
+                other.NumRows, other.NumColumns, other.data);
+            return new Matrix(result, this.NumRows + other.NumColumns, NumColumns);
+        }
+
+        public Matrix AppendRight(Matrix other)
+        {
+            Preconditions.CheckSameRowDimension(this, other);
+            double[] result = ArrayColMajor.JoinHorizontally(this.NumRows, this.NumColumns, this.data,
+                other.NumRows, other.NumColumns, other.data);
+            return new Matrix(result, NumRows, this.NumColumns + other.NumColumns);
+        }
+
+        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is Matrix casted) return Axpy(casted, otherCoefficient);
+            else return otherMatrix.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
+        }
+
+        public Matrix Axpy(Matrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
-            double[] result = new double[this.data.Length];
+            double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref result[0], 1);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
-        /// <summary>
-        /// this = this + scalar * other
-        /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
-        public void AxpyIntoThis(double scalar, Matrix other)
+        public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
-            CBlas.Daxpy(this.data.Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
+            if (otherMatrix is Matrix casted) AxpyIntoThis(casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        this.data[j * NumRows + i] += otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+        }
+
+        public void AxpyIntoThis(Matrix otherMatrix, double otherCoefficient)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
         }
 
         public double CalcDeterminant()
         {
-            return FactorLU().CalcDeterminant();
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                return AnalyticFormulas.Matrix2x2ColMajorDeterminant(data);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                return AnalyticFormulas.Matrix3x3ColMajorDeterminant(data);
+            }
+            else return FactorLU().CalcDeterminant();
         }
 
         /// <summary>
@@ -188,38 +236,41 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
 
-        public IMatrixView DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
+        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix) return DoPointwise((Matrix)other, binaryOperation);
-            else return other.DoPointwise(this, binaryOperation);
+            if (other is Matrix casted) return DoEntrywise(casted, binaryOperation);
+            else return other.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
         }
 
-        public Matrix DoPointwise(Matrix other, Func<double, double, double> binaryOperation)
+        public Matrix DoEntrywise(Matrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
-            var result = new double[NumRows * NumColumns];
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                for (int i = 0; i < NumRows; ++i)
-                {
-                    int idx = j * NumRows + NumColumns;
-                    result[idx] = binaryOperation(this.data[idx], other.data[idx]);
-                }
-            }
+            var result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
             return new Matrix(result, NumRows, NumColumns);
         }
 
-        public void DoPointwiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
-            for (int j = 0; j < NumColumns; ++j)
+            if (other is Matrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else
             {
-                for (int i = 0; i < NumRows; ++i)
+                Preconditions.CheckSameMatrixDimensions(this, other);
+                for (int j = 0; j < NumColumns; ++j)
                 {
-                    int idx = j * NumRows + NumColumns;
-                    this.data[idx] = binaryOperation(this.data[idx], other.data[idx]);
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        int index1D = j * NumRows + i;
+                        this.data[index1D] = binaryOperation(this.data[index1D], other[i, j]);
+                    }
                 }
             }
+        }
+
+        public void DoEntrywiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
+        {
+            Preconditions.CheckSameMatrixDimensions(this, other);
+            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], other.data[i]);
         }
 
         IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
@@ -237,6 +288,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(result, NumRows, NumColumns);
         }
 
+        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
+        }
+
         // Ok for a DenseMatrix, but for sparse formats some operation (e.g scale) maintain the sparsity pattern,
         // while others don't
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
@@ -247,66 +303,148 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             }
         }
 
-        public bool Equals(IMatrixView other, ValueComparer comparer = null)
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-
             if (other is Matrix)
             {
-                double[] otherData = ((Matrix)other).data;
                 //Check each dimension, rather than the lengths of the internal buffers
                 if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
-                if (comparer == null) comparer = new ValueComparer(1e-13);
+                double[] otherData = ((Matrix)other).data;
+                var comparer = new ValueComparer(1e-13);
                 for (int i = 0; i < this.data.Length; ++i)
                 {
                     if (!comparer.AreEqual(this.data[i], otherData[i])) return false;
                 }
                 return true;
             }
-            else if (this.NumNonZeros != other.NumNonZeros) return other.Equals(this, comparer);
-            else return false;
+            else return other.Equals(this, tolerance); // To avoid accessing zero entries
+        }
+
+        public CholeskyFull FactorCholesky()
+        {
+            if (IsSquare)
+            {
+                // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
+                // To avoid these, set "inPlace=true".
+                return CholeskyFull.Factorize(NumColumns, CopyInternalData());
+            }
+            else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
+        }
+
+        /// <summary>
+        /// Calculates the LQ factorization of a matrix with <see cref="NumRows"/> &lt;= <see cref="NumColumns"/>, such that
+        /// A = L*Q. Requires an extra 
+        /// <see cref="NumRows"/>*<see cref="NumColumns"/> + min(<see cref="NumRows"/>,<see cref="NumColumns"/>) available
+        /// memory. 
+        /// </summary>
+        /// <returns></returns>
+        public LQFactorization FactorLQ()
+        {
+            return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         public LUFactorization FactorLU()
         {
-            if (IsSquare) return LUFactorization.CalcFactorization(NumRows, data);
-            else throw new NonMatchingDimensionsException("Cannot apply LU factorization to a rectangular matrix.");
+            if (IsSquare)
+            {
+                // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
+                // To avoid these, set "inPlace=true".
+                return LUFactorization.Factorize(NumColumns, CopyInternalData());
+            }
+            else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
+        }
+
+        /// <summary>
+        /// Calculates the QR factorization of a matrix with <see cref="NumRows"/> &gt;= <see cref="NumColumns"/>, such that
+        /// A = Q*R. Requires an extra 
+        /// <see cref="NumRows"/>*<see cref="NumColumns"/> + min(<see cref="NumRows"/>,<see cref="NumColumns"/>) available 
+        /// memory. 
+        /// </summary>
+        /// <returns></returns>
+        public QRFactorization FactorQR()
+        {
+            return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         public Matrix Invert()
         {
-            return FactorLU().InvertInPlace();
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix2x2ColMajorInvert(data);
+                return new Matrix(inverse, 2, 2);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
+                return new Matrix(inverse, 3, 3);
+            }
+            else return FactorLU().Invert(true);
         }
 
-        /// <summary>
-        /// result = thisScalar * this + otherScalar * otherMatrix
-        /// </summary>
-        /// <returns></returns>
-        public Matrix LinearCombination(double thisScalar, double otherScalar, Matrix otherMatrix)
+        public (Matrix inverse, double determinant) InvertAndDetermninant()
+        {
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix2x2ColMajorInvert(data);
+                return (new Matrix(inverse, 2, 2), det);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
+                return (new Matrix(inverse, 3, 3), det);
+            }
+            else
+            {
+                LUFactorization factor = FactorLU();
+                return (factor.Invert(true), factor.CalcDeterminant());
+            }
+        }
+
+        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is Matrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else return otherMatrix.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
+        }
+
+        public Matrix LinearCombination(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
-            double[] result = new double[this.data.Length];
-            Array.Copy(this.data, result, this.data.Length);
-            CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref result[0], 1);
-            return new Matrix(result, this.NumRows, this.NumColumns);
+            double[] result = new double[data.Length];
+            Array.Copy(this.data, result, data.Length);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            return new Matrix(result, NumRows, NumColumns);
         }
 
-        /// <summary>
-        /// this = this + scalar * otherMatrix
-        /// </summary>
-        /// <returns></returns>
-        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, Matrix otherMatrix)
+        public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        {
+            if (otherMatrix is Matrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
+                for (int j = 0; j < NumColumns; ++j)
+                {
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        int index1D = j * NumRows + i;
+                        this.data[index1D] = thisCoefficient * this.data[index1D] + otherCoefficient * otherMatrix[i, j];
+                    }
+                }
+            }
+        }
+
+        public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(this.data.Length, otherScalar, ref otherMatrix.data[0], 1, thisScalar, ref this.data[0], 1);
+            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
         }
 
-        public IMatrixView MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             return other.MultiplyRight(this, transposeOther, transposeThis);
         }
 
-        public IMatrixView MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             if (other is Matrix) return MultiplyRight((Matrix)other, transposeThis);
             else return other.MultiplyLeft(this, transposeOther, transposeThis);
@@ -361,7 +499,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(result, leftRows, rightCols);
         }
 
-        public IVectorView MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
             else throw new NotImplementedException();
@@ -402,10 +540,10 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
-            double accumulator = identityValue;
-            for (int i = 0; i < data.Length; ++i) accumulator = processEntry(data[i], accumulator);
+            double aggregator = identityValue;
+            for (int i = 0; i < data.Length; ++i) aggregator = processEntry(data[i], aggregator);
             // no zeros implied
-            return finalize(accumulator);
+            return finalize(aggregator);
         }
 
         /// <summary>
@@ -435,9 +573,35 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             for (int i = 0; i < data.Length; ++i) data[i] = value;
         }
 
-        IMatrixView IMatrixView.Slice(int[] rowIndices, int[] colIndices)
+        public void SetColumn(int colIdx, VectorMKL colValues)
         {
-            return Slice(rowIndices, colIndices);
+            Preconditions.CheckIndexCol(this, colIdx);
+            Preconditions.CheckSameRowDimension(this, colValues);
+            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, colValues.InternalData);
+        }
+
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
+        {
+            data[colIdx * NumRows + rowIdx] = value;
+        }
+
+        public void SetRow(int rowIdx, VectorMKL rowValues)
+        {
+            Preconditions.CheckIndexRow(this, rowIdx);
+            Preconditions.CheckSameColDimension(this, rowValues);
+            ArrayColMajor.SetRow(NumRows, NumColumns, data, rowIdx, rowValues.InternalData);
+        }
+
+        public void SetSubmatrix(int rowStart, int colStart, Matrix submatrix)
+        {
+            Preconditions.CheckIndices(this, rowStart, colStart);
+            if ((rowStart + submatrix.NumRows > this.NumRows) || (colStart + submatrix.NumColumns > this.NumColumns))
+            {
+                throw new NonMatchingDimensionsException("The submatrix doesn't fit inside this matrix, at least when starting"
+                    + " from the specified entry.");
+            }
+            ArrayColMajor.SetSubmatrix(this.NumRows, this.NumColumns, this.data, rowStart, colStart, 
+                submatrix.NumRows, submatrix.NumColumns, submatrix.data);
         }
 
         /// <summary>
@@ -462,11 +626,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return new Matrix(submatrix, rowIndices.Length, colIndices.Length);
         }
 
-        IMatrixView IMatrixView.Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-        {
-            return Slice(rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
-        }
-
         /// <summary>
         /// Returns a subvector containing the entries at the indices between the provided start (inclusive) and end (exclusive).
         /// </summary>
@@ -489,6 +648,28 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
                 }
             }
             return new Matrix(submatrix, newNumRows, newNumCols);
+        }
+
+        public VectorMKL SliceColumn(int colIndex)
+        {
+            double[] result = new double[NumRows];
+            Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
+            return VectorMKL.CreateFromArray(data, false);
+        }
+
+        public VectorMKL SliceRow(int rowIndex)
+        {
+            double[] result = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                result[j] = data[j * NumRows + rowIndex];
+            }
+            return VectorMKL.CreateFromArray(result, false);
+        }
+
+        public void SVD(double[] w, double[,] v)
+        {
+            DenseStrategies.SVD(this, w, v);
         }
 
         /// <summary>
@@ -518,77 +699,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             throw new NotImplementedException("Use mkl_dimatcopy");
         }
 
-        public void WriteToConsole(Array2DFormatting format = null)
+        private double[] CopyInternalData()
         {
-            if (format == null) format = Array2DFormatting.Brackets;
-            Console.Write(format.ArrayStart);
-
-            // First row
-            Console.Write(format.RowSeparator + format.RowStart);
-            Console.Write(data[0]);
-            for (int j = 1; j < NumColumns; ++j)
-            {
-                Console.Write(format.ColSeparator + data[j * NumRows]);
-            }
-            Console.Write(format.RowEnd);
-
-            // Subsequent rows
-            for (int i = 1; i < NumRows; ++i)
-            {
-                Console.Write(format.RowSeparator + format.RowStart);
-                Console.Write(data[i]);
-                for (int j = 1; j < NumColumns; ++j)
-                {
-                    Console.Write(format.ColSeparator + data[j * NumRows + i]);
-                }
-                Console.Write(format.RowEnd);
-            }
-            Console.Write(format.RowSeparator + format.ArrayEnd);
-        }
-
-        /// <summary>
-        /// Write the entries of the matrix to a specified file. If the file doesn't exist a new one will be created.
-        /// </summary>
-        /// <param name="path">The path of the file and its extension.</param>
-        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
-        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        /// <param name="format">Formatting options for how to print the vector entries.</param>
-        public void WriteToFile(string path, bool append = false, Array2DFormatting format = null)
-        {
-            if (format == null) format = Array2DFormatting.Plain;
-            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
-            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
-            // but since they are extremely useful they are implemented here for now.
-            using (var writer = new StreamWriter(path, append))
-            {
-                writer.Write(format.ArrayStart);
-
-                // First row
-                writer.Write(format.RowSeparator + format.RowStart);
-                writer.Write(data[0]);
-                for (int j = 1; j < NumColumns; ++j)
-                {
-                    writer.Write(format.ColSeparator + data[j * NumRows]);
-                }
-                writer.Write(format.RowEnd);
-
-                // Subsequent rows
-                for (int i = 1; i < NumRows; ++i)
-                {
-                    writer.Write(format.RowSeparator + format.RowStart);
-                    writer.Write(data[i]);
-                    for (int j = 1; j < NumColumns; ++j)
-                    {
-                        writer.Write(format.ColSeparator + data[j * NumRows + i]);
-                    }
-                    writer.Write(format.RowEnd);
-                }
-                writer.Write(format.RowSeparator + format.ArrayEnd);
-
-#if DEBUG
-                writer.Flush(); // If the user inspects the file while debugging, make sure the contentss are written.
-#endif
-            }
+            double[] dataCopy = new double[data.Length];
+            Array.Copy(data, dataCopy, data.Length);
+            return dataCopy;
         }
     }
 }

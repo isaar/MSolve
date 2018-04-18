@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.Numerical.Exceptions
 {
-    public class SingularMatrixException: Exception
+    public class SingularMatrixException: IndefiniteMatrixException
     {
         public SingularMatrixException()
         { }

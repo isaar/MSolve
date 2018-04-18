@@ -22,6 +22,8 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -278,7 +280,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckGlobalStiffnessNode7()
         {
-            (SymmetricDOKColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
+            (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
 
             var dofsOfNode7 = new List<int>();
             foreach (int dof in model.DofEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
@@ -355,15 +357,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)
         {
             Console.WriteLine("Kss = " + 1/scale + " * ");
-            kss.Scale(scale).WriteToConsole();
+            (new FullMatrixWriter(kss.Scale(scale))).WriteToConsole();
             Console.WriteLine();
 
             Console.WriteLine("Kes = " + 1 / scale + " * ");
-            kes.Scale(scale).WriteToConsole();
+            (new FullMatrixWriter(kes.Scale(scale))).WriteToConsole();
             Console.WriteLine();
 
             Console.WriteLine("Kee = " + 1 / scale + " * ");
-            kee.Scale(scale).WriteToConsole();
+            (new FullMatrixWriter(kee.Scale(scale))).WriteToConsole();
             Console.WriteLine();
         }
 

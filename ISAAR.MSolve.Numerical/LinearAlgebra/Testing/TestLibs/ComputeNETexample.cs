@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestLibs
 {
     public class ComputeNETexample
     {

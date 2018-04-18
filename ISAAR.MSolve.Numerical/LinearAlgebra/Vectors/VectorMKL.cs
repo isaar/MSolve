@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Reduction;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 
@@ -14,7 +15,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 //TODO: tensor product, vector2D, vector3D
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
 {
-    public class VectorMKL: IVectorView
+    public class VectorMKL: IVectorView, ISliceable1D
     {
         private readonly double[] data;
 
@@ -46,6 +47,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
                 return new VectorMKL(clone);
             }
             else return new VectorMKL(data);
+        }
+
+        /// <summary>
+        /// The original vector will be copied.
+        /// </summary>
+        /// <param name="original"></param>
+        /// <returns></returns>
+        public static VectorMKL CreateFromVector(IVectorView original)
+        {
+            if (original is VectorMKL casted) return CreateFromVector(casted);
+            double[] clone = new double[original.Length];
+            for (int i = 0; i < clone.Length; ++i) clone[i] = original[i];
+            return new VectorMKL(clone);
         }
 
         /// <summary>
@@ -91,6 +105,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return vector.Scale(scalar);
         }
 
+        public static VectorMKL operator *(VectorMKL vector, double scalar)
+        {
+            return vector.Scale(scalar);
+        }
+
         public static double operator *(VectorMKL vector1, VectorMKL vector2)
         {
             return vector1.DotProduct(vector2); //Perhaps call BLAS directly
@@ -132,18 +151,49 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return clone;
         }
 
-        public VectorMKL DoPointwise(IVectorView other, Func<double, double, double> binaryOperation)
+        public void CopyToArray(int sourceIndex, double[] destinationArray, int destinationIndex, int length)
+        {
+            Array.Copy(data, sourceIndex, destinationArray, destinationIndex, length);
+        }
+
+        /// <summary>
+        /// Copy length consecutive entries from sourceVector starting at sourceIndex, to this object starting at 
+        /// destinationIndex.
+        /// </summary>
+        /// <param name="destinationIndex">Where to start writing in this object.</param>
+        /// <param name="sourceVector">The vector containing the entries to be copied.</param>
+        /// <param name="sourceIndex">Where to start reading in the source vector.</param>
+        /// <param name="length">The number of entries to be copied.</param>
+        public void CopyFromVector(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length) 
+        {
+            //TODO: Perhaps a syntax closer to Array, 
+            // e.g. Vector.Copy(sourceVector, sourceIndex, destinationVector, destinationIndex, length)
+            for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
+        }
+
+        public IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is VectorMKL casted) return DoEntrywise(other, binaryOperation);
+            else return other.DoEntrywise(this, binaryOperation);
+        }
+
+        public VectorMKL DoEntrywise(VectorMKL other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
             double[] result = new double[data.Length];
-            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(data[i], other[i]);
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
             return new VectorMKL(result);
         }
 
-        public void DoPointwiseInPlace(VectorMKL other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(VectorMKL other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
             for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
+        }
+
+        IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
+        {
+            return DoToAllEntries(unaryOperation);
         }
 
         public VectorMKL DoToAllEntries(Func<double, double> unaryOperation)
@@ -153,25 +203,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             return new VectorMKL(result);
         }
 
-        public void DoToAllEntriesInPlace(Func<double, double> unaryOperation)
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
         }
 
         public double DotProduct(IVectorView other)
         {
-            Preconditions.CheckVectorDimensions(this, other);
             if (other is VectorMKL)
             {
+                Preconditions.CheckVectorDimensions(this, other);
                 double[] rawDataOther = ((VectorMKL)other).InternalData;
                 return CBlas.Ddot(Length, ref this.data[0], 1, ref rawDataOther[0], 1);
             }
-            else
-            {
-                double result = 0.0;
-                for (int i = 0; i < data.Length; ++i) result += data[i] * other[i];
-                return result;
-            }
+            else return other.DotProduct(this); // Let the more complex/efficient object operate.
         }
 
         public bool Equals(VectorMKL other, ValueComparer comparer = null)
@@ -212,6 +257,68 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         public double Norm2()
         {
             return CBlas.Dnrm2(Length, ref data[0], 1);
+        }
+
+        /// <summary>
+        /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
+        /// the requested Knot. The multiplicity of a single Knot can be derived using the exported multiplicity vector. 
+        /// The entries of this <see cref="VectorMKL"/> will be sorted.
+        /// </summary>
+        /// <returns></returns>
+        public VectorMKL[] RemoveDuplicatesFindMultiplicity()
+        {
+            Array.Sort(data);
+            HashSet<double> set = new HashSet<double>();
+            int indexSingles = 0;
+            double[] singles = new double[data.Length];
+
+            int[] multiplicity = new int[data.Length];
+            int counterMultiplicity = 0;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                // If same integer is already present then add method will return
+                // FALSE
+                if (set.Add(data[i]) == true)
+                {
+                    singles[indexSingles] = data[i];
+
+                    multiplicity[indexSingles] = counterMultiplicity;
+                    indexSingles++;
+
+                }
+                else
+                {
+                    counterMultiplicity++;
+                }
+            }
+            int numberOfZeros = 0;
+            for (int i = data.Length - 1; i >= 0; i--)
+            {
+                if (singles[i] == 0)
+                {
+                    numberOfZeros++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            VectorMKL[] singlesMultiplicityVectors = new VectorMKL[2];
+
+            singlesMultiplicityVectors[0] = VectorMKL.CreateZero(data.Length - numberOfZeros);
+            for (int i = 0; i < data.Length - numberOfZeros; i++)
+            {
+                singlesMultiplicityVectors[0][i] = singles[i];
+            }
+
+            singlesMultiplicityVectors[1] = VectorMKL.CreateZero(data.Length - numberOfZeros);
+            for (int i = 0; i < data.Length - numberOfZeros; i++)
+            {
+                singlesMultiplicityVectors[1][i] = multiplicity[i];
+            }
+
+            return singlesMultiplicityVectors;
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -282,45 +389,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
         public IVectorOLD ToLegacyVector()
         {
             return new Vector(data);
-        }
-
-        public void WriteToConsole(Array1DFormatting format = null)
-        {
-            if (format == null) format = Array1DFormatting.Brackets;
-            string separator = format.Separator;
-            Console.Write(format.Start);
-            Console.Write(data[0]);
-            for (int i = 1; i < Length; ++i)
-            {
-                Console.Write(separator + data[i]);
-            }
-            Console.WriteLine(format.End);
-        }
-
-        /// <summary>
-        /// Write the entries of the vector to a specified file. If the file doesn't exist a new one will be created.
-        /// </summary>
-        /// <param name="path">The path of the file and its extension.</param>
-        /// <param name="append">If the file already exists: Pass <see cref="append"/> = true to write after the current end of 
-        ///     the file. Pass<see cref="append"/> = false to overwrite the file.</param>
-        /// <param name="format">Formatting options for how to print the vector entries.</param>
-        public void WriteToFile(string path, bool append = false, Array1DFormatting format = null)
-        {
-            if (format == null) format = Array1DFormatting.Plain;
-            //TODO: incorporate this and WriteToConsole into a common function, where the user passes the stream and an object to 
-            //deal with formating. Also add support for relative paths. Actually these methods belong in the "Logging" project, 
-            // but since they are extremely useful they are implemented here for now.
-            using (var writer = new StreamWriter(path, append))
-            {
-                string separator = format.Separator;
-                writer.Write(format.Start);
-                Console.Write(data[0]);
-                for (int i = 1; i < Length; ++i)
-                {
-                    writer.Write(separator + data[i]);
-                }
-                writer.WriteLine(format.End);
-            }
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
+namespace ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations
 {
     // TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
     public static class Conversions
@@ -172,6 +172,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return rowMajor;
         }
 
+        // TODO: This is no longer a conversion per se. I need to organize these methods
+        public static void CopyUpperToLowerColMajor(double[] squareFullMatrix, int order)
+        {
+            for (int j = 0; j < order; ++j)
+            {
+                for (int i = 0; i < j; ++i)
+                {
+                    squareFullMatrix[i * order + j] = squareFullMatrix[j * order + i];
+                }
+            }
+        }
+
         public static double[,] FullColMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];
@@ -183,6 +195,34 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
                 }
             }
             return array2D;
+        }
+
+        /// <summary>
+        /// Extract the lower part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <param name="unitDiagonal"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullLowerRowMajor(double[] full, bool unitDiagonal)
+        {
+            int n = FullLengthToOrder(full.Length);
+            double[] lower = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = j + 1; i < n; ++i)
+                {
+                    lower[i * n + j] = full[j * n + i]; // lower is row major, full is col major
+                }
+            }
+            if (unitDiagonal)
+            {
+                for (int d = 0; d < n; ++d) lower[d * n + d] = 1.0;
+            }
+            else
+            {
+                for (int d = 0; d < n; ++d) lower[d * n + d] = full[d * n + d];
+            }
+            return lower;
         }
 
         /// <summary>
@@ -214,6 +254,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
         }
 
         /// <summary>
+        /// Extract the lower trapezoid (subdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
+        /// rectangular matrices.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullLowerColMajorRect(int numRows, int numCols, double[] full)
+        {
+            if (numRows > numCols) throw new NotImplementedException("For now: numRows <= numCols");
+            double[] lower = new double[full.Length];
+            for (int j = 0; j < numRows; ++j) // numRows < numCols, so this will not scan past the square submatrix that contains the diagonal
+            {
+                for (int i = j; i < numRows; ++i) // this will scan all rows of the relevant columns
+                {
+                    lower[j * numRows + i] = full[j * numRows + i];
+                }
+            }
+            return lower;
+        }
+
+        /// <summary>
         /// Extract the upper part only. Both I/O are column major with full storage.
         /// </summary>
         /// <param name="full"></param>
@@ -237,6 +297,49 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             else
             {
                 for (int d = 0; d < n; ++d) upper[d * n + d] = full[d * n + d];
+            }
+            return upper;
+        }
+
+        /// <summary>
+        /// Extract the upper trapezoid (superdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
+        /// rectangular matrices.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToFullUpperColMajorRect(int numRows, int numCols, double[] full)
+        {
+            if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
+            double[] upper = new double[full.Length];
+            for (int j = 0; j < numCols; ++j) // numCols < numRows, so this will scan all columns
+            {
+                for (int i = 0; i <= j; ++i) // numCols < numRows, so this will not scan past the square submatrix that contains the diagonal
+                {
+                    upper[j * numRows + i] = full[j * numRows + i];
+                }
+            }
+            return upper;
+        }
+
+        /// <summary>
+        /// Extract the upper part only. Both I/O are column major with full storage.
+        /// </summary>
+        /// <param name="full"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public static double[] FullColMajorToPackedUpperColMajor(double[] full, int order)
+        {
+            //int n = FullLengthToOrder(full.Length);
+            int n = order;
+            double[] upper = new double[(n * (n + 1)) / 2];
+            int counter = 0; // Simplifies indexing but the outer and inner loops cannot be interchanged
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    upper[counter] = full[j * n + i];
+                    ++counter; // Clearer than post-incrementing during indexing.
+                }
             }
             return upper;
         }
@@ -346,6 +449,41 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
             return array2D;
         }
 
+        public static double[,] PackedUpperColMajorToArray2DSymm(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[, ] array2D = new double[n, n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < j; ++i)
+                {
+                    double val = packed[i + (j * (j + 1)) / 2]; ;
+                    array2D[i, j] = val;
+                    array2D[j, i] = val;
+                }
+            }
+            for (int i = 0; i < n; ++i) // The diagonal entries need to be proceessed only once.
+            {
+                array2D[i, i] = packed[i + (i * (i + 1)) / 2];
+            }
+            return array2D;
+        }
+
+        public static double[] PackedUpperColMajorToFullColMajor(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[] full = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    double val = packed[i + (j * (j + 1)) / 2]; ;
+                    full[j * n + i] = val;
+                }
+            }
+            return full;
+        }
+
         /// <summary>
         /// Converts a symmetric matrix from packed column major format to full column major format.
         /// </summary>
@@ -389,6 +527,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Commons
                 }
             }
             return array2D;
+        }
+
+        public static double[] PackedLowerRowMajorToFullColMajor(double[] packed, int order = 0)
+        {
+            int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
+            double[] full = new double[n * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    double val = packed[j + ((i + 1) * i) / 2]; ;
+                    full[j * n + i] = val;
+                }
+            }
+            return full;
         }
 
         public static int FullLengthToOrder(int length)

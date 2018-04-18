@@ -3,46 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
 {
     // TODO: optional parameters that control formating, such as decimals, right alignment
     public class Printer
     {
-        public string ColSeparator { get; set; }
-        public string RowSeparator { get; set; }
         public string SectionSeparator { get; set; }
 
         public Printer(string rowSeparator = "\n", string colSeparator = " ")
         {
-            this.RowSeparator = rowSeparator;
-            this.ColSeparator = colSeparator;
             this.SectionSeparator = "************************************************************************************";
         }
 
         public void Print(double[] vector)
         {
-            Console.Write("[");
-            for (int i = 0; i < vector.Length; ++i)
-            {
-                Console.Write(ColSeparator + vector[i]);
-            }
-            Console.WriteLine(ColSeparator + "]");
+            (new Array1DWriter(vector)).WriteToConsole();
         }
 
         public void Print(double[,] matrix)
         {
-            Console.Write("[");
-            for (int i = 0; i < matrix.GetLength(0); ++i)
-            {
-                Console.Write(RowSeparator + "[");
-                for (int j = 0; j < matrix.GetLength(1); ++j)
-                {
-                    Console.Write(ColSeparator + matrix[i, j]);
-                }
-                Console.Write(ColSeparator + "]");
-            }
-            Console.WriteLine(RowSeparator + "]");
+            (new Array2DWriter(matrix)).WriteToConsole();
         }
 
         public void PrintFactorizationCholesky(bool isCorrect, double[,] matrix, double[,] uExpected, double[,] uComputed)
@@ -159,6 +141,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities
             Console.WriteLine();
             Console.Write("x (computed) = ");
             Print(xComputed);
+            Console.WriteLine(SectionSeparator);
+            Console.WriteLine();
+        }
+
+        public void PrintVectorEquality(bool isCorrect, double[] vectorExpected, double[] vectorComputed)
+        {
+            string result = isCorrect ? "EQUAL" : "NOT EQUAL";
+            Console.WriteLine(SectionSeparator);
+            Console.WriteLine("The following vectors are " + result + ":");
+            Console.Write("v (expected) = ");
+            Print(vectorExpected);
+            Console.WriteLine();
+            Console.Write("v (computed) = ");
+            Print(vectorComputed);
             Console.WriteLine(SectionSeparator);
             Console.WriteLine();
         }

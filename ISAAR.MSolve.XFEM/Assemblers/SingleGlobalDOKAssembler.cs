@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -19,14 +20,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     static class SingleGlobalDOKAssembler
     {
-        public static (SymmetricDOKColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model)
+        public static (DOKSymmetricColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model)
         {
             DOFEnumerator dofEnumerator = model.DofEnumerator;
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
             int allFreeDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            SymmetricDOKColMajor Kff = new SymmetricDOKColMajor(allFreeDofsCount);
+            var Kff = DOKSymmetricColMajor.CreateEmpty(allFreeDofsCount);
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
@@ -70,7 +71,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return (Kff, Kfc);
         }
 
-        private static void AddElementToGlobalMatrix(SymmetricDOKColMajor globalMatrix, Matrix elementMatrix,
+        private static void AddElementToGlobalMatrix(DOKSymmetricColMajor globalMatrix, Matrix elementMatrix,
             IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
             foreach (var rowPair in elementRowsToGlobalRows)

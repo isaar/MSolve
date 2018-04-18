@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
     {
         public static readonly double[,] matrixSquare = SquareSingular.matrix;
         public static readonly double[,] matrixSymm = SymmPositiveDefinite.matrix;
-        public static readonly double[,] matrixRect = Rectangular.matrix;
+        public static readonly double[,] matrixRect = RectangularFullColRank.matrix;
 
         public static readonly double[,] rectTimes5 = 
             MatrixOperations.Scale(5.0, matrixRect); 
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(expected, m1.Scale(5.0));
 
             Console.Write("Check ScaleIntoThis(): ");
-            var temp = Matrix.CreateFromMatrix(m1);
+            var temp = Matrix.CopyFromMatrix(m1);
             temp.ScaleIntoThis(scalar);
             comparer.CheckMatrixEquality(expected, temp);
 
@@ -81,11 +81,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check LinearCombination(): ");
-            comparer.CheckMatrixEquality(expected, m1.LinearCombination(scalar1, scalar2, m2));
+            comparer.CheckMatrixEquality(expected, m1.LinearCombination(scalar1, m2, scalar2));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
-            var temp = Matrix.CreateFromMatrix(m1);
-            temp.LinearCombinationIntoThis(scalar1, scalar2, m2);
+            var temp = Matrix.CopyFromMatrix(m1);
+            temp.LinearCombinationIntoThis(scalar1, m2, scalar2);
             comparer.CheckMatrixEquality(expected, temp);
         }
 

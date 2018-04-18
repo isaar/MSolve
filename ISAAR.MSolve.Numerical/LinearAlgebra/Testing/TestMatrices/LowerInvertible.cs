@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
 {
@@ -32,19 +33,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void CheckIndexing()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularMatrix.CreateFromArray(matrix, TriangularMatrix.TrianglePosition.Lower);
-            var reconstructed = new double[order, order];
-            for (int i = 0; i < order; ++i)
-            {
-                for (int j = 0; j < order; ++j) reconstructed[i, j] = A[i, j];
-            }
-            comparer.CheckMatrixEquality(matrix, reconstructed);
+            var A = TriangularLower.CreateFromArray(matrix);
+            comparer.CheckMatrixEquality(matrix, A.CopyToArray2D());
         }
 
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularMatrix.CreateFromArray(matrix, TriangularMatrix.TrianglePosition.Lower);
+            var A = TriangularLower.CreateFromArray(matrix);
             var x = VectorMKL.CreateFromArray(lhs);
             VectorMKL b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
@@ -54,9 +50,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var b = VectorMKL.CreateFromArray(rhs);
-            var A = TriangularMatrix.CreateFromArray(matrix, TriangularMatrix.TrianglePosition.Lower);
+            var A = TriangularLower.CreateFromArray(matrix);
             VectorMKL x = A.SolveLinearSystem(b);
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
+        }
+
+        public static void CheckTransposition()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var A = TriangularLower.CreateFromArray(matrix);
+            var transA = A.Transpose(false);
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
+        }
+
+        public static void Print()
+        {
+            var A = TriangularLower.CreateFromArray(matrix);
+            Console.WriteLine("Lower invertible matrix = ");
+            var writer = new FullMatrixWriter(A); // TODO: implement triangular printer
+            writer.WriteToConsole();
         }
     }
 }

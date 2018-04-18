@@ -15,6 +15,7 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -67,11 +68,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             bodyElement.BuildEnrichedStiffnessMatrices(out Matrix stiffnessStdEnr, out Matrix stiffnessEnr);
             
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            stiffnessStd.Scale(1e-6).WriteToConsole();
+            (new FullMatrixWriter(stiffnessStd.Scale(1e-6))).WriteToConsole();
             Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            stiffnessStdEnr.Scale(1e-6).WriteToConsole();
+            (new FullMatrixWriter(stiffnessStdEnr.Scale(1e-6))).WriteToConsole();
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            stiffnessEnr.Scale(1e-6).WriteToConsole();
+            (new FullMatrixWriter(stiffnessEnr.Scale(1e-6))).WriteToConsole();
         }
 
         private static void IsoparametricQuad4BimaterialTest(XNode2D[] nodes)
@@ -104,11 +105,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             element.BuildEnrichedStiffnessMatrices(out Matrix stiffnessStdEnr, out Matrix stiffnessEnr);
 
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            stiffnessStd.Scale(1e-6).WriteToConsole();
+            (new FullMatrixWriter(stiffnessStd.Scale(1e-6))).WriteToConsole();
             Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            stiffnessStdEnr.Scale(1e-6).WriteToConsole();
+            (new FullMatrixWriter(stiffnessStdEnr.Scale(1e-6))).WriteToConsole();
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            stiffnessEnr.Scale(1e-6).WriteToConsole();
+            (new FullMatrixWriter(stiffnessEnr.Scale(1e-6))).WriteToConsole();
         }
 
         static void Main(string[] args)

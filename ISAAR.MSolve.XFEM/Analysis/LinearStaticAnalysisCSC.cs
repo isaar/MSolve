@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
@@ -30,8 +31,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
 
         public void Solve()
         {
-            (SymmetricDOKColMajor matrix, VectorMKL rhs) = ReduceToSimpleLinearSystem();
-            using (SuiteSparseCholesky factorization = matrix.ToSymmetricCSC().FactorCholesky())
+            (DOKSymmetricColMajor matrix, VectorMKL rhs) = ReduceToSimpleLinearSystem();
+            using (CholeskySuiteSparse factorization = matrix.BuildSymmetricCSCMatrix(true).FactorCholesky())
             {
                 Solution = factorization.SolveLinearSystem(rhs);
             }
@@ -51,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             }
         }
 
-        private (SymmetricDOKColMajor matrix, VectorMKL rhs) ReduceToSimpleLinearSystem()
+        private (DOKSymmetricColMajor matrix, VectorMKL rhs) ReduceToSimpleLinearSystem()
         {
             /// The extended linear system is:
             /// [Kcc Kcu; Kuc Kuu] * [uc; uu] = [Fc; Fu]
@@ -61,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
             /// i) Kuu * uu = Fu - Kuc * uc = Feff
             /// ii) uu = Kuu \ Feff
             /// 
-            (SymmetricDOKColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
+            (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             VectorMKL Fu = VectorMKL.CreateFromArray(model.CalculateFreeForces(), false); //TODO fix MKL dlls

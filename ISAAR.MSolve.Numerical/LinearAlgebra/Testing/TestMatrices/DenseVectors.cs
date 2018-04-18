@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Vectors;
 
@@ -169,8 +170,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Testing.TestMatrices
         public static void Print()
         {
             var vector = VectorMKL.CreateFromArray(vector1);
-            Console.Write("Vector = ");
-            vector.WriteToConsole(Commons.Array1DFormatting.Brackets);
+            Console.WriteLine("Vector = ");
+            var writer = new FullVectorWriter(vector, Array1DFormatting.Brackets);
+            writer.WriteToConsole();
         }
     }
 }
