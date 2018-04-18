@@ -3,19 +3,28 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
     public class StaticAnalyzer : IAnalyzer, INonLinearParentAnalyzer
     {
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
+        private readonly IDictionary<int, IMatrixLinearSystem> subdomains;
         private readonly IStaticProvider provider;
         private IAnalyzer childAnalyzer;
         private IAnalyzer parentAnalyzer = null;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains)
+        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IMatrixLinearSystem subdomain)
+        {
+            this.provider = provider;
+            this.childAnalyzer = embeddedAnalyzer;
+            this.childAnalyzer.ParentAnalyzer = this;
+            this.subdomains = new Dictionary<int, IMatrixLinearSystem>();
+            this.subdomains.Add(subdomain.ID, subdomain);
+        }
+
+        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, IMatrixLinearSystem> subdomains)
         {
             this.provider = provider;
             this.childAnalyzer = embeddedAnalyzer;
@@ -25,8 +34,8 @@ namespace ISAAR.MSolve.Analyzers
 
         private void InitalizeMatrices()
         {
-            foreach (ISolverSubdomain subdomain in subdomains.Values)
-                provider.CalculateMatrix(subdomain);
+            foreach (IMatrixLinearSystem subdomain in subdomains.Values)
+                subdomain.Matrix = provider.CalculateMatrix(subdomain.ID);
             //provider.CalculateMatrices();
                 //subdomain.Matrix = provider.Ks[subdomain.ID];
         }
@@ -78,9 +87,9 @@ namespace ISAAR.MSolve.Analyzers
 
         #region INonLinearParentAnalyzer Members
 
-        public double[] GetOtherRHSComponents(ISolverSubdomain subdomain, IVector<double> currentSolution)
+        public double[] GetOtherRHSComponents(int id, IVector currentSolution)
         {
-            return new double[subdomain.RHS.Length];
+            return new double[currentSolution.Length];
         }
 
         #endregion

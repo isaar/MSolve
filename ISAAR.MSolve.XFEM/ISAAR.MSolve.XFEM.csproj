@@ -1,0 +1,283 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{374031D0-16CD-4B11-BA88-D45145BBB2F6}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ISAAR.MSolve.XFEM</RootNamespace>
+    <AssemblyName>ISAAR.MSolve.XFEM</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
+      <HintPath>..\packages\Thrower.2.2.2\lib\net46\PommaLabs.Thrower.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Triangle, Version=0.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Triangle.0.0.6-Beta3\lib\net45\Triangle.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Analysis\ILinearStaticAnalysis.cs" />
+    <Compile Include="Analysis\LinearStaticAnalysisCSC.cs" />
+    <Compile Include="Analysis\LinearStaticAnalysisSkyline.cs" />
+    <Compile Include="Analysis\QuasiStaticAnalysis.cs" />
+    <Compile Include="Assemblers\SingleGlobalDOKAssembler.cs" />
+    <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
+    <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
+    <Compile Include="CrackGeometry\CrackTipPosition.cs" />
+    <Compile Include="CrackGeometry\ICrackGeometry.cs" />
+    <Compile Include="CrackGeometry\IInteriorCrack.cs" />
+    <Compile Include="CrackPropagation\Direction\MaximumCircumferentialTensileStressCriterion.cs" />
+    <Compile Include="CrackPropagation\PropagationLogger.cs" />
+    <Compile Include="CrackPropagation\Propagator.cs" />
+    <Compile Include="CrackPropagation\Termination\HomogeneousToughnessCriterion.cs" />
+    <Compile Include="CrackPropagation\Termination\IMaterialCriterion.cs" />
+    <Compile Include="CrackPropagation\Jintegral\AuxiliaryStatesTensors.cs" />
+    <Compile Include="CrackPropagation\Jintegral\HomogeneousSIFCalculator.cs" />
+    <Compile Include="CrackPropagation\Jintegral\IAuxiliaryStates.cs" />
+    <Compile Include="CrackPropagation\Jintegral\ISIFCalculator.cs" />
+    <Compile Include="CrackPropagation\Length\ConstantIncrement2D.cs" />
+    <Compile Include="CrackPropagation\Direction\ICrackGrowthDirectionLaw2D.cs" />
+    <Compile Include="CrackPropagation\Length\ICrackGrowthLengthLaw2D.cs" />
+    <Compile Include="CrackPropagation\Length\ParisLawIncrement2D.cs" />
+    <Compile Include="Elements\ContinuumElement2D.cs" />
+    <Compile Include="Elements\IsoparametricElementType2D.cs" />
+    <Compile Include="Elements\IFiniteElement2DView.cs" />
+    <Compile Include="Elements\XContinuumElement2D.cs" />
+    <Compile Include="Enrichments\Functions\IHeavisideFunction2D.cs" />
+    <Compile Include="Enrichments\Functions\IsotropicBrittleTipFunctions2D.cs" />
+    <Compile Include="Enrichments\Functions\ITipFunction.cs" />
+    <Compile Include="Enrichments\Functions\SignFunctionOpposite2D.cs" />
+    <Compile Include="Enrichments\Items\AbstractEnrichmentItem2D.cs" />
+    <Compile Include="CrackPropagation\Jintegral\HomogeneousMaterialAuxiliaryStates.cs" />
+    <Compile Include="Enrichments\Items\CrackBodyEnrichment2D.cs" />
+    <Compile Include="Enrichments\Items\CrackTipEnrichments2D.cs" />
+    <Compile Include="CrackGeometry\TipJacobians.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
+    <Compile Include="Entities\FreedomDegrees\ArtificialDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\NodeMajorDofReorder.cs" />
+    <Compile Include="Entities\FreedomDegrees\StandardDOFType.cs" />
+    <Compile Include="Entities\Model2D.cs" />
+    <Compile Include="Entities\NodalLoad2D.cs" />
+    <Compile Include="Geometry\Boundaries\IDomainBoundary.cs" />
+    <Compile Include="Geometry\Boundaries\RectangularBoundary.cs" />
+    <Compile Include="Geometry\CoordinateSystems\CartesianPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\ICartesianPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\INaturalPoint1D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\INaturalPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\NaturalPoint2D.cs" />
+    <Compile Include="Geometry\CoordinateSystems\Point2DComparerXMajor.cs" />
+    <Compile Include="Geometry\CoordinateSystems\PolarPoint2D.cs" />
+    <Compile Include="CrackGeometry\TipCoordinateSystem.cs" />
+    <Compile Include="CrackGeometry\BasicExplicitCrack2D.cs" />
+    <Compile Include="CrackGeometry\IExteriorCrack.cs" />
+    <Compile Include="CrackGeometry\BasicCrackLSM.cs" />
+    <Compile Include="Geometry\Mesh\Gmsh\GmshElement.cs" />
+    <Compile Include="Geometry\Mesh\Gmsh\GmshElementFactory.cs" />
+    <Compile Include="Geometry\Mesh\Gmsh\GmshReader.cs" />
+    <Compile Include="Geometry\Mesh\IMesh2D.cs" />
+    <Compile Include="Geometry\Mesh\ICell.cs" />
+    <Compile Include="Geometry\Mesh\CellPlaceholder2D.cs" />
+    <Compile Include="Geometry\Mesh\Providers\FineAtCenterRectilinearMeshGenerator.cs" />
+    <Compile Include="Geometry\Mesh\Providers\RectilinearMeshGenerator.cs" />
+    <Compile Include="Geometry\Mesh\Providers\UniformRectilinearMeshGenerator.cs" />
+    <Compile Include="Geometry\Mesh\SimpleMesh2D.cs" />
+    <Compile Include="Geometry\Shapes\Circle2D.cs" />
+    <Compile Include="Geometry\Shapes\ConvexPolygon2D.cs" />
+    <Compile Include="Geometry\Shapes\DirectedSegment2D.cs" />
+    <Compile Include="Geometry\Shapes\ICurve2D.cs" />
+    <Compile Include="Geometry\Shapes\IOpenCurve2D.cs" />
+    <Compile Include="Geometry\Shapes\LineSegment1D.cs" />
+    <Compile Include="Geometry\Descriptions\Polyline2D.cs" />
+    <Compile Include="Geometry\Triangulation\CartesianTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\IncrementalTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\ITriangulator2D.cs" />
+    <Compile Include="Geometry\Triangulation\LoggingTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\MirrorNaturalXTriangulator.cs" />
+    <Compile Include="Geometry\Triangulation\MockTriangulators.cs" />
+    <Compile Include="Geometry\Triangulation\Triangle2D.cs" />
+    <Compile Include="Geometry\Triangulation\TriangleCartesian2D.cs" />
+    <Compile Include="Integration\Quadratures\IStandardQuadrature1D.cs" />
+    <Compile Include="Integration\Quadratures\IStandardQuadrature2D.cs" />
+    <Compile Include="Integration\Strategies\IIntegrationStrategy2D.cs" />
+    <Compile Include="Integration\Quadratures\GaussQuadratureForTriangle.cs" />
+    <Compile Include="Integration\Strategies\IntegrationWithSubtriangles.cs" />
+    <Compile Include="Integration\Strategies\SimpleIntegration2D.cs" />
+    <Compile Include="Integration\Strategies\IntegrationForCrackPropagation2D.cs" />
+    <Compile Include="Integration\Strategies\XSimpleIntegration2D.cs" />
+    <Compile Include="Interpolation\GaussPointSystems\Tri3GPSystem.cs" />
+    <Compile Include="Interpolation\InverseMappings\IInverseMapping2D.cs" />
+    <Compile Include="Interpolation\InverseMappings\InverseQuad4Mapping.cs" />
+    <Compile Include="Interpolation\InverseMappings\InverseTri3Mapping.cs" />
+    <Compile Include="Interpolation\IsoparametricInterpolation2D.cs" />
+    <Compile Include="Materials\BiElasticMaterial2D.cs" />
+    <Compile Include="Materials\HomogeneousElasticMaterial2D.cs" />
+    <Compile Include="Materials\IMaterialField2D.cs" />
+    <Compile Include="Materials\MaterialUtilities.cs" />
+    <Compile Include="Output\DisplacementOutput.cs" />
+    <Compile Include="Interpolation\GaussPointSystems\IGaussPointSystem.cs" />
+    <Compile Include="Output\IOutputField.cs" />
+    <Compile Include="Interpolation\GaussPointSystems\Quad4GPSystem.cs" />
+    <Compile Include="Output\StrainField.cs" />
+    <Compile Include="Output\StressField.cs" />
+    <Compile Include="Output\TensorOutput.cs" />
+    <Compile Include="Tensors\Tensor2D.cs" />
+    <Compile Include="Tests\Geometry\AngleTests.cs" />
+    <Compile Include="Tests\Geometry\RectilinearTest.cs" />
+    <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
+    <Compile Include="Tests\JintegralContour.cs" />
+    <Compile Include="Tests\Khoei\DCBpropagation.cs" />
+    <Compile Include="Tests\Khoei\DCBpropagationBelytschko.cs" />
+    <Compile Include="Tests\Khoei\Fillet.cs" />
+    <Compile Include="Tests\Khoei\InfinitePlate.cs" />
+    <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
+    <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />
+    <Compile Include="Tests\Tools\ArrayPrinter.cs" />
+    <Compile Include="Tests\Tools\LoadDistributor.cs" />
+    <Compile Include="Tests\Tools\PropagationResults.cs" />
+    <Compile Include="Tests\Visualization\CantilevelFEMDiscontinuous.cs" />
+    <Compile Include="Tests\Visualization\CantileverFEM.cs" />
+    <Compile Include="Tests\Khoei\DCB3x1.cs" />
+    <Compile Include="Tests\Geometry\DelaunyTests.cs" />
+    <Compile Include="Tests\Geometry\PointInPolygon.cs" />
+    <Compile Include="Tests\Khoei\DCBvariable.cs" />
+    <Compile Include="Tests\Tools\DofEnumerationChecker.cs" />
+    <Compile Include="Tests\Tools\DofReorder.cs" />
+    <Compile Include="Tests\Tools\ElementMatrixChecker.cs" />
+    <Compile Include="Tests\FEM\FEMTests.cs" />
+    <Compile Include="Tests\Tools\GaussPointChecker.cs" />
+    <Compile Include="Tests\GaussPointsForTipTest.cs" />
+    <Compile Include="Tests\FEM\InverseMappingTests.cs" />
+    <Compile Include="Tests\Tools\GlobalMatrixChecker.cs" />
+    <Compile Include="Tests\Tools\MatrixPrinter.cs" />
+    <Compile Include="Tests\Tools\GaussPoint2DComparer.cs" />
+    <Compile Include="Tests\Tools\OutputReaders.cs" />
+    <Compile Include="Tests\Tools\SubmatrixChecker.cs" />
+    <Compile Include="Utilities\ValueComparer.cs" />
+    <Compile Include="Tests\Khoei\XElementTests.cs" />
+    <Compile Include="Tests\Visualization\VTKWriterTests.cs" />
+    <Compile Include="Utilities\AngleUtilities.cs" />
+    <Compile Include="Utilities\EvaluatedFunction2D.cs" />
+    <Compile Include="Enrichments\Functions\RampFunction2D.cs" />
+    <Compile Include="Enrichments\Functions\SignFunction2D.cs" />
+    <Compile Include="Enrichments\Functions\IEnrichmentFunction2D.cs" />
+    <Compile Include="Enrichments\Items\IEnrichmentItem2D.cs" />
+    <Compile Include="Enrichments\Items\MaterialInterface2D.cs" />
+    <Compile Include="Entities\Element2D.cs" />
+    <Compile Include="Entities\Node2D.cs" />
+    <Compile Include="Entities\XNode2D.cs" />
+    <Compile Include="Geometry\Descriptions\IGeometryDescription2D.cs" />
+    <Compile Include="Geometry\Shapes\LineSegment2D.cs" />
+    <Compile Include="Integration\Points\GaussPoint1D.cs" />
+    <Compile Include="Integration\Points\GaussPoint2D.cs" />
+    <Compile Include="Integration\Quadratures\GaussLegendre2D.cs" />
+    <Compile Include="Integration\Quadratures\GaussLegendre1D.cs" />
+    <Compile Include="Integration\Strategies\RectangularSubgridIntegration2D.cs" />
+    <Compile Include="Interpolation\EvaluatedInterpolation2D.cs" />
+    <Compile Include="Interpolation\Jacobian2D.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\InterpolationUtilities.cs" />
+    <Compile Include="Utilities\ITable.cs" />
+    <Compile Include="Utilities\MathUtilities.cs" />
+    <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
+    <Compile Include="Utilities\EntityFinder.cs" />
+    <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
+    <Compile Include="Output\StressRecovery.cs" />
+    <Compile Include="Utilities\Table.cs" />
+    <Compile Include="Utilities\Triangles.cs" />
+    <Compile Include="Utilities\Vector2D.cs" />
+    <Compile Include="Output\VTK\VTKMesh2D.cs" />
+    <Compile Include="Output\VTK\DiscontinuousMeshVTKWriter.cs" />
+    <Compile Include="Output\VTK\VTKCell.cs" />
+    <Compile Include="Output\VTK\VTKPoint.cs" />
+    <Compile Include="Output\VTK\VTKWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="packages.config" />
+    <None Include="Resources\CantileverFEM.vtk" />
+    <None Include="Resources\CantileverFEMDiscontinuous.vtk" />
+    <None Include="Resources\dcb.geo" />
+    <None Include="Resources\dcb_quad.msh" />
+    <None Include="Resources\dcb_quad_coarse.msh" />
+    <None Include="Resources\dcb_quad_fine.msh" />
+    <None Include="Resources\dcb_quad_med.msh" />
+    <None Include="Resources\dcb_tri.msh" />
+    <None Include="Resources\gmsh_cantilevel_test.geo" />
+    <None Include="Resources\gmsh_cantilevel_test.msh" />
+    <None Include="Resources\test1.vtk" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj">
+      <Project>{6963a271-f927-4790-8794-21785e5fe6aa}</Project>
+      <Name>ISAAR.MSolve.LinearAlgebra</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
+      <Name>ISAAR.MSolve.Matrices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj">
+      <Project>{C30E5A92-8060-46EB-8249-4FE4F603DE18}</Project>
+      <Name>ISAAR.MSolve.PreProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
+      <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
+      <Name>ISAAR.MSolve.Solvers</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\DofEnumeration.txt" />
+    <Content Include="Resources\ElementMatrices.txt" />
+    <Content Include="Resources\GaussPoints.txt" />
+    <Content Include="Resources\GlobalMatrix.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
