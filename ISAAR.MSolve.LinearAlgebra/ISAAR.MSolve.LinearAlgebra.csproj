@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6963A271-F927-4790-8794-21785E5FE6AA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ISAAR.MSolve.LinearAlgebra</RootNamespace>
+    <AssemblyName>ISAAR.MSolve.LinearAlgebra</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Compute.Bindings.IntelMKL, Version=0.1.5.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\Compute.Bindings.IntelMKL.0.1.5\lib\netstandard2.0\Compute.Bindings.IntelMKL.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ArrayManipulations\ArrayColMajor.cs" />
+    <Compile Include="ArrayManipulations\Conversions.cs" />
+    <Compile Include="Commons\ParallelExtensions.cs" />
+    <Compile Include="Commons\AnalyticFormulas.cs" />
+    <Compile Include="Commons\DefiniteProperty.cs" />
+    <Compile Include="Commons\DenseStrategies.cs" />
+    <Compile Include="Commons\Preconditions.cs" />
+    <Compile Include="Exceptions\IndefiniteMatrixException.cs" />
+    <Compile Include="Exceptions\MatrixPatternException.cs" />
+    <Compile Include="Exceptions\MKLException.cs" />
+    <Compile Include="Exceptions\NonMatchingDimensionsException.cs" />
+    <Compile Include="Exceptions\SingularMatrixException.cs" />
+    <Compile Include="Exceptions\SparsityPatternModifiedException.cs" />
+    <Compile Include="Exceptions\SuiteSparseException.cs" />
+    <Compile Include="Exceptions\SymmetricPatternException.cs" />
+    <Compile Include="Factorizations\BunchKaufmanFactorization.cs" />
+    <Compile Include="Factorizations\CholeskyFull.cs" />
+    <Compile Include="Factorizations\CholeskyPacked.cs" />
+    <Compile Include="Factorizations\CholeskySkyline.cs" />
+    <Compile Include="Factorizations\CholeskySuiteSparse.cs" />
+    <Compile Include="Factorizations\IFactorization.cs" />
+    <Compile Include="Factorizations\LQFactorization.cs" />
+    <Compile Include="Factorizations\LUFactorization.cs" />
+    <Compile Include="Factorizations\QRFactorization.cs" />
+    <Compile Include="Input\SkylineMatrixReader.cs" />
+    <Compile Include="Input\SymmetricMatrixReader.cs" />
+    <Compile Include="Matrices\Builders\DOKColMajor.cs" />
+    <Compile Include="Matrices\Builders\DOKRowMajor.cs" />
+    <Compile Include="Matrices\Builders\DOKSymmetricColMajor.cs" />
+    <Compile Include="Matrices\CSCMatrix.cs" />
+    <Compile Include="Matrices\CSRMatrix.cs" />
+    <Compile Include="Matrices\IIndexable2D.cs" />
+    <Compile Include="Matrices\IMatrix.cs" />
+    <Compile Include="Matrices\IMatrixView.cs" />
+    <Compile Include="Matrices\ISliceable2D.cs" />
+    <Compile Include="Matrices\ISparseMatrix.cs" />
+    <Compile Include="Matrices\ISymmetricMatrix.cs" />
+    <Compile Include="Matrices\Matrix.cs" />
+    <Compile Include="Matrices\MatrixExtensions.cs" />
+    <Compile Include="Matrices\SkylineMatrix.cs" />
+    <Compile Include="Matrices\SymmetricCSC.cs" />
+    <Compile Include="Matrices\SymmetricMatrix.cs" />
+    <Compile Include="Matrices\TriangularLower.cs" />
+    <Compile Include="Matrices\TriangularUpper.cs" />
+    <Compile Include="MKL\Lapacke.cs" />
+    <Compile Include="MKL\MKLUtilities.cs" />
+    <Compile Include="Output\Array1DFormatting.cs" />
+    <Compile Include="Output\Array1DWriter.cs" />
+    <Compile Include="Output\Array2DFormatting.cs" />
+    <Compile Include="Output\Array2DWriter.cs" />
+    <Compile Include="Output\CoordinateTextFileWriter.cs" />
+    <Compile Include="Output\ExponentialFormat.cs" />
+    <Compile Include="Output\FixedPointFormat.cs" />
+    <Compile Include="Output\FullMatrixWriter.cs" />
+    <Compile Include="Output\FullVectorWriter.cs" />
+    <Compile Include="Output\GeneralNumericFormat.cs" />
+    <Compile Include="Output\INumericFormat.cs" />
+    <Compile Include="Output\MatrixMarketWriter.cs" />
+    <Compile Include="Output\MatrixWriter.cs" />
+    <Compile Include="Output\RawArraysWriter.cs" />
+    <Compile Include="Output\SparseFormat.cs" />
+    <Compile Include="Output\TriangularWriter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reduction\IReducible.cs" />
+    <Compile Include="Reduction\Reductions.cs" />
+    <Compile Include="SuiteSparse\SuiteSparseUtilities.cs" />
+    <Compile Include="Testing\TestLibs\BLASlvl1Tests.cs" />
+    <Compile Include="Testing\TestLibs\ComputeNETexample.cs" />
+    <Compile Include="Testing\TestLibs\TestMKL.cs" />
+    <Compile Include="Testing\TestLibs\TestSuiteSparse.cs" />
+    <Compile Include="Testing\TestMatrices\DenseMatrices.cs" />
+    <Compile Include="Testing\TestMatrices\DenseVectors.cs" />
+    <Compile Include="Testing\TestMatrices\LowerInvertible.cs" />
+    <Compile Include="Testing\TestMatrices\LowerSingular.cs" />
+    <Compile Include="Testing\TestMatrices\RectangularFullColRank.cs" />
+    <Compile Include="Testing\TestMatrices\SparsePositiveDefinite.cs" />
+    <Compile Include="Testing\TestMatrices\SparseRect.cs" />
+    <Compile Include="Testing\TestMatrices\SquareInvertible.cs" />
+    <Compile Include="Testing\TestMatrices\SquareSingular.cs" />
+    <Compile Include="Testing\TestMatrices\SquareSingular1Deficiency.cs" />
+    <Compile Include="Testing\TestMatrices\SymmPositiveDefinite.cs" />
+    <Compile Include="Testing\TestMatrices\SymmSingular.cs" />
+    <Compile Include="Testing\TestMatrices\UpperInvertible.cs" />
+    <Compile Include="Testing\TestMatrices\UpperSingular.cs" />
+    <Compile Include="Testing\TestSuite.cs" />
+    <Compile Include="Testing\Utilities\Comparer.cs" />
+    <Compile Include="Testing\Utilities\MatrixComparer.cs" />
+    <Compile Include="Testing\Utilities\MatrixOperations.cs" />
+    <Compile Include="Testing\Utilities\Printer.cs" />
+    <Compile Include="Testing\Utilities\ValueComparer.cs" />
+    <Compile Include="Vectors\ISliceable1D.cs" />
+    <Compile Include="Vectors\IVectorView.cs" />
+    <Compile Include="Vectors\SparseVector.cs" />
+    <Compile Include="Vectors\VectorExtensionsMKL.cs" />
+    <Compile Include="Vectors\VectorMKL.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lib\libamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libbtf.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libccolamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcholmod.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcolamd.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libcxsparse.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libklu.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libldl.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libspqr.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\libumfpack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\suitesparse_utilities.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MKL\lapacke.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lib\libamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libbtf.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libbtf.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libccolamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libccolamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcholmod.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcholmod.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcolamd.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcolamd.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcxsparse.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libcxsparse.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libklu.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libklu.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libldl.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libldl.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libspqr.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libspqr.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libumfpack.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\libumfpack.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparseconfig.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparse_utilities.exp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparse_utilities.iobj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib\suitesparse_utilities.ipdb" />
+    <None Include="lib\suitesparse_utilities.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
+      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
+      <Name>ISAAR.MSolve.Numerical</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
