@@ -4,7 +4,7 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface INonLinearSubdomainUpdater
     {
-        IVectorOLD GetRHSFromSolution(IVectorOLD solution, IVectorOLD dSolution);
+        IVector GetRHSFromSolution(IVector solution, IVector dSolution);
         void UpdateState();
         void ResetState();
     }

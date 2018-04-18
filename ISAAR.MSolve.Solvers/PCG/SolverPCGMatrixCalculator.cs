@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             this.linearSystem = linearSystem;
         }
 
-        public void MultiplyWithMatrix(IVectorOLD vIn, IVectorOLD vOut)
+        public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
             linearSystem.Matrix.Multiply(vIn, ((Vector)vOut).Data);
         }

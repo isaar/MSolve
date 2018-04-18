@@ -2,15 +2,15 @@
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces
 {
-    public interface IVectorOLD
+    public interface IVector
     {
         int Length { get; }
         double Norm { get; }
         double this[int x] { get; set; }
-        double DotProduct(IVectorOLD y);
+        double DotProduct(IVector y);
         void Multiply(double coefficient);
         void CopyTo(Array array, int index);
-        void CopyFrom(int startIndex, int length, IVectorOLD fromVector, int fromStartIndex);
+        void CopyFrom(int startIndex, int length, IVector fromVector, int fromStartIndex);
         void Clear();
     }
 }

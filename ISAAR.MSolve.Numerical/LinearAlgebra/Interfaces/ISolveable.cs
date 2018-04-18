@@ -2,6 +2,6 @@
 {
     public interface ISolveable
     {
-        void Solve(IVectorOLD f, IVectorOLD result);
+        void Solve(IVector f, IVector result);
     }
 }

@@ -8,6 +8,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces
         int Columns { get; }
         double this[int x, int y] { get; set; }
         void Scale(double scale);
-        void Multiply(IVectorOLD vIn, double[] vOut);
+        void Multiply(IVector vIn, double[] vOut);
     }
 }

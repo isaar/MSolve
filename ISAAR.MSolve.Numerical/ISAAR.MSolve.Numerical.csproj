@@ -108,7 +108,7 @@
     <Compile Include="LinearAlgebra\Interfaces\ISolveable.cs" />
     <Compile Include="LinearAlgebra\Matrix2D.cs" />
     <Compile Include="LinearAlgebra\Interfaces\IMatrix2D.cs" />
-    <Compile Include="LinearAlgebra\Interfaces\IVectorOLD.cs" />
+    <Compile Include="LinearAlgebra\Interfaces\IVector.cs" />
     <Compile Include="LinearAlgebra\SkylineMatrix2D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LinearAlgebra\Sparse2D.cs" />

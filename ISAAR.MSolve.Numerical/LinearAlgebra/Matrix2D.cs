@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        public void Multiply(IVectorOLD vIn, double[] vOut)
+        public void Multiply(IVector vIn, double[] vOut)
         {
             if (isTransposed == false)
                 MultiplyNormal(vIn, vOut);
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 MultiplyTranspose(vIn, vOut);
         }
 
-        private void MultiplyNormal(IVectorOLD vIn, double[] vOut)
+        private void MultiplyNormal(IVector vIn, double[] vOut)
         {
             Matrix2D AA = new Matrix2D(data);
             for (int i = 0; i < rows; i++)
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        private void MultiplyTranspose(IVectorOLD vIn, double[] vOut)
+        private void MultiplyTranspose(IVector vIn, double[] vOut)
         {
             Matrix2D AA = new Matrix2D(data);
             for (int i = 0; i < columns; i++)

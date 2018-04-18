@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             set { data[IndexOf(x, y)] = value; }
         }
 
-        public static double[] operator *(SymmetricMatrix2D K, IVectorOLD v)
+        public static double[] operator *(SymmetricMatrix2D K, IVector v)
         {
             if (K.Rows != v.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             double[] result = new double[K.Rows];
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Matrix2D(matrix);
         }
 
-        public void Multiply(IVectorOLD vIn, double[] vOut)
+        public void Multiply(IVector vIn, double[] vOut)
         {
             if (Rows != vIn.Length) throw new ArgumentException("Matrix and vector size mismatch.");
 

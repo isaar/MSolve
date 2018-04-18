@@ -399,7 +399,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Doesn't copy anything. Remove this once the design is cleaned. 
         /// </summary>
         /// <returns></returns>
-        public IVectorOLD ToLegacyVector()
+        public IVector ToLegacyVector()
         {
             return new Vector(data);
         }

@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         protected IIterativeSolverPreconditioner preconditioner;
         protected IIterativeSolverMatrixCalculator matrixCalculator;
         protected ISearchVectorCalculator search;
-        private IVectorOLD x, r, p, z, q;
+        private IVector x, r, p, z, q;
         protected readonly List<double> errors = new List<double>();
 
         public SolverPCG(IIterativeSolverInitializer initializer, IIterativeSolverMatrixCalculator matrixCalculator, IIterativeSolverPreconditioner preconditioner,
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             get { return currentIteration; }
         }
 
-        public IVectorOLD VectorP
+        public IVector VectorP
         {
             get { return p; }
         }
@@ -49,22 +49,22 @@ namespace ISAAR.MSolve.Solvers.PCG
         //    get { return w; }
         //}
 
-        public IVectorOLD VectorZ
+        public IVector VectorZ
         {
             get { return z; }
         }
 
-        public IVectorOLD VectorX
+        public IVector VectorX
         {
             get { return x; }
         }
 
-        public IVectorOLD VectorQ
+        public IVector VectorQ
         {
             get { return q; }
         }
 
-        public IVectorOLD VectorR
+        public IVector VectorR
         {
             get { return r; }
         }
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             throw new InvalidOperationException("Iterative solvers cannot use this method.");
         }
 
-        public void Initialize(IVectorOLD x, IVectorOLD residual, double detf)
+        public void Initialize(IVector x, IVector residual, double detf)
         {
             this.x = x;
             this.r = residual;

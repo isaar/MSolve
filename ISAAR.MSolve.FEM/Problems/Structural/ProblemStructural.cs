@@ -208,12 +208,12 @@ namespace ISAAR.MSolve.FEM.Problems.Structural
             //}
         }
 
-        public void MassMatrixVectorProduct(int id, IVectorOLD vIn, double[] vOut)
+        public void MassMatrixVectorProduct(int id, IVector vIn, double[] vOut)
         {
             this.Ms[id].Multiply(vIn, vOut);
         }
 
-        public void DampingMatrixVectorProduct(int id, IVectorOLD vIn, double[] vOut)
+        public void DampingMatrixVectorProduct(int id, IVector vIn, double[] vOut)
         {
             this.Cs[id].Multiply(vIn, vOut);
         }

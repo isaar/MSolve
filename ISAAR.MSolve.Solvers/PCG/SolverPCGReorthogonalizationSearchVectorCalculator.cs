@@ -7,8 +7,8 @@ namespace ISAAR.MSolve.Solvers.PCG
 {
     public class SolverPCGReorthogonalizationSearchVectorCalculator : IPCGSearchVectorCalculator
     {
-        private readonly List<IVectorOLD> p = new List<IVectorOLD>();
-        private readonly List<IVectorOLD> q = new List<IVectorOLD>();
+        private readonly List<IVector> p = new List<IVector>();
+        private readonly List<IVector> q = new List<IVector>();
 
         #region ISearchVectorCalculator Members
 
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             return SearchVectors.CalculateReorthogonalizedGradient(pcg.VectorP, pcg.VectorQ, pcg.VectorR, p, q);
         }
 
-        public bool InitializeStartingVectorFromSearchVectors(IVectorOLD x, IVectorOLD b)
+        public bool InitializeStartingVectorFromSearchVectors(IVector x, IVector b)
         {
             return SearchVectors.InitializeStartingVectorFromReorthogonalizedSearchVectors(x, b, p, q);
         }
@@ -38,8 +38,8 @@ namespace ISAAR.MSolve.Solvers.PCG
             }
             else
             {
-                var newps = new IVectorOLD[vectorsToKeepFromTop];
-                var newqs = new IVectorOLD[vectorsToKeepFromTop];
+                var newps = new IVector[vectorsToKeepFromTop];
+                var newqs = new IVector[vectorsToKeepFromTop];
                 for (int i = 0; i < vectorsToKeepFromTop; i++)
                 {
                     newps[i] = p[i];

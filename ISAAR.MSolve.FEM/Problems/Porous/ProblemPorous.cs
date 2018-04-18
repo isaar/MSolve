@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.Problems
             return qSubdomain;
         }
 
-        private void ScaleSubdomainSolidVector(int id, IVectorOLD vector)
+        private void ScaleSubdomainSolidVector(int id, IVector vector)
         {
             foreach (int nodeID in model.SubdomainsDictionary[id].NodalDOFsDictionary.Keys)
                 foreach (DOFType dofType in model.SubdomainsDictionary[id].NodalDOFsDictionary[nodeID].Keys)
@@ -230,12 +230,12 @@ namespace ISAAR.MSolve.Problems
             model.AssignMassAccelerationHistoryLoads(timeStep);
         }
 
-        public void MassMatrixVectorProduct(int id, IVectorOLD vIn, double[] vOut)
+        public void MassMatrixVectorProduct(int id, IVector vIn, double[] vOut)
         {
             this.Ms[id].Multiply(vIn, vOut);
         }
 
-        public void DampingMatrixVectorProduct(int id, IVectorOLD vIn, double[] vOut)
+        public void DampingMatrixVectorProduct(int id, IVector vIn, double[] vOut)
         {
             this.Cs[id].Multiply(vIn, vOut);
             double[] vQ = new double[vOut.Length];

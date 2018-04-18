@@ -13,7 +13,7 @@ using ISAAR.MSolve.Numerical.Interfaces;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class Vector : IVectorOLD, IFileWriteable
+    public class Vector : IVector, IFileWriteable
     {
         private readonly double[] data;
 
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             set { data[x] = value; }
         }
 
-        public double DotProduct(IVectorOLD y)
+        public double DotProduct(IVector y)
         {
             double result = 0;
             for (int i = 0; i < data.Length; i++)
@@ -147,7 +147,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             data.CopyTo(array, index);
         }
 
-        public void CopyFrom(int startIndex, int length, IVectorOLD fromVector, int fromStartIndex)
+        public void CopyFrom(int startIndex, int length, IVector fromVector, int fromStartIndex)
         {
             for (int i = 0; i < length; i++)
                 data[i + startIndex] = fromVector[i + fromStartIndex];
