@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <param name="rhs">The right hand side vector. Its length must be that may lie outside the column space of the original matrix. Its length must be equal to 
         ///     <see cref="NumRows"/></param>
         /// <returns></returns>
-        public VectorMKL SolveMinNorm(VectorMKL rhs) //TODO: perhaps I should use the driver routines of LAPACKE
+        public Vector SolveMinNorm(Vector rhs) //TODO: perhaps I should use the driver routines of LAPACKE
         {
             if (NumRows > NumColumns)
             {
@@ -148,7 +148,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 m, nRhs, k, reflectorsAndL, ldA, tau, c, ldC);
 
             // Check MKL execution
-            if (infoMult == 0) return VectorMKL.CreateFromArray(c, false);
+            if (infoMult == 0) return Vector.CreateFromArray(c, false);
             else throw MKLUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
         }
     }

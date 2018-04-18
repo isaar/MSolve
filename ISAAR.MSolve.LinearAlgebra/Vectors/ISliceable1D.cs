@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     public interface ISliceable1D
     {
-        VectorMKL Slice(int[] indices);
-        VectorMKL Slice(int startInclusive, int endExclusive);
+        Vector Slice(int[] indices);
+        Vector Slice(int startInclusive, int endExclusive);
     }
 }

@@ -142,8 +142,8 @@
     <Compile Include="Vectors\ISliceable1D.cs" />
     <Compile Include="Vectors\IVectorView.cs" />
     <Compile Include="Vectors\SparseVector.cs" />
-    <Compile Include="Vectors\VectorExtensionsMKL.cs" />
-    <Compile Include="Vectors\VectorMKL.cs" />
+    <Compile Include="Vectors\VectorExtensions.cs" />
+    <Compile Include="Vectors\Vector.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\libamd.dll">

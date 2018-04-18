@@ -179,10 +179,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static IMatrixView operator *(IMatrixView matrixLeft, SymmetricMatrix matrixRight)
             => matrixRight.MultiplyLeft(matrixLeft, false, false);
 
-        public static VectorMKL operator *(SymmetricMatrix matrixLeft, VectorMKL vectorRight)
+        public static Vector operator *(SymmetricMatrix matrixLeft, Vector vectorRight)
             => matrixLeft.MultiplyRight(vectorRight, false);
 
-        public static VectorMKL operator *(VectorMKL vectorLeft, SymmetricMatrix matrixRight)
+        public static Vector operator *(Vector vectorLeft, SymmetricMatrix matrixRight)
             => matrixRight.MultiplyRight(vectorLeft, true);
 
         #endregion
@@ -438,9 +438,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
-        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -449,13 +449,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector)
+        public Vector MultiplyRight(Vector vector)
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = new double[NumRows];
             CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
                 1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 //TODO: Move the operators here when C# supports extension operators
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
-    public static class VectorExtensionsMKL
+    public static class VectorExtensions
     {
         /// <summary>
         /// result = vector1 + vector2
@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
         /// <returns></returns>
-        public static VectorMKL Add(this VectorMKL vector1, VectorMKL vector2)
+        public static Vector Add(this Vector vector1, Vector vector2)
         {
             return vector1.Axpy(1.0, vector2);
         }
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
-        public static void AddIntoThis(this VectorMKL vector1, VectorMKL vector2)
+        public static void AddIntoThis(this Vector vector1, Vector vector2)
         {
             vector1.AxpyInPlace(1.0, vector2);
         }
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
         /// <returns></returns>
-        public static VectorMKL MultiplyPointwise(this VectorMKL vector1, VectorMKL vector2)
+        public static Vector MultiplyPointwise(this Vector vector1, Vector vector2)
         {
             return vector1.DoEntrywise(vector2, (x1, x2) => x1 * x2);
         }
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
-        public static void MultiplyPointwiseInPlace(this VectorMKL vector1, VectorMKL vector2)
+        public static void MultiplyPointwiseInPlace(this Vector vector1, Vector vector2)
         {
             vector1.DoEntrywiseIntoThis(vector2, (x1, x2) => x1 * x2);
         }
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
         /// <returns></returns>
-        public static VectorMKL Subtract(this VectorMKL vector1, VectorMKL vector2)
+        public static Vector Subtract(this Vector vector1, Vector vector2)
         {
             return vector1.Axpy(-1.0, vector2);
         }
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
-        public static void SubtractIntoThis(this VectorMKL vector1, VectorMKL vector2)
+        public static void SubtractIntoThis(this Vector vector1, Vector vector2)
         {
             vector1.AxpyInPlace(-1.0, vector2);
         }

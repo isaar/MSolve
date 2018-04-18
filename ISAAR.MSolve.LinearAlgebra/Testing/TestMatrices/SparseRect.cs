@@ -224,13 +224,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
             var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
-            var x5 = VectorMKL.CreateFromArray(lhs5);
-            var x10 = VectorMKL.CreateFromArray(lhs10);
+            var x5 = Vector.CreateFromArray(lhs5);
+            var x10 = Vector.CreateFromArray(lhs10);
 
-            VectorMKL csrTimesX5 = csr.MultiplyRight(x5, false);
-            VectorMKL cscTimesX5 = csc.MultiplyRight(x5, false);
-            VectorMKL csrTimesX10 = csr.MultiplyRight(x10, true);
-            VectorMKL cscTimesX10 = csc.MultiplyRight(x10, true);
+            Vector csrTimesX5 = csr.MultiplyRight(x5, false);
+            Vector cscTimesX5 = csc.MultiplyRight(x5, false);
+            Vector csrTimesX10 = csr.MultiplyRight(x10, true);
+            Vector cscTimesX10 = csc.MultiplyRight(x10, true);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, csrTimesX5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, cscTimesX5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, csrTimesX10.InternalData);

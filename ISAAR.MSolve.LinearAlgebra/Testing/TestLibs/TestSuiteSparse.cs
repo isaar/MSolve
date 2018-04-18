@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
         public static void ExampleMatrixClasses()
         {
             // Define linear system
-            var rhs = VectorMKL.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
+            var rhs = Vector.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
             var matrixDOK = DOKSymmetricColMajor.CreateEmpty(4);
             matrixDOK[0, 0] = 4.0; matrixDOK[0, 2] = 2.0;
             matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             //Solve it using SuiteSparse
             using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky())
             {
-                VectorMKL solution = factor.SolveLinearSystem(rhs);
+                Vector solution = factor.SolveLinearSystem(rhs);
                 ProcessResult(solution.CopyToArray());
             }
         }
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             Comparer comparer = new Comparer(Comparer.PrintMode.Always);
 
             Matrix original = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
-            VectorMKL rhs = VectorMKL.CreateFromArray(SparsePositiveDefinite.rhs);
+            Vector rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
             Console.WriteLine("Full matrix: ");
             (new FullMatrixWriter(original)).WriteToConsole();
 
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 matrixExpected.SetSubmatrix(0, 0, original.Slice(0, i + 1, 0, i + 1));
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
                 (new FullMatrixWriter(matrixExpected)).WriteToConsole();
-                VectorMKL newRowVector = matrixExpected.SliceRow(i);
+                Vector newRowVector = matrixExpected.SliceRow(i);
                 var newRow = new Dictionary<int, double>();
                 for (int j = 0; j < newRowVector.Length; ++j)
                 {
@@ -106,8 +106,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
                 // Solve new linear system
                 Console.WriteLine("\nCheck linear system solution");
-                VectorMKL solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
-                VectorMKL solutionComputed = factor.SolveLinearSystem(rhs);
+                Vector solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
+                Vector solutionComputed = factor.SolveLinearSystem(rhs);
                 comparer.CheckVectorEquality(solutionExpected, solutionComputed);
             }
         }
@@ -120,7 +120,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             Comparer comparer = new Comparer(Comparer.PrintMode.Always);
 
             Matrix original = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
-            VectorMKL rhs = VectorMKL.CreateFromArray(SparsePositiveDefinite.rhs);
+            Vector rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
             Console.WriteLine("Full matrix: ");
             (new FullMatrixWriter(original)).WriteToConsole();
 
@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
                 // Update matrix
-                VectorMKL identityRow = VectorMKL.CreateZero(matrixExpected.NumColumns);
+                Vector identityRow = Vector.CreateZero(matrixExpected.NumColumns);
                 identityRow[i] = 1.0;
                 matrixExpected.SetRow(i, identityRow);
                 matrixExpected.SetColumn(i, identityRow);
@@ -149,8 +149,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
                 // Solve new linear system
                 Console.WriteLine("\nCheck linear system solution");
-                VectorMKL solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
-                VectorMKL solutionComputed = factor.SolveLinearSystem(rhs);
+                Vector solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
+                Vector solutionComputed = factor.SolveLinearSystem(rhs);
                 comparer.CheckVectorEquality(solutionExpected, solutionComputed);
             }
         }

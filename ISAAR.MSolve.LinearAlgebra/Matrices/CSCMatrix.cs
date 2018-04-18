@@ -500,13 +500,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
-        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
+        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
             if (transposeThis)
             {
@@ -524,7 +524,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     }
                     result[j] = dot;
                 }
-                return VectorMKL.CreateFromArray(result, false);
+                return Vector.CreateFromArray(result, false);
             }
             else
             {
@@ -541,7 +541,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                         result[rowIndices[k]] += scalar * values[k];
                     }
                 }
-                return VectorMKL.CreateFromArray(result, false);
+                return Vector.CreateFromArray(result, false);
             }
         }
 

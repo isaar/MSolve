@@ -40,11 +40,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static VectorMKL DoEntrywise(IVectorView vector1, IVectorView vector2,
+        internal static Vector DoEntrywise(IVectorView vector1, IVectorView vector2,
             Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(vector1, vector2);
-            var result = VectorMKL.CreateZero(vector1.Length);
+            var result = Vector.CreateZero(vector1.Length);
             for (int i = 0; i < vector1.Length; ++i) result[i] = binaryOperation(vector1[i], vector2[i]);
             return result;
         }
@@ -166,12 +166,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        internal static VectorMKL Multiply(IMatrixView matrix, IVectorView vector, bool transposeMatrix)
+        internal static Vector Multiply(IMatrixView matrix, IVectorView vector, bool transposeMatrix)
         {
             if (transposeMatrix)
             {
                 Preconditions.CheckMultiplicationDimensions(matrix.NumRows, vector.Length);
-                var result = VectorMKL.CreateZero(matrix.NumColumns);
+                var result = Vector.CreateZero(matrix.NumColumns);
                 for (int i = 0; i < result.Length; ++i)
                 {
                     for (int j = 0; j < vector.Length; ++j)
@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             else
             {
                 Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, vector.Length);
-                var result = VectorMKL.CreateZero(matrix.NumRows);
+                var result = Vector.CreateZero(matrix.NumRows);
                 for (int i = 0; i < result.Length; ++i)
                 {
                     for (int j = 0; j < vector.Length; ++j)

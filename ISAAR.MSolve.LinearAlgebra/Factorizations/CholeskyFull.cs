@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
-        public VectorMKL SolveLinearSystem(VectorMKL rhs)
+        public Vector SolveLinearSystem(Vector rhs)
         {
             CheckOverwritten();
             Preconditions.CheckSystemSolutionDimensions(this.Order, this.Order, rhs.Length);
@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             Lapack.Dpotrs("U", ref n, ref nRhs, ref data[0], ref n, ref b[0], ref ldb, ref info);
 
             // Check MKL execution
-            if (info == 0) return VectorMKL.CreateFromArray(b, false);
+            if (info == 0) return Vector.CreateFromArray(b, false);
             else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 

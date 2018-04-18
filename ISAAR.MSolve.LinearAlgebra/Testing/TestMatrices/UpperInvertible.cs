@@ -41,17 +41,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = TriangularUpper.CreateFromArray(matrix);
-            var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(x);
+            var x = Vector.CreateFromArray(lhs);
+            Vector b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
 
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = VectorMKL.CreateFromArray(rhs);
+            var b = Vector.CreateFromArray(rhs);
             var A = TriangularUpper.CreateFromArray(matrix);
-            VectorMKL x = A.SolveLinearSystem(b);
+            Vector x = A.SolveLinearSystem(b);
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
         }
 

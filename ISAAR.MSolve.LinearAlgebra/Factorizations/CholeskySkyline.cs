@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// A = transpose(U) * D * U, U being unit upper triangular.
         /// </summary>
         /// <returns></returns>
-        public (VectorMKL diagonal, TriangularUpper upper) GetFactorsDU()
+        public (Vector diagonal, TriangularUpper upper) GetFactorsDU()
         {
             double[] diag = new double[NumColumns];
             var upper = TriangularUpper.CreateZero(NumColumns);
@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 }
                 
             }
-            return (VectorMKL.CreateFromArray(diag, false), upper); 
+            return (Vector.CreateFromArray(diag, false), upper); 
         }
 
         public SparseFormat GetSparseFormat()
@@ -239,7 +239,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             return SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
         }
 
-        public VectorMKL SolveLinearSystem(VectorMKL rhs)
+        public Vector SolveLinearSystem(Vector rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
 
@@ -288,7 +288,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             //var x = new List<TimeSpan>();
             //x.Add(DateTime.Now - e);
 
-            return VectorMKL.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
     }
 }

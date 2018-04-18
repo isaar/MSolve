@@ -194,7 +194,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
+        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
             throw new NotImplementedException();
         }

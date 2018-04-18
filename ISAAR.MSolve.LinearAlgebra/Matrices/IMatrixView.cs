@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
         Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false);
-        VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false);
+        Vector MultiplyRight(IVectorView vector, bool transposeThis = false);
         IMatrixView Transpose();
     }
 }

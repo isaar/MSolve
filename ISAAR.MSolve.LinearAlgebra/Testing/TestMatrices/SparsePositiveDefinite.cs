@@ -101,15 +101,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = skyline.MultiplyRight(x, false);
+            var x = Vector.CreateFromArray(lhs);
+            Vector b = skyline.MultiplyRight(x, false);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.CopyToArray());
         }
 
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = VectorMKL.CreateFromArray(rhs);
+            var b = Vector.CreateFromArray(rhs);
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
             try
             {

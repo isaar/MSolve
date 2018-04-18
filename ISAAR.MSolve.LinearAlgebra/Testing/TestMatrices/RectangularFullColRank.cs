@@ -135,11 +135,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = Matrix.CreateFromArray(matrix);
-            var x5 = VectorMKL.CreateFromArray(lhs5);
-            var x10 = VectorMKL.CreateFromArray(lhs10);
+            var x5 = Vector.CreateFromArray(lhs5);
+            var x10 = Vector.CreateFromArray(lhs10);
 
-            VectorMKL b5 = A.MultiplyRight(x5, false);
-            VectorMKL b10 = A.MultiplyRight(x10, true);
+            Vector b5 = A.MultiplyRight(x5, false);
+            Vector b10 = A.MultiplyRight(x10, true);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, b5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, b10.InternalData);
         }
@@ -151,16 +151,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var QR = A.FactorQR();
 
             // RHS is in the column space
-            var b1 = VectorMKL.CreateFromArray(rhs5);
+            var b1 = Vector.CreateFromArray(rhs5);
             var x1 = QR.SolveLeastSquares(b1);
             Console.WriteLine("Check least squares solution for a rhs vector in the column space: ");
-            comparer.CheckVectorEquality(VectorMKL.CreateFromArray(lhs5), x1);
+            comparer.CheckVectorEquality(Vector.CreateFromArray(lhs5), x1);
 
             // RHS is not in the column space
-            var b2 = VectorMKL.CreateFromArray(lsqRhs);
+            var b2 = Vector.CreateFromArray(lsqRhs);
             var x2 = QR.SolveLeastSquares(b2);
             Console.WriteLine("\nCheck least squares solution for a rhs vector outside the column space: ");
-            comparer.CheckVectorEquality(VectorMKL.CreateFromArray(lsqSolution), x2);
+            comparer.CheckVectorEquality(Vector.CreateFromArray(lsqSolution), x2);
         }
 
         public static void CheckSolutionMinNorm()
@@ -169,10 +169,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var A = Matrix.CreateFromArray(matrix).Transpose();
             var LQ = A.FactorLQ();
 
-            var b = VectorMKL.CreateFromArray(minNormRhs);
+            var b = Vector.CreateFromArray(minNormRhs);
             var x = LQ.SolveMinNorm(b);
             Console.WriteLine("Check min norm solution: ");
-            comparer.CheckVectorEquality(VectorMKL.CreateFromArray(minNormSolution), x);
+            comparer.CheckVectorEquality(Vector.CreateFromArray(minNormSolution), x);
         }
 
         public static void Print()

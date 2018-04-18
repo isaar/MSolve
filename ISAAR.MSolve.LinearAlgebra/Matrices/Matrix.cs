@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.LinearAlgebra.Commons;
@@ -153,9 +151,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static Matrix operator *(Matrix matrix, double scalar)=> matrix.Scale(scalar);
         public static Matrix operator *(Matrix matrixLeft, Matrix matrixRight)
             => matrixLeft.MultiplyRight(matrixRight, false, false);
-        public static VectorMKL operator *(Matrix matrixLeft, VectorMKL vectorRight)
+        public static Vector operator *(Matrix matrixLeft, Vectors.Vector vectorRight)
             => matrixLeft.MultiplyRight(vectorRight, false);
-        public static VectorMKL operator *(VectorMKL vectorLeft, Matrix matrixRight)
+        public static Vector operator *(Vectors.Vector vectorLeft, Matrix matrixRight)
             => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
@@ -500,9 +498,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new Matrix(result, leftRows, rightCols);
         }
 
-        public VectorMKL MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is VectorMKL) return MultiplyRight((VectorMKL)vector, transposeThis);
+            if (vector is Vectors.Vector) return MultiplyRight((Vectors.Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -513,7 +511,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <returns></returns>
-        public VectorMKL MultiplyRight(VectorMKL vector, bool transposeThis = false)
+        public Vector MultiplyRight(Vectors.Vector vector, bool transposeThis = false)
         {
             int leftRows, leftCols;
             CBLAS_TRANSPOSE transpose;
@@ -536,7 +534,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 1.0, ref data[0], NumRows,
                 ref vector.InternalData[0], 1,
                 0.0, ref result[0], 1);
-            return VectorMKL.CreateFromArray(result, false);
+            return Vectors.Vector.CreateFromArray(result, false);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -587,7 +585,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             for (int i = 0; i < data.Length; ++i) data[i] = value;
         }
 
-        public void SetColumn(int colIdx, VectorMKL colValues)
+        public void SetColumn(int colIdx, Vectors.Vector colValues)
         {
             Preconditions.CheckIndexCol(this, colIdx);
             Preconditions.CheckSameRowDimension(this, colValues);
@@ -599,7 +597,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             data[colIdx * NumRows + rowIdx] = value;
         }
 
-        public void SetRow(int rowIdx, VectorMKL rowValues)
+        public void SetRow(int rowIdx, Vectors.Vector rowValues)
         {
             Preconditions.CheckIndexRow(this, rowIdx);
             Preconditions.CheckSameColDimension(this, rowValues);
@@ -664,21 +662,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new Matrix(submatrix, newNumRows, newNumCols);
         }
 
-        public VectorMKL SliceColumn(int colIndex)
+        public Vector SliceColumn(int colIndex)
         {
             double[] result = new double[NumRows];
             Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
-            return VectorMKL.CreateFromArray(data, false);
+            return Vectors.Vector.CreateFromArray(data, false);
         }
 
-        public VectorMKL SliceRow(int rowIndex)
+        public Vector SliceRow(int rowIndex)
         {
             double[] result = new double[NumColumns];
             for (int j = 0; j < NumColumns; ++j)
             {
                 result[j] = data[j * NumRows + rowIndex];
             }
-            return VectorMKL.CreateFromArray(result, false);
+            return Vectors.Vector.CreateFromArray(result, false);
         }
 
         public void SVD(double[] w, double[,] v)
@@ -690,9 +688,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Doesn't copy anything. Remove this once the design is cleaned. 
         /// </summary>
         /// <returns></returns>
-        public IMatrix2D ToLegacyMatrix()
+        public Numerical.LinearAlgebra.Interfaces.IMatrix2D ToLegacyMatrix()
         {
-            return new Matrix2D(CopyToArray2D());
+            return new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
         }
 
         IMatrixView IMatrixView.Transpose()

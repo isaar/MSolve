@@ -41,8 +41,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var A = TriangularLower.CreateFromArray(matrix);
-            var x = VectorMKL.CreateFromArray(lhs);
-            VectorMKL b = A.MultiplyRight(x);
+            var x = Vector.CreateFromArray(lhs);
+            Vector b = A.MultiplyRight(x);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
         }
 
@@ -52,9 +52,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = VectorMKL.CreateFromArray(rhs);
+            var b = Vector.CreateFromArray(rhs);
             var A = TriangularLower.CreateFromArray(matrix);
-            VectorMKL x = A.SolveLinearSystem(b);
+            Vector x = A.SolveLinearSystem(b);
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
         }
 
