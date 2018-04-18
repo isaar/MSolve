@@ -546,6 +546,19 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
+        //TODO: perhaps I should transfer this to a permutation matrix (implemented as a vector).
+        public Matrix Reorder(IReadOnlyList<int> permutation, bool oldToNew)
+        {
+            if (!IsSquare) throw new NonMatchingDimensionsException("This operation works on square matrices only.");
+            if (permutation.Count != NumRows)
+            {
+                throw new NonMatchingDimensionsException($"This matrix has order = {NumRows}, while the permutation vector"
+                    + $" has {permutation.Count} entries.");
+            }
+            if (oldToNew) return new Matrix(ArrayColMajor.ReorderOldToNew(NumRows, data, permutation), NumRows, NumRows);
+            else return new Matrix(ArrayColMajor.ReorderNewToOld(NumRows, data, permutation), NumRows, NumRows);
+        }
+
         /// <summary>
         /// result = scalar * this
         /// </summary>

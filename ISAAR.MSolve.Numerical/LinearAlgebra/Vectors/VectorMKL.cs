@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
+using ISAAR.MSolve.Numerical.Exceptions;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
@@ -327,6 +328,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Vectors
             for (int i = 0; i < data.Length; ++i) accumulator = processEntry(data[i], accumulator);
             // no zeros implied
             return finalize(accumulator);
+        }
+
+        //TODO: perhaps I should transfer this to a permutation matrix (implemented as a vector)
+        public VectorMKL Reorder(IReadOnlyList<int> permutation, bool oldToNew)
+        {
+            if (permutation.Count != Length)
+            {
+                throw new NonMatchingDimensionsException($"This vector has length = {Length}, while the permutation vector has"
+                    + $" {permutation.Count} entries");
+            }
+            double[] reordered = new double[Length];
+            if (oldToNew)
+            {
+                for (int i = 0; i < Length; ++i) reordered[permutation[i]] = data[i];
+            }
+            else // TODO: can they be written as one in a smarter way?
+            {
+                for (int i = 0; i < Length; ++i) reordered[i] = data[permutation[i]];
+            }
+            return new VectorMKL(reordered);
         }
 
         /// <summary>

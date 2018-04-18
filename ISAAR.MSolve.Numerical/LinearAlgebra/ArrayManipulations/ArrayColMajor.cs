@@ -90,6 +90,46 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.ArrayManipulations
         }
 
         /// <summary>
+        /// Exchanges the rows and columns of a square matrix, according to the provided permutation.
+        /// Input checking is the responsibility of the caller.
+        /// </summary>
+        /// <param name="order">The number of rows = number of columns of <paramref name="matrix"/>.</param>
+        /// <param name="matrix">The matrix in full column major layout.</param>
+        /// <param name="permutation">A map between the old and new indices: 
+        ///     newIndex = <paramref name="permutation"/>[oldIndex].</param>
+        /// <returns></returns>
+        public static double[] ReorderOldToNew(int order, double[] matrix, IReadOnlyList<int> permutation)
+        {
+            double[] reordered = new double[matrix.Length];
+            for (int j = 0; j < order; ++j)
+            {
+                int newCol = permutation[j];
+                for (int i = 0; i < order; ++i) reordered[newCol * order + permutation[i]] = matrix[j * order + i];
+            }
+            return reordered;
+        }
+
+        /// <summary>
+        /// Exchanges the rows and columns of a square matrix, according to the provided permutation.
+        /// Input checking is the responsibility of the caller.
+        /// </summary>
+        /// <param name="order">The number of rows = number of columns of <paramref name="matrix"/>.</param>
+        /// <param name="matrix">The matrix in full column major layout.</param>
+        /// <param name="permutation">A map between the old and new indices: 
+        ///     oldIndex = <paramref name="permutation"/>[newIndex].</param>
+        /// <returns></returns>
+        public static double[] ReorderNewToOld(int order, double[] matrix, IReadOnlyList<int> permutation)
+        {
+            double[] reordered = new double[matrix.Length];
+            for (int j = 0; j < order; ++j)
+            {
+                int oldCol = permutation[j];
+                for (int i = 0; i < order; ++i) reordered[j * order + i] = matrix[oldCol * order + permutation[i]];
+            }
+            return reordered;
+        }
+
+        /// <summary>
         /// Add zero columns to the right of the matrix or remove existing ones.
         /// </summary>
         /// <param name="numRows">The number of rows in <paramref name="matrix"/>.</param>
