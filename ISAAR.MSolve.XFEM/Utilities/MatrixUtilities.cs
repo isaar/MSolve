@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Utilities

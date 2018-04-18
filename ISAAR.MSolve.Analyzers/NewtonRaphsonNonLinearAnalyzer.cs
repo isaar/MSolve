@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Analyzers
         private INonLinearParentAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
         private readonly INonLinearProvider provider;
-        private readonly Dictionary<int, IVectorOLD> rhs = new Dictionary<int, IVectorOLD>();
+        private readonly Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();
         private readonly Dictionary<int, Vector> u = new Dictionary<int, Vector>();
         private readonly Dictionary<int, Vector> du = new Dictionary<int, Vector>();
         private readonly Dictionary<int, Vector> uPlusdu = new Dictionary<int, Vector>();

@@ -36,12 +36,12 @@ namespace ISAAR.MSolve.Solvers.Skyline
             }
         }
 
-        public IVectorOLD RHS
+        public IVector RHS
         {
             get { return new Vector(forces); }
         }
 
-        public IVectorOLD Solution
+        public IVector Solution
         {
             get { return solution; }
             set { solution = (Vector)value; }

@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
         IMatrix2D CalculateEffectiveMatrix(int id, IImplicitIntegrationCoefficients coefficients);
         void ProcessRHS(int id, IImplicitIntegrationCoefficients coefficients);
         void GetRHSFromHistoryLoad(int timeStep);
-        void MassMatrixVectorProduct(int id, IVectorOLD vIn, double[] vOut);
-        void DampingMatrixVectorProduct(int id, IVectorOLD vIn, double[] vOut);
+        void MassMatrixVectorProduct(int id, IVector vIn, double[] vOut);
+        void DampingMatrixVectorProduct(int id, IVector vIn, double[] vOut);
     }
 }

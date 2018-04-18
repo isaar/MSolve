@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
@@ -26,8 +26,13 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         {
             // The original matrix is not stored. Only the inverse and the determinant
             Matrix jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
-            Determinant = CalculateDeterminant(jacobianMatrix);
-            inverseJ = CalculateInverseJacobian(jacobianMatrix);
+            (inverseJ, Determinant) = jacobianMatrix.InvertAndDetermninant();
+            if (Determinant < DETERMINANT_TOLERANCE)
+            {
+                throw new ArgumentException(String.Format(
+                    "Jacobian determinant is negative or under tolerance ({0} < {1}). Check the order of nodes or the element geometry.",
+                    Determinant, DETERMINANT_TOLERANCE));
+            }
         }
 
         public Tuple<double, double> TransformNaturalDerivativesToCartesian(double derivativeXi, double derivativeEta)
@@ -54,28 +59,6 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 J[1, 1] += N_eta * y;
             }
             return J;
-        }
-
-        private double CalculateDeterminant(Matrix jacobianMatrix)
-        {
-            double det = jacobianMatrix[0, 0] * jacobianMatrix[1, 1] - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
-            if (det < DETERMINANT_TOLERANCE)
-            {
-                throw new ArgumentException(String.Format(
-                    "Jacobian determinant is negative or under tolerance ({0} < {1}). Check the order of nodes or the element geometry.",
-                    det, DETERMINANT_TOLERANCE));
-            }
-            return det;
-        }
-
-        private Matrix CalculateInverseJacobian(Matrix jacobianMatrix)
-        {
-            var invJ = Matrix.CreateZero(DIMENSION, DIMENSION);
-            invJ[0, 0] = jacobianMatrix[1, 1] / Determinant;
-            invJ[0, 1] = -jacobianMatrix[0, 1] / Determinant;
-            invJ[1, 0] = -jacobianMatrix[1, 0] / Determinant;
-            invJ[1, 1] = jacobianMatrix[0, 0] / Determinant;
-            return invJ;
         }
     }
 }

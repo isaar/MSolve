@@ -4,6 +4,6 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 {
     public interface IIterativeSolverPreconditioner
     {
-        void Precondition(IVectorOLD vIn, IVectorOLD vOut);
+        void Precondition(IVector vIn, IVector vOut);
     }
 }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -22,8 +24,6 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Output;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Matrices.Builders;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {

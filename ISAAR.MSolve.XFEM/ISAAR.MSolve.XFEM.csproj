@@ -250,6 +250,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj">
+      <Project>{6963a271-f927-4790-8794-21785e5fe6aa}</Project>
+      <Name>ISAAR.MSolve.LinearAlgebra</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj">
       <Project>{ACE1FF1D-9550-4583-BDE0-5B821809D045}</Project>
       <Name>ISAAR.MSolve.Matrices</Name>

@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -41,9 +43,15 @@
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
       <HintPath>..\packages\Thrower.2.2.2\lib\net40\PommaLabs.Thrower.dll</HintPath>
       <Private>True</Private>
+	</Reference>
+    <Reference Include="Compute.Bindings.IntelMKL, Version=0.1.5.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\Compute.Bindings.IntelMKL.0.1.5\lib\netstandard2.0\Compute.Bindings.IntelMKL.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -70,6 +78,10 @@
       <Project>{c30e5a92-8060-46eb-8249-4fe4f603de18}</Project>
       <Name>ISAAR.MSolve.FEM</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj">
+      <Project>{6963a271-f927-4790-8794-21785e5fe6aa}</Project>
+      <Name>ISAAR.MSolve.LinearAlgebra</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ISAAR.MSolve.Logging.Interfaces\ISAAR.MSolve.Logging.Interfaces.csproj">
       <Project>{a996da85-a5ea-4c81-bdb9-969ea9512f29}</Project>
       <Name>ISAAR.MSolve.Logging.Interfaces</Name>
@@ -92,6 +104,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Compute.Winx64.IntelMKL.2018.1.156.1\build\Compute.Winx64.IntelMKL.targets" Condition="Exists('..\packages\Compute.Winx64.IntelMKL.2018.1.156.1\build\Compute.Winx64.IntelMKL.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Compute.Winx64.IntelMKL.2018.1.156.1\build\Compute.Winx64.IntelMKL.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Compute.Winx64.IntelMKL.2018.1.156.1\build\Compute.Winx64.IntelMKL.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

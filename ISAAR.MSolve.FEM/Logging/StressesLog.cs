@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.FEM.Logging
 
         #region IResultStorage Members
 
-        public void StoreResults(DateTime startTime, DateTime endTime, IVectorOLD solutionVector)
+        public void StoreResults(DateTime startTime, DateTime endTime, IVector solutionVector)
         {
             StartTime = startTime;
             EndTime = endTime;

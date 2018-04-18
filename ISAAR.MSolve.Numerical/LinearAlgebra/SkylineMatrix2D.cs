@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             get { return isFactorized; }
         }
 
-        public void Factorize(double tolerance, List<IVectorOLD> zems, List<int> zemCols)
+        public void Factorize(double tolerance, List<IVector> zems, List<int> zemCols)
         {
             if (isFactorized)
                 throw new InvalidOperationException("Matrix is already factorized.");
@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
-        public void Solve(IVectorOLD f, IVectorOLD result)
+        public void Solve(IVector f, IVector result)
         {
             //var e = DateTime.Now;
             SkylineMatrix2D K = this;
@@ -221,7 +221,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         //    return result;
         //}
 
-        public void Multiply(IVectorOLD vIn, double[] vOut, double scaleFactor, int vInStartIndex, int vOutStartIndex, bool clearvOut)
+        public void Multiply(IVector vIn, double[] vOut, double scaleFactor, int vInStartIndex, int vOutStartIndex, bool clearvOut)
         {
             //if (isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
             //if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
@@ -284,7 +284,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //end Do
         }
 
-        public void Multiply(IVectorOLD vIn, double[] vOut)
+        public void Multiply(IVector vIn, double[] vOut)
         {
             Multiply(vIn, vOut, 1.0, 0, 0, true);
         }
@@ -295,7 +295,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             for (int i = 0; i < mData.Length; i++) mData[i] *= scale;
         }
 
-        public static double[] operator *(SkylineMatrix2D K, IVectorOLD v)
+        public static double[] operator *(SkylineMatrix2D K, IVector v)
         {
             if (K.isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
             if (K.Rows != v.Length) throw new ArgumentException("Matrix and vector size mismatch.");
