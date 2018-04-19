@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -14,6 +15,7 @@ namespace ISAAR.MSolve.FEM.Entities
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> globalNodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();
         private double[] forces;
 
         #region Properties
@@ -178,6 +180,19 @@ namespace ISAAR.MSolve.FEM.Entities
             //    embeddedNodes.Add(e);
         }
 
+        public void BuildConstraintDisplacementDictionary()
+        {
+            foreach (Node node in nodesDictionary.Values)
+            {
+                if (node.Constraints == null) continue;
+                constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
+                foreach (Constraint constraint in node.Constraints)
+                {
+                    constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
+                }
+            }
+        }
+
         #endregion
 
         public int[] GetCornerNodes()
@@ -219,11 +234,42 @@ namespace ISAAR.MSolve.FEM.Entities
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
         }
 
+        public double[] CalculateElementNodalDisplacements(Element element, IVector globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        {
+            double[] elementNodalDisplacements = GetLocalVectorFromGlobal(element, globalDisplacementVector);
+            elementNodalDisplacements = CalculateElementNodalDisplacements(element, globalDisplacementVector);
+            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            return elementNodalDisplacements;
+        }
+
+        private double[] ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)//QUESTION: should we perhaps make it void??
+        {
+            //QUESTION: Would this be wrong?? foreach (Node node in element.NodesDictionary)
+            int pos = 0;
+            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            {
+                Node node = element.Nodes[i];
+                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                {
+                    Dictionary<DOFType, double> constrainedDOFs;
+                    double constraintDisplacement;
+                    if (constraintsDictionary.TryGetValue(node.ID, out constrainedDOFs) && constrainedDOFs.TryGetValue(dofType, out constraintDisplacement))
+                    {
+                        Debug.Assert(elementNodalDisplacements[pos] == 0);
+                        elementNodalDisplacements[pos] = constraintDisplacement;
+                    }
+                    pos++;
+                }
+            }
+            return elementNodalDisplacements;
+        }
+
         public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
+                                                                                       //TODOMaria: Change visibility to private
         {
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
-            var localVector = new double[localDOFs];
+            var localVector = new double[localDOFs];//TODOMaria: here is where I have to check if the dof is constrained
 
             int pos = 0;
             for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
@@ -259,8 +305,10 @@ namespace ISAAR.MSolve.FEM.Entities
             var forces = new Vector(TotalDOFs);
             foreach (Element element in elementsDictionary.Values)
             {
-                var localSolution = GetLocalVectorFromGlobal(element, solution);
-                var localdSolution = GetLocalVectorFromGlobal(element, dSolution);
+                //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
+                //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
+                double[] localSolution = CalculateElementNodalDisplacements(element, solution);
+                double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
