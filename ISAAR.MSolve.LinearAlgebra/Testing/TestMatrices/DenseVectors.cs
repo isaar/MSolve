@@ -109,7 +109,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
             Console.Write("Check AxpyIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.AxpyInPlace(scalar2, v2);
+            temp.AxpyIntoThis(scalar2, v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
             Console.Write("Check LinearCombinationIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.LinearCombinationInPlace(2.5, -3.5, v2);
+            temp.LinearCombinationIntoThis(2.5, -3.5, v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 

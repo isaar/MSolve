@@ -101,6 +101,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
         #endregion
 
+        public void AddIntoThis(double scalar, Vector other)
+        {
+            Preconditions.CheckVectorDimensions(this, other);
+            CBlas.Daxpy(Length, 1.0, ref other.data[0], 1, ref this.data[0], 1);
+        }
+
         /// <summary>
         /// result = this + scalar * other
         /// </summary>
@@ -122,7 +128,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="other"></param>
         /// <param name="scalar"></param>
-        public void AxpyInPlace(double scalar, Vector other)
+        public void AxpyIntoThis(double scalar, Vector other)
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
@@ -179,7 +185,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void DoEntrywiseIntoThis(Vector other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
-            for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
+            for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other.data[i]);
         }
 
         IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
@@ -239,7 +245,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// this = this + scalar * other
         /// </summary>
         /// <returns></returns>
-        public void LinearCombinationInPlace(double thisScalar, double otherScalar, Vector otherVector)
+        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, Vector otherVector)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
@@ -391,6 +397,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             double[] subvector = new double[newLength];
             for (int i = 0; i < newLength; ++i) subvector[i] = data[startInclusive + i];
             return new Vector(subvector);
+        }
+
+        public void SubtractIntoThis(double scalar, Vector other)
+        {
+            Preconditions.CheckVectorDimensions(this, other);
+            CBlas.Daxpy(Length, -1.0, ref other.data[0], 1, ref this.data[0], 1);
         }
 
         /// <summary>

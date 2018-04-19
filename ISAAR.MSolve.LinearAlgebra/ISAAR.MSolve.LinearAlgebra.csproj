@@ -142,6 +142,8 @@
     <Compile Include="Vectors\ISliceable1D.cs" />
     <Compile Include="Vectors\IVectorView.cs" />
     <Compile Include="Vectors\SparseVector.cs" />
+    <Compile Include="Vectors\Vector2.cs" />
+    <Compile Include="Vectors\Vector3.cs" />
     <Compile Include="Vectors\VectorExtensions.cs" />
     <Compile Include="Vectors\Vector.cs" />
   </ItemGroup>
