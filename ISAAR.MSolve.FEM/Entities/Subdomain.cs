@@ -207,7 +207,7 @@ namespace ISAAR.MSolve.FEM.Entities
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
         }
 
-        public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)
+        public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
         {
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;

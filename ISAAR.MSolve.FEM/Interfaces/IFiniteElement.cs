@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.FEM.Interfaces
         ThreeD = 3
     }
 
-    public interface IFiniteElement
+    public interface IFiniteElement //TODOMaria elemental loads should be calculated like this: the one who calls CalculateStresses et.c. should provide nodal displacements compliant to the constraints
     {
         int ID { get; }
         ElementDimensions ElementDimensions { get; }

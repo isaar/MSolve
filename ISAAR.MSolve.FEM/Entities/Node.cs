@@ -19,7 +19,8 @@ namespace ISAAR.MSolve.FEM.Entities
 
     public class Node
     {
-        private readonly List<DOFType> constraints = new List<DOFType>();
+        private readonly List<DOFType> constraints = new List<DOFType>(); //QUESTION: Maybe rename constraints to restraints??
+        //TODOMaria: extract constraints to separate class, which has the exact same things as Load (Node, DOFType, quantity)
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();
         private readonly Dictionary<int, Subdomain> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain>();
