@@ -179,9 +179,20 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
                 {
                     int dofID = 0;
-                    foreach (DOFType constraint in node.Constraints)
+                    #region removeMaria
+                    //foreach (DOFType constraint in node.Constraints)
+                    //{
+                    //    if (constraint == dofType)
+                    //    {
+                    //        dofID = -1;
+                    //        break;
+                    //    }
+                    //}
+                    #endregion
+
+                    foreach (var constraint in node.Constraints)
                     {
-                        if (constraint == dofType)
+                        if (constraint.DOF == dofType)
                         {
                             dofID = -1;
                             break;
@@ -231,7 +242,6 @@ namespace ISAAR.MSolve.FEM.Entities
                     int dof = subdomain.NodalDOFsDictionary[load.Node.ID][load.DOF];
                     if (dof >= 0)
                         subdomain.Forces[dof] = load.Amount / load.Node.SubdomainsDictionary.Count;
-                    //TODOMaria: this is probably where the local element nodal forces are assembled to the global force vector
                 }
         }
 

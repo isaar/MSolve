@@ -99,38 +99,38 @@ namespace ISAAR.MSolve.SamplesConsole
                     for (int k = 0; k < 5; k++)
                     {
                         model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY, Z = startZ + j * beamWidth });
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
                         nodeID++;
                     }
                 }
                 model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
                 nodeID++;
                 model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
                 nodeID++;
                 model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
                 nodeID++;
             }
 

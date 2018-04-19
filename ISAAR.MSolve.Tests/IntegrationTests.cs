@@ -7,7 +7,6 @@ using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.SamplesConsole;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
@@ -98,9 +97,9 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
 
 
             // Create a new Beam2D element
@@ -186,9 +185,9 @@ namespace ISAAR.MSolve.Tests
                 model.NodesDictionary.Add(i + 1, nodes[i]);
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
 
 
             // Create a new Beam2D element

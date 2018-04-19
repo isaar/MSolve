@@ -104,14 +104,26 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
                 {
                     int dofID = 0;
-                    foreach (DOFType constraint in node.Constraints)
+                    #region removeMaria
+                    //foreach (DOFType constraint in node.Constraints)
+                    //{
+                    //    if (constraint == dofType)
+                    //    {
+                    //        dofID = -1;
+                    //        break;
+                    //    }
+                    //}
+                    #endregion
+
+                    foreach (var constraint in node.Constraints)
                     {
-                        if (constraint == dofType)
+                        if (constraint.DOF == dofType)
                         {
                             dofID = -1;
                             break;
                         }
                     }
+
                     //var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
                     ////if (node.EmbeddedInElement != null && node.EmbeddedInElement.ElementType.GetDOFTypes(null)
                     ////    .SelectMany(d => d).Count(d => d == dofType) > 0)
@@ -127,8 +139,8 @@ namespace ISAAR.MSolve.FEM.Entities
                     }
                     dofsDictionary.Add(dofType, dofID);
                 }
-                
-                nodalDOFsDictionary.Add(node.ID, dofsDictionary); 
+
+                nodalDOFsDictionary.Add(node.ID, dofsDictionary);
             }
             forces = new double[TotalDOFs];
         }
@@ -138,8 +150,8 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (int nodeID in nodalDOFsDictionary.Keys)
             {
                 Dictionary<DOFType, int> dofTypes = nodalDOFsDictionary[nodeID];
-                Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType,int>(dofTypes.Count);
-                foreach (DOFType dofType in dofTypes.Keys) 
+                Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType, int>(dofTypes.Count);
+                foreach (DOFType dofType in dofTypes.Keys)
                     globalDOFTypes.Add(dofType, glodalDOFsDictionary[nodeID][dofType]);
                 globalNodalDOFsDictionary.Add(nodeID, globalDOFTypes);
             }
@@ -250,7 +262,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 var localSolution = GetLocalVectorFromGlobal(element, solution);
                 var localdSolution = GetLocalVectorFromGlobal(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
-                if (element.ElementType.MaterialModified) 
+                if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
                 double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 AddLocalVectorToGlobal(element, f, forces.Data);
