@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Tensors;
@@ -122,12 +123,12 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         }
 
         public void WriteVector2DField(string fieldName,
-            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<double[]>> vectorsAtElementNodes)
+            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector>> vectorsAtElementNodes)
         {
             var nodalVectors = new double[auxiliaryMesh.Points.Count, 2];
             foreach (var cell in auxiliaryMesh.Cells)
             {
-                IReadOnlyList<double[]> valuesAtCellVertices = vectorsAtElementNodes[cell.OriginalElement];
+                IReadOnlyList<Vector> valuesAtCellVertices = vectorsAtElementNodes[cell.OriginalElement];
                 for (int i = 0; i < cell.Vertices.Count; ++i)
                 {
                     nodalVectors[cell.Vertices[i].ID, 0] = valuesAtCellVertices[i][0];

@@ -8,7 +8,6 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Tensors;
 
-//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     //TODO: decide what data structures (arrays, tuples, matrix & vector classes I will use as arguments, return types 
@@ -17,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     // Actually wouldn't all methods be clearer if I operated directly with cosa, sina, instead of rotation matrices?
     class TipCoordinateSystem
     {
-        private readonly double[] localCoordinatesOfGlobalOrigin;
+        private readonly Vector localCoordinatesOfGlobalOrigin;
 
         public double RotationAngle { get; }
         public Matrix RotationMatrixGlobalToLocal { get; }
@@ -42,20 +41,15 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double sina = Math.Sin(tipRotationAngle);
             RotationMatrixGlobalToLocal = Matrix.CreateFromArray(new double[,] { { cosa, sina }, { -sina, cosa } });
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
-            localCoordinatesOfGlobalOrigin = RotationMatrixGlobalToLocal.
-                MultiplyRight(Vector.CreateFromArray(new double[] { -tipCoordinates.X, -tipCoordinates.Y }), false).
-                CopyToArray(); //TODO: Replace double[] with Vector
-
+            localCoordinatesOfGlobalOrigin = -1 * (RotationMatrixGlobalToLocal * tipCoordinates.Coordinates);
             DeterminantOfJacobianGlobalToLocalCartesian = 1.0; // det = (cosa)^2 +(sina)^2 = 1
         }
 
         public ICartesianPoint2D TransformPointGlobalCartesianToLocalCartesian(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = (RotationMatrixGlobalToLocal * Vector.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
-                CopyToArray();
-            double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
-            double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
-            return new CartesianPoint2D(x1, x2);
+            Vector local = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
+            local.AddIntoThis(localCoordinatesOfGlobalOrigin);
+            return new CartesianPoint2D(local);
         }
 
         public PolarPoint2D TransformPointLocalCartesianToLocalPolar(ICartesianPoint2D cartesianLocalPoint)
@@ -69,10 +63,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public PolarPoint2D TransformPointGlobalCartesianToLocalPolar(ICartesianPoint2D cartesianGlobalPoint)
         {
-            double[] rotated = (RotationMatrixGlobalToLocal * Vector.CreateFromArray(cartesianGlobalPoint.Coordinates, false)).
-                CopyToArray();
-            double x1 = rotated[0] + localCoordinatesOfGlobalOrigin[0];
-            double x2 = rotated[1] + localCoordinatesOfGlobalOrigin[1];
+            Vector local = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
+            local.AddIntoThis(localCoordinatesOfGlobalOrigin);
+            double x1 = local[0];
+            double x2 = local[1];
             double r = Math.Sqrt(x1 * x1 + x2 * x2);
             double theta = Math.Atan2(x2, x1);
             return new PolarPoint2D(r, theta);
@@ -83,10 +77,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return new TipJacobians(this, polarCoordinates);
         }
 
-        public double[] TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(double[] gradient)
-
+        public Vector TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(Vector gradient)
         {
-            return (Vector.CreateFromArray(gradient, false) * TransposeRotationMatrixGlobalToLocal).CopyToArray();
+            return gradient * TransposeRotationMatrixGlobalToLocal;
         }
 
         /// <summary>

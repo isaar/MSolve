@@ -12,7 +12,6 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Utilities;
 
-//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Analysis
 {
     /// <summary>
@@ -72,8 +71,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
                 out Numerical.LinearAlgebra.SkylineMatrix2D Kuu, out Matrix Kuc);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            Vector Fu = Vector.CreateFromArray(model.CalculateFreeForces());
-            Vector uc = Vector.CreateFromArray(model.CalculateConstrainedDisplacements());
+            Vector Fu = model.CalculateFreeForces();
+            Vector uc = model.CalculateConstrainedDisplacements();
             Vector KlcTimesUc = Kuc * uc;
             Vector Feff = Fu - Kuc * uc;
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
@@ -42,12 +42,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         }
 
         // One of the 2 normal vectors for the positive region.
-        public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
+        public Vector NormalVectorThrough(ICartesianPoint2D point)
         {
             double dy = End.Y - Start.Y;
             double dx = Start.X - End.X;
             double length = Math.Sqrt(dx * dx + dy * dy);
-            return new Tuple<double, double>(dy / length, -dx / length);
+            return Vector.CreateFromArray(new double[] { dy / length, -dx / length });
         }
 
         public IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D polygon)
@@ -83,23 +83,23 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             //      outside the element will create unwanted triangulations.
 
             //Create vectors p, r, q, s
-            Vector p = new Vector(this.Start.X, this.Start.Y);
-            Vector r = new Vector(this.End.X - this.Start.X, this.End.Y - this.Start.Y);
-            Vector q = new Vector(segment.Start.X, segment.Start.Y);
-            Vector s = new Vector(segment.End.X - segment.Start.X, segment.End.Y - segment.Start.Y);
+            var p = new System.Windows.Vector(this.Start.X, this.Start.Y);
+            var r = new System.Windows.Vector(this.End.X - this.Start.X, this.End.Y - this.Start.Y);
+            var q = new System.Windows.Vector(segment.Start.X, segment.Start.Y);
+            var s = new System.Windows.Vector(segment.End.X - segment.Start.X, segment.End.Y - segment.Start.Y);
 
             // Find the cross products r x s and (q-p)*r 
-            double rCrossS = Vector.CrossProduct(r, s);
-            Vector qMinusP = Vector.Subtract(q, p);
-            double qMinusPCrossR = Vector.CrossProduct(qMinusP, r);
+            double rCrossS = System.Windows.Vector.CrossProduct(r, s);
+            var qMinusP = System.Windows.Vector.Subtract(q, p);
+            double qMinusPCrossR = System.Windows.Vector.CrossProduct(qMinusP, r);
 
             if (rCrossS == 0) // TODO: use tolerance here
             {
                 if (qMinusPCrossR == 0) // TODO: use tolerance here
                 {
                     double rDotR = r.LengthSquared;
-                    double t0 = Vector.Multiply(qMinusP, r) / rDotR;
-                    double t1 = t0 + Vector.Multiply(s, r) / rDotR;
+                    double t0 = System.Windows.Vector.Multiply(qMinusP, r) / rDotR;
+                    double t1 = t0 + System.Windows.Vector.Multiply(s, r) / rDotR;
                     LineSegment1D this1D = (new LineSegment1D(0.0, 1.0));
                     LineSegment1D.SegmentSegmentPosition intersection1D = 
                         this1D.IntesectionWith(new LineSegment1D(t0, t1));
@@ -126,11 +126,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             }
             else
             {
-                double t = Vector.CrossProduct(qMinusP, s) / rCrossS;
+                double t = System.Windows.Vector.CrossProduct(qMinusP, s) / rCrossS;
                 double u = qMinusPCrossR / rCrossS;
                 if ((t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0))
                 {
-                    Vector solution = Vector.Add(p, Vector.Multiply(t, r));
+                    var solution = System.Windows.Vector.Add(p, System.Windows.Vector.Multiply(t, r));
                     intersectionPoint = new CartesianPoint2D(solution.X, solution.Y);
                     return SegmentSegmentPosition.Intersecting;
                 }

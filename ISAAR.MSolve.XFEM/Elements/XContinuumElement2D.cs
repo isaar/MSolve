@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -230,8 +231,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
         public Matrix CalculateDisplacementFieldGradient(INaturalPoint2D gaussPoint, 
-            EvaluatedInterpolation2D evaluatedInterpolation, double[] standardNodalDisplacements,
-             double[] enrichedNodalDisplacements)
+            EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
+            Vector enrichedNodalDisplacements)
         {
             var displacementGradient = Matrix.CreateZero(2, 2);
 

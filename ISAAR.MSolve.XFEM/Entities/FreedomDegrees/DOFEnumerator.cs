@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -157,8 +158,8 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// <param name="globalFreeVector"></param>
         /// <param name="globalConstrainedVector"></param>
         /// <returns></returns>
-        public double[] ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element, 
-            double[] globalFreeVector, double[] globalConstrainedVector)
+        public Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element, 
+            Vector globalFreeVector, Vector globalConstrainedVector)
         {
             ITable<XNode2D, StandardDOFType, int> elementDofs = element.GetStandardDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
@@ -173,7 +174,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                     elementVector[entry.Item3] = globalConstrainedVector[globalConstrainedDof];
                 }
             }
-            return elementVector;
+            return Vector.CreateFromArray(elementVector);
         }
 
         /// <summary>
@@ -181,8 +182,8 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// <param name="element"></param>
         /// <param name="globalFreeVector">Both the free and enriched dofs.</param>
         /// <returns></returns>
-        public double[] ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, 
-            double[] globalFreeVector)
+        public Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element,
+            Vector globalFreeVector)
         {
             ITable<XNode2D, ArtificialDOFType, int> elementDofs = element.GetEnrichedDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
@@ -191,7 +192,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 int globalFreeDof = artificialDofs[entry.Item1, entry.Item2];
                 elementVector[entry.Item3] = globalFreeVector[globalFreeDof];
             }
-            return elementVector;
+            return Vector.CreateFromArray(elementVector);
         }
 
         private static void EnumerateFreeDofs(IDictionary<XNode2D, HashSet<StandardDOFType>> nodalDOFTypes, 
@@ -271,7 +272,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// <param name="model"></param>
         /// <param name="solution"></param>
         /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
-        public double[,] GatherNodalDisplacements(Model2D model, double[] solution)
+        public double[,] GatherNodalDisplacements(Model2D model, Vector solution)
         {
             double[,] result = new double[model.Nodes.Count, 2];
             for (int i = 0; i < model.Nodes.Count; ++i)
@@ -292,7 +293,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         public ITable<XNode2D, ArtificialDOFType, double> GatherArtificialNodalDisplacements(Model2D model, 
-            double[] solution)
+            Vector solution)
         {
             var table = new Table<XNode2D, ArtificialDOFType, double>();
             foreach (var row in artificialDofs)

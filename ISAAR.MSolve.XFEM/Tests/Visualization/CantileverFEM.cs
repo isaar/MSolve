@@ -85,14 +85,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             var writer = new VTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);
 
-            double[] solutionArry = solution.CopyToArray(); //TODO: change the framework to work with Vector instead of double[]
-
             var displacementsOutput = new DisplacementOutput(model);
-            double[,] nodalDisplacements = displacementsOutput.FindNodalDisplacements(solutionArry);
+            double[,] nodalDisplacements = displacementsOutput.FindNodalDisplacements(solution);
             writer.WriteVector2DField("displacements", nodalDisplacements);
             
             var stressRecovery = new StressRecovery(model);
-            IReadOnlyList<Tensor2D> nodalStresses = stressRecovery.ComputeSmoothedNodalStresses(solutionArry);
+            IReadOnlyList<Tensor2D> nodalStresses = stressRecovery.ComputeSmoothedNodalStresses(solution);
             writer.WriteTensor2DField("stresses", nodalStresses);
 
             writer.CloseCurrentFile();

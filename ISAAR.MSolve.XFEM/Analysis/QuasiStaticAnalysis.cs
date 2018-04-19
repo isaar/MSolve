@@ -55,8 +55,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
                     var embeddedAnalysis = new LinearStaticAnalysisCSC(model);
                     embeddedAnalysis.Solve();
 
-                    double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-                    double[] totalFreeDisplacements = embeddedAnalysis.Solution.CopyToArray(); //TODO: Better to pass the vector instead
+                    Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
+                    Vector totalFreeDisplacements = embeddedAnalysis.Solution;
 
                     double growthAngle, growthIncrement;
                     propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,

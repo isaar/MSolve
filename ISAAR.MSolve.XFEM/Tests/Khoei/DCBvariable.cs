@@ -235,11 +235,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
 
-            double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-            double[] totalFreeDisplacements = solution.CopyToArray(); // TODO: Use Vector instead of double[] in the framework
+            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
 
             double growthAngle, growthIncrement;
-            propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements, 
+            propagator.Propagate(model, solution, totalConstrainedDisplacements, 
                 out growthAngle, out growthIncrement);
             double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))

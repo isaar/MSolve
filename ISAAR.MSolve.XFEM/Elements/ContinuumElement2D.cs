@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
@@ -13,7 +14,6 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tensors;
-
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
         protected Matrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation,
-            double[] nodalDisplacements)
+            Vector nodalDisplacements)
         {
             var displacementGradient = Matrix.CreateZero(2, 2);
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -21,11 +22,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             return Math.Abs(signedDistance);
         }
 
-        public EvaluatedFunction2D EvaluateAllAt(double signedDistance, Tuple<double, double> normalVector)
+        public EvaluatedFunction2D EvaluateAllAt(double signedDistance, IVectorView normalVector)
         {
             int sign = Math.Sign(signedDistance);
             return new EvaluatedFunction2D(Math.Abs(signedDistance), 
-                new double[] { sign * normalVector.Item1, sign * normalVector.Item2 });
+                new double[] { sign * normalVector[0], sign * normalVector[1] });
         }
 
         public override string ToString()

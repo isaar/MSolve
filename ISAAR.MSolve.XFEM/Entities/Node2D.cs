@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
@@ -12,14 +13,6 @@ namespace ISAAR.MSolve.XFEM.Entities
     // the id and the number of nodes of the model
     class Node2D : ICartesianPoint2D, IComparable<Node2D>
     {
-        public int ID { get; }
-
-        public double X { get; }
-
-        public double Y { get; }
-
-        public double[] Coordinates { get { return new double[] { X, Y }; } }
-
         public Node2D(int id, double x, double y)
         {
             if (id < 0) throw new ArgumentException("The parameter id must be non negative, but was: " + id);
@@ -27,6 +20,14 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.X = x;
             this.Y = y;
         }
+
+        public Vector Coordinates { get { return Vector.CreateFromArray(new double[] { X, Y }); } }
+
+        public int ID { get; }
+
+        public double X { get; }
+
+        public double Y { get; }
 
         public int CompareTo(Node2D other)
         {

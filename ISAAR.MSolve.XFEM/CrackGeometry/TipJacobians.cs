@@ -8,7 +8,6 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
-//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     // Perhaps I should not expose this class, but use it privately in TipCoordinateSystem and have batch methods when 
@@ -32,14 +31,14 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             inverseJacobianPolarToGlobal = inverseJacobianPolarToLocal * tipSystem.RotationMatrixGlobalToLocal;
         }
 
-        public double[] TransformScalarFieldDerivativesLocalPolarToLocalCartesian(double[] gradient)
+        public Vector TransformScalarFieldDerivativesLocalPolarToLocalCartesian(Vector gradient)
         {
-            return (Vector.CreateFromArray(gradient) * inverseJacobianPolarToLocal).CopyToArray();
+            return gradient * inverseJacobianPolarToLocal;
         }
 
-        public double[] TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(double[] gradient)
+        public Vector TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(Vector gradient)
         {
-            return (Vector.CreateFromArray(gradient) * inverseJacobianPolarToGlobal).CopyToArray();
+            return gradient * inverseJacobianPolarToGlobal;
         }
 
         /// <summary>

@@ -11,6 +11,7 @@ using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
@@ -42,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
             ICartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
             double signedDistance = Discontinuity.SignedDistanceOf(cartesianPoint);
-            Tuple<double, double> normalVector = Discontinuity.NormalVectorThrough(cartesianPoint);
+            IVectorView normalVector = Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance, normalVector) };
         }
 

@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Utilities
 {
     static class InterpolationUtilities
     {
-        public static double InterpolateNodalValuesToPoint(double[] nodalValues, double[] interpolationFunctionsAtPoint)
+        public static double InterpolateNodalValuesToPoint(Vector nodalValues, Vector interpolationFunctionsAtPoint)
         {
             Debug.Assert(nodalValues.Length == interpolationFunctionsAtPoint.Length);
             double sum = 0.0;

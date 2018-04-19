@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
@@ -15,11 +16,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// <summary>
         /// Unit vector. It will coincide with the normal vector if rotated -PI/2.
         /// </summary>
-        Tuple<double, double> TangentAtStart { get; }
+        IVectorView TangentAtStart { get; }
 
         /// <summary>
         /// Unit vector. It will coincide with the normal vector if rotated PI/2.
         /// </summary>
-        Tuple<double, double> TangentAtEnd { get; }
+        IVectorView TangentAtEnd { get; }
     }
 }

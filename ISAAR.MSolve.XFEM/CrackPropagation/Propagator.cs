@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -19,7 +20,6 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Tensors;
 using ISAAR.MSolve.XFEM.Utilities;
-
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.Logger = new PropagationLogger();
         }
 
-        public void Propagate(Model2D model, double[] totalFreeDisplacements, double[] totalConstrainedDisplacements,
+        public void Propagate(Model2D model, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
             out double growthAngle, out double growthLength)
         {
             // TODO: Also check if the sifs do not violate the material toughness
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             Logger.GrowthLengths.Add(growthLength);
         }
 
-        private void ComputeSIFS(Model2D model, double[] totalFreeDisplacements, double[] totalConstrainedDisplacements,
+        private void ComputeSIFS(Model2D model, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
              out double sifMode1, out double sifMode2)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
@@ -85,9 +85,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             {
                 XContinuumElement2D element = pair.Key;
                 double[] nodalWeights = pair.Value;
-                double[] standardElementDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
+                Vector standardElementDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
                     element, totalFreeDisplacements, totalConstrainedDisplacements);
-                double[] enrichedElementDisplacements = model.DofEnumerator.
+                Vector enrichedElementDisplacements = model.DofEnumerator.
                     ExtractEnrichedDisplacementsOfElementFromGlobal(element, totalFreeDisplacements);
 
                 double partialIntegralMode1, partialIntegralMode2;
@@ -153,8 +153,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             return magnificationOfJintegralRadius * Math.Sqrt(maxTipElementArea);
         }
 
-        private void ComputeInteractionIntegrals(XContinuumElement2D element, double[] standardNodalDisplacements,
-            double[] enrichedNodalDisplacements, double[] nodalWeights, 
+        private void ComputeInteractionIntegrals(XContinuumElement2D element, Vector standardNodalDisplacements,
+            Vector enrichedNodalDisplacements, double[] nodalWeights, 
             out double integralMode1, out double integralMode2)
         {
             TipCoordinateSystem tipSystem = crack.GetTipSystem(tipPosition);
@@ -190,8 +190,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                     globalWeightGradient[0] += interpolationGradient.Item1 * nodalWeights[nodeIdx];
                     globalWeightGradient[1] += interpolationGradient.Item2 * nodalWeights[nodeIdx];
                 }
-                double[] localWeightGradient = tipSystem.
-                    TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(globalWeightGradient);
+                Vector localWeightGradient = tipSystem.
+                    TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(Vector.CreateFromArray(globalWeightGradient));
 
                 // State 2
                 // TODO: XContinuumElement shouldn't have to pass tipCoordinate system to auxiliaryStates. 
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             }
         }
 
-        private static double ComputeJIntegrand(double[] weightGrad, Matrix displGrad1, Tensor2D stress1,
+        private static double ComputeJIntegrand(Vector weightGrad, Matrix displGrad1, Tensor2D stress1,
             Matrix displGrad2, Tensor2D strain2, Tensor2D stress2)
         {
             // Unrolled to greatly reduce mistakes. Alternatively Einstein notation products could be implementated

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -21,11 +22,11 @@ namespace ISAAR.MSolve.XFEM.Output
             this.model = model;
         }
 
-        public IReadOnlyList<Tensor2D> ComputeSmoothedNodalStresses(double[] solution)
+        public IReadOnlyList<Tensor2D> ComputeSmoothedNodalStresses(Vector solution)
         {
             var stressesFromAllElements = new Dictionary<XNode2D, List<Tensor2D>>();
             foreach (var node in model.Nodes) stressesFromAllElements[node] = new List<Tensor2D>();
-            double[] constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements();
 
             foreach (var element in model.Elements)
             {
@@ -60,9 +61,9 @@ namespace ISAAR.MSolve.XFEM.Output
         }
 
         public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> ComputeElementWiseStresses(
-            double[] solution)
+            Vector solution)
         {
-            double[] constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements();
             var allStresses = new Dictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>>();
             foreach (var element in model.Elements)
             {
@@ -74,12 +75,12 @@ namespace ISAAR.MSolve.XFEM.Output
         }
 
         // Computes stresses directly at the nodes. The other approach is to compute them at Gauss points and then extrapolate
-        private IReadOnlyDictionary<XNode2D, Tensor2D> ComputeNodalStressesOfElement(XContinuumElement2D element, 
-            double[] freeDisplacements, double[] constrainedDisplacements)
+        private IReadOnlyDictionary<XNode2D, Tensor2D> ComputeNodalStressesOfElement(XContinuumElement2D element,
+            Vector freeDisplacements, Vector constrainedDisplacements)
         {
-            double[] standardDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element, 
+            Vector standardDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element, 
                 freeDisplacements, constrainedDisplacements);
-            double[] enrichedDisplacements = 
+            Vector enrichedDisplacements = 
                 model.DofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IReadOnlyList<INaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;

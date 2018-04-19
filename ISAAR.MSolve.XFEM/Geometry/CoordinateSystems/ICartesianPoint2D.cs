@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
@@ -13,8 +14,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
         double Y { get; }
 
         /// <summary>
-        /// Returns an array of length = 2 containing the coordinates. The point is not mutated if the array is changed.
+        /// Returns a vector of length = 2 containing the coordinates. The point is not mutated if the vector is changed.
         /// </summary>
-        double[] Coordinates { get; }
+        Vector Coordinates { get; }
     }
 }

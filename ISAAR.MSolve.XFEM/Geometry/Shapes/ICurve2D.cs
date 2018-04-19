@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
@@ -16,6 +17,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        Tuple<double, double> NormalThrough(ICartesianPoint2D point);
+        IVectorView NormalThrough(ICartesianPoint2D point);
     }
 }

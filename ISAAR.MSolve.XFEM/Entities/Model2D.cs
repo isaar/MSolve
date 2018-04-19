@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
@@ -83,7 +84,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.DofEnumerator = new DOFEnumerator(nodes, constraints, elements);
         }
 
-        public double[] CalculateFreeForces()
+        public Vector CalculateFreeForces()
         {
             if (DofEnumerator == null) EnumerateDofs();
             double[] rhs = new double[DofEnumerator.FreeDofsCount + DofEnumerator.ArtificialDofsCount];
@@ -92,7 +93,7 @@ namespace ISAAR.MSolve.XFEM.Entities
                 try
                 {
                     int dof = DofEnumerator.GetFreeDofOf(entry.Item1, entry.Item2);
-                    rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which that isn't implemented yet
+                    rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which isn't implemented yet
                 }
                 catch (KeyNotFoundException ex)
                 {
@@ -100,10 +101,10 @@ namespace ISAAR.MSolve.XFEM.Entities
                     + entry.Item1.ID + ", axis " + entry.Item2, ex);
                 }
             }
-            return rhs;
+            return Vector.CreateFromArray(rhs);
         }
 
-        public double[] CalculateConstrainedDisplacements()
+        public Vector CalculateConstrainedDisplacements()
         {
             if (DofEnumerator == null) EnumerateDofs();
             double[] uc = new double[DofEnumerator.ConstrainedDofsCount];
@@ -112,7 +113,7 @@ namespace ISAAR.MSolve.XFEM.Entities
                 int dof = DofEnumerator.GetConstrainedDofOf(entry.Item1, entry.Item2);
                 uc[dof] = entry.Item3;
             }
-            return uc;
+            return Vector.CreateFromArray(uc);
         }
     }
 }

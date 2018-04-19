@@ -12,7 +12,6 @@ using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
-//TODO: Replace double[] with Vector
 namespace ISAAR.MSolve.XFEM.Analysis
 {
     class LinearStaticAnalysisCSC: ILinearStaticAnalysis
@@ -65,8 +64,8 @@ namespace ISAAR.MSolve.XFEM.Analysis
             (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            Vector Fu = Vector.CreateFromArray(model.CalculateFreeForces(), false); //TODO fix MKL dlls
-            Vector uc = Vector.CreateFromArray(model.CalculateConstrainedDisplacements());
+            Vector Fu = model.CalculateFreeForces(); //TODO: fix MKL dlls
+            Vector uc = model.CalculateConstrainedDisplacements();
             Vector Feff = Fu - Kuc * uc;
             return (Kuu, Feff);
         }

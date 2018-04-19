@@ -220,7 +220,6 @@
     <Compile Include="Utilities\MathUtilities.cs" />
     <Compile Include="Tests\Tools\MockIntegrationStrategy.cs" />
     <Compile Include="Utilities\EntityFinder.cs" />
-    <Compile Include="Utilities\NonMatchingDimensionsException.cs" />
     <Compile Include="Output\StressRecovery.cs" />
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Utilities\Triangles.cs" />

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Analysis;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -338,8 +339,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         {
             var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
-            double[] solution = analysis.Solution.CopyToArray(); //TODO: Use Vector instead of double[] in all classes.
-            double[,] nodalDisplacements = model.DofEnumerator.GatherNodalDisplacements(model, solution);
+            double[,] nodalDisplacements = model.DofEnumerator.GatherNodalDisplacements(model, analysis.Solution);
 
 
             Console.WriteLine("\n-------------------- Standard displacements ------------------");
@@ -351,7 +351,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
 
             Console.WriteLine("\n-------------------- Artificial displacements ------------------");
-            Console.WriteLine(model.DofEnumerator.GatherArtificialNodalDisplacements(model, solution));
+            Console.WriteLine(model.DofEnumerator.GatherArtificialNodalDisplacements(model, analysis.Solution));
         }
 
         private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)

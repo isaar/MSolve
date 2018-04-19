@@ -300,8 +300,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private PropagationResults Propagate(Vector solution)
         {
-            double[] totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
-            double[] totalFreeDisplacements = solution.CopyToArray(); // TODO: Use Vector instead of double[] in the framework
+            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
 
             // Start tip propagation
             var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,
@@ -309,7 +308,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
             double startGrowthAngle, startGrowthIncrement;
-            startPropagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,
+            startPropagator.Propagate(model, solution, totalConstrainedDisplacements,
                 out startGrowthAngle, out startGrowthIncrement);
             double startSIF1 = startPropagator.Logger.SIFsMode1[0];
             double startSIF2 = startPropagator.Logger.SIFsMode2[0];            
@@ -320,7 +319,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
             double endGrowthAngle, endGrowthIncrement;
-            endPropagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,
+            endPropagator.Propagate(model, solution, totalConstrainedDisplacements,
                 out endGrowthAngle, out endGrowthIncrement);
             double endSIF1 = endPropagator.Logger.SIFsMode1[0];
             double endSIF2 = endPropagator.Logger.SIFsMode2[0];

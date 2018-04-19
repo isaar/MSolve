@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
@@ -72,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         }
 
         // The normal vector for the positive region.
-        public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
+        public IVectorView NormalVectorThrough(ICartesianPoint2D point)
         {
             if (segments.Count == 1)
             {

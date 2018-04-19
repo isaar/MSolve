@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
@@ -27,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// The unit vector that is perpendicular to the segment and faces towards the positive local y axis. 
         /// It is constant for a linear segment, so caching it avoids recalculations.
         /// </summary>
-        private readonly Tuple<double, double> normalVector;
+        private readonly Vector normalVector;
 
         public ICartesianPoint2D Start { get; }
         public ICartesianPoint2D End { get; }
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             originLocalX = -cosa * startX - sina * startY;
             originLocalY = sina * startX - cosa * startY;
 
-            normalVector = new Tuple<double, double>(-sina, cosa); // This is the opposite from the one in LineSegment2D I think
+            normalVector = Vector.CreateFromArray(new double[] { -sina, cosa }); // This is the opposite from the one in LineSegment2D I think
         }
 
         public double SignedDistanceOf(ICartesianPoint2D point)
@@ -65,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         }
 
         // The normal vector for the positive region.
-        public Tuple<double, double> NormalVectorThrough(ICartesianPoint2D point)
+        public IVectorView NormalVectorThrough(ICartesianPoint2D point)
         {
             return normalVector;
         }
