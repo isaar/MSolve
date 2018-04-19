@@ -83,11 +83,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        public static SymmetricMatrix CopyFromMatrix(SymmetricMatrix originalMatrix)
-        {
-            return new SymmetricMatrix(originalMatrix.data, originalMatrix.Order, originalMatrix.Definiteness);
-        }
-
         /// <summary>
         /// Create a new <see cref="SymmetricMatrix"/> from the lower (subdiagonal) or upper (superdiagonal) portion of the 
         /// provided array. The array entries will be copied.
@@ -248,6 +243,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 return CopyToGeneralMatrix().FactorLU().CalcDeterminant(); //TODO: Find how to do it with Bunch-Kaufman
             }
+        }
+
+        public SymmetricMatrix Copy()
+        {
+            double[] clone = new double[data.Length];
+            Array.Copy(data, clone, data.Length);
+            return new SymmetricMatrix(clone, Order, Definiteness);
         }
 
         /// <summary>

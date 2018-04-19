@@ -116,6 +116,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new SparseVector(length, values, rowIndices);
         }
 
+        public SparseVector Copy()
+        {
+            int n = values.Length;
+            double[] valuesCopy = new double[n];
+            Array.Copy(values, valuesCopy, n);
+            int[] rowIndicesCopy = new int[n];
+            Array.Copy(rowIndices, rowIndicesCopy, n);
+            return new SparseVector(n, valuesCopy, rowIndicesCopy);
+        }
+
         public double[] CopyToArray()
         {
             double[] result = new double[Length];

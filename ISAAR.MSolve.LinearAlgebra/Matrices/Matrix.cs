@@ -66,21 +66,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// The original matrix will be copied.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <returns></returns>
-        public static Matrix CopyFromMatrix(Matrix original)
-        {
-            //TODO: Perhaps this should use BLAS. 
-            //TODO: Perhaps it should be an instance method CopyToMatrix(). Or the instance method would return an interface.
-            double[] data = original.data;
-            double[] clone = new double[data.Length];
-            Array.Copy(data, clone, data.Length);
-            return new Matrix(clone, original.NumRows, original.NumColumns);
-        }
-
-        /// <summary>
         /// Create a new <see cref="Matrix"/> from a provided array. The array will be copied.
         /// </summary>
         /// <param name="array2D">A 2-dimensional array containing the elements of the matrix</param>
@@ -222,6 +207,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 return AnalyticFormulas.Matrix3x3ColMajorDeterminant(data);
             }
             else return FactorLU().CalcDeterminant();
+        }
+
+        public Matrix Copy()
+        {
+            //TODO: Perhaps this should use BLAS. 
+            double[] clone = new double[data.Length];
+            Array.Copy(data, clone, data.Length);
+            return new Matrix(clone, NumRows, NumColumns);
         }
 
         /// <summary>

@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <returns></returns>
         public static Vector CreateFromVector(IVectorView original)
         {
-            if (original is Vector casted) return CreateFromVector(casted);
+            if (original is Vector casted) return casted.Copy();
             double[] clone = new double[original.Length];
             for (int i = 0; i < clone.Length; ++i) clone[i] = original[i];
             return new Vector(clone);
