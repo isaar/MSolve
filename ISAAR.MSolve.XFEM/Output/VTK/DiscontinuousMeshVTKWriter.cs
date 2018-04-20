@@ -123,12 +123,12 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         }
 
         public void WriteVector2DField(string fieldName,
-            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector>> vectorsAtElementNodes)
+            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector2>> vectorsAtElementNodes)
         {
             var nodalVectors = new double[auxiliaryMesh.Points.Count, 2];
             foreach (var cell in auxiliaryMesh.Cells)
             {
-                IReadOnlyList<Vector> valuesAtCellVertices = vectorsAtElementNodes[cell.OriginalElement];
+                IReadOnlyList<Vector2> valuesAtCellVertices = vectorsAtElementNodes[cell.OriginalElement];
                 for (int i = 0; i < cell.Vertices.Count; ++i)
                 {
                     nodalVectors[cell.Vertices[i].ID, 0] = valuesAtCellVertices[i][0];

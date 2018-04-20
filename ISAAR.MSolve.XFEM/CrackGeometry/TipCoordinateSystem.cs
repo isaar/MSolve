@@ -16,11 +16,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     // Actually wouldn't all methods be clearer if I operated directly with cosa, sina, instead of rotation matrices?
     class TipCoordinateSystem
     {
-        private readonly Vector localCoordinatesOfGlobalOrigin;
+        private readonly Vector2 localCoordinatesOfGlobalOrigin;
 
         public double RotationAngle { get; }
-        public Matrix RotationMatrixGlobalToLocal { get; }
-        public Matrix TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
+        public Matrix2by2 RotationMatrixGlobalToLocal { get; }
+        public Matrix2by2 TransposeRotationMatrixGlobalToLocal { get; } // cache this for efficiency
 
         /// <summary>
         /// det(J_globToLoc) = det(Q) = (cosa)^2 + (sina)^2 = 1
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
             double cosa = Math.Cos(tipRotationAngle);
             double sina = Math.Sin(tipRotationAngle);
-            RotationMatrixGlobalToLocal = Matrix.CreateFromArray(new double[,] { { cosa, sina }, { -sina, cosa } });
+            RotationMatrixGlobalToLocal = Matrix2by2.CreateFromArray(new double[,] { { cosa, sina }, { -sina, cosa } });
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
             localCoordinatesOfGlobalOrigin = -1 * (RotationMatrixGlobalToLocal * tipCoordinates.Coordinates);
             DeterminantOfJacobianGlobalToLocalCartesian = 1.0; // det = (cosa)^2 +(sina)^2 = 1
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public ICartesianPoint2D TransformPointGlobalCartesianToLocalCartesian(ICartesianPoint2D cartesianGlobalPoint)
         {
-            Vector local = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
+            Vector2 local = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
             local.AddIntoThis(localCoordinatesOfGlobalOrigin);
             return new CartesianPoint2D(local);
         }
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public PolarPoint2D TransformPointGlobalCartesianToLocalPolar(ICartesianPoint2D cartesianGlobalPoint)
         {
-            Vector local = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
+            Vector2 local = RotationMatrixGlobalToLocal * cartesianGlobalPoint.Coordinates;
             local.AddIntoThis(localCoordinatesOfGlobalOrigin);
             double x1 = local[0];
             double x2 = local[1];
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return new TipJacobians(this, polarCoordinates);
         }
 
-        public Vector TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(Vector gradient)
+        public Vector2 TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(Vector2 gradient)
         {
             return gradient * TransposeRotationMatrixGlobalToLocal;
         }
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         ///     field, thus:    gradient = [Fx,x Fx,y; Fy,x Fy,y],
         ///     where Fi,j is the derivative of component i w.r.t. coordinate j</param>
         /// <returns></returns>
-        public Matrix TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(Matrix gradient)
+        public Matrix2by2 TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(Matrix2by2 gradient)
         {
             return RotationMatrixGlobalToLocal * (gradient * TransposeRotationMatrixGlobalToLocal);
         }

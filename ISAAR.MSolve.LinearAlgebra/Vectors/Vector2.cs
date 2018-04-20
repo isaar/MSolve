@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
         #endregion
 
-        public void AddIntoThis(double scalar, Vector2 other)
+        public void AddIntoThis(Vector2 other)
         {
             this.data[0] += other.data[0];
             this.data[1] += other.data[1];
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Defined as: cross = this[0] * other[1] + this[1] * other[0]. Also: other.Cross(this) = - this.Cross(other)
+        /// Defined as: cross = this[0] * other[1] - this[1] * other[0]. Also: other.Cross(this) = - this.Cross(other)
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
@@ -238,6 +238,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             data[0] = value;
             data[1] = value;
+        }
+
+        public void SubtractIntoThis(Vector2 other)
+        {
+            this.data[0] -= other.data[0];
+            this.data[1] -= other.data[1];
         }
     }
 }

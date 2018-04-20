@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// The unit vector that is perpendicular to the segment and faces towards the positive local y axis. 
         /// It is constant for a linear segment, so caching it avoids recalculations.
         /// </summary>
-        private readonly Vector normalVector;
+        private readonly Vector2 normalVector;
 
         public ICartesianPoint2D Start { get; }
         public ICartesianPoint2D End { get; }
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             originLocalX = -cosa * startX - sina * startY;
             originLocalY = sina * startX - cosa * startY;
 
-            normalVector = Vector.CreateFromArray(new double[] { -sina, cosa }); // This is the opposite from the one in LineSegment2D I think
+            normalVector = Vector2.Create(-sina, cosa ); // This is the opposite from the one in LineSegment2D I think
         }
 
         public double SignedDistanceOf(ICartesianPoint2D point)
@@ -66,9 +66,9 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         }
 
         // The normal vector for the positive region.
-        public IVectorView NormalVectorThrough(ICartesianPoint2D point)
+        public Vector2 NormalVectorThrough(ICartesianPoint2D point)
         {
-            return normalVector;
+            return normalVector.Copy();
         }
 
         //Perhaps I can override the intersects method and project the other segment onto the local system!

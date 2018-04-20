@@ -157,12 +157,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 int col1 = 2 * nodeIndex;
                 int col2 = 2 * nodeIndex + 1;
-                Tuple<double, double> dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
+                Vector2 dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
 
-                deformationMatrix[0, col1] = dNdX.Item1;
-                deformationMatrix[1, col2] = dNdX.Item2;
-                deformationMatrix[2, col1] = dNdX.Item2;
-                deformationMatrix[2, col2] = dNdX.Item1;
+                deformationMatrix[0, col1] = dNdX[0];
+                deformationMatrix[1, col2] = dNdX[1];
+                deformationMatrix[2, col1] = dNdX[1];
+                deformationMatrix[2, col2] = dNdX[0];
             }
             return deformationMatrix;
         }
@@ -201,10 +201,10 @@ namespace ISAAR.MSolve.XFEM.Elements
                         // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
                         // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
                         // function
-                        double Bx = dNdx.Item1 * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
-                            + N * evaluatedEnrichments[i].CartesianDerivatives.Item1;
-                        double By = dNdx.Item2 * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
-                            + N * evaluatedEnrichments[i].CartesianDerivatives.Item2;
+                        double Bx = dNdx[0] * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                            + N * evaluatedEnrichments[i].CartesianDerivatives[0];
+                        double By = dNdx[1] * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                            + N * evaluatedEnrichments[i].CartesianDerivatives[1];
 
                         // This depends on the convention: node major or enrichment major. The following is node major.
                         int col1 = currentColumn++;
@@ -230,11 +230,11 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        public Matrix CalculateDisplacementFieldGradient(INaturalPoint2D gaussPoint, 
+        public Matrix2by2 CalculateDisplacementFieldGradient(INaturalPoint2D gaussPoint, 
             EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
             Vector enrichedNodalDisplacements)
         {
-            var displacementGradient = Matrix.CreateZero(2, 2);
+            var displacementGradient = Matrix2by2.CreateZero();
 
             // Standard contributions
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
@@ -242,12 +242,12 @@ namespace ISAAR.MSolve.XFEM.Elements
                 double displacementX = standardNodalDisplacements[2 * nodeIdx];
                 double displacementY = standardNodalDisplacements[2 * nodeIdx + 1];
 
-                Tuple<double, double> shapeFunctionDerivatives = 
+                Vector2 shapeFunctionDerivatives = 
                     evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIdx]);
-                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * displacementX;
-                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * displacementX;
-                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * displacementY;
-                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * displacementY;
+                displacementGradient[0, 0] += shapeFunctionDerivatives[0] * displacementX;
+                displacementGradient[0, 1] += shapeFunctionDerivatives[1] * displacementX;
+                displacementGradient[1, 0] += shapeFunctionDerivatives[0] * displacementY;
+                displacementGradient[1, 1] += shapeFunctionDerivatives[1] * displacementY;
             }
 
             // Enriched contributions. TODO: Extract the common steps with building B into a separate method 
@@ -257,7 +257,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (XNode2D node in Nodes)
             {
                 double N = evaluatedInterpolation.GetValueOf(node);
-                Tuple<double, double> gradN = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
+                Vector2 gradN = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
 
                 foreach (var nodalEnrichment in node.EnrichmentItems)
                 {
@@ -265,11 +265,11 @@ namespace ISAAR.MSolve.XFEM.Elements
                     for (int e = 0; e < currentEvalEnrichments.Length; ++e)
                     {
                         double psi = currentEvalEnrichments[e].Value;
-                        Tuple<double, double> gradPsi = currentEvalEnrichments[e].CartesianDerivatives;
+                        Vector2 gradPsi = currentEvalEnrichments[e].CartesianDerivatives;
                         double deltaPsi = psi - nodalEnrichment.Value[e];
 
-                        double Bx = gradN.Item1 * deltaPsi + N * gradPsi.Item1;
-                        double By = gradN.Item2 * deltaPsi + N * gradPsi.Item2;
+                        double Bx = gradN[0] * deltaPsi + N * gradPsi[0];
+                        double By = gradN[1] * deltaPsi + N * gradPsi[1];
 
                         double enrDisplacementX = enrichedNodalDisplacements[dof++];
                         double enrDisplacementY = enrichedNodalDisplacements[dof++];
@@ -287,7 +287,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         // In a non linear problem I would also have to pass the new displacements or I would have to update the
         // material state elsewhere.
-        public Tensor2D CalculateStressTensor(Matrix displacementFieldGradient, Matrix constitutive)
+        public Tensor2D CalculateStressTensor(Matrix2by2 displacementFieldGradient, Matrix constitutive)
         {
             double strainXX = displacementFieldGradient[0, 0];
             double strainYY = displacementFieldGradient[1, 1];

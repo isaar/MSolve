@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.Y = y;
         }
 
-        public Vector Coordinates { get { return Vector.CreateFromArray(new double[] { X, Y }); } }
+        public Vector2 Coordinates { get { return Vector2.Create( X, Y); } }
 
         public int ID { get; }
 

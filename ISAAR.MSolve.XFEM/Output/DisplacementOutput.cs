@@ -30,22 +30,19 @@ namespace ISAAR.MSolve.XFEM.Output
             return model.DofEnumerator.GatherNodalDisplacements(model, solution);
         }
 
-        public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector>> FindElementWiseDisplacements(
+        public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector2>> FindElementWiseDisplacements(
             Vector solution)
         {
             Vector constrainedDisplacements = model.CalculateConstrainedDisplacements();
-            var allDisplacements = new Dictionary<XContinuumElement2D, IReadOnlyList<Vector>>();
+            var allDisplacements = new Dictionary<XContinuumElement2D, IReadOnlyList<Vector2>>();
             foreach (var element in model.Elements)
             {
                 Vector displacementsUnrolled = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
                     element, solution, constrainedDisplacements);
-                var displacementsAsVectors = new Vector[element.Nodes.Count];
-                for (int i = 0; i < element.Nodes.Count; ++i)
+                var displacementsAsVectors = new Vector2[element.Nodes.Count];
+                for (int i = 0; i < element.Nodes.Count; ++i) // This only works for continuum elements though.
                 {
-                    displacementsAsVectors[i] = Vector.CreateFromArray(new double[]
-                    {
-                        displacementsUnrolled[2 * i], displacementsUnrolled[2 * i + 1] // This only works for continuum elements though.
-                    });
+                    displacementsAsVectors[i] = Vector2.Create(displacementsUnrolled[2 * i], displacementsUnrolled[2 * i + 1]); 
                 }
                 allDisplacements[element] = displacementsAsVectors;
             }

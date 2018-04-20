@@ -17,6 +17,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        IVectorView NormalThrough(ICartesianPoint2D point);
+        Vector2 NormalThrough(ICartesianPoint2D point);
     }
 }

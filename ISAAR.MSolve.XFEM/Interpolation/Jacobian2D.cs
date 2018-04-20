@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
@@ -13,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         private const double DETERMINANT_TOLERANCE = 0.00000001; // This needs to be in a static settings class.
         private const int DIMENSION = 2;
 
-        private readonly Matrix inverseJ; // I need a Matrix view for this
+        private readonly Matrix2by2 inverseJ; // I need a Matrix view for this
         public double Determinant { get; }
 
         /// <summary>
@@ -25,27 +26,31 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         public Jacobian2D(IReadOnlyList<ICartesianPoint2D> nodes, double[,] naturalDerivatives)
         {
             // The original matrix is not stored. Only the inverse and the determinant
-            Matrix jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
+            Matrix2by2 jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
             (inverseJ, Determinant) = jacobianMatrix.InvertAndDetermninant();
             if (Determinant < DETERMINANT_TOLERANCE)
             {
-                throw new ArgumentException(String.Format(
-                    "Jacobian determinant is negative or under tolerance ({0} < {1}). Check the order of nodes or the element geometry.",
-                    Determinant, DETERMINANT_TOLERANCE));
+                throw new ArgumentException("Jacobian determinant is negative or under the allowed tolerance"
+                    + $" ({Determinant} < {DETERMINANT_TOLERANCE}). Check the order of nodes or the element geometry.");
             }
         }
 
-        public Tuple<double, double> TransformNaturalDerivativesToCartesian(double derivativeXi, double derivativeEta)
+        public Vector2 TransformNaturalDerivativesToCartesian(Vector2 naturalGradient)
         {
-            double derivativeX = derivativeXi * inverseJ[0, 0] + derivativeEta * inverseJ[0, 1];
-            double derivativeY = derivativeXi * inverseJ[1, 0] + derivativeEta * inverseJ[1, 1];
-            return new Tuple<double, double>(derivativeX, derivativeY);
+            // Which of the 2 is it?
+            return naturalGradient * inverseJ;
+            //return inverseJ * naturalGradient;
+
+            // OLD CODE: 
+            //double derivativeX = derivativeXi * inverseJ[0, 0] + derivativeEta * inverseJ[0, 1];
+            //double derivativeY = derivativeXi * inverseJ[1, 0] + derivativeEta * inverseJ[1, 1];
+            //return new Tuple<double, double>(derivativeX, derivativeY);
         }
 
-        private static Matrix CalculateJacobianMatrix(IReadOnlyList<ICartesianPoint2D> nodes, 
+        private static Matrix2by2 CalculateJacobianMatrix(IReadOnlyList<ICartesianPoint2D> nodes, 
             double[,] naturalDerivatives)
         {
-            var J = Matrix.CreateZero(DIMENSION, DIMENSION);
+            var J = new double[DIMENSION, DIMENSION];
             for (int nodeIndex = 0; nodeIndex < nodes.Count; ++nodeIndex)
             {
                 double x = nodes[nodeIndex].X;
@@ -54,11 +59,17 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 double N_eta = naturalDerivatives[nodeIndex, 1];
 
                 J[0, 0] += N_xi * x;
-                J[0, 1] += N_xi * y;
-                J[1, 0] += N_eta * x;
+                J[0, 1] += N_eta * x;
+                J[1, 0] += N_xi * y;
                 J[1, 1] += N_eta * y;
+
+                // OLD CODE: 
+                //J[0, 0] += N_xi * x;
+                //J[0, 1] += N_xi * y;
+                //J[1, 0] += N_eta * x;
+                //J[1, 1] += N_eta * y;
             }
-            return J;
+            return Matrix2by2.CreateFromArray(J);
         }
     }
 }

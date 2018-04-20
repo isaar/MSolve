@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
@@ -22,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 
         public EvaluatedFunction2D EvaluateAllAt(double signedDistance)
         {
-            var derivatives = new double[] { 0.0, 0.0 };
+            var derivatives = Vector2.Create(0.0, 0.0 );
             if (signedDistance > 0) return new EvaluatedFunction2D(-1.0, derivatives);
             else if (signedDistance < 0) return new EvaluatedFunction2D(1.0, derivatives);
             else return new EvaluatedFunction2D(0.0, derivatives);

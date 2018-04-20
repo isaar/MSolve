@@ -16,11 +16,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// <summary>
         /// Unit vector. It will coincide with the normal vector if rotated -PI/2.
         /// </summary>
-        IVectorView TangentAtStart { get; }
+        Vector2 TangentAtStart { get; }
 
         /// <summary>
         /// Unit vector. It will coincide with the normal vector if rotated PI/2.
         /// </summary>
-        IVectorView TangentAtEnd { get; }
+        Vector2 TangentAtEnd { get; }
     }
 }

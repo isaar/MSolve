@@ -78,12 +78,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             {
                 int col1 = 2 * nodeIndex;
                 int col2 = 2 * nodeIndex + 1;
-                Tuple<double, double> dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
+                Vector2 dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
 
-                deformationMatrix[0, col1] = dNdX.Item1;
-                deformationMatrix[1, col2] = dNdX.Item2;
-                deformationMatrix[2, col1] = dNdX.Item2;
-                deformationMatrix[2, col2] = dNdX.Item1;
+                deformationMatrix[0, col1] = dNdX[0];
+                deformationMatrix[1, col2] = dNdX[1];
+                deformationMatrix[2, col1] = dNdX[1];
+                deformationMatrix[2, col2] = dNdX[0];
             }
             return deformationMatrix;
         }
@@ -97,21 +97,21 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        protected Matrix CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation,
+        protected Matrix2by2 CalculateDisplacementFieldGradient(EvaluatedInterpolation2D evaluatedInterpolation,
             Vector nodalDisplacements)
         {
-            var displacementGradient = Matrix.CreateZero(2, 2);
+            var displacementGradient = Matrix2by2.CreateZero();
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
                 double displacementX = nodalDisplacements[2 * nodeIdx];
                 double displacementY = nodalDisplacements[2 * nodeIdx + 1];
 
-                Tuple<double, double> shapeFunctionDerivatives =
+                Vector2 shapeFunctionDerivatives =
                     evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIdx]);
-                displacementGradient[0, 0] += shapeFunctionDerivatives.Item1 * displacementX;
-                displacementGradient[0, 1] += shapeFunctionDerivatives.Item2 * displacementX;
-                displacementGradient[1, 0] += shapeFunctionDerivatives.Item1 * displacementY;
-                displacementGradient[1, 1] += shapeFunctionDerivatives.Item2 * displacementY;
+                displacementGradient[0, 0] += shapeFunctionDerivatives[0] * displacementX;
+                displacementGradient[0, 1] += shapeFunctionDerivatives[1] * displacementX;
+                displacementGradient[1, 0] += shapeFunctionDerivatives[0] * displacementY;
+                displacementGradient[1, 1] += shapeFunctionDerivatives[1] * displacementY;
             }
             return displacementGradient;
         }

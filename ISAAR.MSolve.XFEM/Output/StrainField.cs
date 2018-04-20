@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Output
         {
             EvaluatedInterpolation2D evaluatedInterpolation =
                element.Interpolation.EvaluateAt(element.Nodes, point);
-            Matrix displacementGradient = element.CalculateDisplacementFieldGradient(
+            Matrix2by2 displacementGradient = element.CalculateDisplacementFieldGradient(
                 point, evaluatedInterpolation, standardDisplacements, enrichedDisplacements);
 
             double strainXX = displacementGradient[0, 0];

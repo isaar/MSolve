@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             this.Y = originalNode.Y;
         }
 
-        public Vector Coordinates { get { return Vector.CreateFromArray(new double[] { X, Y }); } }
+        public Vector2 Coordinates { get { return Vector2.Create( X, Y ); } }
         public int ID { get; }
         public double X { get; }
         public double Y { get; }

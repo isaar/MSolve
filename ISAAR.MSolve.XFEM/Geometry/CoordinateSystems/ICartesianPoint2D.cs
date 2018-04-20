@@ -16,6 +16,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
         /// <summary>
         /// Returns a vector of length = 2 containing the coordinates. The point is not mutated if the vector is changed.
         /// </summary>
-        Vector Coordinates { get; }
+        Vector2 Coordinates { get; }
     }
 }

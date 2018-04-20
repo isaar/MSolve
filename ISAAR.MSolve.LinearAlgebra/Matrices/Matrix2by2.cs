@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="array2D">A 2-dimensional array containing the elements of the matrix</param>
         /// <returns></returns>
-        public static Matrix2by2 CreateFromArray(double[,] array2D, bool copyArray)
+        public static Matrix2by2 CreateFromArray(double[,] array2D, bool copyArray = false)
         {
             // TODO: more efficient checking
             if ((array2D.GetLength(0) != 2) || (array2D.GetLength(1) != 2)) throw new NonMatchingDimensionsException(

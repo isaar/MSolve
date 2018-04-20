@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
     interface IGeometryDescription2D
     {
         double SignedDistanceOf(ICartesianPoint2D point);
-        IVectorView NormalVectorThrough(ICartesianPoint2D point);
+        Vector2 NormalVectorThrough(ICartesianPoint2D point);
 
         ICartesianPoint2D StartPoint { get; }
 

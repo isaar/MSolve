@@ -154,8 +154,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             {
                 double levelSet = levelSetsBody[node];
                 var shapeFunctionGradient = interpolation.GetGlobalCartesianDerivativesOf(node);
-                gradientX += shapeFunctionGradient.Item1 * levelSet;
-                gradientY += shapeFunctionGradient.Item2 * levelSet;
+                gradientX += shapeFunctionGradient[0] * levelSet;
+                gradientY += shapeFunctionGradient[1] * levelSet;
             }
             return new Tuple<double, double>(gradientX, gradientY);
         }

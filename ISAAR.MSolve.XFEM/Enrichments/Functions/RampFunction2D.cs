@@ -22,11 +22,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
             return Math.Abs(signedDistance);
         }
 
-        public EvaluatedFunction2D EvaluateAllAt(double signedDistance, IVectorView normalVector)
+        public EvaluatedFunction2D EvaluateAllAt(double signedDistance, Vector2 normalVector)
         {
             int sign = Math.Sign(signedDistance);
-            return new EvaluatedFunction2D(Math.Abs(signedDistance), 
-                new double[] { sign * normalVector[0], sign * normalVector[1] });
+            return new EvaluatedFunction2D(Math.Abs(signedDistance), sign * normalVector);
         }
 
         public override string ToString()

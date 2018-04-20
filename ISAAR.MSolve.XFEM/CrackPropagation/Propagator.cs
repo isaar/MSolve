@@ -172,26 +172,24 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 
                 // State 1
-                Matrix globalDisplacementGradState1 = element.CalculateDisplacementFieldGradient(
+                Matrix2by2 globalDisplacementGradState1 = element.CalculateDisplacementFieldGradient(
                     naturalGP, evaluatedInterpolation, standardNodalDisplacements, enrichedNodalDisplacements);
                 Tensor2D globalStressState1 = element.CalculateStressTensor(globalDisplacementGradState1, constitutive);
-                Matrix localDisplacementGradState1 = tipSystem.
+                Matrix2by2 localDisplacementGradState1 = tipSystem.
                     TransformVectorFieldDerivativesGlobalCartesianToLocalCartesian(globalDisplacementGradState1);
                 Tensor2D localStressTensorState1 = tipSystem.
                     TransformTensorGlobalCartesianToLocalCartesian(globalStressState1);
 
                 // Weight Function
                 // TODO: There should be a method InterpolateScalarGradient(double[] nodalValues) in EvaluatedInterpolation
-                double[] globalWeightGradient = new double[2];
+                var globalWeightGradient = Vector2.CreateZero();
                 for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
-                    var interpolationGradient = 
-                        evaluatedInterpolation.GetGlobalCartesianDerivativesOf(element.Nodes[nodeIdx]);
-                    globalWeightGradient[0] += interpolationGradient.Item1 * nodalWeights[nodeIdx];
-                    globalWeightGradient[1] += interpolationGradient.Item2 * nodalWeights[nodeIdx];
+                    globalWeightGradient.AxpyIntoThis(nodalWeights[nodeIdx],
+                        evaluatedInterpolation.GetGlobalCartesianDerivativesOf(element.Nodes[nodeIdx]));
                 }
-                Vector localWeightGradient = tipSystem.
-                    TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(Vector.CreateFromArray(globalWeightGradient));
+                Vector2 localWeightGradient = tipSystem.
+                    TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(globalWeightGradient);
 
                 // State 2
                 // TODO: XContinuumElement shouldn't have to pass tipCoordinate system to auxiliaryStates. 
@@ -212,8 +210,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             }
         }
 
-        private static double ComputeJIntegrand(Vector weightGrad, Matrix displGrad1, Tensor2D stress1,
-            Matrix displGrad2, Tensor2D strain2, Tensor2D stress2)
+        private static double ComputeJIntegrand(Vector2 weightGrad, Matrix2by2 displGrad1, Tensor2D stress1,
+            Matrix2by2 displGrad2, Tensor2D strain2, Tensor2D stress2)
         {
             // Unrolled to greatly reduce mistakes. Alternatively Einstein notation products could be implementated
             // in Tensor2D (like the tensor-tensor multiplication is), but still some parts would have to be unrolled.

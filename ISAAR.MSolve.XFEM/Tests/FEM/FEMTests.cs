@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Tests.FEM
 
         public static void Main()
         {
-            IsoparametricQuad4Test(nodeSet1);
+            IsoparametricQuad4Test(nodeSet6A);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
 {
@@ -17,9 +18,15 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
             this.Theta = theta;
         }
 
+        public PolarPoint2D(Vector2 polarCoordinates)
+        {
+            this.R = polarCoordinates[0];
+            this.Theta = polarCoordinates[1];
+        }
+
         /// <summary>
         /// Returns an array of length = 2 containing the coordinates. The point is not mutated if the array is changed.
         /// </summary>
-        public double[] Coordinates { get { return new double[] { R, Theta }; } }
+        public Vector2 Coordinates { get { return Vector2.Create(R, Theta); } }
     }
 }

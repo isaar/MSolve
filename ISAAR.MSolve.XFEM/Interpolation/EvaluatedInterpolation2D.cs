@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
@@ -20,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         // TODO: these 2 dictionaries may be able to be optimized into 1. E.g. only 1 data structure 
         // or arrays with a node to index dictionary
         private readonly Dictionary<Node2D, double> nodesToValues;
-        private readonly Dictionary<Node2D, Tuple<double, double>> nodesToCartesianDerivatives;
+        private readonly Dictionary<Node2D, Vector2> nodesToCartesianDerivatives;
 
         public Jacobian2D Jacobian { get; }
 
@@ -30,11 +31,11 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             /// will throw a NullReferenceException, which should be sufficient.
             nodesToValues = null;
              
-            nodesToCartesianDerivatives = new Dictionary<Node2D, Tuple<double, double>>(nodes.Count);
+            nodesToCartesianDerivatives = new Dictionary<Node2D, Vector2>(nodes.Count);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 nodesToCartesianDerivatives[nodes[i]] = jacobian.TransformNaturalDerivativesToCartesian(
-                    naturalDerivatives[i, 0], naturalDerivatives[i, 1]);
+                    Vector2.Create(naturalDerivatives[i, 0], naturalDerivatives[i, 1]));
             }
             this.Jacobian = jacobian;
         }
@@ -44,13 +45,13 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         {
             // TODO: Optimize the dictionaries. Could I provide comparers or sth that speeds up hashing?
             nodesToValues = new Dictionary<Node2D, double>(nodes.Count);
-            nodesToCartesianDerivatives = new Dictionary<Node2D, Tuple<double, double>>(nodes.Count);
+            nodesToCartesianDerivatives = new Dictionary<Node2D, Vector2>(nodes.Count);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 Node2D node = nodes[i];
                 nodesToValues[node] = shapeFunctionValues[i];
                 nodesToCartesianDerivatives[node] = jacobian.TransformNaturalDerivativesToCartesian(
-                    naturalDerivatives[i, 0], naturalDerivatives[i, 1]);
+                    Vector2.Create(naturalDerivatives[i, 0], naturalDerivatives[i, 1]));
             }
             this.Jacobian = jacobian;
         }
@@ -62,8 +63,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation
 
         // TODO: It would be easier for the client to access directly dNi/dx and dNi/dy instead of a 
         // Tuple<double, double>. However it would require multiple node lookups. Otherwise, a software wide convention   
-        // to use gradients as IReadOnlyList (immutable row arrays) or a dedicated (immutable class) can be enforced.  
-        public Tuple<double, double> GetGlobalCartesianDerivativesOf(Node2D node)
+        // to use gradients as IReadOnlyList (immutable row arrays) or a dedicated (immutable class) can be enforced. 
+        // TODO: Should the returned vector be immutable?
+        public Vector2 GetGlobalCartesianDerivativesOf(Node2D node)
         {
             return nodesToCartesianDerivatives[node];
         }

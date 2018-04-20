@@ -18,13 +18,13 @@ namespace ISAAR.MSolve.XFEM.Geometry.CoordinateSystems
             this.Y = y;
         }
 
-        public CartesianPoint2D(Vector coordinates)
+        public CartesianPoint2D(Vector2 cartesianCoordinates)
         {
-            this.X = coordinates[0];
-            this.Y = coordinates[1];
+            this.X = cartesianCoordinates[0];
+            this.Y = cartesianCoordinates[1];
         }
 
-        public Vector Coordinates { get { return Vector.CreateFromArray(new double[] { X, Y }); } }
+        public Vector2 Coordinates { get { return Vector2.Create( X, Y ); } }
 
         public override string ToString()
         {

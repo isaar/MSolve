@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         }
 
         // The normal vector for the positive region.
-        public IVectorView NormalVectorThrough(ICartesianPoint2D point)
+        public Vector2 NormalVectorThrough(ICartesianPoint2D point)
         {
             if (segments.Count == 1)
             {

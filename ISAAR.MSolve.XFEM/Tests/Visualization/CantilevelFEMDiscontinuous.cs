@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
 
             var displacementsOut = new DisplacementOutput(model);
 
-            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector>> elementDisplacements =
+            IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector2>> elementDisplacements =
                displacementsOut.FindElementWiseDisplacements(solution);
             writer.WriteVector2DField("displacements", elementDisplacements);
             

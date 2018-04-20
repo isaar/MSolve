@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
             var commonValues = new CommonValues(polarCoordinates.R, polarCoordinates.Theta);
 
             // Displacement field derivatives
-            Matrix displacementGradientMode1, displacementGradientMode2;
+            Matrix2by2 displacementGradientMode1, displacementGradientMode2;
             TipJacobians polarJacobians = tipCoordinateSystem.CalculateJacobiansAt(polarCoordinates);
             ComputeDisplacementDerivatives(polarJacobians, commonValues, 
                 out displacementGradientMode1, out displacementGradientMode2);
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
         }
 
         private void ComputeDisplacementDerivatives(TipJacobians polarJacobians, CommonValues val, 
-            out Matrix displacementGradientMode1, out Matrix displacementGradientMode2)
+            out Matrix2by2 displacementGradientMode1, out Matrix2by2 displacementGradientMode2)
         {
             // Temporary values and derivatives of the differentiated quantities. See documentation for their derivation.
             double E = material.HomogeneousYoungModulus;
@@ -78,8 +78,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 
                 // The vector field derivatives w.r.t. to the local polar coordinates. 
                 // The vector components refer to the local cartesian system though.
-                Matrix polarGradient = Matrix.CreateFromArray(new double[,] { { a * b_r * c1, a * b * c1_theta },
-                                                                        { a * b_r * c2, a * b * c2_theta } });
+                var polarGradient = Matrix2by2.CreateFromArray(
+                    new double[,] { { a * b_r * c1, a * b * c1_theta }, { a * b_r * c2, a * b * c2_theta } });
                 // The vector field derivatives w.r.t. to the local cartesian coordinates.
                 displacementGradientMode1 = 
                     polarJacobians.TransformVectorFieldDerivativesLocalPolarToLocalCartesian(polarGradient);
@@ -96,15 +96,15 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 
                 // The vector field derivatives w.r.t. to the local polar coordinates. 
                 // The vector components refer to the local cartesian system though.
-                Matrix polarGradient = Matrix.CreateFromArray(new double[,] { { a * b_r * c1, a * b * c1_theta },
-                                                                        { a * b_r * c2, a * b * c2_theta } });
+                var polarGradient = Matrix2by2.CreateFromArray(
+                    new double[,] { { a * b_r * c1, a * b * c1_theta }, { a * b_r * c2, a * b * c2_theta } });
                 // The vector field derivatives w.r.t. to the local cartesian coordinates.
                 displacementGradientMode2 =
                     polarJacobians.TransformVectorFieldDerivativesLocalPolarToLocalCartesian(polarGradient);
             }
         }
 
-        private static Tensor2D ComputeStrainTensor(Matrix displacementGradient)
+        private static Tensor2D ComputeStrainTensor(Matrix2by2 displacementGradient)
         {
             double exx = displacementGradient[0, 0];
             double eyy = displacementGradient[1, 1];

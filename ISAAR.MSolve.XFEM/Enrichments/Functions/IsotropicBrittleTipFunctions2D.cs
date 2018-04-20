@@ -29,10 +29,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf;
-                var gradientPolar = Vector.CreateFromArray(new double[] { 0.5 / sqrtR * sinThetaHalf, 0.5 * sqrtR * cosThetaHalf });
+                var gradientPolar = Vector2.Create(0.5 / sqrtR * sinThetaHalf, 0.5 * sqrtR * cosThetaHalf);
 
-                Vector gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
-                return new EvaluatedFunction2D(value, gradientGlobal.CopyToArray());
+                Vector2 gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
+                return new EvaluatedFunction2D(value, gradientGlobal);
             }
 
             public override string ToString()
@@ -55,10 +55,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf;
-                var gradientPolar = Vector.CreateFromArray(new double[] { 0.5 / sqrtR * cosThetaHalf, -0.5 * sqrtR * sinThetaHalf });
+                var gradientPolar = Vector2.Create(0.5 / sqrtR * cosThetaHalf, -0.5 * sqrtR * sinThetaHalf);
 
-                Vector gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
-                return new EvaluatedFunction2D(value, gradientGlobal.CopyToArray());
+                Vector2 gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
+                return new EvaluatedFunction2D(value, gradientGlobal);
             }
 
             public override string ToString()
@@ -83,11 +83,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * sinThetaHalf * sinTheta;
-                var gradientPolar = Vector.CreateFromArray(new double[] { 0.5 / sqrtR * sinThetaHalf * sinTheta,
-                    sqrtR * (0.5 * cosThetaHalf * sinTheta + sinThetaHalf * cosTheta) });
+                var gradientPolar = Vector2.Create(0.5 / sqrtR * sinThetaHalf * sinTheta,
+                    sqrtR * (0.5 * cosThetaHalf * sinTheta + sinThetaHalf * cosTheta) );
 
-                Vector gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
-                return new EvaluatedFunction2D(value, gradientGlobal.CopyToArray());
+                Vector2 gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
+                return new EvaluatedFunction2D(value, gradientGlobal);
             }
 
             public override string ToString()
@@ -112,11 +112,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
                 double sinThetaHalf = Math.Sin(point.Theta / 2.0);
 
                 double value = sqrtR * cosThetaHalf * sinTheta;
-                var gradientPolar = Vector.CreateFromArray(new double[] { 0.5 / sqrtR * cosThetaHalf * sinTheta,
-                    sqrtR * (-0.5 * sinThetaHalf * sinTheta + cosThetaHalf * cosTheta) });
+                var gradientPolar = Vector2.Create(0.5 / sqrtR * cosThetaHalf * sinTheta,
+                    sqrtR * (-0.5 * sinThetaHalf * sinTheta + cosThetaHalf * cosTheta) );
 
-                Vector gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
-                return new EvaluatedFunction2D(value, gradientGlobal.CopyToArray());
+                Vector2 gradientGlobal = jacobian.TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(gradientPolar);
+                return new EvaluatedFunction2D(value, gradientGlobal);
             }
 
             public override string ToString()

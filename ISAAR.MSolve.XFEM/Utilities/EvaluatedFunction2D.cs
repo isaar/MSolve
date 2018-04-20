@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Utilities
 {
@@ -12,13 +13,13 @@ namespace ISAAR.MSolve.XFEM.Utilities
     /// </summary>
     class EvaluatedFunction2D
     {
-        public double Value { get; }
-        public Tuple<double, double> CartesianDerivatives { get; }
-
-        public EvaluatedFunction2D(double value, double[] cartesianDerivatives)
+        public EvaluatedFunction2D(double value, Vector2 cartesianDerivatives)
         {
             this.Value = value;
-            this.CartesianDerivatives = new Tuple<double, double>(cartesianDerivatives[0], cartesianDerivatives[1]);
+            this.CartesianDerivatives = cartesianDerivatives;
         }
+
+        public double Value { get; }
+        public Vector2 CartesianDerivatives { get; }
     }
 }

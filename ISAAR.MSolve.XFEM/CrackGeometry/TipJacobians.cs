@@ -15,8 +15,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     class TipJacobians
     {
         private readonly TipCoordinateSystem tipSystem;
-        private readonly Matrix inverseJacobianPolarToLocal;
-        private readonly Matrix inverseJacobianPolarToGlobal;
+        private readonly Matrix2by2 inverseJacobianPolarToLocal;
+        private readonly Matrix2by2 inverseJacobianPolarToGlobal;
 
         public TipJacobians(TipCoordinateSystem tipSystem, PolarPoint2D polarCoordinates)
         {
@@ -25,18 +25,18 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double r = polarCoordinates.R;
             double cosTheta = Math.Cos(polarCoordinates.Theta);
             double sinTheta = Math.Sin(polarCoordinates.Theta);
-            inverseJacobianPolarToLocal = Matrix.CreateFromArray(new double[,] 
+            inverseJacobianPolarToLocal = Matrix2by2.CreateFromArray(new double[,] 
                 { { cosTheta, sinTheta }, {-sinTheta / r , cosTheta / r } });
 
             inverseJacobianPolarToGlobal = inverseJacobianPolarToLocal * tipSystem.RotationMatrixGlobalToLocal;
         }
 
-        public Vector TransformScalarFieldDerivativesLocalPolarToLocalCartesian(Vector gradient)
+        public Vector2 TransformScalarFieldDerivativesLocalPolarToLocalCartesian(Vector2 gradient)
         {
             return gradient * inverseJacobianPolarToLocal;
         }
 
-        public Vector TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(Vector gradient)
+        public Vector2 TransformScalarFieldDerivativesLocalPolarToGlobalCartesian(Vector2 gradient)
         {
             return gradient * inverseJacobianPolarToGlobal;
         }
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         ///     field, thus:    gradient = [Fr,r Fr,theta; Ftheta,r Ftheta,theta],
         ///     where Fi,j is the derivative of component i w.r.t. coordinate j</param>
         /// <returns></returns>
-        public Matrix TransformVectorFieldDerivativesLocalPolarToLocalCartesian(Matrix gradient)
+        public Matrix2by2 TransformVectorFieldDerivativesLocalPolarToLocalCartesian(Matrix2by2 gradient)
         {
             return gradient * inverseJacobianPolarToLocal;
         }

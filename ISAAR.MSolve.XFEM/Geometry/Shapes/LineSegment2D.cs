@@ -83,23 +83,23 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             //      outside the element will create unwanted triangulations.
 
             //Create vectors p, r, q, s
-            var p = new System.Windows.Vector(this.Start.X, this.Start.Y);
-            var r = new System.Windows.Vector(this.End.X - this.Start.X, this.End.Y - this.Start.Y);
-            var q = new System.Windows.Vector(segment.Start.X, segment.Start.Y);
-            var s = new System.Windows.Vector(segment.End.X - segment.Start.X, segment.End.Y - segment.Start.Y);
+            var p = Vector2.Create(this.Start.X, this.Start.Y);
+            var r = Vector2.Create(this.End.X - this.Start.X, this.End.Y - this.Start.Y);
+            var q = Vector2.Create(segment.Start.X, segment.Start.Y);
+            var s = Vector2.Create(segment.End.X - segment.Start.X, segment.End.Y - segment.Start.Y);
 
             // Find the cross products r x s and (q-p)*r 
-            double rCrossS = System.Windows.Vector.CrossProduct(r, s);
-            var qMinusP = System.Windows.Vector.Subtract(q, p);
-            double qMinusPCrossR = System.Windows.Vector.CrossProduct(qMinusP, r);
+            double rCrossS = r.CrossProduct(s);
+            var qMinusP = q - p;
+            double qMinusPCrossR = qMinusP.CrossProduct(r);
 
             if (rCrossS == 0) // TODO: use tolerance here
             {
                 if (qMinusPCrossR == 0) // TODO: use tolerance here
                 {
-                    double rDotR = r.LengthSquared;
-                    double t0 = System.Windows.Vector.Multiply(qMinusP, r) / rDotR;
-                    double t1 = t0 + System.Windows.Vector.Multiply(s, r) / rDotR;
+                    double rDotR = r * r;
+                    double t0 = (qMinusP * r) / rDotR;
+                    double t1 = t0 + (s * r) / rDotR;
                     LineSegment1D this1D = (new LineSegment1D(0.0, 1.0));
                     LineSegment1D.SegmentSegmentPosition intersection1D = 
                         this1D.IntesectionWith(new LineSegment1D(t0, t1));
@@ -126,12 +126,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             }
             else
             {
-                double t = System.Windows.Vector.CrossProduct(qMinusP, s) / rCrossS;
+                double t = qMinusP.CrossProduct(s) / rCrossS;
                 double u = qMinusPCrossR / rCrossS;
                 if ((t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0))
                 {
-                    var solution = System.Windows.Vector.Add(p, System.Windows.Vector.Multiply(t, r));
-                    intersectionPoint = new CartesianPoint2D(solution.X, solution.Y);
+                    var solution = p + t * r;
+                    intersectionPoint = new CartesianPoint2D(solution);
                     return SegmentSegmentPosition.Intersecting;
                 }
                 else
