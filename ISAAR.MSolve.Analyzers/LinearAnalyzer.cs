@@ -13,11 +13,11 @@ namespace ISAAR.MSolve.Analyzers
     {
         private IAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
+        private readonly IDictionary<int, ILinearSystem> subdomains;
         private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public LinearAnalyzer(ISolver solver, IDictionary<int, ISolverSubdomain> subdomains)
+        public LinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> subdomains)
         {
             this.solver = solver;
             this.subdomains = subdomains;

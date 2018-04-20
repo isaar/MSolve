@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.Logging.Interfaces;
 using System.Diagnostics;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Logging
 {
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Logging
 
         #region IResultStorage Members
 
-        public void StoreResults(DateTime startTime, DateTime endTime, IVector<double> solution)
+        public void StoreResults(DateTime startTime, DateTime endTime, IVector solution)
         {
             StartTime = startTime;
             EndTime = endTime;

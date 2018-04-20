@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using ISAAR.MSolve.FEM.Stochastic;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.PCGSkyline;
-using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.PreProcessor.Stochastic;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -21,7 +20,7 @@ namespace ISAAR.MSolve.Analyzers
     
     public class PolynomialChaosSolverPCGMatrixCalculator : ISolverPCGMatrixCalculator
     {
-        private SolverPCG<SkylineMatrix2D<double>> solver;
+        private SolverPCG<SkylineMatrix2D> solver;
         private readonly int mOrder, pOrder;
         private readonly PolynomialChaosSolverPCGPreconditioner preconditionerKind;
         //private readonly int psiSize;
@@ -34,10 +33,10 @@ namespace ISAAR.MSolve.Analyzers
         private double[] meanDiagonalCoefficients, ssorDiagonals;
         private PolynomialChaosAnalyzer analyzer;
         private int meanSize;
-        private Vector<double> tempVectorIn, tempVectorOut;
+        private Vector tempVectorIn, tempVectorOut;
         private List<List<Tuple<int, int, int, double>>> coeffLower, coeffUpper;
 
-        public SolverPCG<SkylineMatrix2D<double>> Solver
+        public SolverPCG<SkylineMatrix2D> Solver
         {
             get { return solver; }
             set { solver = value; }
@@ -76,19 +75,20 @@ namespace ISAAR.MSolve.Analyzers
             if (ssorDiagonals != null) return;
 
             ssorDiagonals = new double[this.VectorSize];
-            foreach (ISolverSubdomain subdomain in solver.SubdomainsDictionary.Values)
-            {
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //{
                 for (int i = 0; i < coeffLower.Count; i++)
                 {
                     int blockStart = i * meanSize;
                     foreach (var c in coeffLower[i].Where(x => x.Item2 == x.Item3))
                     {
-                        SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D K = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         double[] d = K.Data as double[];
                         for (int n = 0; n < K.Rows; n++)
                             ssorDiagonals[blockStart + n] += d[K.RowIndex[n]] * c.Item4;
                     }
-                }
+                //}
             }
             //for (int n = 0; n < ssorDiagonals.Length; n++)
             //    ssorDiagonals[n] = 1.0 / ssorDiagonals[n];
@@ -98,7 +98,8 @@ namespace ISAAR.MSolve.Analyzers
         {
             get
             {
-                meanSize = solver.SubdomainsDictionary.Values.First().RHS.Length;
+                //meanSize = solver.SubdomainsDictionary.Values.First().RHS.Length;
+                meanSize = solver.LinearSystem.RHS.Length;
                 return meanSize * calculator.PsiSize;
             }
         }
@@ -442,7 +443,7 @@ namespace ISAAR.MSolve.Analyzers
                     meanDiagonalCoefficients[c.Key.Item1] = c.Value;
         }
 
-        public void Precondition(IVector<double> vIn, IVector<double> vOut)
+        public void Precondition(IVector vIn, IVector vOut)
         {
             switch (preconditionerKind)
             {
@@ -464,7 +465,7 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
-        private void PreconditionDiagonal(IVector<double> vIn, IVector<double> vOut)
+        private void PreconditionDiagonal(IVector vIn, IVector vOut)
         {
             if (analyzer.FactorizedMatrices.Count < 1)
                 throw new InvalidOperationException("Cannot precondition with no factorized matrices");
@@ -472,17 +473,17 @@ namespace ISAAR.MSolve.Analyzers
                 throw new InvalidOperationException("Cannot precondition with more than one subdomains");
 
             if (tempVectorIn == null)
-                tempVectorIn = new Vector<double>(meanSize);
+                tempVectorIn = new Vector(meanSize);
             if (tempVectorOut == null)
-                tempVectorOut = new Vector<double>(meanSize);
+                tempVectorOut = new Vector(meanSize);
 
-            var v = (Vector<double>)vIn;
-            var o = (Vector<double>)vOut;
+            var v = (Vector)vIn;
+            var o = (Vector)vOut;
             //Array.Copy(v.Data, 0, o.Data, 0, v.Data.Length);
 
-            foreach (ISolverSubdomain subdomain in solver.SubdomainsDictionary.Values)
-            {
-                SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[0][subdomain.ID];
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //{
+                SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[0][solver.LinearSystem.ID];
                 for (int i = 0; i < calculator.PsiSize; i++)
                 {
                     Array.Copy(v.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
@@ -491,10 +492,10 @@ namespace ISAAR.MSolve.Analyzers
                         tempVectorOut[j] = tempVectorIn[j] / k.Data[k.RowIndex[j]];
                     Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
                 }
-            }
+            //}
         }
 
-        private void PreconditionBlock(IVector<double> vIn, IVector<double> vOut)
+        private void PreconditionBlock(IVector vIn, IVector vOut)
         {
             if (analyzer.FactorizedMatrices.Count < 1)
                 throw new InvalidOperationException("Cannot precondition with no factorized matrices");
@@ -502,25 +503,29 @@ namespace ISAAR.MSolve.Analyzers
                 throw new InvalidOperationException("Cannot precondition with more than one subdomains");
 
             if (tempVectorIn == null)
-                tempVectorIn = new Vector<double>(meanSize);
+                tempVectorIn = new Vector(meanSize);
             if (tempVectorOut == null)
-                tempVectorOut = new Vector<double>(meanSize);
+                tempVectorOut = new Vector(meanSize);
 
-            var v = (Vector<double>)vIn;
-            var o = (Vector<double>)vOut;
+            var v = vIn;
+            var o = vOut;
+            //var v = (Vector<double>)vIn;
+            //var o = (Vector<double>)vOut;
             //Array.Copy(v.Data, 0, o.Data, 0, v.Data.Length);
 
             foreach (var m in analyzer.FactorizedMatrices[0].Values)
                 for (int i = 0; i < calculator.PsiSize; i++)
                 {
-                    Array.Copy(v.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
+                    tempVectorIn.CopyFrom(0, meanSize, v, i * meanSize);
+                    //Array.Copy(v.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
                     tempVectorIn.Multiply(1.0 / meanDiagonalCoefficients[i]);
-                    m.Solve(tempVectorIn, tempVectorOut.Data);
-                    Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
+                    m.Solve(tempVectorIn, tempVectorOut);
+                    o.CopyFrom(i * meanSize, meanSize, tempVectorOut, 0);
+                    //Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
                 }
         }
 
-        private void PreconditionBlockSSOR(IVector<double> vIn, IVector<double> vOut)
+        private void PreconditionBlockSSOR(IVector vIn, IVector vOut)
         {
             if (analyzer.FactorizedMatrices.Count < 1)
                 throw new InvalidOperationException("Cannot precondition with no factorized matrices");
@@ -535,28 +540,34 @@ namespace ISAAR.MSolve.Analyzers
             //return;
 
             if (tempVectorIn == null)
-                tempVectorIn = new Vector<double>(meanSize);
+                tempVectorIn = new Vector(meanSize);
             if (tempVectorOut == null)
-                tempVectorOut = new Vector<double>(meanSize);
+                tempVectorOut = new Vector(meanSize);
 
-            var v = (Vector<double>)vIn;
-            var o = (Vector<double>)vOut;
-            var oTemp = new Vector<double>(this.VectorSize);
+            //var v = (Vector<double>)vIn;
+            //var o = (Vector<double>)vOut;
+            var v = vIn;
+            var o = vOut;
+            var oTemp = new Vector(this.VectorSize);
 
-            foreach (ISolverSubdomain subdomain in solver.SubdomainsDictionary.Values)
-            {
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //{
                 // Forward sub
-                Array.Copy(v.Data, 0, o.Data, 0, v.Data.Length);
+                o.CopyFrom(0, v.Length, v, 0);
+                //Array.Copy(v.Data, 0, o.Data, 0, v.Data.Length);
                 for (int i = 0; i < coeffLower.Count; i++)
                 {
                     int blockStart = i * meanSize;
-                    Array.Copy(v.Data, blockStart, tempVectorOut.Data, 0, meanSize);
+
+                    tempVectorOut.CopyFrom(0, tempVectorOut.Length, v, blockStart);
+                    //Array.Copy(v.Data, blockStart, tempVectorOut.Data, 0, meanSize);
+
                     //Array.Clear(tempVectorIn.Data, 0, meanSize);
                     //Array.Clear(tempVectorOut.Data, 0, meanSize);
 
                     foreach (var c in coeffLower[i].Where(x => x.Item2 != x.Item3))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, tempVectorOut.Data, -c.Item4, col, 0, false);
@@ -568,8 +579,9 @@ namespace ISAAR.MSolve.Analyzers
                         //Array.Copy(v.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
                         Array.Copy(tempVectorOut.Data, 0, tempVectorIn.Data, 0, meanSize);
                         tempVectorIn.Multiply(1.0 / c.Item4);
-                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut.Data);
-                        Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
+                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut);
+                        o.CopyFrom(0, meanSize, tempVectorOut, i * meanSize);
+                        //Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
 
                     //    SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
                     //    double[] d = K.Data as double[];
@@ -601,7 +613,7 @@ namespace ISAAR.MSolve.Analyzers
                 {
                     foreach (var c in coeffLower[i].Where(x => x.Item2 == x.Item3 && x.Item1 == 0))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, oTemp.Data, c.Item4, col, row, false);
@@ -609,7 +621,8 @@ namespace ISAAR.MSolve.Analyzers
                 }
 
                 // Backward sub
-                Array.Copy(oTemp.Data, 0, o.Data, 0, v.Data.Length);
+                o.CopyFrom(0, v.Length, oTemp, 0);
+                //Array.Copy(oTemp.Data, 0, o.Data, 0, v.Data.Length);
                 for (int i = coeffUpper.Count - 1; i >= 0; i--)
                 {
                     int blockStart = i * meanSize;
@@ -617,7 +630,7 @@ namespace ISAAR.MSolve.Analyzers
                     //Array.Clear(tempVectorOut.Data, 0, meanSize);
                     foreach (var c in coeffUpper[i].Where(x => x.Item2 != x.Item3))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, tempVectorOut.Data, -c.Item4, col, 0, false);
@@ -628,8 +641,9 @@ namespace ISAAR.MSolve.Analyzers
                         //Array.Copy(oTemp.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
                         Array.Copy(tempVectorOut.Data, 0, tempVectorIn.Data, 0, meanSize);
                         tempVectorIn.Multiply(1.0 / c.Item4);
-                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut.Data);
-                        Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
+                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut);
+                        o.CopyFrom(0, meanSize, tempVectorOut, i * meanSize);
+                        //Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
 
                         //SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
                         //double[] d = K.Data as double[];
@@ -658,10 +672,10 @@ namespace ISAAR.MSolve.Analyzers
                 //// Division
                 //for (int i = 0; i < this.VectorSize; i++)
                 //    o.Data[i] *= ssorDiagonals[i];
-            }
+            //}
         }
 
-        private void PreconditionSSOR(IVector<double> vIn, IVector<double> vOut)
+        private void PreconditionSSOR(IVector vIn, IVector vOut)
         {
             if (analyzer.FactorizedMatrices.Count < 1)
                 throw new InvalidOperationException("Cannot precondition with no factorized matrices");
@@ -676,16 +690,16 @@ namespace ISAAR.MSolve.Analyzers
             //return;
 
             if (tempVectorIn == null)
-                tempVectorIn = new Vector<double>(meanSize);
+                tempVectorIn = new Vector(meanSize);
             if (tempVectorOut == null)
-                tempVectorOut = new Vector<double>(meanSize);
+                tempVectorOut = new Vector(meanSize);
 
-            var v = (Vector<double>)vIn;
-            var o = (Vector<double>)vOut;
-            var oTemp = new Vector<double>(this.VectorSize);
+            var v = (Vector)vIn;
+            var o = (Vector)vOut;
+            var oTemp = new Vector(this.VectorSize);
 
-            foreach (ISolverSubdomain subdomain in solver.SubdomainsDictionary.Values)
-            {
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //{
                 // Forward sub
                 Array.Copy(v.Data, 0, o.Data, 0, v.Data.Length);
                 for (int i = 0; i < coeffLower.Count; i++)
@@ -697,7 +711,7 @@ namespace ISAAR.MSolve.Analyzers
 
                     foreach (var c in coeffLower[i].Where(x => x.Item2 != x.Item3))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, tempVectorOut.Data, -c.Item4, col, 0, false);
@@ -716,7 +730,7 @@ namespace ISAAR.MSolve.Analyzers
                         //Array.Copy(tempVectorOut.Data, 0, tempVectorIn.Data, 0, meanSize);
                         //tempVectorIn.Multiply(1.0 / c.Item4);
                         tempVectorOut.Multiply(1.0 / c.Item4);
-                        SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D K = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         double[] d = K.Data as double[];
                         for (int n = 0; n < K.Rows; n++)
                         {
@@ -782,7 +796,7 @@ namespace ISAAR.MSolve.Analyzers
                     //Array.Clear(tempVectorOut.Data, 0, meanSize);
                     foreach (var c in coeffUpper[i].Where(x => x.Item2 != x.Item3))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, tempVectorOut.Data, -c.Item4, col, 0, false);
@@ -799,7 +813,7 @@ namespace ISAAR.MSolve.Analyzers
                         //Array.Copy(tempVectorOut.Data, 0, tempVectorIn.Data, 0, meanSize);
                         //tempVectorIn.Multiply(1.0 / c.Item4);
                         tempVectorOut.Multiply(1.0 / c.Item4);
-                        SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D K = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         //double[] d = K.Data as double[];
                         //for (int n = K.Rows - 1; n >= 0; n--)
                         //{
@@ -848,10 +862,10 @@ namespace ISAAR.MSolve.Analyzers
                 //// Division
                 //for (int i = 0; i < this.VectorSize; i++)
                 //    o.Data[i] *= ssorDiagonals[i];
-            }
+            //}
         }
 
-        private void PreconditionILU(IVector<double> vIn, IVector<double> vOut)
+        private void PreconditionILU(IVector vIn, IVector vOut)
         {
             if (analyzer.FactorizedMatrices.Count < 1)
                 throw new InvalidOperationException("Cannot precondition with no factorized matrices");
@@ -866,17 +880,17 @@ namespace ISAAR.MSolve.Analyzers
             //return;
 
             if (tempVectorIn == null)
-                tempVectorIn = new Vector<double>(meanSize);
+                tempVectorIn = new Vector(meanSize);
             if (tempVectorOut == null)
-                tempVectorOut = new Vector<double>(meanSize);
+                tempVectorOut = new Vector(meanSize);
 
-            var v = (Vector<double>)vIn;
-            var o = (Vector<double>)vOut;
-            var oTemp = new Vector<double>(this.VectorSize);
-            var tOut = new Vector<double>(meanSize);
+            var v = (Vector)vIn;
+            var o = (Vector)vOut;
+            var oTemp = new Vector(this.VectorSize);
+            var tOut = new Vector(meanSize);
 
-            foreach (ISolverSubdomain subdomain in solver.SubdomainsDictionary.Values)
-            {
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //{
                 // Forward sub
                 Array.Copy(v.Data, 0, o.Data, 0, v.Data.Length);
                 for (int i = 0; i < coeffLower.Count; i++)
@@ -888,7 +902,7 @@ namespace ISAAR.MSolve.Analyzers
 
                     foreach (var c in coeffLower[i].Where(x => x.Item2 != x.Item3))
                     {
-                        SkylineMatrix2D<double> k = analyzer.FactorizedMatrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = analyzer.FactorizedMatrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
 
@@ -909,7 +923,7 @@ namespace ISAAR.MSolve.Analyzers
                         //Array.Copy(v.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
                         Array.Copy(tempVectorOut.Data, 0, tempVectorIn.Data, 0, meanSize);
                         tempVectorIn.Multiply(1.0 / c.Item4);
-                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut.Data);
+                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut);
                         Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
 
                         //    SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
@@ -942,7 +956,7 @@ namespace ISAAR.MSolve.Analyzers
                 {
                     foreach (var c in coeffLower[i].Where(x => x.Item2 == x.Item3 && x.Item1 == 0))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, oTemp.Data, c.Item4, col, row, false);
@@ -958,7 +972,7 @@ namespace ISAAR.MSolve.Analyzers
                     //Array.Clear(tempVectorOut.Data, 0, meanSize);
                     foreach (var c in coeffUpper[i].Where(x => x.Item2 != x.Item3))
                     {
-                        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.FactorizedMatrices[c.Item1][subdomain.ID];
+                        SkylineMatrix2D k = (SkylineMatrix2D)analyzer.FactorizedMatrices[c.Item1][solver.LinearSystem.ID];
                         int row = c.Item2 * k.Rows;
                         int col = c.Item3 * k.Rows;
                         k.Multiply(o, tempVectorOut.Data, -c.Item4, col, 0, false);
@@ -979,7 +993,7 @@ namespace ISAAR.MSolve.Analyzers
                         //Array.Copy(oTemp.Data, i * meanSize, tempVectorIn.Data, 0, meanSize);
                         Array.Copy(tempVectorOut.Data, 0, tempVectorIn.Data, 0, meanSize);
                         tempVectorIn.Multiply(1.0 / c.Item4);
-                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut.Data);
+                        analyzer.FactorizedMatrices[0][1].Solve(tempVectorIn, tempVectorOut);
                         Array.Copy(tempVectorOut.Data, 0, o.Data, i * meanSize, meanSize);
 
                         //SkylineMatrix2D<double> K = (SkylineMatrix2D<double>)analyzer.Matrices[c.Item1][subdomain.ID];
@@ -1009,7 +1023,7 @@ namespace ISAAR.MSolve.Analyzers
                 //// Division
                 //for (int i = 0; i < this.VectorSize; i++)
                 //    o.Data[i] *= ssorDiagonals[i];
-            }
+            //}
         }
 
         //private void PreconditionILU(IVector<double> vIn, IVector<double> vOut)
@@ -1059,17 +1073,17 @@ namespace ISAAR.MSolve.Analyzers
         //    }
         //}
 
-        public void MultiplyWithMatrix(IVector<double> vIn, IVector<double> vOut)
+        public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
-            var data = ((Vector<double>)vOut).Data;
+            var data = ((Vector)vOut).Data;
             Array.Clear(data, 0, data.Length);
 
-            foreach (ISolverSubdomain subdomain in solver.SubdomainsDictionary.Values)
-            {
+            //foreach (ILinearSystem subdomain in solver.SubdomainsDictionary.Values)
+            //{
                 for (int pos = 0; pos < (isGaussian ? mOrder + 1 : calculator.PsiSize); pos++)
                 {
                     //SkylineMatrix2D<double> k = ((SkylineMatrix2D<double>)subdomain.Matrix);
-                    SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)analyzer.Matrices[pos][subdomain.ID];
+                    SkylineMatrix2D k = (SkylineMatrix2D)analyzer.Matrices[pos][solver.LinearSystem.ID];
                     if (isGaussian)
                         foreach (var x in calculator.GaussianCoefficients[pos])
                         {
@@ -1085,7 +1099,7 @@ namespace ISAAR.MSolve.Analyzers
                             k.Multiply(vIn, data, x.Value, j, i, false);
                         }
                 }
-            }
+            //}
         }
     }
 }

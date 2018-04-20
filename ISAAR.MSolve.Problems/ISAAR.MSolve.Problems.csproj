@@ -1,76 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D4C27DC8-5A58-4BF0-8423-0F3C1FB47B8F}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ISAAR.MSolve.Problems</RootNamespace>
-    <AssemblyName>ISAAR.MSolve.Problems</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ProblemPorous.cs" />
-    <Compile Include="ProblemStructural.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj">
-      <Project>{8cc2c512-2f07-4e6f-8e04-fc62f1b04186}</Project>
-      <Name>ISAAR.MSolve.Logging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Matrices\ISAAR.MSolve.Matrices.csproj">
-      <Project>{ace1ff1d-9550-4583-bde0-5b821809d045}</Project>
-      <Name>ISAAR.MSolve.Matrices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.PreProcessor\ISAAR.MSolve.PreProcessor.csproj">
-      <Project>{c30e5a92-8060-46eb-8249-4fe4f603de18}</Project>
-      <Name>ISAAR.MSolve.PreProcessor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj">
-      <Project>{0883b2f7-198a-4404-b13d-22100bf90a31}</Project>
-      <Name>ISAAR.MSolve.Solvers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj">
-      <Project>{5811fdb6-9b63-48ed-a153-47a673a3cc6f}</Project>
-      <Name>ISAAR.MSolve.Analyzers</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

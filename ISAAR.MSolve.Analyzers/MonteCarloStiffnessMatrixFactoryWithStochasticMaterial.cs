@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.PreProcessor.Stochastic;
-using ISAAR.MSolve.Matrices.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Stochastic;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -16,9 +17,9 @@ namespace ISAAR.MSolve.Analyzers
         private int currentSimulation = -1;
         private readonly int expansionOrder;
         private readonly int simulations;
-        private readonly IDictionary<int, ISolverSubdomain> subdomains;
+        private readonly IDictionary<int, ILinearSystem> subdomains;
         //private readonly IDictionary<int, IMatrix2D<double>> matrices;
-        private readonly IDictionary<int, IMatrix2D<double>>[] matrices;
+        private readonly IDictionary<int, IMatrix2D>[] matrices;
         private readonly Model model;
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
         private readonly IAnalyzerProvider provider;
@@ -28,7 +29,7 @@ namespace ISAAR.MSolve.Analyzers
         private IAnalyzer parentAnalyzer = null;
         private readonly IStochasticMaterialCoefficientsProvider coefficientsProvider;
 
-        public MonteCarloAnalyzerStiffnessMatrixFactoryWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, GaussianFileStochasticCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
+        public MonteCarloAnalyzerStiffnessMatrixFactoryWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, GaussianFileStochasticCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
         {
             this.childAnalyzer = embeddedAnalyzer;
             this.provider = provider;
@@ -38,7 +39,7 @@ namespace ISAAR.MSolve.Analyzers
             this.simulations = simulations;
             this.childAnalyzer.ParentAnalyzer = this;
             //this.matrices = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
-            this.matrices = new Dictionary<int, IMatrix2D<double>>[expansionOrder + 1];
+            this.matrices = new Dictionary<int, IMatrix2D>[expansionOrder + 1];
             this.randomNumbers = new double[simulations][];
             this.coefficientsProvider = coefficientsProvider;
             //this.stochasticDomain = stochasticDomain;
