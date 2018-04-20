@@ -37,14 +37,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
 
         public Vector2 TransformNaturalDerivativesToCartesian(Vector2 naturalGradient)
         {
-            // Which of the 2 is it?
             return naturalGradient * inverseJ;
-            //return inverseJ * naturalGradient;
-
-            // OLD CODE: 
-            //double derivativeX = derivativeXi * inverseJ[0, 0] + derivativeEta * inverseJ[0, 1];
-            //double derivativeY = derivativeXi * inverseJ[1, 0] + derivativeEta * inverseJ[1, 1];
-            //return new Tuple<double, double>(derivativeX, derivativeY);
         }
 
         private static Matrix2by2 CalculateJacobianMatrix(IReadOnlyList<ICartesianPoint2D> nodes, 
@@ -62,12 +55,6 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 J[0, 1] += N_eta * x;
                 J[1, 0] += N_xi * y;
                 J[1, 1] += N_eta * y;
-
-                // OLD CODE: 
-                //J[0, 0] += N_xi * x;
-                //J[0, 1] += N_xi * y;
-                //J[1, 0] += N_eta * x;
-                //J[1, 1] += N_eta * y;
             }
             return Matrix2by2.CreateFromArray(J);
         }
