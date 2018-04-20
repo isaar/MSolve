@@ -149,11 +149,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Vector(c);
         }
 
-        public static Matrix2D<double> operator *(Matrix2D<T> A, double b)
+        public static Matrix2D operator *(Matrix2D A, double b)
         {
-            if (!(typeof(T) == typeof(double))) throw new InvalidOperationException("Cannot multiply for types other than double");
-
-            Matrix2D<double> AA = new Matrix2D<double>(A.data as double[,]);
+            Matrix2D AA = new Matrix2D(A.data as double[,]);
             for (int i = 0; i < A.Rows; i++)
                 for (int j = 0; j < A.Columns; j++)
                     AA[i, j] = AA[i, j] * b;

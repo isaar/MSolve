@@ -1,9 +1,10 @@
-﻿namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
+﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+
+namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
 {
     #region
 
     using System;
-    using Matrices.Interfaces;
 
     #endregion
 
@@ -20,11 +21,11 @@
 
     public class GaussLegendrePoint3D
     {
-        private IMatrix2D<double> B;
+        private IMatrix2D B;
         private double Ksi;
         private double Heta;
 
-        public GaussLegendrePoint3D(double ksi, double heta, double zeta, IMatrix2D<double> deformationMatrix, double weightFactor)
+        public GaussLegendrePoint3D(double ksi, double heta, double zeta, IMatrix2D deformationMatrix, double weightFactor)
         {
             this.Ksi = ksi;
             this.Heta = heta;
