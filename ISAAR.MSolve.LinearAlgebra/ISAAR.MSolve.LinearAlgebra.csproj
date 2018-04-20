@@ -87,6 +87,8 @@
     <Compile Include="Matrices\ISparseMatrix.cs" />
     <Compile Include="Matrices\ISymmetricMatrix.cs" />
     <Compile Include="Matrices\Matrix.cs" />
+    <Compile Include="Matrices\Matrix2by2.cs" />
+    <Compile Include="Matrices\Matrix3by3.cs" />
     <Compile Include="Matrices\MatrixExtensions.cs" />
     <Compile Include="Matrices\SkylineMatrix.cs" />
     <Compile Include="Matrices\SymmetricCSC.cs" />

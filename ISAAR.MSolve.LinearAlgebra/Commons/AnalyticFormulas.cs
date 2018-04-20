@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     internal static class AnalyticFormulas
     {
-        private const double determinantTolerance = 1e-10;
+        internal const double determinantTolerance = 1e-10;
 
         internal static double Matrix2x2ColMajorDeterminant(double[] matrix)
         {
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             // a10 = matrix[1], a11 = matrix[3]
 
             // Leibniz formula:
-            return matrix[0] * matrix[2] - matrix[1] * matrix[3];
+            return matrix[0] * matrix[3] - matrix[1] * matrix[2];
         }
 
         internal static (double[] inverse, double determinant) Matrix2x2ColMajorInvert(double[] matrix)
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             // a10 = matrix[1], a11 = matrix[3]
 
             // Leibniz formula:
-            double det = matrix[0] * matrix[2] - matrix[1] * matrix[3];
+            double det = matrix[0] * matrix[3] - matrix[1] * matrix[2];
             if (Math.Abs(det) < determinantTolerance)
             {
                 throw new SingularMatrixException($"Determinant == {det}");

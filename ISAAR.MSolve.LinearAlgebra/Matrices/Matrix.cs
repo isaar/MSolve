@@ -21,9 +21,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix: IMatrix, ISliceable2D
     {
-        protected readonly double[] data;
+        private readonly double[] data;
 
-        protected Matrix(double[] data, int numRows, int numColumns)
+        private Matrix(double[] data, int numRows, int numColumns)
         {
             this.data = data;
             this.NumRows = numRows;
@@ -136,9 +136,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static Matrix operator *(Matrix matrix, double scalar)=> matrix.Scale(scalar);
         public static Matrix operator *(Matrix matrixLeft, Matrix matrixRight)
             => matrixLeft.MultiplyRight(matrixRight, false, false);
-        public static Vector operator *(Matrix matrixLeft, Vectors.Vector vectorRight)
+        public static Vector operator *(Matrix matrixLeft, Vector vectorRight)
             => matrixLeft.MultiplyRight(vectorRight, false);
-        public static Vector operator *(Vectors.Vector vectorLeft, Matrix matrixRight)
+        public static Vector operator *(Vector vectorLeft, Matrix matrixRight)
             => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
@@ -297,11 +297,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-            if (other is Matrix)
+            if (other is Matrix casted)
             {
                 //Check each dimension, rather than the lengths of the internal buffers
-                if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
-                double[] otherData = ((Matrix)other).data;
+                if (!Preconditions.AreSameMatrixDimensions(this, casted)) return false;
+                double[] otherData = casted.data;
                 var comparer = new ValueComparer(1e-13);
                 for (int i = 0; i < this.data.Length; ++i)
                 {
@@ -493,7 +493,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vectors.Vector) return MultiplyRight((Vectors.Vector)vector, transposeThis);
+            if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -504,7 +504,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
         ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
         /// <returns></returns>
-        public Vector MultiplyRight(Vectors.Vector vector, bool transposeThis = false)
+        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
             int leftRows, leftCols;
             CBLAS_TRANSPOSE transpose;
@@ -527,7 +527,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 1.0, ref data[0], NumRows,
                 ref vector.InternalData[0], 1,
                 0.0, ref result[0], 1);
-            return Vectors.Vector.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -578,7 +578,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             for (int i = 0; i < data.Length; ++i) data[i] = value;
         }
 
-        public void SetColumn(int colIdx, Vectors.Vector colValues)
+        public void SetColumn(int colIdx, Vector colValues)
         {
             Preconditions.CheckIndexCol(this, colIdx);
             Preconditions.CheckSameRowDimension(this, colValues);
@@ -590,7 +590,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             data[colIdx * NumRows + rowIdx] = value;
         }
 
-        public void SetRow(int rowIdx, Vectors.Vector rowValues)
+        public void SetRow(int rowIdx, Vector rowValues)
         {
             Preconditions.CheckIndexRow(this, rowIdx);
             Preconditions.CheckSameColDimension(this, rowValues);
@@ -659,7 +659,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             double[] result = new double[NumRows];
             Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
-            return Vectors.Vector.CreateFromArray(data, false);
+            return Vector.CreateFromArray(data, false);
         }
 
         public Vector SliceRow(int rowIndex)
@@ -669,7 +669,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 result[j] = data[j * NumRows + rowIndex];
             }
-            return Vectors.Vector.CreateFromArray(result, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public void SVD(double[] w, double[,] v)
