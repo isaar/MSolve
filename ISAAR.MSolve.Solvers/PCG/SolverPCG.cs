@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Matrices.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Solvers.PCG
 {
@@ -20,7 +16,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         protected double detf;
         protected ISolverPCGMatrixCalculator matrixCalculator;
         protected ISearchVectorCalculator search;
-        private Vector<double> x, r, p, z, q;
+        private IVector x, r, p, z, q;
         protected readonly List<double> errors = new List<double>();
 
         public SolverPCG(ISolverPCGMatrixCalculator matrixCalculator, ISearchVectorCalculator search)
@@ -38,7 +34,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             get { return currentIteration; }
         }
 
-        public Vector<double> VectorP
+        public IVector VectorP
         {
             get { return p; }
         }
@@ -48,22 +44,22 @@ namespace ISAAR.MSolve.Solvers.PCG
         //    get { return w; }
         //}
 
-        public Vector<double> VectorZ
+        public IVector VectorZ
         {
             get { return z; }
         }
 
-        public Vector<double> VectorX
+        public IVector VectorX
         {
             get { return x; }
         }
 
-        public Vector<double> VectorQ
+        public IVector VectorQ
         {
             get { return q; }
         }
 
-        public Vector<double> VectorR
+        public IVector VectorR
         {
             get { return r; }
         }
@@ -75,21 +71,21 @@ namespace ISAAR.MSolve.Solvers.PCG
             throw new InvalidOperationException("Iterative solvers cannot use this method.");
         }
 
-        public void Initialize(IVector<double> x, IVector<double> residual, double detf)
+        public void Initialize(IVector x, IVector residual, double detf)
         {
-            this.x = (Vector<double>)x;
-            this.r = (Vector<double>)residual;
+            this.x = x;
+            this.r = residual;
             this.detf = detf;
 
             if (!internalVectorsAllocated)
             {
                 //int iLagr = x.Length;
                 int iLagr = matrixCalculator.VectorSize;
-                p = new Vector<double>(iLagr);
+                p = new Vector(iLagr);
                 //w = new Vector<double>(iLagr);
-                z = new Vector<double>(iLagr);
+                z = new Vector(iLagr);
                 //y = new Vector<double>(iLagr);
-                q = new Vector<double>(iLagr);
+                q = new Vector(iLagr);
                 internalVectorsAllocated = true;
             }
             else
