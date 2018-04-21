@@ -314,13 +314,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public CholeskyFull FactorCholesky()
         {
-            if (IsSquare)
-            {
-                // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-                // To avoid these, set "inPlace=true".
-                return CholeskyFull.Factorize(NumColumns, CopyInternalData());
-            }
-            else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
+            Preconditions.CheckSquare(this);
+            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
+            // To avoid these, set "inPlace=true".
+            return CholeskyFull.Factorize(NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -337,13 +334,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public LUFactorization FactorLU()
         {
-            if (IsSquare)
-            {
-                // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-                // To avoid these, set "inPlace=true".
-                return LUFactorization.Factorize(NumColumns, CopyInternalData());
-            }
-            else throw new NonMatchingDimensionsException($"The matrix must be square, but was {NumRows}x{NumColumns}");
+            Preconditions.CheckSquare(this);
+            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
+            // To avoid these, set "inPlace=true".
+            return LUFactorization.Factorize(NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -356,6 +350,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public QRFactorization FactorQR()
         {
             return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
+        }
+
+        public Vector GetDiagonal()
+        {
+            return Vector.CreateFromArray(GetDiagonalAsArray(), false);
+        }
+
+        public double[] GetDiagonalAsArray()
+        {
+            Preconditions.CheckSquare(this);
+            double[] diag = new double[NumRows];
+            for (int i = 0; i < NumRows; ++i) diag[i] = data[i * NumRows + i];
+            return diag;
         }
 
         public Matrix Invert()
@@ -541,12 +548,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         //TODO: perhaps I should transfer this to a permutation matrix (implemented as a vector).
         public Matrix Reorder(IReadOnlyList<int> permutation, bool oldToNew)
         {
-            if (!IsSquare) throw new NonMatchingDimensionsException("This operation works on square matrices only.");
-            if (permutation.Count != NumRows)
-            {
-                throw new NonMatchingDimensionsException($"This matrix has order = {NumRows}, while the permutation vector"
-                    + $" has {permutation.Count} entries.");
-            }
+            Preconditions.CheckSquare(this);
+            if (permutation.Count != NumRows) throw new NonMatchingDimensionsException(
+                $"This matrix has order = {NumRows}, while the permutation vector has {permutation.Count} entries.");
             if (oldToNew) return new Matrix(ArrayColMajor.ReorderOldToNew(NumRows, data, permutation), NumRows, NumRows);
             else return new Matrix(ArrayColMajor.ReorderNewToOld(NumRows, data, permutation), NumRows, NumRows);
         }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
@@ -150,54 +151,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         #endregion
 
         /// <summary>
-        /// Creates a CSC matrix.
-        /// </summary>
-        /// <param name="sortColsOfEachCol">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
-        ///     rowOffsets[i+1] in ascending order. False to leave them unordered. Ordered columns might result in better  
-        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
-        ///     be faster during creation of the CSR matrix.</param>
-        /// <returns></returns>
-        public CSRMatrix BuildCSRMatrix(bool sortColsOfEachCol)
-        {
-            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(sortColsOfEachCol);
-            return CSRMatrix.CreateFromArrays(NumRows, NumColumns, values, colIndices, rowOffsets, false);
-        }
-
-        public int CountNonZeros()
-        {
-            int count = 0;
-            for (int j = 0; j < NumColumns; ++j) count += rows[j].Count;
-            return count;
-        }
-
-        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
-        {
-            for (int i = 0; i < NumRows; ++i)
-            {
-                foreach (var colVal in rows[i])
-                {
-                    yield return (i, colVal.Key, colVal.Value);
-                }
-            }
-        }
-
-        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
-        {
-            return DenseStrategies.AreEqual(this, other, tolerance);
-        }
-
-        public SparseFormat GetSparseFormat()
-        {
-            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(false);
-            var format = new SparseFormat();
-            format.RawValuesTitle = "Values";
-            format.RawValuesArray = values;
-            format.RawIndexArrays.Add("Column indices", colIndices);
-            format.RawIndexArrays.Add("Row offsets", rowOffsets);
-            return format;
-        }
-
-        /// <summary>
         /// Creates the CSC arrays.
         /// </summary>
         /// <param name="sortColsOfEachCol">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
@@ -205,7 +158,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
         ///     be faster during creation of the CSR matrix.</param>
         /// <returns></returns>
-        private (double[] values, int[] rowIndices, int[] columnOffsets) BuildCSRArrays(bool sortColsOfEachCol)
+        public (double[] values, int[] rowIndices, int[] columnOffsets) BuildCSRArrays(bool sortColsOfEachCol)
         {
             int[] rowOffsets = new int[NumRows + 1];
             int nnz = 0;
@@ -243,5 +196,89 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
             return (values, colIndices, rowOffsets);
         }
+
+        /// <summary>
+        /// Creates a CSC matrix.
+        /// </summary>
+        /// <param name="sortColsOfEachCol">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
+        ///     rowOffsets[i+1] in ascending order. False to leave them unordered. Ordered columns might result in better  
+        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
+        ///     be faster during creation of the CSR matrix.</param>
+        /// <returns></returns>
+        public CSRMatrix BuildCSRMatrix(bool sortColsOfEachCol)
+        {
+            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(sortColsOfEachCol);
+            return CSRMatrix.CreateFromArrays(NumRows, NumColumns, values, colIndices, rowOffsets, false);
+        }
+
+        public int CountNonZeros()
+        {
+            int count = 0;
+            for (int j = 0; j < NumColumns; ++j) count += rows[j].Count;
+            return count;
+        }
+
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+        {
+            for (int i = 0; i < NumRows; ++i)
+            {
+                foreach (var colVal in rows[i])
+                {
+                    yield return (i, colVal.Key, colVal.Value);
+                }
+            }
+        }
+
+        public bool Equals(IIndexable2D other, double tolerance = 1e-13)
+        {
+            return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="Vector"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (Vector diagonal, int firstZeroIdx) GetDiagonal()
+        {
+            (double[] diagonal, int firstZeroIdx) = GetDiagonalAsArray();
+            return (Vector.CreateFromArray(diagonal, false), firstZeroIdx);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="double[]"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
+        {
+            Preconditions.CheckSquare(this);
+            double[] diag = new double[NumRows];
+            int firstZeroIdx = -1;
+            for (int i = 0; i < NumRows; ++i)
+            {
+                bool isStored = rows[i].TryGetValue(i, out double val);
+                if (isStored) diag[i] = val;
+                else
+                {
+                    diag[i] = 0.0;
+                    firstZeroIdx = i;
+                }
+            }
+            return (diag, firstZeroIdx);
+        }
+
+        public SparseFormat GetSparseFormat()
+        {
+            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(false);
+            var format = new SparseFormat();
+            format.RawValuesTitle = "Values";
+            format.RawValuesArray = values;
+            format.RawIndexArrays.Add("Column indices", colIndices);
+            format.RawIndexArrays.Add("Row offsets", rowOffsets);
+            return format;
+        }
+
+        
     }
 }

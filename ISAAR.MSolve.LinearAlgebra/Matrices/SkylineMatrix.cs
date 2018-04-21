@@ -395,6 +395,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        public Vector GetDiagonal()
+        {
+            return Vector.CreateFromArray(GetDiagonalAsArray(), false);
+        }
+
+        public double[] GetDiagonalAsArray()
+        {
+            Preconditions.CheckSquare(this);
+            double[] diag = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j) diag[j] = values[diagOffsets[j]];
+            return diag;
+        }
+
         public SparseFormat GetSparseFormat()
         {
             var format = new SparseFormat();

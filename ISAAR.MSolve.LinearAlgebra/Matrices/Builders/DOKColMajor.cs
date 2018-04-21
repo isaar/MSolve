@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
@@ -231,6 +232,40 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="Vector"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (Vector diagonal, int firstZeroIdx) GetDiagonal()
+        {
+            (double[] diagonal, int firstZeroIdx) = GetDiagonalAsArray();
+            return (Vector.CreateFromArray(diagonal, false), firstZeroIdx);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="double[]"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
+        {
+            Preconditions.CheckSquare(this);
+            double[] diag = new double[NumColumns];
+            int firstZeroIdx = -1;
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                bool isStored = columns[j].TryGetValue(j, out double val);
+                if (isStored) diag[j] = val;
+                else
+                {
+                    diag[j] = 0.0;
+                    firstZeroIdx = j;
+                }
+            }
+            return (diag, firstZeroIdx);
         }
 
         public SparseFormat GetSparseFormat()

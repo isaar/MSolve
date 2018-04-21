@@ -129,6 +129,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
+        public static void CheckSquare(IIndexable2D matrix)
+        {
+            if (matrix.NumRows != matrix.NumColumns) throw new NonMatchingDimensionsException(
+                $"The matrix must be square, but was {matrix.NumRows}-by-{matrix.NumColumns}");
+        }
+
         public static void CheckSystemSolutionDimensions(IIndexable2D matrix, IVectorView rhsVector)
         {
             if (matrix.NumRows != rhsVector.Length)
