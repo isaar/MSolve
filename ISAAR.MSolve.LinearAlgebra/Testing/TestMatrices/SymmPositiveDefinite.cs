@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 {
-    class SymmPositiveDefinite
+    public class SymmPositiveDefinite
     {
         public const int order = 10;
 

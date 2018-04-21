@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.FEM.FEMTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Solvers.IterativeTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
@@ -160,6 +160,8 @@
     <Compile Include="Output\StrainField.cs" />
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />
+    <Compile Include="Solvers\CGAlgorithm.cs" />
+    <Compile Include="Solvers\IterativeStatistics.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />
@@ -171,6 +173,7 @@
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />
+    <Compile Include="Solvers\IterativeTests.cs" />
     <Compile Include="Tests\Tools\ArrayPrinter.cs" />
     <Compile Include="Tests\Tools\LoadDistributor.cs" />
     <Compile Include="Tests\Tools\PropagationResults.cs" />

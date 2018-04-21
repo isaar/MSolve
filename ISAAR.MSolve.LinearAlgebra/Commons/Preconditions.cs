@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
-    static class Preconditions
+    public static class Preconditions
     {
         public static bool AreSameMatrixDimensions(IIndexable2D matrix1, IIndexable2D matrix2)
         {

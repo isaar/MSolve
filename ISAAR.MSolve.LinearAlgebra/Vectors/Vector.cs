@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
         #endregion
 
-        public void AddIntoThis(double scalar, Vector other)
+        public void AddIntoThis(Vector other)
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, 1.0, ref other.data[0], 1, ref this.data[0], 1);
@@ -399,7 +399,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(subvector);
         }
 
-        public void SubtractIntoThis(double scalar, Vector other)
+        public void SubtractIntoThis(Vector other)
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, -1.0, ref other.data[0], 1, ref this.data[0], 1);
