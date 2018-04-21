@@ -6,13 +6,7 @@ branches:
   only:
     - develop
 
-addons:
-    sonarcloud:
-        organization: "ISAAR.MSolve"
-        token:
-            secure: 24532a1dcfe7eeabbc0dd05075a48d225faf9c49
 script:
   - dotnet restore
   - dotnet build
   - dotnet test ISAAR.MSolve.Tests
-  - sonar-scanner
