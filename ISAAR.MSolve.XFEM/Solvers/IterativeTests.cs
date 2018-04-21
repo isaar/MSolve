@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public static void Main()
         {
-            CheckSystem(GetDenseSystem(), SolveWithCG, 1e-6);
+            //CheckSystem(GetDenseSystem(), SolveWithCG, 1e-6);
             CheckSystem(GetSparseSystem(), SolveWithCG, 1e-6);
             CheckSystem(GetDenseSystem(), SolveWithPCG, 1e-6);
             CheckSystem(GetSparseSystem(), SolveWithPCG, 1e-6);
@@ -42,7 +42,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private static (Vector solution, IterativeStatistics statistics) SolveWithPCG(LinearSystem sys, double tol)
         {
             var pcg = new PCGAlgorithm(sys.Matrix.NumColumns, tol);
-            var preconditioner = new IdentityPreconditioner(true);
+            //var preconditioner = new IdentityPreconditioner(true);
+            var preconditioner = new JacobiPreconditioner(sys.Matrix.GetDiagonalAsArray());
             return pcg.Solve(sys.Matrix, sys.Rhs, preconditioner);
         }
 

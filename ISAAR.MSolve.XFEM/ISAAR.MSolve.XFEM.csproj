@@ -165,6 +165,7 @@
     <Compile Include="Solvers\PCGAlgorithm.cs" />
     <Compile Include="Solvers\Preconditioning\IdentityPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\IPreconditioner.cs" />
+    <Compile Include="Solvers\Preconditioning\JacobiPreconditioner.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />
