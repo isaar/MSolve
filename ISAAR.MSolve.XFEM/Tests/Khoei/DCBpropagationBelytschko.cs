@@ -263,15 +263,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Fixed dofs
             foreach (var node in finder.FindNodesWithX(L))
             {
-                model.AddConstraint(node, StandardDOFType.X, 0.0);
-                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                model.AddConstraint(node, DisplacementDOF.X, 0.0);
+                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
             }
 
             // Loads
             XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
             XNode2D topLeftNode = finder.FindNodeWith(0.0, h);
-            model.AddNodalLoad(bottomLeftNode, StandardDOFType.Y, -load);
-            model.AddNodalLoad(topLeftNode, StandardDOFType.Y, load);
+            model.AddNodalLoad(bottomLeftNode, DisplacementDOF.Y, -load);
+            model.AddNodalLoad(topLeftNode, DisplacementDOF.Y, load);
         }
 
         private void HandleCrack()

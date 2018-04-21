@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         private readonly int constrainedDofsCount;
         private readonly int artificialDofsCount;
         
-        private readonly Table<XNode2D, StandardDOFType, int> freeDofs;
-        private readonly Table<XNode2D, StandardDOFType, int> constrainedDofs;
-        private readonly Table<XNode2D, ArtificialDOFType, int> artificialDofs;
+        private readonly Table<XNode2D, DisplacementDOF, int> freeDofs;
+        private readonly Table<XNode2D, DisplacementDOF, int> constrainedDofs;
+        private readonly Table<XNode2D, EnrichedDOF, int> artificialDofs;
 
         public int FreeDofsCount { get { return freeDofsCount; } }
         public int ConstrainedDofsCount { get { return constrainedDofsCount; } }
@@ -36,10 +36,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         
 
         // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections used to represent constraints
-        public DOFEnumerator(IEnumerable<XNode2D> nodes, ITable<XNode2D, StandardDOFType, double> constraints,
+        public DOFEnumerator(IEnumerable<XNode2D> nodes, ITable<XNode2D, DisplacementDOF, double> constraints,
             IEnumerable<XContinuumElement2D> elements)
         {
-            IDictionary<XNode2D, HashSet<StandardDOFType>> nodalDOFTypes = FindUniqueDOFTypes(elements);
+            IDictionary<XNode2D, HashSet<DisplacementDOF>> nodalDOFTypes = FindUniqueDOFTypes(elements);
             EnumerateFreeDofs(nodalDOFTypes, constraints, out freeDofsCount, out freeDofs);
             EnumerateConstrainedDofs(nodalDOFTypes, constraints, out constrainedDofsCount, out constrainedDofs);
             EnumerateArtificialDofs(nodes, freeDofsCount, out artificialDofsCount, out artificialDofs);
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             {
                 return freeDofs.GetValuesOfRow(node);
             }
-            catch (KeyNotFoundException ex)
+            catch (KeyNotFoundException)
             {
                 return new int[] { }; // TODO: It would be better if this method is not called for a non enriched node.
             }
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         // Would it be faster to return the Dictionary<StandardDofType, int> for consecutive accesses of the dofs of this node? 
         // Dictionary's Read operation is supposed to be O(1), but still...
-        public int GetFreeDofOf(XNode2D node, StandardDOFType dofType)
+        public int GetFreeDofOf(XNode2D node, DisplacementDOF dofType)
         {
             return freeDofs[node, dofType];
         }
@@ -74,13 +74,13 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             {
                 return constrainedDofs.GetValuesOfRow(node);
             }
-            catch (KeyNotFoundException ex)
+            catch (KeyNotFoundException)
             {
                 return new int[] { }; // TODO: It would be better if this method is not called for a non enriched node.
             }
         }
 
-        public int GetConstrainedDofOf(XNode2D node, StandardDOFType dofType)
+        public int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType)
         {
             return constrainedDofs[node, dofType];
         }
@@ -91,13 +91,13 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             {
                 return artificialDofs.GetValuesOfRow(node);
             }
-            catch (KeyNotFoundException ex) 
+            catch (KeyNotFoundException) 
             {
                 return new int[] { }; // TODO: It would be better if this method is not called for a non enriched node.
             }
         }
 
-        public int GetArtificialDofOf(XNode2D node, ArtificialDOFType dofType)
+        public int GetArtificialDofOf(XNode2D node, EnrichedDOF dofType)
         {
             return artificialDofs[node, dofType];
         }
@@ -111,10 +111,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs, 
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs)
         {
-            ITable<XNode2D, StandardDOFType, int> elementDofs = element.GetStandardDofs();
+            ITable<XNode2D, DisplacementDOF, int> elementDofs = element.GetStandardDofs();
             var globalFreeDofs = new Dictionary<int, int>();
             var globalConstrainedDofs = new Dictionary<int, int>();
-            foreach (Tuple<XNode2D, StandardDOFType, int> entry in elementDofs)
+            foreach (Tuple<XNode2D, DisplacementDOF, int> entry in elementDofs)
             {
                 int freeGlobalDof;
                 bool isFree = this.freeDofs.TryGetValue(entry.Item1, entry.Item2, out freeGlobalDof);
@@ -141,7 +141,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
-                    foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
+                    foreach (EnrichedDOF dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
                         globalArtificialDofs[elementDof++] = this.artificialDofs[node, dofType];
                     }
@@ -161,9 +161,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         public Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element, 
             Vector globalFreeVector, Vector globalConstrainedVector)
         {
-            ITable<XNode2D, StandardDOFType, int> elementDofs = element.GetStandardDofs();
+            ITable<XNode2D, DisplacementDOF, int> elementDofs = element.GetStandardDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
-            foreach (Tuple<XNode2D, StandardDOFType, int> entry in elementDofs)
+            foreach (Tuple<XNode2D, DisplacementDOF, int> entry in elementDofs)
             {
                 int globalFreeDof;
                 bool isFree = this.freeDofs.TryGetValue(entry.Item1, entry.Item2, out globalFreeDof);
@@ -185,9 +185,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         public Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element,
             Vector globalFreeVector)
         {
-            ITable<XNode2D, ArtificialDOFType, int> elementDofs = element.GetEnrichedDofs();
+            ITable<XNode2D, EnrichedDOF, int> elementDofs = element.GetEnrichedDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
-            foreach (Tuple<XNode2D, ArtificialDOFType, int> entry in elementDofs)
+            foreach (Tuple<XNode2D, EnrichedDOF, int> entry in elementDofs)
             {
                 int globalFreeDof = artificialDofs[entry.Item1, entry.Item2];
                 elementVector[entry.Item3] = globalFreeVector[globalFreeDof];
@@ -195,16 +195,16 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return Vector.CreateFromArray(elementVector);
         }
 
-        private static void EnumerateFreeDofs(IDictionary<XNode2D, HashSet<StandardDOFType>> nodalDOFTypes, 
-            ITable<XNode2D, StandardDOFType, double> constraints, 
-            out int freeDofsCount, out Table<XNode2D, StandardDOFType, int> freeDofs)
+        private static void EnumerateFreeDofs(IDictionary<XNode2D, HashSet<DisplacementDOF>> nodalDOFTypes, 
+            ITable<XNode2D, DisplacementDOF, double> constraints, 
+            out int freeDofsCount, out Table<XNode2D, DisplacementDOF, int> freeDofs)
         {
-            freeDofs = new Table<XNode2D, StandardDOFType, int>();
+            freeDofs = new Table<XNode2D, DisplacementDOF, int>();
             int counter = 0;
             foreach (var pair in nodalDOFTypes)
             {
                 XNode2D node = pair.Key;
-                foreach (StandardDOFType dofType in pair.Value)
+                foreach (DisplacementDOF dofType in pair.Value)
                 {
                     if (!constraints.Contains(node, dofType)) freeDofs[node, dofType] = counter++;
                 }
@@ -212,32 +212,32 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             freeDofsCount = counter;
         }
 
-        private static void EnumerateConstrainedDofs(IDictionary<XNode2D, HashSet<StandardDOFType>> nodalDOFTypes,
-            ITable<XNode2D, StandardDOFType, double> constraints,
-            out int constrainedDofsCount, out Table<XNode2D, StandardDOFType, int> constrainedDofs)
+        private static void EnumerateConstrainedDofs(IDictionary<XNode2D, HashSet<DisplacementDOF>> nodalDOFTypes,
+            ITable<XNode2D, DisplacementDOF, double> constraints,
+            out int constrainedDofsCount, out Table<XNode2D, DisplacementDOF, int> constrainedDofs)
         {
-            constrainedDofs = new Table<XNode2D, StandardDOFType, int>();
+            constrainedDofs = new Table<XNode2D, DisplacementDOF, int>();
             int counter = 0;
-            foreach (Tuple<XNode2D, StandardDOFType, double> entry in constraints)
+            foreach (Tuple<XNode2D, DisplacementDOF, double> entry in constraints)
             {
                 constrainedDofs[entry.Item1, entry.Item2] = counter++;
             }
             constrainedDofsCount = counter;
         }
 
-        private static IDictionary<XNode2D, HashSet<StandardDOFType>> FindUniqueDOFTypes(IEnumerable<XContinuumElement2D> elements)
+        private static IDictionary<XNode2D, HashSet<DisplacementDOF>> FindUniqueDOFTypes(IEnumerable<XContinuumElement2D> elements)
         {
-            var totalDofs = new SortedDictionary<XNode2D, HashSet<StandardDOFType>>();
+            var totalDofs = new SortedDictionary<XNode2D, HashSet<DisplacementDOF>>();
             foreach (XContinuumElement2D element in elements)
             {
-                ITable<XNode2D, StandardDOFType, int> elementDofs = element.GetStandardDofs();
+                ITable<XNode2D, DisplacementDOF, int> elementDofs = element.GetStandardDofs();
                 foreach (XNode2D node in elementDofs.GetRows())
                 {
-                    HashSet<StandardDOFType> dofsOfThisNode;
+                    HashSet<DisplacementDOF> dofsOfThisNode;
                     bool alreadyExists = totalDofs.TryGetValue(node, out dofsOfThisNode);
                     if (!alreadyExists)
                     {
-                        dofsOfThisNode = new HashSet<StandardDOFType>();
+                        dofsOfThisNode = new HashSet<DisplacementDOF>();
                         totalDofs.Add(node, dofsOfThisNode);
                     }
                     dofsOfThisNode.UnionWith(elementDofs.GetColumnsOfRow(node));
@@ -248,16 +248,16 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         // Each artificial dof has index that is node major, then enrichment item major, then enrichment function major and finally axis minor
         private void EnumerateArtificialDofs(IEnumerable<XNode2D> nodes, int standardDofsCount,
-            out int artificialDofsCount, out Table<XNode2D, ArtificialDOFType, int> artificialDofs)
+            out int artificialDofsCount, out Table<XNode2D, EnrichedDOF, int> artificialDofs)
         {
-            artificialDofs = new Table<XNode2D, ArtificialDOFType, int>();
+            artificialDofs = new Table<XNode2D, EnrichedDOF, int>();
             int dofCounter = standardDofsCount; // This if I put everything in the same matrix
             //int dofCounter = 0; // This if I use different matrices
             foreach (XNode2D node in nodes)
             {
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    foreach (ArtificialDOFType dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
+                    foreach (EnrichedDOF dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
                         artificialDofs[node, dofType] = dofCounter++;
                     }
@@ -280,22 +280,22 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 XNode2D node = model.Nodes[i];
 
                 int globalFreeDofX;
-                bool isXFree = freeDofs.TryGetValue(node, StandardDOFType.X, out globalFreeDofX);
+                bool isXFree = freeDofs.TryGetValue(node, DisplacementDOF.X, out globalFreeDofX);
                 if (isXFree) result[i, 0] = solution[globalFreeDofX];
-                else result[i, 0] = model.Constraints[node, StandardDOFType.X];
+                else result[i, 0] = model.Constraints[node, DisplacementDOF.X];
 
                 int globalFreeDofY;
-                bool isYFree = freeDofs.TryGetValue(node, StandardDOFType.Y, out globalFreeDofY);
+                bool isYFree = freeDofs.TryGetValue(node, DisplacementDOF.Y, out globalFreeDofY);
                 if (isYFree) result[i, 1] = solution[globalFreeDofY];
-                else result[i, 1] = model.Constraints[node, StandardDOFType.Y];
+                else result[i, 1] = model.Constraints[node, DisplacementDOF.Y];
             }
             return result;
         }
 
-        public ITable<XNode2D, ArtificialDOFType, double> GatherArtificialNodalDisplacements(Model2D model, 
+        public ITable<XNode2D, EnrichedDOF, double> GatherArtificialNodalDisplacements(Model2D model, 
             Vector solution)
         {
-            var table = new Table<XNode2D, ArtificialDOFType, double>();
+            var table = new Table<XNode2D, EnrichedDOF, double>();
             foreach (var row in artificialDofs)
             {
                 table[row.Item1, row.Item2] = solution[row.Item3];

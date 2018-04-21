@@ -7,23 +7,23 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
-    class ArtificialDOFType
+    internal class EnrichedDOF: IDOF
     {
         public IEnrichmentFunction2D Enrichment { get; }
-        public StandardDOFType Axis { get; }
+        public IDOF StandardDOF { get; }
 
-        public ArtificialDOFType(IEnrichmentFunction2D enrichment, StandardDOFType axis)
+        public EnrichedDOF(IEnrichmentFunction2D enrichment, IDOF standardDOF)
         {
             this.Enrichment = enrichment;
-            this.Axis = axis;
+            this.StandardDOF = standardDOF;
         }
         
         public override string ToString()
         {
             var builder = new StringBuilder();
             builder.Append(Enrichment.ToString());
-            builder.Append(' ');
-            builder.Append(Axis);
+            builder.Append(" enriched ");
+            builder.Append(StandardDOF);
             return builder.ToString();
         }
     }

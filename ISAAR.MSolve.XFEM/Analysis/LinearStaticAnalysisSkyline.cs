@@ -49,9 +49,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             Console.WriteLine("Displacements: ");
             for (int n = 0; n < model.Nodes.Count; ++n)
             {
-                int xDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], StandardDOFType.X);
+                int xDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.X);
                 double dx = (xDof < 0) ? 0 : Solution[xDof];
-                int yDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], StandardDOFType.Y);
+                int yDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.Y);
                 double dy = (yDof < 0) ? 0 : Solution[yDof];
 
                 Console.WriteLine("Node " + n + ": dx = " + dx + "\t\t , dy = " + dy);

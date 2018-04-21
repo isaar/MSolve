@@ -10,10 +10,10 @@ namespace ISAAR.MSolve.XFEM.Entities
     class NodalLoad2D
     {
         public Node2D Node { get; }
-        public StandardDOFType DofType { get; }
+        public DisplacementDOF DofType { get; }
         public double Value { get; }
 
-        public NodalLoad2D(Node2D node, StandardDOFType dofType, double value)
+        public NodalLoad2D(Node2D node, DisplacementDOF dofType, double value)
         {
             this.Node = node;
             this.DofType = dofType;

@@ -49,24 +49,24 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             throw new NotImplementedException("Refinement gives incorrect results. " + 
                 "Probably the refined mesh doesn't conform to crack.");
 
-            var quality = new QualityOptions();
-            quality.MaximumArea = maxTriangleArea;
+            //var quality = new QualityOptions();
+            //quality.MaximumArea = maxTriangleArea;
 
-            List<Vertex> vertices = new List<Vertex>();
-            foreach (INaturalPoint2D point in points)
-            {
-                vertices.Add(new Vertex(point.Xi, point.Eta));
-            }
+            //List<Vertex> vertices = new List<Vertex>();
+            //foreach (INaturalPoint2D point in points)
+            //{
+            //    vertices.Add(new Vertex(point.Xi, point.Eta));
+            //}
 
-            IMesh mesh = mesher.Triangulate(vertices, config);
-            mesh.Refine(quality, true);
+            //IMesh mesh = mesher.Triangulate(vertices, config);
+            //mesh.Refine(quality, true);
 
-            var triangles = new List<Triangle2D>();
-            foreach (ITriangle triangle in mesh.Triangles)
-            {
-                triangles.Add(new Triangle2D(triangle));
-            }
-            return triangles;
+            //var triangles = new List<Triangle2D>();
+            //foreach (ITriangle triangle in mesh.Triangles)
+            //{
+            //    triangles.Add(new Triangle2D(triangle));
+            //}
+            //return triangles;
         }
     }
 }

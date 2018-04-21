@@ -159,21 +159,21 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Fixed dofs
             foreach (var node in finder.FindNodesWithX(0.0))
             {
-                model.AddConstraint(node, StandardDOFType.X, 0.0);
-                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                model.AddConstraint(node, DisplacementDOF.X, 0.0);
+                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
             }
             //bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
             //topLeftNode = finder.FindNodeWith(0.0, DIM_Y);
-            //model.AddConstraint(bottomLeftNode, StandardDOFType.X, 0.0);
-            //model.AddConstraint(bottomLeftNode, StandardDOFType.Y, 0.0);
-            //model.AddConstraint(topLeftNode, StandardDOFType.X, 0.0);
-            //model.AddConstraint(topLeftNode, StandardDOFType.Y, 0.0);
+            //model.AddConstraint(bottomLeftNode, DisplacementDOF.X, 0.0);
+            //model.AddConstraint(bottomLeftNode, DisplacementDOF.Y, 0.0);
+            //model.AddConstraint(topLeftNode, DisplacementDOF.X, 0.0);
+            //model.AddConstraint(topLeftNode, DisplacementDOF.Y, 0.0);
 
             // Prescribed displacements
             bottomRightNode = finder.FindNodeWith(DIM_X, 0.0);
             topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
-            model.AddConstraint(bottomRightNode, StandardDOFType.Y, -0.05);
-            model.AddConstraint(topRightNode, StandardDOFType.Y, 0.05);
+            model.AddConstraint(bottomRightNode, DisplacementDOF.Y, -0.05);
+            model.AddConstraint(topRightNode, DisplacementDOF.Y, 0.05);
         }
 
         private void HandleCrack()
@@ -206,10 +206,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XNode2D mouthBottomNode = mouthElements[0].Nodes[1];
             XNode2D mouthTopNode = mouthElements[0].Nodes[2];
 
-            double uBotX = solution[model.DofEnumerator.GetFreeDofOf(mouthBottomNode, StandardDOFType.X)];
-            double uBotY = solution[model.DofEnumerator.GetFreeDofOf(mouthBottomNode, StandardDOFType.Y)];
-            double uTopX = solution[model.DofEnumerator.GetFreeDofOf(mouthTopNode, StandardDOFType.X)];
-            double uTopY = solution[model.DofEnumerator.GetFreeDofOf(mouthTopNode, StandardDOFType.Y)];
+            double uBotX = solution[model.DofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.X)];
+            double uBotY = solution[model.DofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.Y)];
+            double uTopX = solution[model.DofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.X)];
+            double uTopY = solution[model.DofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.Y)];
             double aBotX = solution[model.DofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[0])];
             double aBotY = solution[model.DofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[1])];
             double aTopX = solution[model.DofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];

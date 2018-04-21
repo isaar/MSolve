@@ -146,19 +146,19 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             // Constraints
             XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
-            model.AddConstraint(bottomLeftNode, StandardDOFType.X, 0.0);
+            model.AddConstraint(bottomLeftNode, DisplacementDOF.X, 0.0);
             if (fixBottom)
             {
                 foreach (var node in finder.FindNodesWithY(0.0))
                 {
-                    model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                    model.AddConstraint(node, DisplacementDOF.Y, 0.0);
                 }
             }
             else
             {
                 XNode2D bottomRightNode = finder.FindNodeWith(bottomWidth, 0.0);
-                model.AddConstraint(bottomRightNode, StandardDOFType.Y, 0.0);
-                model.AddConstraint(bottomLeftNode, StandardDOFType.Y, 0.0);
+                model.AddConstraint(bottomRightNode, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(bottomLeftNode, DisplacementDOF.Y, 0.0);
             }
 
 
@@ -169,8 +169,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double[,] topLoads = distrubutor.DistributeLoad(topNodes, 0.0, distributedLoad);
             for (int i = 0; i < topNodes.Count; ++i)
             {
-                model.AddNodalLoad(topNodes[i], StandardDOFType.X, topLoads[i, 0]);
-                model.AddNodalLoad(topNodes[i], StandardDOFType.Y, topLoads[i, 1]);
+                model.AddNodalLoad(topNodes[i], DisplacementDOF.X, topLoads[i, 0]);
+                model.AddNodalLoad(topNodes[i], DisplacementDOF.Y, topLoads[i, 1]);
             }
         }
 

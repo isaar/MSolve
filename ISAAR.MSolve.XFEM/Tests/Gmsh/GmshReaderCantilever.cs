@@ -76,12 +76,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Gmsh
             // Constrain the nodes of the left edge
             foreach (var node in leftNodes)
             {
-                model.AddConstraint(node, StandardDOFType.X, 0.0);
-                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                model.AddConstraint(node, DisplacementDOF.X, 0.0);
+                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
             }
 
             // Apply the load on the top right node
-            model.AddNodalLoad(topRightNode, StandardDOFType.Y, load);
+            model.AddNodalLoad(topRightNode, DisplacementDOF.Y, load);
         }
 
         public Tuple<XNode2D, double> FindMaxDisplacement(Model2D model)

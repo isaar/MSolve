@@ -142,15 +142,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Fixed dofs
             foreach (var node in finder.FindNodesWithX(0.0))
             {
-                model.AddConstraint(node, StandardDOFType.X, 0.0);
-                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                model.AddConstraint(node, DisplacementDOF.X, 0.0);
+                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
             }
 
             // Prescribed displacements
             XNode2D bottomRightNode = finder.FindNodeWith(DIM_X, 0.0);
             XNode2D topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
-            model.AddConstraint(bottomRightNode, StandardDOFType.Y, -0.05);
-            model.AddConstraint(topRightNode, StandardDOFType.Y, 0.05);
+            model.AddConstraint(bottomRightNode, DisplacementDOF.Y, -0.05);
+            model.AddConstraint(topRightNode, DisplacementDOF.Y, 0.05);
         }
 
         private void HandleCrack()

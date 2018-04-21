@@ -279,8 +279,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             IReadOnlyList<XNode2D> bottomNodes = finder.FindNodesWithY(0.0);
             foreach (var node in bottomNodes)
             {
-                model.AddConstraint(node, StandardDOFType.X, 0.0);
-                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                model.AddConstraint(node, DisplacementDOF.X, 0.0);
+                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
             }
 
             // Loads: Top and bottom sides are subject to tension
@@ -289,8 +289,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double[,] topLoads = distrubutor.DistributeLoad(topNodes, 0.0, tension);
             for (int i = 0; i < topNodes.Count; ++i)
             {
-                model.AddNodalLoad(topNodes[i], StandardDOFType.X, topLoads[i, 0]);
-                model.AddNodalLoad(topNodes[i], StandardDOFType.Y, topLoads[i, 1]);
+                model.AddNodalLoad(topNodes[i], DisplacementDOF.X, topLoads[i, 0]);
+                model.AddNodalLoad(topNodes[i], DisplacementDOF.Y, topLoads[i, 1]);
             }
         }
 
@@ -308,23 +308,23 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Supports: Constrain x, y at the corner nodes
             if (constrainBottomLeft)
             {
-                model.AddConstraint(bottomLeftNode, StandardDOFType.X, 0.0);
-                model.AddConstraint(bottomLeftNode, StandardDOFType.Y, 0.0);
+                model.AddConstraint(bottomLeftNode, DisplacementDOF.X, 0.0);
+                model.AddConstraint(bottomLeftNode, DisplacementDOF.Y, 0.0);
             }
             if (constrainBottomRight)
             {
-                model.AddConstraint(bottomRightNode, StandardDOFType.X, 0.0);
-                model.AddConstraint(bottomRightNode, StandardDOFType.Y, 0.0);
+                model.AddConstraint(bottomRightNode, DisplacementDOF.X, 0.0);
+                model.AddConstraint(bottomRightNode, DisplacementDOF.Y, 0.0);
             }
             if (constrainTopLeft)
             {
-                model.AddConstraint(topLeftNode, StandardDOFType.X, 0.0);
-                model.AddConstraint(topLeftNode, StandardDOFType.Y, 0.0);
+                model.AddConstraint(topLeftNode, DisplacementDOF.X, 0.0);
+                model.AddConstraint(topLeftNode, DisplacementDOF.Y, 0.0);
             }
             if (constrainTopRight)
             {
-                model.AddConstraint(topRightNode, StandardDOFType.X, 0.0);
-                model.AddConstraint(topRightNode, StandardDOFType.Y, 0.0);
+                model.AddConstraint(topRightNode, DisplacementDOF.X, 0.0);
+                model.AddConstraint(topRightNode, DisplacementDOF.Y, 0.0);
             }
 
             // Loads: Top and bottom sides are subject to tension
@@ -334,16 +334,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             {
                 if ((topNodes[i] == topLeftNode) && constrainTopLeft) continue;
                 else if ((topNodes[i] == topRightNode) && constrainTopRight) continue;
-                model.AddNodalLoad(topNodes[i], StandardDOFType.X, topLoads[i, 0]);
-                model.AddNodalLoad(topNodes[i], StandardDOFType.Y, topLoads[i, 1]);
+                model.AddNodalLoad(topNodes[i], DisplacementDOF.X, topLoads[i, 0]);
+                model.AddNodalLoad(topNodes[i], DisplacementDOF.Y, topLoads[i, 1]);
             }
             double[,] bottomLoads = distrubutor.DistributeLoad(bottomNodes, 0.0, -tension);
             for (int i = 0; i < topNodes.Count; ++i)
             {
                 if ((bottomNodes[i] == bottomLeftNode) && constrainBottomLeft) continue;
                 else if ((bottomNodes[i] == bottomRightNode) && constrainBottomRight) continue;
-                model.AddNodalLoad(bottomNodes[i], StandardDOFType.X, bottomLoads[i, 0]);
-                model.AddNodalLoad(bottomNodes[i], StandardDOFType.Y, bottomLoads[i, 1]);
+                model.AddNodalLoad(bottomNodes[i], DisplacementDOF.X, bottomLoads[i, 0]);
+                model.AddNodalLoad(bottomNodes[i], DisplacementDOF.Y, bottomLoads[i, 1]);
             }
         }
 

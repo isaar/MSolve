@@ -209,12 +209,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             }
 
             // Boundary conditions
-            model.AddConstraint(model.Nodes[0], StandardDOFType.X, 0.0);
-            model.AddConstraint(model.Nodes[0], StandardDOFType.Y, 0.0);
-            model.AddConstraint(model.Nodes[3], StandardDOFType.X, 0.0);
-            model.AddConstraint(model.Nodes[3], StandardDOFType.Y, 0.0);
-            model.AddConstraint(model.Nodes[5], StandardDOFType.Y, -0.05);
-            model.AddConstraint(model.Nodes[6], StandardDOFType.Y, 0.05);
+            model.AddConstraint(model.Nodes[0], DisplacementDOF.X, 0.0);
+            model.AddConstraint(model.Nodes[0], DisplacementDOF.Y, 0.0);
+            model.AddConstraint(model.Nodes[3], DisplacementDOF.X, 0.0);
+            model.AddConstraint(model.Nodes[3], DisplacementDOF.Y, 0.0);
+            model.AddConstraint(model.Nodes[5], DisplacementDOF.Y, -0.05);
+            model.AddConstraint(model.Nodes[6], DisplacementDOF.Y, 0.05);
         }
 
         private void HandleEnrichment()
@@ -305,10 +305,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var displacements = new List<double>();
 
             // Standard dofs
-            int dofUx5 = model.DofEnumerator.GetFreeDofOf(model.Nodes[5], StandardDOFType.X);
+            int dofUx5 = model.DofEnumerator.GetFreeDofOf(model.Nodes[5], DisplacementDOF.X);
             displacements.Add(analysis.Solution[dofUx5]);
             displacements.Add(-0.05);
-            int dofUx6 = model.DofEnumerator.GetFreeDofOf(model.Nodes[6], StandardDOFType.X);
+            int dofUx6 = model.DofEnumerator.GetFreeDofOf(model.Nodes[6], DisplacementDOF.X);
             displacements.Add(analysis.Solution[dofUx6]);
             displacements.Add(0.05);
 

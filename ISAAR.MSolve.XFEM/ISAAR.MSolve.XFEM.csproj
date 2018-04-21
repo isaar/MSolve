@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Solvers.IterativeTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
@@ -92,10 +92,12 @@
     <Compile Include="Enrichments\Items\CrackBodyEnrichment2D.cs" />
     <Compile Include="Enrichments\Items\CrackTipEnrichments2D.cs" />
     <Compile Include="CrackGeometry\TipJacobians.cs" />
+    <Compile Include="Entities\FreedomDegrees\DisplacementDOF.cs" />
     <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
-    <Compile Include="Entities\FreedomDegrees\ArtificialDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\EnrichedDOF.cs" />
+    <Compile Include="Entities\FreedomDegrees\IDOF.cs" />
     <Compile Include="Entities\FreedomDegrees\NodeMajorDofReorder.cs" />
-    <Compile Include="Entities\FreedomDegrees\StandardDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\RotationDOF.cs" />
     <Compile Include="Entities\Model2D.cs" />
     <Compile Include="Entities\NodalLoad2D.cs" />
     <Compile Include="Geometry\Boundaries\IDomainBoundary.cs" />

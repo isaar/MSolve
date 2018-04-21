@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
-    enum StandardDOFType
+    /// <summary>
+    /// Tagging interface
+    /// </summary>
+    public interface IDOF
     {
-        X, Y, Z, RotX, RotY, RotZ
     }
 }

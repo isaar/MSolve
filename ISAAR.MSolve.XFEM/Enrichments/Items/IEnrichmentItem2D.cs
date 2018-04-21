@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     interface IEnrichmentItem2D
     {
         // Perhaps the nodal dof types should be decided by the element type (structural, continuum) in combination with the EnrichmentItem2D and drawn from XContinuumElement2D
-        IReadOnlyList<ArtificialDOFType> DOFs { get; } 
+        IReadOnlyList<EnrichedDOF> DOFs { get; } 
 
         //IReadOnlyList<XContinuumElement2D> AffectedElements { get; }
 

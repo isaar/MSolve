@@ -136,14 +136,14 @@ namespace ISAAR.MSolve.XFEM.Elements
         // the mutable collections
         // TODO: Perhaps this should be saved as a DOFEnumerator object. XElement will get a mutable one, while 
         // others will get a view. I could still use a DOFEnumerator even if I do not save it.
-        public IReadOnlyDictionary<Node2D, HashSet<StandardDOFType>> GetNodalDOFTypes()
+        public IReadOnlyDictionary<Node2D, HashSet<DisplacementDOF>> GetNodalDOFTypes()
         {
-            var nodalDOFTypes = new Dictionary<Node2D, HashSet<StandardDOFType>>(Nodes.Count);
+            var nodalDOFTypes = new Dictionary<Node2D, HashSet<DisplacementDOF>>(Nodes.Count);
             foreach (Node2D node in Nodes)
             {
-                var dofTypesOfThisNode = new HashSet<StandardDOFType>();
-                dofTypesOfThisNode.Add(StandardDOFType.X);
-                dofTypesOfThisNode.Add(StandardDOFType.Y);
+                var dofTypesOfThisNode = new HashSet<DisplacementDOF>();
+                dofTypesOfThisNode.Add(DisplacementDOF.X);
+                dofTypesOfThisNode.Add(DisplacementDOF.Y);
                 nodalDOFTypes.Add(node, dofTypesOfThisNode);
             }
             return nodalDOFTypes;

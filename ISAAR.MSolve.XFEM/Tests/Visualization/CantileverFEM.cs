@@ -58,16 +58,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             var finder = new EntityFinder(model, 1e-6);
             foreach (var node in finder.FindNodesWithX(0.0))
             {
-                model.AddConstraint(node, StandardDOFType.X, 0.0);
-                model.AddConstraint(node, StandardDOFType.Y, 0.0);
+                model.AddConstraint(node, DisplacementDOF.X, 0.0);
+                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
             }
 
             // Loads
             //var loadedNodes = finder.FindNodesWithX(DIM_X);
             //double loadPerNode = - LOAD / loadedNodes.Count;
-            //foreach (var node in loadedNodes) model.AddNodalLoad(node, StandardDOFType.Y, loadPerNode);
+            //foreach (var node in loadedNodes) model.AddNodalLoad(node, DisplacementDOF.Y, loadPerNode);
             XNode2D topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
-            model.AddNodalLoad(topRightNode, StandardDOFType.Y, -LOAD);
+            model.AddNodalLoad(topRightNode, DisplacementDOF.Y, -LOAD);
 
             return model;
         }

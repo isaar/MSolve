@@ -35,15 +35,15 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                 {
                     return integrationForTipBlendingElements.GenerateIntegrationPoints(element);
                     #region legacy hard-coded integration for Quad 4 blending elements
-                    if (element.StandardQuadrature == GaussLegendre2D.Order2x2)
-                    {
-                        return GaussLegendre2D.Order4x4.IntegrationPoints;
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("TODO: this is hardcoded for Quad4. " +
-                            "Have the standard quadrature give its next(and then that ones next) order.");
-                    }
+                    //if (element.StandardQuadrature == GaussLegendre2D.Order2x2)
+                    //{
+                    //    return GaussLegendre2D.Order4x4.IntegrationPoints;
+                    //}
+                    //else
+                    //{
+                    //    throw new NotImplementedException("TODO: this is hardcoded for Quad4. " +
+                    //        "Have the standard quadrature give its next (and then that one's next) order.");
+                    //}
                     #endregion
                 }
                 else // Case 2: Standard element or blending element without tip enriched nodes
