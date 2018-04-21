@@ -19,18 +19,16 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     static class SingleGlobalSkylineAssembler
     {
-        public static void BuildGlobalMatrix(Model2D model, 
-            out SkylineMatrix2D globalMatrixLhsLhs, out Matrix globalMatrixLhsCon)
+        public static (SkylineMatrix2D Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {
-            DOFEnumerator dofEnumerator = model.DofEnumerator;
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            globalMatrixLhsLhs = new SkylineMatrix2D(CalculateSkylineIndexer(model));
+            SkylineMatrix2D Kff = new SkylineMatrix2D(CalculateSkylineIndexer(model, dofEnumerator));
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            globalMatrixLhsCon = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount, 
+            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount, 
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -49,18 +47,20 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     dofEnumerator.MatchElementToGlobalArtificialDofsOf(element);
 
                 // Add the element contributions to the global matrices
-                AddElementToGlobalMatrix(globalMatrixLhsLhs, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(globalMatrixLhsLhs, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(globalMatrixLhsLhs, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                AddElementToGlobalMatrix(Kff, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(Kff, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(Kff, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
 
-                AddElementToGlobalMatrix(globalMatrixLhsCon, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
-                AddElementToGlobalMatrix(globalMatrixLhsCon, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(Kfc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(Kfc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
             }
+
+            return (Kff, Kfc);
         }
 
-        private static int[] CalculateSkylineIndexer(Model2D model)
+        private static int[] CalculateSkylineIndexer(Model2D model, IDOFEnumerator dofEnumerator)
         {
-            int[] rowHeights = CalculateRowHeights(model);
+            int[] rowHeights = CalculateRowHeights(model, dofEnumerator);
 
             int[] rowIndex = new int[rowHeights.Length + 1]; // The indexer uses 1 extra ghost entry to facilitate some operations
             rowIndex[0] = 0; // The diagonal entries of the first 2 rows always have the same positions
@@ -71,9 +71,8 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
         /// Only the entries above the diagonal are considered
-        private static int[] CalculateRowHeights(Model2D model) // I vote to call them RowWidths!!!
+        private static int[] CalculateRowHeights(Model2D model, IDOFEnumerator dofEnumerator) // I vote to call them RowWidths!!!
         {
-            DOFEnumerator dofEnumerator = model.DofEnumerator;
             int[] rowHeights = new int[dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount];
             foreach (XContinuumElement2D element in model.Elements)
             {

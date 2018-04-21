@@ -12,7 +12,6 @@ namespace ISAAR.MSolve.XFEM.Analysis
     {
         Vector Solution { get; }
 
-        void Initialize();
         void Solve();
         void PrintSolution();
     }

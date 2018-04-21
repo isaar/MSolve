@@ -96,6 +96,7 @@
     <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
     <Compile Include="Entities\FreedomDegrees\EnrichedDOF.cs" />
     <Compile Include="Entities\FreedomDegrees\IDOF.cs" />
+    <Compile Include="Entities\FreedomDegrees\IDOFEnumerator.cs" />
     <Compile Include="Entities\FreedomDegrees\NodeMajorDofReorder.cs" />
     <Compile Include="Entities\FreedomDegrees\RotationDOF.cs" />
     <Compile Include="Entities\Model2D.cs" />

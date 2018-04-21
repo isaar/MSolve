@@ -20,9 +20,8 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     static class SingleGlobalDOKAssembler
     {
-        public static (DOKSymmetricColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model)
+        public static (DOKSymmetricColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {
-            DOFEnumerator dofEnumerator = model.DofEnumerator;
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
             int allFreeDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount;
 
@@ -61,13 +60,6 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 AddElementToGlobalMatrix(Kfc, kes, mapEnriched, mapConstrained);
             }
 
-            // Test the global matrices
-            //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out SkylineMatrix2D KuuExpected, out Matrix2D KucExpected);
-            //Console.WriteLine("Check Kuu: ");
-            //CheckMatrix(Kuu, KuuExpected);
-            //Console.WriteLine();
-            //Console.WriteLine("Check Kuc: ");
-            //CheckMatrix(Kuc, KucExpected);
             return (Kff, Kfc);
         }
 

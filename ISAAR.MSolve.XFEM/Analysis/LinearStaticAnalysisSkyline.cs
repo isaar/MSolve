@@ -21,22 +21,20 @@ namespace ISAAR.MSolve.XFEM.Analysis
     class LinearStaticAnalysisSkyline: ILinearStaticAnalysis
     {
         private readonly Model2D model;
-        private ISolver solver; // A solver devoid of linear system must be passed into the constructor
-        public Vector Solution { get; private set; }
 
         public LinearStaticAnalysisSkyline(Model2D model)
         {
             this.model = model;
         }
 
-        public void Initialize()
-        {
-        }
+        public IDOFEnumerator DOFEnumerator { get; private set; }
+        public Vector Solution { get; private set; }
 
         public void Solve()
         {
+            DOFEnumerator = new DOFEnumerator(model);
             SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
-            solver = new SolverFBSubstitution(ls);
+            ISolver solver = new SolverFBSubstitution(ls); // A solver devoid of linear system must be passed into the constructor
             solver.Initialize();
             solver.Solve();
             double[] solutionArray = new double[ls.Solution.Length];
@@ -49,9 +47,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             Console.WriteLine("Displacements: ");
             for (int n = 0; n < model.Nodes.Count; ++n)
             {
-                int xDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.X);
+                int xDof = DOFEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.X);
                 double dx = (xDof < 0) ? 0 : Solution[xDof];
-                int yDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.Y);
+                int yDof = DOFEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.Y);
                 double dy = (yDof < 0) ? 0 : Solution[yDof];
 
                 Console.WriteLine("Node " + n + ": dx = " + dx + "\t\t , dy = " + dy);
@@ -67,16 +65,15 @@ namespace ISAAR.MSolve.XFEM.Analysis
             /// To solve the system (for the unknowns ul):
             /// i) Kuu * uu = Fu - Kuc * uc = Feff
             /// ii) uu = Kuu \ Feff
-            SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, 
-                out Numerical.LinearAlgebra.SkylineMatrix2D Kuu, out Matrix Kuc);
+            (Numerical.LinearAlgebra.SkylineMatrix2D Kuu, Matrix Kuc) = SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            Vector Fu = model.CalculateFreeForces();
-            Vector uc = model.CalculateConstrainedDisplacements();
+            Vector Fu = model.CalculateFreeForces(DOFEnumerator);
+            Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
             Vector KlcTimesUc = Kuc * uc;
             Vector Feff = Fu - Kuc * uc;
 
-            SkylineLinearSystem ls = new SkylineLinearSystem(0, Feff.CopyToArray());
+            var ls = new SkylineLinearSystem(0, Feff.CopyToArray());
             ls.Matrix = Kuu;
             return ls;
         }

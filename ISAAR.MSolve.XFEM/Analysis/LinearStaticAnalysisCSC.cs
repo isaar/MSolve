@@ -17,19 +17,18 @@ namespace ISAAR.MSolve.XFEM.Analysis
     class LinearStaticAnalysisCSC: ILinearStaticAnalysis
     {
         private readonly Model2D model;
-        public Vector Solution { get; private set; }
 
         public LinearStaticAnalysisCSC(Model2D model)
         {
             this.model = model;
         }
 
-        public void Initialize()
-        {
-        }
+        public IDOFEnumerator DOFEnumerator { get; private set; }
+        public Vector Solution { get; private set; }
 
         public void Solve()
         {
+            DOFEnumerator = new DOFEnumerator(model);
             (DOKSymmetricColMajor matrix, Vector rhs) = ReduceToSimpleLinearSystem();
             using (CholeskySuiteSparse factorization = matrix.BuildSymmetricCSCMatrix(true).FactorCholesky())
             {
@@ -42,9 +41,9 @@ namespace ISAAR.MSolve.XFEM.Analysis
             Console.WriteLine("Displacements: ");
             for (int n = 0; n < model.Nodes.Count; ++n)
             {
-                int xDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.X);
+                int xDof = DOFEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.X);
                 double dx = (xDof < 0) ? 0 : Solution[xDof];
-                int yDof = model.DofEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.Y);
+                int yDof = DOFEnumerator.GetFreeDofOf(model.Nodes[n], DisplacementDOF.Y);
                 double dy = (yDof < 0) ? 0 : Solution[yDof];
 
                 Console.WriteLine("Node " + n + ": dx = " + dx + "\t\t , dy = " + dy);
@@ -61,11 +60,11 @@ namespace ISAAR.MSolve.XFEM.Analysis
             /// i) Kuu * uu = Fu - Kuc * uc = Feff
             /// ii) uu = Kuu \ Feff
             /// 
-            (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model);
+            (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            Vector Fu = model.CalculateFreeForces(); //TODO: fix MKL dlls
-            Vector uc = model.CalculateConstrainedDisplacements();
+            Vector Fu = model.CalculateFreeForces(DOFEnumerator); //TODO: fix MKL dlls
+            Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
             Vector Feff = Fu - Kuc * uc;
             return (Kuu, Feff);
         }

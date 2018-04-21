@@ -29,8 +29,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         public static void Main()
         {
             Model2D model = CreateModel();
-            Vector solution = Solve(model);
-            WriteOutput(model, solution);
+            (Vector solution, IDOFEnumerator dofEnumerator) = Solve(model);
+            WriteOutput(model, solution, dofEnumerator);
         }
 
         private static Model2D CreateModel()
@@ -72,24 +72,23 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             return model;
         }
 
-        private static Vector Solve(Model2D model)
+        private static (Vector, IDOFEnumerator) Solve(Model2D model)
         {
-            model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
-            return analysis.Solution;
+            return (analysis.Solution, analysis.DOFEnumerator);
         }
 
-        private static void WriteOutput(Model2D model, Vector solution)
+        private static void WriteOutput(Model2D model, Vector solution, IDOFEnumerator dofEnumerator)
         {
             var writer = new VTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);
 
-            var displacementsOutput = new DisplacementOutput(model);
+            var displacementsOutput = new DisplacementOutput(model, dofEnumerator);
             double[,] nodalDisplacements = displacementsOutput.FindNodalDisplacements(solution);
             writer.WriteVector2DField("displacements", nodalDisplacements);
             
-            var stressRecovery = new StressRecovery(model);
+            var stressRecovery = new StressRecovery(model, dofEnumerator);
             IReadOnlyList<Tensor2D> nodalStresses = stressRecovery.ComputeSmoothedNodalStresses(solution);
             writer.WriteTensor2DField("stresses", nodalStresses);
 

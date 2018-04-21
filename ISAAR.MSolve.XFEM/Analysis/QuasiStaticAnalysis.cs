@@ -50,16 +50,15 @@ namespace ISAAR.MSolve.XFEM.Analysis
                     //Console.WriteLine(
                         //"********************************** Iteration {0} **********************************", iteration);
                     crack.UpdateEnrichments();
-                    model.EnumerateDofs();
                     //var embeddedAnalysis = new LinearStaticAnalysisSkyline(model);
                     var embeddedAnalysis = new LinearStaticAnalysisCSC(model);
                     embeddedAnalysis.Solve();
 
-                    Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
+                    Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(embeddedAnalysis.DOFEnumerator);
                     Vector totalFreeDisplacements = embeddedAnalysis.Solution;
 
                     double growthAngle, growthIncrement;
-                    propagator.Propagate(model, totalFreeDisplacements, totalConstrainedDisplacements,
+                    propagator.Propagate(embeddedAnalysis.DOFEnumerator, totalFreeDisplacements, totalConstrainedDisplacements,
                         out growthAngle, out growthIncrement);
                     crack.UpdateGeometry(growthAngle, growthIncrement);
                     ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);

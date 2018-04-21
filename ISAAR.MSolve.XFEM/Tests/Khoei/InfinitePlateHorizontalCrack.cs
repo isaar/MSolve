@@ -129,6 +129,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
+        private IDOFEnumerator dofEnumerator;
         private BasicExplicitInteriorCrack crack;
         private readonly double fineElementSize;
         private readonly double jIntegralRadiusOverElementSize;
@@ -292,15 +293,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
+            dofEnumerator = analysis.DOFEnumerator;
             return analysis.Solution;
         }
 
         private PropagationResults Propagate(Vector solution)
         {
-            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
 
             // Start tip propagation
             var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,
@@ -308,7 +309,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
             double startGrowthAngle, startGrowthIncrement;
-            startPropagator.Propagate(model, solution, totalConstrainedDisplacements,
+            startPropagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements,
                 out startGrowthAngle, out startGrowthIncrement);
             double startSIF1 = startPropagator.Logger.SIFsMode1[0];
             double startSIF2 = startPropagator.Logger.SIFsMode2[0];            
@@ -319,7 +320,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
             double endGrowthAngle, endGrowthIncrement;
-            endPropagator.Propagate(model, solution, totalConstrainedDisplacements,
+            endPropagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements,
                 out endGrowthAngle, out endGrowthIncrement);
             double endSIF1 = endPropagator.Logger.SIFsMode1[0];
             double endSIF2 = endPropagator.Logger.SIFsMode2[0];

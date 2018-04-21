@@ -67,6 +67,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly double jIntegralRadiusOverElementSize;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
+        private IDOFEnumerator dofEnumerator;
         private BasicExplicitCrack2D crack;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
         private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
@@ -193,9 +194,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            model.EnumerateDofs();
             var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
+            dofEnumerator = analysis.DOFEnumerator;
             return analysis.Solution;
         }
 
@@ -206,14 +207,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XNode2D mouthBottomNode = mouthElements[0].Nodes[1];
             XNode2D mouthTopNode = mouthElements[0].Nodes[2];
 
-            double uBotX = solution[model.DofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.X)];
-            double uBotY = solution[model.DofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.Y)];
-            double uTopX = solution[model.DofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.X)];
-            double uTopY = solution[model.DofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.Y)];
-            double aBotX = solution[model.DofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[0])];
-            double aBotY = solution[model.DofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[1])];
-            double aTopX = solution[model.DofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];
-            double aTopY = solution[model.DofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[1])];
+            double uBotX = solution[dofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.X)];
+            double uBotY = solution[dofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.Y)];
+            double uTopX = solution[dofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.X)];
+            double uTopY = solution[dofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.Y)];
+            double aBotX = solution[dofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[0])];
+            double aBotY = solution[dofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[1])];
+            double aTopX = solution[dofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];
+            double aTopY = solution[dofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[1])];
 
             Console.WriteLine("Solution results: For the element containing the crack mouth:");
             Console.WriteLine("Bottom right node, standard dof x: u = " + uBotX);
@@ -235,10 +236,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
 
-            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
 
             double growthAngle, growthIncrement;
-            propagator.Propagate(model, solution, totalConstrainedDisplacements, 
+            propagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements, 
                 out growthAngle, out growthIncrement);
             double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))

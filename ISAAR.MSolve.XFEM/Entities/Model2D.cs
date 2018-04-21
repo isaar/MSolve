@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public IReadOnlyList<XContinuumElement2D> Elements { get { return elements; } }
         public IReadOnlyList<IEnrichmentItem2D> Enrichments { get { return enrichments; } }
         public ITable<XNode2D, DisplacementDOF, double> Constraints { get { return constraints; } }
-        public DOFEnumerator DofEnumerator { get; private set; }
+        //public DOFEnumerator DofEnumerator { get; private set; }
 
         public Model2D()
         {
@@ -79,20 +79,14 @@ namespace ISAAR.MSolve.XFEM.Entities
             loads[node, dof] = magnitude;
         }
 
-        public void EnumerateDofs()
+        public Vector CalculateFreeForces(IDOFEnumerator dofEnumerator)
         {
-            this.DofEnumerator = new DOFEnumerator(nodes, constraints, elements);
-        }
-
-        public Vector CalculateFreeForces()
-        {
-            if (DofEnumerator == null) EnumerateDofs();
-            double[] rhs = new double[DofEnumerator.FreeDofsCount + DofEnumerator.ArtificialDofsCount];
+            double[] rhs = new double[dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount];
             foreach (Tuple<XNode2D, DisplacementDOF, double> entry in loads)
             {
                 try
                 {
-                    int dof = DofEnumerator.GetFreeDofOf(entry.Item1, entry.Item2);
+                    int dof = dofEnumerator.GetFreeDofOf(entry.Item1, entry.Item2);
                     rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which isn't implemented yet
                 }
                 catch (KeyNotFoundException ex)
@@ -104,13 +98,12 @@ namespace ISAAR.MSolve.XFEM.Entities
             return Vector.CreateFromArray(rhs);
         }
 
-        public Vector CalculateConstrainedDisplacements()
+        public Vector CalculateConstrainedDisplacements(IDOFEnumerator dofEnumerator)
         {
-            if (DofEnumerator == null) EnumerateDofs();
-            double[] uc = new double[DofEnumerator.ConstrainedDofsCount];
+            double[] uc = new double[dofEnumerator.ConstrainedDofsCount];
             foreach (Tuple<XNode2D, DisplacementDOF, double> entry in constraints)
             {
-                int dof = DofEnumerator.GetConstrainedDofOf(entry.Item1, entry.Item2);
+                int dof = dofEnumerator.GetConstrainedDofOf(entry.Item1, entry.Item2);
                 uc[dof] = entry.Item3;
             }
             return Vector.CreateFromArray(uc);
