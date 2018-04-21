@@ -8,6 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -19,6 +20,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             CheckSystem(GetDenseSystem(), SolveWithCG, 1e-6);
             CheckSystem(GetSparseSystem(), SolveWithCG, 1e-6);
+            CheckSystem(GetDenseSystem(), SolveWithPCG, 1e-6);
+            CheckSystem(GetSparseSystem(), SolveWithPCG, 1e-6);
         }
 
         private static void CheckSystem(LinearSystem sys, SolveSystem solver, double solveTolerance)
@@ -34,6 +37,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var cg = new CGAlgorithm(sys.Matrix.NumColumns, tol);
             return cg.Solve(sys.Matrix, sys.Rhs);
+        }
+
+        private static (Vector solution, IterativeStatistics statistics) SolveWithPCG(LinearSystem sys, double tol)
+        {
+            var pcg = new PCGAlgorithm(sys.Matrix.NumColumns, tol);
+            var preconditioner = new IdentityPreconditioner(true);
+            return pcg.Solve(sys.Matrix, sys.Rhs, preconditioner);
         }
 
         private static LinearSystem GetDenseSystem()
