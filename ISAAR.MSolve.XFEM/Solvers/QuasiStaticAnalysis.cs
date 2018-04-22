@@ -14,23 +14,25 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 
-namespace ISAAR.MSolve.XFEM.Analysis
+namespace ISAAR.MSolve.XFEM.Solvers
 {
     class QuasiStaticAnalysis
     {
         private readonly Model2D model;
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly IExteriorCrack crack;
+        private readonly ISolver solver;
         private readonly Propagator propagator;
         private readonly double fractureToughness;
         private readonly int maxIterations;
 
-        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack, 
-            Propagator propagator, double fractureToughness, int maxIterations)
+        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack,
+            ISolver solver, Propagator propagator, double fractureToughness, int maxIterations)
         {
             this.model = model;
             this.mesh = mesh;
             this.crack = crack;
+            this.solver = solver;
             this.propagator = propagator;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
@@ -45,20 +47,19 @@ namespace ISAAR.MSolve.XFEM.Analysis
             int iteration;
             try
             {
+                solver.Initialize();
                 for (iteration = 0; iteration < maxIterations; ++iteration)
                 {
                     //Console.WriteLine(
                         //"********************************** Iteration {0} **********************************", iteration);
                     crack.UpdateEnrichments();
-                    //var embeddedAnalysis = new LinearStaticAnalysisSkyline(model);
-                    var embeddedAnalysis = new LinearStaticAnalysisCSC(model);
-                    embeddedAnalysis.Solve();
+                    solver.Solve();
 
-                    Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(embeddedAnalysis.DOFEnumerator);
-                    Vector totalFreeDisplacements = embeddedAnalysis.Solution;
+                    Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DOFEnumerator);
+                    Vector totalFreeDisplacements = solver.Solution;
 
                     double growthAngle, growthIncrement;
-                    propagator.Propagate(embeddedAnalysis.DOFEnumerator, totalFreeDisplacements, totalConstrainedDisplacements,
+                    propagator.Propagate(solver.DOFEnumerator, totalFreeDisplacements, totalConstrainedDisplacements,
                         out growthAngle, out growthIncrement);
                     crack.UpdateGeometry(growthAngle, growthIncrement);
                     ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);

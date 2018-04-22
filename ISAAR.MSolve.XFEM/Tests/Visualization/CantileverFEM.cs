@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Analysis;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
@@ -74,9 +74,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
 
         private static (Vector, IDOFEnumerator) Solve(Model2D model)
         {
-            var analysis = new LinearStaticAnalysisSkyline(model);
-            analysis.Solve();
-            return (analysis.Solution, analysis.DOFEnumerator);
+            var solver = new SkylineSolverOLD(model);
+            solver.Initialize();
+            solver.Solve();
+            return (solver.Solution, solver.DOFEnumerator);
         }
 
         private static void WriteOutput(Model2D model, Vector solution, IDOFEnumerator dofEnumerator)

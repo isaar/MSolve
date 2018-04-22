@@ -56,12 +56,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analysis\ILinearStaticAnalysis.cs" />
-    <Compile Include="Analysis\LinearStaticAnalysisCSC.cs" />
-    <Compile Include="Analysis\LinearStaticAnalysisSkyline.cs" />
-    <Compile Include="Analysis\QuasiStaticAnalysis.cs" />
+    <Compile Include="Solvers\QuasiStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalDOKAssembler.cs" />
-    <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
+    <Compile Include="Assemblers\SingleGlobalSkylineAssemblerOLD.cs" />
     <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
     <Compile Include="CrackGeometry\CrackTipPosition.cs" />
     <Compile Include="CrackGeometry\ICrackGeometry.cs" />
@@ -165,12 +162,15 @@
     <Compile Include="Output\StrainField.cs" />
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />
-    <Compile Include="Solvers\CGAlgorithm.cs" />
-    <Compile Include="Solvers\IterativeStatistics.cs" />
-    <Compile Include="Solvers\PCGAlgorithm.cs" />
+    <Compile Include="Solvers\Algorithms\CGAlgorithm.cs" />
+    <Compile Include="Solvers\Algorithms\IterativeStatistics.cs" />
+    <Compile Include="Solvers\Algorithms\PCGAlgorithm.cs" />
+    <Compile Include="Solvers\CholeskySuiteSparseSolver.cs" />
+    <Compile Include="Solvers\ISolver.cs" />
     <Compile Include="Solvers\Preconditioning\IdentityPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\IPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\JacobiPreconditioner.cs" />
+    <Compile Include="Solvers\SkylineSolverOLD.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />
@@ -182,7 +182,7 @@
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />
-    <Compile Include="Solvers\IterativeTests.cs" />
+    <Compile Include="Solvers\Algorithms\IterativeTests.cs" />
     <Compile Include="Tests\Tools\ArrayPrinter.cs" />
     <Compile Include="Tests\Tools\LoadDistributor.cs" />
     <Compile Include="Tests\Tools\PropagationResults.cs" />

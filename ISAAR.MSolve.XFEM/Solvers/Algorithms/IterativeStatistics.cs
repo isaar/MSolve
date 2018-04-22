@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 //TODO: Add time measurements, flop measurements, etc. 
 //TODO: Alternatively I could use a logger (pull observer) in the algorithm
 //TODO: Needs a better name
-namespace ISAAR.MSolve.XFEM.Solvers
+namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
 {
     public class IterativeStatistics
     {

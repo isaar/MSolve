@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// TODO: The enriched dof columns will have huge heights. A more sophisticated solver and matrix assembler are
     /// needed. Also the global constrained submatrix must be sparse.
     /// </summary>
-    static class SingleGlobalSkylineAssembler
+    static class SingleGlobalSkylineAssemblerOLD
     {
         public static (SkylineMatrix2D Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {

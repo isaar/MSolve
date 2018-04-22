@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Analysis;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -175,7 +175,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
 
-            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, 
+            var solver = new SkylineSolverOLD(model);
+            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, solver,
                 propagator, fractureToughness, maxIterations);
             analysis.Analyze();
         }

@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers
+namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
 {
     public class CGAlgorithm
     {

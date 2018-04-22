@@ -10,7 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
 // Needs Builder pattern
-namespace ISAAR.MSolve.XFEM.Solvers
+namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
 {
     public class PCGAlgorithm
     {

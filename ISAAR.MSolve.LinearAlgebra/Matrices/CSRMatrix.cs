@@ -89,6 +89,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new CSRMatrix(numRows, numCols, values, colIndices, rowOffsets);
         }
 
+        #region operators (use extension operators when they become available)
+        public static Vector operator *(CSRMatrix matrixLeft, Vector vectorRight)
+            => matrixLeft.MultiplyRight(vectorRight, false);
+        #endregion
+
         public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is CSRMatrix otherCSR) // In case both matrices have the exact same index arrays
@@ -502,7 +507,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
+            if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
             else throw new NotImplementedException();
         }
 

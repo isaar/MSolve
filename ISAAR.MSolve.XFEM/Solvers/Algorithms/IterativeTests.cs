@@ -8,9 +8,10 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Solvers.Algorithms;
 using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
-namespace ISAAR.MSolve.XFEM.Solvers
+namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
 {
     public class IterativeTests
     {

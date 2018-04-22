@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.XFEM.Analysis;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
@@ -86,16 +86,17 @@ namespace ISAAR.MSolve.XFEM.Tests.Gmsh
 
         public Tuple<XNode2D, double> FindMaxDisplacement(Model2D model)
         {
-            var analysis = new LinearStaticAnalysisSkyline(model);
-            analysis.Solve();
+            var solver = new SkylineSolverOLD(model);
+            solver.Initialize();
+            solver.Solve();
 
             double min = double.MaxValue;
             XNode2D mostDisplaced = null;
-            for (int dof = 0; dof < analysis.Solution.Length; ++dof)
+            for (int dof = 0; dof < solver.Solution.Length; ++dof)
             {
-                if (analysis.Solution[dof] < min)
+                if (solver.Solution[dof] < min)
                 {
-                    min = analysis.Solution[dof];
+                    min = solver.Solution[dof];
                     int nodeID = dof / 2; // node i: dofX=2i, dofY=2i+1
                     mostDisplaced = model.Nodes[nodeID];
                 }

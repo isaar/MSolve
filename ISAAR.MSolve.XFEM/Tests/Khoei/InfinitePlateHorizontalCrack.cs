@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Analysis;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -293,10 +293,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var analysis = new LinearStaticAnalysisSkyline(model);
-            analysis.Solve();
-            dofEnumerator = analysis.DOFEnumerator;
-            return analysis.Solution;
+            var solver = new SkylineSolverOLD(model);
+            solver.Initialize();
+            solver.Solve();
+            dofEnumerator = solver.DOFEnumerator;
+            return solver.Solution;
         }
 
         private PropagationResults Propagate(Vector solution)
