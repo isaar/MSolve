@@ -211,10 +211,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double uBotY = solution[dofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.Y)];
             double uTopX = solution[dofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.X)];
             double uTopY = solution[dofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.Y)];
-            double aBotX = solution[dofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[0])];
-            double aBotY = solution[dofEnumerator.GetArtificialDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[1])];
-            double aTopX = solution[dofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];
-            double aTopY = solution[dofEnumerator.GetArtificialDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[1])];
+            double aBotX = solution[dofEnumerator.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[0])];
+            double aBotY = solution[dofEnumerator.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[1])];
+            double aTopX = solution[dofEnumerator.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];
+            double aTopY = solution[dofEnumerator.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[1])];
 
             Console.WriteLine("Solution results: For the element containing the crack mouth:");
             Console.WriteLine("Bottom right node, standard dof x: u = " + uBotX);

@@ -93,7 +93,9 @@
     <Compile Include="Enrichments\Items\CrackTipEnrichments2D.cs" />
     <Compile Include="CrackGeometry\TipJacobians.cs" />
     <Compile Include="Entities\FreedomDegrees\DisplacementDOF.cs" />
-    <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumeratorBase.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumeratorInterleaved.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumeratorSeparate.cs" />
     <Compile Include="Entities\FreedomDegrees\EnrichedDOF.cs" />
     <Compile Include="Entities\FreedomDegrees\IDOF.cs" />
     <Compile Include="Entities\FreedomDegrees\IDOFEnumerator.cs" />

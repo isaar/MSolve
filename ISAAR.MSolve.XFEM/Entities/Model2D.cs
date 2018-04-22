@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public Vector CalculateFreeForces(IDOFEnumerator dofEnumerator)
         {
-            double[] rhs = new double[dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount];
+            double[] rhs = new double[dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount];
             foreach (Tuple<XNode2D, DisplacementDOF, double> entry in loads)
             {
                 try

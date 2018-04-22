@@ -10,16 +10,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
     class DofEnumerationChecker
     {
-        public static void PrintEnumeration(IReadOnlyList<XNode2D> nodes, IDOFEnumerator dofEnumerator)
+        public static void PrintEnumeration(IReadOnlyList<XNode2D> nodes, IDOFEnumerator dofEnumerator, 
+            IEnumerable<DisplacementDOF> standardDofs, IEnumerable<EnrichedDOF> enrichedDofs)
         {
-
             Console.WriteLine("Standards dofs:");
             foreach (XNode2D node in nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (int dof in dofEnumerator.GetFreeDofsOf(node))
+                foreach (DisplacementDOF dof in standardDofs)
                 {
-                    Console.Write(dof + " ");
+                    Console.Write(dofEnumerator.GetFreeDofOf(node, dof) + " ");
                 }
                 foreach (int dof in dofEnumerator.GetConstrainedDofsOf(node))
                 {
@@ -33,9 +33,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             foreach (XNode2D node in nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (int dof in dofEnumerator.GetArtificialDofsOf(node))
+                foreach (EnrichedDOF dof in enrichedDofs)
                 {
-                    Console.Write(dof + " ");
+                    Console.Write(dofEnumerator.GetEnrichedDofOf(node, dof) + " ");
                 }
                 Console.WriteLine();
             }

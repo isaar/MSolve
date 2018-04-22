@@ -130,7 +130,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             benchmark.CreateMaterial();
             benchmark.CreateModel();
             benchmark.HandleEnrichment();
-            benchmark.dofEnumerator = new DOFEnumerator(benchmark.model);
             
             benchmark.CheckStiffnessNode6();
             benchmark.CheckStiffnessNode7Element1();
@@ -147,7 +146,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
-        private IDOFEnumerator dofEnumerator;
         private BasicExplicitCrack2D crack;
 
 
@@ -282,11 +280,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckGlobalStiffnessNode7()
         {
+            IDOFEnumerator dofEnumerator = DOFEnumeratorInterleaved.Create(model);
             (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model, dofEnumerator);
 
             var dofsOfNode7 = new List<int>();
             foreach (int dof in dofEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
-            foreach (int dof in dofEnumerator.GetArtificialDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
+            foreach (int dof in dofEnumerator.GetEnrichedDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             dofsOfNode7.Sort();
 
             Matrix node7Submatrix = checker.ExtractRelevant(Kuu, dofsOfNode7);
@@ -306,16 +305,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var displacements = new List<double>();
 
             // Standard dofs
-            int dofUx5 = dofEnumerator.GetFreeDofOf(model.Nodes[5], DisplacementDOF.X);
+            int dofUx5 = analysis.DOFEnumerator.GetFreeDofOf(model.Nodes[5], DisplacementDOF.X);
             displacements.Add(analysis.Solution[dofUx5]);
             displacements.Add(-0.05);
-            int dofUx6 = dofEnumerator.GetFreeDofOf(model.Nodes[6], DisplacementDOF.X);
+            int dofUx6 = analysis.DOFEnumerator.GetFreeDofOf(model.Nodes[6], DisplacementDOF.X);
             displacements.Add(analysis.Solution[dofUx6]);
             displacements.Add(0.05);
 
             // Enriched dofs Concatenate IEnumerables and then toArray()
-            var enrichedDofs = dofEnumerator.GetArtificialDofsOf(model.Nodes[5]).
-                Concat(dofEnumerator.GetArtificialDofsOf(model.Nodes[6]));
+            var enrichedDofs = analysis.DOFEnumerator.GetEnrichedDofsOf(model.Nodes[5]).
+                Concat(analysis.DOFEnumerator.GetEnrichedDofsOf(model.Nodes[6]));
             foreach (int dof in enrichedDofs) displacements.Add(analysis.Solution[dof]);
             RoundList(displacements);
             Console.Write("Checking the solution vector for nodes 5, 6: ");
@@ -340,7 +339,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         {
             var analysis = new LinearStaticAnalysisSkyline(model);
             analysis.Solve();
-            double[,] nodalDisplacements = dofEnumerator.GatherNodalDisplacements(model, analysis.Solution);
+            double[,] nodalDisplacements = analysis.DOFEnumerator.GatherNodalDisplacements(model, analysis.Solution);
 
 
             Console.WriteLine("\n-------------------- Standard displacements ------------------");
@@ -352,7 +351,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
 
             Console.WriteLine("\n-------------------- Artificial displacements ------------------");
-            Console.WriteLine(dofEnumerator.GatherArtificialNodalDisplacements(model, analysis.Solution));
+            Console.WriteLine(analysis.DOFEnumerator.GatherEnrichedNodalDisplacements(model, analysis.Solution));
         }
 
         private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)

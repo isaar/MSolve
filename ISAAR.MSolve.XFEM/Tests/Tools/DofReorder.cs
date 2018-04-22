@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                     //if (dof != -1) dofsOfNode.Add(dof);
                     //else throw new Exception("Does not work if there are constraints");
                 }
-                foreach (int dof in dofEnumerator.GetArtificialDofsOf(nodes[n])) dofsOfNode.Add(dof);
+                foreach (int dof in dofEnumerator.GetEnrichedDofsOf(nodes[n])) dofsOfNode.Add(dof);
                 currentNodalDofs[n] = dofsOfNode.ToArray();
             }
 

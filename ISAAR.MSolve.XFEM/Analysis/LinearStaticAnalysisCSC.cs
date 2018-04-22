@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
 
         public void Solve()
         {
-            DOFEnumerator = new DOFEnumerator(model);
+            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             (DOKSymmetricColMajor matrix, Vector rhs) = ReduceToSimpleLinearSystem();
             using (CholeskySuiteSparse factorization = matrix.BuildSymmetricCSCMatrix(true).FactorCholesky())
             {

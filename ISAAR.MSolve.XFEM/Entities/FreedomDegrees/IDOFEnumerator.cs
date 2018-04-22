@@ -11,9 +11,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
     interface IDOFEnumerator
     {
-        int FreeDofsCount { get ; }
         int ConstrainedDofsCount { get; }
-        int ArtificialDofsCount { get ; } 
+        int EnrichedDofsCount { get ; }
+        int FreeDofsCount { get; }
 
         IEnumerable<int> GetFreeDofsOf(XNode2D node);
 
@@ -23,15 +23,15 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType);
 
-        IEnumerable<int> GetArtificialDofsOf(XNode2D node);
+        IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
 
-        int GetArtificialDofOf(XNode2D node, EnrichedDOF dofType);
+        int GetEnrichedDofOf(XNode2D node, EnrichedDOF dofType);
 
         void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
             out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
 
-        IReadOnlyDictionary<int, int> MatchElementToGlobalArtificialDofsOf(XContinuumElement2D element);
+        IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element);
 
         Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
             Vector globalFreeVector, Vector globalConstrainedVector);
@@ -40,6 +40,6 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 
-        ITable<XNode2D, EnrichedDOF, double> GatherArtificialNodalDisplacements(Model2D model, Vector solution);
+        ITable<XNode2D, EnrichedDOF, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
     }
 }

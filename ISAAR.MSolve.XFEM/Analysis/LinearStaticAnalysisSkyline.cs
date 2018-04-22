@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Analysis
 
         public void Solve()
         {
-            DOFEnumerator = new DOFEnumerator(model);
+            DOFEnumerator = DOFEnumeratorSeparate.Create(model); // Actually this enumeration will result in huge bandwidths.
             SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
             ISolver solver = new SolverFBSubstitution(ls); // A solver devoid of linear system must be passed into the constructor
             solver.Initialize();

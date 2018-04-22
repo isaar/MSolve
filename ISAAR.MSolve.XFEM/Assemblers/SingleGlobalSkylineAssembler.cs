@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount, 
+            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount, 
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 dofEnumerator.MatchElementToGlobalStandardDofsOf(element, 
                     out elementToGlobalFreeDofs, out elementToGlobalConstrainedDofs);
                 IReadOnlyDictionary<int, int> elementToGlobalEnrDofs = 
-                    dofEnumerator.MatchElementToGlobalArtificialDofsOf(element);
+                    dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
 
                 // Add the element contributions to the global matrices
                 AddElementToGlobalMatrix(Kff, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         /// Only the entries above the diagonal are considered
         private static int[] CalculateRowHeights(Model2D model, IDOFEnumerator dofEnumerator) // I vote to call them RowWidths!!!
         {
-            int[] rowHeights = new int[dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount];
+            int[] rowHeights = new int[dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount];
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 foreach (XNode2D node in element.Nodes)
                 {
                     foreach (int dof in dofEnumerator.GetFreeDofsOf(node)) minDOF = Math.Min(dof, minDOF);
-                    foreach (int dof in dofEnumerator.GetArtificialDofsOf(node)) Math.Min(dof, minDOF);
+                    foreach (int dof in dofEnumerator.GetEnrichedDofsOf(node)) Math.Min(dof, minDOF);
                 }
 
                 // The height of each row is updated for all elements that engage the corresponding dof. 
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     {
                         rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
                     }
-                    foreach (int dof in dofEnumerator.GetArtificialDofsOf(node))
+                    foreach (int dof in dofEnumerator.GetEnrichedDofsOf(node))
                     {
                         rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
                     }

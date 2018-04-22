@@ -23,14 +23,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public static (DOKSymmetricColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
-            int allFreeDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount;
+            int allFreeDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             var Kff = DOKSymmetricColMajor.CreateEmpty(allFreeDofsCount);
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.ArtificialDofsCount,
+            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount,
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 dofEnumerator.MatchElementToGlobalStandardDofsOf(element, 
                     out IReadOnlyDictionary<int, int> mapFree, 
                     out IReadOnlyDictionary<int, int> mapConstrained);
-                IReadOnlyDictionary<int, int> mapEnriched = dofEnumerator.MatchElementToGlobalArtificialDofsOf(element);
+                IReadOnlyDictionary<int, int> mapEnriched = dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
 
                 // Add the element contributions to the global matrices
                 AddElementToGlobalMatrix(Kff, kss, mapFree, mapFree);
