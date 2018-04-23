@@ -7,8 +7,8 @@ branches:
 clone_folder: C:\Users\user\Source\Repos\MSolve
 shallow_clone: true
 environment:
-  SonarCloudToken:
-    secure: pxDIx52G3LOm7+SVLZ2sk99gtSs8zqUDNbeVxRSwI7N8qwGJpjhUr7s4AuIWA/Bx
+  SonarToken:
+    secure: 3lJulb34VViwfO7lW6zJQQBm+3ke5nuvaZZyDMEF7YsaHq012AFg9A1xZ43iqg2D
 cache:
   - packages
 install:
@@ -17,9 +17,9 @@ before_build:
   - nuget restore
 build_script:
   - choco install "msbuild-sonarqube-runner" -y
-  - MSBuild.SonarQube.Runner.exe begin /k:"ISAAR.MSolve" /d:"sonar.host.url=https://sonarqube.com" /d:"sonar.login=SonarCloudToken"
+  - MSBuild.SonarQube.Runner.exe begin /k:"ISAAR.MSolve" /d:"sonar.host.url=https://sonarqube.com" /d:"sonar.login=SonarToken"
   - msbuild "ISAAR.MSolve.sln"
-  - MSBuild.SonarQube.Runner.exe end /d:"sonar.login=SonarCloudToken"  
+  - MSBuild.SonarQube.Runner.exe end /d:"sonar.login=SonarToken"  
 build:
   project: ISAAR.MSolve.sln
   
