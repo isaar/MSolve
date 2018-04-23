@@ -1,0 +1,17 @@
+version: '1.0.{build}'
+configuration: Release
+image: Visual Studio 2017
+branches:
+  only: 
+    - develop
+clone_folder: C:\Users\user\Source\Repos\MSolve
+shallow_clone: true
+environment:
+  SONAR_REPO_TOKEN:
+    secure: pxDIx52G3LOm7+SVLZ2sk99gtSs8zqUDNbeVxRSwI7N8qwGJpjhUr7s4AuIWA/Bx
+cache:
+  - packages
+install:
+  - dotnet restore --packages packages  
+build:
+  project: ISAAR.MSolve.sln
