@@ -128,27 +128,30 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         {
             DCB3x1 benchmark = new DCB3x1(20);
             benchmark.CreateMaterial();
-            benchmark.CreateModel();
-            benchmark.HandleEnrichment();
-            
-            benchmark.CheckStiffnessNode6();
-            benchmark.CheckStiffnessNode7Element1();
-            benchmark.CheckStiffnessNode7Element2();
-            benchmark.CheckGlobalStiffnessNode7();
-            benchmark.CheckSolution();
+            Model2D model = benchmark.CreateModel();
+            benchmark.HandleEnrichment(model);
+            //ISolver solver = new DenseSolver(model);
+            //ISolver solver = new SkylineSolverOLD(model);
+            //ISolver solver = new SkylineSolver(model);
+            //ISolver solver = new CholeskySuiteSparseSolver(model);
+            ISolver solver = new PCGSolver(model, 0.8, 1e-6);
+            solver.Initialize();
+            solver.Solve();
 
-            benchmark.PrintAllStiffnesses();
-            benchmark.PrintDisplacements();
+            benchmark.CheckStiffnessNode6(model);
+            benchmark.CheckStiffnessNode7Element1(model);
+            benchmark.CheckStiffnessNode7Element2(model);
+            benchmark.CheckGlobalStiffnessNode7(model, solver);
+            benchmark.CheckSolution(model, solver);
+
+            benchmark.PrintAllStiffnesses(model);
+            benchmark.PrintDisplacements(model, solver);
         }
 
         private readonly double h; // element length
         private readonly double E = 2e6, v = 0.3;
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
-        private Model2D model;
-        //private Type solverType = typeof(DenseSolver);
-        //private Type solverType = typeof(SkylineSolverOLD);
-        //private Type solverType = typeof(SkylineSolver);
         private Type solverType = typeof(CholeskySuiteSparseSolver);
         private BasicExplicitCrack2D crack;
 
@@ -164,9 +167,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
         }
 
-        private void CreateModel()
+        private Model2D CreateModel()
         {
-            model = new Model2D();
+            var model = new Model2D();
 
             //Nodes
             model.AddNode(new XNode2D(0, 0.0, 0.0));
@@ -217,9 +220,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             model.AddConstraint(model.Nodes[3], DisplacementDOF.Y, 0.0);
             model.AddConstraint(model.Nodes[5], DisplacementDOF.Y, -0.05);
             model.AddConstraint(model.Nodes[6], DisplacementDOF.Y, 0.05);
+
+            return model;
         }
 
-        private void HandleEnrichment()
+        private void HandleEnrichment(Model2D model)
         {
             crack = new BasicExplicitCrack2D();
             var boundary = new RectangularBoundary(0, 3 * h, 0, h);
@@ -239,7 +244,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.UpdateEnrichments();
         }
 
-        private void CheckStiffnessNode6()
+        private void CheckStiffnessNode6(Model2D model)
         {
             Matrix Kss = model.Elements[2].BuildStandardStiffnessMatrix();
             model.Elements[2].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
@@ -253,7 +258,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedK_Node6, node6Submatrix);
         }
 
-        private void CheckStiffnessNode7Element1()
+        private void CheckStiffnessNode7Element1(Model2D model)
         {
             Matrix Kss = model.Elements[1].BuildStandardStiffnessMatrix();
             model.Elements[1].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
@@ -267,7 +272,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedK_Node7_El1, node7Submatrix);
         }
 
-        private void CheckStiffnessNode7Element2()
+        private void CheckStiffnessNode7Element2(Model2D model)
         {
             Matrix Kss = model.Elements[2].BuildStandardStiffnessMatrix();
             model.Elements[2].BuildEnrichedStiffnessMatrices(out Matrix Kes, out Matrix Kee);
@@ -281,14 +286,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedK_Node7_El2, node7Submatrix);
         }
 
-        private void CheckGlobalStiffnessNode7()
+        private void CheckGlobalStiffnessNode7(Model2D model, ISolver solver)
         {
-            IDOFEnumerator dofEnumerator = DOFEnumeratorInterleaved.Create(model);
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, solver.DOFEnumerator);
 
             var dofsOfNode7 = new List<int>();
-            foreach (int dof in dofEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
-            foreach (int dof in dofEnumerator.GetEnrichedDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
+            foreach (int dof in solver.DOFEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
+            foreach (int dof in solver.DOFEnumerator.GetEnrichedDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             dofsOfNode7.Sort();
 
             Matrix node7Submatrix = checker.ExtractRelevant(Kuu, dofsOfNode7);
@@ -300,11 +304,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         // WARNING: The heaviside enriched dofs are slightly off!
-        private void CheckSolution()
+        private void CheckSolution(Model2D model, ISolver solver)
         {
-            var solver = (ISolver)(Activator.CreateInstance(solverType, new[] { model }));
-            solver.Initialize();
-            solver.Solve();
             var displacements = new List<double>();
 
             // Standard dofs
@@ -324,7 +325,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             checker.Check(expectedSolutionNodes5_6, displacements);
         }
 
-        private void PrintAllStiffnesses()
+        private void PrintAllStiffnesses(Model2D model)
         {
             Console.WriteLine("\n-------------------- Element Matrices ------------------");
             for (int i = 0; i < model.Elements.Count; ++i)
@@ -338,13 +339,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
         }
 
-        private void PrintDisplacements()
+        private void PrintDisplacements(Model2D model, ISolver solver)
         {
-            var solver = (ISolver)(Activator.CreateInstance(solverType, new[] { model }));
-            solver.Solve();
             double[,] nodalDisplacements = solver.DOFEnumerator.GatherNodalDisplacements(model, solver.Solution);
-
-
+           
             Console.WriteLine("\n-------------------- Standard displacements ------------------");
             for (int i = 0; i < nodalDisplacements.GetLength(0); ++i)
             {
