@@ -35,15 +35,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// converting.
         /// </summary>
         private readonly Dictionary<int, double>[] columns;
+        private readonly int order;
 
         private DOKSymmetricColMajor(int order, Dictionary<int, double>[] columns)
         {
             this.columns = columns;
-            this.NumColumns = order;
+            this.order = order;
         }
 
-        public int NumColumns { get; }
-        public int NumRows { get { return NumColumns; } }
+        public int NumColumns { get { return order; } }
+        public int NumRows { get { return order; } }
 
         // Perhaps I should check indices
         public double this[int rowIdx, int colIdx]
@@ -133,6 +134,31 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
+        /// Use this method if you are sure that the all relevant global dofs are above or on the diagonal.
+        /// </summary>
+        public void AddSubmatrixAboveDiagonal(IIndexable2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        {
+            foreach (var colPair in elementColsToGlobalCols) // Col major ordering
+            {
+                int elementCol = colPair.Key;
+                int globalCol = colPair.Value;
+                foreach (var rowPair in elementRowsToGlobalRows)
+                {
+                    int elementRow = rowPair.Key;
+                    int globalRow = rowPair.Value;
+
+                    double elementValue = elementMatrix[elementRow, elementCol];
+                    if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
+                    {
+                        columns[globalCol][globalRow] = elementValue + oldGlobalValue;
+                    }
+                    else columns[globalCol][globalRow] = elementValue;
+                }
+            }
+        }
+
+        /// <summary>
         /// Use this method if 1) both the global DOK and the element matrix are symmetric and 2) the rows and columns correspond
         /// to the same degrees of freedom. The caller is responsible for making sure that both matrices are symmetric and that 
         /// the dimensions and dofs of the element matrix and dof mappings match.
@@ -196,39 +222,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 }
             }
         }
-
-        /// <summary>
-        /// Use this method if you are sure that the all relevant global dofs are above or on the diagonal.
-        /// </summary>
-        public void AddSubmatrixAboveDiagonal(IIndexable2D elementMatrix,
-            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary< int, int> elementColsToGlobalCols)
-        { 
-            foreach (var colPair in elementColsToGlobalCols) // Col major ordering
-            {
-                int elementCol = colPair.Key;
-                int globalCol = colPair.Value;
-                foreach (var rowPair in elementRowsToGlobalRows)
-                { 
-                    int elementRow = rowPair.Key;
-                    int globalRow = rowPair.Value;
-
-                    #region DEBUG code
-                    //if (globalRow > globalCol)
-                    //{
-                    //Console.WriteLine($"Cannot write entry ({globalRow}, {globalCol}).");
-                    //}
-                    #endregion
-
-                    double elementValue = elementMatrix[elementRow, elementCol];
-                    if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
-                    {
-                        columns[globalCol][globalRow] = elementValue + oldGlobalValue;
-                    }
-                    else columns[globalCol][globalRow] = elementValue;
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Use this method if you are sure that the all relevant global dofs are under or on the diagonal of this matrix.
         /// </summary>
@@ -309,7 +303,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public int CountNonZeros()
         {
             int count = 0;
-            for (int j = 0; j < NumColumns; ++j)
+            for (int j = 0; j < order; ++j)
             {
                 foreach (var rowVal in columns[j])
                 {
@@ -322,7 +316,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
         {
-            for (int j = 0; j < NumColumns; ++j)
+            for (int j = 0; j < order; ++j)
             {
                 foreach (var rowVal in columns[j])
                 {
@@ -360,9 +354,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
         {
             Preconditions.CheckSquare(this);
-            double[] diag = new double[NumColumns];
+            double[] diag = new double[order];
             int firstZeroIdx = -1;
-            for (int j = 0; j < NumColumns; ++j)
+            for (int j = 0; j < order; ++j)
             {
                 bool isStored = columns[j].TryGetValue(j, out double val);
                 if (isStored) diag[j] = val;
@@ -413,19 +407,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <returns></returns>
         private (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
         {
-            int[] colOffsets = new int[NumColumns + 1];
+            int[] colOffsets = new int[order + 1];
             int nnz = 0;
-            for (int j = 0; j < NumColumns; ++j)
+            for (int j = 0; j < order; ++j)
             {
                 colOffsets[j] = nnz;
                 nnz += columns[j].Count;
             }
-            colOffsets[NumColumns] = nnz; //The last CSC entry is nnz.
+            colOffsets[order] = nnz; //The last CSC entry is nnz.
 
             int[] rowIndices = new int[nnz];
             double[] values = new double[nnz];
             int counter = 0;
-            for (int j = 0; j < NumColumns; ++j)
+            for (int j = 0; j < order; ++j)
             {
                 if (sortRowsOfEachCol)
                 {
