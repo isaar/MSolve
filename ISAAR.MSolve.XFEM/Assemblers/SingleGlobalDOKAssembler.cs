@@ -20,17 +20,17 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     static class SingleGlobalDOKAssembler
     {
-        public static (DOKSymmetricColMajor Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        public static (DOKSymmetricColMajor Kuu, Matrix Kuc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
             int allFreeDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            var Kff = DOKSymmetricColMajor.CreateEmpty(allFreeDofsCount);
+            var Kuu = DOKSymmetricColMajor.CreateEmpty(allFreeDofsCount);
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount,
+            Matrix Kuc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount,
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -52,43 +52,23 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 IReadOnlyDictionary<int, int> mapEnriched = dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
 
                 // Add the element contributions to the global matrices
-                AddElementToGlobalMatrix(Kff, kss, mapFree, mapFree);
-                AddElementToGlobalMatrix(Kff, kse, mapFree,  mapEnriched);
-                AddElementToGlobalMatrix(Kff, kee, mapEnriched, mapEnriched);
+                Kuu.AddSubmatrixSymmetric(kss, mapFree);
+                Kuu.AddSubmatrix(kse, mapFree, mapEnriched);
+                Kuu.AddSubmatrixSymmetric(kee, mapEnriched);
 
-                AddElementToGlobalMatrix(Kfc, kss, mapFree, mapConstrained);
-                AddElementToGlobalMatrix(Kfc, kes, mapEnriched, mapConstrained);
+                AddElementToGlobalMatrix(Kuc, kss, mapFree, mapConstrained);
+                AddElementToGlobalMatrix(Kuc, kes, mapEnriched, mapConstrained);
             }
 
-            return (Kff, Kfc);
-        }
+            #region DEBUG code
+            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofEnumerator);
+            //Console.WriteLine("Check Kuu:");
+            //CheckMatrix(expectedKuu, Kuu);
+            //Console.WriteLine("Check Kuc:");
+            //CheckMatrix(expectedKuc, Kuc);
+            #endregion
 
-        private static void AddElementToGlobalMatrix(DOKSymmetricColMajor globalMatrix, Matrix elementMatrix,
-            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
-        {
-            foreach (var rowPair in elementRowsToGlobalRows)
-            {
-                int elementRow = rowPair.Key;
-                int globalRow = rowPair.Value;
-                foreach (var colPair in elementColsToGlobalCols)
-                {
-                    int elementCol = colPair.Key;
-                    int globalCol = colPair.Value;
-
-                    // SymmetricDOKColMajor matrix stores the upper triangle
-                    // Check if the entry is in the upper triangle. This check concerns global dofs only.
-                    // No need to check if the entry is within the row height.
-                    // TODO: This check is redundant for the enriched-standard submatrices, since they always 
-                    // have row=enrichedDof > col=standardDof. Perhaps I could have an optimized method that 
-                    // doesn't check that height>0. Frankly it would be too much code just for avoiding this 
-                    // check. Perhaps after optimizing other things first. Alternatively overload the method, with a version
-                    // that accepts Symmetric matrices (where there would be a TraverseUpper perhaps)
-                    if (globalCol >= globalRow)
-                    {
-                        globalMatrix.AddToEntry(globalRow, globalCol, elementMatrix[elementRow, elementCol]);
-                    }
-                }
-            }
+            return (Kuu, Kuc);
         }
 
         /// <summary>
@@ -111,13 +91,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     int elementCol = colPair.Key;
                     int globalCol = colPair.Value;
 
-                    globalMatrix[globalRow, globalCol] = elementMatrix[elementRow, elementCol];
+                    globalMatrix[globalRow, globalCol] += elementMatrix[elementRow, elementCol];
                 }
             }
         }
 
-        private static void CheckMatrix(Matrix computed, Matrix expected)
+        private static void CheckMatrix(IIndexable2D expected, IIndexable2D computed)
         {
+            bool isCorrect = true;
             ValueComparer comparer = new ValueComparer(1e-6);
             if ((computed.NumRows != expected.NumRows) || (computed.NumColumns != expected.NumColumns))
             {
@@ -130,9 +111,11 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     if (!comparer.AreEqual(computed[i, j], expected[i, j]))
                     {
                         Console.WriteLine($"Computed[{i}, {j}] = {computed[i, j]}   -   Expected[{i}, {j}] = {expected[i, j]}");
+                        isCorrect = false;
                     }
                 }
             }
+            if (isCorrect) Console.WriteLine("Correct");
         }
     }
 }

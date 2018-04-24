@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -29,7 +30,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void Solve()
         {
-            DOFEnumerator = DOFEnumeratorSeparate.Create(model); // Actually this enumeration will result in huge bandwidths.
+            //DOFEnumerator = DOFEnumeratorSeparate.Create(model); // Actually this enumeration will result in huge bandwidths.
+            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
             var solver = new SolverFBSubstitution(ls); // A solver devoid of linear system must be passed into the constructor
             solver.Initialize();
@@ -57,6 +59,16 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector Fu = model.CalculateFreeForces(DOFEnumerator);
             Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
             Vector Feff = Fu - Kuc * uc;
+
+            #region DEBUG code
+            //Console.WriteLine("uc:");
+            //(new FullVectorWriter(uc)).WriteToConsole();
+            ////Console.WriteLine("Kuu:");
+            //Console.WriteLine("Kcu:");
+            //(new FullMatrixWriter(Kuc)).WriteToConsole();
+            //Console.WriteLine("Feff:");
+            //(new FullVectorWriter(Feff)).WriteToConsole();
+            #endregion
 
             var ls = new SkylineLinearSystem(0, Feff.CopyToArray());
             ls.Matrix = Kuu;

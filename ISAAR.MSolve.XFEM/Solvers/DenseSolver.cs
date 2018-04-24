@@ -5,20 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
-    class CholeskySuiteSparseSolver: ISolver
+    class DenseSolver : ISolver
     {
         private readonly Model2D model;
 
-        public CholeskySuiteSparseSolver(Model2D model)
+        public DenseSolver(Model2D model)
         {
             this.model = model;
         }
@@ -31,13 +29,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void Solve()
         {
-            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
-            (DOKSymmetricColMajor matrix, Vector rhs) = ReduceToSimpleLinearSystem();
-            using (CholeskySuiteSparse factorization = matrix.BuildSymmetricCSCMatrix(true).FactorCholesky())
-            {
-                Solution = factorization.SolveLinearSystem(rhs);
-            }
+            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
+            (Matrix matrix, Vector rhs) = ReduceToSimpleLinearSystem();
+            Solution = matrix.FactorCholesky().SolveLinearSystem(rhs);
         }
 
         /// <summary>
@@ -50,9 +45,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// ii) uu = Kuu \ Feff 
         /// </summary>
         /// <returns></returns>
-        private (DOKSymmetricColMajor matrix, Vector rhs) ReduceToSimpleLinearSystem()
+        private (Matrix matrix, Vector rhs) ReduceToSimpleLinearSystem()
         {
-            (DOKSymmetricColMajor Kuu, Matrix Kuc) = SingleGlobalDOKAssembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (Matrix Kuu, Matrix Kuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             Vector Fu = model.CalculateFreeForces(DOFEnumerator);

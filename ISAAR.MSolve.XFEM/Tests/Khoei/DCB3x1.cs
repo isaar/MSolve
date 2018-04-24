@@ -146,8 +146,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
-        //private Type solverType = typeof(SkylineSolverOLD);
-        private Type solverType = typeof(CholeskySuiteSparseSolver);
+        //private Type solverType = typeof(DenseSolver);
+        private Type solverType = typeof(SkylineSolverOLD);
+        //private Type solverType = typeof(CholeskySuiteSparseSolver);
         private BasicExplicitCrack2D crack;
 
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -100,6 +101,37 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             //The Dictionary columns[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
         }
 
+        public void AddSubmatrix(IIndexable2D elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        {
+            foreach (var colPair in elementColsToGlobalCols)
+            {
+                int elementCol = colPair.Key;
+                foreach (var rowPair in elementRowsToGlobalRows)
+                {
+                    int elementRow = rowPair.Key;
+                    int globalRow, globalCol;
+                    if (rowPair.Value <= colPair.Value)
+                    {
+                        globalRow = rowPair.Value;
+                        globalCol = colPair.Value;
+                    }
+                    else
+                    {
+                        globalRow = colPair.Value;
+                        globalCol = rowPair.Value;
+                    }
+
+                    double elementValue = elementMatrix[elementRow, elementCol];
+                    if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
+                    {
+                        columns[globalCol][globalRow] = elementValue + oldGlobalValue;
+                    }
+                    else columns[globalCol][globalRow] = elementValue;
+                }
+            }
+        }
+
         /// <summary>
         /// Use this method if 1) both the global DOK and the element matrix are symmetric and 2) the rows and columns correspond
         /// to the same degrees of freedom. The caller is responsible for making sure that both matrices are symmetric and that 
@@ -142,6 +174,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             }
         }
 
+        public void AddSubmatrixSymmetric(IIndexable2D elementMatrix, IReadOnlyDictionary<int, int> elementToGlobalDOFs)
+        {
+            foreach (var colPair in elementToGlobalDOFs)
+            {
+                int elementCol = colPair.Key;
+                int globalCol = colPair.Value;
+                foreach (var rowPair in elementToGlobalDOFs)
+                {
+                    int elementRow = rowPair.Key;
+                    int globalRow = rowPair.Value;
+                    if (globalRow <= globalCol)
+                    {
+                        double elementValue = elementMatrix[elementRow, elementCol];
+                        if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
+                        {
+                            columns[globalCol][globalRow] = elementValue + oldGlobalValue;
+                        }
+                        else columns[globalCol][globalRow] = elementValue;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Use this method if you are sure that the all relevant global dofs are above or on the diagonal.
         /// </summary>
@@ -156,6 +211,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 { 
                     int elementRow = rowPair.Key;
                     int globalRow = rowPair.Value;
+
+                    #region DEBUG code
+                    //if (globalRow > globalCol)
+                    //{
+                    //Console.WriteLine($"Cannot write entry ({globalRow}, {globalCol}).");
+                    //}
+                    #endregion
+
                     double elementValue = elementMatrix[elementRow, elementCol];
                     if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
                     {

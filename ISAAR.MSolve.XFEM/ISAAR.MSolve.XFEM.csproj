@@ -56,6 +56,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assemblers\DenseGlobalAssembler.cs" />
+    <Compile Include="Solvers\DenseSolver.cs" />
     <Compile Include="Solvers\QuasiStaticAnalysis.cs" />
     <Compile Include="Assemblers\SingleGlobalDOKAssembler.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssemblerOLD.cs" />

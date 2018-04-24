@@ -42,6 +42,18 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 EnumerateConstrainedDofs(model.Constraints);
             (int enrichedDofsCount, Table<XNode2D, EnrichedDOF, int> enrichedDofs) = 
                 EnumerateEnrichedDofs(model.Nodes, freeDofsCount);
+
+            #region DEBUG code
+            //Console.WriteLine("------------------------ DEBUG ------------------------------");
+            //Console.WriteLine("Free standard dofs: ");
+            //Console.WriteLine(freeDofs);
+            //Console.WriteLine("Enriched dofs: ");
+            //Console.WriteLine(enrichedDofs);
+            //Console.WriteLine("Constrained dofs: ");
+            //Console.WriteLine(constrainedDofs);
+            //Console.WriteLine("------------------------ /DEBUG ------------------------------");
+            #endregion
+
             return new DOFEnumeratorSeparate(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, 
                 freeDofsCount, freeDofs);
         }

@@ -8,6 +8,8 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
@@ -24,11 +26,11 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            SkylineMatrix2D Kff = new SkylineMatrix2D(CalculateSkylineIndexer(model, dofEnumerator));
+            SkylineMatrix2D Kuu = new SkylineMatrix2D(CalculateSkylineIndexer(model, dofEnumerator));
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kfc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount, 
+            Matrix Kuc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount, 
                 dofEnumerator.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -47,15 +49,23 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
 
                 // Add the element contributions to the global matrices
-                AddElementToGlobalMatrix(Kff, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(Kff, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(Kff, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                AddSymmetricElementToGlobalMatrix(Kuu, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                AddSymmetricElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
 
-                AddElementToGlobalMatrix(Kfc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
-                AddElementToGlobalMatrix(Kfc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(Kuc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
             }
 
-            return (Kff, Kfc);
+            #region DEBUG code
+            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofEnumerator);
+            //Console.WriteLine("Check Kuu:");
+            //CheckMatrix(expectedKuu, Kuu);
+            //Console.WriteLine("Check Kuc:");
+            //CheckMatrix(expectedKuc, Kuc);
+            #endregion
+
+            return (Kuu, Kuc);
         }
 
         private static int[] CalculateSkylineIndexer(Model2D model, IDOFEnumerator dofEnumerator)
@@ -108,12 +118,49 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             foreach (var rowPair in elementRowsToGlobalRows)
             {
                 int elementRow = rowPair.Key;
+                foreach (var colPair in elementColsToGlobalCols)
+                {
+                    int elementCol = colPair.Key;
+                    int globalRow, globalCol;
+                    if (rowPair.Value >= colPair.Value)
+                    {
+                        globalRow = rowPair.Value;
+                        globalCol = colPair.Value;
+                    }
+                    else
+                    {
+                        globalRow = colPair.Value;
+                        globalCol = rowPair.Value;
+                    }
+
+                    int height = globalRow - globalCol; // Skyline matrix stores the lower triangle
+                    // Check if the entry is in the lower triangle. This check concerns global dofs only.
+                    // No need to check if the entry is within the row height.
+                    // TODO: This check is redundant for the enriched-standard submatrices, since they always 
+                    // have row=enrichedDof > col=standardDof. Perhaps I could have an optimized method that 
+                    // doesn't check that height>0. Frankly it would be too much code just for avoiding this 
+                    // check. Perhaps after optimizing other things first.
+                    if (height >= 0) //this is probably not needed
+                    {
+                        // Shouldn't the skyline indexing logic be abstracted?
+                        int skylinePos = globalMatrix.RowIndex[globalRow] + height;
+                        globalMatrix.Data[skylinePos] += elementMatrix[elementRow, elementCol];
+                    }
+                }
+            }
+        }
+
+        private static void AddSymmetricElementToGlobalMatrix(SkylineMatrix2D globalMatrix, IMatrixView elementMatrix,
+            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        {
+            foreach (var rowPair in elementRowsToGlobalRows)
+            {
+                int elementRow = rowPair.Key;
                 int globalRow = rowPair.Value;
                 foreach (var colPair in elementColsToGlobalCols)
                 {
                     int elementCol = colPair.Key;
                     int globalCol = colPair.Value;
-
                     int height = globalRow - globalCol; // Skyline matrix stores the lower triangle
                     // Check if the entry is in the lower triangle. This check concerns global dofs only.
                     // No need to check if the entry is within the row height.
@@ -144,9 +191,53 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     int elementCol = colPair.Key;
                     int globalCol = colPair.Value;
 
-                    globalMatrix[globalRow, globalCol] = elementMatrix[elementRow, elementCol];
+                    globalMatrix[globalRow, globalCol] += elementMatrix[elementRow, elementCol];
                 }
             }
+        }
+
+        private static void CheckMatrix(IIndexable2D expected, IIndexable2D computed)
+        {
+            bool isCorrect = true;
+            ValueComparer comparer = new ValueComparer(1e-6);
+            if ((computed.NumRows != expected.NumRows) || (computed.NumColumns != expected.NumColumns))
+            {
+                Console.WriteLine("Invalid dimensions");
+            }
+            for (int i = 0; i < computed.NumRows; ++i)
+            {
+                for (int j = 0; j < computed.NumColumns; ++j)
+                {
+                    if (!comparer.AreEqual(computed[i, j], expected[i, j]))
+                    {
+                        Console.WriteLine($"Computed[{i}, {j}] = {computed[i, j]}   -   Expected[{i}, {j}] = {expected[i, j]}");
+                        isCorrect = false;
+                    }
+                }
+            }
+            if (isCorrect) Console.WriteLine("Correct");
+        }
+
+        private static void CheckMatrix(IIndexable2D expected, IMatrix2D computed)
+        {
+            bool isCorrect = true;
+            ValueComparer comparer = new ValueComparer(1e-6);
+            if ((computed.Rows != expected.NumRows) || (computed.Columns != expected.NumColumns))
+            {
+                Console.WriteLine("Invalid dimensions");
+            }
+            for (int i = 0; i < computed.Rows; ++i)
+            {
+                for (int j = 0; j < computed.Columns; ++j)
+                {
+                    if (!comparer.AreEqual(computed[i, j], expected[i, j]))
+                    {
+                        Console.WriteLine($"Computed[{i}, {j}] = {computed[i, j]}   -   Expected[{i}, {j}] = {expected[i, j]}");
+                        isCorrect = false;
+                    }
+                }
+            }
+            if (isCorrect) Console.WriteLine("Correct");
         }
     }
 }
