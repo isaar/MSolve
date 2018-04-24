@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private (DOKSymmetricColMajor matrix, Vector rhs) ReduceToSimpleLinearSystem()
         {
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, Matrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             Vector Fu = model.CalculateFreeForces(DOFEnumerator);

@@ -148,8 +148,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private Model2D model;
         //private Type solverType = typeof(DenseSolver);
         //private Type solverType = typeof(SkylineSolverOLD);
-        //private Type solverType = typeof(SkylineSolver);
-        private Type solverType = typeof(CholeskySuiteSparseSolver);
+        private Type solverType = typeof(SkylineSolver);
+        //private Type solverType = typeof(CholeskySuiteSparseSolver);
         private BasicExplicitCrack2D crack;
 
 
@@ -285,7 +285,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CheckGlobalStiffnessNode7()
         {
             IDOFEnumerator dofEnumerator = DOFEnumeratorInterleaved.Create(model);
-            (DOKSymmetricColMajor Kuu, Matrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofEnumerator);
 
             var dofsOfNode7 = new List<int>();
             foreach (int dof in dofEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);

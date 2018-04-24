@@ -48,8 +48,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         public static DOKRowMajor CreateEmpty(int numRows, int numCols)
         {
-            var rows = new Dictionary<int, double>[numCols];
-            for (int i = 0; i < numCols; ++i) rows[i] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            var rows = new Dictionary<int, double>[numRows];
+            for (int i = 0; i < numRows; ++i) rows[i] = new Dictionary<int, double>(); //Initial capacity may be optimized.
             return new DOKRowMajor(numRows, numCols, rows);
         }
 
@@ -84,18 +84,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             //The Dictionary rowss[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
         }
 
-        public void AddSubmatrix(IIndexable2D elementMatrix,
-            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        public void AddSubmatrix(IIndexable2D subMatrix,
+            IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
         {
-            foreach (var rowPair in elementRowsToGlobalRows)
+            foreach (var rowPair in subRowsToGlobalRows)
             {
-                int elementRow = rowPair.Key;
+                int subRow = rowPair.Key;
                 int globalRow = rowPair.Value;
-                foreach (var colPair in elementColsToGlobalCols)
+                foreach (var colPair in subColsToGlobalCols)
                 {
-                    int elementCol = colPair.Key;
+                    int subCol = colPair.Key;
                     int globalCol = colPair.Value;
-                    double elementValue = elementMatrix[elementRow, elementCol];
+                    double elementValue = subMatrix[subRow, subCol];
                     if (rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue))
                     {
                         rows[globalRow][globalCol] = elementValue + oldGlobalValue;
@@ -110,41 +110,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// to the same degrees of freedom. The caller is responsible for making sure that both matrices are symmetric and that 
         /// the dimensions and dofs of the element matrix and dof mappings match.
         /// </summary>
-        /// <param name="elementMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
+        /// <param name="subMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
         ///     symmetric and its <see cref="IIndexable2D.NumColumns"/> = <see cref="IIndexable2D.NumRows"/> must be equal to
         ///     elemenDofs.Length = globalDofs.Length.</param>
-        /// <param name="elementDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
+        /// <param name="subDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
         ///     (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
         /// <param name="globalDofs">The entries in the global matrix where element matrix entries will be added to. Specificaly,
         ///     pairs of (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
-        public void AddSubmatrixSymmetric(IIndexable2D elementMatrix, int[] elementDofs, int[] globalDofs)
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subDofs, int[] globalDofs)
         {
-            int n = elementDofs.Length;
+            int n = subDofs.Length;
             for (int i = 0; i < n; ++i)
             {
-                int elementRow = elementDofs[i];
+                int subRow = subDofs[i];
                 int globalRow = globalDofs[i];
 
                 //Diagonal entry
                 if (rows[globalRow].TryGetValue(globalRow, out double oldGlobalDiagValue))
                 {
-                    rows[globalRow][globalRow] = elementMatrix[elementRow, elementRow] + oldGlobalDiagValue;
+                    rows[globalRow][globalRow] = subMatrix[subRow, subRow] + oldGlobalDiagValue;
                 }
-                else rows[globalRow][globalRow] = elementMatrix[elementRow, elementRow];
+                else rows[globalRow][globalRow] = subMatrix[subRow, subRow];
 
                 //Non diagonal entries
                 for (int j = 0; j < i; ++j)
                 {
-                    int elementCol = elementDofs[j];
+                    int subCol = subDofs[j];
                     int globalCol = globalDofs[j];
-                    double newGlobalValue = elementMatrix[elementRow, elementRow];
+                    double newGlobalValue = subMatrix[subRow, subRow];
                     // Only check the lower triangle. If the DOK matrix is not symmetric, this will cause errors
                     if (rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue))
                     {
                         newGlobalValue += oldGlobalValue;
                     }
                     rows[globalRow][globalCol] = newGlobalValue;
-                    rows[globalRow][globalCol] = newGlobalValue;
+                    rows[globalCol][globalRow] = newGlobalValue;
                 }
             }
         }

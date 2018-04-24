@@ -16,9 +16,9 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// <summary>
     /// It assumes that element matrices are symmetric!!!
     /// </summary>
-    abstract class GlobalAssemblerBase<TMatrix> where TMatrix: ISymmetricMatrixBuilder
+    abstract class GlobalAssemblerBase<TMatrix> where TMatrix: ISymmetricMatrixBuilder //TODO: do not abstract the returned types
     {
-        public (TMatrix Kuu, Matrix Kuc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        public (TMatrix Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {
             int numDofsConstrained = dofEnumerator.ConstrainedDofsCount;
             int numDofsUnconstrained = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             TMatrix Kuu = InitializeGlobalUncontrainedMatrix(model, dofEnumerator);
 
-            // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
-            // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(numDofsUnconstrained, numDofsConstrained);
+            // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
+            // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
+            var Kuc = DOKRowMajor.CreateEmpty(numDofsUnconstrained, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
@@ -53,8 +53,8 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 Kuu.AddSubmatrix(kse, mapFree, mapEnriched);
                 Kuu.AddSubmatrixSymmetric(kee, mapEnriched);
 
-                AddElementToGlobalMatrix(Kuc, kss, mapFree, mapConstrained);
-                AddElementToGlobalMatrix(Kuc, kes, mapEnriched, mapConstrained);
+                Kuc.AddSubmatrix(kss, mapFree, mapConstrained);
+                Kuc.AddSubmatrix(kes, mapEnriched, mapConstrained);
             }
 
             #region DEBUG code
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             #endregion
 
             //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. sok.Build())
-            return (Kuu, Kuc); 
+            return (Kuu, Kuc.BuildCSRMatrix(true)); 
         }
 
         protected abstract TMatrix InitializeGlobalUncontrainedMatrix(Model2D model, IDOFEnumerator dofEnumerator);
