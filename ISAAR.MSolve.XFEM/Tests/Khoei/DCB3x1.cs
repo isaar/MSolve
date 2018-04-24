@@ -133,8 +133,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //ISolver solver = new DenseSolver(model);
             //ISolver solver = new SkylineSolverOLD(model);
             //ISolver solver = new SkylineSolver(model);
-            //ISolver solver = new CholeskySuiteSparseSolver(model);
-            ISolver solver = new PCGSolver(model, 0.8, 1e-6);
+            ISolver solver = new CholeskySuiteSparseSolver(model);
+            //ISolver solver = new PCGSolver(model, 0.8, 1e-6);
             solver.Initialize();
             solver.Solve();
 

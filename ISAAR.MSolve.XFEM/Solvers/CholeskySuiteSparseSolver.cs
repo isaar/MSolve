@@ -14,52 +14,21 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
-    class CholeskySuiteSparseSolver: ISolver
+    class CholeskySuiteSparseSolver: SolverBase
     {
-        private readonly Model2D model;
+        public CholeskySuiteSparseSolver(Model2D model) : base(model) { }
 
-        public CholeskySuiteSparseSolver(Model2D model)
-        {
-            this.model = model;
-        }
-
-        public IDOFEnumerator DOFEnumerator { get; private set; }
-
-        public Vector Solution { get; private set; }
-
-        public void Initialize() { }
-
-        public void Solve()
+        public override void Solve()
         {
             DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
-            (DOKSymmetricColMajor matrix, Vector rhs) = ReduceToSimpleLinearSystem();
-            using (CholeskySuiteSparse factorization = matrix.BuildSymmetricCSCMatrix(true).FactorCholesky())
+            var assembler = new GlobalDOKAssembler();
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            Vector rhs = CalcEffectiveRhs(Kuc);
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())
             {
                 Solution = factorization.SolveLinearSystem(rhs);
             }
-        }
-
-        /// <summary>
-        /// The extended linear system is:
-        /// [Kcc Kcu; Kuc Kuu] * [uc; uu] = [Fc; Fu]
-        /// where c are the standard constrained dofs, f are the standard free dofs, e are the enriched dofs and 
-        /// u = Union(f,c) are both the dofs with unknown left hand side vectors: uu = [uf; ue].
-        /// To solve the system (for the unknowns ul):
-        /// i) Kuu * uu = Fu - Kuc * uc = Feff
-        /// ii) uu = Kuu \ Feff 
-        /// </summary>
-        /// <returns></returns>
-        private (DOKSymmetricColMajor matrix, Vector rhs) ReduceToSimpleLinearSystem()
-        {
-            var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
-
-            // TODO: Perhaps a dedicated class should be responsible for these vectors
-            Vector Fu = model.CalculateFreeForces(DOFEnumerator);
-            Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
-            Vector Feff = Fu - Kuc * uc;
-            return (Kuu, Feff);
         }
     }
 }

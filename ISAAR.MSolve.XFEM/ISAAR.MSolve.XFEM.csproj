@@ -177,6 +177,7 @@
     <Compile Include="Solvers\Preconditioning\JacobiPreconditioner.cs" />
     <Compile Include="Solvers\SkylineSolver.cs" />
     <Compile Include="Solvers\SkylineSolverOLD.cs" />
+    <Compile Include="Solvers\SolverBase.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />

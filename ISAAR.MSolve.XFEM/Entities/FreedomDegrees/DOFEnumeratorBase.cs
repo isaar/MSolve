@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
     // TODO: I should use interchangeble builders, eather than subclasses.
-    class DOFEnumeratorBase: IDOFEnumerator
+    abstract class DOFEnumeratorBase: IDOFEnumerator
     {
         protected readonly Table<XNode2D, DisplacementDOF, int> constrainedDofs;
         protected readonly Table<XNode2D, EnrichedDOF, int> enrichedDofs;
