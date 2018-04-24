@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.FEM.FEMTests</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
@@ -56,12 +56,14 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analysis\ILinearStaticAnalysis.cs" />
-    <Compile Include="Analysis\LinearStaticAnalysisCSC.cs" />
-    <Compile Include="Analysis\LinearStaticAnalysisSkyline.cs" />
-    <Compile Include="Analysis\QuasiStaticAnalysis.cs" />
-    <Compile Include="Assemblers\SingleGlobalDOKAssembler.cs" />
-    <Compile Include="Assemblers\SingleGlobalSkylineAssembler.cs" />
+    <Compile Include="Assemblers\GlobalCSRAssembler.cs" />
+    <Compile Include="Assemblers\GlobalDenseAssembler.cs" />
+    <Compile Include="Assemblers\GlobalSkylineAssembler.cs" />
+    <Compile Include="Solvers\DenseSolver.cs" />
+    <Compile Include="Solvers\PCGSolver.cs" />
+    <Compile Include="Solvers\QuasiStaticAnalysis.cs" />
+    <Compile Include="Assemblers\GlobalDOKAssembler.cs" />
+    <Compile Include="Assemblers\SingleGlobalSkylineAssemblerOLD.cs" />
     <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
     <Compile Include="CrackGeometry\CrackTipPosition.cs" />
     <Compile Include="CrackGeometry\ICrackGeometry.cs" />
@@ -92,10 +94,15 @@
     <Compile Include="Enrichments\Items\CrackBodyEnrichment2D.cs" />
     <Compile Include="Enrichments\Items\CrackTipEnrichments2D.cs" />
     <Compile Include="CrackGeometry\TipJacobians.cs" />
-    <Compile Include="Entities\FreedomDegrees\DOFEnumerator.cs" />
-    <Compile Include="Entities\FreedomDegrees\ArtificialDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\DisplacementDOF.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumeratorBase.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumeratorInterleaved.cs" />
+    <Compile Include="Entities\FreedomDegrees\DOFEnumeratorSeparate.cs" />
+    <Compile Include="Entities\FreedomDegrees\EnrichedDOF.cs" />
+    <Compile Include="Entities\FreedomDegrees\IDOF.cs" />
+    <Compile Include="Entities\FreedomDegrees\IDOFEnumerator.cs" />
     <Compile Include="Entities\FreedomDegrees\NodeMajorDofReorder.cs" />
-    <Compile Include="Entities\FreedomDegrees\StandardDOFType.cs" />
+    <Compile Include="Entities\FreedomDegrees\RotationDOF.cs" />
     <Compile Include="Entities\Model2D.cs" />
     <Compile Include="Entities\NodalLoad2D.cs" />
     <Compile Include="Geometry\Boundaries\IDomainBoundary.cs" />
@@ -160,6 +167,17 @@
     <Compile Include="Output\StrainField.cs" />
     <Compile Include="Output\StressField.cs" />
     <Compile Include="Output\TensorOutput.cs" />
+    <Compile Include="Solvers\Algorithms\CGAlgorithm.cs" />
+    <Compile Include="Solvers\Algorithms\IterativeStatistics.cs" />
+    <Compile Include="Solvers\Algorithms\PCGAlgorithm.cs" />
+    <Compile Include="Solvers\CholeskySuiteSparseSolver.cs" />
+    <Compile Include="Solvers\ISolver.cs" />
+    <Compile Include="Solvers\Preconditioning\IdentityPreconditioner.cs" />
+    <Compile Include="Solvers\Preconditioning\IPreconditioner.cs" />
+    <Compile Include="Solvers\Preconditioning\JacobiPreconditioner.cs" />
+    <Compile Include="Solvers\SkylineSolver.cs" />
+    <Compile Include="Solvers\SkylineSolverOLD.cs" />
+    <Compile Include="Solvers\SolverBase.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />
@@ -171,6 +189,7 @@
     <Compile Include="Tests\Khoei\InfinitePlate.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateHorizontalCrack.cs" />
     <Compile Include="Tests\Khoei\InfinitePlateInclinedCrack.cs" />
+    <Compile Include="Solvers\Algorithms\IterativeTests.cs" />
     <Compile Include="Tests\Tools\ArrayPrinter.cs" />
     <Compile Include="Tests\Tools\LoadDistributor.cs" />
     <Compile Include="Tests\Tools\PropagationResults.cs" />

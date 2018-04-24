@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         protected List<XContinuumElement2D> affectedElements;
 
-        public IReadOnlyList<ArtificialDOFType> DOFs { get; protected set; }
+        public IReadOnlyList<EnrichedDOF> DOFs { get; protected set; }
         public IReadOnlyList<XContinuumElement2D> AffectedElements { get { return affectedElements; } }
 
         protected AbstractEnrichmentItem2D()

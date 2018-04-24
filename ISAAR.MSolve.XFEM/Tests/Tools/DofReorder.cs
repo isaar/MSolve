@@ -16,10 +16,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
-        public static int[] OldToNewDofs(Model2D model, int[][] expectedNodalDofs)
+        public static int[] OldToNewDofs(Model2D model, int[][] expectedNodalDofs, IDOFEnumerator dofEnumerator)
         {
-            DOFEnumerator enumerator = model.DofEnumerator;
-            
             XNode2D[] nodes = model.Nodes.ToArray();
             Array.Sort(nodes); // Nodes must be sorted to produce a node major numbering
             int[][] currentNodalDofs = new int[nodes.Length][];
@@ -27,13 +25,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             for (int n = 0; n < nodes.Length; ++n)
             {
                 var dofsOfNode = new List<int>();
-                foreach (int dof in enumerator.GetFreeDofsOf(nodes[n]))
+                foreach (int dof in dofEnumerator.GetFreeDofsOf(nodes[n]))
                 {
                     dofsOfNode.Add(dof);
                     //if (dof != -1) dofsOfNode.Add(dof);
                     //else throw new Exception("Does not work if there are constraints");
                 }
-                foreach (int dof in enumerator.GetArtificialDofsOf(nodes[n])) dofsOfNode.Add(dof);
+                foreach (int dof in dofEnumerator.GetEnrichedDofsOf(nodes[n])) dofsOfNode.Add(dof);
                 currentNodalDofs[n] = dofsOfNode.ToArray();
             }
 

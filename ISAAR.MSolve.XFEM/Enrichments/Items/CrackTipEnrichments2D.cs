@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         private readonly IReadOnlyList<ITipFunction> enrichmentFunctions;
         private readonly ICrackGeometry crackDescription;
         private readonly CrackTipPosition tipPosition;
-        public IReadOnlyList<ArtificialDOFType> DOFs { get; }
+        public IReadOnlyList<EnrichedDOF> DOFs { get; }
 
         public CrackTipEnrichments2D(ICrackGeometry crackDescription, CrackTipPosition tipPosition) : 
             this(crackDescription, tipPosition, new ITipFunction[] 
@@ -38,16 +38,16 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             this.crackDescription = crackDescription;
             this.tipPosition = tipPosition;
             this.enrichmentFunctions = enrichmentFunctions;
-            this.DOFs = new ArtificialDOFType[]
+            this.DOFs = new EnrichedDOF[]
             {
-                new ArtificialDOFType(enrichmentFunctions[0], StandardDOFType.X),
-                new ArtificialDOFType(enrichmentFunctions[0], StandardDOFType.Y),
-                new ArtificialDOFType(enrichmentFunctions[1], StandardDOFType.X),
-                new ArtificialDOFType(enrichmentFunctions[1], StandardDOFType.Y),
-                new ArtificialDOFType(enrichmentFunctions[2], StandardDOFType.X),
-                new ArtificialDOFType(enrichmentFunctions[2], StandardDOFType.Y),
-                new ArtificialDOFType(enrichmentFunctions[3], StandardDOFType.X),
-                new ArtificialDOFType(enrichmentFunctions[3], StandardDOFType.Y),
+                new EnrichedDOF(enrichmentFunctions[0], DisplacementDOF.X),
+                new EnrichedDOF(enrichmentFunctions[0], DisplacementDOF.Y),
+                new EnrichedDOF(enrichmentFunctions[1], DisplacementDOF.X),
+                new EnrichedDOF(enrichmentFunctions[1], DisplacementDOF.Y),
+                new EnrichedDOF(enrichmentFunctions[2], DisplacementDOF.X),
+                new EnrichedDOF(enrichmentFunctions[2], DisplacementDOF.Y),
+                new EnrichedDOF(enrichmentFunctions[3], DisplacementDOF.X),
+                new EnrichedDOF(enrichmentFunctions[3], DisplacementDOF.Y),
             };
 
         }

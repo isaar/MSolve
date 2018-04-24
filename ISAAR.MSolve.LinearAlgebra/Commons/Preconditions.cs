@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
-    static class Preconditions
+    public static class Preconditions
     {
         public static bool AreSameMatrixDimensions(IIndexable2D matrix1, IIndexable2D matrix2)
         {
@@ -127,6 +127,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                     matrix1.NumRows, matrix1.NumColumns, matrix2.NumRows, matrix2.NumColumns);
                 throw new NonMatchingDimensionsException(message);
             }
+        }
+
+        public static void CheckSquare(IIndexable2D matrix)
+        {
+            if (matrix.NumRows != matrix.NumColumns) throw new NonMatchingDimensionsException(
+                $"The matrix must be square, but was {matrix.NumRows}-by-{matrix.NumColumns}");
         }
 
         public static void CheckSystemSolutionDimensions(IIndexable2D matrix, IVectorView rhsVector)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
@@ -14,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// stored. This class is optimized for building global positive definite matrices, where there is at least 1 entry per 
     /// column.
     /// </summary>
-    public class DOKColMajor: ISparseMatrix
+    public class DOKColMajor: ISparseMatrix, IMatrixBuilder
     {
         /// <summary>
         /// See the rant in <see cref="DOKSymmetricColMajor.columns"/> about performance.
@@ -83,18 +84,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             //The Dictionary columns[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
         }
 
-        public void AddSubmatrix(IIndexable2D elementMatrix, 
-            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        public void AddSubmatrix(IIndexable2D subMatrix, 
+            IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
         {
-            foreach (var colPair in elementColsToGlobalCols) // Col major ordering is the default
+            foreach (var colPair in subColsToGlobalCols) // Col major ordering is the default
             {
-                int elementCol = colPair.Key;
+                int subCol = colPair.Key;
                 int globalCol = colPair.Value;
-                foreach (var rowPair in elementRowsToGlobalRows)
+                foreach (var rowPair in subRowsToGlobalRows)
                 {
-                    int elementRow = rowPair.Key;
+                    int subRow = rowPair.Key;
                     int globalRow = rowPair.Value;
-                    double elementValue = elementMatrix[elementRow, elementCol];
+                    double elementValue = subMatrix[subRow, subCol];
                     if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
                     {
                         columns[globalCol][globalRow] = elementValue + oldGlobalValue;
@@ -109,34 +110,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// to the same degrees of freedom. The caller is responsible for making sure that both matrices are symmetric and that 
         /// the dimensions and dofs of the element matrix and dof mappings match.
         /// </summary>
-        /// <param name="elementMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
+        /// <param name="subMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
         ///     symmetric and its <see cref="IIndexable2D.NumColumns"/> = <see cref="IIndexable2D.NumRows"/> must be equal to
         ///     elemenDofs.Length = globalDofs.Length.</param>
-        /// <param name="elementDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
+        /// <param name="subDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
         ///     (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
         /// <param name="globalDofs">The entries in the global matrix where element matrix entries will be added to. Specificaly,
         ///     pairs of (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
-        public void AddSubmatrixSymmetric(IIndexable2D elementMatrix, int[] elementDofs, int[] globalDofs)
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subDofs, int[] globalDofs)
         {
-            int n = elementDofs.Length;
+            int n = subDofs.Length;
             for (int j = 0; j < n; ++j)
             {
-                int elementCol = elementDofs[j];
+                int subCol = subDofs[j];
                 int globalCol = globalDofs[j];
 
                 //Diagonal entry
                 if (columns[globalCol].TryGetValue(globalCol, out double oldGlobalDiagValue))
                 {
-                    columns[globalCol][globalCol] = elementMatrix[elementCol, elementCol] + oldGlobalDiagValue;
+                    columns[globalCol][globalCol] = subMatrix[subCol, subCol] + oldGlobalDiagValue;
                 }
-                else columns[globalCol][globalCol] = elementMatrix[elementCol, elementCol];
+                else columns[globalCol][globalCol] = subMatrix[subCol, subCol];
 
                 //Non diagonal entries
                 for (int i = 0; i < j; ++i)
                 {
-                    int elementRow = elementDofs[j];
+                    int subRow = subDofs[j];
                     int globalRow = globalDofs[j];
-                    double newGlobalValue = elementMatrix[elementRow, elementCol];
+                    double newGlobalValue = subMatrix[subRow, subCol];
                     // Only check the upper triangle. If the DOK matrix is not symmetric, this will cause errors
                     if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue)) 
                     {
@@ -231,6 +232,40 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="Vector"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (Vector diagonal, int firstZeroIdx) GetDiagonal()
+        {
+            (double[] diagonal, int firstZeroIdx) = GetDiagonalAsArray();
+            return (Vector.CreateFromArray(diagonal, false), firstZeroIdx);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="double[]"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
+        {
+            Preconditions.CheckSquare(this);
+            double[] diag = new double[NumColumns];
+            int firstZeroIdx = -1;
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                bool isStored = columns[j].TryGetValue(j, out double val);
+                if (isStored) diag[j] = val;
+                else
+                {
+                    diag[j] = 0.0;
+                    firstZeroIdx = j;
+                }
+            }
+            return (diag, firstZeroIdx);
         }
 
         public SparseFormat GetSparseFormat()

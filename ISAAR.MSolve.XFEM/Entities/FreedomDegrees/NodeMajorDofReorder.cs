@@ -14,22 +14,20 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
-        public static int[] OldToNewDofs(Model2D model)
+        public static int[] OldToNewDofs(Node2D[] nodes, IDOFEnumerator enumerator)
         {
-            DOFEnumerator enumerator = model.DofEnumerator;
-            int totalDofsCount = enumerator.FreeDofsCount + enumerator.ArtificialDofsCount;
+            int totalDofsCount = enumerator.FreeDofsCount + enumerator.EnrichedDofsCount;
 
             // In case some dof is mistakenly skipped, initialize the array to an illegal value, such as -2 (-1 is taken)
             List<int> permutation = Enumerable.Repeat(-2, totalDofsCount).ToList();
 
-            Node2D[] nodes = model.Nodes.ToArray();
             Array.Sort(nodes); // Nodes must be sorted to produce a node major numbering
 
             int newIndex = 0;
             foreach (XNode2D node in nodes)
             {
                 var stdDofs = enumerator.GetFreeDofsOf(node);
-                var enrDofs = enumerator.GetArtificialDofsOf(node);
+                var enrDofs = enumerator.GetEnrichedDofsOf(node);
                 foreach (int dof in stdDofs)
                 {
                     if (dof !=- 1) permutation[dof] = newIndex++;

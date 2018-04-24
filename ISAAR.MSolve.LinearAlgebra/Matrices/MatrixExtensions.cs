@@ -4,12 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
+    /// <summary>
+    /// If one of the following methods is also implemented in a concrete class, use that one (if possible), as it will be far 
+    /// more efficient.
+    /// </summary>
     public static class MatrixExtensions
     {
         /// <summary>
@@ -31,6 +37,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static void AddIntoThis(this IMatrix matrix1, IMatrixView matrix2)
         {
             matrix1.AxpyIntoThis(matrix2, 1.0);
+        }
+
+        public static Vector GetDiagonal(this IMatrixView matrix)
+        {
+            return Vector.CreateFromArray(matrix.GetDiagonalAsArray(), false);
+        }
+
+        public static double[] GetDiagonalAsArray(this IMatrixView matrix)
+        {
+            Preconditions.CheckSquare(matrix);
+            double[] diag = new double[matrix.NumRows];
+            for (int i = 0; i < matrix.NumRows; ++i) diag[i] = matrix[i, i];
+            return diag;
         }
 
         public static Matrix Reorder(this IIndexable2D matrix, IReadOnlyList<int> permutation, bool oldToNew)

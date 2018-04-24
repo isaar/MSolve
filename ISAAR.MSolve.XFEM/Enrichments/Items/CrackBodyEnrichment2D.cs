@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     class CrackBodyEnrichment2D : IEnrichmentItem2D
     {
         private readonly IHeavisideFunction2D enrichmentFunction;
-        public IReadOnlyList<ArtificialDOFType> DOFs { get; }
+        public IReadOnlyList<EnrichedDOF> DOFs { get; }
         public ICrackGeometry crackDescription;
 
         public CrackBodyEnrichment2D(ICrackGeometry crackDescription): this(crackDescription, new SignFunction2D())
@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
             this.crackDescription = crackDescription;
             this.enrichmentFunction = enrichmentFunction;
-            this.DOFs = new ArtificialDOFType[] {
-                new ArtificialDOFType(enrichmentFunction, StandardDOFType.X),
-                new ArtificialDOFType(enrichmentFunction, StandardDOFType.Y)
+            this.DOFs = new EnrichedDOF[] {
+                new EnrichedDOF(enrichmentFunction, DisplacementDOF.X),
+                new EnrichedDOF(enrichmentFunction, DisplacementDOF.Y)
             };
         }
         

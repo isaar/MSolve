@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
             this.Discontinuity = geometry;
             this.enrichmentFunction = new RampFunction2D();
-            this.DOFs = new ArtificialDOFType[] {
-                new ArtificialDOFType(enrichmentFunction, StandardDOFType.X),
-                new ArtificialDOFType(enrichmentFunction, StandardDOFType.Y)
+            this.DOFs = new EnrichedDOF[] {
+                new EnrichedDOF(enrichmentFunction, DisplacementDOF.X),
+                new EnrichedDOF(enrichmentFunction, DisplacementDOF.Y)
             };
         }
 

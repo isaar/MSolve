@@ -318,21 +318,21 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// code duplication with the standard ContinuumElement2D
         /// </summary>
         /// <returns></returns>
-        public ITable<XNode2D, StandardDOFType, int> GetStandardDofs()
+        public ITable<XNode2D, DisplacementDOF, int> GetStandardDofs()
         {
-            var elementDofs = new Table<XNode2D, StandardDOFType, int>();
+            var elementDofs = new Table<XNode2D, DisplacementDOF, int>();
             int dofCounter = 0;
             foreach (XNode2D node in Nodes)
             {
-                elementDofs[node, StandardDOFType.X] = dofCounter++;
-                elementDofs[node, StandardDOFType.Y] = dofCounter++;
+                elementDofs[node, DisplacementDOF.X] = dofCounter++;
+                elementDofs[node, DisplacementDOF.Y] = dofCounter++;
             }
             return elementDofs;
         }
 
-        public ITable<XNode2D, ArtificialDOFType, int> GetEnrichedDofs()
+        public ITable<XNode2D, EnrichedDOF, int> GetEnrichedDofs()
         {
-            var elementDofs = new Table<XNode2D, ArtificialDOFType, int>();
+            var elementDofs = new Table<XNode2D, EnrichedDOF, int>();
             int dofCounter = 0;
             foreach (XNode2D node in Nodes)
             {

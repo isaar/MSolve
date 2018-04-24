@@ -6,17 +6,19 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Output
 {
     class DisplacementOutput
     {
         private readonly Model2D model;
-        //private DOFEnumerator dofEnumerator;
+        private readonly IDOFEnumerator dofEnumerator;
 
-        public DisplacementOutput(Model2D model)
+        public DisplacementOutput(Model2D model, IDOFEnumerator dofEnumerator)
         {
             this.model = model;
+            this.dofEnumerator = dofEnumerator;
         }
 
         /// <summary>
@@ -27,17 +29,17 @@ namespace ISAAR.MSolve.XFEM.Output
         /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
         public double[,] FindNodalDisplacements(Vector solution)
         {
-            return model.DofEnumerator.GatherNodalDisplacements(model, solution);
+            return dofEnumerator.GatherNodalDisplacements(model, solution);
         }
 
         public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector2>> FindElementWiseDisplacements(
             Vector solution)
         {
-            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
             var allDisplacements = new Dictionary<XContinuumElement2D, IReadOnlyList<Vector2>>();
             foreach (var element in model.Elements)
             {
-                Vector displacementsUnrolled = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
+                Vector displacementsUnrolled = dofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
                     element, solution, constrainedDisplacements);
                 var displacementsAsVectors = new Vector2[element.Nodes.Count];
                 for (int i = 0; i < element.Nodes.Count; ++i) // This only works for continuum elements though.

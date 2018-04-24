@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.XFEM.Tensors;
@@ -18,10 +19,12 @@ namespace ISAAR.MSolve.XFEM.Output
     class TensorOutput
     {
         private readonly Model2D model;
+        private readonly IDOFEnumerator dofEnumerator;
 
-        public TensorOutput(Model2D model)
+        public TensorOutput(Model2D model, IDOFEnumerator dofEnumerator)
         {
             this.model = model;
+            this.dofEnumerator = dofEnumerator;
         }
 
         public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> ComputeElementWiseNodalStrains(
@@ -51,7 +54,7 @@ namespace ISAAR.MSolve.XFEM.Output
         {
             var tensorsFromAllElements = new Dictionary<XNode2D, List<Tensor2D>>();
             foreach (var node in model.Nodes) tensorsFromAllElements[node] = new List<Tensor2D>();
-            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
 
             foreach (var element in model.Elements)
             {
@@ -97,7 +100,7 @@ namespace ISAAR.MSolve.XFEM.Output
         private IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> ComputeElementWiseNodalTensors(
             Vector solution, bool extrapolateFromGPs, IOutputField field)
         {
-            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements();
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
             var allTensors = new Dictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>>();
             foreach (var element in model.Elements)
             {
@@ -119,10 +122,10 @@ namespace ISAAR.MSolve.XFEM.Output
         private IReadOnlyList<Tensor2D> ElementNodalTensorsDirectly(XContinuumElement2D element,
             Vector freeDisplacements, Vector constrainedDisplacements, IOutputField field)
         {
-            Vector standardDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element,
+            Vector standardDisplacements = dofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element,
                 freeDisplacements, constrainedDisplacements);
             Vector enrichedDisplacements =
-                model.DofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
+                dofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IReadOnlyList<INaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
             var nodalTensors = new Tensor2D[element.Nodes.Count];
@@ -137,10 +140,10 @@ namespace ISAAR.MSolve.XFEM.Output
         private IReadOnlyList<Tensor2D> ElementNodalTensorsExtrapolation(XContinuumElement2D element,
             Vector freeDisplacements, Vector constrainedDisplacements, IOutputField field)
         {
-            Vector standardDisplacements = model.DofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element,
+            Vector standardDisplacements = dofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element,
                 freeDisplacements, constrainedDisplacements);
             Vector enrichedDisplacements =
-                model.DofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
+                dofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IGaussPointSystem gpSystem = element.ElementType.GaussPointSystem;
             IReadOnlyList<INaturalPoint2D> gaussPoints = gpSystem.GaussPoints;

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
@@ -14,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// stored. This class is optimized for building global positive definite matrices, where there is at least 1 entry per 
     /// column.
     /// </summary>
-    public class DOKRowMajor: ISparseMatrix
+    public class DOKRowMajor: ISparseMatrix, IMatrixBuilder
     {
         /// <summary>
         /// See the rant in <see cref="DOKSymmetricColMajor.columns"/> about performance.
@@ -47,8 +48,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         public static DOKRowMajor CreateEmpty(int numRows, int numCols)
         {
-            var rows = new Dictionary<int, double>[numCols];
-            for (int i = 0; i < numCols; ++i) rows[i] = new Dictionary<int, double>(); //Initial capacity may be optimized.
+            var rows = new Dictionary<int, double>[numRows];
+            for (int i = 0; i < numRows; ++i) rows[i] = new Dictionary<int, double>(); //Initial capacity may be optimized.
             return new DOKRowMajor(numRows, numCols, rows);
         }
 
@@ -83,18 +84,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             //The Dictionary rowss[rowIdx] is indexed twice in both cases. Is it possible to only index it once?
         }
 
-        public void AddSubmatrix(IIndexable2D elementMatrix,
-            IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
+        public void AddSubmatrix(IIndexable2D subMatrix,
+            IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
         {
-            foreach (var rowPair in elementRowsToGlobalRows)
+            foreach (var rowPair in subRowsToGlobalRows)
             {
-                int elementRow = rowPair.Key;
+                int subRow = rowPair.Key;
                 int globalRow = rowPair.Value;
-                foreach (var colPair in elementColsToGlobalCols)
+                foreach (var colPair in subColsToGlobalCols)
                 {
-                    int elementCol = colPair.Key;
+                    int subCol = colPair.Key;
                     int globalCol = colPair.Value;
-                    double elementValue = elementMatrix[elementRow, elementCol];
+                    double elementValue = subMatrix[subRow, subCol];
                     if (rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue))
                     {
                         rows[globalRow][globalCol] = elementValue + oldGlobalValue;
@@ -109,45 +110,92 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// to the same degrees of freedom. The caller is responsible for making sure that both matrices are symmetric and that 
         /// the dimensions and dofs of the element matrix and dof mappings match.
         /// </summary>
-        /// <param name="elementMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
+        /// <param name="subMatrix">The element submatrix, entries of which will be added to the global DOK. It must be 
         ///     symmetric and its <see cref="IIndexable2D.NumColumns"/> = <see cref="IIndexable2D.NumRows"/> must be equal to
         ///     elemenDofs.Length = globalDofs.Length.</param>
-        /// <param name="elementDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
+        /// <param name="subDofs">The entries in the element matrix to be added to the global matrix. Specificaly, pairs of 
         ///     (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
         /// <param name="globalDofs">The entries in the global matrix where element matrix entries will be added to. Specificaly,
         ///     pairs of (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
-        public void AddSubmatrixSymmetric(IIndexable2D elementMatrix, int[] elementDofs, int[] globalDofs)
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subDofs, int[] globalDofs)
         {
-            int n = elementDofs.Length;
+            int n = subDofs.Length;
             for (int i = 0; i < n; ++i)
             {
-                int elementRow = elementDofs[i];
+                int subRow = subDofs[i];
                 int globalRow = globalDofs[i];
 
                 //Diagonal entry
                 if (rows[globalRow].TryGetValue(globalRow, out double oldGlobalDiagValue))
                 {
-                    rows[globalRow][globalRow] = elementMatrix[elementRow, elementRow] + oldGlobalDiagValue;
+                    rows[globalRow][globalRow] = subMatrix[subRow, subRow] + oldGlobalDiagValue;
                 }
-                else rows[globalRow][globalRow] = elementMatrix[elementRow, elementRow];
+                else rows[globalRow][globalRow] = subMatrix[subRow, subRow];
 
                 //Non diagonal entries
                 for (int j = 0; j < i; ++j)
                 {
-                    int elementCol = elementDofs[j];
+                    int subCol = subDofs[j];
                     int globalCol = globalDofs[j];
-                    double newGlobalValue = elementMatrix[elementRow, elementRow];
+                    double newGlobalValue = subMatrix[subRow, subRow];
                     // Only check the lower triangle. If the DOK matrix is not symmetric, this will cause errors
                     if (rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue))
                     {
                         newGlobalValue += oldGlobalValue;
                     }
                     rows[globalRow][globalCol] = newGlobalValue;
-                    rows[globalRow][globalCol] = newGlobalValue;
+                    rows[globalCol][globalRow] = newGlobalValue;
                 }
             }
         }
         #endregion
+
+        /// <summary>
+        /// Creates the CSC arrays.
+        /// </summary>
+        /// <param name="sortColsOfEachCol">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
+        ///     rowOffsets[i+1] in ascending order. False to leave them unordered. Ordered columns might result in better  
+        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
+        ///     be faster during creation of the CSR matrix.</param>
+        /// <returns></returns>
+        public (double[] values, int[] rowIndices, int[] columnOffsets) BuildCSRArrays(bool sortColsOfEachCol)
+        {
+            int[] rowOffsets = new int[NumRows + 1];
+            int nnz = 0;
+            for (int i = 0; i < NumRows; ++i)
+            {
+                rowOffsets[i] = nnz;
+                nnz += rows[i].Count;
+            }
+            rowOffsets[NumRows] = nnz; //The last CSR entry is nnz.
+
+            int[] colIndices = new int[nnz];
+            double[] values = new double[nnz];
+            int counter = 0;
+            for (int i = 0; i < NumRows; ++i)
+            {
+                if (sortColsOfEachCol)
+                {
+                    foreach (var rowVal in rows[i].OrderBy(pair => pair.Key))
+                    {
+                        colIndices[counter] = rowVal.Key;
+                        values[counter] = rowVal.Value;
+                        ++counter;
+                    }
+                }
+                else
+                {
+                    foreach (var rowVal in rows[i])
+                    {
+                        colIndices[counter] = rowVal.Key;
+                        values[counter] = rowVal.Value;
+                        ++counter;
+                    }
+                }
+            }
+
+            return (values, colIndices, rowOffsets);
+        }
 
         /// <summary>
         /// Creates a CSC matrix.
@@ -186,6 +234,40 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
+        /// <summary>
+        /// Returns the diagonal as <see cref="Vector"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (Vector diagonal, int firstZeroIdx) GetDiagonal()
+        {
+            (double[] diagonal, int firstZeroIdx) = GetDiagonalAsArray();
+            return (Vector.CreateFromArray(diagonal, false), firstZeroIdx);
+        }
+
+        /// <summary>
+        /// Returns the diagonal as <see cref="double[]"/> and the index of the first zero entry. If there are no zero entries,
+        /// -1 is returned as the index.
+        /// </summary>
+        /// <returns></returns>
+        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
+        {
+            Preconditions.CheckSquare(this);
+            double[] diag = new double[NumRows];
+            int firstZeroIdx = -1;
+            for (int i = 0; i < NumRows; ++i)
+            {
+                bool isStored = rows[i].TryGetValue(i, out double val);
+                if (isStored) diag[i] = val;
+                else
+                {
+                    diag[i] = 0.0;
+                    firstZeroIdx = i;
+                }
+            }
+            return (diag, firstZeroIdx);
+        }
+
         public SparseFormat GetSparseFormat()
         {
             (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(false);
@@ -197,51 +279,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return format;
         }
 
-        /// <summary>
-        /// Creates the CSC arrays.
-        /// </summary>
-        /// <param name="sortColsOfEachCol">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
-        ///     rowOffsets[i+1] in ascending order. False to leave them unordered. Ordered columns might result in better  
-        ///     performance during multiplications or they might be required by 3rd party libraries. Leaving them unordered will 
-        ///     be faster during creation of the CSR matrix.</param>
-        /// <returns></returns>
-        private (double[] values, int[] rowIndices, int[] columnOffsets) BuildCSRArrays(bool sortColsOfEachCol)
-        {
-            int[] rowOffsets = new int[NumRows + 1];
-            int nnz = 0;
-            for (int i = 0; i < NumRows; ++i)
-            {
-                rowOffsets[i] = nnz;
-                nnz += rows[i].Count;
-            }
-            rowOffsets[NumRows] = nnz; //The last CSR entry is nnz.
-
-            int[] colIndices = new int[nnz];
-            double[] values = new double[nnz];
-            int counter = 0;
-            for (int i = 0; i < NumRows; ++i)
-            {
-                if (sortColsOfEachCol)
-                {
-                    foreach (var rowVal in rows[i].OrderBy(pair => pair.Key))
-                    {
-                        colIndices[counter] = rowVal.Key;
-                        values[counter] = rowVal.Value;
-                        ++counter;
-                    }
-                }
-                else
-                {
-                    foreach (var rowVal in rows[i])
-                    {
-                        colIndices[counter] = rowVal.Key;
-                        values[counter] = rowVal.Value;
-                        ++counter;
-                    }
-                }
-            }
-
-            return (values, colIndices, rowOffsets);
-        }
+        
     }
 }

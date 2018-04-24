@@ -10,19 +10,18 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
     class DofEnumerationChecker
     {
-        public static void PrintEnumeration(Model2D model)
+        public static void PrintEnumeration(IReadOnlyList<XNode2D> nodes, IDOFEnumerator dofEnumerator, 
+            IEnumerable<DisplacementDOF> standardDofs, IEnumerable<EnrichedDOF> enrichedDofs)
         {
-            DOFEnumerator enumerator = model.DofEnumerator;
-
             Console.WriteLine("Standards dofs:");
-            foreach (XNode2D node in model.Nodes)
+            foreach (XNode2D node in nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (int dof in enumerator.GetFreeDofsOf(node))
+                foreach (DisplacementDOF dof in standardDofs)
                 {
-                    Console.Write(dof + " ");
+                    Console.Write(dofEnumerator.GetFreeDofOf(node, dof) + " ");
                 }
-                foreach (int dof in enumerator.GetConstrainedDofsOf(node))
+                foreach (int dof in dofEnumerator.GetConstrainedDofsOf(node))
                 {
                     Console.Write("c" + dof + " ");
                 }
@@ -31,12 +30,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             Console.WriteLine();
 
             Console.WriteLine("Enriched dofs:");
-            foreach (XNode2D node in model.Nodes)
+            foreach (XNode2D node in nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (int dof in enumerator.GetArtificialDofsOf(node))
+                foreach (EnrichedDOF dof in enrichedDofs)
                 {
-                    Console.Write(dof + " ");
+                    Console.Write(dofEnumerator.GetEnrichedDofOf(node, dof) + " ");
                 }
                 Console.WriteLine();
             }
