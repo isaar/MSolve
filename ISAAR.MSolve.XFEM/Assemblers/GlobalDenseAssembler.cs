@@ -10,7 +10,7 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
-    static class DenseGlobalAssembler
+    static class GlobalDenseAssembler
     {
         public static (Matrix Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
         {

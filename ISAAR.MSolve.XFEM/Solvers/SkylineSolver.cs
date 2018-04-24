@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -12,11 +11,11 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
-    class DenseSolver : ISolver
+    class SkylineSolver : ISolver
     {
         private readonly Model2D model;
 
-        public DenseSolver(Model2D model)
+        public SkylineSolver(Model2D model)
         {
             this.model = model;
         }
@@ -29,10 +28,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void Solve()
         {
-            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
             DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
-            (Matrix matrix, Vector rhs) = ReduceToSimpleLinearSystem();
-            Solution = matrix.FactorCholesky().SolveLinearSystem(rhs);
+            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
+            (SkylineMatrix matrix, Vector rhs) = ReduceToSimpleLinearSystem();
+            Solution = matrix.FactorCholesky(true).SolveLinearSystem(rhs);
         }
 
         /// <summary>
@@ -45,9 +44,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// ii) uu = Kuu \ Feff 
         /// </summary>
         /// <returns></returns>
-        private (Matrix matrix, Vector rhs) ReduceToSimpleLinearSystem()
+        private (SkylineMatrix matrix, Vector rhs) ReduceToSimpleLinearSystem()
         {
-            (Matrix Kuu, Matrix Kuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (SkylineMatrix Kuu, Matrix Kuc) = GlobalSkylineAssembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             Vector Fu = model.CalculateFreeForces(DOFEnumerator);

@@ -56,10 +56,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assemblers\DenseGlobalAssembler.cs" />
+    <Compile Include="Assemblers\GlobalDenseAssembler.cs" />
+    <Compile Include="Assemblers\GlobalSkylineAssembler.cs" />
     <Compile Include="Solvers\DenseSolver.cs" />
     <Compile Include="Solvers\QuasiStaticAnalysis.cs" />
-    <Compile Include="Assemblers\SingleGlobalDOKAssembler.cs" />
+    <Compile Include="Assemblers\GlobalDOKAssembler.cs" />
     <Compile Include="Assemblers\SingleGlobalSkylineAssemblerOLD.cs" />
     <Compile Include="CrackGeometry\BasicExplicitInteriorCrack.cs" />
     <Compile Include="CrackGeometry\CrackTipPosition.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="Solvers\Preconditioning\IdentityPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\IPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\JacobiPreconditioner.cs" />
+    <Compile Include="Solvers\SkylineSolver.cs" />
     <Compile Include="Solvers\SkylineSolverOLD.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />

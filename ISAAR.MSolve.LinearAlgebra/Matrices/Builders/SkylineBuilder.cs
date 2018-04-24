@@ -163,7 +163,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 {
                     int globalRow = rowPair.Value;
 
-                    int height = globalRow - globalCol;
+                    int height = globalCol - globalRow;
                     if (height >= 0) // Only process the superdiagonal entries
                     {
                         int offset = diagOffsets[globalCol] + globalCol - globalRow;
