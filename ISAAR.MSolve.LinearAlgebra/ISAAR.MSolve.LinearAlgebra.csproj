@@ -78,6 +78,8 @@
     <Compile Include="Matrices\Builders\DOKColMajor.cs" />
     <Compile Include="Matrices\Builders\DOKRowMajor.cs" />
     <Compile Include="Matrices\Builders\DOKSymmetricColMajor.cs" />
+    <Compile Include="Matrices\Builders\IMatrixBuilder.cs" />
+    <Compile Include="Matrices\Builders\ISymmetricMatrixBuilder.cs" />
     <Compile Include="Matrices\Builders\SkylineBuilder.cs" />
     <Compile Include="Matrices\CSCMatrix.cs" />
     <Compile Include="Matrices\CSRMatrix.cs" />

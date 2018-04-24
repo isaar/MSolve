@@ -10,6 +10,9 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
+    /// <summary>
+    /// Mainly useful for checking other formats, since it is more difficult to mess up.
+    /// </summary>
     static class GlobalDenseAssembler
     {
         public static (Matrix Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)

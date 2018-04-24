@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// <summary>
     /// For symmetric and column major skyline matrices.
     /// </summary>
-    public class SkylineBuilder: IIndexable2D
+    public class SkylineBuilder: IMatrixBuilder, ISymmetricMatrixBuilder
     {
         private readonly int order;
         private readonly int numNonZeros;

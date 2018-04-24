@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// stored. This class is optimized for building global positive definite matrices, where there is at least 1 entry per 
     /// column.
     /// </summary>
-    public class DOKRowMajor: ISparseMatrix
+    public class DOKRowMajor: ISparseMatrix, IMatrixBuilder
     {
         /// <summary>
         /// See the rant in <see cref="DOKSymmetricColMajor.columns"/> about performance.

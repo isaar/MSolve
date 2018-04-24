@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
@@ -46,13 +47,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// <returns></returns>
         private (SkylineMatrix matrix, Vector rhs) ReduceToSimpleLinearSystem()
         {
-            (SkylineMatrix Kuu, Matrix Kuc) = GlobalSkylineAssembler.BuildGlobalMatrix(model, DOFEnumerator);
+            var assembler = new GlobalSkylineAssembler();
+            (SkylineBuilder Kuu, Matrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             Vector Fu = model.CalculateFreeForces(DOFEnumerator);
             Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
             Vector Feff = Fu - Kuc * uc;
-            return (Kuu, Feff);
+            return (Kuu.BuildSkylineMatrix(), Feff);
         }
     }
 }
