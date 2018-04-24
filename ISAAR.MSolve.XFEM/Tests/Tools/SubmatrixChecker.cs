@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             this.comparer = new ValueComparer(tolerance);
         }
 
-        public void Check(Matrix expected, Matrix actual)
+        public void Check(IIndexable2D expected, IIndexable2D actual)
         {
             var errors = new StringBuilder("Errors at entries: ");
             bool isCorrect = true;

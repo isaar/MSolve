@@ -48,13 +48,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private (SkylineMatrix matrix, Vector rhs) ReduceToSimpleLinearSystem()
         {
             var assembler = new GlobalSkylineAssembler();
-            (SkylineBuilder Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
             Vector Fu = model.CalculateFreeForces(DOFEnumerator);
             Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
             Vector Feff = Fu - Kuc * uc;
-            return (Kuu.BuildSkylineMatrix(), Feff);
+            return (Kuu, Feff);
         }
     }
 }

@@ -4,6 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: IMatrixBuilder.AddSubmatrix() appears to be the same as ISymmetricMatrixBuilder.AddSubmatrix(). However, its sematics 
+// are different. ISymmetricMatrixBuilder.AddSubmatrix() cannot be used for adding symmetric matrices, as it will add the off
+// diagonal entries twice. This is due to the implementations of ISymmetricMatrixBuilder. On the other hand the implementations
+// of IMatrixBuilder make it safe to pass in symmetric matrices to AddSubmatrix(), although there are more efficient methods.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
     public interface IMatrixBuilder: IIndexable2D
