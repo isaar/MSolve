@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.Analyzers
                 DateTime start = DateTime.Now;
                 childAnalyzer.Solve();
                 DateTime end = DateTime.Now;
-                UpdateVelocityAndAcceleration();
+                UpdateVelocityAndAcceleration(i);
                 UpdateResultStorages(start, end);
             }
             
