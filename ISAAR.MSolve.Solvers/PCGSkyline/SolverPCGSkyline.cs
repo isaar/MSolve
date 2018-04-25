@@ -145,18 +145,25 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
 
         public void Precondition(IVector vIn, IVector vOut)
         {
-            matrixCalculator.Precondition(vIn, vOut);
+            //matrixCalculator.Precondition(vIn, vOut);
             //for (int i = 0; i < vIn.Length; i++) vOut[i] = diagonalPreconditioner[i] * vIn[i];
+            for (int i = 0; i < vIn.Length; i++) vOut[i] = 1/this.linearSystem.Matrix[i,i] * vIn[i];
         }
 
         public void MultiplyWithMatrix(IVector vIn, IVector vOut)
         {
-            matrixCalculator.MultiplyWithMatrix(vIn, vOut);
+            //matrixCalculator.MultiplyWithMatrix(vIn, vOut);
             //foreach (ISolverSubdomain subdomain in subdomainsDictionary.Values)
             //{
             //    SkylineMatrix2D<double> k = ((SkylineMatrix2D<double>)subdomain.Matrix);
             //    k.Multiply(vIn, ((Vector<double>)vOut).Data);
             //}
+            var a = new double[vIn.Length];
+            this.linearSystem.Matrix.Multiply(vIn, a);
+            for (int i = 0; i < vIn.Length; i++)
+            {
+                vOut[i] = a[i];
+            }
         }
     }
 }

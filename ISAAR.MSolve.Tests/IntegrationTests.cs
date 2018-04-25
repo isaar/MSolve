@@ -235,6 +235,5 @@ namespace ISAAR.MSolve.Tests
 
             Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
-
     }
 }

@@ -9,7 +9,7 @@ using ISAAR.MSolve.Numerical.Interfaces;
 
 namespace ISAAR.MSolve.Numerical.LinearAlgebra
 {
-    public class SkylineMatrix2D : IMatrix2D, ICloneable, ILinearlyCombinable<SkylineMatrix2D>, ISolveable, IFileReadable, IFileWriteable
+    public class SkylineMatrix2D : IMatrix2D, ICloneable, ILinearlyCombinable<SkylineMatrix2D>, ILinearlyCombinable, ISolveable, IFileReadable, IFileWriteable
     {
         private bool isFactorized;
         private double[] data;
@@ -70,49 +70,49 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             int kFix = 0;
             for (int n = 0; n < Rows; n++)
             {
-		        int KN = rowIndex[n];
-		        int KL = KN + 1;
-		        int KU = rowIndex[n + 1] - 1;
-		        int KH = KU - KL;
+                int KN = rowIndex[n];
+                int KL = KN + 1;
+                int KU = rowIndex[n + 1] - 1;
+                int KH = KU - KL;
                 if (KH < 0) continue;
 
                 int K;
                 if (KH > 0)
                 {
-		            K = n - KH;
+                    K = n - KH;
                     //int IC = 0;
-		            int KLT = KU;
+                    int KLT = KU;
                     for (int j = 0; j < KH; j++)
                     {
                         //IC++;
-			            KLT--;
-			            int KI = rowIndex[K];
-			            int ND = rowIndex[K + 1] - KI - 1;
-			            if (ND > 0)
+                        KLT--;
+                        int KI = rowIndex[K];
+                        int ND = rowIndex[K + 1] - KI - 1;
+                        if (ND > 0)
                         {
                             //int KK = Math.Min(IC, ND);
                             int KK = Math.Min(j + 1, ND);
                             double C = 0;
                             for (int l = 1; l <= KK; l++)
                                 C += d[KI + l] * d[KLT + l];
-				            d[KLT] -= C;
-			            }
-			            K++;
+                            d[KLT] -= C;
+                        }
+                        K++;
                     }
                 }
-		        K = n;
-		        double B = 0;
-		        for (int KK = KL; KK <= KU; KK++)
+                K = n;
+                double B = 0;
+                for (int KK = KL; KK <= KU; KK++)
                 {
-			        K--;
-			        int KI = rowIndex[K];
+                    K--;
+                    int KI = rowIndex[K];
                     //if (d[KI] == 0) throw new InvalidOperationException(String.Format("Zero element in diagonal at index {0}.", KI));
                     if (Math.Abs(d[KI]) < tolerance) throw new InvalidOperationException(String.Format("Near-zero element in diagonal at index {0}.", KI));
                     double C = d[KK] / d[KI];
-			        B += C * d[KK];
-			        d[KK] = C;
+                    B += C * d[KK];
+                    d[KK] = C;
                 }
-		        d[KN] -= B;
+                d[KN] -= B;
 
                 if (Math.Abs(d[KN]) < tolerance)
                 {
@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             double[] d = K.Data;
             //double[] result = new double[K.Rows];
             result.CopyFrom(0, f.Length, f, 0);
-           // f.CopyTo(result, 0);
+            // f.CopyTo(result, 0);
 
             // RHS vector reduction
             int n;
@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //    }
             //}
 
-//            if (isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
+            //            if (isFactorized) throw new InvalidOperationException("Cannot multiply if matrix is factorized.");
             //if (Rows < vIn.Length - vInStartIndex) throw new InvalidOperationException("Matrix and vector size mismatch.");
 
             if (clearvOut) Array.Clear(vOut, 0, vOut.Length);
@@ -335,7 +335,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                     d[j] = temp;
                 }
             }
-            
+
             //for (int i = 0; i < data.Length; i++)
             //{
             //    temp = 0;
@@ -382,7 +382,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 return nullT;
                 //if (x == y)
                 //    return data[rowIndex[x]];
-                
+
                 //throw new NotImplementedException("Operator implemented only for diagonal elements.");
             }
             set
@@ -418,6 +418,18 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             LinearCombinationInternal((IList<double>)coefficients, m);
         }
 
+        public void LinearCombination(IList<double> coefficients, IList<IMatrix2D> matrices)
+        {
+            this.isFactorized = false;
+            List<SkylineMatrix2D> m = new List<SkylineMatrix2D>(matrices.Count);
+            foreach (var matrix in matrices)
+            {
+                if (matrix is SkylineMatrix2D) m.Add((SkylineMatrix2D)matrix);
+                else throw new InvalidCastException("Cannot linearly combine skyline matrix with other matrix types.");
+            }
+            LinearCombinationInternal((IList<double>)coefficients, m);
+        }
+
         public void WriteToFile(string name)
         {
             double[] mData = data as double[];
@@ -425,7 +437,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             string path = Path.GetDirectoryName(name);
             string nameOnly = Path.GetFileNameWithoutExtension(name);
             string ext = Path.GetExtension(name);
-            
+
             //// Binary
             //FileStream fs = File.Create(path + "\\" + nameOnly + "-Ix" + ext, 8192, FileOptions.SequentialScan);
             //BinaryWriter bw = new BinaryWriter(fs);
