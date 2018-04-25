@@ -212,15 +212,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateMesh(double fineElementSize)
         {
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities;
-            if (uniformMesh) meshEntities = CreateUniformMesh(fineElementSize);
-            else meshEntities = CreateRectilinearMesh(fineElementSize);
+            XNode2D[] nodes;
+            List<XNode2D[]> elementNodes;
+            if (uniformMesh) (nodes, elementNodes) = CreateUniformMesh(fineElementSize);
+            else (nodes, elementNodes) = CreateRectilinearMesh(fineElementSize);
 
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            foreach (XNode2D node in nodes) model.AddNode(node);
+            foreach (XNode2D[] element in elementNodes)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-                model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
+                model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, element, materialField,
                     integration, jIntegration));
             }
 
@@ -229,7 +230,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateUniformMesh(double fineElementSize)
+        private (XNode2D[] nodes, List<XNode2D[]> elementNodes) CreateUniformMesh(double fineElementSize)
         {
             int elementsPerXAxis = (int)(L / fineElementSize) + 1;
             int elementsPerYAxis = (int)(h / fineElementSize) + 1;
@@ -237,7 +238,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return meshGenerator.CreateMesh();
         }
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateRectilinearMesh(double fineElementSize)
+        private (XNode2D[] nodes, List<XNode2D[]> elementNodes) CreateRectilinearMesh(double fineElementSize)
         {
             double[,] meshSizeAlongX = new double[,] {
                 { 0.0, fineElementSize * coarseOverFine},

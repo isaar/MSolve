@@ -41,10 +41,10 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Create model
             var model = new Model2D();
             var meshGenerator = new UniformRectilinearMeshGenerator(width, width, elementsPerAxis, elementsPerAxis);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities =  meshGenerator.CreateMesh();
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
+            (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) =  meshGenerator.CreateMesh();
+            foreach (XNode2D node in nodes) model.AddNode(node);
             var integration = new XSimpleIntegration2D();
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            foreach (XNode2D[] elementNodes in elementConnectivity)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(2.1e6, 0.3, 1.0);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,

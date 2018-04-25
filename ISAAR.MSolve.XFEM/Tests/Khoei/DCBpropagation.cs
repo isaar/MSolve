@@ -111,9 +111,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CreateStructuredMesh(int elementsPerY)
         {
             var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, 3 * elementsPerY, elementsPerY);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) = meshGenerator.CreateMesh();
+            foreach (XNode2D node in nodes) model.AddNode(node);
+            foreach (XNode2D[] elementNodes in elementConnectivity)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,

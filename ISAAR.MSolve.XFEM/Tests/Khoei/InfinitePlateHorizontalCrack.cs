@@ -163,11 +163,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CreateModel()
         {
             model = new Model2D();
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = CreateUniformMesh(fineElementSize);
+            (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) = CreateUniformMesh(fineElementSize);
             //Tuple<XNode2D[], List<XNode2D[]>> meshEntities = CreateRectilinearMesh(fineElementSize);
 
             // Nodes
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
+            foreach (XNode2D node in nodes) model.AddNode(node);
 
             // Elements
             var integration = new IntegrationForCrackPropagation2D(
@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //        new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
             var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
 
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            foreach (XNode2D[] elementNodes in elementConnectivity)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
@@ -188,14 +188,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             ApplyBoundaryConditions2(model);
         }
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateUniformMesh(double elementSize)
+        private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateUniformMesh(double elementSize)
         {
             int elementsPerAxis = (int)(width / elementSize) + 1;
             var meshGenerator = new UniformRectilinearMeshGenerator(width, width, elementsPerAxis, elementsPerAxis);
             return meshGenerator.CreateMesh();
         }
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateRectilinearMesh(double fineElementSize)
+        private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateRectilinearMesh(double fineElementSize)
         {
             var meshGenerator = new FineAtCenterRectilinearMeshGenerator();
             meshGenerator.domainLowerBounds = new double[] { 0, 0 };

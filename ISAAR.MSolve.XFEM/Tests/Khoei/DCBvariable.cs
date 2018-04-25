@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CreateStructuredMesh(int elementsPerY)
         {
             var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, 3 * elementsPerY, elementsPerY);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
+            (XNode2D[] nodes, List<XNode2D[]> elementNodes) meshEntities = meshGenerator.CreateMesh();
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
