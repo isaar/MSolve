@@ -152,89 +152,88 @@ namespace ISAAR.MSolve.Tests
         }
 
 
-        //[Fact]
-        //private static void SolveRandomVariableBeam2DWithMonteCarlo()
-        //{
-        //    #region Beam2D Geometry Data
-        //    VectorExtensions.AssignTotalAffinityCount();
-        //    double youngModulus = 2.0e08;
-        //    double poissonRatio = 0.3;
-        //    double nodalLoad = 10.0;
+        [Fact]
+        private static void SolveRandomVariableBeam2DWithMonteCarlo()
+        {
+            #region Beam2D Geometry Data
+            VectorExtensions.AssignTotalAffinityCount();
+            double youngModulus = 2.0e08;
+            double poissonRatio = 0.3;
+            double nodalLoad = 10.0;
 
-        //    var coefficientProvider = new RandomVariableTargetEvaluator(1 / youngModulus, 0.1 / youngModulus, RandomVariableDistributionType.Normal);
-        //    StochasticElasticMaterial material = new StochasticElasticMaterial(coefficientProvider)
-        //    {
-        //        YoungModulus = youngModulus,
-        //        PoissonRatio = poissonRatio,
-        //    };
+            var coefficientProvider = new RandomVariableTargetEvaluator(1 / youngModulus, 0.1 / youngModulus, RandomVariableDistributionType.Normal);
+            StochasticElasticMaterial material = new StochasticElasticMaterial(coefficientProvider)
+            {
+                YoungModulus = youngModulus,
+                PoissonRatio = poissonRatio,
+            };
 
-        //    // Node creation
-        //    IList<Node> nodes = new List<Node>();
-        //    Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-        //    Node node2 = new Node { ID = 2, X = 5.0, Y = 0.0, Z = 0.0 };
-        //    nodes.Add(node1);
-        //    nodes.Add(node2);
+            // Node creation
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 5.0, Y = 0.0, Z = 0.0 };
+            nodes.Add(node1);
+            nodes.Add(node2);
 
-        //    // Model creation
-        //    Model model = new Model();
+            // Model creation
+            Model model = new Model();
 
-        //    // Add a single subdomain to the model
-        //    model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            // Add a single subdomain to the model
+            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
 
-        //    // Add nodes to the nodes dictonary of the model
-        //    for (int i = 0; i < nodes.Count; ++i)
-        //        model.NodesDictionary.Add(i + 1, nodes[i]);
+            // Add nodes to the nodes dictonary of the model
+            for (int i = 0; i < nodes.Count; ++i)
+                model.NodesDictionary.Add(i + 1, nodes[i]);
 
-        //    // Constrain bottom nodes of the model
-        //    model.NodesDictionary[1].Constraints.Add(DOFType.X);
-        //    model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-        //    model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+            // Constrain bottom nodes of the model
+            model.NodesDictionary[1].Constraints.Add(DOFType.X);
+            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
 
 
-        //    // Create a new Beam2D element
-        //    var beam = new EulerBeam2D(youngModulus)
-        //    {
-        //        SectionArea = 1,
-        //        MomentOfInertia = .1
-        //    };
+            // Create a new Beam2D element
+            var beam = new EulerBeam2D(youngModulus)
+            {
+                SectionArea = 1,
+                MomentOfInertia = .1
+            };
 
-        //    var element = new Element()
-        //    {
-        //        ID = 1,
-        //        ElementType = beam
-        //    };
+            var element = new Element()
+            {
+                ID = 1,
+                ElementType = beam
+            };
 
-        //    // Add nodes to the created element
-        //    element.AddNode(model.NodesDictionary[1]);
-        //    element.AddNode(model.NodesDictionary[2]);
+            // Add nodes to the created element
+            element.AddNode(model.NodesDictionary[1]);
+            element.AddNode(model.NodesDictionary[2]);
 
-        //    var a = beam.StiffnessMatrix(element);
+            var a = beam.StiffnessMatrix(element);
 
-        //    // Add Hexa element to the element and subdomains dictionary of the model
-        //    model.ElementsDictionary.Add(element.ID, element);
-        //    model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+            // Add Hexa element to the element and subdomains dictionary of the model
+            model.ElementsDictionary.Add(element.ID, element);
+            model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
 
-        //    // Add nodal load values at the top nodes of the model
-        //    model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+            // Add nodal load values at the top nodes of the model
+            model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
 
-        //    // Needed in order to make all the required data structures
-        //    model.ConnectDataStructures();
-        //    #endregion
+            // Needed in order to make all the required data structures
+            model.ConnectDataStructures();
+            #endregion
 
-        //    var linearSystems = new Dictionary<int, ILinearSystem>();
-        //    linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-        //    SolverSkyline solver = new SolverSkyline(linearSystems[1]);
-        //    ProblemStructural provider = new ProblemStructural(model, linearSystems);
-        //    Analyzers.LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-        //    StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-        //    MonteCarloAnalyzerWithStochasticMaterial stohasticAnalyzer =
-        //        new MonteCarloAnalyzerWithStochasticMaterial(model, provider, parentAnalyzer, linearSystems,
-        //            coefficientProvider, 1, 100000);
-        //    stohasticAnalyzer.Initialize();
-        //    stohasticAnalyzer.Solve();
+            var linearSystems = new Dictionary<int, ILinearSystem>();
+            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            ProblemStructural provider = new ProblemStructural(model, linearSystems);
+            Analyzers.LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            MonteCarloAnalyzerWithStochasticMaterial stohasticAnalyzer =
+                new MonteCarloAnalyzerWithStochasticMaterial(model, provider, parentAnalyzer, linearSystems,
+                    coefficientProvider, 1, 100000);
+            stohasticAnalyzer.Initialize();
+            stohasticAnalyzer.Solve();
 
-        //    Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
-        //}
-
+            Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
+        }
     }
 }
