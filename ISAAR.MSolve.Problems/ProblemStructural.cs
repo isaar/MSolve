@@ -169,6 +169,9 @@ namespace ISAAR.MSolve.Problems
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
+            foreach (var l in subdomains)
+                l.Value.RHS.CopyFrom(0, l.Value.RHS.Length, new Vector(model.SubdomainsDictionary[l.Key].Forces), 0);
+            
             ////AMBROSIOS
             //if (model.MassAccelerationHistoryLoads.Count > 0)
             //{

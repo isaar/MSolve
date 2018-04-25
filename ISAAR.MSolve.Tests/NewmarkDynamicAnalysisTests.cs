@@ -73,6 +73,8 @@ namespace ISAAR.MSolve.Tests
             dynamicAnalyzer.BuildMatrices();
             dynamicAnalyzer.Initialize();
             dynamicAnalyzer.Solve();
+            Assert.Equal(2.2840249264795207, linearSystems[1].Solution[0], 8);
+            Assert.Equal(2.4351921891904156, linearSystems[1].Solution[1], 8);
         }
     }
 }

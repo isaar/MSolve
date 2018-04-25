@@ -296,8 +296,10 @@ namespace ISAAR.MSolve.Analyzers
             //childAnalyzer.Solve();
         }
 
-        private void UpdateVelocityAndAcceleration()
+        private void UpdateVelocityAndAcceleration(int timeStep)
         {
+            var externalVelocities = provider.GetVelocitiesOfTimeStep(timeStep);
+            var externalAccelerations = provider.GetAccelerationsOfTimeStep(timeStep);
             foreach (ILinearSystem subdomain in subdomains.Values)
             {
                 int id = subdomain.ID;
@@ -305,9 +307,9 @@ namespace ISAAR.MSolve.Analyzers
                 subdomain.Solution.CopyTo(v[id].Data, 0);
                 for (int j = 0; j < subdomain.RHS.Length; j++)
                 {
-                    double vv = v2[id].Data[j];
+                    double vv = v2[id].Data[j] + externalAccelerations[id][j];
                     v2[id].Data[j] = a0 * (v[id].Data[j] - u[id].Data[j]) - a2 * v1[id].Data[j] - a3 * vv;
-                    v1[id].Data[j] += a6 * vv + a7 * v2[id].Data[j];
+                    v1[id].Data[j] += externalVelocities[id][j] + a6 * vv + a7 * v2[id].Data[j];
                 }
             }
         }
