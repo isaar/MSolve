@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         public static void Main()
         {
-            int[] meshElements = new int[] { 15, 25, 45 };
+            int[] meshElements = new int[] { 5, 15, 25, 45 };
             double[] jIntegralRadiiOverElementSize = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
             Console.WriteLine("---------------------- Results ---------------------");
             for (int i = 0; i < meshElements.Length; ++i)
@@ -194,7 +194,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var solver = new SkylineSolver(model);
+            //var solver = new CholeskySuiteSparseSolver(model);
+            var solver = new PCGSolver(model, 1, 1e-8);
             solver.Initialize();
             solver.Solve();
             dofEnumerator = solver.DOFEnumerator;

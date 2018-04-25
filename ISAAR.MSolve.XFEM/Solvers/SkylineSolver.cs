@@ -17,8 +17,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Solve()
         {
-            //DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
-            DOFEnumerator = DOFEnumeratorSeparate.Create(model);
+            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
+            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
             var assembler = new GlobalSkylineAssembler();
             (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
             Vector rhs = CalcEffectiveRhs(Kuc);
