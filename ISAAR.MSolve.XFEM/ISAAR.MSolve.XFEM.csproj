@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBpropagationBelytschko</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBvariable</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
@@ -182,6 +182,8 @@
     <Compile Include="Solvers\SolverBase.cs" />
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
+    <Compile Include="Tests\GRACM\DCB.cs" />
+    <Compile Include="Tests\GRACM\DCBParametric.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />
     <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
     <Compile Include="Tests\JintegralContour.cs" />

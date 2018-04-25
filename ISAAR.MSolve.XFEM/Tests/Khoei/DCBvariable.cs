@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly double DIM_X = 60, DIM_Y = 20;
         private static readonly double E = 2e6, v = 0.3;
         private static readonly ICartesianPoint2D CRACK_MOUTH = new CartesianPoint2D(DIM_X, 0.5 * DIM_Y);
-        private static readonly bool structuredMesh = false;
+        private static readonly bool structuredMesh = true;
         private static readonly string triMeshFile = "dcb_tri.msh";
         private static readonly string quadMeshFile = "dcb_quad.msh";
         private static readonly bool integrationWithTriangles = false;
@@ -194,7 +194,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var solver = new SkylineSolverOLD(model);
+            var solver = new SkylineSolver(model);
             solver.Initialize();
             solver.Solve();
             dofEnumerator = solver.DOFEnumerator;
