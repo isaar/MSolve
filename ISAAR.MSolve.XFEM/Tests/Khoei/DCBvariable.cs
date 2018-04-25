@@ -239,9 +239,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
 
-            double growthAngle, growthIncrement;
-            propagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements, 
-                out growthAngle, out growthIncrement);
+            (double growthAngle, double growthIncrement) = propagator.Propagate(dofEnumerator, solution, 
+                totalConstrainedDisplacements);
             double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))
                 / globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;

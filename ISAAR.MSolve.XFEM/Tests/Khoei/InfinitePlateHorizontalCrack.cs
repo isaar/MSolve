@@ -309,9 +309,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            double startGrowthAngle, startGrowthIncrement;
-            startPropagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements,
-                out startGrowthAngle, out startGrowthIncrement);
+            (double startGrowthAngle, double startGrowthIncrement) = startPropagator.Propagate(dofEnumerator, solution, 
+                totalConstrainedDisplacements);
             double startSIF1 = startPropagator.Logger.SIFsMode1[0];
             double startSIF2 = startPropagator.Logger.SIFsMode2[0];            
 
@@ -320,9 +319,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            double endGrowthAngle, endGrowthIncrement;
-            endPropagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements,
-                out endGrowthAngle, out endGrowthIncrement);
+            (double endGrowthAngle, double endGrowthIncrement) = endPropagator.Propagate(dofEnumerator, solution,
+                totalConstrainedDisplacements);
             double endSIF1 = endPropagator.Logger.SIFsMode1[0];
             double endSIF2 = endPropagator.Logger.SIFsMode2[0];
             

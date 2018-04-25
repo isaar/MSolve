@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCBpropagationBelytschko</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PommaLabs.Thrower, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2f204b7110a52060, processorArchitecture=MSIL">
@@ -59,6 +59,8 @@
     <Compile Include="Assemblers\GlobalCSRAssembler.cs" />
     <Compile Include="Assemblers\GlobalDenseAssembler.cs" />
     <Compile Include="Assemblers\GlobalSkylineAssembler.cs" />
+    <Compile Include="CrackPropagation\IPropagator.cs" />
+    <Compile Include="CrackPropagation\FixedPropagator.cs" />
     <Compile Include="Solvers\DenseSolver.cs" />
     <Compile Include="Solvers\PCGSolver.cs" />
     <Compile Include="Solvers\QuasiStaticAnalysis.cs" />

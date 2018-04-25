@@ -22,12 +22,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly IExteriorCrack crack;
         private readonly ISolver solver;
-        private readonly Propagator propagator;
+        private readonly IPropagator propagator;
         private readonly double fractureToughness;
         private readonly int maxIterations;
 
         public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack,
-            ISolver solver, Propagator propagator, double fractureToughness, int maxIterations)
+            ISolver solver, IPropagator propagator, double fractureToughness, int maxIterations)
         {
             this.model = model;
             this.mesh = mesh;
@@ -38,6 +38,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             this.maxIterations = maxIterations;
         }
 
+        /// <summary>
+        /// Returns the crack path after repeatedly executing: XFEM analysis, SIF calculation, crack propagation
+        /// </summary>
+        /// <returns></returns>
         public IReadOnlyList<ICartesianPoint2D> Analyze()
         {
             var crackPath = new List<ICartesianPoint2D>();
@@ -58,9 +62,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
                     Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DOFEnumerator);
                     Vector totalFreeDisplacements = solver.Solution;
 
-                    double growthAngle, growthIncrement;
-                    propagator.Propagate(solver.DOFEnumerator, totalFreeDisplacements, totalConstrainedDisplacements,
-                        out growthAngle, out growthIncrement);
+                    (double growthAngle, double growthIncrement) = propagator.Propagate(solver.DOFEnumerator, 
+                        totalFreeDisplacements, totalConstrainedDisplacements);
                     crack.UpdateGeometry(growthAngle, growthIncrement);
                     ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
                     crackPath.Add(newTip);
