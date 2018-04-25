@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
         public NewtonRaphsonNonLinearAnalyzer(ISolver solver, ILinearSystem[] linearSystems, INonLinearSubdomainUpdater[] subdomainUpdaters, ISubdomainGlobalMapping[] mappings,
-            INonLinearProvider provider, int increments, int totalDOFs)
+            INonLinearProvider provider, int increments, int totalDOFs, int maximumIteration=120, int iterationStepsForMatrixRebuild=500)
         {
             this.solver = solver;
             this.subdomainUpdaters = subdomainUpdaters;
@@ -46,7 +46,10 @@ namespace ISAAR.MSolve.Analyzers
             this.totalDOFs = totalDOFs;
             this.globalRHS = new Vector(totalDOFs);
 
-            InitializeInternalVectors();
+	        maxSteps = maximumIteration;
+	        stepsForMatrixRebuild=iterationStepsForMatrixRebuild;
+	        
+			InitializeInternalVectors();
         }
 
         private void InitializeLogs()
