@@ -145,8 +145,9 @@ namespace ISAAR.MSolve.Solvers.PCGSkyline
 
         public void Precondition(IVector vIn, IVector vOut)
         {
-            matrixCalculator.Precondition(vIn, vOut);
+            //matrixCalculator.Precondition(vIn, vOut);
             //for (int i = 0; i < vIn.Length; i++) vOut[i] = diagonalPreconditioner[i] * vIn[i];
+            for (int i = 0; i < vIn.Length; i++) vOut[i] = 1/this.linearSystem.Matrix[i,i] * vIn[i];
         }
 
         public void MultiplyWithMatrix(IVector vIn, IVector vOut)
