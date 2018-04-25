@@ -293,6 +293,7 @@ namespace ISAAR.MSolve.Analyzers
                 UpdateResultStorages(start, end);
             }
             
+
             //childAnalyzer.Solve();
         }
 
