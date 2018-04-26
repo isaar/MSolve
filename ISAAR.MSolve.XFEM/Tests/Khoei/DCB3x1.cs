@@ -133,8 +133,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //ISolver solver = new DenseSolver(model);
             //ISolver solver = new SkylineSolverOLD(model);
             //ISolver solver = new SkylineSolver(model);
-            //ISolver solver = new CholeskySuiteSparseSolver(model);
-            ISolver solver = new PCGSolver(0.8, 1e-6);
+            ISolver solver = new CholeskySuiteSparseSolver();
+            //ISolver solver = new PCGSolver(0.8, 1e-6);
             solver.Initialize(model);
             solver.Solve();
 
@@ -152,7 +152,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly double E = 2e6, v = 0.3;
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
-        private Type solverType = typeof(CholeskySuiteSparseSolver);
         private BasicExplicitCrack2D crack;
 
 

@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         /// Each internal array is written to a different file. All these files have a common prefix, chosen by the user, and 
         /// a suffix corresponding to the purpose of each array.
         /// </summary>
-        public void WriteToMultipleFiles(string pathBase)
+        public void WriteToMultipleFiles(string pathBase, bool writeArrayLengthFirst = true)
         {
             string path = Path.GetDirectoryName(pathBase);
             string nameOnly = Path.GetFileNameWithoutExtension(pathBase);
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
 #if DEBUG
                 writer.AutoFlush = true; // To look at intermediate output at certain breakpoints
 #endif
-                WriteArray(sparseFormat.RawValuesArray, writer);
+                WriteArray(sparseFormat.RawValuesArray, writer, writeArrayLengthFirst);
             }
 
             // Indexing arrays
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
 #if DEBUG
                     writer.AutoFlush = true; // To look at intermediate output at certain breakpoints
 #endif
-                    WriteArray(nameArrayPair.Value, writer);
+                    WriteArray(nameArrayPair.Value, writer, writeArrayLengthFirst);
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             SparseFormat sparseFormat = matrix.GetSparseFormat();
             writer.Write(sparseFormat.RawValuesTitle + ": ");
             if (titlesOnOtherLines) writer.WriteLine();
-            WriteArray(sparseFormat.RawValuesArray, writer);
+            WriteArray(sparseFormat.RawValuesArray, writer, false);
 
             foreach (var nameArrayPair in sparseFormat.RawIndexArrays)
             {
@@ -73,12 +73,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
                 writer.WriteLine(); // otherwise everything would be on the same line
                 writer.Write(nameArrayPair.Key + ": ");
                 if (titlesOnOtherLines) writer.WriteLine();
-                WriteArray(nameArrayPair.Value, writer);
+                WriteArray(nameArrayPair.Value, writer, false);
             }
         }
 
-        private static void WriteArray(IReadOnlyList<int> array, StreamWriter writer) //TODO: perhaps move it to abstract class
+        private static void WriteArray(IReadOnlyList<int> array, StreamWriter writer, bool writeArrayLengthFirst) //TODO: perhaps move it to abstract class
         {
+            if (writeArrayLengthFirst) writer.Write(array.Count + " ");
             int last = array.Count - 1;
             for (int i = 0; i < last; ++i)
             {
@@ -87,8 +88,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             writer.Write(array[last]);
         }
 
-        private static void WriteArray(IReadOnlyList<double> array, StreamWriter writer) //TODO: perhaps move it to abstract class
+        private static void WriteArray(IReadOnlyList<double> array, StreamWriter writer, bool writeArrayLengthFirst) //TODO: perhaps move it to abstract class
         {
+            if (writeArrayLengthFirst) writer.Write(array.Count + " ");
             string numberFormat = NumericFormat.GetRealNumberFormat();
             int last = array.Count - 1;
             for (int i = 0; i < last; ++i)
