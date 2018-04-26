@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var vector = Vector.CreateFromArray(vector1);
             Console.WriteLine("Vector = ");
-            var writer = new FullVectorWriter(vector, Array1DFormatting.Brackets);
+            var writer = new FullVectorWriter(vector, false, Array1DFormatting.Brackets);
             writer.WriteToConsole();
         }
     }

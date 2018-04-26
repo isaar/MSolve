@@ -52,14 +52,16 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             var solvers = new Dictionary<string, ISolver>
             {
-                {  "Skyline", new SkylineSolver()},
-                {  "Jacobi Preconditioned CG", new PCGSolver(1, 1e-8)}
+                { "Skyline", new SkylineSolver() },
+                { "Jacobi Preconditioned CG", new PCGSolver(1, 1e-8) },
+                { "SuiteSparse", new CholeskySuiteSparseSolver() }
             };
 
             var solverTimes = new Dictionary<string, long>
             {
-                {  "Skyline", 0},
-                {  "Jacobi Preconditioned CG", 0}
+                { "Skyline", 0 },
+                { "Jacobi Preconditioned CG", 0 },
+                { "SuiteSparse", 0 }
             };
 
             for (int t = 0; t < repetitions; ++t)
