@@ -23,7 +23,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
-    class Propagator
+    class Propagator: IPropagator
     {
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly ICrackGeometry crack;
@@ -64,16 +64,18 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.Logger = new PropagationLogger();
         }
 
-        public void Propagate(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
-            out double growthAngle, out double growthLength)
+        public (double growthAngle, double growthLength) Propagate(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements, 
+            Vector totalConstrainedDisplacements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
-            double sifMode1, sifMode2;
-            ComputeSIFS(dofEnumerator, totalFreeDisplacements, totalConstrainedDisplacements, out sifMode1, out sifMode2);
-            growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
-            growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
+            ComputeSIFS(dofEnumerator, totalFreeDisplacements, totalConstrainedDisplacements, 
+                out double sifMode1, out double sifMode2);
+            double growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
+            double growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
             Logger.GrowthAngles.Add(growthAngle);
             Logger.GrowthLengths.Add(growthLength);
+            return (growthAngle, growthLength);
+
         }
 
         private void ComputeSIFS(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,

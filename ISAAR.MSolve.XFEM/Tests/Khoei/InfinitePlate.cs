@@ -226,12 +226,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CreateModel()
         {
             model = new Model2D();
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities;
-            if (uniformMesh) meshEntities = CreateUniformMesh(fineElementSize);
-            else meshEntities = CreateRectilinearMesh(fineElementSize);
+            XNode2D[] nodes;
+            List<XNode2D[]> elementConnectivity;
+            if (uniformMesh) (nodes, elementConnectivity) = CreateUniformMesh(fineElementSize);
+            else (nodes, elementConnectivity) = CreateRectilinearMesh(fineElementSize);
 
             // Nodes
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
+            foreach (XNode2D node in nodes) model.AddNode(node);
 
             // Elements
             var integration = new IntegrationForCrackPropagation2D(
@@ -241,7 +242,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //        new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2));
             var jIntegration = new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order4x4);
 
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            foreach (XNode2D[] elementNodes in elementConnectivity)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
@@ -252,14 +253,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             else ApplyBoundaryConditions2(model);
         }
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateUniformMesh(double elementSize)
+        private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateUniformMesh(double elementSize)
         {
             int elementsPerAxis = (int)(width / elementSize) + 1;
             var meshGenerator = new UniformRectilinearMeshGenerator(width, width, elementsPerAxis, elementsPerAxis);
             return meshGenerator.CreateMesh();
         }
 
-        private Tuple<XNode2D[], List<XNode2D[]>> CreateRectilinearMesh(double fineElementSize)
+        private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateRectilinearMesh(double fineElementSize)
         {
             var meshGenerator = new FineAtCenterRectilinearMeshGenerator();
             meshGenerator.domainLowerBounds = new double[] { 0, 0 };
@@ -370,8 +371,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var solver = new SkylineSolverOLD(model);
-            solver.Initialize();
+            var solver = new SkylineSolverOLD();
+            solver.Initialize(model);
             solver.Solve();
             dofEnumerator = solver.DOFEnumerator;
             return solver.Solution;
@@ -387,9 +388,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            double startGrowthAngle, startGrowthIncrement;
-            startPropagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements,
-                out startGrowthAngle, out startGrowthIncrement);
+            (double startGrowthAngle, double startGrowthIncrement) = startPropagator.Propagate(dofEnumerator, solution,
+                totalConstrainedDisplacements);
             double startSIF1 = startPropagator.Logger.SIFsMode1[0];
             double startSIF2 = startPropagator.Logger.SIFsMode2[0];
 
@@ -399,9 +399,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            double endGrowthAngle, endGrowthIncrement;
-            endPropagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements,
-                out endGrowthAngle, out endGrowthIncrement);
+            (double endGrowthAngle, double endGrowthIncrement) = endPropagator.Propagate(dofEnumerator, solution,
+                totalConstrainedDisplacements);
             double endSIF1 = endPropagator.Logger.SIFsMode1[0];
             double endSIF2 = endPropagator.Logger.SIFsMode2[0];
 

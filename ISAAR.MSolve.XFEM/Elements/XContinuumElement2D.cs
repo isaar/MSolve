@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 Matrix deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
 
                 // Contribution of this gauss point to the element stiffness matrix
-                Matrix partial = (deformation.Transpose() * constitutive) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
+                Matrix partial = (deformation.MultiplyRight(constitutive, true, false)) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
                 Debug.Assert(partial.NumRows == StandardDofsCount);
                 Debug.Assert(partial.NumColumns == StandardDofsCount);
                 double dV = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight; // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
@@ -130,7 +130,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // Kee = SUM(Benr^T * E * Benr * dV), Kes = SUM(Benr^T * E * Bstd * dV)
                 // TODO: Scale only the smallest matrix (constitutive) before the multiplications. Probably requires a copy of the constitutive matrix.
                 double dVolume = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
-                Matrix transposeBenrTimesConstitutive = Benr.Transpose() * constitutive; // cache the result
+                Matrix transposeBenrTimesConstitutive = Benr.MultiplyRight(constitutive, true, false); // cache the result
 
                 Matrix Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
                 stiffnessEnrichedStandard.AxpyIntoThis(Kes, dVolume);

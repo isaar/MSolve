@@ -39,15 +39,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
 
             // Mesh
             var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, ELEMENTS_PER_X, ELEMENTS_PER_Y);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
+            (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) = meshGenerator.CreateMesh();
 
             // Nodes
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
+            foreach (XNode2D node in nodes) model.AddNode(node);
 
             // Elements
             var integration = new XSimpleIntegration2D();
 
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            foreach (XNode2D[] elementNodes in elementConnectivity)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
@@ -74,8 +74,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
 
         private static (Vector, IDOFEnumerator) Solve(Model2D model)
         {
-            var solver = new SkylineSolverOLD(model);
-            solver.Initialize();
+            var solver = new SkylineSolver();
+            solver.Initialize(model);
             solver.Solve();
             return (solver.Solution, solver.DOFEnumerator);
         }

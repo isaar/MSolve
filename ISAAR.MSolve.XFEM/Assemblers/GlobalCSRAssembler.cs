@@ -29,40 +29,38 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Element matrices
-                Matrix kss = element.BuildStandardStiffnessMatrix();
-                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
-                // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
-                // 2) The Elements have two versions of BuildStiffness(). 
-                // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
-                Matrix kse = kes.Transpose();
-
-                // Element to global dofs mappings
+                // Build standard element matrices and add it contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapFree, out IReadOnlyDictionary<int, int> mapConstrained);
-                IReadOnlyDictionary<int, int> mapEnriched =
-                    dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
-
-                // Add the element contributions to the global matrices
+                Matrix kss = element.BuildStandardStiffnessMatrix();
                 Kuu.AddSubmatrix(kss, mapFree, mapFree);
-                Kuu.AddSubmatrix(kse, mapFree, mapEnriched);
-                Kuu.AddSubmatrix(kes, mapEnriched, mapFree);
-                Kuu.AddSubmatrix(kee, mapEnriched, mapEnriched);
-
                 Kuc.AddSubmatrix(kss, mapFree, mapConstrained);
-                Kuc.AddSubmatrix(kes, mapEnriched, mapConstrained);
 
-                #region DEBUG code
-                //var checker = new SubmatrixChecker();
-                //(Matrix expectedKuu, Matrix expectedKuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, dofEnumerator);
-                //Console.WriteLine("Check Kuu:");
-                //checker.Check(expectedKuu, Kuu);
-                //Console.WriteLine("Check Kuc:");
-                //checker.Check(expectedKuc, Kuc);
-                #endregion
+                // Build enriched element matrices and add it contributions to the global matrices
+                IReadOnlyDictionary<int, int> mapEnriched = dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                if (mapEnriched.Count > 0)
+                {
+                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+
+                    // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
+                    // 2) The Elements have two versions of BuildStiffness(). 
+                    // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
+                    Matrix kse = kes.Transpose();
+                    Kuu.AddSubmatrix(kse, mapFree, mapEnriched);
+                    Kuu.AddSubmatrix(kes, mapEnriched, mapFree);
+                    Kuu.AddSubmatrix(kee, mapEnriched, mapEnriched);
+                    Kuc.AddSubmatrix(kes, mapEnriched, mapConstrained);
+                }                
             }
+            #region DEBUG code
+            //var checker = new SubmatrixChecker();
+            //(Matrix expectedKuu, Matrix expectedKuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, dofEnumerator);
+            //Console.WriteLine("Check Kuu:");
+            //checker.Check(expectedKuu, Kuu);
+            //Console.WriteLine("Check Kuc:");
+            //checker.Check(expectedKuc, Kuc);
+            #endregion
             return (Kuu, Kuc.BuildCSRMatrix(true));
         }
     }

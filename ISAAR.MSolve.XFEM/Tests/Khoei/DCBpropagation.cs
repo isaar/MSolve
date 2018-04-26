@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly double DIM_X = 60, DIM_Y = 20;
         private static readonly double E = 2e6, v = 0.3;
         private static readonly ICartesianPoint2D CRACK_MOUTH = new CartesianPoint2D(DIM_X, 0.5 * DIM_Y);
-        private static readonly bool structuredMesh = false;
+        private static readonly bool structuredMesh = true;
         private static readonly string triMeshFile = "dcb_tri.msh";
         private static readonly string quadMeshFile = "dcb_quad.msh";
         private static readonly bool integrationWithTriangles = false;
@@ -111,9 +111,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CreateStructuredMesh(int elementsPerY)
         {
             var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, 3 * elementsPerY, elementsPerY);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
-            foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
-            foreach (XNode2D[] elementNodes in meshEntities.Item2)
+            (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) = meshGenerator.CreateMesh();
+            foreach (XNode2D node in nodes) model.AddNode(node);
+            foreach (XNode2D[] elementNodes in elementConnectivity)
             {
                 var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
@@ -175,7 +175,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
 
-            var solver = new SkylineSolverOLD(model);
+            var solver = new SkylineSolver();
             QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, solver,
                 propagator, fractureToughness, maxIterations);
             analysis.Analyze();

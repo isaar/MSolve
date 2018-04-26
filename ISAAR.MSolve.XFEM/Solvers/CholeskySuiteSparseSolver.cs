@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,10 +17,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class CholeskySuiteSparseSolver: SolverBase
     {
-        public CholeskySuiteSparseSolver(Model2D model) : base(model) { }
+        public CholeskySuiteSparseSolver() { }
 
         public override void Solve()
         {
+            var watch = new Stopwatch();
+            watch.Start();
+
             DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
@@ -29,6 +33,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             {
                 Solution = factorization.SolveLinearSystem(rhs);
             }
+
+            watch.Stop();
+            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
     }
 }

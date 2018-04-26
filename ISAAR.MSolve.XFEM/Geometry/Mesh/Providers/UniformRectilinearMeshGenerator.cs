@@ -24,11 +24,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
             this.nodeColumns = elementColumns + 1;
         }
 
-        public Tuple<XNode2D[], List<XNode2D[]>> CreateMesh()
+        public (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateMesh()
         {
             XNode2D[] nodes = CreateNodes();
-            List<XNode2D[]> elementNodes = CreateElements(nodes);
-            return new Tuple<XNode2D[], List<XNode2D[]>>(nodes, elementNodes);
+            List<XNode2D[]> elementConnectivity = CreateElements(nodes);
+            return (nodes, elementConnectivity);
         }
 
         private XNode2D[] CreateNodes()

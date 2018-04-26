@@ -27,6 +27,7 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
+using System.Diagnostics;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -35,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static readonly double DIM_X = 60, DIM_Y = 20;
         private static readonly double E = 2e6, v = 0.3;
         private static readonly ICartesianPoint2D CRACK_MOUTH = new CartesianPoint2D(DIM_X, 0.5 * DIM_Y);
-        private static readonly bool structuredMesh = false;
+        private static readonly bool structuredMesh = true;
         private static readonly string triMeshFile = "dcb_tri.msh";
         private static readonly string quadMeshFile = "dcb_quad.msh";
         private static readonly bool integrationWithTriangles = false;
@@ -43,8 +44,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         public static void Main()
         {
-            int[] meshElements = new int[] { 15, 25, 45 };
+            // Error in 9x27 and higher for suitesparse solver, but not for all j-integral radii
+            int[] meshElements = new int[] { 5, 9, 15, 25, 45 }; 
             double[] jIntegralRadiiOverElementSize = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
+            var watch = new Stopwatch();
+            watch.Start();
             Console.WriteLine("---------------------- Results ---------------------");
             for (int i = 0; i < meshElements.Length; ++i)
             {
@@ -60,6 +64,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                     meshElements[i], 3 * meshElements[i], jIntegralRadiiOverElementSize[j], results.Item1, results.Item2);
                 }
             }
+            watch.Stop();
+            double duration = watch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine($"----- Time elapsed = {duration} s -----");
         }
 
         private readonly SubmatrixChecker checker;
@@ -129,7 +136,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void CreateStructuredMesh(int elementsPerY)
         {
             var meshGenerator = new UniformRectilinearMeshGenerator(DIM_X, DIM_Y, 3 * elementsPerY, elementsPerY);
-            Tuple<XNode2D[], List<XNode2D[]>> meshEntities = meshGenerator.CreateMesh();
+            (XNode2D[] nodes, List<XNode2D[]> elementNodes) meshEntities = meshGenerator.CreateMesh();
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
@@ -194,8 +201,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var solver = new SkylineSolverOLD(model);
-            solver.Initialize();
+            var solver = new CholeskySuiteSparseSolver();
+            //var solver = new SkylineSolver(model);
+            //var solver = new PCGSolver(model, 1, 1e-8);
+            solver.Initialize(model);
             solver.Solve();
             dofEnumerator = solver.DOFEnumerator;
             return solver.Solution;
@@ -239,9 +248,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
 
-            double growthAngle, growthIncrement;
-            propagator.Propagate(dofEnumerator, solution, totalConstrainedDisplacements, 
-                out growthAngle, out growthIncrement);
+            (double growthAngle, double growthIncrement) = propagator.Propagate(dofEnumerator, solution, 
+                totalConstrainedDisplacements);
             double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))
                 / globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;

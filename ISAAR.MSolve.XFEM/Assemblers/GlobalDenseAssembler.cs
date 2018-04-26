@@ -30,27 +30,31 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Element matrices
-                Matrix kss = element.BuildStandardStiffnessMatrix();
-                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
-
-                // Element to global dofs mappings
-                // TODO: perhaps that could be done during the assembly to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> elementToGlobalFreeDofs, elementToGlobalConstrainedDofs;
+                // Build standard element matrices and add it contributions to the global matrices
+                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
-                    out elementToGlobalFreeDofs, out elementToGlobalConstrainedDofs);
+                    out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
+                    out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
+                Matrix kss = element.BuildStandardStiffnessMatrix();
+                AddElementToGlobalMatrix(Kuu, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
+                AddElementToGlobalMatrix(Kuc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
+
+                // Build enriched element matrices and add it contributions to the global matrices
                 IReadOnlyDictionary<int, int> elementToGlobalEnrDofs =
                     dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                if (elementToGlobalEnrDofs.Count > 0)
+                {
+                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
 
-                // Add the element contributions to the global matrices
-                AddElementToGlobalMatrix(Kuu, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(Kuu, kes.Transpose(), elementToGlobalFreeDofs, elementToGlobalEnrDofs);
-                AddElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
-
-                AddElementToGlobalMatrix(Kuc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
-                AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                    // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
+                    // 2) The Elements have two versions of BuildStiffness(). 
+                    // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
+                    Matrix kse = kes.Transpose();
+                    AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                    AddElementToGlobalMatrix(Kuu, kes.Transpose(), elementToGlobalFreeDofs, elementToGlobalEnrDofs);
+                    AddElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                    AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                }
             }
 
             return (Kuu, Kuc);

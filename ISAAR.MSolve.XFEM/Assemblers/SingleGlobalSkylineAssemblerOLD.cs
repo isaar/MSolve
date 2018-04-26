@@ -11,6 +11,7 @@ using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
+//TODO: It has bugs. Stop using this thing...
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
     /// <summary>
@@ -35,26 +36,25 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Element matrices
-               Matrix kss = element.BuildStandardStiffnessMatrix();
-               element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
-
-                // Element to global dofs mappings
-                // TODO: perhaps that could be done during the assembly to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> elementToGlobalFreeDofs, elementToGlobalConstrainedDofs;
-                dofEnumerator.MatchElementToGlobalStandardDofsOf(element, 
-                    out elementToGlobalFreeDofs, out elementToGlobalConstrainedDofs);
-                IReadOnlyDictionary<int, int> elementToGlobalEnrDofs = 
-                    dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
-
-                // Add the element contributions to the global matrices
-                AddSymmetricElementToGlobalMatrix(Kuu, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                AddSymmetricElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
-
+                // Build standard element matrices and add it contributions to the global matrices
+                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
+                dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
+                    out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
+                    out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
+                Matrix kss = element.BuildStandardStiffnessMatrix();
+                AddElementToGlobalMatrix(Kuu, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
                 AddElementToGlobalMatrix(Kuc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
-                AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+
+                // Build enriched element matrices and add it contributions to the global matrices
+                IReadOnlyDictionary<int, int> elementToGlobalEnrDofs =
+                    dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                if (elementToGlobalEnrDofs.Count > 0)
+                {
+                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+                    AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                    AddElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                    AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                }
             }
 
             #region DEBUG code

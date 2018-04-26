@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
         public FineAtCenterRectilinearMeshGenerator()
         { }
 
-        public Tuple<XNode2D[], List<XNode2D[]>> CreateMesh()
+        public (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateMesh()
         {
             double[] coordinatesX = FindNodalCoordinates(0);
             double[] coordinatesY = FindNodalCoordinates(1);
