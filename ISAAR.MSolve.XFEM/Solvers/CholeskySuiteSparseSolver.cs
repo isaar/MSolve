@@ -38,19 +38,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             #region debug
-            // Matrix
-            (double[] values, int[] rowIndices, int[] colOffsets) = Kuu.BuildSymmetricCSCArrays(true);
-            var csc = CSCMatrix.CreateFromArrays(Kuu.NumRows, Kuu.NumColumns, values, rowIndices, colOffsets, false);
-            (new RawArraysWriter(csc)).WriteToMultipleFiles(matrixPath, true);
+            //// Matrix
+            //(double[] values, int[] rowIndices, int[] colOffsets) = Kuu.BuildSymmetricCSCArrays(true);
+            //var csc = CSCMatrix.CreateFromArrays(Kuu.NumRows, Kuu.NumColumns, values, rowIndices, colOffsets, false);
+            //(new RawArraysWriter(csc)).WriteToMultipleFiles(matrixPath, true);
 
-            // Rhs
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-            (new FullVectorWriter(rhs, true)).WriteToFile(rhsPath);
+            //// Rhs
+            //FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+            //(new FullVectorWriter(rhs, true)).WriteToFile(rhsPath);
 
-            // Solution
-            Vector expectedSolution = SolveWithSkyline();
-            (new FullVectorWriter(expectedSolution, true)).WriteToFile(solutionPath);
-
+            //// Solution
+            //Vector expectedSolution = SolveWithSkyline();
+            //(new FullVectorWriter(expectedSolution, true)).WriteToFile(solutionPath);
             #endregion
 
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())

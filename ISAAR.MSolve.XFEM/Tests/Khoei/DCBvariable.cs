@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         public static void Main()
         {
             // Error in 9x27 and higher for suitesparse solver, but not for all j-integral radii
-            int[] meshElements = new int[] { 5, 9, 15, 25, 45 }; 
+            int[] meshElements = new int[] {  15, 25, 45 }; 
             double[] jIntegralRadiiOverElementSize = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
             var watch = new Stopwatch();
             watch.Start();
