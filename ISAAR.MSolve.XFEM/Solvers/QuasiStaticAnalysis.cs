@@ -18,6 +18,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class QuasiStaticAnalysis
     {
+        private const bool printPath = false; //for debugging purposes
+
         private readonly Model2D model;
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly IExteriorCrack crack;
@@ -45,58 +47,58 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public IReadOnlyList<ICartesianPoint2D> Analyze()
         {
             var crackPath = new List<ICartesianPoint2D>();
-            crackPath.Add(crack.CrackMouth);
-            crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
-
-            int iteration;
-            try
-            {
-                solver.Initialize();
-                for (iteration = 0; iteration < maxIterations; ++iteration)
-                {
-                    //Console.WriteLine(
-                        //"********************************** Iteration {0} **********************************", iteration);
-                    crack.UpdateEnrichments();
-                    solver.Solve();
-
-                    Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DOFEnumerator);
-                    Vector totalFreeDisplacements = solver.Solution;
-
-                    (double growthAngle, double growthIncrement) = propagator.Propagate(solver.DOFEnumerator, 
-                        totalFreeDisplacements, totalConstrainedDisplacements);
-                    crack.UpdateGeometry(growthAngle, growthIncrement);
-                    ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
-                    crackPath.Add(newTip);
-
-                    double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
-                        propagator.Logger.SIFsMode2[iteration]);
-                    if (sifEffective >= fractureToughness)
-                    {
-                        Console.WriteLine(
-                            "Propagation analysis terminated: Failure due to fracture tougness being exceeded.");
-                        break;
-                    }
-                    else if (!mesh.IsInsideBoundary(newTip))
-                    {
-                        Console.WriteLine(
-                            "Propagation analysis terminated: Failure due to the crack reaching the domain's boudary.");
-                        break;
-                    }
-                }
-                if (iteration == maxIterations)
-                {
-                    Console.WriteLine(
-                    "Propagation analysis terminated: All {0} iterations were completed.", maxIterations);
-                }
-            }
-            catch(Exception ex)
+            if (printPath)
             {
                 Console.WriteLine("Crack path: X Y");
-                foreach (var point in crackPath)
+                crackPath.Add(crack.CrackMouth);
+                Console.WriteLine($"{crack.CrackMouth.X} {crack.CrackMouth.Y}");
+                crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
+                Console.WriteLine($"{crackPath.Last().X} {crackPath.Last().Y}");
+            }
+
+            int iteration;
+            solver.Initialize(model);
+            for (iteration = 0; iteration < maxIterations; ++iteration)
+            {
+                //if (iteration == 10) // TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip r
+                //{
+                //    Console.WriteLine("11th iteration. An expection will be thrown");
+                //}
+
+                //Console.WriteLine(
+                //"********************************** Iteration {0} **********************************", iteration);
+                crack.UpdateEnrichments();
+                solver.Solve();
+
+                Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DOFEnumerator);
+                Vector totalFreeDisplacements = solver.Solution;
+
+                (double growthAngle, double growthIncrement) = propagator.Propagate(solver.DOFEnumerator,
+                    totalFreeDisplacements, totalConstrainedDisplacements);
+                crack.UpdateGeometry(growthAngle, growthIncrement);
+                ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
+                crackPath.Add(newTip);
+                if (printPath) Console.WriteLine($"{newTip.X} {newTip.Y}");
+
+                double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
+                    propagator.Logger.SIFsMode2[iteration]);
+                if (sifEffective >= fractureToughness)
                 {
-                    Console.WriteLine("{0} {1}", point.X, point.Y);
+                    Console.WriteLine(
+                        "Propagation analysis terminated: Failure due to fracture tougness being exceeded.");
+                    break;
                 }
-                throw ex;
+                else if (!mesh.IsInsideBoundary(newTip))
+                {
+                    Console.WriteLine(
+                        "Propagation analysis terminated: Failure due to the crack reaching the domain's boudary.");
+                    break;
+                }
+            }
+            if (iteration == maxIterations)
+            {
+                Console.WriteLine(
+                "Propagation analysis terminated: All {0} iterations were completed.", maxIterations);
             }
 
             return crackPath;

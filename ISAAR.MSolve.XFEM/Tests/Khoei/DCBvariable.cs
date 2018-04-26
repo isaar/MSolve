@@ -27,6 +27,7 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
+using System.Diagnostics;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -43,8 +44,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         public static void Main()
         {
-            int[] meshElements = new int[] { 5, 15, 25, 45 };
+            // Error in 9x27 and higher for suitesparse solver, but not for all j-integral radii
+            int[] meshElements = new int[] { 5, 9, 15, 25, 45 }; 
             double[] jIntegralRadiiOverElementSize = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
+            var watch = new Stopwatch();
+            watch.Start();
             Console.WriteLine("---------------------- Results ---------------------");
             for (int i = 0; i < meshElements.Length; ++i)
             {
@@ -60,6 +64,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                     meshElements[i], 3 * meshElements[i], jIntegralRadiiOverElementSize[j], results.Item1, results.Item2);
                 }
             }
+            watch.Stop();
+            double duration = watch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine($"----- Time elapsed = {duration} s -----");
         }
 
         private readonly SubmatrixChecker checker;
@@ -194,9 +201,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            //var solver = new CholeskySuiteSparseSolver(model);
-            var solver = new PCGSolver(model, 1, 1e-8);
-            solver.Initialize();
+            var solver = new CholeskySuiteSparseSolver();
+            //var solver = new SkylineSolver(model);
+            //var solver = new PCGSolver(model, 1, 1e-8);
+            solver.Initialize(model);
             solver.Solve();
             dofEnumerator = solver.DOFEnumerator;
             return solver.Solution;

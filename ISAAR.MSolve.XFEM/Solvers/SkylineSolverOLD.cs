@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,21 +16,30 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class SkylineSolverOLD: ISolver
     {
-        private readonly Model2D model;
+        private Model2D model;
 
-        public SkylineSolverOLD(Model2D model)
+        public SkylineSolverOLD()
         {
-            this.model = model;
+            this.Logger = new SolverLogger();
         }
 
-        public IDOFEnumerator DOFEnumerator { get; private set; } 
+        public IDOFEnumerator DOFEnumerator { get; private set; }
+
+        public SolverLogger Logger { get; }
 
         public Vector Solution { get; private set; }
 
-        public void Initialize() { }
+        public void Initialize(Model2D model)
+        {
+            this.model = model;
+            Logger.InitializationTime = 0;
+        }
 
         public void Solve()
         {
+            var watch = new Stopwatch();
+            watch.Start();
+
             DOFEnumerator = DOFEnumeratorSeparate.Create(model); // Actually this enumeration will result in huge bandwidths.
             //DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
@@ -39,6 +49,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             double[] solutionArray = new double[ls.Solution.Length];
             ls.Solution.CopyTo(solutionArray, 0);
             Solution = Vector.CreateFromArray(solutionArray);
+
+            watch.Stop();
+            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
         /// <summary>

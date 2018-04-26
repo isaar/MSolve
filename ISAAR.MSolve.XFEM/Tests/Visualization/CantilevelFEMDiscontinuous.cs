@@ -76,8 +76,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
 
         private static (Vector, IDOFEnumerator) Solve(Model2D model)
         {
-            var solver = new SkylineSolverOLD(model);
-            solver.Initialize();
+            var solver = new SkylineSolver();
+            solver.Initialize(model);
             solver.Solve();
             return (solver.Solution, solver.DOFEnumerator);
         }

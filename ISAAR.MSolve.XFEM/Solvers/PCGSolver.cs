@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly double maxIterationsOverOrder; //roughly
         private readonly double tolerance;
 
-        public PCGSolver(Model2D model, double maxIterationsOverOrder, double tolerance): base(model)
+        public PCGSolver(double maxIterationsOverOrder, double tolerance)
         {
             this.maxIterationsOverOrder = maxIterationsOverOrder;
             this.tolerance = tolerance;
@@ -27,8 +28,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Solve()
         {
+            var watch = new Stopwatch();
+            watch.Start();
+
+            // Interleaced and separate dof enumerators seem to have similar performance.
             DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
             //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
+
             var assembler = new GlobalCSRAssembler();
             (DOKRowMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
             Vector rhs = CalcEffectiveRhs(Kuc);
@@ -44,6 +50,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             (Vector x, IterativeStatistics statistics) = pcg.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
             Solution = x;
+
+            watch.Stop();
+            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
     }
 }

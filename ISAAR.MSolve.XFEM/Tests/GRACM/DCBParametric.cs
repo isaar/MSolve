@@ -12,7 +12,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
     {
         public static void Main()
         {
-            SingleTest();
+            //SingleTest();
+            CompareSolvers();
             //ParametricCrackLength(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
             //ParametricMesh(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
             //GridSearch(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
@@ -34,13 +35,66 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //writer.InitializeFile("dcb_transfinite");
             //writer.CloseCurrentFile();
 
-            var solver = new SkylineSolver(benchmark.Model);
+            var solver = new SkylineSolver();
             IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
             {
                 Console.WriteLine("{0} {1}", point.X, point.Y);
             }
+        }
+
+        private static void CompareSolvers()
+        {
+            double growthLength = 0.3;
+            double elementSize = 0.08;
+            int repetitions = 10;
+
+            var solvers = new Dictionary<string, ISolver>
+            {
+                {  "Skyline", new SkylineSolver()},
+                {  "Jacobi Preconditioned CG", new PCGSolver(1, 1e-8)}
+            };
+
+            var solverTimes = new Dictionary<string, long>
+            {
+                {  "Skyline", 0},
+                {  "Jacobi Preconditioned CG", 0}
+            };
+
+            for (int t = 0; t < repetitions; ++t)
+            {
+                Console.WriteLine($"Repetition: {t}");
+                foreach (var solverName in solvers.Keys)
+                {
+                    var benchmark = new DCB(elementSize, growthLength);
+                    benchmark.UniformMesh = false;
+                    benchmark.UseLSM = true;
+                    //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 
+                    //      found. It happens at iteration 10.
+                    benchmark.MaxIterations = 10;
+                    benchmark.InitializeModel();
+                    //Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
+                    //    elementSize, benchmark.Model.Elements.Count, growthLength);
+
+                    //Print
+                    //VTKWriter writer = new VTKWriter(benchmark.model);
+                    //writer.InitializeFile("dcb_transfinite");
+                    //writer.CloseCurrentFile();
+                    solvers[solverName].Logger.Clear();
+                    IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solvers[solverName]);
+                    long totalTime = solvers[solverName].Logger.CalcTotalTime();
+                    Console.WriteLine($"Solver {solverName}: total time = {totalTime} ms.");
+                    solverTimes[solverName] += totalTime;
+                }
+                Console.WriteLine();
+            }
+
+            foreach (var solverName in solverTimes.Keys)
+            {
+                Console.WriteLine($"Solver {solverName}: Total time = {solverTimes[solverName] / repetitions} ms");
+            }
+
         }
 
         private static void ParametricCrackLength(double jIntegralRadiusOverElementSize, double fractureToughness,
@@ -60,7 +114,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
                 try
                 {
-                    var solver = new SkylineSolver(benchmark.Model);
+                    var solver = new SkylineSolver();
                     IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
                     Console.WriteLine("Crack path:");
                     foreach (var point in crackPath)
@@ -95,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
                 try
                 {
-                    var solver = new SkylineSolver(benchmark.Model);
+                    var solver = new SkylineSolver();
                     IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
                     Console.WriteLine("Crack path:");
                     foreach (var point in crackPath)
@@ -132,7 +186,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                         fineElementSizes[i], benchmark.Model.Elements.Count, growthLengths[j]);
                     try
                     {
-                        var solver = new SkylineSolver(benchmark.Model);
+                        var solver = new SkylineSolver();
                         IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
                         Console.WriteLine("Crack path:");
                         foreach (var point in crackPath)

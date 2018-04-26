@@ -13,9 +13,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
     interface ISolver
     {
         IDOFEnumerator DOFEnumerator { get; }
+        SolverLogger Logger { get; }
         Vector Solution { get; }
 
-        void Initialize();
+        void Initialize(Model2D model);
         void Solve();
     }
 }
