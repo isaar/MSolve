@@ -130,7 +130,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private readonly bool useLSM;
 
         private IMesh2D<XNode2D, XContinuumElement2D> mesh;
-        private IExteriorCrack crack;
 
         /// <summary>
         /// 
@@ -151,6 +150,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.uniformMesh = uniformMesh;
             this.useLSM = useLSM;
         }
+        
+        /// <summary>
+        /// The crack geometry description
+        /// </summary>
+        public IExteriorCrack Crack { get; private set; }
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
@@ -160,7 +164,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver)
         {
-            var actualPropagator = new Propagator(mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
+            var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
@@ -168,7 +172,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             IPropagator propagator;
             if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, actualPropagator);
             else propagator = actualPropagator;
-            var analysis = new QuasiStaticAnalysis(Model, mesh, crack, solver, propagator, fractureToughness, maxIterations);
+            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
             return analysis.Analyze();
         }
 
@@ -279,7 +283,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 lsmCrack.InitializeGeometry(crackVertex0, crackVertex1);
                 lsmCrack.UpdateGeometry(-dTheta, da);
 
-                this.crack = lsmCrack;
+                this.Crack = lsmCrack;
             }
             else
             {
@@ -294,7 +298,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 explicitCrack.InitializeGeometry(crackVertex0, crackVertex1);
                 explicitCrack.UpdateGeometry(-dTheta, da);
 
-                this.crack = explicitCrack;
+                this.Crack = explicitCrack;
             }
         }
 

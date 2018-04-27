@@ -10,7 +10,7 @@ using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Interpolation;
-
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 { 
@@ -18,6 +18,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     interface IExteriorCrack: ICrackGeometry
     {
         ICartesianPoint2D CrackMouth { get; }
+        CrackBodyEnrichment2D CrackBodyEnrichment { get; }
+        CrackTipEnrichments2D CrackTipEnrichments { get; }
+
         void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip);
         void UpdateGeometry(double localGrowthAngle, double growthLength); // Perhaps the global angle should be passed in
         

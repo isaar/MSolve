@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Assemblers\GlobalCSRAssembler.cs" />
     <Compile Include="Assemblers\GlobalDenseAssembler.cs" />
+    <Compile Include="Assemblers\GlobalReanalysisAssembler.cs" />
     <Compile Include="Assemblers\GlobalSkylineAssembler.cs" />
     <Compile Include="CrackPropagation\IPropagator.cs" />
     <Compile Include="CrackPropagation\FixedPropagator.cs" />
@@ -177,6 +178,7 @@
     <Compile Include="Solvers\Preconditioning\IdentityPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\IPreconditioner.cs" />
     <Compile Include="Solvers\Preconditioning\JacobiPreconditioner.cs" />
+    <Compile Include="Solvers\ReanalysisSolver.cs" />
     <Compile Include="Solvers\SkylineSolver.cs" />
     <Compile Include="Solvers\SkylineSolverOLD.cs" />
     <Compile Include="Solvers\SolverBase.cs" />
