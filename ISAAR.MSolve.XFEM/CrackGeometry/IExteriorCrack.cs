@@ -20,6 +20,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         ICartesianPoint2D CrackMouth { get; }
         CrackBodyEnrichment2D CrackBodyEnrichment { get; }
         CrackTipEnrichments2D CrackTipEnrichments { get; }
+        ISet<XNode2D> CrackBodyNodesAll { get; }
+        ISet<XNode2D> CrackBodyNodesNew { get; }
+        ISet<XNode2D> CrackTipNodesNew { get; }
+        ISet<XNode2D> CrackTipNodesOld { get; }
 
         void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip);
         void UpdateGeometry(double localGrowthAngle, double growthLength); // Perhaps the global angle should be passed in

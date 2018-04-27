@@ -37,7 +37,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private List<ICartesianPoint2D> Vertices { get; }
         private List<DirectedSegment2D> Segments { get; }
         // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
-        private List<double> Angles { get; } 
+        private List<double> Angles { get; }
+
+        public ISet<XNode2D> CrackBodyNodesAll => throw new NotImplementedException();
+        public ISet<XNode2D> CrackTipNodesNew => throw new NotImplementedException();
+        public ISet<XNode2D> CrackBodyNodesNew => throw new NotImplementedException();
+        public ISet<XNode2D> CrackTipNodesOld => throw new NotImplementedException();
 
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;

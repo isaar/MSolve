@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             double elementSize = 0.08;
             var builder = new DCB.Builder(elementSize, growthLength);
             builder.UniformMesh = false;
-            builder.UseLSM = true;
+            builder.UseLSM = false;
             builder.MaxIterations = 10;
             var benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();

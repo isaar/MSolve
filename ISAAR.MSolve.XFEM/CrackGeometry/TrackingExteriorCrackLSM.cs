@@ -14,48 +14,54 @@ using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
-// TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
-//       Could the enrichment type of an element be infered by just looking at its nodes, without storing state. Could it be
-//       cached for efficiency and how would the cache be updated safely?
+//TODO: replace BasicCrackLSM with this one after testing is done
+//TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
+//      Could the enrichment type of an element be infered by just looking at its nodes, without storing state? Should it be
+//      cached for efficiency and how would the cache be updated safely?
+//TODO: using narrow band, a superset of tipNodes and bodyNodes would include those sets. Need core class SuperSet.
+//TODO: perhaps the bookkeeping of nodes and elements can be done by a dedicated class. Narrow banding would then be implemented
+//      there. In general, this is a god class and should be broken down to smaller ones.
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
-    class BasicCrackLSM : IExteriorCrack
+    /// <summary>
+    /// Warning: may misclassify elements as tip elements, causing gross errors.
+    /// </summary>
+    class TrackingExteriorCrackLSM: IExteriorCrack
     {
         private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
-
+        private readonly Dictionary<XNode2D, double> levelSetsBody;
+        private readonly Dictionary<XNode2D, double> levelSetsTip;
         private readonly double tipEnrichmentAreaRadius;
+        private readonly List<XContinuumElement2D> tipElements; // Ideally there is only 1, but what if the tip falls on the edge bewteen elements?
+        
         private readonly CartesianTriangulator triangulator;
+        private ICartesianPoint2D crackTip;
+        private TipCoordinateSystem tipSystem;
 
-        public ICartesianPoint2D CrackMouth { get; private set; }
+        public TrackingExteriorCrackLSM(double tipEnrichmentAreaRadius = 0.0)
+        {
+            this.levelSetsBody = new Dictionary<XNode2D, double>();
+            this.levelSetsTip = new Dictionary<XNode2D, double>();
+            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
+            this.tipElements = new List<XContinuumElement2D>();
+            this.CrackBodyNodesAll = new HashSet<XNode2D>();
+            this.CrackBodyNodesNew = new HashSet<XNode2D>();
+            this.CrackTipNodesNew = new HashSet<XNode2D>();
+            this.CrackTipNodesOld = new HashSet<XNode2D>();
+            this.triangulator = new CartesianTriangulator();
+        }
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
         // parameters to a CrackDescription builder and construct them there, without involving the user.
-        public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
-
-        public ISet<XNode2D> CrackBodyNodesAll => throw new NotImplementedException();
-        public ISet<XNode2D> CrackTipNodesNew => throw new NotImplementedException();
-        public ISet<XNode2D> CrackBodyNodesNew => throw new NotImplementedException();
-        public ISet<XNode2D> CrackTipNodesOld => throw new NotImplementedException();
-
-        private readonly Dictionary<XNode2D, double> levelSetsBody;
-        private readonly Dictionary<XNode2D, double> levelSetsTip;
-
-        private ICartesianPoint2D crackTip;
-        private TipCoordinateSystem tipSystem;
-        private List<XContinuumElement2D> tipElements;
-
-        public BasicCrackLSM(double tipEnrichmentAreaRadius = 0.0)
-        {
-            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
-            this.triangulator = new CartesianTriangulator();
-            this.tipElements = new List<XContinuumElement2D>();
-            levelSetsBody = new Dictionary<XNode2D, double>();
-            levelSetsTip = new Dictionary<XNode2D, double>();
-        }
+        public ISet<XNode2D> CrackBodyNodesAll { get; private set; } // TODO: a TreeSet might be better if set intersections are applied
+        public ISet<XNode2D> CrackBodyNodesNew { get; private set; }
+        public ISet<XNode2D> CrackTipNodesNew { get; private set; }
+        public ISet<XNode2D> CrackTipNodesOld { get; private set; }
+        public ICartesianPoint2D CrackMouth { get; private set; }
+        public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
 
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
         {
@@ -116,7 +122,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 // Rotate the ALL tip level sets towards the new tip and then advance them
                 double rotatedTipLevelSet = (node.X - crackTip.X) * unitDx + (node.Y - crackTip.Y) * unitDy;
                 levelSetsTip[node] = rotatedTipLevelSet - newSegment.Length;
-                 
+
                 if (rotatedTipLevelSet > 0.0) // Only some body level sets are updated (See Stolarska 2001) 
                 {
                     levelSetsBody[node] = newSegment.SignedDistanceOf(node);
@@ -182,7 +188,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     double levelSet1 = levelSetsBody[node1];
                     double levelSet2 = levelSetsBody[node2];
 
-                    if (levelSet1 * levelSet2 < 0.0) 
+                    if (levelSet1 * levelSet2 < 0.0)
                     {
                         // The intersection point between these nodes can be found using the linear interpolation, see 
                         // Sukumar 2001
@@ -192,7 +198,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
                         // TODO: For the tip element one intersection point is on the crack extension and does not  
                         // need to be added. It is not wrong though.
-                        triangleVertices.Add(new CartesianPoint2D(x, y)); 
+                        triangleVertices.Add(new CartesianPoint2D(x, y));
                     }
                     else if (levelSet1 == 0.0) triangleVertices.Add(node1); // TODO: perhaps some tolerance is needed.
                     else if (levelSet2 == 0.0) triangleVertices.Add(node2);
@@ -206,36 +212,39 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         // The tip enrichments are cleared and reapplied at each call. In constrast, nodes previously enriched with Heavise will 
         // continue to do so, with the addition of newly Heaviside enriched nodes. If the caller needs the nodes to be cleared of 
         // Heaviside enrichments he must do so himself.
-        public void UpdateEnrichments() 
+        public void UpdateEnrichments()
         {
-            var bodyNodes = new HashSet<XNode2D>();
-            var tipNodes = new HashSet<XNode2D>();
-            tipElements.Clear();
-
-            FindBodyAndTipNodesAndElements(bodyNodes, tipNodes, tipElements);
-            ApplyFixedEnrichmentArea(tipNodes, tipElements[0]);
-            ResolveHeavisideEnrichmentDependencies(bodyNodes);
-
-            ApplyEnrichmentFunctions(bodyNodes, tipNodes); 
+            // The order these are called is important, as they mess with state stored in the fields
+            ClearPreviousEnrichments();
+            FindBodyAndTipNodesAndElements();
+            ApplyFixedEnrichmentArea(tipElements[0]);
+            ResolveHeavisideEnrichmentDependencies();
+            ApplyEnrichmentFunctions();
         }
 
-        private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
+        private void ApplyEnrichmentFunctions() 
         {
-            // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
-            foreach (var node in Mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
-            foreach (var node in tipNodes)
+            foreach (var node in CrackTipNodesNew)
             {
                 double[] enrichmentValues = CrackTipEnrichments.EvaluateFunctionsAt(node);
                 node.EnrichmentItems[CrackTipEnrichments] = enrichmentValues;
             }
 
-            // Heaviside enrichment is never removed (unless the crack curves towards itself, but that creates a lot of
-            // problems and cannot be modeled with LSM accurately). Thus there is no need to process each mesh node. 
-            // TODO: It could be sped up by only updating the Heaviside enrichments of nodes that have updated body  
+            // There is no need to process each mesh node. Once a node is enriched with Heaviside it will stay that way until the 
+            // end. Even if the crack curves towards itself and a crack tip comes near the node, the original discontinuity must 
+            // be represented by the original Heaviside (this case creates a lot of problems and cannot be modeled with LSM 
+            // accurately anyway). 
+            // I am not sure if the value of the Heaviside enrichment doesn't change for elements around the crack tip, once the 
+            // crack propagates. In first order LSM this is improbable, since there cannot be kinks inside the element, but what 
+            // about explicit cracks and higher order LSM?
+            //TODO: It could be sped up by only updating the Heaviside enrichments of nodes that have updated body  
             //      level sets, which requires tracking them.
-            // TODO: should I also clear and reapply all Heaviside enrichments? It is safer and might be useful for e.g. 
+            //      - Done. Tracking newly enriched nodes is useful for many reasons.
+            //TODO: should I also clear and reapply all Heaviside enrichments? It is safer and might be useful for e.g. 
             //      reanalysis. Certainly I must not clear all node enrichments, as they may include material interfaces etc.
-            foreach (var node in bodyNodes)
+            //      - Ans: nope in reanalysis old Heaviside enrichments are assumed to stay the same (not sure if that is correct 
+            //          though)
+            foreach (var node in CrackBodyNodesNew)
             {
                 double[] enrichmentValues = CrackBodyEnrichment.EvaluateFunctionsAt(node);
                 node.EnrichmentItems[CrackBodyEnrichment] = enrichmentValues;
@@ -247,9 +256,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         /// functions. They can still be enriched with Heaviside functions, if they do not belong to the tip 
         /// element(s).
         /// </summary>
-        /// <param name="tipNodes"></param>
         /// <param name="tipElement"></param>
-        private void ApplyFixedEnrichmentArea(HashSet<XNode2D> tipNodes, XContinuumElement2D tipElement)
+        private void ApplyFixedEnrichmentArea(XContinuumElement2D tipElement)
         {
             if (tipEnrichmentAreaRadius > 0)
             {
@@ -262,7 +270,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                         CirclePointPosition position = enrichmentArea.FindRelativePositionOfPoint(node);
                         if ((position == CirclePointPosition.Inside) || (position == CirclePointPosition.On))
                         {
-                            tipNodes.Add(node);
+                            CrackTipNodesNew.Add(node);
                         }
                         else completelyInside = false;
                     }
@@ -305,34 +313,50 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return ElementEnrichmentType.Standard;
         }
 
-        private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes, 
-            List<XContinuumElement2D> tipElements)
+        private void ClearPreviousEnrichments()
+        {
+            CrackBodyNodesNew = new HashSet<XNode2D>();
+            CrackTipNodesOld = CrackTipNodesNew;
+            CrackTipNodesNew = new HashSet<XNode2D>();
+            foreach (var node in CrackTipNodesOld) node.EnrichmentItems.Remove(CrackTipEnrichments);
+            tipElements.Clear();
+        }
+
+        private void FindBodyAndTipNodesAndElements()
         {
             foreach (var element in Mesh.Cells)
             {
-                element.EnrichmentItems.Clear();
+                element.EnrichmentItems.Clear(); //TODO: not too fond of saving enrichment state in elements. It should be confined in nodes
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
                 if (type == ElementEnrichmentType.Tip)
                 {
                     tipElements.Add(element);
-                    foreach (var node in element.Nodes) tipNodes.Add(node);
+                    foreach (var node in element.Nodes) CrackTipNodesNew.Add(node);
                     element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
                 else if (type == ElementEnrichmentType.Heaviside)
                 {
-                    foreach (var node in element.Nodes) bodyNodes.Add(node);
-                    // Cut elements next to tip elements, they will be enriched with both Heaviside and tip functions. If all 
+                    foreach (var node in element.Nodes)
+                    {
+                        bool isNew = CrackBodyNodesAll.Add(node);
+                        if (isNew) CrackBodyNodesNew.Add(node);
+                    }
+                    // Cut elements next to tip elements will be enriched with both Heaviside and tip functions. If all 
                     // nodes were enriched with tip functions, the element would not be enriched with Heaviside, but then it 
                     // would be a tip element and not fall under this case.
-                    element.EnrichmentItems.Add(CrackBodyEnrichment); 
+                    element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
             }
-            foreach (var node in tipNodes) bodyNodes.Remove(node); // tip element's nodes are not enriched with Heaviside
+            foreach (var node in CrackTipNodesNew) // tip element's nodes are not enriched with Heaviside
+            {
+                CrackBodyNodesAll.Remove(node);
+                CrackBodyNodesNew.Remove(node);
+            }
 
             ReportTipElements(tipElements);
         }
 
-        private void FindSignedAreasOfElement(XContinuumElement2D element, 
+        private void FindSignedAreasOfElement(XContinuumElement2D element,
             out double positiveArea, out double negativeArea)
         {
             SortedSet<ICartesianPoint2D> triangleVertices = FindTriangleVertices(element);
@@ -366,12 +390,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     {
                         Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
                     }
-                   
-                    
+
+
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     INaturalPoint2D centroidNatural = element.Interpolation.
                         CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
-                    EvaluatedInterpolation2D centroidInterpolation = 
+                    EvaluatedInterpolation2D centroidInterpolation =
                         element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
                     sign = Math.Sign(SignedDistanceOf(centroidNatural, element, centroidInterpolation));
                 }
@@ -383,24 +407,27 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             }
         }
 
-        private void ResolveHeavisideEnrichmentDependencies(HashSet<XNode2D> bodyNodes)
+        //TODO: I suspect this is method is responsible for singular global matrices popping up randomly for many configurations.
+        //      Either this doesn't work as good as advertised or I messed it up. Try checking if there is at least  
+        //      least 1 GP on either side of the crack instead. Bonus points if the GPs are cached somehow (e.g. all std elements
+        //      have the same GPs in natural system, many enriched elements may also have the same active integration rule) for
+        //      when the integration actually happens.
+        private void ResolveHeavisideEnrichmentDependencies()
         {
             const double toleranceHeavisideEnrichmentArea = 1e-4;
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
             var nodesToRemove = new List<XNode2D>(); // Can't remove them while iterating the collection.
-            foreach (var node in bodyNodes)
+            foreach (var node in CrackBodyNodesAll) //TODO: Is it safe to only search the newly enriched nodes?
             {
                 double nodePositiveArea = 0.0;
                 double nodeNegativeArea = 0.0;
 
                 foreach (var element in Mesh.FindElementsWithNode(node))
                 {
-                    Tuple<double, double> elementPosNegAreas;
-                    bool alreadyProcessed = processedElements.TryGetValue(element, out elementPosNegAreas);
+                    bool alreadyProcessed = processedElements.TryGetValue(element, out Tuple<double, double> elementPosNegAreas);
                     if (!alreadyProcessed)
                     {
-                        double elementPosArea, elementNegArea;
-                        FindSignedAreasOfElement(element, out elementPosArea, out elementNegArea);
+                        FindSignedAreasOfElement(element, out double elementPosArea, out double elementNegArea);
                         elementPosNegAreas = new Tuple<double, double>(elementPosArea, elementNegArea);
                         processedElements[element] = elementPosNegAreas;
                     }
@@ -420,7 +447,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 }
             }
 
-            foreach (var node in nodesToRemove) bodyNodes.Remove(node);
+            foreach (var node in nodesToRemove) // using sets and set operations might be better and faster
+            {
+                CrackBodyNodesAll.Remove(node);
+                CrackBodyNodesNew.Remove(node);
+            }
         }
 
         [ConditionalAttribute("DEBUG")]
@@ -448,6 +479,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         /// interpolations, an element enriched with tip functions does not need to be enriched with Heaviside too. 
         /// This is because, even if there are kinks inside the element, the linear interpolation cannot reproduce them.
         /// </summary>
-        private enum ElementEnrichmentType { Standard, Heaviside, Tip } 
+        private enum ElementEnrichmentType { Standard, Heaviside, Tip }
     }
 }

@@ -164,6 +164,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver)
         {
+            var crackPath = new List<ICartesianPoint2D>();
+            crackPath.Add(new CartesianPoint2D(0.0, h / 2));
+            crackPath.Add(new CartesianPoint2D(a, h / 2));
+            double dx = da * Math.Cos(dTheta);
+            double dy = da * Math.Sin(dTheta);
+            crackPath.Add(new CartesianPoint2D(crackPath.Last().X + dx, crackPath.Last().Y - dy));
+
             var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
@@ -173,7 +180,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, actualPropagator);
             else propagator = actualPropagator;
             var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
-            return analysis.Analyze();
+            crackPath.AddRange(analysis.Analyze());
+            return crackPath;
         }
 
         public void InitializeModel()
@@ -272,7 +280,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             if (useLSM)
             {
-                var lsmCrack = new BasicCrackLSM();
+                //var lsmCrack = new BasicCrackLSM();
+                var lsmCrack = new TrackingExteriorCrackLSM();
                 lsmCrack.Mesh = mesh;
 
                 // Create enrichments          

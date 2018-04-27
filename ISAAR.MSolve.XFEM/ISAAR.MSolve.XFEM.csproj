@@ -60,6 +60,7 @@
     <Compile Include="Assemblers\GlobalDenseAssembler.cs" />
     <Compile Include="Assemblers\GlobalReanalysisAssembler.cs" />
     <Compile Include="Assemblers\GlobalSkylineAssembler.cs" />
+    <Compile Include="CrackGeometry\TrackingExteriorCrackLSM.cs" />
     <Compile Include="CrackPropagation\IPropagator.cs" />
     <Compile Include="CrackPropagation\FixedPropagator.cs" />
     <Compile Include="Solvers\DenseSolver.cs" />
