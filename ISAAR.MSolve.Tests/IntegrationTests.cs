@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.SamplesConsole;
@@ -151,7 +154,6 @@ namespace ISAAR.MSolve.Tests
             Assert.Equal(-2.08333333333333333e-5, linearSystems[1].Solution[1], 10);
         }
 
-
         [Fact]
         private static void SolveRandomVariableBeam2DWithMonteCarlo()
         {
@@ -234,6 +236,290 @@ namespace ISAAR.MSolve.Tests
             stohasticAnalyzer.Solve();
 
             Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
+        }
+
+        [Fact]
+        private static void SolveQuadCantileverDecompositionTest1()
+        {
+            #region Quad Cantilever Model
+            VectorExtensions.AssignTotalAffinityCount();
+            double youngModulus = 3.0e07;
+            double poissonRatio = 0.3;
+            double nodalLoad = 1000;
+
+            // Create a new elastic 2D material
+            ElasticMaterial2D material = new ElasticMaterial2D()
+            {
+                YoungModulus = youngModulus,
+                PoissonRatio = poissonRatio
+            };
+            // Model creation
+            Model model = new Model();
+
+            // Add a single subdomain to the model
+            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+            // Add nodes to the nodes dictonary of the model
+            int indexNode = 0;
+            for (int i = 0; i < 25; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    model.NodesDictionary.Add(indexNode, new Node()
+                    {
+                        ID = indexNode++,
+                        X = i,
+                        Y = j,
+                        Z = 0.0
+                    });
+                }
+            }
+
+            // Constrain left nodes of the model
+            for (int i = 0; i < 5; i++)
+            {
+                model.NodesDictionary[i].Constraints.Add(DOFType.X);
+                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+            }
+
+            int indexElement = 0;
+            for (int i = 0; i < 24; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    var element = new Element()
+                    {
+                        ID = indexElement,
+                        ElementType = new Quad4(material)
+                    };
+                    element.AddNode(model.NodesDictionary[i * 5 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 5 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 5 + j + 1]);
+                    element.AddNode(model.NodesDictionary[i * 5 + j + 1]);
+                    model.ElementsDictionary.Add(indexElement, element);
+                    model.SubdomainsDictionary[0].ElementsDictionary.Add(indexElement++, element);
+
+                }
+            }
+            // Add nodal load values to node 3
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+
+            // Needed in order to make all the required data structures
+            model.ConnectDataStructures();
+
+            #endregion
+            
+            AutomaticDomainDecomposer domainDecomposer = new AutomaticDomainDecomposer(model, 3);
+            domainDecomposer.UpdateModel();
+
+
+            Dictionary<int, int[]> expectedSubdomains = new Dictionary<int, int[]>()
+            {
+                { 0, new int[] {0,4,1,5,8,9,2,6,10,12,13,14,3,7,11,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31}},
+                { 1, new int[] {32,36,33,37,40,41,34,38,42,44,45,46,35,39,43,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63}},
+                { 2, new int[] {64,68,65,69,72,73,66,70,74,76,77,78,67,71,75,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95}}
+            };
+
+            for (int i = 0; i < expectedSubdomains.Count; i++)
+            {
+                var subdomainElements = model.SubdomainsDictionary[i].ElementsDictionary.Values.ToList();
+                Assert.Equal(expectedSubdomains[i].Length, model.SubdomainsDictionary[i].ElementsDictionary.Count);
+                for (int j = 0; j < expectedSubdomains[i].Length; j++)
+                {
+                    Assert.Equal(expectedSubdomains[i][j], subdomainElements[j].ID);
+                }
+            }
+        }
+
+        [Fact]
+        private static void SolveQuadCantileverDecompositionTest2()
+        {
+            #region Quad Cantilever Model
+            VectorExtensions.AssignTotalAffinityCount();
+            double youngModulus = 3.0e07;
+            double poissonRatio = 0.3;
+            double nodalLoad = 1000;
+
+            // Create a new elastic 2D material
+            ElasticMaterial2D material = new ElasticMaterial2D()
+            {
+                YoungModulus = youngModulus,
+                PoissonRatio = poissonRatio
+            };
+            // Model creation
+            Model model = new Model();
+
+            // Add a single subdomain to the model
+            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+            // Add nodes to the nodes dictonary of the model
+            int indexNode = 0;
+            for (int i = 0; i < 25; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    model.NodesDictionary.Add(indexNode, new Node()
+                    {
+                        ID = indexNode++,
+                        X = i,
+                        Y = j,
+                        Z = 0.0
+                    });
+                }
+            }
+
+            // Constrain left nodes of the model
+            for (int i = 0; i < 5; i++)
+            {
+                model.NodesDictionary[i].Constraints.Add(DOFType.X);
+                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+            }
+
+            int indexElement = 0;
+            for (int i = 0; i < 24; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    var element = new Element()
+                    {
+                        ID = indexElement,
+                        ElementType = new Quad4(material)
+                    };
+                    element.AddNode(model.NodesDictionary[i * 5 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 5 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 5 + j + 1]);
+                    element.AddNode(model.NodesDictionary[i * 5 + j + 1]);
+                    model.ElementsDictionary.Add(indexElement, element);
+                    model.SubdomainsDictionary[0].ElementsDictionary.Add(indexElement++, element);
+
+                }
+            }
+            // Add nodal load values to node 3
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+
+            // Needed in order to make all the required data structures
+            model.ConnectDataStructures();
+
+            #endregion
+
+            AutomaticDomainDecomposer domainDecomposer = new AutomaticDomainDecomposer(model, 8);
+            domainDecomposer.UpdateModel();
+
+
+            Dictionary<int, int[]> expectedSubdomains = new Dictionary<int, int[]>()
+            {
+                { 0, new int[] {0,4,1,5,8,9,2,6,10,12,13,14}},
+                { 1, new int[] {3,7,11,15,18,19,17,21,22,23,16,20}},
+                { 2, new int[] {24,28,25,29,32,33,26,30,34,36,37,38}},
+                { 3, new int[] {27,31,35,39,42,43,41,45,46,47,40,44}},
+                { 4, new int[] {48,52,49,53,56,57,50,54,58,60,61,62}},
+                { 5, new int[] {51,55,59,63,66,67,65,69,70,71,64,68}},
+                { 6, new int[] {72,76,73,77,80,81,74,78,82,84,85,86}},
+                { 7, new int[] {75,79,83,87,90,91,89,93,94,95,88,92}}
+            };
+
+            for (int i = 0; i < expectedSubdomains.Count; i++)
+            {
+                var subdomainElements = model.SubdomainsDictionary[i].ElementsDictionary.Values.ToList();
+                Assert.Equal(expectedSubdomains[i].Length, model.SubdomainsDictionary[i].ElementsDictionary.Count);
+                for (int j = 0; j < expectedSubdomains[i].Length; j++)
+                {
+                    Assert.Equal(expectedSubdomains[i][j], subdomainElements[j].ID);
+                }
+            }
+        }
+
+        [Fact]
+        private static void SolveQuadCantileverDecompositionTest3()
+        {
+            #region Quad Cantilever Model
+            VectorExtensions.AssignTotalAffinityCount();
+            double youngModulus = 3.0e07;
+            double poissonRatio = 0.3;
+            double nodalLoad = 1000;
+
+            // Create a new elastic 2D material
+            ElasticMaterial2D material = new ElasticMaterial2D()
+            {
+                YoungModulus = youngModulus,
+                PoissonRatio = poissonRatio
+            };
+            // Model creation
+            Model model = new Model();
+
+            // Add a single subdomain to the model
+            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+            // Add nodes to the nodes dictonary of the model
+            int indexNode = 0;
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    model.NodesDictionary.Add(indexNode, new Node()
+                    {
+                        ID = indexNode++,
+                        X = i,
+                        Y = j,
+                        Z = 0.0
+                    });
+                }
+            }
+
+            // Constrain left nodes of the model
+            for (int i = 0; i < 3; i++)
+            {
+                model.NodesDictionary[i].Constraints.Add(DOFType.X);
+                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+            }
+
+            int indexElement = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    var element = new Element()
+                    {
+                        ID = indexElement,
+                        ElementType = new Quad4(material)
+                    };
+                    element.AddNode(model.NodesDictionary[i * 3 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 3 + j]);
+                    element.AddNode(model.NodesDictionary[(i + 1) * 3 + j + 1]);
+                    element.AddNode(model.NodesDictionary[i * 3 + j + 1]);
+                    model.ElementsDictionary.Add(indexElement, element);
+                    model.SubdomainsDictionary[0].ElementsDictionary.Add(indexElement++, element);
+
+                }
+            }
+            // Add nodal load values to node 3
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[17], DOF = DOFType.Y });
+
+            // Needed in order to make all the required data structures
+            model.ConnectDataStructures();
+
+            #endregion
+
+            AutomaticDomainDecomposer domainDecomposer = new AutomaticDomainDecomposer(model, 3);
+            domainDecomposer.UpdateModel();
+
+
+            Dictionary<int, int[]> expectedSubdomains = new Dictionary<int, int[]>()
+            {
+                { 0, new int[] {0,2,1,3}},
+                { 1, new int[] {4,6,5,7}},
+                { 2, new int[] {8,9}}
+            };
+
+            for (int i = 0; i < expectedSubdomains.Count; i++)
+            {
+                var subdomainElements = model.SubdomainsDictionary[i].ElementsDictionary.Values.ToList();
+                Assert.Equal(expectedSubdomains[i].Length, model.SubdomainsDictionary[i].ElementsDictionary.Count);
+                for (int j = 0; j < expectedSubdomains[i].Length; j++)
+                {
+                    Assert.Equal(expectedSubdomains[i][j], subdomainElements[j].ID);
+                }
+            }
         }
 
     }
