@@ -76,6 +76,37 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new SparseVector(length, values, rowIndices);
         }
 
+        // TODO: add a version with tolerance
+        public static SparseVector CreateFromDense(double[] denseArray)
+        {
+            var rowsValues = new SortedDictionary<int, double>();
+            for (int i = 0; i < denseArray.Length; ++i)
+            {
+                if (denseArray[i] != 0) rowsValues.Add(i, denseArray[i]);
+            }
+            return CreateFromDictionary(denseArray.Length, rowsValues);
+        }
+
+        public static SparseVector CreateFromDense(double[] denseArray, double tolerance)
+        {
+            var rowsValues = new SortedDictionary<int, double>();
+            for (int i = 0; i < denseArray.Length; ++i)
+            {
+                if (Math.Abs(denseArray[i]) > tolerance) rowsValues.Add(i, denseArray[i]);
+            }
+            return CreateFromDictionary(denseArray.Length, rowsValues);
+        }
+
+        public static SparseVector CreateFromDense(Vector denseVector)
+        {
+            return CreateFromDense(denseVector.InternalData);
+        }
+
+        public static SparseVector CreateFromDense(Vector denseVector, double tolerance)
+        {
+            return CreateFromDense(denseVector.InternalData, tolerance);
+        }
+
         public static SparseVector CreateFromDictionary(int length, Dictionary<int, double> rowsValues)
         {
             double[] values = new double[rowsValues.Count];

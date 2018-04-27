@@ -93,16 +93,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
                 // Update matrix
-                matrixExpected.SetSubmatrix(0, 0, original.Slice(0, i + 1, 0, i + 1));
+                Vector newRowVector = original.SliceRow(i);
+                #region minors are not positive definite this way
+                //matrixExpected.SetRow(i, newRowVector);
+                //matrixExpected.SetColumn(i, newRowVector);
+                #endregion
+                matrixExpected.SetSubmatrix(0, 0, original.Slice(0, i + 1, 0, i + 1)); //this way they are
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
                 (new FullMatrixWriter(matrixExpected)).WriteToConsole();
-                Vector newRowVector = matrixExpected.SliceRow(i);
-                var newRow = new Dictionary<int, double>();
-                for (int j = 0; j < newRowVector.Length; ++j)
-                {
-                    if (newRowVector[j] != 0) newRow.Add(j, newRowVector[j]);
-                }
-                factor.AddRow(i, SparseVector.CreateFromDictionary(matrixExpected.NumColumns, newRow));
+                factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
 
                 // Solve new linear system
                 Console.WriteLine("\nCheck linear system solution");
@@ -111,6 +110,44 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 comparer.CheckVectorEquality(solutionExpected, solutionComputed);
             }
         }
+
+        // will probably not work since the matrix will not always be positive definite
+        public static void CheckRowAdditionReverse()
+        {
+            FullMatrixWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 1, MaxIntegerDigits = 2 };
+            FullVectorWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
+            Array1DWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
+            Comparer comparer = new Comparer(Comparer.PrintMode.Always);
+
+            Matrix original = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
+            Vector rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
+            Console.WriteLine("Full matrix: ");
+            (new FullMatrixWriter(original)).WriteToConsole();
+
+            // Start the matrix as diagonal
+            var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
+            var dok = DOKSymmetricColMajor.CreateIdentity(SparsePositiveDefinite.order);
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+
+            for (int i = 0; i < matrixExpected.NumRows; ++i)
+            {
+                // Update matrix
+                Vector newRowVector = original.SliceRow(i);
+                matrixExpected.SetRow(i, newRowVector);
+                matrixExpected.SetColumn(i, newRowVector);
+                Console.WriteLine($"\nOnly dofs [0, {i}]");
+                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
+                factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
+
+                // Solve new linear system
+                Console.WriteLine("\nCheck linear system solution");
+                Vector solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
+                Vector solutionComputed = factor.SolveLinearSystem(rhs);
+                comparer.CheckVectorEquality(solutionExpected, solutionComputed);
+            }
+        }
+
+
 
         public static void CheckRowDeletion()
         {

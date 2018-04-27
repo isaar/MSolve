@@ -34,7 +34,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
             TestSuiteSparse.CheckRowAddition();
-            TestSuiteSparse.CheckRowDeletion();
+            //TestSuiteSparse.CheckRowAdditionReverse();
+            //TestSuiteSparse.CheckRowDeletion();
         }
 
         public static void TestMarshaling()
