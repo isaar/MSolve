@@ -1,0 +1,25 @@
+version: '1.0.{build}'
+configuration: Release
+image: Visual Studio 2017
+branches:
+  only: 
+    - develop
+clone_folder: C:\Users\user\Source\Repos\MSolve
+shallow_clone: true
+cache:
+  - packages
+install:
+  - dotnet restore --packages packages 
+before_build:
+  - nuget restore
+  - choco install opencover.portable
+  - choco install codecov
+build:
+  project: ISAAR.MSolve.sln
+  verbosity: minimal
+  
+test_script:
+- OpenCover.Console.exe -register:user -target:"%xunit20%\xunit.console.x86.exe" -targetargs:".\ISAAR.MSolve.Tests\bin\Debug\netcoreapp2.0\ISAAR.MSolve.Tests.dll -noshadow" -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -output:".\MSolve_coverage.xml"
+- codecov -f "MSolve_coverage.xml"
+  
+  
