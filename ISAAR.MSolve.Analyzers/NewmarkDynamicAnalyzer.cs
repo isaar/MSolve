@@ -17,16 +17,16 @@ namespace ISAAR.MSolve.Analyzers
         private double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
         private Dictionary<int, Vector> rhs = new Dictionary<int, Vector>();
         private Dictionary<int, Vector> uu = new Dictionary<int, Vector>();
-		private Dictionary<int, Vector> uum = new Dictionary<int,Vector>();
-		private Dictionary<int, Vector> uc = new Dictionary<int,Vector>();
-		private Dictionary<int, Vector> ucc = new Dictionary<int,Vector>();
-		private Dictionary<int, Vector> u = new Dictionary<int,Vector>();
-		private Dictionary<int, Vector> v = new Dictionary<int,Vector>();
-		private Dictionary<int, Vector> v1 = new Dictionary<int,Vector>();
-		private Dictionary<int, Vector> v2 = new Dictionary<int,Vector>();
+        private Dictionary<int, Vector> uum = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> uc = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> ucc = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> u = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> v = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> v1 = new Dictionary<int, Vector>();
+        private Dictionary<int, Vector> v2 = new Dictionary<int, Vector>();
         //private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
         //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
-        private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages = 
+        private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages =
             new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
         private readonly IDictionary<int, ILinearSystem> subdomains;
         private readonly IImplicitIntegrationProvider provider;
@@ -53,25 +53,15 @@ namespace ISAAR.MSolve.Analyzers
             if (delta < 0.5) throw new InvalidOperationException("Newmark delta has to be bigger than 0.5.");
             double aLimit = 0.25 * Math.Pow(0.5 + delta, 2);
             if (alpha < aLimit) throw new InvalidOperationException("Newmark alpha has to be bigger than " + aLimit.ToString() + ".");
-            
+
             a0 = 1 / (alpha * timeStep * timeStep);
-	        a1 = delta / (alpha * timeStep);
-            //a2 = 0;
-            //a3 = 0;
-            //a4 = 0;
-            //a5 = 0;
-            //a6 = 0;
-            //a7 = 0;
+            a1 = delta / (alpha * timeStep);
             a2 = 1 / (alpha * timeStep);
             a3 = 1 / (2 * alpha) - 1;
             a4 = delta / alpha - 1;
             a5 = timeStep * 0.5 * (delta / alpha - 2);
             a6 = timeStep * (1 - delta);
             a7 = delta * timeStep;
-            //a2a0 = a2 / a0;
-            //a3a0 = a3 / a0;
-            //a4a1 = a4 / a1;
-            //a5a1 = a5 / a1;
         }
 
         public void ResetSolutionVectors()
@@ -112,13 +102,13 @@ namespace ISAAR.MSolve.Analyzers
 
         private void InitializeMatrices()
         {
-            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients 
+            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients
             {
                 Mass = a0,
                 Damping = a1,
-                Stiffness = 1 
+                Stiffness = 1
             };
-            foreach (ILinearSystem subdomain in subdomains.Values) 
+            foreach (ILinearSystem subdomain in subdomains.Values)
                 provider.CalculateEffectiveMatrix(subdomain, coeffs);
 
             var m = (SkylineMatrix2D)subdomains[1].Matrix;
@@ -135,11 +125,11 @@ namespace ISAAR.MSolve.Analyzers
 
         private void InitializeRHSs()
         {
-            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients 
+            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients
             {
                 Mass = a0,
                 Damping = a1,
-                Stiffness = 1 
+                Stiffness = 1
             };
             foreach (ILinearSystem subdomain in subdomains.Values)
             {
@@ -234,9 +224,9 @@ namespace ISAAR.MSolve.Analyzers
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
                 //    subdomain.RHS[i] = rhs[id].Data[i];
-                
+
                 CalculateRHSImplicit(subdomain, ((Vector)subdomain.RHS).Data, true);
-                
+
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
                 //{
@@ -289,15 +279,17 @@ namespace ISAAR.MSolve.Analyzers
                 DateTime start = DateTime.Now;
                 childAnalyzer.Solve();
                 DateTime end = DateTime.Now;
-                UpdateVelocityAndAcceleration();
+                UpdateVelocityAndAcceleration(i);
                 UpdateResultStorages(start, end);
             }
-            
+
             //childAnalyzer.Solve();
         }
 
-        private void UpdateVelocityAndAcceleration()
+        private void UpdateVelocityAndAcceleration(int timeStep)
         {
+            var externalVelocities = provider.GetVelocitiesOfTimeStep(timeStep);
+            var externalAccelerations = provider.GetAccelerationsOfTimeStep(timeStep);
             foreach (ILinearSystem subdomain in subdomains.Values)
             {
                 int id = subdomain.ID;
@@ -305,9 +297,9 @@ namespace ISAAR.MSolve.Analyzers
                 subdomain.Solution.CopyTo(v[id].Data, 0);
                 for (int j = 0; j < subdomain.RHS.Length; j++)
                 {
-                    double vv = v2[id].Data[j];
+                    double vv = v2[id].Data[j] + externalAccelerations[id][j];
                     v2[id].Data[j] = a0 * (v[id].Data[j] - u[id].Data[j]) - a2 * v1[id].Data[j] - a3 * vv;
-                    v1[id].Data[j] += a6 * vv + a7 * v2[id].Data[j];
+                    v1[id].Data[j] += externalVelocities[id][j] + a6 * vv + a7 * v2[id].Data[j];
                 }
             }
         }
