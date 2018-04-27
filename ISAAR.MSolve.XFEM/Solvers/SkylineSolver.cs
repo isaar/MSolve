@@ -14,7 +14,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class SkylineSolver: SolverBase
     {
-        public SkylineSolver() { }
+        public SkylineSolver(Model2D model) : base(model)
+        { }
 
         public override void Solve()
         {

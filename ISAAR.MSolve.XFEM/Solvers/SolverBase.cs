@@ -12,10 +12,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     abstract class SolverBase: ISolver
     {
-        protected Model2D model;
+        protected readonly Model2D model;
 
-        protected SolverBase()
+        protected SolverBase(Model2D model)
         {
+            this.model = model;
             Logger = new SolverLogger();
         }
 
@@ -25,9 +26,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public Vector Solution { get; protected set; }
 
-        public virtual void Initialize(Model2D model) // Many solvers do not need to initialize state
+        public virtual void Initialize() // Many solvers do not need to initialize state
         {
-            this.model = model;
             Logger.InitializationTime = 0;
         } 
 

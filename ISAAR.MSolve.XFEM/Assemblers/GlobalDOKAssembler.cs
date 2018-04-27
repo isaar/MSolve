@@ -10,12 +10,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
-/// <summary>
-/// The matrix that will be "inverted" is a unified DOK matrix, where enriched dofs are numbered after all 
-/// standard dofs. 
-/// TODO: The enriched dof columns will have huge heights. A more sophisticated solver and matrix assembler are
-/// needed. Also the global constrained submatrix must be sparse.
-/// </summary>
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalDOKAssembler

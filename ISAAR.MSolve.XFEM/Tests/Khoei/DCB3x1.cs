@@ -133,9 +133,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //ISolver solver = new DenseSolver(model);
             //ISolver solver = new SkylineSolverOLD(model);
             //ISolver solver = new SkylineSolver(model);
-            ISolver solver = new CholeskySuiteSparseSolver();
+            ISolver solver = new CholeskySuiteSparseSolver(model);
             //ISolver solver = new PCGSolver(0.8, 1e-6);
-            solver.Initialize(model);
+            solver.Initialize();
             solver.Solve();
 
             benchmark.CheckStiffnessNode6(model);

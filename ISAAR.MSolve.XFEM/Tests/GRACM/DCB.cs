@@ -84,8 +84,50 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private const double load = 197; // lbs
         #endregion
 
+        /// <summary>
+        /// The approximate size of the elements. If the mesh is not uniform, this applies to the finest region.
+        /// </summary>
         private readonly double elementSize;
+
+        /// <summary>
+        /// The length by which the crack grows in each iteration.
+        /// </summary>
         private readonly double growthLength;
+
+        /// <summary>
+        /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
+        /// radius is larger than the length of the crack segments.
+        /// </summary>
+        private readonly double jIntegralRadiusOverElementSize;
+
+        /// <summary>
+        /// If it isn't null, the crack propagtion described by the passed <see cref="PropagationLogger"/> will be enforced, 
+        /// rather than the using the J-integral method to predict it.
+        /// </summary>
+        private readonly PropagationLogger knownPropagation;
+
+        /// <summary>
+        /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
+        /// boundary or if the fracture toughness is exceeded.
+        /// </summary>
+        private readonly int maxIterations;
+
+        /// <summary>
+        /// The approximate ratio of the size of an element in the coarse region of the mesh to the size of an element in the 
+        /// fine region of the mesh. Only applicable if <see cref="uniformMesh"/> == true.
+        /// </summary>
+        private readonly double ratioCoarseToFineElementSize;
+
+        /// <summary>
+        /// True to use same sized elements. False to refine the mesh near the crack path that is known roughly from previous 
+        /// analysis.
+        /// </summary>
+        private readonly bool uniformMesh;
+
+        /// <summary>
+        /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
+        /// </summary>
+        private readonly bool useLSM;
 
         private IMesh2D<XNode2D, XContinuumElement2D> mesh;
         private IExteriorCrack crack;
@@ -96,59 +138,37 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <param name="elementSize">The approximate size of the elements. If the mesh is not uniform, this applies to the 
         ///     finest region.</param>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-        public DCB(double elementSize, double growthLength)
+        private DCB(double elementSize, double growthLength, double jIntegralRadiusOverElementSize, 
+            PropagationLogger knownPropagation, int maxIterations, double ratioCoarseToFineElementSize,
+            bool uniformMesh, bool useLSM)
         {
             this.elementSize = elementSize;
             this.growthLength = growthLength;
+            this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
+            this.knownPropagation = knownPropagation;
+            this.maxIterations = maxIterations;
+            this.ratioCoarseToFineElementSize = ratioCoarseToFineElementSize;
+            this.uniformMesh = uniformMesh;
+            this.useLSM = useLSM;
         }
-
-        /// <summary>
-        /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
-        /// radius is larger than the length of the crack segments.
-        /// </summary>
-        public double JintegralRadiusOverElementSize { get; set; } = 2.0;
-
-        /// <summary>
-        /// If it isn't null, the crack propagtion described by the passed <see cref="PropagationLogger"/> will be enforced, 
-        /// rather than the using the J-integral method to predict it.
-        /// </summary>
-        public PropagationLogger KnownPropagation { get; set; } = null;
-
-        /// <summary>
-        /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
-        /// boundary or if the fracture toughness is exceeded.
-        /// </summary>
-        public int MaxIterations { get; set; } = int.MaxValue;
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
         /// </summary>
         public Model2D Model { get; private set; }
 
-        /// <summary>
-        /// The approximate ratio of the size of an element in the coarse region of the mesh to the size of an element in the 
-        /// fine region of the mesh. Only applicable if <see cref="UniformMesh"/> == true.
-        /// </summary>
-        public double RatioCoarseToFineElementSize { get; set; } = 10;
-
-        public bool UniformMesh { get; set; } = false;
-
-        /// <summary>
-        /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
-        /// </summary>
-        public bool UseLSM { get; set; } = true;
 
         public IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver)
         {
-            var actualPropagator = new Propagator(mesh, crack, CrackTipPosition.Single, JintegralRadiusOverElementSize,
+            var actualPropagator = new Propagator(mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
 
             IPropagator propagator;
-            if (KnownPropagation != null) propagator = new FixedPropagator(KnownPropagation, actualPropagator);
+            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, actualPropagator);
             else propagator = actualPropagator;
-            var analysis = new QuasiStaticAnalysis(Model, mesh, crack, solver, propagator, fractureToughness, MaxIterations);
+            var analysis = new QuasiStaticAnalysis(Model, mesh, crack, solver, propagator, fractureToughness, maxIterations);
             return analysis.Analyze();
         }
 
@@ -183,7 +203,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Mesh generation
             XNode2D[] nodes;
             List<XNode2D[]> elementConnectivity;
-            if (UniformMesh) (nodes, elementConnectivity) = CreateUniformMesh();
+            if (uniformMesh) (nodes, elementConnectivity) = CreateUniformMesh();
             else (nodes, elementConnectivity) = CreateRectilinearMesh();
 
             // Nodes
@@ -219,7 +239,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateRectilinearMesh()
         {
             double fineElementSize = elementSize;
-            double coarseElementSize = elementSize * RatioCoarseToFineElementSize;
+            double coarseElementSize = elementSize * ratioCoarseToFineElementSize;
             double[,] meshSizeAlongX = new double[,] 
             {
                 { 0.0, coarseElementSize },
@@ -233,7 +253,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 { 0.0, fineElementSize },
                 //{ 0.0, fineElementSize},
                 //{ 0.5, fineElementSize},
-                { h/2 + h/10, elementSize * RatioCoarseToFineElementSize},
+                { h/2 + h/10, elementSize * ratioCoarseToFineElementSize},
                 { h, coarseElementSize}
             };
 
@@ -246,7 +266,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var crackVertex0 = new CartesianPoint2D(0.0, h / 2);
             var crackVertex1 = new CartesianPoint2D(a, h / 2);
 
-            if (UseLSM)
+            if (useLSM)
             {
                 var lsmCrack = new BasicCrackLSM();
                 lsmCrack.Mesh = mesh;
@@ -275,6 +295,65 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 explicitCrack.UpdateGeometry(-dTheta, da);
 
                 this.crack = explicitCrack;
+            }
+        }
+
+        public class Builder
+        {
+            private readonly double elementSize;
+            private readonly double growthLength;
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="elementSize">The approximate size of the elements. If the mesh is not uniform, this applies to the 
+            ///     finest region.</param>
+            /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
+            public Builder(double elementSize, double growthLength)
+            {
+                this.elementSize = elementSize;
+                this.growthLength = growthLength;
+            }
+
+            /// <summary>
+            /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
+            /// radius is larger than the length of the crack segments.
+            /// </summary>
+            public double JintegralRadiusOverElementSize { get; set; } = 2.0;
+
+            /// <summary>
+            /// If it isn't null, the crack propagtion described by the passed <see cref="PropagationLogger"/> will be enforced, 
+            /// rather than the using the J-integral method to predict it.
+            /// </summary>
+            public PropagationLogger KnownPropagation { get; set; } = null;
+
+            /// <summary>
+            /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
+            /// boundary or if the fracture toughness is exceeded.
+            /// </summary>
+            public int MaxIterations { get; set; } = int.MaxValue;
+
+            /// <summary>
+            /// The approximate ratio of the size of an element in the coarse region of the mesh to the size of an element in the 
+            /// fine region of the mesh. Only applicable if <see cref="UniformMesh"/> == true.
+            /// </summary>
+            public double RatioCoarseToFineElementSize { get; set; } = 10;
+
+            /// <summary>
+            /// True to use same sized elements. False to refine the mesh near the crack path that is known roughly from previous 
+            /// analysis.
+            /// </summary>
+            public bool UniformMesh { get; set; } = false;
+
+            /// <summary>
+            /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
+            /// </summary>
+            public bool UseLSM { get; set; } = true;
+
+            public DCB BuildBenchmark()
+            {
+                return new DCB(elementSize, growthLength, JintegralRadiusOverElementSize, KnownPropagation, MaxIterations,
+                    RatioCoarseToFineElementSize, UniformMesh, UseLSM);
             }
         }
     }

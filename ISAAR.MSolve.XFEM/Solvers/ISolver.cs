@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         SolverLogger Logger { get; }
         Vector Solution { get; }
 
-        void Initialize(Model2D model);
+        void Initialize();
         void Solve();
     }
 }

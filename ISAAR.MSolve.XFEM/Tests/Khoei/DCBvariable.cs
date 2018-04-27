@@ -201,10 +201,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var solver = new CholeskySuiteSparseSolver();
+            var solver = new CholeskySuiteSparseSolver(model);
             //var solver = new SkylineSolver(model);
             //var solver = new PCGSolver(model, 1, 1e-8);
-            solver.Initialize(model);
+            solver.Initialize();
             solver.Solve();
             dofEnumerator = solver.DOFEnumerator;
             return solver.Solution;

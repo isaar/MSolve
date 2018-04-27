@@ -319,7 +319,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
 
-            var solver = new SkylineSolver();
+            var solver = new SkylineSolver(model);
             QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, mesh, crack, solver,
                 propagator, fractureToughness, maxIterations);
             return analysis.Analyze();

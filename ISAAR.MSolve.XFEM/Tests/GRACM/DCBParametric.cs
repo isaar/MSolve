@@ -12,8 +12,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
     {
         public static void Main()
         {
-            //SingleTest();
-            CompareSolvers();
+            SingleTest();
             //ParametricCrackLength(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
             //ParametricMesh(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
             //GridSearch(jIntegralRadiusOverElementSize, fractureToughness, maxIterations);
@@ -23,9 +22,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             double growthLength = 0.3;
             double elementSize = 0.08;
-            var benchmark = new DCB(elementSize, growthLength);
-            benchmark.UniformMesh = false;
-            benchmark.UseLSM = true;
+            var builder = new DCB.Builder(elementSize, growthLength);
+            builder.UniformMesh = false;
+            builder.UseLSM = true;
+            builder.MaxIterations = 10;
+            var benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
             Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
                 elementSize, benchmark.Model.Elements.Count, growthLength);
@@ -35,68 +36,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //writer.InitializeFile("dcb_transfinite");
             //writer.CloseCurrentFile();
 
-            var solver = new SkylineSolver();
+            var solver = new SkylineSolver(benchmark.Model);
             IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
             {
                 Console.WriteLine("{0} {1}", point.X, point.Y);
             }
-        }
-
-        private static void CompareSolvers()
-        {
-            double growthLength = 0.3;
-            double elementSize = 0.08;
-            int repetitions = 10;
-
-            var solvers = new Dictionary<string, ISolver>
-            {
-                { "Skyline", new SkylineSolver() },
-                { "Jacobi Preconditioned CG", new PCGSolver(1, 1e-8) },
-                { "SuiteSparse", new CholeskySuiteSparseSolver() }
-            };
-
-            var solverTimes = new Dictionary<string, long>
-            {
-                { "Skyline", 0 },
-                { "Jacobi Preconditioned CG", 0 },
-                { "SuiteSparse", 0 }
-            };
-
-            for (int t = 0; t < repetitions; ++t)
-            {
-                Console.WriteLine($"Repetition: {t}");
-                foreach (var solverName in solvers.Keys)
-                {
-                    var benchmark = new DCB(elementSize, growthLength);
-                    benchmark.UniformMesh = false;
-                    benchmark.UseLSM = true;
-                    //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 
-                    //      found. It happens at iteration 10.
-                    benchmark.MaxIterations = 10;
-                    benchmark.InitializeModel();
-                    //Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
-                    //    elementSize, benchmark.Model.Elements.Count, growthLength);
-
-                    //Print
-                    //VTKWriter writer = new VTKWriter(benchmark.model);
-                    //writer.InitializeFile("dcb_transfinite");
-                    //writer.CloseCurrentFile();
-                    solvers[solverName].Logger.Clear();
-                    IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solvers[solverName]);
-                    long totalTime = solvers[solverName].Logger.CalcTotalTime();
-                    Console.WriteLine($"Solver {solverName}: total time = {totalTime} ms.");
-                    solverTimes[solverName] += totalTime;
-                }
-                Console.WriteLine();
-            }
-
-            foreach (var solverName in solverTimes.Keys)
-            {
-                Console.WriteLine($"Solver {solverName}: Total time = {solverTimes[solverName] / repetitions} ms");
-            }
-
         }
 
         private static void ParametricCrackLength(double jIntegralRadiusOverElementSize, double fractureToughness,
@@ -107,16 +53,17 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine("------------------------------------ Parametric Growth Length ------------------------------------");
             for (int i = 0; i < growthLengths.Length; ++i)
             {
-                var benchmark = new DCB(fineElementSize, growthLengths[i]);
-                benchmark.UniformMesh = false;
-                benchmark.UseLSM = true;
+                var builder = new DCB.Builder(fineElementSize, growthLengths[i]);
+                builder.UniformMesh = false;
+                builder.UseLSM = true;
+                DCB benchmark = builder.BuildBenchmark();
                 benchmark.InitializeModel();
                 Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
                     fineElementSize, benchmark.Model.Elements.Count, growthLengths[i]);
 
                 try
                 {
-                    var solver = new SkylineSolver();
+                    var solver = new SkylineSolver(benchmark.Model);
                     IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
                     Console.WriteLine("Crack path:");
                     foreach (var point in crackPath)
@@ -142,16 +89,17 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine("------------------------------------ Parametric Mesh ------------------------------------");
             for (int i = 0; i < fineElementSizes.Length; ++i)
             {
-                var benchmark = new DCB(fineElementSizes[i], propagationLength);
-                benchmark.UniformMesh = false;
-                benchmark.UseLSM = true;
+                var builder = new DCB.Builder(fineElementSizes[i], propagationLength);
+                builder.UniformMesh = false;
+                builder.UseLSM = true;
+                DCB benchmark = builder.BuildBenchmark();
                 benchmark.InitializeModel();
                 Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
                     fineElementSizes[i], benchmark.Model.Elements.Count, propagationLength);
 
                 try
                 {
-                    var solver = new SkylineSolver();
+                    var solver = new SkylineSolver(benchmark.Model);
                     IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
                     Console.WriteLine("Crack path:");
                     foreach (var point in crackPath)
@@ -180,15 +128,16 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 for (int i = 0; i < fineElementSizes.Length; ++i)
                 {
-                    var benchmark = new DCB(fineElementSizes[i], growthLengths[j]);
-                    benchmark.UniformMesh = false;
-                    benchmark.UseLSM = true;
+                    var builder = new DCB.Builder(fineElementSizes[i], growthLengths[j]);
+                    builder.UniformMesh = false;
+                    builder.UseLSM = true;
+                    DCB benchmark = builder.BuildBenchmark();
                     benchmark.InitializeModel();
                     Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
                         fineElementSizes[i], benchmark.Model.Elements.Count, growthLengths[j]);
                     try
                     {
-                        var solver = new SkylineSolver();
+                        var solver = new SkylineSolver(benchmark.Model);
                         IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
                         Console.WriteLine("Crack path:");
                         foreach (var point in crackPath)

@@ -24,7 +24,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private static readonly string rhsPath = directoryPath + "\\Resources\\rhs.txt";
         private static readonly string solutionPath = directoryPath + "\\Resources\\solution.txt";
 
-        public CholeskySuiteSparseSolver() { }
+        public CholeskySuiteSparseSolver(Model2D model) : base(model)
+        { }
 
         public override void Solve()
         {

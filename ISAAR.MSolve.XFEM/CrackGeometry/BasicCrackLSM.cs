@@ -14,7 +14,9 @@ using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
-
+// TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
+//       Could the enrichment type of an element be infered by just looking at its nodes, without storing state. Could it be
+//       cached for efficiency and how would the cache be updated safely?
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
@@ -196,6 +198,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             return triangleVertices;
         }
 
+        // The tip enrichments are cleared and reapplied at each call. In constrast, nodes previously enriched with Heavise will 
+        // continue to do so, with the addition of newly Heaviside enriched nodes. If the caller needs the nodes to be cleared of 
+        // Heaviside enrichments he must do so himself.
         public void UpdateEnrichments() 
         {
             var bodyNodes = new HashSet<XNode2D>();
@@ -222,7 +227,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             // Heaviside enrichment is never removed (unless the crack curves towards itself, but that creates a lot of
             // problems and cannot be modeled with LSM accurately). Thus there is no need to process each mesh node. 
             // TODO: It could be sped up by only updating the Heaviside enrichments of nodes that have updated body  
-            // level sets, which requires tracking them.
+            //      level sets, which requires tracking them.
+            // TODO: should I also clear and reapply all Heaviside enrichments? It is safer and might be useful for e.g. 
+            //      reanalysis. Certainly I must not clear all node enrichments, as they may include material interfaces etc.
             foreach (var node in bodyNodes)
             {
                 double[] enrichmentValues = CrackBodyEnrichment.EvaluateFunctionsAt(node);
@@ -309,7 +316,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 else if (type == ElementEnrichmentType.Heaviside)
                 {
                     foreach (var node in element.Nodes) bodyNodes.Add(node);
-                    element.EnrichmentItems.Add(CrackBodyEnrichment);
+                    // Cut elements next to tip elements, they will be enriched with both Heaviside and tip functions. If all 
+                    // nodes were enriched with tip functions, the element would not be enriched with Heaviside, but then it 
+                    // would be a tip element and not fall under this case.
+                    element.EnrichmentItems.Add(CrackBodyEnrichment); 
                 }
             }
             foreach (var node in tipNodes) bodyNodes.Remove(node); // tip element's nodes are not enriched with Heaviside

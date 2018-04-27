@@ -86,8 +86,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Gmsh
 
         public Tuple<XNode2D, double> FindMaxDisplacement(Model2D model)
         {
-            var solver = new SkylineSolverOLD();
-            solver.Initialize(model);
+            var solver = new SkylineSolver(model);
+            solver.Initialize();
             solver.Solve();
 
             double min = double.MaxValue;

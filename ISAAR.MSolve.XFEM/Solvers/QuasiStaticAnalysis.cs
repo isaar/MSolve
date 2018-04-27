@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define PRINT_PATH
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class QuasiStaticAnalysis
     {
-        private const bool printPath = false; //for debugging purposes
+        private const bool printPath = false; //for debugging purposes. Dependent code will be optimized
 
         private readonly Model2D model;
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
@@ -47,20 +48,21 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public IReadOnlyList<ICartesianPoint2D> Analyze()
         {
             var crackPath = new List<ICartesianPoint2D>();
-            if (printPath)
-            {
-                Console.WriteLine("Crack path: X Y");
-                crackPath.Add(crack.CrackMouth);
-                Console.WriteLine($"{crack.CrackMouth.X} {crack.CrackMouth.Y}");
-                crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
-                Console.WriteLine($"{crackPath.Last().X} {crackPath.Last().Y}");
-            }
+
+            #if (PRINT_PATH)
+            Console.WriteLine("Crack path: X Y");
+            crackPath.Add(crack.CrackMouth);
+            Console.WriteLine($"{crack.CrackMouth.X} {crack.CrackMouth.Y}");
+            crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
+            Console.WriteLine($"{crackPath.Last().X} {crackPath.Last().Y}");
+            #endif
 
             int iteration;
-            solver.Initialize(model);
+            solver.Initialize();
             for (iteration = 0; iteration < maxIterations; ++iteration)
             {
-                //if (iteration == 10) // TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip r
+                // TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip can be found
+                //if (iteration == 10) 
                 //{
                 //    Console.WriteLine("11th iteration. An expection will be thrown");
                 //}
@@ -78,7 +80,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 crack.UpdateGeometry(growthAngle, growthIncrement);
                 ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
                 crackPath.Add(newTip);
-                if (printPath) Console.WriteLine($"{newTip.X} {newTip.Y}");
+
+                #if (PRINT_PATH)
+                Console.WriteLine($"{newTip.X} {newTip.Y}");
+                #endif
 
                 double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
                     propagator.Logger.SIFsMode2[iteration]);

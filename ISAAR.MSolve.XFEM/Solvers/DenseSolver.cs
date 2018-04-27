@@ -15,7 +15,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class DenseSolver : SolverBase
     {
-        public DenseSolver(){ }
+        public DenseSolver(Model2D model) : base(model)
+        { }
 
         public override void Solve()
         {

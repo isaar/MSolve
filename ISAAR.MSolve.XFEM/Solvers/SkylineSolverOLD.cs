@@ -16,10 +16,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class SkylineSolverOLD: ISolver
     {
-        private Model2D model;
+        private readonly Model2D model;
 
-        public SkylineSolverOLD()
+        public SkylineSolverOLD(Model2D model)
         {
+            this.model = model;
             this.Logger = new SolverLogger();
         }
 
@@ -29,9 +30,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public Vector Solution { get; private set; }
 
-        public void Initialize(Model2D model)
+        public void Initialize()
         {
-            this.model = model;
             Logger.InitializationTime = 0;
         }
 

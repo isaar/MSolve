@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly double maxIterationsOverOrder; //roughly
         private readonly double tolerance;
 
-        public PCGSolver(double maxIterationsOverOrder, double tolerance)
+        public PCGSolver(Model2D model, double maxIterationsOverOrder, double tolerance) : base(model)
         {
             this.maxIterationsOverOrder = maxIterationsOverOrder;
             this.tolerance = tolerance;
