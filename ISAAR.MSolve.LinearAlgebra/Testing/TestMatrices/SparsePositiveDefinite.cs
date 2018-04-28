@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -139,6 +140,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             (new CoordinateTextFileWriter(skyline)).WriteToConsole();
             Console.WriteLine();
             FullMatrixWriter.NumericFormat = storedDefault;
+        }
+
+        public static void PrintDOKSparseColumns()
+        {
+            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
+            var dok = DOKSymmetricColMajor.CreateEmpty(order);
+            foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
+
+            INumericFormat storedDefault = FullVectorWriter.NumericFormat;
+            FullVectorWriter.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
+            for (int j = 0; j < order; ++j) 
+            {
+                // Since the matrix is symmetric the result should look like the whole matrix being printed
+                Console.Write($"Column {j}: ");
+                (new FullVectorWriter(dok.BuildColumn(j))).WriteToConsole();
+            }
+            FullVectorWriter.NumericFormat = storedDefault;
         }
     }
 }

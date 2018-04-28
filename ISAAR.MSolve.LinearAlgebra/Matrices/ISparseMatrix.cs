@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     public interface ISparseMatrix: IIndexable2D
     {
         int CountNonZeros();
-        IEnumerable<(int row, int col, double value)> EnumerateNonZeros();
+        IEnumerable<(int row, int col, double value)> EnumerateNonZeros(); //Perhaps the matrix itself should be the target of foreach
         SparseFormat GetSparseFormat();
     }
 }

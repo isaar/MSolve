@@ -13,9 +13,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            SuiteSparse();
+            //SuiteSparse();
             //TestMarshaling();
-            //TestBuilders();
+            TestBuilders();
             //TestInverse();
             //TestIndexing();
             //TestEquality();
@@ -46,7 +46,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestBuilders()
         {
-            SparseRect.CheckBuilders();
+            //SparseRect.CheckBuilders();
+            //Console.WriteLine();
+            SparsePositiveDefinite.PrintDOKSparseColumns();
+            Console.WriteLine();
         }
 
         public static void TestEquality()

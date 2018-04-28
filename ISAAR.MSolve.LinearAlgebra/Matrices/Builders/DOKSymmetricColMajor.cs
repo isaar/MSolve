@@ -287,6 +287,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         #endregion
 
         /// <summary>
+        /// Returns the whole (super and sub-diagonal parts) of the column with index = <paramref name="colIdx"/>. Since the 
+        /// matrix is symmetric, row = column. 
+        /// WARNING: this is not very efficient. If only some whole columns are needed it is better to use <see cref=""/>.
+        /// TODO: implement another data structure that only holds some sparse columns, but is efficient in returning them whole
+        /// </summary>
+        /// <returns></returns>
+        public SparseVector BuildColumn(int colIdx)
+        {
+            // The super-diagonal part is readily available.
+            var wholeColumn = new SortedDictionary<int, double>(columns[colIdx]);
+
+            // The sub-diagonal part of the column is stored as the super-diagonal part of the row with the same index
+            // It must be built by searching all subsequent columns, which is inefficient
+            for (int j = colIdx + 1; j < order; ++j)
+            {
+                bool isNonZero = columns[j].TryGetValue(colIdx, out double value);
+                if (isNonZero) wholeColumn.Add(j, value);
+            }
+            return SparseVector.CreateFromDictionary(order, wholeColumn);
+        }
+
+        /// <summary>
         /// Creates the CSC arrays, containing only the upper triangular entries.
         /// </summary>
         /// <param name="sortRowsOfEachCol">True to sort the row indices of the CSC matrix between colOffsets[j] and 

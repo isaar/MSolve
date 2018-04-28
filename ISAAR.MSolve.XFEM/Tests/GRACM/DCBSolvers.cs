@@ -22,12 +22,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static void TestSolver()
         {
             DCB.Builder builder = SetupBenchmark();
-            builder.UseLSM = true; // Explicit crack results in a singular matrix
+            builder.UseLSM = true; // Explicit crack results in a singular matrix. I probably broke sth. TODO: solve this
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
-            var solver = CreateSkylineSolver(benchmark);
-            //var solver = CreateReanalysisSolver(benchmark);
+            //var solver = CreateSkylineSolver(benchmark);
+            var solver = CreateReanalysisSolver(benchmark);
 
             IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
             Console.WriteLine("Crack path:");
