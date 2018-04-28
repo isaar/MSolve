@@ -26,7 +26,8 @@ before_build:
   
     choco install codecov
   
-    choco install msbuild-sonarqube-runner
+    choco install msbuild-sonarqube-runner -y
+    
     if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
       SonarQube.Scanner.MSBuild.exe begin /k:"Sonar.MSolve" /d:"sonar.organization=dimtsap-github" /d:"sonar.host.url=https://sonarcloud.io" /d:"sonar.login=$env:SONARCLOUD_TOKEN" /d:"sonar.analysis.mode=preview" /d:"sonar.github.pullRequest=$env:APPVEYOR_PULL_REQUEST_NUMBER" /d:"sonar.github.repository=dimtsap/MSolve" /d:"sonar.github.oauth=$env:GITHUB_REPO_TOKEN"
     }
