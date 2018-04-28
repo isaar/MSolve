@@ -6,6 +6,9 @@ branches:
     - develop
 clone_folder: C:\Users\user\Source\Repos\MSolve
 shallow_clone: true
+environment:
+  CODECOV_TOKEN:
+    secure: X4e0xZjF4hpFxNTvKGC9QhyjnCML5BixbxDNytIGWNvBNlHGf+YKIa2fbofbRHG1
 cache:
   - packages
 install:
@@ -20,6 +23,6 @@ build:
   
 test_script:
 - OpenCover.Console.exe -register:user -target:"%xunit20%\xunit.console.x86.exe" -targetargs:".\ISAAR.MSolve.Tests\bin\Release\netcoreapp2.0\ISAAR.MSolve.Tests.dll -noshadow" -filter:"+[ISAAR.MSolve*]* -[ISAAR.MSolve.Tests*]*" -output:".\MSolve_coverage.xml"
-- codecov -f "MSolve_coverage.xml"
+- codecov -f "MSolve_coverage.xml
   
   
