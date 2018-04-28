@@ -20,16 +20,8 @@ before_build:
 build:
   project: ISAAR.MSolve.sln
   verbosity: minimal
-
-test_script:
-- ps: >-
-    $opencover = (Resolve-Path packages/opencover/*/tools/opencover.console.exe).ToString()
-    & $opencover -register:user -target:"dotnet.exe" -targetargs:"test ISAAR.MSolve.Tests --configuration Debug /p:DebugType=Full" -output:opencoverCoverage.xml -oldStyle -excludebyattribute:*.ExcludeFromCodeCoverage*^ -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -hideskipped:all
-    Push-AppveyorArtifact opencoverCoverage.xml
-    
-after_test:
-- ps: >-
-    $codecov = (Resolve-Path packages/codecov/*/tools/codecov.exe).ToString()
-    & $codecov -f "opencoverCoverage.xml" -t $env:CODECOV_TOKEN
   
+test_script:
+- OpenCover.Console.exe -register:user -target:"dotnet.exe" -targetargs:"test ISAAR.MSolve.Tests --configuration Debug /p:DebugType=Full" -filter:"+[ISAAR.MSolve*]* -[ISAAR.MSolve.Tests*]*" -output:".\MSolve_coverage.xml"
+- codecov -f "MSolve_coverage.xml  -t $env:CODECOV_TOKEN
   
