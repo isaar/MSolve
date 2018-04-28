@@ -31,7 +31,5 @@ after_test:
 - ps: >-
     $codecov = (Resolve-Path packages/codecov/*/tools/codecov.exe).ToString()
     & $codecov -f "opencoverCoverage.xml" -t $env:CODECOV_TOKEN
-
- artifacts:
   
   
