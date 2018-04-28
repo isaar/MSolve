@@ -19,7 +19,7 @@ build:
   verbosity: minimal
   
 test_script:
-- OpenCover.Console.exe -register:user -target:"%xunit20%\xunit.console.x86.exe" -targetargs:".\ISAAR.MSolve.Tests\bin\Debug\netcoreapp2.0\ISAAR.MSolve.Tests.dll -noshadow" -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -output:".\MSolve_coverage.xml"
+- OpenCover.Console.exe -register:user -target:"%xunit20%\xunit.console.x86.exe" -targetargs:".\ISAAR.MSolve.Tests\bin\Debug\ISAAR.MSolve.Tests.dll -noshadow" -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -output:".\MSolve_coverage.xml"
 - codecov -f "MSolve_coverage.xml"
   
   
