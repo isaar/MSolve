@@ -468,10 +468,48 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return format;
         }
 
+        public void SetColumn(int colIdx, SparseVector wholeColumn)
+        {
+            SetColumnToZero(colIdx); // First remove everything
+
+            int[] rowIndices = wholeColumn.InternalRowIndices;
+            double[] values = wholeColumn.InternalValues;
+
+            // The super-diagonal part is straightforward
+            int t = 0;
+            for (; ; ++t)
+            {
+                int rowIdx = rowIndices[t];
+                if (rowIdx > colIdx) break;
+                columns[colIdx].Add(rowIdx, values[t]);
+            }
+
+            // The sub-diagonal part of the column is stored as the super-diagonal part of the row with the same index
+            // It must be accessed by searching the relevant subsequent columns
+            for (; t < order; ++t)
+            {
+                int rowIdx = rowIndices[t];
+                columns[rowIdx].Add(colIdx, values[t]); // It should have been emptied when it was set to identity
+            }
+        }
+
         public void SetColumnToIdentity(int colIdx)
         {
-            columns[colIdx].Clear();
+            SetColumnToZero(colIdx); // First remove everything
             columns[colIdx].Add(colIdx, 1.0);
+        }
+
+        public void SetColumnToZero(int colIdx)
+        {
+            // The super-diagonal part of the column is straightforward
+            columns[colIdx].Clear();
+
+            // The sub-diagonal part of the column is stored as the super-diagonal part of the row with the same index
+            // It must be accessed by searching all subsequent columns, which is inefficient.
+            for (int j = colIdx + 1; j < order; ++j)
+            {
+                columns[j].Remove(colIdx); // If it is 0, then nothing will happen.
+            }
         }
 
         /// <summary>

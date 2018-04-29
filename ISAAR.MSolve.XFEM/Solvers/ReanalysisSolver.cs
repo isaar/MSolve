@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -109,6 +111,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
+        //TODO: Try and compare the performance of first delete then add, modifying dofs in the order of their gloabl index. 
+        //I think that modifying a matrix left to right is faster
         private void SolveByUpdating()
         {
             var watch = new Stopwatch();
@@ -156,6 +160,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
             //CheckSolution(0.26);
+            CheckSolutionAndPrint(0.1);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -166,8 +171,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// This is used to avoid or evaluate the sensitivity of other code components.
         /// </summary>
         /// <param name="solution"></param>
-        /// <param name="enforceTolerance"></param>
-        private void CheckSolution(double enforceTolerance)
+        /// <param name="tolerance"></param>
+        private void CheckSolutionAndEnforce(double tolerance)
         {
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
@@ -178,9 +183,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
             double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");
-            if (error < enforceTolerance)
+            if (error < tolerance)
             {
-                Console.Write($". It is under the tolerance = {enforceTolerance}.");
+                Console.Write($". It is under the tolerance = {tolerance}.");
                 Console.Write(" Setting the expected vector as solution. Also setting the factorized matrix to the correct one");
                 Solution = solutionExpected;
                 factorizedKuu.Dispose();
@@ -193,6 +198,72 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- /DEBUG: reanalysis solver -------------");
             Console.WriteLine();
+        }
+
+        private void CheckSolutionAndPrint(double tolerance)
+        {
+            string matrixPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_matrix.txt";
+            string rhsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_rhs.txt";
+            string removedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_removed_rows.txt";
+            string addedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_added_rows.txt";
+
+            Console.WriteLine();
+            Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
+            var assembler = new GlobalReanalysisAssembler();
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            Vector rhs = CalcEffectiveRhs(Kuc);
+            Vector solutionExpected;
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())
+            {
+                solutionExpected = factorization.SolveLinearSystem(rhs);
+            }
+            double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
+            Console.Write($"Normalized error = {error}");
+
+            if (error < tolerance)
+            {
+                Console.Write($". It is under the tolerance = {tolerance}.");
+                Console.Write("Printing the expected matrix, rhs vector and altered dofs");
+
+                // Expected matrix and rhs
+                CoordinateTextFileSymmetricWriter.NumericFormat = new GeneralNumericFormat();
+                (new CoordinateTextFileSymmetricWriter(Kuu)).WriteToFile(matrixPath);
+                FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+                (new FullVectorWriter(rhs, true)).WriteToFile(rhsPath);
+
+                // Modified dofs
+                var removedRows = new List<int>();
+                var addedRows = new List<int>();
+                IReadOnlyList<EnrichedDOF> heavisideDOFs = crack.CrackBodyEnrichment.DOFs;
+                IReadOnlyList<EnrichedDOF> tipDOFs = crack.CrackTipEnrichments.DOFs;
+                foreach (var node in crack.CrackTipNodesOld)
+                {
+                    foreach (var tipDOF in tipDOFs) removedRows.Add(DOFEnumerator.GetEnrichedDofOf(node, tipDOF));
+                }
+                foreach (var node in crack.CrackTipNodesNew)
+                {
+                    foreach (var tipDOF in tipDOFs) addedRows.Add(DOFEnumerator.GetEnrichedDofOf(node, tipDOF));
+                }
+                foreach (var node in crack.CrackBodyNodesNew)
+                {
+                    foreach (var heavisideDOF in heavisideDOFs) addedRows.Add(DOFEnumerator.GetEnrichedDofOf(node, heavisideDOF));
+                }
+                WriteList(removedRows, removedRowsPath);
+                WriteList(addedRows, addedRowsPath);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("------------- /DEBUG: reanalysis solver -------------");
+            Console.WriteLine();
+        }
+
+        private static void WriteList(List<int> dofs, string path)
+        {
+            using (var writer = new StreamWriter(path))
+            {
+                writer.WriteLine(dofs.Count);
+                foreach (var dof in dofs) writer.Write(dof + " ");
+            }
         }
     }
 }
