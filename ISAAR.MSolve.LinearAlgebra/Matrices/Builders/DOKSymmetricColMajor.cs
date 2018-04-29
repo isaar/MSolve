@@ -472,7 +472,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             SetColumnToZero(colIdx); // First remove everything
 
-            int[] rowIndices = wholeColumn.InternalRowIndices;
+            int[] rowIndices = wholeColumn.InternalIndices;
             double[] values = wholeColumn.InternalValues;
 
             // The super-diagonal part is straightforward

@@ -17,18 +17,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// They must be sorted
         /// </summary>
-        private readonly int[] rowIndices;
+        private readonly int[] indices;
 
-        private SparseVector(int length, double[] values, int[] rowIndices)
+        private SparseVector(int length, double[] values, int[] indices)
         {
             this.Length = length;
             this.values = values;
-            this.rowIndices = rowIndices;
+            this.indices = indices;
         }
 
-        public int[] InternalRowIndices { get { return rowIndices; } }
+        internal int[] InternalIndices { get { return indices; } }
 
-        public double[] InternalValues { get { return values; } }
+        internal double[] InternalValues { get { return values; } }
 
         public int Length { get; }
 
@@ -42,59 +42,59 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             }
         }
 
-        public static SparseVector CreateFromArrays(int length, double[] values, int[] rowIndices, 
+        public static SparseVector CreateFromArrays(int length, double[] values, int[] indices, 
             bool checkInput, bool sortInput)
         {
             bool verifiedSorted = false;
             if (sortInput)
             {
-                Array.Sort<int, double>(rowIndices, values);
+                Array.Sort<int, double>(indices, values);
                 verifiedSorted = true;
             }
 
             if (checkInput)
             {
-                int nnz = rowIndices.Length;
+                int nnz = indices.Length;
                 if (values.Length != nnz)
                 {
-                    throw new ArgumentException("The length of the values and row indices arrays must be equal (and equal"
-                        + $" to the number of non zero entries), but were {values.Length} and {rowIndices.Length} respectively");
+                    throw new ArgumentException("The length of the values and indices arrays must be equal (and equal"
+                        + $" to the number of non zero entries), but were {values.Length} and {indices.Length} respectively");
                 }
                 if (!verifiedSorted) // if they have already been sorted we do not need to check them again.
                 {
                     for (int i = 1; i < nnz; ++i)
                     {
-                        if (rowIndices[i] <= rowIndices[i - 1]) throw new ArgumentException("The row indices must be sorted");
+                        if (indices[i] <= indices[i - 1]) throw new ArgumentException("The indices array must be sorted");
                     }
                 }
-                int maxIndex = rowIndices[nnz - 1]; // first sort them
+                int maxIndex = indices[nnz - 1]; // first sort them
                 if (maxIndex >= length) 
                 {
                     throw new ArgumentException($"This sparse vector contains {maxIndex + 1} entries, while its length is {length}");
                 }
             }
-            return new SparseVector(length, values, rowIndices);
+            return new SparseVector(length, values, indices);
         }
 
         // TODO: add a version with tolerance
         public static SparseVector CreateFromDense(double[] denseArray)
         {
-            var rowsValues = new SortedDictionary<int, double>();
+            var indicesValues = new SortedDictionary<int, double>();
             for (int i = 0; i < denseArray.Length; ++i)
             {
-                if (denseArray[i] != 0) rowsValues.Add(i, denseArray[i]);
+                if (denseArray[i] != 0) indicesValues.Add(i, denseArray[i]);
             }
-            return CreateFromDictionary(denseArray.Length, rowsValues);
+            return CreateFromDictionary(denseArray.Length, indicesValues);
         }
 
         public static SparseVector CreateFromDense(double[] denseArray, double tolerance)
         {
-            var rowsValues = new SortedDictionary<int, double>();
+            var indicesValues = new SortedDictionary<int, double>();
             for (int i = 0; i < denseArray.Length; ++i)
             {
-                if (Math.Abs(denseArray[i]) > tolerance) rowsValues.Add(i, denseArray[i]);
+                if (Math.Abs(denseArray[i]) > tolerance) indicesValues.Add(i, denseArray[i]);
             }
-            return CreateFromDictionary(denseArray.Length, rowsValues);
+            return CreateFromDictionary(denseArray.Length, indicesValues);
         }
 
         public static SparseVector CreateFromDense(Vector denseVector)
@@ -107,44 +107,44 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return CreateFromDense(denseVector.InternalData, tolerance);
         }
 
-        public static SparseVector CreateFromDictionary(int length, Dictionary<int, double> rowsValues)
+        public static SparseVector CreateFromDictionary(int length, Dictionary<int, double> indicesValues)
         {
-            double[] values = new double[rowsValues.Count];
-            int[] rowIndices = new int[rowsValues.Count];
+            double[] values = new double[indicesValues.Count];
+            int[] indices = new int[indicesValues.Count];
             int nnz = 0;
-            foreach (var rowValPair in rowsValues.OrderBy(pair => pair.Key))
+            foreach (var idxValPair in indicesValues.OrderBy(pair => pair.Key))
             {
-                rowIndices[nnz] = rowValPair.Key;
-                values[nnz] = rowValPair.Value;
+                indices[nnz] = idxValPair.Key;
+                values[nnz] = idxValPair.Value;
                 ++nnz;
             }
 
-            int maxIndex = rowIndices[nnz - 1]; // first sort them
+            int maxIndex = indices[nnz - 1]; // first sort them
             if (maxIndex >= length)
             {
                 throw new ArgumentException($"This sparse vector contains {maxIndex + 1} entries, while its length is {length}");
             }
-            return new SparseVector(length, values, rowIndices);
+            return new SparseVector(length, values, indices);
         }
 
-        public static SparseVector CreateFromDictionary(int length, SortedDictionary<int, double> rowsValues)
+        public static SparseVector CreateFromDictionary(int length, SortedDictionary<int, double> indicesValues)
         {
-            double[] values = new double[rowsValues.Count];
-            int[] rowIndices = new int[rowsValues.Count];
+            double[] values = new double[indicesValues.Count];
+            int[] indices = new int[indicesValues.Count];
             int nnz = 0;
-            foreach (var rowValPair in rowsValues)
+            foreach (var idxValPair in indicesValues)
             {
-                rowIndices[nnz] = rowValPair.Key;
-                values[nnz] = rowValPair.Value;
+                indices[nnz] = idxValPair.Key;
+                values[nnz] = idxValPair.Value;
                 ++nnz;
             }
             
-            int maxIndex = rowIndices[nnz - 1]; // first sort them
+            int maxIndex = indices[nnz - 1]; // first sort them
             if (maxIndex >= length)
             {
                 throw new ArgumentException($"This sparse vector contains {maxIndex + 1} entries, while its length is {length}");
             }
-            return new SparseVector(length, values, rowIndices);
+            return new SparseVector(length, values, indices);
         }
 
         public SparseVector Copy()
@@ -152,15 +152,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             int n = values.Length;
             double[] valuesCopy = new double[n];
             Array.Copy(values, valuesCopy, n);
-            int[] rowIndicesCopy = new int[n];
-            Array.Copy(rowIndices, rowIndicesCopy, n);
-            return new SparseVector(n, valuesCopy, rowIndicesCopy);
+            int[] indicesCopy = new int[n];
+            Array.Copy(indices, indicesCopy, n);
+            return new SparseVector(n, valuesCopy, indicesCopy);
         }
 
         public double[] CopyToArray()
         {
             double[] result = new double[Length];
-            for (int i = 0; i < values.Length; ++i) result[rowIndices[i]] = values[i];
+            for (int i = 0; i < values.Length; ++i) result[indices[i]] = values[i];
             return result;
         }
 
@@ -186,7 +186,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     {
                         resultValues[i] = binaryOperation(this.values[i], otherSparse.values[i]);
                     }
-                    return new SparseVector(Length, resultValues, rowIndices);
+                    return new SparseVector(Length, resultValues, indices);
                 }
             }
 
@@ -203,13 +203,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0)) // The same sparsity pattern can be used.
             {
                 // Copy the index arrays. TODO: See if we can use the same index arrays (e.g. if this class does not change them (it shouldn't))
-                int[] rowIndicesCopy = new int[rowIndices.Length];
-                Array.Copy(rowIndices, rowIndicesCopy, rowIndices.Length);
-                return new SparseVector(Length, newValues, rowIndicesCopy);
+                int[] indicesCopy = new int[indices.Length];
+                Array.Copy(indices, indicesCopy, indices.Length);
+                return new SparseVector(Length, newValues, indicesCopy);
             }
             else // The sparsity is destroyed. Revert to a full matrix.
             {
-                return new SparseVector(Length, newValues, rowIndices).CopyToFullVector();
+                return new SparseVector(Length, newValues, indices).CopyToFullVector();
             }
         }
 
@@ -217,8 +217,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             Preconditions.CheckVectorDimensions(this, other);
             double sum = 0;
-            for (int i = 0; i < values.Length; ++i) sum += values[i] * other[rowIndices[i]];
+            for (int i = 0; i < values.Length; ++i) sum += values[i] * other[indices[i]];
             return sum;
+        }
+
+        public IEnumerable<(int idx, double value)> EnumerateNonZeros()
+        {
+            for (int i = 0; i < values.Length; ++i)
+            {
+                yield return (indices[i], values[i]);
+            }
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
@@ -233,12 +241,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         private int FindSparseIndexOf(int denseIdx)
         {
             Preconditions.CheckIndex1D(this, denseIdx);
-            return Array.BinarySearch<int>(rowIndices, denseIdx); // only works if rowIndices are sorted!!!
+            return Array.BinarySearch<int>(indices, denseIdx); // only works if indices are sorted!!!
         }
 
         private bool HasSameIndexer(SparseVector other)
         {
-            return this.rowIndices == other.rowIndices;
+            return this.indices == other.indices;
         }
     }
 }

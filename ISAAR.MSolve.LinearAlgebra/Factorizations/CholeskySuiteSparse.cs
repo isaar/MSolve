@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int nnz = newRow.CountNonZeros();
             int[] colOffsets = { 0, nnz };
             int status = SuiteSparseUtilities.RowAdd(Order, factorizedMatrix, rowIdx, 
-                nnz, newRow.InternalValues, newRow.InternalRowIndices, colOffsets, common);
+                nnz, newRow.InternalValues, newRow.InternalIndices, colOffsets, common);
             if (status != 1)
             {
                 throw new SuiteSparseException("Rows addition did not succeed. This could be caused by insufficent memory");
