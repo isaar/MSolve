@@ -74,6 +74,7 @@
     <Compile Include="Factorizations\LUFactorization.cs" />
     <Compile Include="Factorizations\QRFactorization.cs" />
     <Compile Include="Input\CoordinateTextFileReader.cs" />
+    <Compile Include="Input\FullVectorReader.cs" />
     <Compile Include="Input\SkylineMatrixReader.cs" />
     <Compile Include="Input\SymmetricMatrixReader.cs" />
     <Compile Include="Matrices\Builders\DOKColMajor.cs" />
