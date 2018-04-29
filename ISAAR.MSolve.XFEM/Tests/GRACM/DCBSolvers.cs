@@ -27,9 +27,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             benchmark.InitializeModel();
 
             //var solver = CreateSkylineSolver(benchmark);
-            var solver = CreateReanalysisSolver(benchmark);
+            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            IReadOnlyList<ICartesianPoint2D> crackPath;
+            using (var solver = CreateReanalysisSolver(benchmark))
+            {
+                crackPath = benchmark.Analyze(solver);
+            }              
+             
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
             {
@@ -109,7 +114,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new CholeskySuiteSparseSolver(benchmark.Model);
         }
 
-        private static ISolver CreateReanalysisSolver(DCB benchmark)
+        private static ReanalysisSolver CreateReanalysisSolver(DCB benchmark)
         {
             return new ReanalysisSolver(benchmark.Model, benchmark.Crack);
         }

@@ -1,4 +1,4 @@
-﻿//#define PRINT_PATH
+﻿#define PRINT_PATH
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,14 +50,17 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var crackPath = new List<ICartesianPoint2D>();
 
             #if (PRINT_PATH)
-            Console.WriteLine("Crack path: X Y");
-            crackPath.Add(crack.CrackMouth);
-            Console.WriteLine($"{crack.CrackMouth.X} {crack.CrackMouth.Y}");
-            crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
-            Console.WriteLine($"{crackPath.Last().X} {crackPath.Last().Y}");
+            //Console.WriteLine("Crack path: X Y");
+            //crackPath.Add(crack.CrackMouth);
+            //Console.WriteLine($"{crack.CrackMouth.X} {crack.CrackMouth.Y}");
+            //crackPath.Add(crack.GetCrackTip(CrackTipPosition.Single));
+            //Console.WriteLine($"{crackPath.Last().X} {crackPath.Last().Y}");
             #endif
 
             int iteration;
+#if (PRINT_PATH)
+            try { 
+#endif
             solver.Initialize();
             for (iteration = 0; iteration < maxIterations; ++iteration)
             {
@@ -67,8 +70,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 //    Console.WriteLine("11th iteration. An expection will be thrown");
                 //}
 
-                //Console.WriteLine(
-                //"********************************** Iteration {0} **********************************", iteration);
+                #if (PRINT_PATH)
+                Console.WriteLine(
+                "********************************** Iteration {0} **********************************", iteration);
+                #endif
+
                 crack.UpdateEnrichments();
                 solver.Solve();
 
@@ -80,10 +86,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 crack.UpdateGeometry(growthAngle, growthIncrement);
                 ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
                 crackPath.Add(newTip);
-
-                #if (PRINT_PATH)
-                Console.WriteLine($"{newTip.X} {newTip.Y}");
-                #endif
 
                 double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
                     propagator.Logger.SIFsMode2[iteration]);
@@ -107,6 +109,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
             }
 
             return crackPath;
+            #if (PRINT_PATH)
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Analysis failed. Printing crack path so far:");
+                foreach (var point in crackPath)
+                {
+                    Console.WriteLine("{0} {1}", point.X, point.Y);
+                }
+                throw ex;
+            }
+            #endif
         }
 
         // TODO: Abstract this and add Tanaka_1974 approach

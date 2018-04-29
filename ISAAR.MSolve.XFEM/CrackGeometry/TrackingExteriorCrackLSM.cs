@@ -449,6 +449,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
             foreach (var node in nodesToRemove) // using sets and set operations might be better and faster
             {
+                //Console.WriteLine("Removing Heaviside enrichment from node: " + node);
                 CrackBodyNodesAll.Remove(node);
                 CrackBodyNodesNew.Remove(node);
             }
