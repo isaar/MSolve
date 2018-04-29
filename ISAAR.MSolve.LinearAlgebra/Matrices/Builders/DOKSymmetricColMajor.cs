@@ -486,7 +486,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
             // The sub-diagonal part of the column is stored as the super-diagonal part of the row with the same index
             // It must be accessed by searching the relevant subsequent columns
-            for (; t < order; ++t)
+            for (; t < rowIndices.Length; ++t)
             {
                 int rowIdx = rowIndices[t];
                 columns[rowIdx].Add(colIdx, values[t]); // It should have been emptied when it was set to identity
