@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// <summary>
     /// Tagging interface
     /// </summary>
-    interface ISymmetricMatrix
+    public interface ISymmetricMatrix
     {
     }
 }

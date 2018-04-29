@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         internal static bool AreEqual(IIndexable2D matrix1, IIndexable2D matrix2, double tolerance = 1e-13)
         {
             if ((matrix1.NumRows != matrix2.NumRows) || (matrix1.NumColumns != matrix2.NumColumns)) return false;
-            var comparer = new ValueComparer(1e-13);
+            var comparer = new ValueComparer(tolerance);
             for (int j = 0; j < matrix1.NumColumns; ++j)
             {
                 for (int i = 0; i < matrix1.NumRows; ++i)

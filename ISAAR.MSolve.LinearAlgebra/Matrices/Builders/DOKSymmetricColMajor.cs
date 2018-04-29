@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored. This class is 
     /// optimized for building global positive definite matrices, where there is at least 1 entry per column (like in FEM).
     /// </summary>
-    public class DOKSymmetricColMajor : ISparseMatrix, ISymmetricMatrixBuilder
+    public class DOKSymmetricColMajor : ISparseSymmetricMatrix, ISymmetricMatrixBuilder
     {
         /// <summary>
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 
@@ -383,6 +383,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return count;
         }
 
+        public int CountNonZerosSuperDiagonal()
+        {
+            int count = 0;
+            for (int j = 0; j < order; ++j) count += columns[j].Count;
+            return count;
+        }
+
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
         {
             for (int j = 0; j < order; ++j)
@@ -390,11 +397,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 foreach (var rowVal in columns[j])
                 {
                     if (rowVal.Key == j) yield return (rowVal.Key, j, rowVal.Value);
-                    else //Each upper triangle entries haa a corresponding lower triangle entry.
+                    else //Each upper triangle entries has a corresponding lower triangle entry.
                     {
                         yield return (rowVal.Key, j, rowVal.Value);
                         yield return (j, rowVal.Key, rowVal.Value);
                     }
+                }
+            }
+        }
+
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZerosSuperDiagonal()
+        {
+            for (int j = 0; j < order; ++j)
+            {
+                foreach (var rowVal in columns[j])
+                {
+                    yield return (rowVal.Key, j, rowVal.Value);
                 }
             }
         }
@@ -448,6 +466,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             format.RawIndexArrays.Add("Row indices", rowIndices);
             format.RawIndexArrays.Add("Column offsets", colOffsets);
             return format;
+        }
+
+        public void SetColumnToIdentity(int colIdx)
+        {
+            columns[colIdx].Clear();
+            columns[colIdx].Add(colIdx, 1.0);
         }
 
         /// <summary>
