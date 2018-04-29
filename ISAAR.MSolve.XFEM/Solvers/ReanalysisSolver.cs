@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(); // DO NOT use using(){} here!
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
-            //CheckSolution(0.0);
+            CheckSolutionAndEnforce(0.0);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -160,7 +160,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
             //CheckSolution(0.26);
-            CheckSolutionAndPrint(0.1);
+            CheckSolutionAndPrint(0.2);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);

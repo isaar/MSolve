@@ -33,8 +33,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             using (var solver = CreateReanalysisSolver(benchmark))
             {
                 crackPath = benchmark.Analyze(solver);
-            }              
-             
+            }
+
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
             {

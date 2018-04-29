@@ -28,7 +28,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     /// </summary>
     class TrackingExteriorCrackLSM: IExteriorCrack
     {
-        private static readonly bool reports = false;
+        private static readonly TipDetectionScheme tipDetection = TipDetectionScheme.Explicit;
+        private static readonly bool reports = true;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
         private readonly Dictionary<XNode2D, double> levelSetsBody;
         private readonly Dictionary<XNode2D, double> levelSetsTip;
@@ -307,7 +308,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             // Warning: This criterion might give false positives for tip elements (see Serafeim's thesis for details)
             if (minBodyLevelSet * maxBodyLevelSet <= 0.0)
             {
-                if (minTipLevelSet * maxTipLevelSet <= 0) return ElementEnrichmentType.Tip;
+                if (IsTipElement(element, minTipLevelSet, maxTipLevelSet)) return ElementEnrichmentType.Tip;
                 else if (maxTipLevelSet < 0) return ElementEnrichmentType.Heaviside;
             }
             return ElementEnrichmentType.Standard;
@@ -386,10 +387,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 if (sign == 0)
                 {
                     // Report this instance in DEBUG messages. It should not happen with linear level sets and only 1 crack.
-                    if (reports)
-                    {
-                        Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
-                    }
+                    //if (reports)
+                    //{
+                    //    Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
+                    //}
 
 
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
@@ -405,6 +406,31 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 else throw new Exception(
                     "Even after finding the signed distance of its centroid, the sign of the area is unidentified");
             }
+        }
+
+        private bool IsTipElement(XContinuumElement2D elements, double minTipLevelSet, double maxTipLevelSet)
+        {
+            if (tipDetection == TipDetectionScheme.Implicit) //Stolarska criterion
+            {
+                if (minTipLevelSet * maxTipLevelSet <= 0) return true;
+                else return false;
+            }
+            else if (tipDetection == TipDetectionScheme.Explicit)
+            {
+                var outline = ConvexPolygon2D.CreateUnsafe(elements.Nodes);
+                if (outline.IsPointInsidePolygon(crackTip)) return true;
+                else return false;
+            }
+            else if (tipDetection == TipDetectionScheme.Hybrid)
+            {
+                if (minTipLevelSet * maxTipLevelSet <= 0)
+                {
+                    var outline = ConvexPolygon2D.CreateUnsafe(elements.Nodes);
+                    if (outline.IsPointInsidePolygon(crackTip)) return true;
+                }
+                return false;
+            }
+            else throw new Exception("Unreachable code");
         }
 
         //TODO: I suspect this is method is responsible for singular global matrices popping up randomly for many configurations.
@@ -460,6 +486,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         {
             if (!reports) return;
             Console.WriteLine("------ DEBUG/ ------");
+            Console.WriteLine("Crack tip: " + crackTip);
             if (tipElements.Count < 1) throw new Exception("No tip element found");
             Console.WriteLine("Tip elements:");
             for (int e = 0; e < tipElements.Count; ++e)
@@ -481,5 +508,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         /// This is because, even if there are kinks inside the element, the linear interpolation cannot reproduce them.
         /// </summary>
         private enum ElementEnrichmentType { Standard, Heaviside, Tip }
+
+        private enum TipDetectionScheme { Implicit, Explicit, Hybrid }
     }
 }
