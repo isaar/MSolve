@@ -153,11 +153,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
             }
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
-            // new one. When a new column is added, that dof is removed from the set of remaining ones.
+            // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
+            // remaining ones.
             foreach (int col in colsToAdd)
             {
                 tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
-                SparseVector newColVector = BuildNewCol(Kuu, col, tabooRows);
+                SparseVector newColVector = Kuu.SliceColumnWithoutRows(col, tabooRows);
                 factorizedKuu.AddRow(col, newColVector);
             }
 
@@ -169,26 +170,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
-        }
-
-        /// <summary>
-        /// For the cholesky update to work correctly, we must only add the entries of the columns corresponding to dofs that are 
-        /// already active, i.e. not identity row. Adding the whole column is incorrect.
-        /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="newColIdx">It must not belong in <paramref name="tabooRows"/>.</param>
-        /// <param name="tabooRows">Do not include the entries at these rows.</param>
-        internal static SparseVector BuildNewCol(DOKSymmetricColMajor matrix, int newColIdx, ISet<int> tabooRows)
-        {
-            Debug.Assert(!tabooRows.Contains(newColIdx));
-            //TODO: most of the rest should be implemented in the DOK as SliceColumnIgnoring(ISet<int> rowsToIgnore)
-            SparseVector wholeCol = matrix.BuildColumn(newColIdx);
-            var filteredCol = new SortedDictionary<int, double>();
-            foreach ((int idx, double val) in wholeCol.EnumerateNonZeros())
-            {
-                if (!tabooRows.Contains(idx)) filteredCol.Add(idx, val);
-            }
-            return SparseVector.CreateFromDictionary(wholeCol.Length, filteredCol);
         }
 
         #region debugging

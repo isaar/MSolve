@@ -46,9 +46,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Artifical example using real matrices
             //CheckManagedUpdates(expectedK, removedCols, addedCols);
-            //CheckSuiteSparseColAddition(expectedK, rhs, removedCols, addedCols);
-            //CheckSuiteSparseColDeletion(expectedK, rhs, removedRowCols, addedCols);
-            //CheckSuiteSparseColAdditionAndDeletion(expectedK, rhs, removedCols, addedCols);
+            CheckSuiteSparseColAddition(expectedK, rhs, removedCols, addedCols);
+            CheckSuiteSparseColDeletion(expectedK, rhs, removedCols, addedCols);
+            CheckSuiteSparseColAdditionAndDeletion(expectedK, rhs, removedCols, addedCols);
 
             /// Actually do the reanalysis steps
             //CheckReanalysisMatrixUpdate(expectedK, expectedPreviousK, removedCols, addedCols);
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //Console.WriteLine("Checking the copied matrix with the expected one.");
             //checker.Check(expectedK, currentK);
             foreach (int row in addedRows) currentK.SetColumnToIdentity(row);
-            foreach (int row in addedRows) currentK.SetColumn(row, expectedK.BuildColumn(row));
+            foreach (int row in addedRows) currentK.SetColumn(row, expectedK.SliceColumn(row));
             Console.WriteLine("Checking the recreated matrix with the expected one.");
             checker.Check(expectedK, currentK);
             //if (currentK.Equals(expectedK, 1e-5)) Console.WriteLine("Getting/setting rows in C# seems to work fine. Recreated matrix is the same.");
@@ -115,7 +115,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             foreach (int col in addedCols)
             {
                 tabooRows.Remove(col);
-                SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
+                //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
+                SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
                 matrix.SetColumn(col, newColVector);
             }
 
@@ -155,8 +156,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 //foreach (int row in addedRows.OrderBy(row => row)) //Not needed, but may be faster
                 {
                     tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
-                    SparseVector newRowVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
-                    factorization.AddRow(col, newRowVector);
+                    //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
+                    SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
+                    factorization.AddRow(col, newColVector);
                 }
                 cholmodSolution = factorization.SolveLinearSystem(rhs);
             }
@@ -167,7 +169,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine();
         }
 
-        private static void CheckSuiteSparseRowColAddition(DOKSymmetricColMajor expectedK, Vector rhs, 
+        private static void CheckSuiteSparseColAddition(DOKSymmetricColMajor expectedK, Vector rhs, 
             int[] removedCols, int[] addedCols)
         {
             /// Calculate expected solution
@@ -187,13 +189,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Vector cholmodSolution;
             using (CholeskySuiteSparse factorization = previousK.BuildSymmetricCSCMatrix(true).FactorCholesky())
             {
-                var remainingRows = new HashSet<int>(addedCols);
+                var tabooRows = new HashSet<int>(addedCols);
                 foreach (int col in addedCols)
                 //foreach (int row in addedRows.OrderBy(row => row)) //Not needed, but may be faster
                 {
-                    remainingRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
-                    SparseVector newRowVector = ReanalysisSolver.BuildNewCol(expectedK, col, remainingRows);
-                    factorization.AddRow(col, newRowVector);
+                    tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
+                    //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
+                    SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
+                    factorization.AddRow(col, newColVector);
                 }
                 cholmodSolution = factorization.SolveLinearSystem(rhs);
             }
@@ -230,12 +233,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                     factorization.DeleteRow(row);
                 }
 
-                var remainingCols = new HashSet<int>(addedCols);
+                var tabooRows = new HashSet<int>(addedCols);
                 foreach (int col in addedCols)
                 //foreach (int row in addedRows.OrderBy(row => row)) //Not needed, but may be faster
                 {
-                    remainingCols.Remove(col); //It must be called before passing the remaining cols as taboo rows.
-                    SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, remainingCols);
+                    tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
+                    //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, remainingCols);
+                    SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
                     factorization.AddRow(col, newColVector);
                 }
                 //foreach (int row in removedRows)

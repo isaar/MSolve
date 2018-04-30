@@ -154,7 +154,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             {
                 // Since the matrix is symmetric the result should look like the whole matrix being printed
                 Console.Write($"Column {j}: ");
-                (new FullVectorWriter(dok.BuildColumn(j))).WriteToConsole();
+                (new FullVectorWriter(dok.SliceColumn(j))).WriteToConsole();
             }
             FullVectorWriter.NumericFormat = storedDefault;
         }
