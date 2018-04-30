@@ -22,6 +22,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly IExteriorCrack crack;
         private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
         private CholeskySuiteSparse factorizedKuu;
+        private int counter;
 
         /// <summary>
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
@@ -97,6 +98,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             watch.Start();
 
+            counter = 0;
             // TODO: the matrices must not be built and factorized in each iteration
             var assembler = new GlobalReanalysisAssembler();
             (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
@@ -105,7 +107,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(); // DO NOT use using(){} here!
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
-            CheckSolutionAndEnforce(0.0);
+            //CheckSolutionAndEnforce(0.0);
+            CheckSolutionAndPrint(0.3);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -118,54 +121,77 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             watch.Start();
 
+            ++counter;
             // TODO: the matrices and vectors must not be built in each iteration
             var assembler = new GlobalReanalysisAssembler();
             (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
-            // Delete old tip enriched DOFs
+            // Group the new dofs
+            IReadOnlyList<EnrichedDOF> heavisideDOFs = crack.CrackBodyEnrichment.DOFs;
             IReadOnlyList<EnrichedDOF> tipDOFs = crack.CrackTipEnrichments.DOFs;
+            var colsToAdd = new HashSet<int>();
+            foreach (var node in crack.CrackTipNodesNew)
+            {
+                foreach (var tipDOF in tipDOFs) colsToAdd.Add(DOFEnumerator.GetEnrichedDofOf(node, tipDOF));
+            }
+            foreach (var node in crack.CrackBodyNodesNew)
+            {
+                foreach (var heavisideDOF in heavisideDOFs) colsToAdd.Add(DOFEnumerator.GetEnrichedDofOf(node, heavisideDOF));
+            }
+            var tabooRows = new HashSet<int>(colsToAdd);
+
+            // Delete old tip enriched DOFs. Should this be done before or after addition?
             foreach (var node in crack.CrackTipNodesOld)
             {
                 foreach (var tipDOF in tipDOFs)
                 {
                     int colIdx = DOFEnumerator.GetEnrichedDofOf(node, tipDOF);
+                    tabooRows.Add(colIdx); // They must also be excluded when adding new columns
                     factorizedKuu.DeleteRow(colIdx);
                 }
             }
 
-            // Add new tip DOFs
-            foreach (var node in crack.CrackTipNodesNew)
+            // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
+            // new one. When a new column is added, that dof is removed from the set of remaining ones.
+            foreach (int col in colsToAdd)
             {
-                foreach (var tipDOF in tipDOFs)
-                {
-                    int colIdx = DOFEnumerator.GetEnrichedDofOf(node, tipDOF);
-                    SparseVector newCol = Kuu.BuildColumn(colIdx);
-                    factorizedKuu.AddRow(colIdx, newCol);
-                }
+                tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
+                SparseVector newColVector = BuildNewCol(Kuu, col, tabooRows);
+                factorizedKuu.AddRow(col, newColVector);
             }
 
-            // Add new Heaviside DOFs
-            IReadOnlyList<EnrichedDOF> heavisideDOFs = crack.CrackBodyEnrichment.DOFs;
-            foreach (var node in crack.CrackBodyNodesNew)
-            {
-                foreach (var heavisideDOF in heavisideDOFs)
-                {
-                    int colIdx = DOFEnumerator.GetEnrichedDofOf(node, heavisideDOF);
-                    SparseVector newCol = Kuu.BuildColumn(colIdx);
-                    factorizedKuu.AddRow(colIdx, newCol);
-                }
-            }
-
+            // Solve the system
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
-            //CheckSolution(0.26);
-            CheckSolutionAndPrint(0.2);
+            //CheckSolutionAndEnforce(0.0);
+            CheckSolutionAndPrint(0.3);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
+        /// <summary>
+        /// For the cholesky update to work correctly, we must only add the entries of the columns corresponding to dofs that are 
+        /// already active, i.e. not identity row. Adding the whole column is incorrect.
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="newColIdx">It must not belong in <paramref name="tabooRows"/>.</param>
+        /// <param name="tabooRows">Do not include the entries at these rows.</param>
+        internal static SparseVector BuildNewCol(DOKSymmetricColMajor matrix, int newColIdx, ISet<int> tabooRows)
+        {
+            Debug.Assert(!tabooRows.Contains(newColIdx));
+            //TODO: most of the rest should be implemented in the DOK as SliceColumnIgnoring(ISet<int> rowsToIgnore)
+            SparseVector wholeCol = matrix.BuildColumn(newColIdx);
+            var filteredCol = new SortedDictionary<int, double>();
+            foreach ((int idx, double val) in wholeCol.EnumerateNonZeros())
+            {
+                if (!tabooRows.Contains(idx)) filteredCol.Add(idx, val);
+            }
+            return SparseVector.CreateFromDictionary(wholeCol.Length, filteredCol);
+        }
+
+        #region debugging
         /// <summary>
         /// Can also set the computed solution vector to the expected, if the normalized error is under a specified tolerance.
         /// This is used to avoid or evaluate the sensitivity of other code components.
@@ -202,10 +228,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void CheckSolutionAndPrint(double tolerance)
         {
-            string matrixPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_matrix.txt";
-            string rhsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_rhs.txt";
-            string removedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_removed_rows.txt";
-            string addedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_added_rows.txt";
+            string matrixPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_matrix_" + counter + ".txt";
+            string rhsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_rhs_" + counter + ".txt";
+            string removedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_removed_rows_" + counter + ".txt";
+            string addedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_added_rows_" + counter + ".txt";
 
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
@@ -265,5 +291,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 foreach (var dof in dofs) writer.Write(dof + " ");
             }
         }
+        #endregion
     }
 }

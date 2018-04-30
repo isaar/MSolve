@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     class TrackingExteriorCrackLSM: IExteriorCrack
     {
         private static readonly TipDetectionScheme tipDetection = TipDetectionScheme.Explicit;
-        private static readonly bool reports = true;
+        private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
         private readonly Dictionary<XNode2D, double> levelSetsBody;
         private readonly Dictionary<XNode2D, double> levelSetsTip;
