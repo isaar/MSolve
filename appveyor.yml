@@ -34,13 +34,5 @@ build:
   parallel: true
   verbosity: detailed
 test_script:
-- ps: >-  
-  $OpenCover.Console.exe -register:user -target:"dotnet.exe" -targetargs:"test ISAAR.MSolve.Tests --configuration Debug /p:DebugType=Full"  -output:MSolve_coverage.xml -oldStyle -excludebyattribute:*.ExcludeFromCodeCoverage*^ -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -hideskipped:all
-  
-  & $codecov -f MSolve_coverage.xml  -t $env:CODECOV_TOKEN
-  
-  $coveralls = (Resolve-Path “packages/coveralls.net.*/tools/csmacnz.coveralls.exe”).ToString()
-  
-  & $coveralls —opencover –i MSolve_coverage.xml $env:COVERALLS_TOKEN
-  
-  Push-AppveyorArtifact MSolve_coverage.xml
+- OpenCover.Console.exe -register:user -target:"dotnet.exe" -targetargs:"test ISAAR.MSolve.Tests --configuration Debug /p:DebugType=Full"  -output:MSolve_coverage.xml -oldStyle -excludebyattribute:*.ExcludeFromCodeCoverage*^ -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -hideskipped:all
+- codecov -f MSolve_coverage.xml  -t $env:CODECOV_TOKEN
