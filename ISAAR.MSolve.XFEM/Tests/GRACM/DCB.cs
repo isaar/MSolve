@@ -30,17 +30,17 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// Horizontal dimension of the whole domain in inches.
         /// </summary>
-        private const double L = 11.82;
+        public const double L = 11.82;
 
         /// <summary>
         /// Vertical dimension of the whole domain in inches.
         /// </summary>
-        private const double h = 3.94;
+        public const double h = 3.94;
 
         /// <summary>
         /// Length of first crack segment (horizontal) in inches.
         /// </summary>
-        private const double a = 3.95;
+        public const double a = 3.95;
 
         /// <summary>
         /// Length of second crack segment (inclined) in inches.
@@ -112,17 +112,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         private readonly int maxIterations;
 
-        /// <summary>
-        /// The approximate ratio of the size of an element in the coarse region of the mesh to the size of an element in the 
-        /// fine region of the mesh. Only applicable if <see cref="uniformMesh"/> == true.
-        /// </summary>
-        private readonly double ratioCoarseToFineElementSize;
-
-        /// <summary>
-        /// True to use same sized elements. False to refine the mesh near the crack path that is known roughly from previous 
-        /// analysis.
-        /// </summary>
-        private readonly bool uniformMesh;
+        private readonly IMeshProvider meshProvider;
 
         /// <summary>
         /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
@@ -134,20 +124,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="elementSize">The approximate size of the elements. If the mesh is not uniform, this applies to the 
-        ///     finest region.</param>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-        private DCB(double elementSize, double growthLength, double jIntegralRadiusOverElementSize, 
-            PropagationLogger knownPropagation, int maxIterations, double ratioCoarseToFineElementSize,
-            bool uniformMesh, bool useLSM)
+        private DCB(double growthLength, double jIntegralRadiusOverElementSize, PropagationLogger knownPropagation,
+            int maxIterations, IMeshProvider meshProvider, bool useLSM)
         {
-            this.elementSize = elementSize;
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.knownPropagation = knownPropagation;
             this.maxIterations = maxIterations;
-            this.ratioCoarseToFineElementSize = ratioCoarseToFineElementSize;
-            this.uniformMesh = uniformMesh;
+            this.meshProvider = meshProvider;
             this.useLSM = useLSM;
         }
         
@@ -213,10 +198,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private void CreateMesh()
         {
             // Mesh generation
-            XNode2D[] nodes;
-            List<XNode2D[]> elementConnectivity;
-            if (uniformMesh) (nodes, elementConnectivity) = CreateUniformMesh();
-            else (nodes, elementConnectivity) = CreateRectilinearMesh();
+            (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) = meshProvider.CreateMesh();
 
             // Nodes
             foreach (XNode2D node in nodes) Model.AddNode(node);
@@ -238,39 +220,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Mesh usable for crack-mesh interaction
             var boundary = new RectangularBoundary(0.0, L, 0.0, h);
             mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(Model.Nodes, Model.Elements, boundary);
-        }
-
-        private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateUniformMesh()
-        {
-            int elementsPerXAxis = (int)(L / elementSize) + 1;
-            int elementsPerYAxis = (int)(h / elementSize) + 1;
-            var meshGenerator = new UniformRectilinearMeshGenerator(L, h, elementsPerXAxis, elementsPerYAxis);
-            return meshGenerator.CreateMesh();
-        }
-
-        private (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateRectilinearMesh()
-        {
-            double fineElementSize = elementSize;
-            double coarseElementSize = elementSize * ratioCoarseToFineElementSize;
-            double[,] meshSizeAlongX = new double[,] 
-            {
-                { 0.0, coarseElementSize },
-                { a, fineElementSize},
-                //{ 3.0 / 5.0* L, fineElementSize},
-                { 6.4, fineElementSize},
-                { L, coarseElementSize}
-            };
-            double[,] meshSizeAlongY = new double[,] 
-            {
-                { 0.0, fineElementSize },
-                //{ 0.0, fineElementSize},
-                //{ 0.5, fineElementSize},
-                { h/2 + h/10, elementSize * ratioCoarseToFineElementSize},
-                { h, coarseElementSize}
-            };
-
-            var meshGenerator = new RectilinearMeshGenerator(meshSizeAlongX, meshSizeAlongY);
-            return meshGenerator.CreateMesh();
         }
 
         private void InitializeCrack()
@@ -313,19 +262,20 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public class Builder
         {
-            private readonly double elementSize;
             private readonly double growthLength;
+            private readonly IMeshProvider meshProvider;
 
             /// <summary>
             /// 
             /// </summary>
-            /// <param name="elementSize">The approximate size of the elements. If the mesh is not uniform, this applies to the 
-            ///     finest region.</param>
             /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-            public Builder(double elementSize, double growthLength)
+            /// <param name="meshProvider">The object that will create the finite element mesh, when called upon. Select between 
+            ///     <see cref="DCBUniformMeshProvider"/>, <see cref="DCBRefinedMeshProvider"/> or 
+            ///     <see cref="GmshMeshProvider"/>.</param>
+            public Builder(double growthLength, IMeshProvider meshProvider)
             {
-                this.elementSize = elementSize;
                 this.growthLength = growthLength;
+                this.meshProvider = meshProvider;
             }
 
             /// <summary>
@@ -347,26 +297,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             public int MaxIterations { get; set; } = int.MaxValue;
 
             /// <summary>
-            /// The approximate ratio of the size of an element in the coarse region of the mesh to the size of an element in the 
-            /// fine region of the mesh. Only applicable if <see cref="UniformMesh"/> == true.
-            /// </summary>
-            public double RatioCoarseToFineElementSize { get; set; } = 10;
-
-            /// <summary>
-            /// True to use same sized elements. False to refine the mesh near the crack path that is known roughly from previous 
-            /// analysis.
-            /// </summary>
-            public bool UniformMesh { get; set; } = false;
-
-            /// <summary>
             /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
             /// </summary>
             public bool UseLSM { get; set; } = true;
 
             public DCB BuildBenchmark()
             {
-                return new DCB(elementSize, growthLength, JintegralRadiusOverElementSize, KnownPropagation, MaxIterations,
-                    RatioCoarseToFineElementSize, UniformMesh, UseLSM);
+                return new DCB(growthLength, JintegralRadiusOverElementSize, KnownPropagation, MaxIterations, meshProvider,
+                    UseLSM);
             }
         }
     }

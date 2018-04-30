@@ -21,15 +21,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static void SingleTest()
         {
             double growthLength = 0.3;
-            double elementSize = 0.08;
-            var builder = new DCB.Builder(elementSize, growthLength);
-            builder.UniformMesh = false;
+            double fineElementSize = 0.08;
+            double coarseElementSize = 10 * fineElementSize;
+            var builder = new DCB.Builder(growthLength, new DCBRefinedMeshProvider(fineElementSize, coarseElementSize));
             builder.UseLSM = false;
             builder.MaxIterations = 10;
             var benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
             Console.WriteLine("------------------ Fine mesh size = {0}, Elements = {1} , Growth length = {2} ------------------",
-                elementSize, benchmark.Model.Elements.Count, growthLength);
+                fineElementSize, benchmark.Model.Elements.Count, growthLength);
 
             //Print
             //VTKWriter writer = new VTKWriter(benchmark.model);
@@ -49,12 +49,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             int maxIterations)
         {
             double fineElementSize = 0.038;
+            double coarseElementSize = 10 * fineElementSize;
             double[] growthLengths = new double[] { 0.05, 0.1, 0.2, 0.4 };
             Console.WriteLine("------------------------------------ Parametric Growth Length ------------------------------------");
             for (int i = 0; i < growthLengths.Length; ++i)
             {
-                var builder = new DCB.Builder(fineElementSize, growthLengths[i]);
-                builder.UniformMesh = false;
+                var builder = new DCB.Builder(growthLengths[i], new DCBRefinedMeshProvider(fineElementSize, coarseElementSize));
                 builder.UseLSM = true;
                 DCB benchmark = builder.BuildBenchmark();
                 benchmark.InitializeModel();
@@ -89,8 +89,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine("------------------------------------ Parametric Mesh ------------------------------------");
             for (int i = 0; i < fineElementSizes.Length; ++i)
             {
-                var builder = new DCB.Builder(fineElementSizes[i], propagationLength);
-                builder.UniformMesh = false;
+                var builder = new DCB.Builder(propagationLength, 
+                    new DCBRefinedMeshProvider(fineElementSizes[i], 10 * fineElementSizes[i]));
                 builder.UseLSM = true;
                 DCB benchmark = builder.BuildBenchmark();
                 benchmark.InitializeModel();
@@ -128,8 +128,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 for (int i = 0; i < fineElementSizes.Length; ++i)
                 {
-                    var builder = new DCB.Builder(fineElementSizes[i], growthLengths[j]);
-                    builder.UniformMesh = false;
+                    var builder = new DCB.Builder(growthLengths[j],
+                        new DCBRefinedMeshProvider(fineElementSizes[i], 10 * fineElementSizes[i]));
                     builder.UseLSM = true;
                     DCB benchmark = builder.BuildBenchmark();
                     benchmark.InitializeModel();

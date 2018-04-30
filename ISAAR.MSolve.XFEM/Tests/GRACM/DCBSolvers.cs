@@ -26,14 +26,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
-            //var solver = CreateSkylineSolver(benchmark);
-            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            var solver = CreateSkylineSolver(benchmark);
+            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
-            IReadOnlyList<ICartesianPoint2D> crackPath;
-            using (var solver = CreateReanalysisSolver(benchmark))
-            {
-                crackPath = benchmark.Analyze(solver);
-            }
+            //IReadOnlyList<ICartesianPoint2D> crackPath;
+            //using (var solver = CreateReanalysisSolver(benchmark))
+            //{
+            //    crackPath = benchmark.Analyze(solver);
+            //}
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
@@ -87,9 +87,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static DCB.Builder SetupBenchmark()
         {
             double growthLength = 0.3;
-            double elementSize = 0.08;
-            var builder = new DCB.Builder(elementSize, growthLength);
-            builder.UniformMesh = false;
+            double fineElementSize = 0.08;
+            IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
+            //IMeshProvider meshProvider = new GmshMeshProvider(@"C: \Users\Serafeim\Desktop\GMSH\dcb.msh");
+            var builder = new DCB.Builder(growthLength, meshProvider);
             builder.UseLSM = true;
             //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 
             //      found. It happens at iteration 10.

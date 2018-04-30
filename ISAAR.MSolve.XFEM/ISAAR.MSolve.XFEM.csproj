@@ -187,6 +187,7 @@
     <Compile Include="Tensors\Tensor2D.cs" />
     <Compile Include="Tests\Geometry\AngleTests.cs" />
     <Compile Include="Tests\GRACM\DCB.cs" />
+    <Compile Include="Tests\GRACM\MeshProviders.cs" />
     <Compile Include="Tests\GRACM\DCBParametric.cs" />
     <Compile Include="Tests\Geometry\RectilinearTest.cs" />
     <Compile Include="Tests\Gmsh\GmshReaderCantilever.cs" />
