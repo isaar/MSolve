@@ -62,6 +62,14 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
             out IntPtr factorizedMatrix, IntPtr common);
 
         /// <summary>
+        /// Returns the number of non zero entries in the factorized matrix. If anything goes wrong -1 is returned.
+        /// </summary>
+        /// <param name="factorization">Pointer to the factorized matrix, which is stored in unmanaged memory.</param>
+        /// <returns></returns>
+        [DllImport("suitesparse_utilities.dll", EntryPoint = "util_get_factor_nonzeros")]
+        internal static extern int GetFactorNonZeros(IntPtr factorization);
+
+        /// <summary>
         /// Adds a row and column to an LDL' factorization. Before updating the kth row and column of L must be equal to the kth  
         /// row and column of the identity matrix. The row/column to add must be a sparse CSC matrix with dimensions n-by-1,  
         /// where n is the order of the matrix. Returns 1 if the method succeeds, 0 otherwise.

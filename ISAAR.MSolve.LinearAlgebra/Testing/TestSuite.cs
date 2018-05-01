@@ -9,11 +9,11 @@ using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 namespace ISAAR.MSolve.LinearAlgebra.Testing
 {
     // TODO: need a symmetric, invertible, indefinite benchmark.
-    public static class TestSuite
+    public static class LinearAlgebraTestSuite
     {
         public static void TestAll()
         {
-            //SuiteSparse();
+            SuiteSparse();
             //TestMarshaling();
             //TestBuilders();
             //TestInverse();
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            TestReading();
+            //TestReading();
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
@@ -32,9 +32,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void SuiteSparse()
         {
-            //TestSuiteSparse.ExampleRawArrays();
+            TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
-            TestSuiteSparse.CheckRowAddition();
+            //TestSuiteSparse.CheckRowAddition();
             //TestSuiteSparse.CheckRowAdditionReverse();
             //TestSuiteSparse.CheckRowDeletion();
         }

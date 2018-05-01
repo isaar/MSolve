@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Testing;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
@@ -148,7 +149,8 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            TrussExample.Run();
+            //TrussExample.Run();
+            LinearAlgebraTestSuite.TestAll();
         }
     }
 }

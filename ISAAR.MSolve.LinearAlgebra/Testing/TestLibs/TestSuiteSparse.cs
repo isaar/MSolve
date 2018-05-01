@@ -35,6 +35,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 Console.WriteLine("Factorization failed");
                 return;
             }
+            else
+            {
+                int nnzFactor = SuiteSparseUtilities.GetFactorNonZeros(factor);
+                Console.WriteLine($"Before factorization: nnz = {nnz}");
+                Console.WriteLine($"After factorization: nnz = {nnzFactor}");
+            }
             SuiteSparseUtilities.Solve(n, factor, rhs, solution, handle);
             SuiteSparseUtilities.DestroyFactor(ref factor, handle);
             SuiteSparseUtilities.DestroyCommon(ref handle);
