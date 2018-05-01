@@ -81,6 +81,45 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return new DOKSymmetricColMajor(order, columns);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="matrix">Its symmetricity will not be checked.</param>
+        /// <returns></returns>
+        public static DOKSymmetricColMajor CreateFromSparseMatrix(ISparseMatrix matrix)
+        {
+            Preconditions.CheckSquare(matrix);
+            return CreateFromSparsePattern(matrix.NumColumns, matrix.EnumerateNonZeros());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="order">The number of rows and columns of the matrix to which the sparsity pattern belongs to.</param>
+        /// <param name="nonZeroEntries">Their symmetricity will not be checked.</param>
+        /// <returns></returns>
+        public static DOKSymmetricColMajor CreateFromSparsePattern(int order, 
+            IEnumerable<(int row, int col, double value)> nonZeroEntries)
+        {
+            DOKSymmetricColMajor dok = CreateEmpty(order);
+            foreach (var (row, col, val) in nonZeroEntries) dok.columns[col][row] = val;
+            return dok;
+        }
+
+        public static DOKSymmetricColMajor CreateFromSparseSymmetricMatrix(ISparseSymmetricMatrix matrix)
+        {
+            Preconditions.CheckSquare(matrix); //This should not be needed
+            return CreateFromSparseSymmetricPattern(matrix.NumColumns, matrix.EnumerateNonZeros());
+        }
+
+        public static DOKSymmetricColMajor CreateFromSparseSymmetricPattern(int order,
+            IEnumerable<(int row, int col, double value)> nonZeroEntries)
+        {
+            DOKSymmetricColMajor dok = CreateEmpty(order);
+            foreach (var (row, col, val) in nonZeroEntries) dok.columns[col].Add(row, val);
+            return dok;
+        }
+
         #region global matrix building 
         /// <summary>
         /// If the entry already exists: the new value is added to the existing one: this[rowIdx, colIdx] += value. 

@@ -65,6 +65,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return new DOKRowMajor(order, order, rows);
         }
 
+        public static DOKRowMajor CreateFromSparseMatrix(ISparseMatrix matrix)
+        {
+            return CreateFromSparsePattern(matrix.NumRows, matrix.NumColumns, matrix.EnumerateNonZeros());
+        }
+
+        public static DOKRowMajor CreateFromSparsePattern(int numRows, int numColumns,
+            IEnumerable<(int row, int col, double value)> nonZeroEntries)
+        {
+            DOKRowMajor dok = CreateEmpty(numRows, numColumns);
+            foreach (var (row, col, val) in nonZeroEntries) dok.rows[row].Add(col, val);
+            return dok;
+        }
+
         #region global matrix building 
         /// <summary>
         /// If the entry already exists: the new value is added to the existing one: this[rowIdx, colIdx] += value. 
