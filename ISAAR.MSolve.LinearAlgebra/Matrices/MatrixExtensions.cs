@@ -114,5 +114,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             matrix1.AxpyIntoThis(matrix2 ,- 1.0);
         }
+
+        public static Numerical.LinearAlgebra.Matrix2D MultiplyTransposeThisTimesOtherTimesThis(this CSCMatrix csc, 
+            Numerical.LinearAlgebra.Matrix2D other)
+        {
+            var otherCopy = Matrix.CreateFromLegacyMatrix(other);
+            Matrix otherTimesThis = csc.MultiplyLeft(otherCopy, false, false);
+            Matrix result = csc.MultiplyRight(otherTimesThis, true, false);
+            return new Numerical.LinearAlgebra.Matrix2D(result.CopyToArray2D());
+        }
+
+        public static double[] MultiplyRight(this CSCMatrix csc, double[] vector, bool tranposeThis)
+        {
+            var asVector = Vector.CreateFromArray(vector, false);
+            return csc.MultiplyRight(asVector, tranposeThis).InternalData;
+        }
     }
 }

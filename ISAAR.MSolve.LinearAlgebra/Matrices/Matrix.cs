@@ -103,6 +103,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        public static Matrix CreateFromLegacyMatrix(Numerical.LinearAlgebra.Matrix2D matrix)
+        {
+            // The other matrix might be transposed internally.
+            bool isTransposed = (matrix.Data[0, 1] != matrix[0, 1]);
+            double[] data = isTransposed ? 
+                Conversions.Array2DToFullRowMajor(matrix.Data) : Conversions.Array2DToFullColMajor(matrix.Data);
+            return new Matrix(data, matrix.Rows, matrix.Columns);
+        }
+
         public static Matrix CreateIdentity(int order)
         {
             double[] data = new double[order * order];
