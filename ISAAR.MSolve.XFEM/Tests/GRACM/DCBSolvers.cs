@@ -26,14 +26,25 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
-            var solver = CreateSkylineSolver(benchmark);
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
-            
+            // Skyline
+            //var solver = CreateSkylineSolver(benchmark);
+            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+
+            // SuiteSparse Cholesky
+            //var solver = CreateCholeskySuiteSparseSolver(benchmark);
+            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+
+            // Reanalysis
             //IReadOnlyList<ICartesianPoint2D> crackPath;
             //using (var solver = CreateReanalysisSolver(benchmark))
             //{
             //    crackPath = benchmark.Analyze(solver);
             //}
+
+            // Benchmark AMD
+            var solver = CreateNoReanalysisSolver(benchmark);
+            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
@@ -118,6 +129,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ReanalysisSolver CreateReanalysisSolver(DCB benchmark)
         {
             return new ReanalysisSolver(benchmark.Model, benchmark.Crack);
+        }
+
+        private static NoReanalysisSolver CreateNoReanalysisSolver(DCB benchmark)
+        {
+            return new NoReanalysisSolver(benchmark.Model, benchmark.Crack);
         }
     }
 }

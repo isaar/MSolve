@@ -104,6 +104,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             }
         }
 
+        /// <summary>
+        /// Adds all possible matrix entries (i, j), such that i, j belong to <paramref name="indices"/>.
+        /// </summary>
+        /// <param name="indices">The row/col indices of the entries to be added. The array will be sorted, if it isn't 
+        ///     already.</param>
+        /// <param name="sorted">True if <paramref name="indices"/> are sorted. False otherwise.</param>
+        public void ConnectIndices(List<int> indices, bool sorted) //TODO: could I get aeay with OrderBy()
+        {
+            // Sorting the indices and processing n*(n+1)/2 entries is much faster than accessing n*n entries, transposing half
+            if (!sorted) indices.Sort();
+            for (int j = 0; j < indices.Count; ++j)
+            {
+                int col = indices[j];
+                for (int i = 0; i <= j; ++i) columns[col].Add(indices[i]);
+            }
+        }
+
         public int CountNonZeros()
         {
             int count = 0;

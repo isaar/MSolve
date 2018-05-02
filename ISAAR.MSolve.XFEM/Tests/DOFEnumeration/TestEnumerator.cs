@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DOFEnumeration
             enumerator.WriteToConsole();
             
             IDOFEnumerator enumeratorCopy = enumerator.DeepCopy();
-            enumeratorCopy.ReorderUncontrainedDofs(permutationOldToNew.Values.ToArray());
+            enumeratorCopy.ReorderUnconstrainedDofs(permutationOldToNew.Values.ToArray());
             Console.WriteLine("\nAfter renumbering original enumerator:");
             enumerator.WriteToConsole(); // They should not have changed
             Console.WriteLine("\nAfter renumbering copied and reordered enumerator:");

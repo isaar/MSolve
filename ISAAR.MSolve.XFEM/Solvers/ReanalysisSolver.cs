@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -69,9 +70,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
 
             // Reorder and count the reordering time separately
-            //
-            // TODO: do that here 
-            //
+            ReorderPatternSuperset(); //TODO: this actually increases fill-in
 
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
             foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
@@ -83,10 +82,40 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public override void Solve()
         {
             //TODO: it would be more clear if the SolveFirstTime() was done in Initialize(). However Initialize() may be called
-            //      before the initial configuration of the model is built correclty. Another approach is to use a specialized 
+            //      before the initial configuration of the model is built correctly. Another approach is to use a specialized 
             //      variation of QuasiStaticAnalysis and have control over when Initialize() is called.
             if (factorizedKuu == null) SolveFirstTime();
             else SolveByUpdating();
+        }
+
+        private void ReorderPatternSuperset()
+        {
+            int order = DOFEnumerator.FreeDofsCount + DOFEnumerator.EnrichedDofsCount;
+            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+
+            // Could build the sparsity pattern during DOF enumeration?
+            foreach (var element in model.Elements)
+            {
+                //TODO: what is the most efficient way to gather both? Perhaps the DOFEnumerator should do this 
+                var standardDofs = DOFEnumerator.GetFreeDofsOf(element);
+                var enrichedDofs = DOFEnumerator.GetEnrichedDofsOf(element);
+                List<int> allDofs;
+                if (standardDofs.Count > enrichedDofs.Count)
+                {
+                    allDofs = standardDofs;
+                    allDofs.AddRange(enrichedDofs);
+                }
+                else
+                {
+                    allDofs = enrichedDofs;
+                    allDofs.AddRange(standardDofs);
+                }
+                pattern.ConnectIndices(allDofs, false);
+            }
+
+            var orderingAlgorithm = new OrderingAMD();
+            (int[] permutationOldToNew, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            DOFEnumerator.ReorderUnconstrainedDofs(permutationOldToNew);
         }
 
         private void SolveFirstTime()
@@ -103,11 +132,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
             factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(); // DO NOT use using(){} here!
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
-            //CheckSolutionAndEnforce(0.0);
-            CheckSolutionAndPrint(0.3);
-
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+
+            //CheckSolutionAndEnforce(0.0);
+            CheckSolutionAndPrint(0.3);
         }
 
         //TODO: Try and compare the performance of first delete then add, modifying dofs in the order of their gloabl index. 
@@ -161,11 +190,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Solve the system
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
-            //CheckSolutionAndEnforce(0.0);
-            CheckSolutionAndPrint(0.3);
-
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+
+            //CheckSolutionAndEnforce(0.0);
+            CheckSolutionAndPrint(0.3);
         }
 
         #region debugging

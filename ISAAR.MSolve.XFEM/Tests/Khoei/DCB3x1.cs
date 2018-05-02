@@ -416,7 +416,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine("Before renumbering:");
             enumerator.WriteToConsole();
             Console.WriteLine("\nAfter renumbering:");
-            enumerator.ReorderUncontrainedDofs(permutationOldToNew.Values.ToArray());
+            enumerator.ReorderUnconstrainedDofs(permutationOldToNew.Values.ToArray());
             enumerator.WriteToConsole();
         }
 
