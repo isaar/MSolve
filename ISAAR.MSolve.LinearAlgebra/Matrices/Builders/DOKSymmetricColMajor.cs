@@ -391,16 +391,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             int count = 0;
             for (int j = 0; j < order; ++j)
             {
+                //count += (columns[j].Count - 1) * 2 + 1; // Faster, but doesn't work if the diagonal is not present.
                 foreach (var rowVal in columns[j])
                 {
                     if (rowVal.Key == j) ++count;
-                    else count += 2; //Each upper triangle entries haa a corresponding lower triangle entry.
+                    else count += 2; //Each upper triangle entries has a corresponding lower triangle entry.
                 }
             }
             return count;
         }
 
-        public int CountNonZerosSuperDiagonal()
+        public int CountNonZerosUpper()
         {
             int count = 0;
             for (int j = 0; j < order; ++j) count += columns[j].Count;

@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -157,6 +158,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
                 (new FullVectorWriter(dok.SliceColumn(j))).WriteToConsole();
             }
             FullVectorWriter.NumericFormat = storedDefault;
+        }
+
+        public static void PrintPatternAsBoolean()
+        {
+            var pattern = SparsityPatternSymmetricColMajor.Create(order);
+            for (int i = 0; i < order; ++i)
+            {
+                for (int j = 0; j < order; ++j)
+                {
+                    if (matrix[i, j] != 0) pattern.AddEntry(i, j);
+                }
+            }
+            Console.WriteLine("Sparsity pattern of the matrix:");
+            (new SparsityPatternWriter(pattern)).WriteToConsole();
         }
     }
 }

@@ -13,9 +13,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            SuiteSparse();
+            //SuiteSparse();
             //TestMarshaling();
-            //TestBuilders();
+            TestBuilders();
             //TestInverse();
             //TestIndexing();
             //TestEquality();
@@ -50,7 +50,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         {
             //SparseRect.CheckBuilders();
             //Console.WriteLine();
-            SparsePositiveDefinite.PrintDOKSparseColumns();
+            //SparsePositiveDefinite.PrintDOKSparseColumns();
+            //Console.WriteLine();
+            MatrixAssembly.BuildPattern();
             Console.WriteLine();
         }
 
@@ -100,30 +102,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestWriting()
         {
-            DenseVectors.Print();
-            Console.WriteLine();
-            RectangularFullColRank.Print();
-            Console.WriteLine();
-            SquareInvertible.Print();
-            Console.WriteLine();
-            SquareSingular.Print();
-            Console.WriteLine();
-            SquareSingular1Deficiency.Print();
-            Console.WriteLine();
-            LowerInvertible.Print();
-            Console.WriteLine();
-            LowerSingular.Print();
-            Console.WriteLine();
-            UpperInvertible.Print();
-            Console.WriteLine();
-            UpperSingular.Print();
-            Console.WriteLine();
-            SymmPositiveDefinite.Print();
-            Console.WriteLine();
-            SymmSingular.Print();
-            Console.WriteLine();
-            SparseRect.Print();
-            SparsePositiveDefinite.Print();
+            //DenseVectors.Print();
+            //Console.WriteLine();
+            //RectangularFullColRank.Print();
+            //Console.WriteLine();
+            //SquareInvertible.Print();
+            //Console.WriteLine();
+            //SquareSingular.Print();
+            //Console.WriteLine();
+            //SquareSingular1Deficiency.Print();
+            //Console.WriteLine();
+            //LowerInvertible.Print();
+            //Console.WriteLine();
+            //LowerSingular.Print();
+            //Console.WriteLine();
+            //UpperInvertible.Print();
+            //Console.WriteLine();
+            //UpperSingular.Print();
+            //Console.WriteLine();
+            //SymmPositiveDefinite.Print();
+            //Console.WriteLine();
+            //SymmSingular.Print();
+            //Console.WriteLine();
+            //SparseRect.Print();
+            //SparsePositiveDefinite.Print();
+            //Console.WriteLine();
+            SparsePositiveDefinite.PrintPatternAsBoolean();
             Console.WriteLine();
         }
 
