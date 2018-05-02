@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.Analyzers
             set { throw new InvalidOperationException("Newton-Raphson analyzer cannot contain an embedded analyzer."); }
         }
 
-        public void InitializeInternalVectors()
+        public void InitializeInternalVectors()//TODOMaria: this is probably where the initial internal nodal vector is calculated
         {
             globalRHS.Clear();
             rhs.Clear();
