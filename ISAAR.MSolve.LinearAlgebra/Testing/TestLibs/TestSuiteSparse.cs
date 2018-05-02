@@ -79,6 +79,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             }
         }
 
+        public static void CheckReordering1()
+        {
+            int order = ReorderMatrix.order;
+            int[] rowIndices = ReorderMatrix.cscRowIndices;
+            int[] colOffsets = ReorderMatrix.cscColOffsets;
+            int[] permutation = new int[order];
+            IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
+            int status = 
+                SuiteSparseUtilities.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation, common);
+            if (status == 0)
+                Console.WriteLine("SuiteSparse reordering failed. A possible reason is the lack of enough available memory");
+            else
+            {
+                Comparer comparer = new Comparer();
+                bool success = comparer.AreEqual(ReorderMatrix.matlabPermutationAMD, permutation);
+                if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
+                else Console.WriteLine("SuiteSparse reordering returned, but the result is not as expected.");
+            }
+        }
+
         public static void CheckRowAddition()
         {
             FullMatrixWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 1, MaxIntegerDigits = 2 };
@@ -152,8 +172,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 comparer.CheckVectorEquality(solutionExpected, solutionComputed);
             }
         }
-
-
 
         public static void CheckRowDeletion()
         {

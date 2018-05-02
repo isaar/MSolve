@@ -32,11 +32,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void SuiteSparse()
         {
-            TestSuiteSparse.ExampleRawArrays();
+            //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
             //TestSuiteSparse.CheckRowAddition();
             //TestSuiteSparse.CheckRowAdditionReverse();
             //TestSuiteSparse.CheckRowDeletion();
+            TestSuiteSparse.CheckReordering1();
         }
 
         public static void TestMarshaling()
