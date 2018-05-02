@@ -33,6 +33,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         public int Order { get; }
 
+        public int NumNonZeros
+        {
+            get
+            {
+                return SuiteSparseUtilities.GetFactorNonZeros(factorizedMatrix);
+            }
+        }
+
         public static CholeskySuiteSparse Factorize(int order, int nonZerosUpper, double[] values, int[] rowIndices,
             int[] colOffsets)
         {

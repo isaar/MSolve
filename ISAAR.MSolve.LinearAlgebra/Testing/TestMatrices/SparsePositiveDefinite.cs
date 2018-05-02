@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingAMD();
-            int[] permutation = pattern.Reorder(orderingAlg);
+            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlg);
             Comparer comparer = new Comparer();
             bool success = comparer.AreEqual(matlabPermutationAMD, permutation);
             if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");

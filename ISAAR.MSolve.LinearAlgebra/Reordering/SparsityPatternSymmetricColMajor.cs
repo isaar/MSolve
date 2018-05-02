@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// </summary>
         /// <param name="orderingAlgorithm"></param>
         /// <returns></returns>
-        public int[] Reorder(OrderingAMD orderingAlgorithm)
+        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingAMD orderingAlgorithm)
         {
             (int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
             return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);

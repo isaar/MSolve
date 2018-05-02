@@ -86,8 +86,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             int[] colOffsets = ReorderMatrix.cscColOffsets;
             int[] permutation = new int[order];
             IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
-            int status = 
-                SuiteSparseUtilities.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation, common);
+            int status = SuiteSparseUtilities.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation, 
+                out int factorNNZ, common);
             if (status == 0)
                 Console.WriteLine("SuiteSparse reordering failed. A possible reason is the lack of enough available memory");
             else

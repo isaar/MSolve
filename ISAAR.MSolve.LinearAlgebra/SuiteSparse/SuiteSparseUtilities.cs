@@ -84,13 +84,16 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///     column. Length = <paramref name="order"/> + 1. They must be sorted. 
         ///     The first entry is <paramref name="colOffsets"/>[0] = 0. 
         ///     The last entry is <paramref name="colOffsets"/>[<paramref name="order"/>] = nnz.</param>
-        /// <param name="outPermutation">Buffer of length = <paramref name="order"/>. Will be filled with a fill-reducing 
-        ///     permutation vector, such that: original index = i, reordered index = <paramref name="outPermutation"/>[i].</param>
+        /// <param name="outPermutation">Out parameter: buffer of length = <paramref name="order"/>. Will be filled with a  
+        ///     fill-reducing permutation vector, such that: original index = i, reordered index = 
+        ///     <paramref name="outPermutation"/>[i].</param>
+        /// <param name="outFactorNNZ">Out parameter: the number of non zero entries in a subsequent L*L^T factorization. Will 
+        ///     be -1 if the ordering fails.</param>
         /// <param name="common">The matrix settings.</param>
         /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_reorder_amd_upper")]
         internal static extern int ReorderAMDUpper(int order, int nnz, int[] rowIndices, int[] colOffsets, int[] outPermutation,
-            IntPtr common);
+            [Out] out int outFactorNNZ, IntPtr common);
 
         /// <summary>
         /// Adds a row and column to an LDL' factorization. Before updating the kth row and column of L must be equal to the kth  

@@ -147,6 +147,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //benchmark.PrintAllStiffnesses(model);
             //benchmark.PrintDisplacements(model, solver);
             benchmark.PrintReordering(model, solver);
+            ReorderingTest.TestAMDNonZeros(model);
         }
 
         private readonly double h; // element length
@@ -417,8 +418,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine("\nAfter renumbering:");
             enumerator.ReorderUncontrainedDofs(permutationOldToNew.Values.ToArray());
             enumerator.WriteToConsole();
-
-
         }
 
         private void RoundMatrix(Matrix matrix) //TODO: add this as a Matrix method and in an interface returning a copy ofc

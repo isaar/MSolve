@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
@@ -487,6 +488,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             format.RawIndexArrays.Add("Row indices", rowIndices);
             format.RawIndexArrays.Add("Column offsets", colOffsets);
             return format;
+        }
+
+        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingAMD orderingAlgorithm)
+        {
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
+            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);
         }
 
         public void SetColumn(int colIdx, SparseVector wholeColumn)
