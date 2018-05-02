@@ -24,9 +24,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
     /// </summary>
     class DOFEnumeratorSeparate: DOFEnumeratorBase
     {
-        private DOFEnumeratorSeparate(int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs,
-            int enrichedDofsCount, Table<XNode2D, EnrichedDOF, int> enrichedDofs,
-            int freeDofsCount, Table<XNode2D, DisplacementDOF, int> freeDofs):
+        private DOFEnumeratorSeparate(int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs,
+            int enrichedDofsCount, DOFTable<EnrichedDOF> enrichedDofs,
+            int freeDofsCount, DOFTable<DisplacementDOF> freeDofs):
             base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, freeDofsCount, freeDofs)
         {
         }
@@ -36,11 +36,11 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
             IDictionary<XNode2D, HashSet<DisplacementDOF>> nodalDOFTypes = FindUniqueDOFTypes(model.Elements);
-            (int freeDofsCount, Table< XNode2D, DisplacementDOF, int> freeDofs) = 
+            (int freeDofsCount, DOFTable<DisplacementDOF> freeDofs) = 
                 EnumerateFreeDofs(nodalDOFTypes, model.Constraints);
-            (int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs) =
+            (int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs) =
                 EnumerateConstrainedDofs(model.Constraints);
-            (int enrichedDofsCount, Table<XNode2D, EnrichedDOF, int> enrichedDofs) = 
+            (int enrichedDofsCount, DOFTable<EnrichedDOF> enrichedDofs) = 
                 EnumerateEnrichedDofs(model.Nodes, freeDofsCount);
 
             #region DEBUG code
@@ -58,10 +58,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 freeDofsCount, freeDofs);
         }
 
-        private static (int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs) EnumerateConstrainedDofs(
+        private static (int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs) EnumerateConstrainedDofs(
             ITable<XNode2D, DisplacementDOF, double> constraints)
         {
-            var constrainedDofs = new Table<XNode2D, DisplacementDOF, int>();
+            var constrainedDofs = new DOFTable<DisplacementDOF>();
             int counter = 0;
             foreach (Tuple<XNode2D, DisplacementDOF, double> entry in constraints)
             {
@@ -71,10 +71,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         // Each artificial dof has index that is node major, then enrichment item major, then enrichment function major and finally axis minor
-        private static (int enrichedDofsCount, Table<XNode2D, EnrichedDOF, int> enrichedDofs) EnumerateEnrichedDofs(
+        private static (int enrichedDofsCount, DOFTable<EnrichedDOF> enrichedDofs) EnumerateEnrichedDofs(
             IEnumerable<XNode2D> nodes, int standardDofsCount)
         {
-            var enrichedDofs = new Table<XNode2D, EnrichedDOF, int>();
+            var enrichedDofs = new DOFTable<EnrichedDOF>();
             int dofCounter = standardDofsCount; // This if I put everything in the same matrix
             //int dofCounter = 0; // This if I use different matrices
             foreach (XNode2D node in nodes)
@@ -91,10 +91,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         //Node major ordering
-        private static (int freeDofsCount, Table<XNode2D, DisplacementDOF, int> freeDofs) EnumerateFreeDofs(
+        private static (int freeDofsCount, DOFTable<DisplacementDOF> freeDofs) EnumerateFreeDofs(
             IDictionary<XNode2D, HashSet<DisplacementDOF>> nodalDOFTypes, ITable<XNode2D, DisplacementDOF, double> constraints)
         {
-            var freeDofs = new Table<XNode2D, DisplacementDOF, int>();
+            var freeDofs = new DOFTable<DisplacementDOF>();
             int counter = 0;
             foreach (var pair in nodalDOFTypes)
             {

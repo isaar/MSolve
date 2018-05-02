@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.Utilities
 {
-    interface ITable<TRow, TColumn, TValue>: IEnumerable<Tuple<TRow, TColumn, TValue>>
+    public interface ITable<TRow, TColumn, TValue>: IEnumerable<Tuple<TRow, TColumn, TValue>>
     {
         int EntryCount { get; }
         TValue this[TRow row, TColumn col] { get; }

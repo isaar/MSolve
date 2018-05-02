@@ -13,17 +13,17 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
     // TODO: I should use interchangeble builders, eather than subclasses.
     abstract class DOFEnumeratorBase: IDOFEnumerator
     {
-        protected readonly Table<XNode2D, DisplacementDOF, int> constrainedDofs;
-        protected readonly Table<XNode2D, EnrichedDOF, int> enrichedDofs;
-        protected readonly Table<XNode2D, DisplacementDOF, int> freeDofs;
+        protected readonly DOFTable<DisplacementDOF> constrainedDofs;
+        protected readonly DOFTable<EnrichedDOF> enrichedDofs;
+        protected readonly DOFTable<DisplacementDOF> freeDofs;
 
         public int ConstrainedDofsCount { get; }
         public int EnrichedDofsCount { get; }
         public int FreeDofsCount { get; }
 
-        protected DOFEnumeratorBase(int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs, 
-            int enrichedDofsCount, Table<XNode2D, EnrichedDOF, int> enrichedDofs,
-            int freeDofsCount, Table<XNode2D, DisplacementDOF, int> freeDofs)
+        protected DOFEnumeratorBase(int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs, 
+            int enrichedDofsCount, DOFTable<EnrichedDOF> enrichedDofs,
+            int freeDofsCount, DOFTable<DisplacementDOF> freeDofs)
         {
             this.ConstrainedDofsCount = constrainedDofsCount;
             this.constrainedDofs = constrainedDofs;
@@ -216,6 +216,22 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 }
             }
             return globalArtificialDofs;
+        }
+
+        public void ReorderUncontrainedDofs(IReadOnlyList<int> permutationOldToNew)
+        {
+            freeDofs.Reorder(permutationOldToNew);
+            enrichedDofs.Reorder(permutationOldToNew);
+        }
+
+        public void WriteToConsole()
+        {
+            Console.WriteLine("Standard free dofs: node, dof, number");
+            Console.WriteLine(freeDofs);
+            Console.WriteLine("Enriched free dofs: node, dof, number");
+            Console.WriteLine(enrichedDofs);
+            Console.WriteLine("Standard constrained dofs: node, dof, number");
+            Console.WriteLine(constrainedDofs);
         }
     }
 }

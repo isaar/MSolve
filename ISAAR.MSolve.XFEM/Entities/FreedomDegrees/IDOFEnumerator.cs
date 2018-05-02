@@ -41,5 +41,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 
         ITable<XNode2D, EnrichedDOF, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
+
+        void ReorderUncontrainedDofs(IReadOnlyList<int> permutationOldToNew);
+
+        void WriteToConsole();
     }
 }
