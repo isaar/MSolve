@@ -20,6 +20,11 @@ namespace ISAAR.MSolve.XFEM.Utilities
             this.data = new Dictionary<TRow, Dictionary<TColumn, TValue>>();
         }
 
+        protected Table(Dictionary<TRow, Dictionary<TColumn, TValue>> data)
+        {
+            this.data = data;
+        }
+
         public int EntryCount //TODO: perhaps this should be cached somehow
         {
             get
@@ -60,6 +65,7 @@ namespace ISAAR.MSolve.XFEM.Utilities
             else return wholeRow.ContainsKey(col);
         }
 
+        //TODO: use named tuple
         public IEnumerator<Tuple<TRow, TColumn, TValue>> GetEnumerator()
         {
             foreach (var wholeRow in data)

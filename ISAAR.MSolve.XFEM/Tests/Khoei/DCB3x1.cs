@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
         }
 
-        private Model2D CreateModel()
+        public Model2D CreateModel()
         {
             var model = new Model2D();
 
@@ -225,7 +225,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return model;
         }
 
-        private void HandleEnrichment(Model2D model)
+        public void HandleEnrichment(Model2D model)
         {
             crack = new BasicExplicitCrack2D();
             var boundary = new RectangularBoundary(0, 3 * h, 0, h);

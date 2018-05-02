@@ -8,10 +8,10 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Utilities;
 
+// TODO: I should use interchangeble builders, rather than subclasses.
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
-    // TODO: I should use interchangeble builders, rather than subclasses.
-    abstract class DOFEnumeratorBase: IDOFEnumerator
+    class DOFEnumeratorBase: IDOFEnumerator
     {
         protected readonly DOFTable<DisplacementDOF> constrainedDofs;
         protected readonly DOFTable<EnrichedDOF> enrichedDofs;
@@ -31,6 +31,12 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             this.enrichedDofs = enrichedDofs;
             this.FreeDofsCount = freeDofsCount;
             this.freeDofs = freeDofs;
+        }
+
+        public IDOFEnumerator DeepCopy()
+        {
+            return new DOFEnumeratorBase(ConstrainedDofsCount, constrainedDofs.DeepCopy(),
+                EnrichedDofsCount, enrichedDofs.DeepCopy(), FreeDofsCount, freeDofs.DeepCopy());
         }
 
         /// <summary>
@@ -77,7 +83,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return Vector.CreateFromArray(elementVector);
         }
 
-
+        public int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType)
+        {
+            return constrainedDofs[node, dofType];
+        }
 
         public IEnumerable<int> GetConstrainedDofsOf(XNode2D node)
         {
@@ -93,9 +102,20 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             }
         }
 
-        public int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType)
+        public List<int> GetConstrainedDofsOf(XContinuumElement2D element)
         {
-            return constrainedDofs[node, dofType];
+            var globalDofs = new List<int>();
+            foreach (var nodeDofLocal in element.GetStandardDofs())
+            {
+                bool isConstrained = constrainedDofs.TryGetValue(nodeDofLocal.Item1, nodeDofLocal.Item2, out int globalDof);
+                if (isConstrained) globalDofs.Add(globalDof);
+            }
+            return globalDofs;
+        }
+
+        public int GetEnrichedDofOf(XNode2D node, EnrichedDOF dofType)
+        {
+            return enrichedDofs[node, dofType];
         }
 
         public IEnumerable<int> GetEnrichedDofsOf(XNode2D node)
@@ -110,9 +130,21 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             }
         }
 
-        public int GetEnrichedDofOf(XNode2D node, EnrichedDOF dofType)
+        public List<int> GetEnrichedDofsOf(XContinuumElement2D element)
         {
-            return enrichedDofs[node, dofType];
+            var globalDofs = new List<int>();
+            foreach (var nodeDofLocal in element.GetEnrichedDofs())
+            {
+                globalDofs.Add(enrichedDofs[nodeDofLocal.Item1, nodeDofLocal.Item2]); // It must be included.
+            }
+            return globalDofs;
+        }
+
+        // Would it be faster to return the Dictionary<StandardDofType, int> for consecutive accesses of the dofs of this node? 
+        // Dictionary's Read operation is supposed to be O(1), but still...
+        public int GetFreeDofOf(XNode2D node, DisplacementDOF dofType)
+        {
+            return freeDofs[node, dofType];
         }
 
         public IEnumerable<int> GetFreeDofsOf(XNode2D node)
@@ -129,11 +161,15 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             }
         }
 
-        // Would it be faster to return the Dictionary<StandardDofType, int> for consecutive accesses of the dofs of this node? 
-        // Dictionary's Read operation is supposed to be O(1), but still...
-        public int GetFreeDofOf(XNode2D node, DisplacementDOF dofType)
+        public List<int> GetFreeDofsOf(XContinuumElement2D element)
         {
-            return freeDofs[node, dofType];
+            var globalDofs = new List<int>(2 * element.Nodes.Count);
+            foreach (var nodeDofLocal in element.GetStandardDofs())
+            {
+                bool isFree = freeDofs.TryGetValue(nodeDofLocal.Item1, nodeDofLocal.Item2, out int globalDof);
+                if (isFree) globalDofs.Add(globalDof);
+            }
+            return globalDofs;
         }
 
         /// <summary>

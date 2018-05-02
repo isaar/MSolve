@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.DOFEnumeration.TestEnumerator</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

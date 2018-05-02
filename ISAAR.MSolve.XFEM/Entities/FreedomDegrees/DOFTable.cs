@@ -7,6 +7,24 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
     class DOFTable<TDOF>: Table<XNode2D, TDOF, int> where TDOF: IDOF
     {
+        public DOFTable(): base()
+        { }
+
+        private DOFTable(Dictionary<XNode2D, Dictionary<TDOF, int>> data): base(data)
+        { }
+
+        //TODO: this would be nice to have in Table too.
+        public DOFTable<TDOF> DeepCopy()
+        {
+            var dataCopy = new Dictionary<XNode2D, Dictionary<TDOF, int>>();
+            foreach (var wholeRow in this.data)
+            {
+                // IDOF and int are immutable, thus I can just copy the nested dictionary.
+                dataCopy.Add(wholeRow.Key, new Dictionary<TDOF, int>(wholeRow.Value));
+            }
+            return new DOFTable<TDOF>(dataCopy);
+        }
+
         public void Reorder(IReadOnlyList<int> permutationOldToNew)
         {
             foreach (var nodeRow in data.Values)

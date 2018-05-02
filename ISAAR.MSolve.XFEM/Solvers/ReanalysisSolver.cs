@@ -76,10 +76,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
             foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
 
-            // Build
-            var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
-
             watch.Stop();
             Logger.InitializationTime = watch.ElapsedMilliseconds;
         }

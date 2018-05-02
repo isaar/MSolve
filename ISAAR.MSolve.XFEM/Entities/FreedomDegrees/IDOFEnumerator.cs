@@ -15,17 +15,19 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         int EnrichedDofsCount { get ; }
         int FreeDofsCount { get; }
 
-        IEnumerable<int> GetFreeDofsOf(XNode2D node);
+        IDOFEnumerator DeepCopy();
 
         int GetFreeDofOf(XNode2D node, DisplacementDOF dofType);
-
-        IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
+        IEnumerable<int> GetFreeDofsOf(XNode2D node);
+        List<int> GetFreeDofsOf(XContinuumElement2D element);
 
         int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType);
-
-        IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
+        IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
+        List<int> GetConstrainedDofsOf(XContinuumElement2D element); // Also add a method that simultaneously returns free+constrained
 
         int GetEnrichedDofOf(XNode2D node, EnrichedDOF dofType);
+        IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
+        List<int> GetEnrichedDofsOf(XContinuumElement2D element);
 
         void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
             out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
