@@ -97,6 +97,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
                 else Console.WriteLine("SuiteSparse reordering returned, but the result is not as expected.");
             }
+            SuiteSparseUtilities.DestroyCommon(ref common);
         }
 
         public static void CheckRowAddition()

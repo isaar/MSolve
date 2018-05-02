@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void BuildPattern()
         {
-            var pattern = SparsityPatternSymmetricColMajor.Create(globalOrder);
+            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(globalOrder);
             pattern.ConnectIndices(globalIndices1, true);
             pattern.ConnectIndices(globalIndices2, true);
             pattern.ConnectIndices(globalIndices3, true);

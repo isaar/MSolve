@@ -61,6 +61,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static readonly double[] rhs = {
             171.2117, 233.6955, 100.5983, 83.1428, 145.5027, 177.3672, 200.7707, 320.6314, 192.0000, 158.6505 };
 
+        public static readonly int[] matlabPermutationAMD = { 0, 1, 8, 9, 7, 2, 3, 4, 5, 6 };
+
         public static void CheckEquals()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -106,6 +108,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var x = Vector.CreateFromArray(lhs);
             Vector b = skyline.MultiplyRight(x, false);
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.CopyToArray());
+        }
+
+        public static void CheckReordering()
+        {
+            var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
+            var orderingAlg = new OrderingAMD();
+            int[] permutation = pattern.Reorder(orderingAlg);
+            Comparer comparer = new Comparer();
+            bool success = comparer.AreEqual(matlabPermutationAMD, permutation);
+            if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
+            else Console.WriteLine("SuiteSparse reordering returned, but the result is not as expected.");
         }
 
         public static void CheckSystemSolution()
@@ -162,7 +175,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void PrintPatternAsBoolean()
         {
-            var pattern = SparsityPatternSymmetricColMajor.Create(order);
+            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
             for (int i = 0; i < order; ++i)
             {
                 for (int j = 0; j < order; ++j)

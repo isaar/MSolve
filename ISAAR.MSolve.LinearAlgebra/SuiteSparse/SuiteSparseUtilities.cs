@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: Use enums as return values or at least named constants.
 namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
 {
     internal static class SuiteSparseUtilities
@@ -72,7 +73,8 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         internal static extern int GetFactorNonZeros(IntPtr factorization);
 
         /// <summary>
-        /// 
+        /// Caclulates a fill reducing ordering using the Approximate Minimum Degree algorithm for a symmetric sparse matrix.  
+        /// Returns 1 if the reordering is successful, 0 if it failed (e.g. due to exceeding the available memory).
         /// </summary> 
         /// <param name="order">Number of rows = number of columns.</param>
         /// <param name="nnz">Number of non zero entries in the upper triangle.</param>

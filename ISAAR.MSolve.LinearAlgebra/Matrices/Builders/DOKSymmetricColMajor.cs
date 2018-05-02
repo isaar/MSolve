@@ -347,18 +347,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             int[] rowIndices = new int[nnz];
             double[] values = new double[nnz];
             int counter = 0;
-            for (int j = 0; j < order; ++j)
+            if (sortRowsOfEachCol)
             {
-                if (sortRowsOfEachCol)
-                {
-                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key))
+                for (int j = 0; j < order; ++j)
+                { //TODO: perhaps passing the dictionarirs to new SortedDictionary() is faster than LINQ
+                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key)) 
                     {
                         rowIndices[counter] = rowVal.Key;
                         values[counter] = rowVal.Value;
                         ++counter;
                     }
                 }
-                else
+            }
+            else
+            {
+                for (int j = 0; j < order; ++j)
                 {
                     foreach (var rowVal in columns[j])
                     {

@@ -8,6 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 
+//TODO: SuiteSparse Common should be represented here by an IDisposable class SuiteSparseCommon.
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     public class CholeskySuiteSparse : IFactorization, IDisposable
@@ -36,6 +37,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int[] colOffsets)
         {
             IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
+            if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
             int status = SuiteSparseUtilities.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets, 
                 out IntPtr factorizedMatrix, common);
             if (status == -2)

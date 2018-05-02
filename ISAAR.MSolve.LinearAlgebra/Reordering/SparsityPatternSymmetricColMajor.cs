@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: Should sparsity pattern classes be together with MatrixBuilders, in a Reordering namespace in LinearAlgebra or in a 
 //      Reordering namespace in Solvers?
@@ -28,11 +30,45 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         public int NumRows { get { return order; } }
         public int Order { get { return order; } }
 
-        public static SparsityPatternSymmetricColMajor Create(int order)
+        public static SparsityPatternSymmetricColMajor CreateEmpty(int order)
         {
             var columns = new HashSet<int>[order];
             for (int j = 0; j < order; ++j) columns[j] = new HashSet<int>(); //Initial capacity may be optimized.
             return new SparsityPatternSymmetricColMajor(order, columns);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dense">Must be square and symmetric. The upper triangle will be processed without checking the 
+        ///     symmetricity.</param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
+        public static SparsityPatternSymmetricColMajor CreateFromDense(Matrix dense, double tolerance = 0.0)
+        {
+            Preconditions.CheckSquare(dense);
+            SparsityPatternSymmetricColMajor pattern = CreateEmpty(dense.NumColumns);
+            if (tolerance == 0.0)
+            {
+                for (int j = 0; j < dense.NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        if (dense[i, j] != 0) pattern.columns[j].Add(i);
+                    }
+                }
+            }
+            else
+            {
+                for (int j = 0; j < dense.NumColumns; ++j)
+                {
+                    for (int i = 0; i <= j; ++i)
+                    {
+                        if (Math.Abs(dense[i, j]) > tolerance) pattern.columns[j].Add(i);
+                    }
+                }
+            }
+            return pattern;
         }
 
         /// <summary>
@@ -123,6 +159,58 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
                 colIdx = swap;
             }
             return columns[colIdx].Contains(rowIdx);
+        }
+
+        /// <summary>
+        /// Returns a permutation vector using the provided ordering algorithm.
+        /// </summary>
+        /// <param name="orderingAlgorithm"></param>
+        /// <returns></returns>
+        public int[] Reorder(OrderingAMD orderingAlgorithm)
+        {
+            (int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
+            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);
+        }
+
+        private (int[] rowIndices, int[] colOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
+        {
+            int[] colOffsets = new int[order + 1];
+            int nnz = 0;
+            for (int j = 0; j < order; ++j)
+            {
+                colOffsets[j] = nnz;
+                nnz += columns[j].Count;
+            }
+            colOffsets[order] = nnz; //The last CSC entry is nnz.
+
+            int[] rowIndices = new int[nnz];
+            double[] values = new double[nnz];
+            int counter = 0;
+            if (sortRowsOfEachCol)
+            {
+                for (int j = 0; j < order; ++j)
+                {
+                    //TODO: LINQ's OrderBy() might be faster and require less memory
+                    foreach (var rowIdx in new SortedSet<int>(columns[j])) 
+                    {
+                        rowIndices[counter] = rowIdx;
+                        ++counter;
+                    }
+                }
+            }
+            else
+            {
+                for (int j = 0; j < order; ++j)
+                {
+                    foreach (var rowIdx in columns[j])
+                    {
+                        rowIndices[counter] = rowIdx;
+                        ++counter;
+                    }
+                }
+            }
+
+            return (rowIndices, colOffsets);
         }
     }
 }
