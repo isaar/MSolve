@@ -42,9 +42,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         public static CholeskySuiteSparse Factorize(int order, int nonZerosUpper, double[] values, int[] rowIndices,
-            int[] colOffsets)
+            int[] colOffsets, SuiteSparseOrdering ordering)
         {
-            IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
+            IntPtr common = SuiteSparseUtilities.CreateCommon(0, (int)ordering);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
             int status = SuiteSparseUtilities.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets, 
                 out IntPtr factorizedMatrix, common);

@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
     {
         private delegate ISolver CreateSolver(DCB benchmark);
 
-        public static void Main()
+        public static void Run()
         {
             TestSolver();
             //CompareSolvers();
@@ -26,24 +26,21 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
-            // Skyline
+            // Solvers
             //var solver = CreateSkylineSolver(benchmark);
-            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
-
-            // SuiteSparse Cholesky
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
-            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            var solver = CreateNoReanalysisSolver(benchmark);
+            //var solver = CreateCholeskyAMDSolver(benchmark);
+            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
-            // Reanalysis
+            // Reanalysis solvers
             //IReadOnlyList<ICartesianPoint2D> crackPath;
             //using (var solver = CreateReanalysisSolver(benchmark))
             //{
             //    crackPath = benchmark.Analyze(solver);
             //}
 
-            // Benchmark AMD
-            var solver = CreateNoReanalysisSolver(benchmark);
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+
 
 
             Console.WriteLine("Crack path:");
@@ -95,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             }
         }
 
-        private static DCB.Builder SetupBenchmark()
+        public static DCB.Builder SetupBenchmark()
         {
             double growthLength = 0.3;
             double fineElementSize = 0.08;
@@ -126,6 +123,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new CholeskySuiteSparseSolver(benchmark.Model);
         }
 
+        private static ISolver CreateCholeskyAMDSolver(DCB benchmark)
+        {
+            return new CholeskyAMDSolver(benchmark.Model);
+        }
+
         private static ReanalysisSolver CreateReanalysisSolver(DCB benchmark)
         {
             return new ReanalysisSolver(benchmark.Model, benchmark.Crack);
@@ -135,5 +137,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             return new NoReanalysisSolver(benchmark.Model, benchmark.Crack);
         }
+
+         
     }
 }

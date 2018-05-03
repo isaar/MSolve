@@ -14,11 +14,20 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.XFEM.Tests;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
     class Program
     {
+        static void Main(string[] args)
+        {
+            //SolveBuildingInNoSoilSmall();
+            //TrussExample.Run();
+            //LinearAlgebraTestSuite.TestAll();
+            XFEMTestSuite.RunAll();
+        }
+
         private static void SolveBuildingInNoSoilSmall()
         {
             VectorExtensions.AssignTotalAffinityCount();
@@ -145,12 +154,5 @@ namespace ISAAR.MSolve.SamplesConsole
         }
 
 
-
-        static void Main(string[] args)
-        {
-            //SolveBuildingInNoSoilSmall();
-            //TrussExample.Run();
-            LinearAlgebraTestSuite.TestAll();
-        }
     }
 }

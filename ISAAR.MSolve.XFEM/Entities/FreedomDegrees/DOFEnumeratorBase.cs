@@ -254,10 +254,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return globalArtificialDofs;
         }
 
-        public void ReorderUnconstrainedDofs(IReadOnlyList<int> permutationOldToNew)
+        public void ReorderUnconstrainedDofs(IReadOnlyList<int> permutation, bool oldToNew)
         {
-            freeDofs.Reorder(permutationOldToNew);
-            enrichedDofs.Reorder(permutationOldToNew);
+            freeDofs.Reorder(permutation, oldToNew);
+            enrichedDofs.Reorder(permutation, oldToNew);
         }
 
         public void WriteToConsole()

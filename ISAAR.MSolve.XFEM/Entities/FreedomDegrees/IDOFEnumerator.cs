@@ -44,7 +44,14 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         ITable<XNode2D, EnrichedDOF, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
 
-        void ReorderUnconstrainedDofs(IReadOnlyList<int> permutationOldToNew);
+        /// <summary>
+        /// Renumbers the dof indices according th the given permutation vector and direction. 
+        /// If (<paramref name="oldToNew"/> == true), then newIndex[dof] = <paramref name="permutation"/>[oldIndex[dof]].
+        /// Else oldIndex[dof] = <paramref name="permutation"/>[nwIndex[dof]]
+        /// </summary>
+        /// <param name="permutation">The permutation vector.</param>
+        /// <param name="oldToNew">The direction it should be applied to.</param>
+        void ReorderUnconstrainedDofs(IReadOnlyList<int> permutation, bool oldToNew);
 
         void WriteToConsole();
     }

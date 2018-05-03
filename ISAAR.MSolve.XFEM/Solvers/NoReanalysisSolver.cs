@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
+using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -64,10 +65,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 node.EnrichmentItems.Add(crack.CrackTipEnrichments, null);
             }
 
-            unorderedDOFs = DOFEnumeratorSeparate.Create(model);
-            dofEnumeratorName = "separate";
-            //unorderedDOFs = DOFEnumeratorInterleaved.Create(model);
-            //dofEnumeratorName = "interleaved";
+            //unorderedDOFs = DOFEnumeratorSeparate.Create(model);
+            //dofEnumeratorName = "separate";
+            unorderedDOFs = DOFEnumeratorInterleaved.Create(model);
+            dofEnumeratorName = "interleaved";
             //unorderedDOFs.WriteToConsole();
 
             // Keep a copy of the unordered dofs
@@ -96,7 +97,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             int nnzOrderedFactor;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 Solution = factorization.SolveLinearSystem(rhs);
                 nnzOrderedFactor = factorization.NumNonZeros;
@@ -143,7 +144,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var orderingAlgorithm = new OrderingAMD();
             (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
             permutationOldToNew = permutation;
-            DOFEnumerator.ReorderUnconstrainedDofs(permutationOldToNew);
+            DOFEnumerator.ReorderUnconstrainedDofs(permutationOldToNew, false);
 
         }
 
@@ -161,12 +162,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = Fu - Kuc.MultiplyRight(uc);
             Vector unorderSolution;
             int nnzUnorderedFactor;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky()) 
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural)) 
             {
                 unorderSolution = factorization.SolveLinearSystem(rhs);
                 nnzUnorderedFactor = factorization.NumNonZeros;
             }
-            Vector solutionExpected = unorderSolution.Reorder(permutationOldToNew, true);
+            Vector solutionExpected = unorderSolution.Reorder(permutationOldToNew, false);
             double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.WriteLine($"Normalized error compared to natural ordering = {error}");
             return nnzUnorderedFactor;

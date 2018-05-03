@@ -25,8 +25,24 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             return new DOFTable<TDOF>(dataCopy);
         }
 
-        public void Reorder(IReadOnlyList<int> permutationOldToNew)
+        /// <summary>
+        /// Renumbers the dof indices according th the given permutation vector and direction. 
+        /// If (<paramref name="oldToNew"/> == true), then newIndex[dof] = <paramref name="permutation"/>[oldIndex[dof]].
+        /// Else oldIndex[dof] = <paramref name="permutation"/>[nwIndex[dof]]
+        /// </summary>
+        /// <param name="permutation">The permutation vector.</param>
+        /// <param name="oldToNew">The direction it should be applied to.</param>
+        public void Reorder(IReadOnlyList<int> permutation, bool oldToNew)
         {
+            IReadOnlyList<int> permutationOldToNew;
+            if (oldToNew) permutationOldToNew = permutation;
+            else
+            {
+                var permutationArray = new int[permutation.Count];
+                for (int newIdx = 0; newIdx < permutation.Count; ++newIdx) permutationArray[permutation[newIdx]] = newIdx;
+                permutationOldToNew = permutationArray;
+            }
+
             foreach (var nodeRow in data.Values)
             {
                 var dofIDs = new List<KeyValuePair<TDOF, int>>(nodeRow);

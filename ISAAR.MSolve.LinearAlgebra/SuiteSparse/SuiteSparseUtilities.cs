@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///     factorization convert to simplicial. Supernodal is usually faster, but to modify the factorized matrix it must be
         ///     converted to simplicial, though this can be	done automatically.</param>
         /// <param name="orderingType">0 for no reordering, 1 for automatic reordering (let suitesparse try some alternatives and
-        ///     keep the best).</param>
+        ///     keep the best), 2 for AMD.</param>
         /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_create_common")]
         internal static extern IntPtr CreateCommon(int factorizationType, int orderingType);

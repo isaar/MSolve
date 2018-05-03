@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DOFEnumeration
 {
     static class TestEnumerator
     {
-        public static void Main()
+        public static void Run()
         {
             var dcb = new DCB3x1(20);
             Model2D model = dcb.CreateModel();
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DOFEnumeration
             enumerator.WriteToConsole();
             
             IDOFEnumerator enumeratorCopy = enumerator.DeepCopy();
-            enumeratorCopy.ReorderUnconstrainedDofs(permutationOldToNew.Values.ToArray());
+            enumeratorCopy.ReorderUnconstrainedDofs(permutationOldToNew.Values.ToArray(), true);
             Console.WriteLine("\nAfter renumbering original enumerator:");
             enumerator.WriteToConsole(); // They should not have changed
             Console.WriteLine("\nAfter renumbering copied and reordered enumerator:");

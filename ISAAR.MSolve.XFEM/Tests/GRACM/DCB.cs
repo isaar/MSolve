@@ -45,12 +45,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// Length of second crack segment (inclined) in inches.
         /// </summary>
-        private const double da = 0.5;
+        public const double da = 0.5;
 
         /// <summary>
         /// Initial crack angle in radians.
         /// </summary>
-        private const double dTheta = 5.71 * Math.PI / 180;
+        public const double dTheta = 5.71 * Math.PI / 180;
 
         /// <summary>
         /// Thickness of the whole domain in inches.

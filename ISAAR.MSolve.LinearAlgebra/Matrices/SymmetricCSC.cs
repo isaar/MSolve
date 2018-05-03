@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
@@ -172,9 +173,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
-        public CholeskySuiteSparse FactorCholesky()
+        public CholeskySuiteSparse FactorCholesky(SuiteSparseOrdering ordering)
         {
-            return CholeskySuiteSparse.Factorize(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets);
+            return CholeskySuiteSparse.Factorize(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets, ordering);
         }
 
         /// <summary>

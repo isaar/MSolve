@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             (new FullMatrixWriter(matrixCSC)).WriteToConsole();
 
             //Solve it using SuiteSparse
-            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky())
+            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 Vector solution = factor.SolveLinearSystem(rhs);
                 ProcessResult(solution.CopyToArray());
@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DOKSymmetricColMajor.CreateIdentity(SparsePositiveDefinite.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -154,7 +154,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DOKSymmetricColMajor.CreateIdentity(SparsePositiveDefinite.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                     if (matrixExpected[i, j] != 0) dok[i, j] = matrixExpected[i, j];
                 }
             }
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {

@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             StiffnessNode7Global();
         }
 
-        public static void Main()
+        public static void Run()
         {
             DCB3x1 benchmark = new DCB3x1(20);
             benchmark.CreateMaterial();
@@ -146,8 +146,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             //benchmark.PrintAllStiffnesses(model);
             //benchmark.PrintDisplacements(model, solver);
-            benchmark.PrintReordering(model, solver);
-            ReorderingTest.TestAMDNonZeros(model);
         }
 
         private readonly double h; // element length
@@ -369,55 +367,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine("Kee = " + 1 / scale + " * ");
             (new FullMatrixWriter(kee.Scale(scale))).WriteToConsole();
             Console.WriteLine();
-        }
-
-        /// <summary>
-        /// The reordering just increases each number by 1. This method will change the solver.DOFEnumerator
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="solver"></param>
-        private void PrintReordering(Model2D model, ISolver solver)
-        {
-            var permutationOldToNew = new SortedDictionary<int, int>();
-
-            var enumerator = solver.DOFEnumerator;
-            foreach (XNode2D node in model.Nodes)
-            {
-                // Standard X dof
-                try
-                {
-                    int idxOldX = enumerator.GetFreeDofOf(node, DisplacementDOF.X);
-                    permutationOldToNew.Add(idxOldX, idxOldX + 1);
-                }
-                catch (KeyNotFoundException)
-                { }
-
-
-                // Standard Y dof
-                try
-                {
-                    int idxOldY = enumerator.GetFreeDofOf(node, DisplacementDOF.Y);
-                    permutationOldToNew.Add(idxOldY, idxOldY + 1);
-                }
-                catch(KeyNotFoundException)
-                { }
-
-                foreach (var enrichment in node.EnrichmentItems.Keys)
-                {
-                    foreach (var dof in enrichment.DOFs)
-                    {
-                        int idxOld = enumerator.GetEnrichedDofOf(node, dof);
-                        permutationOldToNew.Add(idxOld, idxOld + 1);
-                    }
-                }
-            }
-
-            Console.WriteLine("\n------------------- Renumbering ---------------------");
-            Console.WriteLine("Before renumbering:");
-            enumerator.WriteToConsole();
-            Console.WriteLine("\nAfter renumbering:");
-            enumerator.ReorderUnconstrainedDofs(permutationOldToNew.Values.ToArray());
-            enumerator.WriteToConsole();
         }
 
         private void RoundMatrix(Matrix matrix) //TODO: add this as a Matrix method and in an interface returning a copy ofc
