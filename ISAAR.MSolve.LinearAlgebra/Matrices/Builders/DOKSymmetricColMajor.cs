@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
@@ -79,6 +80,45 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 columns[j] = idenityCol; 
             }
             return new DOKSymmetricColMajor(order, columns);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="matrix">Its symmetricity will not be checked.</param>
+        /// <returns></returns>
+        public static DOKSymmetricColMajor CreateFromSparseMatrix(ISparseMatrix matrix)
+        {
+            Preconditions.CheckSquare(matrix);
+            return CreateFromSparsePattern(matrix.NumColumns, matrix.EnumerateNonZeros());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="order">The number of rows and columns of the matrix to which the sparsity pattern belongs to.</param>
+        /// <param name="nonZeroEntries">Their symmetricity will not be checked.</param>
+        /// <returns></returns>
+        public static DOKSymmetricColMajor CreateFromSparsePattern(int order, 
+            IEnumerable<(int row, int col, double value)> nonZeroEntries)
+        {
+            DOKSymmetricColMajor dok = CreateEmpty(order);
+            foreach (var (row, col, val) in nonZeroEntries) dok.columns[col][row] = val;
+            return dok;
+        }
+
+        public static DOKSymmetricColMajor CreateFromSparseSymmetricMatrix(ISparseSymmetricMatrix matrix)
+        {
+            Preconditions.CheckSquare(matrix); //This should not be needed
+            return CreateFromSparseSymmetricPattern(matrix.NumColumns, matrix.EnumerateNonZeros());
+        }
+
+        public static DOKSymmetricColMajor CreateFromSparseSymmetricPattern(int order,
+            IEnumerable<(int row, int col, double value)> nonZeroEntries)
+        {
+            DOKSymmetricColMajor dok = CreateEmpty(order);
+            foreach (var (row, col, val) in nonZeroEntries) dok.columns[col].Add(row, val);
+            return dok;
         }
 
         #region global matrix building 
@@ -308,18 +348,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             int[] rowIndices = new int[nnz];
             double[] values = new double[nnz];
             int counter = 0;
-            for (int j = 0; j < order; ++j)
+            if (sortRowsOfEachCol)
             {
-                if (sortRowsOfEachCol)
-                {
-                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key))
+                for (int j = 0; j < order; ++j)
+                { //TODO: perhaps passing the dictionarirs to new SortedDictionary() is faster than LINQ
+                    foreach (var rowVal in columns[j].OrderBy(pair => pair.Key)) 
                     {
                         rowIndices[counter] = rowVal.Key;
                         values[counter] = rowVal.Value;
                         ++counter;
                     }
                 }
-                else
+            }
+            else
+            {
+                for (int j = 0; j < order; ++j)
                 {
                     foreach (var rowVal in columns[j])
                     {
@@ -352,16 +395,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             int count = 0;
             for (int j = 0; j < order; ++j)
             {
+                //count += (columns[j].Count - 1) * 2 + 1; // Faster, but doesn't work if the diagonal is not present.
                 foreach (var rowVal in columns[j])
                 {
                     if (rowVal.Key == j) ++count;
-                    else count += 2; //Each upper triangle entries haa a corresponding lower triangle entry.
+                    else count += 2; //Each upper triangle entries has a corresponding lower triangle entry.
                 }
             }
             return count;
         }
 
-        public int CountNonZerosSuperDiagonal()
+        public int CountNonZerosUpper()
         {
             int count = 0;
             for (int j = 0; j < order; ++j) count += columns[j].Count;
@@ -444,6 +488,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             format.RawIndexArrays.Add("Row indices", rowIndices);
             format.RawIndexArrays.Add("Column offsets", colOffsets);
             return format;
+        }
+
+        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingAMD orderingAlgorithm)
+        {
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
+            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);
         }
 
         public void SetColumn(int colIdx, SparseVector wholeColumn)

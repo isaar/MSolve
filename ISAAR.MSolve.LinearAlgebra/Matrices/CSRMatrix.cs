@@ -80,6 +80,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     throw new ArgumentException("The length of the CSR values and column indices arrays must be equal (and equal"
                         + $" to the number of non zero entries), but were {values.Length} and {colIndices.Length} respectively");
                 }
+                if (rowOffsets[0] != 0)
+                {
+                    throw new ArgumentException("The first entry of the CSR column offsets array must be 0, but was "
+                        + rowOffsets[0]);
+                }
                 if (rowOffsets[rowOffsets.Length-1] != values.Length)
                 {
                     throw new ArgumentException("The last entry of the CSR row offsets array must be equal to the number of non"

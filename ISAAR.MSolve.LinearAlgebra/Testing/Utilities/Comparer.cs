@@ -29,6 +29,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
             this.valueComparer = new ValueComparer(tolerance);
         }
 
+        public bool AreEqual(int[] a, int[] b)
+        {
+            int n = a.Length;
+            if (b.Length != n) return false;
+            for (int i = 0; i < n; ++i)
+            {
+                if (a[i] != b[i]) return false;
+            }
+            return true;
+        }
+
         public bool AreEqual(double[] a, double[] b)
         {
             int n = a.Length;

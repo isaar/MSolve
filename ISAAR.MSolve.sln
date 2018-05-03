@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.OptimizationTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Materials", "ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj", "{9C0A357F-0F2E-403B-A5E3-A127C383589F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.LinearAlgebra", "ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj", "{6963A271-F927-4790-8794-21785E5FE6AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.LinearAlgebra", "ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj", "{6963A271-F927-4790-8794-21785E5FE6AA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.XFEM", "ISAAR.MSolve.XFEM\ISAAR.MSolve.XFEM.csproj", "{1D49A983-F435-46BE-834A-B44C68DE182A}"
 EndProject

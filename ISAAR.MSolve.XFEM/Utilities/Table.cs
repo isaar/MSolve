@@ -11,13 +11,18 @@ namespace ISAAR.MSolve.XFEM.Utilities
     // TODO: Perhaps a Table.Builder would be better, since EntryCount can be O(1)
     // TODO: If we know that the rows are ALL the nodes of the model and they are numberd contiguously, we can implement the rows 
     // as an array instead of Dictionary, in order to speed up things.
-    class Table<TRow, TColumn, TValue> : ITable<TRow, TColumn, TValue>
+    public class Table<TRow, TColumn, TValue> : ITable<TRow, TColumn, TValue>
     {
         protected readonly Dictionary<TRow, Dictionary<TColumn, TValue>> data;
 
         public Table()
         {
             this.data = new Dictionary<TRow, Dictionary<TColumn, TValue>>();
+        }
+
+        protected Table(Dictionary<TRow, Dictionary<TColumn, TValue>> data)
+        {
+            this.data = data;
         }
 
         public int EntryCount //TODO: perhaps this should be cached somehow
@@ -60,6 +65,7 @@ namespace ISAAR.MSolve.XFEM.Utilities
             else return wholeRow.ContainsKey(col);
         }
 
+        //TODO: use named tuple
         public IEnumerator<Tuple<TRow, TColumn, TValue>> GetEnumerator()
         {
             foreach (var wholeRow in data)

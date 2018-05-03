@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             StiffnessNode7Global();
         }
 
-        public static void Main()
+        public static void Run()
         {
             DCB3x1 benchmark = new DCB3x1(20);
             benchmark.CreateMaterial();
@@ -138,14 +138,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             solver.Initialize();
             solver.Solve();
 
-            benchmark.CheckStiffnessNode6(model);
-            benchmark.CheckStiffnessNode7Element1(model);
-            benchmark.CheckStiffnessNode7Element2(model);
-            benchmark.CheckGlobalStiffnessNode7(model, solver);
-            benchmark.CheckSolution(model, solver);
+            //benchmark.CheckStiffnessNode6(model);
+            //benchmark.CheckStiffnessNode7Element1(model);
+            //benchmark.CheckStiffnessNode7Element2(model);
+            //benchmark.CheckGlobalStiffnessNode7(model, solver);
+            //benchmark.CheckSolution(model, solver);
 
-            benchmark.PrintAllStiffnesses(model);
-            benchmark.PrintDisplacements(model, solver);
+            //benchmark.PrintAllStiffnesses(model);
+            //benchmark.PrintDisplacements(model, solver);
         }
 
         private readonly double h; // element length
@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
         }
 
-        private Model2D CreateModel()
+        public Model2D CreateModel()
         {
             var model = new Model2D();
 
@@ -223,7 +223,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             return model;
         }
 
-        private void HandleEnrichment(Model2D model)
+        public void HandleEnrichment(Model2D model)
         {
             crack = new BasicExplicitCrack2D();
             var boundary = new RectangularBoundary(0, 3 * h, 0, h);

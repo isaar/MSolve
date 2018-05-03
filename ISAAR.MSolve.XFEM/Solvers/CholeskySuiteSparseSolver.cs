@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -19,10 +20,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class CholeskySuiteSparseSolver: SolverBase
     {
-        private static readonly string directoryPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
-        private static readonly string matrixPath = directoryPath + "\\Resources\\matrixCSC.txt";
-        private static readonly string rhsPath = directoryPath + "\\Resources\\rhs.txt";
-        private static readonly string solutionPath = directoryPath + "\\Resources\\solution.txt";
+        //private static readonly string directoryPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
+        //private static readonly string matrixPath = directoryPath + "\\Resources\\matrixCSC.txt";
+        //private static readonly string rhsPath = directoryPath + "\\Resources\\rhs.txt";
+        //private static readonly string solutionPath = directoryPath + "\\Resources\\solution.txt";
 
         public CholeskySuiteSparseSolver(Model2D model) : base(model)
         { }
@@ -53,7 +54,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //(new FullVectorWriter(expectedSolution, true)).WriteToFile(solutionPath);
             #endregion
 
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 Solution = factorization.SolveLinearSystem(rhs);
             }

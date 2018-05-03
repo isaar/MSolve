@@ -35,6 +35,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 Console.WriteLine("Factorization failed");
                 return;
             }
+            else
+            {
+                int nnzFactor = SuiteSparseUtilities.GetFactorNonZeros(factor);
+                Console.WriteLine($"Before factorization: nnz = {nnz}");
+                Console.WriteLine($"After factorization: nnz = {nnzFactor}");
+            }
             SuiteSparseUtilities.Solve(n, factor, rhs, solution, handle);
             SuiteSparseUtilities.DestroyFactor(ref factor, handle);
             SuiteSparseUtilities.DestroyCommon(ref handle);
@@ -66,11 +72,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             (new FullMatrixWriter(matrixCSC)).WriteToConsole();
 
             //Solve it using SuiteSparse
-            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky())
+            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 Vector solution = factor.SolveLinearSystem(rhs);
                 ProcessResult(solution.CopyToArray());
             }
+        }
+
+        public static void CheckReordering1()
+        {
+            int order = ReorderMatrix.order;
+            int[] rowIndices = ReorderMatrix.cscRowIndices;
+            int[] colOffsets = ReorderMatrix.cscColOffsets;
+            int[] permutation = new int[order];
+            IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
+            int status = SuiteSparseUtilities.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation, 
+                out int factorNNZ, common);
+            if (status == 0)
+                Console.WriteLine("SuiteSparse reordering failed. A possible reason is the lack of enough available memory");
+            else
+            {
+                Comparer comparer = new Comparer();
+                bool success = comparer.AreEqual(ReorderMatrix.matlabPermutationAMD, permutation);
+                if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
+                else Console.WriteLine("SuiteSparse reordering returned, but the result is not as expected.");
+            }
+            SuiteSparseUtilities.DestroyCommon(ref common);
         }
 
         public static void CheckRowAddition()
@@ -88,7 +115,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DOKSymmetricColMajor.CreateIdentity(SparsePositiveDefinite.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -127,7 +154,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DOKSymmetricColMajor.CreateIdentity(SparsePositiveDefinite.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -146,8 +173,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 comparer.CheckVectorEquality(solutionExpected, solutionComputed);
             }
         }
-
-
 
         public static void CheckRowDeletion()
         {
@@ -171,7 +196,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                     if (matrixExpected[i, j] != 0) dok[i, j] = matrixExpected[i, j];
                 }
             }
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky();
+            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {

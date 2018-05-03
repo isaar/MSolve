@@ -11,9 +11,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
     class DOFEnumeratorInterleaved: DOFEnumeratorBase
     {
-        private DOFEnumeratorInterleaved(int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs,
-            int enrichedDofsCount, Table<XNode2D, EnrichedDOF, int> enrichedDofs,
-            int freeDofsCount, Table<XNode2D, DisplacementDOF, int> freeDofs) :
+        private DOFEnumeratorInterleaved(int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs,
+            int enrichedDofsCount, DOFTable<EnrichedDOF> enrichedDofs,
+            int freeDofsCount, DOFTable<DisplacementDOF> freeDofs) :
             base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, freeDofsCount, freeDofs)
         {
         }
@@ -22,9 +22,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         {
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
-            (Table<XNode2D, DisplacementDOF, int> freeDofs, Table<XNode2D, EnrichedDOF, int> enrichedDofs) = 
+            (DOFTable<DisplacementDOF> freeDofs, DOFTable<EnrichedDOF> enrichedDofs) = 
                 EnumerateFreeEnrichedDofs(model);
-            (int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs) =
+            (int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs) =
                 EnumerateConstrainedDofs(model.Constraints);
 
             #region DEBUG code
@@ -42,10 +42,10 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 freeDofs.EntryCount, freeDofs);
         }
 
-        private static (int constrainedDofsCount, Table<XNode2D, DisplacementDOF, int> constrainedDofs) EnumerateConstrainedDofs(
+        private static (int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs) EnumerateConstrainedDofs(
             ITable<XNode2D, DisplacementDOF, double> constraints)
         {
-            var constrainedDofs = new Table<XNode2D, DisplacementDOF, int>();
+            var constrainedDofs = new DOFTable<DisplacementDOF>();
             int dofCounter = 0;
             foreach (Tuple<XNode2D, DisplacementDOF, double> entry in constraints)
             {
@@ -61,12 +61,12 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        private static (Table<XNode2D, DisplacementDOF, int> freeDofs, Table<XNode2D, EnrichedDOF, int> enrichedDofs) 
+        private static (DOFTable<DisplacementDOF> freeDofs, DOFTable<EnrichedDOF> enrichedDofs) 
             EnumerateFreeEnrichedDofs(Model2D model)
         {
             ITable<XNode2D, DisplacementDOF, double> constraints = model.Constraints;
-            var freeDofs = new Table<XNode2D, DisplacementDOF, int>();
-            var enrichedDofs = new Table<XNode2D, EnrichedDOF, int>();
+            var freeDofs = new DOFTable<DisplacementDOF>();
+            var enrichedDofs = new DOFTable<EnrichedDOF>();
             int dofCounter = 0;
             foreach (XNode2D node in model.Nodes)
             {

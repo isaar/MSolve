@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
-    <StartupObject>ISAAR.MSolve.XFEM.Tests.Khoei.DCB3x1</StartupObject>
+    <StartupObject>ISAAR.MSolve.XFEM.Tests.GRACM.DCBParametric</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -15,7 +15,6 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Compute.Winx64.IntelMKL" Version="2018.1.156.1" />
     <PackageReference Include="Triangle" Version="0.0.6-Beta3" />
   </ItemGroup>
     <ItemGroup>

@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 namespace ISAAR.MSolve.LinearAlgebra.Testing
 {
     // TODO: need a symmetric, invertible, indefinite benchmark.
-    public static class TestSuite
+    public static class LinearAlgebraTestSuite
     {
         public static void TestAll()
         {
@@ -23,7 +23,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            TestReading();
+            TestReordering();
+            //TestReading();
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
@@ -34,9 +35,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         {
             //TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
-            TestSuiteSparse.CheckRowAddition();
+            //TestSuiteSparse.CheckRowAddition();
             //TestSuiteSparse.CheckRowAdditionReverse();
             //TestSuiteSparse.CheckRowDeletion();
+            TestSuiteSparse.CheckReordering1();
         }
 
         public static void TestMarshaling()
@@ -47,8 +49,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestBuilders()
         {
-            //SparseRect.CheckBuilders();
-            //Console.WriteLine();
+            SparseRect.CheckBuilders();
+            Console.WriteLine();
             SparsePositiveDefinite.PrintDOKSparseColumns();
             Console.WriteLine();
         }
@@ -95,6 +97,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         public static void TestReading()
         {
             TestInput.CheckIO();
+        }
+
+        public static void TestReordering()
+        {
+            SparsePositiveDefinite.PrintPatternAsBoolean();
+            Console.WriteLine();
+            MatrixAssembly.BuildPattern();
+            Console.WriteLine();
+            SparsePositiveDefinite.CheckReordering();
+            Console.WriteLine();
         }
 
         public static void TestWriting()

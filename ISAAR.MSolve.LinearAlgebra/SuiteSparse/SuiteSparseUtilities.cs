@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: Use enums as return values or at least named constants.
 namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
 {
     internal static class SuiteSparseUtilities
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///     factorization convert to simplicial. Supernodal is usually faster, but to modify the factorized matrix it must be
         ///     converted to simplicial, though this can be	done automatically.</param>
         /// <param name="orderingType">0 for no reordering, 1 for automatic reordering (let suitesparse try some alternatives and
-        ///     keep the best).</param>
+        ///     keep the best), 2 for AMD.</param>
         /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_create_common")]
         internal static extern IntPtr CreateCommon(int factorizationType, int orderingType);
@@ -49,17 +50,50 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         /// <param name="order">Number of rows = number of columns.</param>
         /// <param name="nnz">Number of non zero entries in the upper triangle.</param>
         /// <param name="values">Array containing the non zero entries of the upper triangle in column major order. 
-        ///     Length = nnz.</param>
+        ///     Length = <paramref name="nnz"/>.</param>
         /// <param name="rowIndices">Array containing the row indices of the non zero entries of the upper triangle. 
-        ///     Length = nnz.</param>
-        /// <param name="colOffsets">Array containing the indices into values (and row_indices) of the first entry of each 
-        ///     column. Length = order + 1. The last entry is col_offsets[order] = nnz.</param>
+        ///     <paramref name="nnz"/>. They must be sorted.</param>
+        /// <param name="colOffsets">Array containing the indices into <paramref name="values"/> (and 
+        ///     <paramref name="rowIndices"/>) of the first entry of each column. Length = <paramref name="order"/> + 1. They 
+        ///     must be sorted. The first entry is <paramref name="colOffsets"/>[0] = 0. The last entry is 
+        ///     <paramref name="colOffsets"/>[<paramref name="order"/>] = <paramref name="nnz"/>.</param>
         /// <param name="factorizedMatrix"> Out parameter - the factorized upper triangle of the symmetric CSC matrix.</param>
         /// <param name="common">The matrix settings.</param>
         /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_factorize_cscupper")]
         internal static extern int FactorizeCSCUpper(int order, int nnz, double[] values, int[] rowIndices, int[] colOffsets, 
             out IntPtr factorizedMatrix, IntPtr common);
+
+        /// <summary>
+        /// Returns the number of non zero entries in the factorized matrix. If anything goes wrong -1 is returned.
+        /// </summary>
+        /// <param name="factorization">Pointer to the factorized matrix, which is stored in unmanaged memory.</param>
+        /// <returns></returns>
+        [DllImport("suitesparse_utilities.dll", EntryPoint = "util_get_factor_nonzeros")]
+        internal static extern int GetFactorNonZeros(IntPtr factorization);
+
+        /// <summary>
+        /// Caclulates a fill reducing ordering using the Approximate Minimum Degree algorithm for a symmetric sparse matrix.  
+        /// Returns 1 if the reordering is successful, 0 if it failed (e.g. due to exceeding the available memory).
+        /// </summary> 
+        /// <param name="order">Number of rows = number of columns.</param>
+        /// <param name="nnz">Number of non zero entries in the upper triangle.</param>
+        /// <param name="rowIndices">Array containing the row indices of the non zero entries of the upper triangle. 
+        ///     Length = <paramref name="nnz"/>. They must be sorted.</param>
+        /// <param name="colOffsets">Array containing the indices into <paramref name="rowIndices"/> of the first entry of each 
+        ///     column. Length = <paramref name="order"/> + 1. They must be sorted. 
+        ///     The first entry is <paramref name="colOffsets"/>[0] = 0. 
+        ///     The last entry is <paramref name="colOffsets"/>[<paramref name="order"/>] = nnz.</param>
+        /// <param name="outPermutation">Out parameter: buffer of length = <paramref name="order"/>. Will be filled with a  
+        ///     fill-reducing permutation vector, such that: original index = i, reordered index = 
+        ///     <paramref name="outPermutation"/>[i].</param>
+        /// <param name="outFactorNNZ">Out parameter: the number of non zero entries in a subsequent L*L^T factorization. Will 
+        ///     be -1 if the ordering fails.</param>
+        /// <param name="common">The matrix settings.</param>
+        /// <returns></returns>
+        [DllImport("suitesparse_utilities.dll", EntryPoint = "util_reorder_amd_upper")]
+        internal static extern int ReorderAMDUpper(int order, int nnz, int[] rowIndices, int[] colOffsets, int[] outPermutation,
+            [Out] out int outFactorNNZ, IntPtr common);
 
         /// <summary>
         /// Adds a row and column to an LDL' factorization. Before updating the kth row and column of L must be equal to the kth  

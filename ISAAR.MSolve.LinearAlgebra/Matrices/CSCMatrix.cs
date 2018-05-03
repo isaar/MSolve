@@ -79,6 +79,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     throw new ArgumentException("The length of the CSC values and row indices arrays must be equal (and equal"
                         + $" to the number of non zero entries), but were {values.Length} and {rowIndices.Length} respectively");
                 }
+                if (colOffsets[0] != 0)
+                {
+                    throw new ArgumentException("The first entry of the CSC column offsets array must be 0, but was " 
+                        + colOffsets[0]);
+                }
                 if (colOffsets[colOffsets.Length - 1] != values.Length)
                 {
                     throw new ArgumentException("The last entry of the CSC column offsets array must be equal to the number of"

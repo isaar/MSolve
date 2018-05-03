@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         protected override void WriteToStream(StreamWriter writer)
         {
             string numberFormat = NumericFormat.GetRealNumberFormat();
-            writer.Write($"{matrix.NumRows} {matrix.NumColumns} {matrix.CountNonZerosSuperDiagonal()}");
+            writer.Write($"{matrix.NumRows} {matrix.NumColumns} {matrix.CountNonZerosUpper()}");
             foreach (var (row, col, val) in matrix.EnumerateNonZerosSuperDiagonal())
             {
                 writer.WriteLine();
