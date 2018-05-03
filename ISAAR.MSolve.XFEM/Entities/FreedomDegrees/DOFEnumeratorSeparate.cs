@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         }
 
         // This is for problems that have rotational dofs only at some nodes. In continuum mechanics, we can just assign 2  
-        // standard dofs per node and avoid iterating the elements.
+        // standard dofs per node and avoid iterating the elements. TODO: There should be different enumerators
         private static IDictionary<XNode2D, HashSet<DisplacementDOF>> FindUniqueDOFTypes(IEnumerable<XContinuumElement2D> elements)
         {
             var totalDofs = new SortedDictionary<XNode2D, HashSet<DisplacementDOF>>();

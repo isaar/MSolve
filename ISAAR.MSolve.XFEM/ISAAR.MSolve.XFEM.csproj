@@ -23,4 +23,7 @@
     <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
   </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Solvers\DD\" />
+    </ItemGroup>
 </Project>

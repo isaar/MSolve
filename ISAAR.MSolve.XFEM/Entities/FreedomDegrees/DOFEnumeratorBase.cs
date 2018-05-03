@@ -8,7 +8,8 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Utilities;
 
-// TODO: I should use interchangeble builders, rather than subclasses.
+//TODO: I should use interchangeble builders, rather than subclasses.
+//TODO: constrained dofs should be ignored (set to -1) and the effect of constraints should be done via equivalent forces.
 namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 {
     class DOFEnumeratorBase: IDOFEnumerator
@@ -234,9 +235,9 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element)
+        public IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element) //TODO: this can be an array. 
         {
-            var globalArtificialDofs = new Dictionary<int, int>();
+            var globalEnrichedDofs = new Dictionary<int, int>();
             int elementDof = 0;
             foreach (XNode2D node in element.Nodes)
             {
@@ -247,11 +248,11 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                     foreach (EnrichedDOF dofType in enrichment.DOFs) // Are dofs determined by the element type (e.g. structural) as well?
                     {
-                        globalArtificialDofs[elementDof++] = this.enrichedDofs[node, dofType];
+                        globalEnrichedDofs[elementDof++] = this.enrichedDofs[node, dofType];
                     }
                 }
             }
-            return globalArtificialDofs;
+            return globalEnrichedDofs;
         }
 
         public void ReorderUnconstrainedDofs(IReadOnlyList<int> permutation, bool oldToNew)
