@@ -27,8 +27,8 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     {
         private SeparateDofOrderer(int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs,
             int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs,
-            int freeDofsCount, DofTable<DisplacementDof> freeDofs):
-            base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, freeDofsCount, freeDofs)
+            int standardDofsCount, DofTable<DisplacementDof> standardDofs):
+            base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, standardDofsCount, standardDofs)
         {
         }
 
@@ -37,17 +37,17 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
             IDictionary<XNode2D, HashSet<DisplacementDof>> nodalDofTypes = FindUniqueDofTypes(model.Elements);
-            (int freeDofsCount, DofTable<DisplacementDof> freeDofs) = 
-                EnumerateFreeDofs(nodalDofTypes, model.Constraints);
+            (int standardDofsCount, DofTable<DisplacementDof> standardDofs) = 
+                OrderStandardDofs(nodalDofTypes, model.Constraints);
             (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) =
-                EnumerateConstrainedDofs(model.Constraints);
+                OrderConstrainedDofs(model.Constraints);
             (int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs) = 
-                EnumerateEnrichedDofs(model.Nodes, freeDofsCount);
+                OrderEnrichedDofs(model.Nodes, standardDofsCount);
 
             #region DEBUG code
             //Console.WriteLine("------------------------ DEBUG ------------------------------");
             //Console.WriteLine("Free standard dofs: ");
-            //Console.WriteLine(freeDofs);
+            //Console.WriteLine(standardDofs);
             //Console.WriteLine("Enriched dofs: ");
             //Console.WriteLine(enrichedDofs);
             //Console.WriteLine("Constrained dofs: ");
@@ -56,56 +56,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             #endregion
 
             return new SeparateDofOrderer(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, 
-                freeDofsCount, freeDofs);
-        }
-
-        private static (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) EnumerateConstrainedDofs(
-            ITable<XNode2D, DisplacementDof, double> constraints)
-        {
-            var constrainedDofs = new DofTable<DisplacementDof>();
-            int counter = 0;
-            foreach (Tuple<XNode2D, DisplacementDof, double> entry in constraints)
-            {
-                constrainedDofs[entry.Item1, entry.Item2] = counter++;
-            }
-            return (counter, constrainedDofs);
-        }
-
-        // Each artificial dof has index that is node major, then enrichment item major, then enrichment function major and finally axis minor
-        private static (int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs) EnumerateEnrichedDofs(
-            IEnumerable<XNode2D> nodes, int standardDofsCount)
-        {
-            var enrichedDofs = new DofTable<EnrichedDof>();
-            int dofCounter = standardDofsCount; // This if I put everything in the same matrix
-            //int dofCounter = 0; // This if I use different matrices
-            foreach (XNode2D node in nodes)
-            {
-                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
-                {
-                    foreach (EnrichedDof dofType in enrichment.Dofs) // Are dofs determined by the element type (e.g. structural) as well?
-                    {
-                        enrichedDofs[node, dofType] = dofCounter++;
-                    }
-                }
-            }
-            return (dofCounter - standardDofsCount, enrichedDofs);
-        }
-
-        //Node major ordering
-        private static (int freeDofsCount, DofTable<DisplacementDof> freeDofs) EnumerateFreeDofs(
-            IDictionary<XNode2D, HashSet<DisplacementDof>> nodalDofTypes, ITable<XNode2D, DisplacementDof, double> constraints)
-        {
-            var freeDofs = new DofTable<DisplacementDof>();
-            int counter = 0;
-            foreach (var pair in nodalDofTypes)
-            {
-                XNode2D node = pair.Key;
-                foreach (DisplacementDof dofType in pair.Value)
-                {
-                    if (!constraints.Contains(node, dofType)) freeDofs[node, dofType] = counter++;
-                }
-            }
-            return (counter, freeDofs);
+                standardDofsCount, standardDofs);
         }
 
         // This is for problems that have rotational dofs only at some nodes. In continuum mechanics, we can just assign 2  
@@ -128,6 +79,55 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 }
             }
             return totalDofs;
+        }
+
+        private static (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) OrderConstrainedDofs(
+            ITable<XNode2D, DisplacementDof, double> constraints)
+        {
+            var constrainedDofs = new DofTable<DisplacementDof>();
+            int counter = 0;
+            foreach (Tuple<XNode2D, DisplacementDof, double> entry in constraints)
+            {
+                constrainedDofs[entry.Item1, entry.Item2] = counter++;
+            }
+            return (counter, constrainedDofs);
+        }
+
+        // Each artificial dof has index that is node major, then enrichment item major, then enrichment function major and finally axis minor
+        private static (int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs) OrderEnrichedDofs(
+            IEnumerable<XNode2D> nodes, int standardDofsCount)
+        {
+            var enrichedDofs = new DofTable<EnrichedDof>();
+            int dofCounter = standardDofsCount; // This if I put everything in the same matrix
+            //int dofCounter = 0; // This if I use different matrices
+            foreach (XNode2D node in nodes)
+            {
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
+                {
+                    foreach (EnrichedDof dofType in enrichment.Dofs) // Are dofs determined by the element type (e.g. structural) as well?
+                    {
+                        enrichedDofs[node, dofType] = dofCounter++;
+                    }
+                }
+            }
+            return (dofCounter - standardDofsCount, enrichedDofs);
+        }
+
+        //Node major ordering
+        private static (int standardDofsCount, DofTable<DisplacementDof> standardDofs) OrderStandardDofs(
+            IDictionary<XNode2D, HashSet<DisplacementDof>> nodalDofTypes, ITable<XNode2D, DisplacementDof, double> constraints)
+        {
+            var standardDofs = new DofTable<DisplacementDof>();
+            int counter = 0;
+            foreach (var pair in nodalDofTypes)
+            {
+                XNode2D node = pair.Key;
+                foreach (DisplacementDof dofType in pair.Value)
+                {
+                    if (!constraints.Contains(node, dofType)) standardDofs[node, dofType] = counter++;
+                }
+            }
+            return (counter, standardDofs);
         }
     }
 }

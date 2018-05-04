@@ -18,14 +18,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public static (Matrix Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int constrainedDofsCount = dofOrderer.ConstrainedDofsCount;
-            int freeEnrichedDofsCount = dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount;
+            int freeEnrichedDofsCount = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             Matrix Kuu = Matrix.CreateZero(freeEnrichedDofsCount, freeEnrichedDofsCount);
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount,
+            Matrix Kuc = Matrix.CreateZero(dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount,
                 dofOrderer.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)

@@ -218,10 +218,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XNode2D mouthBottomNode = mouthElements[0].Nodes[1];
             XNode2D mouthTopNode = mouthElements[0].Nodes[2];
 
-            double uBotX = solution[dofOrderer.GetFreeDofOf(mouthBottomNode, DisplacementDof.X)];
-            double uBotY = solution[dofOrderer.GetFreeDofOf(mouthBottomNode, DisplacementDof.Y)];
-            double uTopX = solution[dofOrderer.GetFreeDofOf(mouthTopNode, DisplacementDof.X)];
-            double uTopY = solution[dofOrderer.GetFreeDofOf(mouthTopNode, DisplacementDof.Y)];
+            double uBotX = solution[dofOrderer.GetStandardDofOf(mouthBottomNode, DisplacementDof.X)];
+            double uBotY = solution[dofOrderer.GetStandardDofOf(mouthBottomNode, DisplacementDof.Y)];
+            double uTopX = solution[dofOrderer.GetStandardDofOf(mouthTopNode, DisplacementDof.X)];
+            double uTopY = solution[dofOrderer.GetStandardDofOf(mouthTopNode, DisplacementDof.Y)];
             double aBotX = solution[dofOrderer.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.Dofs[0])];
             double aBotY = solution[dofOrderer.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.Dofs[1])];
             double aTopX = solution[dofOrderer.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.Dofs[0])];

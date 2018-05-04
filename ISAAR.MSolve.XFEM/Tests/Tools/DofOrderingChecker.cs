@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 Console.Write("Node " + node.ID + ": ");
                 foreach (DisplacementDof dof in standardDofs)
                 {
-                    Console.Write(dofOrderer.GetFreeDofOf(node, dof) + " ");
+                    Console.Write(dofOrderer.GetStandardDofOf(node, dof) + " ");
                 }
                 foreach (int dof in dofOrderer.GetConstrainedDofsOf(node))
                 {

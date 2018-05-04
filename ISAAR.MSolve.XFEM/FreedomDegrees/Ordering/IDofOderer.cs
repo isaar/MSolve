@@ -14,13 +14,13 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     {
         int ConstrainedDofsCount { get; }
         int EnrichedDofsCount { get ; }
-        int FreeDofsCount { get; }
+        int StandardDofsCount { get; }
 
         IDofOrderer DeepCopy();
 
-        int GetFreeDofOf(XNode2D node, DisplacementDof dofType);
-        IEnumerable<int> GetFreeDofsOf(XNode2D node);
-        List<int> GetFreeDofsOf(XContinuumElement2D element);
+        int GetStandardDofOf(XNode2D node, DisplacementDof dofType);
+        IEnumerable<int> GetStandardDofsOf(XNode2D node);
+        List<int> GetStandardDofsOf(XContinuumElement2D element);
 
         int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType);
         IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
@@ -31,15 +31,15 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         List<int> GetEnrichedDofsOf(XContinuumElement2D element);
 
         void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
-            out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
+            out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
 
         IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element);
 
         Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
-            Vector globalFreeVector, Vector globalConstrainedVector);
+            Vector globalStandardVector, Vector globalConstrainedVector);
 
-        Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalFreeVector);
+        Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalStandardVector);
 
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 

@@ -92,14 +92,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void ReorderPatternSuperset()
         {
-            int order = DofOrderer.FreeDofsCount + DofOrderer.EnrichedDofsCount;
+            int order = DofOrderer.StandardDofsCount + DofOrderer.EnrichedDofsCount;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
 
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
             {
                 //TODO: what is the most efficient way to gather both? Perhaps the DofOrderer should do this 
-                var standardDofs = DofOrderer.GetFreeDofsOf(element);
+                var standardDofs = DofOrderer.GetStandardDofsOf(element);
                 var enrichedDofs = DofOrderer.GetEnrichedDofsOf(element);
                 List<int> allDofs;
                 if (standardDofs.Count > enrichedDofs.Count)

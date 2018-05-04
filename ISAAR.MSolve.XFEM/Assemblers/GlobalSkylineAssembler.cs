@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public (SkylineMatrix Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.ConstrainedDofsCount;
-            int numDofsUnconstrained = dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount;
+            int numDofsUnconstrained = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             SkylineBuilder Kuu = InitializeGlobalUncontrainedMatrix(model, dofOrderer);
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
         private static SkylineBuilder InitializeGlobalUncontrainedMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsUnconstrained = dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount;
+            int numDofsUnconstrained = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
             int[] colHeights = new int[numDofsUnconstrained]; //only entries above the diagonal count towards the column height
             foreach (XContinuumElement2D element in model.Elements)
             {
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 int minDof = Int32.MaxValue;
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofOrderer.GetFreeDofsOf(node)) minDof = Math.Min(dof, minDof);
+                    foreach (int dof in dofOrderer.GetStandardDofsOf(node)) minDof = Math.Min(dof, minDof);
                     foreach (int dof in dofOrderer.GetEnrichedDofsOf(node)) Math.Min(dof, minDof);
                 }
 
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 // The max height is stored.
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofOrderer.GetFreeDofsOf(node))
+                    foreach (int dof in dofOrderer.GetStandardDofsOf(node))
                     {
                         colHeights[dof] = Math.Max(colHeights[dof], dof - minDof);
                     }

@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             for (int n = 0; n < nodes.Length; ++n)
             {
                 var dofsOfNode = new List<int>();
-                foreach (int dof in dofOrderer.GetFreeDofsOf(nodes[n]))
+                foreach (int dof in dofOrderer.GetStandardDofsOf(nodes[n]))
                 {
                     dofsOfNode.Add(dof);
                     //if (dof != -1) dofsOfNode.Add(dof);
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 currentNodalDofs[n] = dofsOfNode.ToArray();
             }
 
-            int freeDofsCount = CountFreeDofs(expectedNodalDofs);
+            int freeDofsCount = CountStandardDofs(expectedNodalDofs);
             int[] oldToNewIndices = new int[freeDofsCount];
 
             for (int node = 0; node < nodes.Length; ++node)
@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             return oldToNewIndices;
         }
 
-        private static int CountFreeDofs(int[][] expectedNodalDofs)
+        private static int CountStandardDofs(int[][] expectedNodalDofs)
         {
             int count = 0;
             foreach (int[] nodeDofs in expectedNodalDofs)

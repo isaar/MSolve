@@ -81,12 +81,12 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public Vector CalculateFreeForces(IDofOrderer dofOrderer)
         {
-            double[] rhs = new double[dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount];
+            double[] rhs = new double[dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount];
             foreach (Tuple<XNode2D, DisplacementDof, double> entry in loads)
             {
                 try
                 {
-                    int dof = dofOrderer.GetFreeDofOf(entry.Item1, entry.Item2);
+                    int dof = dofOrderer.GetStandardDofOf(entry.Item1, entry.Item2);
                     rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which isn't implemented yet
                 }
                 catch (KeyNotFoundException ex)

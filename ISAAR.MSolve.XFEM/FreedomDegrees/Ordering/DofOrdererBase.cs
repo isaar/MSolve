@@ -17,28 +17,28 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     {
         protected readonly DofTable<DisplacementDof> constrainedDofs;
         protected readonly DofTable<EnrichedDof> enrichedDofs;
-        protected readonly DofTable<DisplacementDof> freeDofs;
+        protected readonly DofTable<DisplacementDof> standardDofs;
 
         public int ConstrainedDofsCount { get; }
         public int EnrichedDofsCount { get; }
-        public int FreeDofsCount { get; }
+        public int StandardDofsCount { get; }
 
         protected DofOrdererBase(int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs, 
             int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs,
-            int freeDofsCount, DofTable<DisplacementDof> freeDofs)
+            int standardDofsCount, DofTable<DisplacementDof> standardDofs)
         {
             this.ConstrainedDofsCount = constrainedDofsCount;
             this.constrainedDofs = constrainedDofs;
             this.EnrichedDofsCount = enrichedDofsCount;
             this.enrichedDofs = enrichedDofs;
-            this.FreeDofsCount = freeDofsCount;
-            this.freeDofs = freeDofs;
+            this.StandardDofsCount = standardDofsCount;
+            this.standardDofs = standardDofs;
         }
 
         public IDofOrderer DeepCopy()
         {
             return new DofOrdererBase(ConstrainedDofsCount, constrainedDofs.DeepCopy(),
-                EnrichedDofsCount, enrichedDofs.DeepCopy(), FreeDofsCount, freeDofs.DeepCopy());
+                EnrichedDofsCount, enrichedDofs.DeepCopy(), StandardDofsCount, standardDofs.DeepCopy());
         }
 
         /// <summary>
@@ -46,18 +46,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// handling of constrained dofs, if constrained dofs are defined in the first place.
         /// </summary>
         /// <param name="element"></param>
-        /// <param name="globalFreeVector"></param>
+        /// <param name="globalStandardVector"></param>
         /// <param name="globalConstrainedVector"></param>
         /// <returns></returns>
         public Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
-            Vector globalFreeVector, Vector globalConstrainedVector)
+            Vector globalStandardVector, Vector globalConstrainedVector)
         {
             ITable<XNode2D, DisplacementDof, int> elementDofs = element.GetStandardDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
             foreach (Tuple<XNode2D, DisplacementDof, int> entry in elementDofs)
             {
-                bool isFree = this.freeDofs.TryGetValue(entry.Item1, entry.Item2, out int globalFreeDof);
-                if (isFree) elementVector[entry.Item3] = globalFreeVector[globalFreeDof];
+                bool isStandard = this.standardDofs.TryGetValue(entry.Item1, entry.Item2, out int globalStandardDof);
+                if (isStandard) elementVector[entry.Item3] = globalStandardVector[globalStandardDof];
                 else
                 {
                     int globalConstrainedDof = this.constrainedDofs[entry.Item1, entry.Item2];
@@ -70,17 +70,17 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <summary>
         /// </summary>
         /// <param name="element"></param>
-        /// <param name="globalFreeVector">Both the free and enriched dofs.</param>
+        /// <param name="globalStandardVector">Both the free standard and enriched dofs.</param>
         /// <returns></returns>
         public Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element,
-            Vector globalFreeVector)
+            Vector globalStandardVector)
         {
             ITable<XNode2D, EnrichedDof, int> elementDofs = element.GetEnrichedDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
             foreach (Tuple<XNode2D, EnrichedDof, int> entry in elementDofs)
             {
-                int globalFreeDof = enrichedDofs[entry.Item1, entry.Item2];
-                elementVector[entry.Item3] = globalFreeVector[globalFreeDof];
+                int globalStandardDof = enrichedDofs[entry.Item1, entry.Item2];
+                elementVector[entry.Item3] = globalStandardVector[globalStandardDof];
             }
             return Vector.CreateFromArray(elementVector);
         }
@@ -144,18 +144,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         // Would it be faster to return the Dictionary<StandardDofType, int> for consecutive accesses of the dofs of this node? 
         // Dictionary's Read operation is supposed to be O(1), but still...
-        public int GetFreeDofOf(XNode2D node, DisplacementDof dofType)
+        public int GetStandardDofOf(XNode2D node, DisplacementDof dofType)
         {
-            return freeDofs[node, dofType];
+            return standardDofs[node, dofType];
         }
 
-        public IEnumerable<int> GetFreeDofsOf(XNode2D node)
+        public IEnumerable<int> GetStandardDofsOf(XNode2D node)
         {
             // Perhaps it would be more efficient for the client to traverse all (dofType, dofIdx) pairs 
             // than assembling the dofIdx collection beforehand.
             try
             {
-                return freeDofs.GetValuesOfRow(node);
+                return standardDofs.GetValuesOfRow(node);
             }
             catch (KeyNotFoundException)
             {
@@ -163,13 +163,13 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             }
         }
 
-        public List<int> GetFreeDofsOf(XContinuumElement2D element)
+        public List<int> GetStandardDofsOf(XContinuumElement2D element)
         {
             var globalDofs = new List<int>(2 * element.Nodes.Count);
             foreach (var nodeDofLocal in element.GetStandardDofs())
             {
-                bool isFree = freeDofs.TryGetValue(nodeDofLocal.Item1, nodeDofLocal.Item2, out int globalDof);
-                if (isFree) globalDofs.Add(globalDof);
+                bool isStandard = standardDofs.TryGetValue(nodeDofLocal.Item1, nodeDofLocal.Item2, out int globalDof);
+                if (isStandard) globalDofs.Add(globalDof);
             }
             return globalDofs;
         }
@@ -187,12 +187,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             {
                 XNode2D node = model.Nodes[i];
 
-                bool isXFree = freeDofs.TryGetValue(node, DisplacementDof.X, out int globalFreeDofX);
-                if (isXFree) result[i, 0] = solution[globalFreeDofX];
+                bool isXStandard = standardDofs.TryGetValue(node, DisplacementDof.X, out int globalStandardDofX);
+                if (isXStandard) result[i, 0] = solution[globalStandardDofX];
                 else result[i, 0] = model.Constraints[node, DisplacementDof.X];
 
-                bool isYFree = freeDofs.TryGetValue(node, DisplacementDof.Y, out int globalFreeDofY);
-                if (isYFree) result[i, 1] = solution[globalFreeDofY];
+                bool isYStandard = standardDofs.TryGetValue(node, DisplacementDof.Y, out int globalStandardDofY);
+                if (isYStandard) result[i, 1] = solution[globalStandardDofY];
                 else result[i, 1] = model.Constraints[node, DisplacementDof.Y];
             }
             return result;
@@ -215,19 +215,19 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <param name="element"></param>
         /// <returns></returns>
         public void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
-            out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
+            out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs)
         {
             ITable<XNode2D, DisplacementDof, int> elementDofs = element.GetStandardDofs();
-            var globalFreeDofs = new Dictionary<int, int>();
+            var globalStandardDofs = new Dictionary<int, int>();
             var globalConstrainedDofs = new Dictionary<int, int>();
             foreach (Tuple<XNode2D, DisplacementDof, int> entry in elementDofs)
             {
-                bool isFree = this.freeDofs.TryGetValue(entry.Item1, entry.Item2, out int freeGlobalDof);
-                if (isFree) globalFreeDofs[entry.Item3] = freeGlobalDof;
+                bool isStandard = this.standardDofs.TryGetValue(entry.Item1, entry.Item2, out int standardGlobalDof);
+                if (isStandard) globalStandardDofs[entry.Item3] = standardGlobalDof;
                 else globalConstrainedDofs[entry.Item3] = this.constrainedDofs[entry.Item1, entry.Item2];
             }
-            elementToGlobalFreeDofs = globalFreeDofs;
+            elementToGlobalStandardDofs = globalStandardDofs;
             elementToGlobalConstrainedDofs = globalConstrainedDofs;
         }
 
@@ -258,14 +258,14 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         public void ReorderUnconstrainedDofs(IReadOnlyList<int> permutation, bool oldToNew)
         {
-            freeDofs.Reorder(permutation, oldToNew);
+            standardDofs.Reorder(permutation, oldToNew);
             enrichedDofs.Reorder(permutation, oldToNew);
         }
 
         public void WriteToConsole()
         {
             Console.WriteLine("Standard free dofs: node, dof, number");
-            Console.WriteLine(freeDofs);
+            Console.WriteLine(standardDofs);
             Console.WriteLine("Enriched free dofs: node, dof, number");
             Console.WriteLine(enrichedDofs);
             Console.WriteLine("Standard constrained dofs: node, dof, number");

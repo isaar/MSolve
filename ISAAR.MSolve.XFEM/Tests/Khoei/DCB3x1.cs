@@ -290,7 +290,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, solver.DofOrderer);
 
             var dofsOfNode7 = new List<int>();
-            foreach (int dof in solver.DofOrderer.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
+            foreach (int dof in solver.DofOrderer.GetStandardDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             foreach (int dof in solver.DofOrderer.GetEnrichedDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             dofsOfNode7.Sort();
 
@@ -308,10 +308,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var displacements = new List<double>();
 
             // Standard dofs
-            int dofUx5 = solver.DofOrderer.GetFreeDofOf(model.Nodes[5], DisplacementDof.X);
+            int dofUx5 = solver.DofOrderer.GetStandardDofOf(model.Nodes[5], DisplacementDof.X);
             displacements.Add(solver.Solution[dofUx5]);
             displacements.Add(-0.05);
-            int dofUx6 = solver.DofOrderer.GetFreeDofOf(model.Nodes[6], DisplacementDof.X);
+            int dofUx6 = solver.DofOrderer.GetStandardDofOf(model.Nodes[6], DisplacementDof.X);
             displacements.Add(solver.Solution[dofUx6]);
             displacements.Add(0.05);
 

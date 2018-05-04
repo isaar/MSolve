@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount, 
+            Matrix Kuc = Matrix.CreateZero(dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount, 
                 dofOrderer.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         /// Only the entries above the diagonal are considered
         private static int[] CalculateRowHeights(Model2D model, IDofOrderer dofOrderer) // I vote to call them RowWidths!!!
         {
-            int[] rowHeights = new int[dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount];
+            int[] rowHeights = new int[dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount];
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 int minDof = Int32.MaxValue;
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofOrderer.GetFreeDofsOf(node)) minDof = Math.Min(dof, minDof);
+                    foreach (int dof in dofOrderer.GetStandardDofsOf(node)) minDof = Math.Min(dof, minDof);
                     foreach (int dof in dofOrderer.GetEnrichedDofsOf(node)) Math.Min(dof, minDof);
                 }
 
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 // The max height is stored.
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofOrderer.GetFreeDofsOf(node))
+                    foreach (int dof in dofOrderer.GetStandardDofsOf(node))
                     {
                         rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDof);
                     }

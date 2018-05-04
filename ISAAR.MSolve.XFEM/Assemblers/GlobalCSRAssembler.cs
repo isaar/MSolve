@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public (DOKRowMajor Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.ConstrainedDofsCount;
-            int numDofsUnconstrained = dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount;
+            int numDofsUnconstrained = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             DOKRowMajor Kuu = DOKRowMajor.CreateEmpty(numDofsUnconstrained, numDofsUnconstrained);

@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
                 // Standard X dof
                 try
                 {
-                    int idxOldX = enumerator.GetFreeDofOf(node, DisplacementDof.X);
+                    int idxOldX = enumerator.GetStandardDofOf(node, DisplacementDof.X);
                     permutationOldToNew.Add(idxOldX, idxOldX + 1);
                 }
                 catch (KeyNotFoundException)
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
                 // Standard Y dof
                 try
                 {
-                    int idxOldY = enumerator.GetFreeDofOf(node, DisplacementDof.Y);
+                    int idxOldY = enumerator.GetStandardDofOf(node, DisplacementDof.Y);
                     permutationOldToNew.Add(idxOldY, idxOldY + 1);
                 }
                 catch (KeyNotFoundException)
@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             {
                 Console.WriteLine($"Element {counter++}:");
                 Console.Write("Free standard dofs: ");
-                PrintList(enumerator.GetFreeDofsOf(element));
+                PrintList(enumerator.GetStandardDofsOf(element));
                 Console.Write("Constrained standard dofs: ");
                 PrintList(enumerator.GetConstrainedDofsOf(element));
                 Console.Write("Free enriched dofs: ");
