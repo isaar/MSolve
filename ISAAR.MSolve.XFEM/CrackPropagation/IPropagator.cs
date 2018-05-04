@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
     {
         PropagationLogger Logger { get; }
 
-        (double growthAngle, double growthLength) Propagate(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements,
+        (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements,
             Vector totalConstrainedDisplacements);
     }
 }

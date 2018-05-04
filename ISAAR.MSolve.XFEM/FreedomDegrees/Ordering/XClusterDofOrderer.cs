@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    class DOFEnumeratorXCluster
+    class XClusterDofOrderer
     {
     }
 }

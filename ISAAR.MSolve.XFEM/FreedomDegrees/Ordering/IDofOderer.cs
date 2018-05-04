@@ -5,27 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    interface IDOFEnumerator
+    interface IDofOrderer
     {
         int ConstrainedDofsCount { get; }
         int EnrichedDofsCount { get ; }
         int FreeDofsCount { get; }
 
-        IDOFEnumerator DeepCopy();
+        IDofOrderer DeepCopy();
 
-        int GetFreeDofOf(XNode2D node, DisplacementDOF dofType);
+        int GetFreeDofOf(XNode2D node, DisplacementDof dofType);
         IEnumerable<int> GetFreeDofsOf(XNode2D node);
         List<int> GetFreeDofsOf(XContinuumElement2D element);
 
-        int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType);
+        int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType);
         IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
         List<int> GetConstrainedDofsOf(XContinuumElement2D element); // Also add a method that simultaneously returns free+constrained
 
-        int GetEnrichedDofOf(XNode2D node, EnrichedDOF dofType);
+        int GetEnrichedDofOf(XNode2D node, EnrichedDof dofType);
         IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
         List<int> GetEnrichedDofsOf(XContinuumElement2D element);
 
@@ -42,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 
-        ITable<XNode2D, EnrichedDOF, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
+        ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
 
         /// <summary>
         /// Renumbers the dof indices according th the given permutation vector and direction. 

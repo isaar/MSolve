@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
@@ -14,14 +12,14 @@ namespace ISAAR.MSolve.XFEM.Entities
         public Dictionary<IEnrichmentItem2D, double[]> EnrichmentItems { get; }
         public bool IsEnriched { get { return EnrichmentItems.Count > 0; } }
 
-        public int ArtificialDofsCount
+        public int EnrichedDofsCount
         {
             get
             {
                 int count = 0;
                 foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys)
                 {
-                    count += enrichment.DOFs.Count;
+                    count += enrichment.Dofs.Count;
                 }
                 return count;
             }

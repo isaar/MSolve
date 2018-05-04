@@ -9,8 +9,8 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
@@ -146,19 +146,19 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             // Constraints
             XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
-            model.AddConstraint(bottomLeftNode, DisplacementDOF.X, 0.0);
+            model.AddConstraint(bottomLeftNode, DisplacementDof.X, 0.0);
             if (fixBottom)
             {
                 foreach (var node in finder.FindNodesWithY(0.0))
                 {
-                    model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                    model.AddConstraint(node, DisplacementDof.Y, 0.0);
                 }
             }
             else
             {
                 XNode2D bottomRightNode = finder.FindNodeWith(bottomWidth, 0.0);
-                model.AddConstraint(bottomRightNode, DisplacementDOF.Y, 0.0);
-                model.AddConstraint(bottomLeftNode, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(bottomRightNode, DisplacementDof.Y, 0.0);
+                model.AddConstraint(bottomLeftNode, DisplacementDof.Y, 0.0);
             }
 
 
@@ -169,8 +169,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double[,] topLoads = distrubutor.DistributeLoad(topNodes, 0.0, distributedLoad);
             for (int i = 0; i < topNodes.Count; ++i)
             {
-                model.AddNodalLoad(topNodes[i], DisplacementDOF.X, topLoads[i, 0]);
-                model.AddNodalLoad(topNodes[i], DisplacementDOF.Y, topLoads[i, 1]);
+                model.AddNodalLoad(topNodes[i], DisplacementDof.X, topLoads[i, 0]);
+                model.AddNodalLoad(topNodes[i], DisplacementDof.Y, topLoads[i, 1]);
             }
         }
 

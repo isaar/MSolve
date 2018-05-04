@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -23,10 +23,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             watch.Start();
 
-            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
-            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
+            //DofOrderer = DofOrdererSeparate.Create(model);
+            DofOrderer = InterleavedDofOrderer.Create(model);
             var assembler = new GlobalSkylineAssembler();
-            (Matrix Kuu, Matrix Kuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (Matrix Kuu, Matrix Kuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Solution = Kuu.FactorCholesky().SolveLinearSystem(rhs);
 

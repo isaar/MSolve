@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Geometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.Entities

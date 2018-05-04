@@ -15,7 +15,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 //TODO: time the assembly, reorder, factorization, solution, other separately
 namespace ISAAR.MSolve.XFEM.Solvers
@@ -25,9 +25,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
     {
         private readonly IExteriorCrack crack;
         private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
-        private string dofEnumeratorName;
+        private string dofOrdererName;
         private int[] permutationOldToNew;
-        private IDOFEnumerator unorderedDOFs;
+        private IDofOrderer unorderedDofs;
 
         /// <summary>
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
@@ -65,20 +65,20 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 node.EnrichmentItems.Add(crack.CrackTipEnrichments, null);
             }
 
-            //unorderedDOFs = DOFEnumeratorSeparate.Create(model);
-            //dofEnumeratorName = "separate";
-            unorderedDOFs = DOFEnumeratorInterleaved.Create(model);
-            dofEnumeratorName = "interleaved";
-            //unorderedDOFs.WriteToConsole();
+            //unorderedDofs = DofOrdererSeparate.Create(model);
+            //dofOrdererName = "separate";
+            unorderedDofs = InterleavedDofOrderer.Create(model);
+            dofOrdererName = "interleaved";
+            //unorderedDofs.WriteToConsole();
 
             // Keep a copy of the unordered dofs
             watch.Stop();
-            DOFEnumerator = unorderedDOFs.DeepCopy();
+            DofOrderer = unorderedDofs.DeepCopy();
             watch.Start();
 
             // Reorder and count the reordering time
             ReorderPatternSuperset();
-            //DOFEnumerator.WriteToConsole();
+            //DofOrderer.WriteToConsole();
 
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
             foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Start();
 
             var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator); //This is not posdef. Debugger showed empty columns. Also there are no enriched dofs!!!
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer); //This is not posdef. Debugger showed empty columns. Also there are no enriched dofs!!!
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             int nnzOrderedFactor;
@@ -108,9 +108,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             #region test
             int nnzUnorderedFactor = CheckSolutionWithUnordered();
-            Console.WriteLine($"Initial ordering = {dofEnumeratorName}" 
+            Console.WriteLine($"Initial ordering = {dofOrdererName}" 
                 + $", reordering = AMD: nnz in factorization = {nnzOrderedFactor}");
-            Console.WriteLine($"Initial ordering = {dofEnumeratorName}" 
+            Console.WriteLine($"Initial ordering = {dofOrdererName}" 
                 + $", reordering = none: nnz in factorization = {nnzUnorderedFactor}");
             Console.WriteLine();
             #endregion
@@ -118,15 +118,15 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void ReorderPatternSuperset()
         {
-            int order = DOFEnumerator.FreeDofsCount + DOFEnumerator.EnrichedDofsCount;
+            int order = DofOrderer.FreeDofsCount + DofOrderer.EnrichedDofsCount;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
 
-            // Could build the sparsity pattern during DOF enumeration?
+            // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
             {
-                //TODO: what is the most efficient way to gather both? Perhaps the DOFEnumerator should do this 
-                var standardDofs = DOFEnumerator.GetFreeDofsOf(element);
-                var enrichedDofs = DOFEnumerator.GetEnrichedDofsOf(element);
+                //TODO: what is the most efficient way to gather both? Perhaps the DofOrderer should do this 
+                var standardDofs = DofOrderer.GetFreeDofsOf(element);
+                var enrichedDofs = DofOrderer.GetEnrichedDofsOf(element);
                 List<int> allDofs;
                 if (standardDofs.Count > enrichedDofs.Count)
                 {
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var orderingAlgorithm = new OrderingAMD();
             (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
             permutationOldToNew = permutation;
-            DOFEnumerator.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
 
         }
 
@@ -156,9 +156,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private int CheckSolutionWithUnordered()
         {
             var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unorderedDOFs);
-            Vector Fu = model.CalculateFreeForces(unorderedDOFs);
-            Vector uc = model.CalculateConstrainedDisplacements(unorderedDOFs);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
+            Vector Fu = model.CalculateFreeForces(unorderedDofs);
+            Vector uc = model.CalculateConstrainedDisplacements(unorderedDofs);
             Vector rhs = Fu - Kuc.MultiplyRight(uc);
             Vector unorderSolution;
             int nnzUnorderedFactor;

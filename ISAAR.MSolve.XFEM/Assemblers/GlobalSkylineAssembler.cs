@@ -8,19 +8,19 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalSkylineAssembler
     {
-        public (SkylineMatrix Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        public (SkylineMatrix Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsConstrained = dofEnumerator.ConstrainedDofsCount;
-            int numDofsUnconstrained = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
+            int numDofsConstrained = dofOrderer.ConstrainedDofsCount;
+            int numDofsUnconstrained = dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            SkylineBuilder Kuu = InitializeGlobalUncontrainedMatrix(model, dofEnumerator);
+            SkylineBuilder Kuu = InitializeGlobalUncontrainedMatrix(model, dofOrderer);
 
             // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
             // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
@@ -30,14 +30,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             {
                 // Build standard element matrices and add it contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
+                dofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapFree, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
                 Kuu.AddSubmatrixSymmetric(kss, mapFree);
                 Kuc.AddSubmatrix(kss, mapFree, mapConstrained);
 
                 // Build enriched element matrices and add it contributions to the global matrices
-                IReadOnlyDictionary<int, int> mapEnriched = dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (mapEnriched.Count > 0)
                 {
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             }
 
             #region DEBUG code
-            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofEnumerator);
+            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofOrderer);
             //Console.WriteLine("Check Kuu:");
             //CheckMatrix(expectedKuu, Kuu);
             //Console.WriteLine("Check Kuc:");
@@ -65,32 +65,32 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
 
-        private static SkylineBuilder InitializeGlobalUncontrainedMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        private static SkylineBuilder InitializeGlobalUncontrainedMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsUnconstrained = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
+            int numDofsUnconstrained = dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount;
             int[] colHeights = new int[numDofsUnconstrained]; //only entries above the diagonal count towards the column height
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the col height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0 entries in the element stiffness matrix.
-                int minDOF = Int32.MaxValue;
+                int minDof = Int32.MaxValue;
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofEnumerator.GetFreeDofsOf(node)) minDOF = Math.Min(dof, minDOF);
-                    foreach (int dof in dofEnumerator.GetEnrichedDofsOf(node)) Math.Min(dof, minDOF);
+                    foreach (int dof in dofOrderer.GetFreeDofsOf(node)) minDof = Math.Min(dof, minDof);
+                    foreach (int dof in dofOrderer.GetEnrichedDofsOf(node)) Math.Min(dof, minDof);
                 }
 
                 // The height of each col is updated for all elements that engage the corresponding dof. 
                 // The max height is stored.
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofEnumerator.GetFreeDofsOf(node))
+                    foreach (int dof in dofOrderer.GetFreeDofsOf(node))
                     {
-                        colHeights[dof] = Math.Max(colHeights[dof], dof - minDOF);
+                        colHeights[dof] = Math.Max(colHeights[dof], dof - minDof);
                     }
-                    foreach (int dof in dofEnumerator.GetEnrichedDofsOf(node))
+                    foreach (int dof in dofOrderer.GetEnrichedDofsOf(node))
                     {
-                        colHeights[dof] = Math.Max(colHeights[dof], dof - minDOF);
+                        colHeights[dof] = Math.Max(colHeights[dof], dof - minDof);
                     }
                 }
             }

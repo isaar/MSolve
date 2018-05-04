@@ -10,9 +10,10 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -123,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly SubmatrixChecker checker;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
-        private IDOFEnumerator dofEnumerator;
+        private IDofOrderer dofOrderer;
         private BasicExplicitInteriorCrack crack;
 
         private readonly PropagationResults results;
@@ -211,8 +212,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             IReadOnlyList<XNode2D> bottomNodes = finder.FindNodesWithY(0.0);
             foreach (var node in bottomNodes)
             {
-                model.AddConstraint(node, DisplacementDOF.X, 0.0);
-                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(node, DisplacementDof.X, 0.0);
+                model.AddConstraint(node, DisplacementDof.Y, 0.0);
             }
 
             // Loads: Top and bottom sides are subject to tension
@@ -221,8 +222,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             double[,] topLoads = distrubutor.DistributeLoad(topNodes, 0.0, tension);
             for (int i = 0; i < topNodes.Count; ++i)
             {
-                model.AddNodalLoad(topNodes[i], DisplacementDOF.X, topLoads[i, 0]);
-                model.AddNodalLoad(topNodes[i], DisplacementDOF.Y, topLoads[i, 1]);
+                model.AddNodalLoad(topNodes[i], DisplacementDof.X, topLoads[i, 0]);
+                model.AddNodalLoad(topNodes[i], DisplacementDof.Y, topLoads[i, 1]);
             }
         }
 
@@ -235,14 +236,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XNode2D topRightNode = finder.FindNodeWith(width, width);
 
             // Supports: Constrain x, y at the corner nodes
-            model.AddConstraint(bottomLeftNode, DisplacementDOF.X, 0.0);
-            model.AddConstraint(bottomLeftNode, DisplacementDOF.Y, 0.0);
-            model.AddConstraint(topLeftNode, DisplacementDOF.X, 0.0);
-            model.AddConstraint(topLeftNode, DisplacementDOF.Y, 0.0);
-            //model.AddConstraint(bottomRightNode, DisplacementDOF.X, 0.0);
-            //model.AddConstraint(bottomRightNode, DisplacementDOF.Y, 0.0);
-            //model.AddConstraint(topRightNode, DisplacementDOF.X, 0.0);
-            //model.AddConstraint(topRightNode, DisplacementDOF.Y, 0.0);
+            model.AddConstraint(bottomLeftNode, DisplacementDof.X, 0.0);
+            model.AddConstraint(bottomLeftNode, DisplacementDof.Y, 0.0);
+            model.AddConstraint(topLeftNode, DisplacementDof.X, 0.0);
+            model.AddConstraint(topLeftNode, DisplacementDof.Y, 0.0);
+            //model.AddConstraint(bottomRightNode, DisplacementDof.X, 0.0);
+            //model.AddConstraint(bottomRightNode, DisplacementDof.Y, 0.0);
+            //model.AddConstraint(topRightNode, DisplacementDof.X, 0.0);
+            //model.AddConstraint(topRightNode, DisplacementDof.Y, 0.0);
 
             // Loads: Top and bottom sides are subject to tension
             var distrubutor = new LoadDistributor();
@@ -254,8 +255,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 if (topNodes[i] != topLeftNode)
                 //if ((topNodes[i] != topLeftNode) && (topNodes[i] != topRightNode))
                 {
-                    model.AddNodalLoad(topNodes[i], DisplacementDOF.X, topLoads[i, 0]);
-                    model.AddNodalLoad(topNodes[i], DisplacementDOF.Y, topLoads[i, 1]);
+                    model.AddNodalLoad(topNodes[i], DisplacementDof.X, topLoads[i, 0]);
+                    model.AddNodalLoad(topNodes[i], DisplacementDof.Y, topLoads[i, 1]);
                 }
             }
             double[,] bottomLoads = distrubutor.DistributeLoad(bottomNodes, 0.0, -tension);
@@ -264,8 +265,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 if (bottomNodes[i] != bottomLeftNode)
                 //if ((bottomNodes[i] != bottomLeftNode) && (bottomNodes[i] != bottomRightNode))
                 {
-                    model.AddNodalLoad(bottomNodes[i], DisplacementDOF.X, bottomLoads[i, 0]);
-                    model.AddNodalLoad(bottomNodes[i], DisplacementDOF.Y, bottomLoads[i, 1]);
+                    model.AddNodalLoad(bottomNodes[i], DisplacementDof.X, bottomLoads[i, 0]);
+                    model.AddNodalLoad(bottomNodes[i], DisplacementDof.Y, bottomLoads[i, 1]);
                 }
             }
         }
@@ -295,20 +296,20 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var solver = new SkylineSolverOLD(model);
             solver.Initialize();
             solver.Solve();
-            dofEnumerator = solver.DOFEnumerator;
+            dofOrderer = solver.DofOrderer;
             return solver.Solution;
         }
 
         private PropagationResults Propagate(Vector solution)
         {
-            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
+            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
             // Start tip propagation
             var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            (double startGrowthAngle, double startGrowthIncrement) = startPropagator.Propagate(dofEnumerator, solution,
+            (double startGrowthAngle, double startGrowthIncrement) = startPropagator.Propagate(dofOrderer, solution,
                 totalConstrainedDisplacements);
             double startSIF1 = startPropagator.Logger.SIFsMode1[0];
             double startSIF2 = startPropagator.Logger.SIFsMode2[0];
@@ -318,7 +319,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            (double endGrowthAngle, double endGrowthIncrement) = endPropagator.Propagate(dofEnumerator, solution,
+            (double endGrowthAngle, double endGrowthIncrement) = endPropagator.Propagate(dofOrderer, solution,
                 totalConstrainedDisplacements);
             double endSIF1 = endPropagator.Logger.SIFsMode1[0];
             double endSIF2 = endPropagator.Logger.SIFsMode2[0];

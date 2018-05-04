@@ -7,7 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
@@ -22,23 +22,23 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     static class SingleGlobalSkylineAssemblerOLD
     {
-        public static (SkylineMatrix2D Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        public static (SkylineMatrix2D Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
+            int constrainedDofsCount = dofOrderer.ConstrainedDofsCount;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            SkylineMatrix2D Kuu = new SkylineMatrix2D(CalculateSkylineIndexer(model, dofEnumerator));
+            SkylineMatrix2D Kuu = new SkylineMatrix2D(CalculateSkylineIndexer(model, dofOrderer));
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount, 
-                dofEnumerator.ConstrainedDofsCount);
+            Matrix Kuc = Matrix.CreateZero(dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount, 
+                dofOrderer.ConstrainedDofsCount);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // Build standard element matrices and add it contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
+                dofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
                     out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
                 // Build enriched element matrices and add it contributions to the global matrices
                 IReadOnlyDictionary<int, int> elementToGlobalEnrDofs =
-                    dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                    dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (elementToGlobalEnrDofs.Count > 0)
                 {
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             }
 
             #region DEBUG code
-            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofEnumerator);
+            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofOrderer);
             //Console.WriteLine("Check Kuu:");
             //CheckMatrix(expectedKuu, Kuu);
             //Console.WriteLine("Check Kuc:");
@@ -68,9 +68,9 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return (Kuu, Kuc);
         }
 
-        private static int[] CalculateSkylineIndexer(Model2D model, IDOFEnumerator dofEnumerator)
+        private static int[] CalculateSkylineIndexer(Model2D model, IDofOrderer dofOrderer)
         {
-            int[] rowHeights = CalculateRowHeights(model, dofEnumerator);
+            int[] rowHeights = CalculateRowHeights(model, dofOrderer);
 
             int[] rowIndex = new int[rowHeights.Length + 1]; // The indexer uses 1 extra ghost entry to facilitate some operations
             rowIndex[0] = 0; // The diagonal entries of the first 2 rows always have the same positions
@@ -81,31 +81,31 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
         /// Only the entries above the diagonal are considered
-        private static int[] CalculateRowHeights(Model2D model, IDOFEnumerator dofEnumerator) // I vote to call them RowWidths!!!
+        private static int[] CalculateRowHeights(Model2D model, IDofOrderer dofOrderer) // I vote to call them RowWidths!!!
         {
-            int[] rowHeights = new int[dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount];
+            int[] rowHeights = new int[dofOrderer.FreeDofsCount + dofOrderer.EnrichedDofsCount];
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0 entries in the element stiffness matrix.
-                int minDOF = Int32.MaxValue;
+                int minDof = Int32.MaxValue;
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofEnumerator.GetFreeDofsOf(node)) minDOF = Math.Min(dof, minDOF);
-                    foreach (int dof in dofEnumerator.GetEnrichedDofsOf(node)) Math.Min(dof, minDOF);
+                    foreach (int dof in dofOrderer.GetFreeDofsOf(node)) minDof = Math.Min(dof, minDof);
+                    foreach (int dof in dofOrderer.GetEnrichedDofsOf(node)) Math.Min(dof, minDof);
                 }
 
                 // The height of each row is updated for all elements that engage the corresponding dof. 
                 // The max height is stored.
                 foreach (XNode2D node in element.Nodes)
                 {
-                    foreach (int dof in dofEnumerator.GetFreeDofsOf(node))
+                    foreach (int dof in dofOrderer.GetFreeDofsOf(node))
                     {
-                        rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
+                        rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDof);
                     }
-                    foreach (int dof in dofEnumerator.GetEnrichedDofsOf(node))
+                    foreach (int dof in dofOrderer.GetEnrichedDofsOf(node))
                     {
-                        rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
+                        rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDof);
                     }
                 }
             }

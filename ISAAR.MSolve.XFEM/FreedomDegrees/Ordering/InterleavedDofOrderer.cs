@@ -3,28 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    class DOFEnumeratorInterleaved: DOFEnumeratorBase
+    class InterleavedDofOrderer: DofOrdererBase
     {
-        private DOFEnumeratorInterleaved(int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs,
-            int enrichedDofsCount, DOFTable<EnrichedDOF> enrichedDofs,
-            int freeDofsCount, DOFTable<DisplacementDOF> freeDofs) :
+        private InterleavedDofOrderer(int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs,
+            int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs,
+            int freeDofsCount, DofTable<DisplacementDof> freeDofs) :
             base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, freeDofsCount, freeDofs)
         {
         }
 
-        public static DOFEnumeratorInterleaved Create(Model2D model)
+        public static InterleavedDofOrderer Create(Model2D model)
         {
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
-            (DOFTable<DisplacementDOF> freeDofs, DOFTable<EnrichedDOF> enrichedDofs) = 
+            (DofTable<DisplacementDof> freeDofs, DofTable<EnrichedDof> enrichedDofs) = 
                 EnumerateFreeEnrichedDofs(model);
-            (int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs) =
+            (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) =
                 EnumerateConstrainedDofs(model.Constraints);
 
             #region DEBUG code
@@ -38,16 +38,16 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             //Console.WriteLine("------------------------ /DEBUG ------------------------------");
             #endregion
 
-            return new DOFEnumeratorInterleaved(constrainedDofsCount, constrainedDofs, enrichedDofs.EntryCount, enrichedDofs,
+            return new InterleavedDofOrderer(constrainedDofsCount, constrainedDofs, enrichedDofs.EntryCount, enrichedDofs,
                 freeDofs.EntryCount, freeDofs);
         }
 
-        private static (int constrainedDofsCount, DOFTable<DisplacementDOF> constrainedDofs) EnumerateConstrainedDofs(
-            ITable<XNode2D, DisplacementDOF, double> constraints)
+        private static (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) EnumerateConstrainedDofs(
+            ITable<XNode2D, DisplacementDof, double> constraints)
         {
-            var constrainedDofs = new DOFTable<DisplacementDOF>();
+            var constrainedDofs = new DofTable<DisplacementDof>();
             int dofCounter = 0;
-            foreach (Tuple<XNode2D, DisplacementDOF, double> entry in constraints)
+            foreach (Tuple<XNode2D, DisplacementDof, double> entry in constraints)
             {
                 constrainedDofs[entry.Item1, entry.Item2] = dofCounter++;
             }
@@ -61,23 +61,23 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        private static (DOFTable<DisplacementDOF> freeDofs, DOFTable<EnrichedDOF> enrichedDofs) 
+        private static (DofTable<DisplacementDof> freeDofs, DofTable<EnrichedDof> enrichedDofs) 
             EnumerateFreeEnrichedDofs(Model2D model)
         {
-            ITable<XNode2D, DisplacementDOF, double> constraints = model.Constraints;
-            var freeDofs = new DOFTable<DisplacementDOF>();
-            var enrichedDofs = new DOFTable<EnrichedDOF>();
+            ITable<XNode2D, DisplacementDof, double> constraints = model.Constraints;
+            var freeDofs = new DofTable<DisplacementDof>();
+            var enrichedDofs = new DofTable<EnrichedDof>();
             int dofCounter = 0;
             foreach (XNode2D node in model.Nodes)
             {
                 // Standard free dofs. No rotational dofs. They can be X or Y. One or both of them may be constrained. 
-                if (!constraints.Contains(node, DisplacementDOF.X)) freeDofs[node, DisplacementDOF.X] = dofCounter++;
-                if (!constraints.Contains(node, DisplacementDOF.Y)) freeDofs[node, DisplacementDOF.Y] = dofCounter++;
+                if (!constraints.Contains(node, DisplacementDof.X)) freeDofs[node, DisplacementDof.X] = dofCounter++;
+                if (!constraints.Contains(node, DisplacementDof.Y)) freeDofs[node, DisplacementDof.Y] = dofCounter++;
 
                 // Enriched dofs. No rotational dofs. They cannot be constrained.
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    foreach (EnrichedDOF dofType in enrichment.DOFs) enrichedDofs[node, dofType] = dofCounter++;
+                    foreach (EnrichedDof dofType in enrichment.Dofs) enrichedDofs[node, dofType] = dofCounter++;
                 }
             }
             return (freeDofs, enrichedDofs);

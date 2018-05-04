@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Interleaved dof enumerator seems to be faster. I expect it to result in reduced bandwidth compared to separate
             // dof enumerator.
-            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
-            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
+            DofOrderer = InterleavedDofOrderer.Create(model);
+            //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalSkylineAssembler();
-            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Solution = Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
 

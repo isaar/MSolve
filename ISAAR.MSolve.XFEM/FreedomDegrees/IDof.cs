@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-//WARNING: DOFTable depends on this being immutable.
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+//WARNING: DofTable depends on this being immutable.
+namespace ISAAR.MSolve.XFEM.FreedomDegrees
 {
     /// <summary>
     /// Tagging interface. Concrete implementations are immutable.
     /// </summary>
-    public interface IDOF
+    public interface IDof
     {
     }
 }

@@ -15,7 +15,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -67,8 +68,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 node.EnrichmentItems.Add(crack.CrackTipEnrichments, null);
             }
 
-            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
-            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
+            //DofOrderer = DofOrdererSeparate.Create(model);
+            DofOrderer = InterleavedDofOrderer.Create(model);
 
             // Reorder and count the reordering time separately
             ReorderPatternSuperset(); //TODO: this actually increases fill-in
@@ -91,15 +92,15 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void ReorderPatternSuperset()
         {
-            int order = DOFEnumerator.FreeDofsCount + DOFEnumerator.EnrichedDofsCount;
+            int order = DofOrderer.FreeDofsCount + DofOrderer.EnrichedDofsCount;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
 
-            // Could build the sparsity pattern during DOF enumeration?
+            // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
             {
-                //TODO: what is the most efficient way to gather both? Perhaps the DOFEnumerator should do this 
-                var standardDofs = DOFEnumerator.GetFreeDofsOf(element);
-                var enrichedDofs = DOFEnumerator.GetEnrichedDofsOf(element);
+                //TODO: what is the most efficient way to gather both? Perhaps the DofOrderer should do this 
+                var standardDofs = DofOrderer.GetFreeDofsOf(element);
+                var enrichedDofs = DofOrderer.GetEnrichedDofsOf(element);
                 List<int> allDofs;
                 if (standardDofs.Count > enrichedDofs.Count)
                 {
@@ -116,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             var orderingAlgorithm = new OrderingAMD();
             (int[] permutationOldToNew, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
-            DOFEnumerator.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
         }
 
         private void SolveFirstTime()
@@ -127,7 +128,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             counter = 0;
             // TODO: the matrices must not be built and factorized in each iteration
             var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
@@ -150,29 +151,29 @@ namespace ISAAR.MSolve.XFEM.Solvers
             ++counter;
             // TODO: the matrices and vectors must not be built in each iteration
             var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             // Group the new dofs
-            IReadOnlyList<EnrichedDOF> heavisideDOFs = crack.CrackBodyEnrichment.DOFs;
-            IReadOnlyList<EnrichedDOF> tipDOFs = crack.CrackTipEnrichments.DOFs;
+            IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
+            IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
             var colsToAdd = new HashSet<int>();
             foreach (var node in crack.CrackTipNodesNew)
             {
-                foreach (var tipDOF in tipDOFs) colsToAdd.Add(DOFEnumerator.GetEnrichedDofOf(node, tipDOF));
+                foreach (var tipDof in tipDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
             }
             foreach (var node in crack.CrackBodyNodesNew)
             {
-                foreach (var heavisideDOF in heavisideDOFs) colsToAdd.Add(DOFEnumerator.GetEnrichedDofOf(node, heavisideDOF));
+                foreach (var heavisideDof in heavisideDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
             }
             var tabooRows = new HashSet<int>(colsToAdd);
 
-            // Delete old tip enriched DOFs. Should this be done before or after addition?
+            // Delete old tip enriched Dofs. Should this be done before or after addition?
             foreach (var node in crack.CrackTipNodesOld)
             {
-                foreach (var tipDOF in tipDOFs)
+                foreach (var tipDof in tipDofs)
                 {
-                    int colIdx = DOFEnumerator.GetEnrichedDofOf(node, tipDOF);
+                    int colIdx = DofOrderer.GetEnrichedDofOf(node, tipDof);
                     tabooRows.Add(colIdx); // They must also be excluded when adding new columns
                     factorizedKuu.DeleteRow(colIdx);
                 }
@@ -210,7 +211,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
@@ -243,7 +244,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Vector solutionExpected;
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
@@ -267,19 +268,19 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 // Modified dofs
                 var removedRows = new List<int>();
                 var addedRows = new List<int>();
-                IReadOnlyList<EnrichedDOF> heavisideDOFs = crack.CrackBodyEnrichment.DOFs;
-                IReadOnlyList<EnrichedDOF> tipDOFs = crack.CrackTipEnrichments.DOFs;
+                IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
+                IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
                 foreach (var node in crack.CrackTipNodesOld)
                 {
-                    foreach (var tipDOF in tipDOFs) removedRows.Add(DOFEnumerator.GetEnrichedDofOf(node, tipDOF));
+                    foreach (var tipDof in tipDofs) removedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
                 }
                 foreach (var node in crack.CrackTipNodesNew)
                 {
-                    foreach (var tipDOF in tipDOFs) addedRows.Add(DOFEnumerator.GetEnrichedDofOf(node, tipDOF));
+                    foreach (var tipDof in tipDofs) addedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
                 }
                 foreach (var node in crack.CrackBodyNodesNew)
                 {
-                    foreach (var heavisideDOF in heavisideDOFs) addedRows.Add(DOFEnumerator.GetEnrichedDofOf(node, heavisideDOF));
+                    foreach (var heavisideDof in heavisideDofs) addedRows.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
                 }
                 WriteList(removedRows, removedRowsPath);
                 WriteList(addedRows, addedRowsPath);

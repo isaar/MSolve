@@ -8,11 +8,11 @@ using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
 using ISAAR.MSolve.XFEM.Tests.Khoei;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
 {
     class ReorderingTests
     {
@@ -40,22 +40,22 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             var watch = new Stopwatch();
 
-            IDOFEnumerator unorderedDOFs;
+            IDofOrderer unorderedDofs;
             string unorderedName;
             if (interleaved)
             {
-                unorderedDOFs = DOFEnumeratorInterleaved.Create(model); ;
+                unorderedDofs = InterleavedDofOrderer.Create(model); ;
                 unorderedName = "Interleaved";
             }
             else
             {
-                unorderedDOFs = DOFEnumeratorSeparate.Create(model); ;
+                unorderedDofs = SeparateDofOrderer.Create(model); ;
                 unorderedName = "Separate";
             }
 
             // Before reorder
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unorderedDOFs);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
             Console.WriteLine($"CSC non zeros = {Kuu.CountNonZeros()}");
 
             watch.Start();
@@ -69,9 +69,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             // After reorder
             (int[] permutation, ReorderingStatistics stats) = Kuu.Reorder(new OrderingAMD());
             Console.WriteLine($"{unorderedName} ordering -> AMD : Non zeros predicted by AMD = {stats.FactorizedNumNonZeros}");
-            IDOFEnumerator reorderedDOFs = unorderedDOFs.DeepCopy();
-            reorderedDOFs.ReorderUnconstrainedDofs(permutation, false);
-            (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDOFs);
+            IDofOrderer reorderedDofs = unorderedDofs.DeepCopy();
+            reorderedDofs.ReorderUnconstrainedDofs(permutation, false);
+            (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDofs);
 
             watch.Restart();
             using (var factor = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             }
 
             // Let SuiteSparse handle the AMD ordering
-            (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDOFs);
+            (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
             watch.Restart();
             using (var factor = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.AMD))
             {
@@ -97,9 +97,9 @@ namespace ISAAR.MSolve.XFEM.Tests
                 Console.WriteLine("\nPermutation: ");
                 PrintList(permutation);
                 Console.WriteLine("\nBefore reordering: ");
-                unorderedDOFs.WriteToConsole();
+                unorderedDofs.WriteToConsole();
                 Console.WriteLine("\nAfter reordering: ");
-                reorderedDOFs.WriteToConsole();
+                reorderedDofs.WriteToConsole();
             }
         }
 

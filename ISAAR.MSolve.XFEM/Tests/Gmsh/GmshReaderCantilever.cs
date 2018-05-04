@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh;
@@ -76,12 +76,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Gmsh
             // Constrain the nodes of the left edge
             foreach (var node in leftNodes)
             {
-                model.AddConstraint(node, DisplacementDOF.X, 0.0);
-                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(node, DisplacementDof.X, 0.0);
+                model.AddConstraint(node, DisplacementDof.Y, 0.0);
             }
 
             // Apply the load on the top right node
-            model.AddNodalLoad(topRightNode, DisplacementDOF.Y, load);
+            model.AddNodalLoad(topRightNode, DisplacementDof.Y, load);
         }
 
         public Tuple<XNode2D, double> FindMaxDisplacement(Model2D model)

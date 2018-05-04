@@ -80,10 +80,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 crack.UpdateEnrichments();
                 solver.Solve();
 
-                Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DOFEnumerator);
+                Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
                 Vector totalFreeDisplacements = solver.Solution;
 
-                (double growthAngle, double growthIncrement) = propagator.Propagate(solver.DOFEnumerator,
+                (double growthAngle, double growthIncrement) = propagator.Propagate(solver.DofOrderer,
                     totalFreeDisplacements, totalConstrainedDisplacements);
                 crack.UpdateGeometry(growthAngle, growthIncrement);
                 ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);

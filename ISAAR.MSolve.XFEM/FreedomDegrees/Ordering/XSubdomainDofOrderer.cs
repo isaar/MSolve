@@ -5,14 +5,14 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
     //TODO: perhaps the subdomain should do all these itself
-    class DOFEnumeratorXSubdomain
+    class XSubdomainDofOrderer
     {
-        protected readonly DOFTable<EnrichedDOF> enrichedDofs;
+        protected readonly DofTable<EnrichedDof> enrichedDofs;
 
-        private DOFEnumeratorXSubdomain(int numEnrichedDofs, DOFTable<EnrichedDOF> enrichedDofs)
+        private XSubdomainDofOrderer(int numEnrichedDofs, DofTable<EnrichedDof> enrichedDofs)
         {
             this.NumEnrichedDofs = numEnrichedDofs;
             this.enrichedDofs = enrichedDofs;
@@ -20,21 +20,21 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         public int NumEnrichedDofs { get; }
 
-        public static DOFEnumeratorXSubdomain CreateNodeMajor(SortedSet<XNode2D> nodes)
+        public static XSubdomainDofOrderer CreateNodeMajor(SortedSet<XNode2D> nodes)
         {
-            var enrichedDofs = new DOFTable<EnrichedDOF>();
+            var enrichedDofs = new DofTable<EnrichedDof>();
             int dofCounter = 0;
             foreach (XNode2D node in nodes)
             {
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    foreach (EnrichedDOF dofType in enrichment.DOFs) enrichedDofs[node, dofType] = dofCounter++;
+                    foreach (EnrichedDof dofType in enrichment.Dofs) enrichedDofs[node, dofType] = dofCounter++;
                 }
             }
-            return new DOFEnumeratorXSubdomain(dofCounter, enrichedDofs);
+            return new XSubdomainDofOrderer(dofCounter, enrichedDofs);
         }
 
-        public int GetDofIdx(XNode2D node, EnrichedDOF dof)
+        public int GetDofIdx(XNode2D node, EnrichedDof dof)
         {
             return enrichedDofs[node, dof];
         }
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
-                    foreach (EnrichedDOF dofType in enrichment.DOFs)
+                    foreach (EnrichedDof dofType in enrichment.Dofs)
                     {
                         subdomainEnrichedDofs[elementDof++] = this.enrichedDofs[node, dofType];
                     }

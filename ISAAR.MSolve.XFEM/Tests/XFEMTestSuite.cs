@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.XFEM.Tests.DofOrdering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
 
 namespace ISAAR.MSolve.XFEM.Tests

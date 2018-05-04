@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
@@ -29,8 +30,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         public static void Main()
         {
             Model2D model = CreateModel();
-            (Vector solution, IDOFEnumerator dofEnumerator) = Solve(model);
-            WriteOutput(model, solution, dofEnumerator);
+            (Vector solution, IDofOrderer dofOrderer) = Solve(model);
+            WriteOutput(model, solution, dofOrderer);
         }
 
         private static Model2D CreateModel()
@@ -60,40 +61,40 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             var finder = new EntityFinder(model, 1e-6);
             foreach (var node in finder.FindNodesWithX(0.0))
             {
-                model.AddConstraint(node, DisplacementDOF.X, 0.0);
-                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(node, DisplacementDof.X, 0.0);
+                model.AddConstraint(node, DisplacementDof.Y, 0.0);
             }
 
             // Loads
             //var loadedNodes = finder.FindNodesWithX(DIM_X);
             //double loadPerNode = - LOAD / loadedNodes.Count;
-            //foreach (var node in loadedNodes) model.AddNodalLoad(node, DisplacementDOF.Y, loadPerNode);
+            //foreach (var node in loadedNodes) model.AddNodalLoad(node, DisplacementDof.Y, loadPerNode);
             XNode2D topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
-            model.AddNodalLoad(topRightNode, DisplacementDOF.Y, -LOAD);
+            model.AddNodalLoad(topRightNode, DisplacementDof.Y, -LOAD);
 
             return model;
         }
 
-        private static (Vector, IDOFEnumerator) Solve(Model2D model)
+        private static (Vector, IDofOrderer) Solve(Model2D model)
         {
             var solver = new SkylineSolver(model);
             solver.Initialize();
             solver.Solve();
-            return (solver.Solution, solver.DOFEnumerator);
+            return (solver.Solution, solver.DofOrderer);
         }
 
-        private static void WriteOutput(Model2D model, Vector solution, IDOFEnumerator dofEnumerator)
+        private static void WriteOutput(Model2D model, Vector solution, IDofOrderer dofOrderer)
         {
             var writer = new DiscontinuousMeshVTKWriter(model);
             writer.InitializeFile(OUTPUT_FILE);
 
-            var displacementsOut = new DisplacementOutput(model, dofEnumerator);
+            var displacementsOut = new DisplacementOutput(model, dofOrderer);
 
             IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Vector2>> elementDisplacements =
                displacementsOut.FindElementWiseDisplacements(solution);
             writer.WriteVector2DField("displacements", elementDisplacements);
             
-            var stressRecovery = new StressRecovery(model, dofEnumerator);
+            var stressRecovery = new StressRecovery(model, dofOrderer);
             IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> elementStresses = 
                 stressRecovery.ComputeElementWiseStresses(solution);
             writer.WriteTensor2DField("stresses", elementStresses);

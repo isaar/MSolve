@@ -10,8 +10,8 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -28,6 +28,7 @@ using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
 using System.Diagnostics;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -74,7 +75,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private readonly double jIntegralRadiusOverElementSize;
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
-        private IDOFEnumerator dofEnumerator;
+        private IDofOrderer dofOrderer;
         private BasicExplicitCrack2D crack;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
         private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
@@ -167,21 +168,21 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Fixed dofs
             foreach (var node in finder.FindNodesWithX(0.0))
             {
-                model.AddConstraint(node, DisplacementDOF.X, 0.0);
-                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(node, DisplacementDof.X, 0.0);
+                model.AddConstraint(node, DisplacementDof.Y, 0.0);
             }
             //bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
             //topLeftNode = finder.FindNodeWith(0.0, DIM_Y);
-            //model.AddConstraint(bottomLeftNode, DisplacementDOF.X, 0.0);
-            //model.AddConstraint(bottomLeftNode, DisplacementDOF.Y, 0.0);
-            //model.AddConstraint(topLeftNode, DisplacementDOF.X, 0.0);
-            //model.AddConstraint(topLeftNode, DisplacementDOF.Y, 0.0);
+            //model.AddConstraint(bottomLeftNode, DisplacementDof.X, 0.0);
+            //model.AddConstraint(bottomLeftNode, DisplacementDof.Y, 0.0);
+            //model.AddConstraint(topLeftNode, DisplacementDof.X, 0.0);
+            //model.AddConstraint(topLeftNode, DisplacementDof.Y, 0.0);
 
             // Prescribed displacements
             bottomRightNode = finder.FindNodeWith(DIM_X, 0.0);
             topRightNode = finder.FindNodeWith(DIM_X, DIM_Y);
-            model.AddConstraint(bottomRightNode, DisplacementDOF.Y, -0.05);
-            model.AddConstraint(topRightNode, DisplacementDOF.Y, 0.05);
+            model.AddConstraint(bottomRightNode, DisplacementDof.Y, -0.05);
+            model.AddConstraint(topRightNode, DisplacementDof.Y, 0.05);
         }
 
         private void HandleCrack()
@@ -206,7 +207,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             //var solver = new PCGSolver(model, 1, 1e-8);
             solver.Initialize();
             solver.Solve();
-            dofEnumerator = solver.DOFEnumerator;
+            dofOrderer = solver.DofOrderer;
             return solver.Solution;
         }
 
@@ -217,14 +218,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XNode2D mouthBottomNode = mouthElements[0].Nodes[1];
             XNode2D mouthTopNode = mouthElements[0].Nodes[2];
 
-            double uBotX = solution[dofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.X)];
-            double uBotY = solution[dofEnumerator.GetFreeDofOf(mouthBottomNode, DisplacementDOF.Y)];
-            double uTopX = solution[dofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.X)];
-            double uTopY = solution[dofEnumerator.GetFreeDofOf(mouthTopNode, DisplacementDOF.Y)];
-            double aBotX = solution[dofEnumerator.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[0])];
-            double aBotY = solution[dofEnumerator.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.DOFs[1])];
-            double aTopX = solution[dofEnumerator.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[0])];
-            double aTopY = solution[dofEnumerator.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.DOFs[1])];
+            double uBotX = solution[dofOrderer.GetFreeDofOf(mouthBottomNode, DisplacementDof.X)];
+            double uBotY = solution[dofOrderer.GetFreeDofOf(mouthBottomNode, DisplacementDof.Y)];
+            double uTopX = solution[dofOrderer.GetFreeDofOf(mouthTopNode, DisplacementDof.X)];
+            double uTopY = solution[dofOrderer.GetFreeDofOf(mouthTopNode, DisplacementDof.Y)];
+            double aBotX = solution[dofOrderer.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.Dofs[0])];
+            double aBotY = solution[dofOrderer.GetEnrichedDofOf(mouthBottomNode, crack.CrackBodyEnrichment.Dofs[1])];
+            double aTopX = solution[dofOrderer.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.Dofs[0])];
+            double aTopY = solution[dofOrderer.GetEnrichedDofOf(mouthTopNode, crack.CrackBodyEnrichment.Dofs[1])];
 
             Console.WriteLine("Solution results: For the element containing the crack mouth:");
             Console.WriteLine("Bottom right node, standard dof x: u = " + uBotX);
@@ -246,9 +247,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
 
-            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
+            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
-            (double growthAngle, double growthIncrement) = propagator.Propagate(dofEnumerator, solution, 
+            (double growthAngle, double growthIncrement) = propagator.Propagate(dofOrderer, solution, 
                 totalConstrainedDisplacements);
             double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))

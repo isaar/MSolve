@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
@@ -57,14 +55,14 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         //    return new FixedPropagator(angles, lengths, actualPropagator);
         //}
 
-        public (double growthAngle, double growthLength) Propagate(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements,
+        public (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements,
             Vector totalConstrainedDisplacements)
         {
             double angle = Logger.GrowthAngles[iteration];
             double length = Logger.GrowthLengths[iteration];
             if (checkPropagation)
             {
-                actualPropagator.Propagate(dofEnumerator, totalFreeDisplacements, totalConstrainedDisplacements);
+                actualPropagator.Propagate(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements);
                 Console.Write($"Growth angle: expected = {angle}");
                 Console.WriteLine($"   -   computed = {actualPropagator.Logger.GrowthAngles[iteration]}");
                 Console.Write($"Growth length: expected = {length}");

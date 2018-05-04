@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
@@ -24,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public ISet<XContinuumElement2D> Elements { get { return elements; } }
         public ISet<XNode2D> Nodes { get; }
 
-        public DOFEnumeratorXSubdomain DOFOrder { get; set; }
+        public XSubdomainDofOrderer DofOrder { get; set; }
 
         public void AddNode(XNode2D node) //TODO: perhaps I should only add elements
         {
@@ -40,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public void EnumerateDofs()
         {
-            DOFOrder = DOFEnumeratorXSubdomain.CreateNodeMajor(nodes);
+            DofOrder = XSubdomainDofOrderer.CreateNodeMajor(nodes);
         }
     }
 }

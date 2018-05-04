@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     {
         public DOKSymmetricColMajor BuildSubdomainMatrices(XSubdomain2D subdomain)
         {
-            DOFEnumeratorXSubdomain dofOrder = subdomain.DOFOrder;
+            XSubdomainDofOrderer dofOrder = subdomain.DofOrder;
 
             int numDofsStd = subdomain.Nodes.Count * 2;
             int numDofsEnr = dofOrder.NumEnrichedDofs;
