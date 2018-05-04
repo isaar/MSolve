@@ -13,9 +13,9 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     {
         public DOKSymmetricColMajor BuildSubdomainMatrices(XSubdomain2D subdomain)
         {
-            XSubdomainDofOrderer dofOrder = subdomain.DofOrder;
+            XSubdomainDofOrderer dofOrder = subdomain.DofOrderer;
 
-            int numDofsStd = subdomain.Nodes.Count * 2;
+            int numDofsStd = subdomain.AllNodes.Count * 2;
             int numDofsEnr = dofOrder.NumEnrichedDofs;
 
             var Kee = DOKSymmetricColMajor.CreateEmpty(numDofsEnr);
@@ -24,14 +24,15 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             foreach (XContinuumElement2D element in subdomain.Elements)
             {
                 // Build enriched element matrices and add their contributions to the global matrices
-                IReadOnlyDictionary<int, int> mapEnriched = dofOrder.MatchElementToSubdomainEnrichedDofs(element);
+                (IReadOnlyDictionary<int, int> enrElement2Subdomain, IReadOnlyDictionary<int, int> enrElement2Global) = 
+                    dofOrder.MatchElementToSubdomainAndGlobalEnrichedDofs(element);
 
                 // Not all elements are enriched necessarily. The domain decomposition might be done only at the start.
-                if (mapEnriched.Count > 0) 
+                if (enrElement2Subdomain.Count > 0) 
                 {
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
 
-                    Kee.AddSubmatrixSymmetric(kee, mapEnriched);
+                    Kee.AddSubmatrixSymmetric(kee, enrElement2Subdomain);
                     //Kes.AddSubmatrix(kes, mapEnriched, mapFree);
                 }
             }

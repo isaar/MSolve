@@ -10,8 +10,9 @@ namespace ISAAR.MSolve.XFEM.Tests
     {
         public static void RunAll()
         {
-            ReorderingTests.Run();
             //DCBSolvers.Run();
+            //ReorderingTests.Run();
+            SubdomainTests.Run();
         }
     }
 }

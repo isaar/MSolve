@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
@@ -10,51 +11,62 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     //TODO: perhaps the subdomain should do all these itself
     class XSubdomainDofOrderer
     {
-        protected readonly DofTable<EnrichedDof> enrichedDofs;
+        //TODO: perhaps the rows, columns of the 2 tables can be shared, for less memory and faster simultaneous iteration
+        protected readonly DofTable<EnrichedDof> globalEnrichedDofs; 
+        protected readonly DofTable<EnrichedDof> subdomainEnrichedDofs;
 
-        private XSubdomainDofOrderer(int numEnrichedDofs, DofTable<EnrichedDof> enrichedDofs)
+        private XSubdomainDofOrderer(int numEnrichedDofs, DofTable<EnrichedDof> subdomainEnrichedDofs,
+            DofTable<EnrichedDof> globalEnrichedDofs)
         {
             this.NumEnrichedDofs = numEnrichedDofs;
-            this.enrichedDofs = enrichedDofs;
+            this.subdomainEnrichedDofs = subdomainEnrichedDofs;
+            this.globalEnrichedDofs = globalEnrichedDofs;
         }
 
         public int NumEnrichedDofs { get; }
 
-        public static XSubdomainDofOrderer CreateNodeMajor(SortedSet<XNode2D> nodes)
+        public static XSubdomainDofOrderer CreateNodeMajor(XSubdomain2D subdomain, int globalIndicesStart) //TODO: also add AMD reordering
         {
-            var enrichedDofs = new DofTable<EnrichedDof>();
+            var subdomainEnrichedDofs = new DofTable<EnrichedDof>();
+            var globalEnrichedDofs = new DofTable<EnrichedDof>();
             int dofCounter = 0;
-            foreach (XNode2D node in nodes)
+            foreach (XNode2D node in subdomain.AllNodes)
             {
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    foreach (EnrichedDof dofType in enrichment.Dofs) enrichedDofs[node, dofType] = dofCounter++;
+                    foreach (EnrichedDof dofType in enrichment.Dofs)
+                    {
+                        subdomainEnrichedDofs[node, dofType] = dofCounter;
+                        globalEnrichedDofs[node, dofType] = globalIndicesStart + dofCounter; // Then I could just subtract the offest to go local -> global
+                        ++dofCounter;
+                    }
                 }
             }
-            return new XSubdomainDofOrderer(dofCounter, enrichedDofs);
+            return new XSubdomainDofOrderer(dofCounter, subdomainEnrichedDofs, globalEnrichedDofs);
         }
 
-        public int GetDofIdx(XNode2D node, EnrichedDof dof)
-        {
-            return enrichedDofs[node, dof];
-        }
+        //public int GetDofIdx(XNode2D node, EnrichedDof dof)
+        //{
+        //    return subdomainEnrichedDofs[node, dof];
+        //}
 
-        public IEnumerable<int> GetDofIndices(XNode2D node)
-        {
-            try
-            {
-                return enrichedDofs.GetValuesOfRow(node);
-            }
-            catch (KeyNotFoundException)
-            {
-                return new int[] { }; // TODO: It would be better if this method is not called for a non enriched node.
-            }
-        }
+        //public IEnumerable<int> GetEnrichedDofs(XNode2D node)
+        //{
+        //    try
+        //    {
+        //        return subdomainEnrichedDofs.GetValuesOfRow(node);
+        //    }
+        //    catch (KeyNotFoundException)
+        //    {
+        //        return new int[] { }; // TODO: It would be better if this method is not called for a non enriched node.
+        //    }
+        //}
 
-        //TODO: this could be an array
-        public IReadOnlyDictionary<int, int> MatchElementToSubdomainEnrichedDofs(XContinuumElement2D element)
+        public (IReadOnlyDictionary<int, int> element2Subdomain, IReadOnlyDictionary<int, int> element2Global) 
+            MatchElementToSubdomainAndGlobalEnrichedDofs(XContinuumElement2D element)
         {
-            var subdomainEnrichedDofs = new Dictionary<int, int>();
+            var element2Subdomain = new Dictionary<int, int>();
+            var element2Global = new Dictionary<int, int>();
             int elementDof = 0;
             foreach (XNode2D node in element.Nodes)
             {
@@ -65,11 +77,26 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                     foreach (EnrichedDof dofType in enrichment.Dofs)
                     {
-                        subdomainEnrichedDofs[elementDof++] = this.enrichedDofs[node, dofType];
+                        element2Subdomain[elementDof] = this.subdomainEnrichedDofs[node, dofType];
+                        element2Global[elementDof] = this.globalEnrichedDofs[node, dofType];
+                        ++elementDof;
                     }
                 }
             }
-            return subdomainEnrichedDofs;
+            return (element2Subdomain, element2Global);
+        }
+
+        public void ReorderEnrichedSubdomainDofs(OrderingAMD orderingAlgorithm)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToConsole()
+        {
+            Console.WriteLine("Enriched dofs - subdomain order: ");
+            Console.WriteLine(subdomainEnrichedDofs);
+            Console.WriteLine("Enriched dofs - global order: ");
+            Console.WriteLine(globalEnrichedDofs);
         }
     }
 }
