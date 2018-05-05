@@ -79,10 +79,45 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             double[] elementVector = new double[elementDofs.EntryCount];
             foreach (Tuple<XNode2D, EnrichedDof, int> entry in elementDofs)
             {
-                int globalStandardDof = enrichedDofs[entry.Item1, entry.Item2];
-                elementVector[entry.Item3] = globalStandardVector[globalStandardDof];
+                int globalEnrichedDof = enrichedDofs[entry.Item1, entry.Item2];
+                elementVector[entry.Item3] = globalStandardVector[globalEnrichedDof];
             }
             return Vector.CreateFromArray(elementVector);
+        }
+
+        public ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model,
+            Vector solution)
+        {
+            var table = new Table<XNode2D, EnrichedDof, double>();
+            foreach (var row in enrichedDofs)
+            {
+                table[row.Item1, row.Item2] = solution[row.Item3];
+            }
+            return table;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="solution"></param>
+        /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
+        public double[,] GatherNodalDisplacements(Model2D model, Vector solution)
+        {
+            double[,] result = new double[model.Nodes.Count, 2];
+            for (int i = 0; i < model.Nodes.Count; ++i)
+            {
+                XNode2D node = model.Nodes[i];
+
+                bool isXStandard = standardDofs.TryGetValue(node, DisplacementDof.X, out int globalStandardDofX);
+                if (isXStandard) result[i, 0] = solution[globalStandardDofX];
+                else result[i, 0] = model.Constraints[node, DisplacementDof.X];
+
+                bool isYStandard = standardDofs.TryGetValue(node, DisplacementDof.Y, out int globalStandardDofY);
+                if (isYStandard) result[i, 1] = solution[globalStandardDofY];
+                else result[i, 1] = model.Constraints[node, DisplacementDof.Y];
+            }
+            return result;
         }
 
         public int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType)
@@ -175,63 +210,6 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="solution"></param>
-        /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
-        public double[,] GatherNodalDisplacements(Model2D model, Vector solution)
-        {
-            double[,] result = new double[model.Nodes.Count, 2];
-            for (int i = 0; i < model.Nodes.Count; ++i)
-            {
-                XNode2D node = model.Nodes[i];
-
-                bool isXStandard = standardDofs.TryGetValue(node, DisplacementDof.X, out int globalStandardDofX);
-                if (isXStandard) result[i, 0] = solution[globalStandardDofX];
-                else result[i, 0] = model.Constraints[node, DisplacementDof.X];
-
-                bool isYStandard = standardDofs.TryGetValue(node, DisplacementDof.Y, out int globalStandardDofY);
-                if (isYStandard) result[i, 1] = solution[globalStandardDofY];
-                else result[i, 1] = model.Constraints[node, DisplacementDof.Y];
-            }
-            return result;
-        }
-
-        public ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model,
-            Vector solution)
-        {
-            var table = new Table<XNode2D, EnrichedDof, double>();
-            foreach (var row in enrichedDofs)
-            {
-                table[row.Item1, row.Item2] = solution[row.Item3];
-            }
-            return table;
-        }
-
-        /// <summary>
-        /// Index i = element local dof. Dictionary[i] = global dof. 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
-            out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
-            out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs)
-        {
-            ITable<XNode2D, DisplacementDof, int> elementDofs = element.GetStandardDofs();
-            var globalStandardDofs = new Dictionary<int, int>();
-            var globalConstrainedDofs = new Dictionary<int, int>();
-            foreach (Tuple<XNode2D, DisplacementDof, int> entry in elementDofs)
-            {
-                bool isStandard = this.standardDofs.TryGetValue(entry.Item1, entry.Item2, out int standardGlobalDof);
-                if (isStandard) globalStandardDofs[entry.Item3] = standardGlobalDof;
-                else globalConstrainedDofs[entry.Item3] = this.constrainedDofs[entry.Item1, entry.Item2];
-            }
-            elementToGlobalStandardDofs = globalStandardDofs;
-            elementToGlobalConstrainedDofs = globalConstrainedDofs;
-        }
-
-        /// <summary>
         /// Index i = element local dof. Dictionary[i] = global dof.
         /// </summary>
         /// <param name="element"></param>
@@ -254,6 +232,28 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 }
             }
             return globalEnrichedDofs;
+        }
+
+        /// <summary>
+        /// Index i = element local dof. Dictionary[i] = global dof. 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
+            out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
+            out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs)
+        {
+            ITable<XNode2D, DisplacementDof, int> elementDofs = element.GetStandardDofs();
+            var globalStandardDofs = new Dictionary<int, int>();
+            var globalConstrainedDofs = new Dictionary<int, int>();
+            foreach (Tuple<XNode2D, DisplacementDof, int> entry in elementDofs)
+            {
+                bool isStandard = this.standardDofs.TryGetValue(entry.Item1, entry.Item2, out int standardGlobalDof);
+                if (isStandard) globalStandardDofs[entry.Item3] = standardGlobalDof;
+                else globalConstrainedDofs[entry.Item3] = this.constrainedDofs[entry.Item1, entry.Item2];
+            }
+            elementToGlobalStandardDofs = globalStandardDofs;
+            elementToGlobalConstrainedDofs = globalConstrainedDofs;
         }
 
         public void ReorderUnconstrainedDofs(IReadOnlyList<int> permutation, bool oldToNew)

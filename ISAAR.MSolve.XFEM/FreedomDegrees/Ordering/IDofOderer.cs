@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
+//TODO: Clean this up: Not all these methods are actually necessary. Some are only used for testing specific orderers.  
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
     interface IDofOrderer
@@ -18,9 +19,14 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         IDofOrderer DeepCopy();
 
-        int GetStandardDofOf(XNode2D node, DisplacementDof dofType);
-        IEnumerable<int> GetStandardDofsOf(XNode2D node);
-        List<int> GetStandardDofsOf(XContinuumElement2D element);
+        Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
+            Vector globalStandardVector, Vector globalConstrainedVector);
+
+        Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalStandardVector);
+
+        double[,] GatherNodalDisplacements(Model2D model, Vector solution);
+
+        ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
 
         int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType);
         IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
@@ -30,20 +36,15 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
         List<int> GetEnrichedDofsOf(XContinuumElement2D element);
 
+        int GetStandardDofOf(XNode2D node, DisplacementDof dofType);
+        IEnumerable<int> GetStandardDofsOf(XNode2D node);
+        List<int> GetStandardDofsOf(XContinuumElement2D element);
+
         void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
             out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
 
         IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element);
-
-        Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
-            Vector globalStandardVector, Vector globalConstrainedVector);
-
-        Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalStandardVector);
-
-        double[,] GatherNodalDisplacements(Model2D model, Vector solution);
-
-        ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
 
         /// <summary>
         /// Renumbers the dof indices according th the given permutation vector and direction. 
