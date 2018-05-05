@@ -17,9 +17,13 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.subdomains = new List<XSubdomain2D>();
         }
 
+        public XCluster2D(IReadOnlyList<XSubdomain2D> subdomains)
+        {
+            this.subdomains = new List<XSubdomain2D>(subdomains);
+        }
+
         public XClusterDofOrderer DofOrderer { get; private set; }
         public IReadOnlyList<XSubdomain2D> Subdomains { get { return subdomains; } }
-
 
         public void AddSubdomain(XSubdomain2D subdomain)
         {

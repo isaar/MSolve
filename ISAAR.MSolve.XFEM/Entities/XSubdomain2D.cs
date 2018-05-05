@@ -6,6 +6,10 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
+//TODO: Use a SortedSuperSet custom set class, to include the internal and boundaries in a superset
+//TODO: During construction, I need it to be mutable, but afterwards not. This goes for Model and CLuster as weel. Use views.
+//TODO: should these node sets exposed be ISet<>? I depend on their lookup/insertion performance during construction and order
+//      during dof ordering.
 namespace ISAAR.MSolve.XFEM.Entities
 {
     /// <summary>
@@ -14,42 +18,51 @@ namespace ISAAR.MSolve.XFEM.Entities
     class XSubdomain2D
     {
         private readonly HashSet<XContinuumElement2D> elements;
-        private readonly SortedSet<XNode2D> allNodes; //TODO: Use a SortedSuperSet custom set class.
-        private readonly SortedSet<XNode2D> boundaryNodes;
-        private readonly SortedSet<XNode2D> internalNodes;
+        private readonly SortedSet<XNode2D> allNodes; // Having it sorted is better for ordering
+        private readonly HashSet<XNode2D> boundaryNodes;
+        private readonly HashSet<XNode2D> internalNodes;
 
         public XSubdomain2D()
         {
             this.allNodes = new SortedSet<XNode2D>();
             this.elements = new HashSet<XContinuumElement2D>();
-            this.boundaryNodes = new SortedSet<XNode2D>();
-            this.internalNodes = new SortedSet<XNode2D>();
+            this.boundaryNodes = new HashSet<XNode2D>();
+            this.internalNodes = new HashSet<XNode2D>();
         }
 
         public ISet<XContinuumElement2D> Elements { get { return elements; } }
         public ISet<XNode2D> AllNodes { get { return allNodes; } }
-        public ISet<XNode2D> BoundaryNodes { get { return boundaryNodes; } }
+        public ISet<XNode2D> BoundaryNodes { get { return boundaryNodes; } } 
         public ISet<XNode2D> InternalNodes { get { return internalNodes; } }
         public XSubdomainDofOrderer DofOrderer { get; set; }
 
-        public void AddBoundaryNode(XNode2D node) //TODO: perhaps I should only add elements
-        {
-            bool isNew = boundaryNodes.Add(node);
-            isNew |= allNodes.Add(node);
-            if (!isNew) throw new ArgumentException("There is already a node with id = " + node.ID);
+        public void AddBoundaryNode(XNode2D node)
+        { //TODO: perhaps I should check if it has already been added
+            boundaryNodes.Add(node);
+            allNodes.Add(node);
         }
 
-        public void AddInternalNode(XNode2D node) //TODO: perhaps I should only add elements
+        /// <summary>
+        /// Checks if the element is internal to this subdomain. If it is, it is added and true is returned. Otherwise false is
+        /// returned.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public bool AddElementIfInternal(XContinuumElement2D element)
         {
-            bool isNew = internalNodes.Add(node);
-            isNew |= allNodes.Add(node);
-            if (!isNew) throw new ArgumentException("There is already a node with id = " + node.ID);
+            //TODO: check if one node is internal, while another is external.
+            foreach (var node in element.Nodes)
+            {
+                if (!(internalNodes.Contains(node) || boundaryNodes.Contains(node))) return false;
+            }
+            elements.Add(element);
+            return true;
         }
 
-        public void AddElement(XContinuumElement2D element)
-        {
-            bool isNew = elements.Add(element);
-            if (!isNew) throw new ArgumentException("This element is already inserted");
+        public void AddInternalNode(XNode2D node)
+        {  //TODO: perhaps I should check if it has already been added
+            internalNodes.Add(node);
+            allNodes.Add(node);
         }
     }
 }

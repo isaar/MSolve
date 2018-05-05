@@ -6,6 +6,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -30,6 +31,31 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             XCluster2D cluster = CreateSubdomains(model);
             cluster.OrderDofs(model);
             cluster.DofOrderer.WriteToConsole();
+        }
+
+        private static XCluster2D CreateSubdomains(Model2D model)
+        {
+            double tol = 1e-6;
+            var regions = new RectangularRegion[4];
+
+            regions[0] = new RectangularRegion(0.0, L / 2, 0.0, L / 2, tol);
+            regions[0].AddBoundaryEdge(RectangularRegion.RectangleEdge.Right);
+            regions[0].AddBoundaryEdge(RectangularRegion.RectangleEdge.Up);
+
+            regions[1] = new RectangularRegion(L / 2, L, 0.0, L / 2, tol);
+            regions[1].AddBoundaryEdge(RectangularRegion.RectangleEdge.Left);
+            regions[1].AddBoundaryEdge(RectangularRegion.RectangleEdge.Up);
+
+            regions[2] = new RectangularRegion(0.0, L / 2, L / 2, L, tol);
+            regions[2].AddBoundaryEdge(RectangularRegion.RectangleEdge.Right);
+            regions[2].AddBoundaryEdge(RectangularRegion.RectangleEdge.Down);
+
+            regions[3] = new RectangularRegion(L / 2, L, L / 2, L, tol);
+            regions[3].AddBoundaryEdge(RectangularRegion.RectangleEdge.Left);
+            regions[3].AddBoundaryEdge(RectangularRegion.RectangleEdge.Down);
+
+            var decomposer = new NonOverlappingRegionDecomposer2D();
+            return decomposer.Decompose(model.Nodes, model.Elements, regions);
         }
 
         private static Model2D CreateModel()
@@ -99,56 +125,6 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             }
             
             return model;
-        }
-
-        private static XCluster2D CreateSubdomains(Model2D model)
-        {
-            // Split the domain in 4 quadrants
-            //var finder = new EntityFinder(model); //LINQ might be better for this
-            double tol = 1e-6;
-
-            // All nodes of each subdomain
-            var all0 = new HashSet<XNode2D>(model.Nodes.Where(node => (node.X <= L / 2 + tol) && (node.Y <= L / 2 + tol)));
-            var all1 = new HashSet<XNode2D>(model.Nodes.Where(node => (node.X >= L / 2 - tol) && (node.Y <= L / 2 + tol)));
-            var all2 = new HashSet<XNode2D>(model.Nodes.Where(node => (node.X <= L / 2 + tol) && (node.Y >= L / 2 - tol)));
-            var all3 = new HashSet<XNode2D>(model.Nodes.Where(node => (node.X >= L / 2 - tol) && (node.Y >= L / 2 - tol)));
-
-            // Boundary nodes of each subdomain
-            var boundary01 = model.Nodes.Where(node => (Math.Abs(node.X - L / 2) <= tol) && (node.Y <= L / 2 + tol));
-            var boundary23 = model.Nodes.Where(node => (Math.Abs(node.X - L / 2) <= tol) && (node.Y >= L / 2 - tol));
-            var boundary02 = model.Nodes.Where(node => (node.X <= L / 2 + tol) && (Math.Abs(node.Y - L / 2) <= tol));
-            var boundary13 = model.Nodes.Where(node => (node.X >= L / 2 - tol) && (Math.Abs(node.Y - L / 2) <= tol));
-            var boundary0 = new HashSet<XNode2D>(boundary01.Union(boundary02));
-            var boundary1 = new HashSet<XNode2D>(boundary01.Union(boundary13));
-            var boundary2 = new HashSet<XNode2D>(boundary02.Union(boundary23));
-            var boundary3 = new HashSet<XNode2D>(boundary13.Union(boundary23));
-
-            // Create the entities
-            var cluster = new XCluster2D();
-
-            var subdomain0 = new XSubdomain2D();
-            foreach (var node in boundary0) subdomain0.AddBoundaryNode(node);
-            foreach (var node in all0.Except(boundary0)) subdomain0.AddInternalNode(node);
-            cluster.AddSubdomain(subdomain0);
-
-            var subdomain1 = new XSubdomain2D();
-            foreach (var node in boundary1) subdomain1.AddBoundaryNode(node);
-            foreach (var node in all1.Except(boundary1)) subdomain1.AddInternalNode(node);
-            cluster.AddSubdomain(subdomain1);
-
-            var subdomain2 = new XSubdomain2D();
-            foreach (var node in boundary2) subdomain2.AddBoundaryNode(node);
-            foreach (var node in all2.Except(boundary2)) subdomain2.AddInternalNode(node);
-            cluster.AddSubdomain(subdomain2);
-
-            var subdomain3 = new XSubdomain2D();
-            foreach (var node in boundary3) subdomain3.AddBoundaryNode(node);
-            foreach (var node in all3.Except(boundary3)) subdomain3.AddInternalNode(node);
-            cluster.AddSubdomain(subdomain3);
-
-            // TODO: add elements in the subdomains!
-
-            return cluster;
         }
     }
 }
