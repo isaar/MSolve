@@ -50,17 +50,17 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <summary>
         /// </summary>
         /// <param name="element"></param>
-        /// <param name="globalStandardVector">Both the free standard and enriched dofs.</param>
+        /// <param name="globalFreeVector">Both the free standard and enriched dofs.</param>
         /// <returns></returns>
         public Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element,
-            Vector globalStandardVector)
+            Vector globalFreeVector)
         {
-            ITable<XNode2D, EnrichedDof, int> elementDofs = element.GetEnrichedDofs();
+            DofTable<EnrichedDof> elementDofs = element.GetEnrichedDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
             foreach (Tuple<XNode2D, EnrichedDof, int> entry in elementDofs)
             {
                 int globalEnrichedDof = globalEnrichedDofs[entry.Item1, entry.Item2];
-                elementVector[entry.Item3] = globalStandardVector[globalEnrichedDof];
+                elementVector[entry.Item3] = globalFreeVector[globalEnrichedDof];
             }
             return Vector.CreateFromArray(elementVector);
         }

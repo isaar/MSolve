@@ -24,15 +24,15 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     {
         public static (SkylineMatrix2D Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int constrainedDofsCount = dofOrderer.ConstrainedDofsCount;
+            int constrainedDofsCount = dofOrderer.NumConstrainedDofs;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             SkylineMatrix2D Kuu = new SkylineMatrix2D(CalculateSkylineIndexer(model, dofOrderer));
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount, 
-                dofOrderer.ConstrainedDofsCount);
+            Matrix Kuc = Matrix.CreateZero(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs, 
+                dofOrderer.NumConstrainedDofs);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         /// Only the entries above the diagonal are considered
         private static int[] CalculateRowHeights(Model2D model, IDofOrderer dofOrderer) // I vote to call them RowWidths!!!
         {
-            int[] rowHeights = new int[dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount];
+            int[] rowHeights = new int[dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs];
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // To determine the row height, first find the min of the dofs of this element. All these are 

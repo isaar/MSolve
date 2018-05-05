@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void ReorderPatternSuperset()
         {
-            int order = DofOrderer.StandardDofsCount + DofOrderer.EnrichedDofsCount;
+            int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
 
             // Could build the sparsity pattern during Dof enumeration?

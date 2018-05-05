@@ -13,16 +13,16 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
     interface IDofOrderer
     {
-        int ConstrainedDofsCount { get; }
-        int EnrichedDofsCount { get ; }
-        int StandardDofsCount { get; }
+        int NumConstrainedDofs { get; }
+        int NumEnrichedDofs { get ; }
+        int NumStandardDofs { get; }
 
         IDofOrderer DeepCopy();
 
         Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
-            Vector globalStandardVector, Vector globalConstrainedVector);
+            Vector globalFreeVector, Vector globalConstrainedVector);
 
-        Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalStandardVector);
+        Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalFreeVector);
 
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 

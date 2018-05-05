@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var orderingAlgorithm = new OrderingAMD();
 
-            int order = DofOrderer.StandardDofsCount + DofOrderer.EnrichedDofsCount;
+            int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)

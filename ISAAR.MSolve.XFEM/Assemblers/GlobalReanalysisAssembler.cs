@@ -22,11 +22,11 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     {
         public (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsConstrained = dofOrderer.ConstrainedDofsCount;
-            int numDofsUnconstrained = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
+            int numDofsConstrained = dofOrderer.NumConstrainedDofs;
+            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            var Kuu = DOKSymmetricColMajor.CreateIdentity(dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount);
+            var Kuu = DOKSymmetricColMajor.CreateIdentity(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs);
 
             // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
             // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.

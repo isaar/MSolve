@@ -16,8 +16,8 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     {
         public (SkylineMatrix Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsConstrained = dofOrderer.ConstrainedDofsCount;
-            int numDofsUnconstrained = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
+            int numDofsConstrained = dofOrderer.NumConstrainedDofs;
+            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             SkylineBuilder Kuu = InitializeGlobalUncontrainedMatrix(model, dofOrderer);
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
         private static SkylineBuilder InitializeGlobalUncontrainedMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsUnconstrained = dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount;
+            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
             int[] colHeights = new int[numDofsUnconstrained]; //only entries above the diagonal count towards the column height
             foreach (XContinuumElement2D element in model.Elements)
             {

@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public Vector CalculateFreeForces(IDofOrderer dofOrderer)
         {
-            double[] rhs = new double[dofOrderer.StandardDofsCount + dofOrderer.EnrichedDofsCount];
+            double[] rhs = new double[dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs];
             foreach (Tuple<XNode2D, DisplacementDof, double> entry in loads)
             {
                 try
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public Vector CalculateConstrainedDisplacements(IDofOrderer dofOrderer)
         {
-            double[] uc = new double[dofOrderer.ConstrainedDofsCount];
+            double[] uc = new double[dofOrderer.NumConstrainedDofs];
             foreach (Tuple<XNode2D, DisplacementDof, double> entry in constraints)
             {
                 int dof = dofOrderer.GetConstrainedDofOf(entry.Item1, entry.Item2);
