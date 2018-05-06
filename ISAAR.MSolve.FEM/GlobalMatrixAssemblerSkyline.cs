@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using IElementMatrixProvider = ISAAR.MSolve.FEM.Interfaces.IElementMatrixProvider;
+using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM
 {

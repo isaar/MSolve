@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.FEM.Embedding;
 using System.Runtime.InteropServices;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;

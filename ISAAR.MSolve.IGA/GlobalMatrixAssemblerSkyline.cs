@@ -1,5 +1,4 @@
 ﻿using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
@@ -7,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Interfaces;
+using IElementMatrixProvider = ISAAR.MSolve.IGA.Interfaces.IElementMatrixProvider;
 
 namespace ISAAR.MSolve.IGA
 {

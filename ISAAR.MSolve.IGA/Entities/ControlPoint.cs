@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,14 +7,6 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public enum DOFType
-    {
-        Unknown=0,
-        X=1,
-        Y=2,
-        Z=3
-    }
-
     public class ControlPoint
     {
         private readonly List<DOFType> constrains = new List<DOFType>();

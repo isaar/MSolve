@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.IGA\ISAAR.MSolve.IGA.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj" />

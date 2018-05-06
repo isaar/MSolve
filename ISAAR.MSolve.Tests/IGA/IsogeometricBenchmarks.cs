@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;

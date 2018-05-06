@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.IGA.Entities.BoundaryConditions;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Entities.BoundaryConditions;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.Numerical.LinearAlgebra;

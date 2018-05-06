@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.Tests
 {

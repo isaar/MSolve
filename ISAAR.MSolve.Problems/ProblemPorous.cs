@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Providers;

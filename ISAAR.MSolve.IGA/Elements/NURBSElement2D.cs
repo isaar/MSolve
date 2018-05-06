@@ -9,6 +9,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 {

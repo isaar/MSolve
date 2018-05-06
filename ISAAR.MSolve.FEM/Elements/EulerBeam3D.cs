@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.FEM.Embedding;
 using System.IO;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Elements
 {

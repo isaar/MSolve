@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {
-    public enum ElementDimensions
-    {
-        Unknown = 0,
-        OneD = 1,
-        TwoD = 2,
-        ThreeD = 3
-    }
-
     public interface IFiniteElement
     {
         int ID { get; }

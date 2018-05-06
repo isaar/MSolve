@@ -6,17 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Interfaces
 {
-    public enum ElementDimensions
-    {
-        Unknown=0,
-        OneD=1,
-        TwoD=2,
-        ThreeD=3
-    }
-
 
     public interface IIsogeometricElement
     {
