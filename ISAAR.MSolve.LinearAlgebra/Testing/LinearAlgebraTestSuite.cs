@@ -21,12 +21,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestEquality();
             //TestFactorization();
             //TestMatrixOperations();
-            TestMatrixVectorMultiplication();
+            //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestReordering();
             //TestReading();
             //TestSystemSolution();
-            //TestTransposition();
+            TestTransposition();
             //TestVectorOperations();
             //TestWriting();
         }
@@ -180,13 +180,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestTransposition()
         {
-            DenseMatrices.CheckTransposition();
-            LowerInvertible.CheckTransposition();
-            LowerSingular.CheckTransposition();
-            UpperInvertible.CheckTransposition();
-            UpperSingular.CheckTransposition();
-            SymmPositiveDefinite.CheckTransposition();
-            SymmSingular.CheckTransposition();
+            //DenseMatrices.CheckTransposition();
+            //LowerInvertible.CheckTransposition();
+            //LowerSingular.CheckTransposition();
+            //UpperInvertible.CheckTransposition();
+            //UpperSingular.CheckTransposition();
+            //SymmPositiveDefinite.CheckTransposition();
+            //SymmSingular.CheckTransposition();
             SparseRect.CheckTransposition();
         }
 

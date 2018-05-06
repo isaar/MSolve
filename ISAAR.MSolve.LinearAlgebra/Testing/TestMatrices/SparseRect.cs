@@ -273,10 +273,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
             var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
-            var csrTrans = csr.Transpose(false);
-            var cscTrans = csc.Transpose(false);
-            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTrans.CopyToFullMatrix().CopyToArray2D());
-            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTrans.CopyToFullMatrix().CopyToArray2D());
+            CSCMatrix csrTransAsCSC = csr.TransposeToCSC(false);
+            CSRMatrix cscTransAsCSR = csc.TransposeToCSR(false);
+            CSRMatrix csrTransAsCSR = csr.TransposeToCSR();
+            CSCMatrix cscTransAsCSC = csc.TransposeToCSC();
+            Console.WriteLine("\nTranspose CSR as CSC: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTransAsCSC.CopyToFullMatrix().CopyToArray2D());
+            Console.WriteLine("\nTranspose CSC as CSR: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTransAsCSR.CopyToFullMatrix().CopyToArray2D());
+            Console.WriteLine("\nTranspose CSR as CSR: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTransAsCSR.CopyToFullMatrix().CopyToArray2D());
+            Console.WriteLine("\nTranspose CSC as CSC: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTransAsCSC.CopyToFullMatrix().CopyToArray2D());
         }
 
         public static void Print()

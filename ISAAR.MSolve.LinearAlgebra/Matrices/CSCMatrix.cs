@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 
 // TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
 // caller, depending on if it is a matrix, a transposed matrix, a vector, etc. Compare its performance with the verbose code and 
@@ -568,10 +569,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public IMatrixView Transpose()
         {
-            return Transpose(true);
+            return TransposeToCSR(true);
         }
 
-        public CSRMatrix Transpose(bool copyInternalArrays)
+        public CSCMatrix TransposeToCSC()
+        {
+            // Use C# port of the scipy method.
+            // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use MKL
+            int nnz = this.values.Length;
+            var csrValues = new double[nnz];
+            var csrColIndices = new int[nnz];
+            var csrRowOffsets = new int[NumRows + 1];
+
+            SparseArrays.CsrToCsc(NumColumns, NumRows, this.colOffsets, this.rowIndices, this.values,
+                csrRowOffsets, csrColIndices, csrValues);
+
+            return new CSCMatrix(NumColumns, NumRows, csrValues, csrColIndices, csrRowOffsets);
+        }
+
+        public CSRMatrix TransposeToCSR(bool copyInternalArrays)
         {
             if (copyInternalArrays)
             {
