@@ -173,13 +173,13 @@ namespace ISAAR.MSolve.Problems
             subdomain.Matrix = this.Ks[subdomain.ID];
             var m = subdomain.Matrix as ILinearlyCombinable;
             m.LinearCombination(
-                new double[] 
+                new double[]
                 {
                     coefficients.Stiffness, coefficients.Mass, coefficients.Damping
                 },
-                new IMatrix2D[] 
-                { 
-                    this.Ks[subdomain.ID], this.Ms[subdomain.ID], this.Cs[subdomain.ID] 
+                new IMatrix2D[]
+                {
+                    this.Ks[subdomain.ID], this.Ms[subdomain.ID], this.Cs[subdomain.ID]
                 });
         }
 
@@ -219,6 +219,56 @@ namespace ISAAR.MSolve.Problems
 
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
+        }
+
+        public IDictionary<int, double[]> GetAccelerationsOfTimeStep(int timeStep)
+        {
+            var d = new Dictionary<int, double[]>();
+            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+                d.Add(subdomain.ID, new double[subdomain.TotalDOFs]);
+
+            if (model.MassAccelerationHistoryLoads.Count > 0)
+            {
+                List<MassAccelerationLoad> m = new List<MassAccelerationLoad>(model.MassAccelerationHistoryLoads.Count);
+                foreach (IMassAccelerationHistoryLoad l in model.MassAccelerationHistoryLoads)
+                    m.Add(new MassAccelerationLoad() { Amount = l[timeStep], DOF = l.DOF });
+
+                foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+                {
+                    foreach (var nodeInfo in subdomain.GlobalNodalDOFsDictionary)
+                    {
+                        foreach (var dofPair in nodeInfo.Value)
+                        {
+                            foreach (var l in m)
+                            {
+                                if (dofPair.Key == l.DOF)
+                                {
+                                    d[subdomain.ID][dofPair.Value] = l.Amount;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //foreach (ElementMassAccelerationHistoryLoad load in model.ElementMassAccelerationHistoryLoads)
+            //{
+            //    MassAccelerationLoad hl = new MassAccelerationLoad() { Amount = load.HistoryLoad[timeStep] * 564000000, DOF = load.HistoryLoad.DOF };
+            //    load.Element.Subdomain.AddLocalVectorToGlobal(load.Element,
+            //        load.Element.ElementType.CalculateAccelerationForces(load.Element, (new MassAccelerationLoad[] { hl }).ToList()),
+            //        load.Element.Subdomain.Forces);
+            //}
+
+            return d;
+        }
+
+        public IDictionary<int, double[]> GetVelocitiesOfTimeStep(int timeStep)
+        {
+            var d = new Dictionary<int, double[]>();
+            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+                d.Add(subdomain.ID, new double[subdomain.TotalDOFs]);
+
+            return d;
         }
 
         public void MassMatrixVectorProduct(ILinearSystem subdomain, IVector vIn, double[] vOut)

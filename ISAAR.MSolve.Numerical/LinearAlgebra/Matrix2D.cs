@@ -149,13 +149,14 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Vector(c);
         }
 
-        public static Matrix2D operator *(Matrix2D A, double scalar)
+        public static Matrix2D operator *(Matrix2D A, double b)
         {
-            Matrix2D AA = new Matrix2D(A.Rows, A.Columns);
+            Matrix2D AA = new Matrix2D(A.data as double[,]);
             for (int i = 0; i < A.Rows; i++)
-            for (int j = 0; j < A.Columns; j++)
-                AA[i, j] = A[i, j] * scalar;
+                for (int j = 0; j < A.Columns; j++)
+                    AA[i, j] = AA[i, j] * b;
             return AA;
+
         }
 
         public void SVD(double[] w, double[,] v)

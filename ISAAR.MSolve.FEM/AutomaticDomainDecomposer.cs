@@ -194,10 +194,11 @@ namespace ISAAR.MSolve.FEM
 
                             if (flag)
                             {
-                                if (lc == 0 && (counterSubdomainElements + counterSubdomainElements) == finalSubdomainElement && i == finalSubdomainElement)
+                                if (lc == 0 && (usedElementsCounter + counterSubdomainElements) == finalSubdomainElement && i == finalSubdomainElement-1)
                                 {
                                     usedElementsCounter = usedElementsCounter + counterSubdomainElements;
                                     flagStop = false;
+                                    flag = false;
                                 }
                             }
 
