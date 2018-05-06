@@ -560,6 +560,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        public void MultiplyVectorSection(Vector vectorRight, int vectorStart, Vector result, int resultStart)
+        {
+            Preconditions.CheckMultiplicationDimensionsSection(this, vectorRight, vectorStart, result, resultStart);
+            for (int i = 0; i < NumRows; ++i)
+            {
+                double dot = 0.0;
+                int rowStart = rowOffsets[i]; //inclusive
+                int rowEnd = rowOffsets[i + 1]; //exclusive
+                for (int k = rowStart; k < rowEnd; ++k)
+                {
+                    dot += values[k] * vectorRight[vectorStart + colIndices[k]];
+                }
+                result[resultStart + i] = dot;
+            }
+        }
+
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
             double aggregator = identityValue;

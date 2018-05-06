@@ -231,10 +231,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Vector cscTimesX5 = csc.MultiplyRight(x5, false);
             Vector csrTimesX10 = csr.MultiplyRight(x10, true);
             Vector cscTimesX10 = csc.MultiplyRight(x10, true);
+
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, csrTimesX5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, cscTimesX5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, csrTimesX10.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, cscTimesX10.InternalData);
+
+            //TODO: the next should be hard-coded
+            var x15 = Vector.CreateWithValue(5, 1000.0).Append(x5);
+            var b20 = Vector.CreateWithValue(20, 10.0);
+            var b20Expected = Vector.CreateWithValue(10, 10.0).Append(csrTimesX5);
+            csr.MultiplyVectorSection(x15, 5, b20, 10);
+            comparer.CheckVectorEquality(b20Expected, b20);
         }
 
         public static void CheckIndexing()
