@@ -85,11 +85,9 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return element2Global;
         }
 
-        public (IReadOnlyDictionary<int, int> element2Subdomain, IReadOnlyDictionary<int, int> element2Global) 
-            MatchElementToSubdomainAndGlobalEnrichedDofs(XContinuumElement2D element)
+        public Dictionary<int, int> MatchElementToSubdomainEnrichedDofs(XContinuumElement2D element)
         {
             var element2Subdomain = new Dictionary<int, int>();
-            var element2Global = new Dictionary<int, int>();
             int elementDof = 0;
             foreach (XNode2D node in element.Nodes)
             {
@@ -101,12 +99,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                     foreach (EnrichedDof dofType in enrichment.Dofs)
                     {
                         element2Subdomain[elementDof] = this.subdomainEnrichedDofs[node, dofType];
-                        element2Global[elementDof] = this.globalEnrichedDofs[node, dofType];
                         ++elementDof;
                     }
                 }
             }
-            return (element2Subdomain, element2Global);
+            return element2Subdomain;
         }
 
         public void ReorderEnrichedSubdomainDofs(OrderingAMD orderingAlgorithm)

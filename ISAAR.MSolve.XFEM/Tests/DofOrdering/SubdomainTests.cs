@@ -31,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             XCluster2D cluster = CreateSubdomains(model);
             cluster.OrderDofs(model);
             cluster.DofOrderer.WriteToConsole();
+            PrintElementDofs(model, cluster);
         }
 
         private static XCluster2D CreateSubdomains(Model2D model)
@@ -125,6 +126,33 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             }
             
             return model;
+        }
+
+        private static void PrintElementDofs(Model2D model, XCluster2D cluster)
+        {
+            Console.WriteLine();
+            for (int e = 0; e < model.Elements.Count; ++e)
+            {
+                Console.WriteLine($"Element {e} dofs:");
+                cluster.DofOrderer.MatchElementToGlobalStandardDofsOf(model.Elements[e], 
+                    out IReadOnlyDictionary<int, int> standardMap, out IReadOnlyDictionary<int, int> constrainedMap);
+                var enrichedMap = cluster.DofOrderer.MatchElementToGlobalEnrichedDofsOf(model.Elements[e]);
+                PrintElementDofMap(standardMap, "global standard");
+                Console.WriteLine();
+                PrintElementDofMap(enrichedMap, "subdomain enriched");
+                Console.WriteLine();
+                PrintElementDofMap(constrainedMap, "global constrained");
+                Console.WriteLine();
+            }
+        }
+
+        private static void PrintElementDofMap(IReadOnlyDictionary<int, int> elementToLocal, string localName)
+        {
+            Console.WriteLine($"Element dof -> {localName} dof:");
+            foreach (var pair in elementToLocal)
+            {
+                Console.WriteLine($"       {pair.Key}    ->       {pair.Value} ");
+            }
         }
     }
 }
