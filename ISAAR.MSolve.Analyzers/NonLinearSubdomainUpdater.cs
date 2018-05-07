@@ -20,30 +20,17 @@ namespace ISAAR.MSolve.Analyzers
 
         public IVector GetRHSFromSolution(IVector solution, IVector dSolution) //TODO leave 
         {
-            var forces = new Vector(this.subdomain.TotalDOFs);
-            foreach (Element element in this.subdomain.ElementsDictionary.Values)
-            {
-                //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
-                //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
-                double[] localSolution = this.subdomain.CalculateElementNodalDisplacements(element, solution);
-                double[] localdSolution = this.subdomain.CalculateElementNodalDisplacements(element, dSolution);
-                element.ElementType.CalculateStresses(element, localSolution, localdSolution);
-                if (element.ElementType.MaterialModified)
-                    element.Subdomain.MaterialsModified = true;
-                double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-                this.subdomain.AddLocalVectorToGlobal(element, f, forces.Data);
-            }
-            return forces;
+            return this.subdomain.GetRHSFromSolution(solution, dSolution);
         }
 
         public void ResetState()
         {
-            foreach (Element element in this.subdomain.ElementsDictionary.Values) element.ElementType.ClearMaterialStresses();
+            this.subdomain.ClearMaterialStresses();
         }
 
         public void UpdateState()
         {
-            foreach (Element element in this.subdomain.ElementsDictionary.Values) element.ElementType.SaveMaterialState();
+            this.subdomain.SaveMaterialState();
         }
     }
 }

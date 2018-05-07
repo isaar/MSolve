@@ -16,30 +16,12 @@ namespace ISAAR.MSolve.Analyzers
 
         public void SplitGlobalVectorToSubdomain(double[] vIn, double[] vOut)
         {
-            foreach (int nodeID in this.subdomain.GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = this.subdomain.NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = this.subdomain.NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = this.subdomain.GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1) vOut[localDOF] = vIn[globalDOF];
-                }
-            }
+            this.subdomain.SplitGlobalVectorToSubdomain(vIn, vOut);
         }
 
         public void SubdomainToGlobalVector(double[] vIn, double[] vOut)
         {
-            foreach (int nodeID in this.subdomain.GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = this.subdomain.NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = this.subdomain.NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = this.subdomain.GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1) vOut[globalDOF] += vIn[localDOF];
-                }
-            }
+            this.subdomain.SubdomainToGlobalVector(vIn, vOut);
         }
 
         public void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut)
