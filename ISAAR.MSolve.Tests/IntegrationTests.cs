@@ -9,6 +9,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.Tests.Supportive_Classes;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
@@ -235,5 +236,54 @@ namespace ISAAR.MSolve.Tests
             Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
 
+        [Fact]
+        public void SolveHexaCantileverWithNewtonRaphson()
+        {
+            VectorExtensions.AssignTotalAffinityCount();
+            var model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain { ID = 1 });
+            HexaCantileverBeamForNewtonRaphson.Build(model, 850);
+
+
+            model.ConnectDataStructures();
+
+            var linearSystems = new Dictionary<int, ILinearSystem>();
+            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+            var solver = new SolverSkyline(linearSystems[1]);
+            var provider = new ProblemStructural(model, linearSystems);
+
+            var increments = 1;
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems);
+            childAnalyzer.SetMaxIterations = 100;
+            childAnalyzer.SetIterationsForMatrixRebuild = 1;
+
+            var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+
+            //LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
+            //gia 2CZM
+            //Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, 17, model.TotalDOFs);//1. increments einai to 17 (arxika eixame thesei2 26 incr)
+            //gia 3CZM
+    
+            var analyzer = new NewtonRaphsonNonLinearAnalyzer(solver, solver.SubdomainsDictionary, provider, increments, model.TotalDOFs);//1. increments einai to 1 (arxika eixame thesei2 26 incr)
+            
+            analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
+            //model.NodalDOFsDictionary[12][DOFType.Y],
+            model.NodalDOFsDictionary[20][DOFType.X]});
+
+
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+
+            Console.WriteLine("Writing results for node 6");
+            var actual = (analyzer.Logs[1][0] as DOFSLog).DOFValues[45];
+            var expected = 0.70735531140026664;
+            Assert.True((actual - expected) == 0);
+
+            //Console.WriteLine("Dof and Values for Displacement X, Y, Z");
+            //Console.WriteLine(analyzer.Logs[1][0]);
+            //Console.ReadLine();
+
+        }
     }
 }
