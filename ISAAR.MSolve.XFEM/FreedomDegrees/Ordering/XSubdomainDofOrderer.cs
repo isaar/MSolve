@@ -17,14 +17,16 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         protected readonly DofTable<EnrichedDof> globalEnrichedDofs; 
         protected readonly DofTable<EnrichedDof> subdomainEnrichedDofs;
 
-        private XSubdomainDofOrderer(int numEnrichedDofs, DofTable<EnrichedDof> subdomainEnrichedDofs,
+        private XSubdomainDofOrderer(int numEnrichedDofs, int firstGlobalDofIndex, DofTable<EnrichedDof> subdomainEnrichedDofs,
             DofTable<EnrichedDof> globalEnrichedDofs)
         {
+            this.FirstGlobalDofIndex = firstGlobalDofIndex;
             this.NumEnrichedDofs = numEnrichedDofs;
             this.subdomainEnrichedDofs = subdomainEnrichedDofs;
             this.globalEnrichedDofs = globalEnrichedDofs;
         }
 
+        public int FirstGlobalDofIndex { get; }
         public int NumEnrichedDofs { get; }
 
         public static XSubdomainDofOrderer CreateNodeMajor(XSubdomain2D subdomain, int globalIndicesStart) //TODO: also add AMD reordering
@@ -44,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                     }
                 }
             }
-            return new XSubdomainDofOrderer(dofCounter, subdomainEnrichedDofs, globalEnrichedDofs);
+            return new XSubdomainDofOrderer(dofCounter, globalIndicesStart, subdomainEnrichedDofs, globalEnrichedDofs);
         }
 
         /// <summary>
