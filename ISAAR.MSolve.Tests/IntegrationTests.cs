@@ -249,24 +249,27 @@ namespace ISAAR.MSolve.Tests
 
             var linearSystems = new Dictionary<int, ILinearSystem>();
             linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+
+            var linearSystemsArray = new[] { linearSystems[1] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+
             var solver = new SolverSkyline(linearSystems[1]);
             var provider = new ProblemStructural(model, linearSystems);
 
             var increments = 1;
-            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems);
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers, provider, increments, model.TotalDOFs);
             childAnalyzer.SetMaxIterations = 100;
             childAnalyzer.SetIterationsForMatrixRebuild = 1;
 
-            var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);//1. increments einai to 1 (arxika eixame thesei2 26 incr)
 
             //LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
             //gia 2CZM
             //Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, 17, model.TotalDOFs);//1. increments einai to 17 (arxika eixame thesei2 26 incr)
             //gia 3CZM
-    
-            var analyzer = new NewtonRaphsonNonLinearAnalyzer(solver, solver.SubdomainsDictionary, provider, increments, model.TotalDOFs);//1. increments einai to 1 (arxika eixame thesei2 26 incr)
-            
-            analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
+
+            childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
             //model.NodalDOFsDictionary[12][DOFType.Y],
             model.NodalDOFsDictionary[20][DOFType.X]});
 
@@ -276,7 +279,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Solve();
 
             Console.WriteLine("Writing results for node 6");
-            var actual = (analyzer.Logs[1][0] as DOFSLog).DOFValues[45];
+            var actual = (childAnalyzer.Logs[1][0] as DOFSLog).DOFValues[45];
             var expected = 0.70735531140026664;
             Assert.True((actual - expected) == 0);
 
