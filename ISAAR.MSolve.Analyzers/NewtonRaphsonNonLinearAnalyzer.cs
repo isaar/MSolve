@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.Analyzers
             rhsNorm = provider.RHSNorm(globalRHS.Data);
         }
 
-        private void UpdateInternalVectors()
+        private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRHS.Clear();
             foreach (ILinearSystem subdomain in linearSystems)
@@ -155,23 +155,23 @@ namespace ISAAR.MSolve.Analyzers
             InitializeLogs();
 
             DateTime start = DateTime.Now;
-            UpdateInternalVectors();
+            UpdateInternalVectors();//TODOMaria this divides the externally applied load by the number of increments and scatters it to all subdomains and stores it in the class subdomain dictionary and total external load vector
             for (int increment = 0; increment < increments; increment++)
             {
                 double errorNorm = 0;
-                ClearIncrementalSolutionVector();
-                UpdateRHS(increment);
+                ClearIncrementalSolutionVector();//TODOMaria this sets du to 0
+                UpdateRHS(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
 
                 double firstError = 0;
                 int step = 0;
                 for (step = 0; step < maxSteps; step++)
                 {
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
                     if (step == 0) firstError = errorNorm;
                     if (errorNorm < tolerance) break;
 
-                    SplitResidualForcesToSubdomains();
+                    SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
                     if ((step + 1) % stepsForMatrixRebuild == 0)
                     {
                         provider.Reset();
@@ -182,14 +182,14 @@ namespace ISAAR.MSolve.Analyzers
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
-            CopySolutionToSubdomains();
+            CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
             //            ClearMaterialStresses();
             DateTime end = DateTime.Now;
 
             StoreLogResults(start, end);
         }
 
-        private double CalculateInternalRHS(int currentIncrement, int step)
+        private double CalculateInternalRHS(int currentIncrement, int step) 
         {
             globalRHS.Clear();
             foreach (ILinearSystem subdomain in linearSystems)
@@ -210,18 +210,18 @@ namespace ISAAR.MSolve.Analyzers
                     uPlusdu[subdomain.ID].Add(du[subdomain.ID]);
                 }
                 //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
-                Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);
-                provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);
+                Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);//TODOMaria this calculates the internal forces
+                provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);//TODOMaria this does nothing
                 //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
                     internalRHS.Add(new Vector(parentAnalyzer.GetOtherRHSComponents(subdomain,
-                        uPlusdu[subdomain.ID])));
+                        uPlusdu[subdomain.ID])));//TODOMaria this does nothing for the static problem
                 //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
 
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 subdomainRHS.Clear();
-                for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);
+                for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);//TODOMaria this adds the external forces 
                 subdomainRHS.Subtract(internalRHS);
                 mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
             }
