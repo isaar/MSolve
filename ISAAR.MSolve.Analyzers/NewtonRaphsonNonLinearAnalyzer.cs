@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISubdomainGlobalMapping[] mappings;
         private readonly int increments;
         private readonly int totalDOFs;
-        private readonly int maxSteps = 120;
-        private readonly int stepsForMatrixRebuild = 500;
-        private readonly double tolerance = 1e-5;
+        private int maxSteps = 1000;
+        private int stepsForMatrixRebuild = 0;
+        private readonly double tolerance = 1e-8;
         private double rhsNorm;
         private INonLinearParentAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
@@ -48,6 +48,26 @@ namespace ISAAR.MSolve.Analyzers
 
             InitializeInternalVectors();
         }
+
+        public int SetMaxIterations
+        {
+            set
+            {
+                if (value > 0) { this.maxSteps = value; }
+                else { throw new Exception("Iterations number cannot be negative or zero"); }
+            }
+        }
+
+
+        public int SetIterationsForMatrixRebuild
+        {
+            set
+            {
+                if (value > 0) { this.stepsForMatrixRebuild = value; }
+                else { throw new Exception("Iterations number for matrix rebuild cannot be negative or zero"); }
+            }
+        }
+
 
         private void InitializeLogs()
         {
@@ -126,7 +146,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 rhs[subdomain.ID].CopyTo(subdomainRHS.Data, 0);
-                subdomainRHS.Multiply(step + 1);
+                //subdomainRHS.Multiply(step + 1);
             }
         }
 
@@ -147,7 +167,7 @@ namespace ISAAR.MSolve.Analyzers
                 for (step = 0; step < maxSteps; step++)
                 {
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;
                     if (step == 0) firstError = errorNorm;
                     if (errorNorm < tolerance) break;
 
@@ -163,7 +183,7 @@ namespace ISAAR.MSolve.Analyzers
                 SaveMaterialStateAndUpdateSolution();
             }
             CopySolutionToSubdomains();
-//            ClearMaterialStresses();
+            //            ClearMaterialStresses();
             DateTime end = DateTime.Now;
 
             StoreLogResults(start, end);
@@ -192,13 +212,13 @@ namespace ISAAR.MSolve.Analyzers
                 //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
                 Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);
                 provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);
-                    //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
+                //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
                     internalRHS.Add(new Vector(parentAnalyzer.GetOtherRHSComponents(subdomain,
                         uPlusdu[subdomain.ID])));
                 //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
-                
+
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 subdomainRHS.Clear();
                 for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);
@@ -248,7 +268,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public void BuildMatrices()
         {
-            if (parentAnalyzer == null) 
+            if (parentAnalyzer == null)
                 throw new InvalidOperationException("This Newton-Raphson non-linear analyzer has no parent.");
 
             parentAnalyzer.BuildMatrices();
