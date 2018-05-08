@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
@@ -67,6 +69,59 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             }
 
             return (Kee, Kes, Kec);
+        }
+
+        // Create the signed boolean matrix/matrices to ensure continuity of displacements. 
+        public SignedBooleanMatrix BuildGlobalSignedBooleanMatrix(XCluster2D cluster)
+        {
+            // Find the number of rows = number of continuity equations. TODO: It could be computed while each row is processed
+            int numContinuityEquations = 0;
+            var nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
+            foreach (var nodeSubdomains in nodeMembership)
+            {
+                int nodeMultiplicity = nodeSubdomains.Value.Count;
+                int numEnrichedDofs = nodeSubdomains.Key.EnrichedDofsCount;
+                numContinuityEquations += (nodeMultiplicity - 1) * numEnrichedDofs;
+            }
+
+            //TODO: numCols could have been computed during matrix subdomain matrix assembly. numRows
+            int numColumns = cluster.DofOrderer.NumStandardDofs + cluster.DofOrderer.NumEnrichedDofs; // Not sure about the std dofs
+            var signedBoolean = new SignedBooleanMatrix(numContinuityEquations, numColumns);
+
+            int globalEquation = 0; // index of continuity equation onto the global signed boolean matrix
+            foreach (var nodeSubdomains in nodeMembership)
+            {
+                XNode2D node = nodeSubdomains.Key;
+
+                // All enriched dofs of this node will have the same [1 -1] pattern in B.
+                XSubdomain2D[] subdomains = nodeSubdomains.Value.ToArray();
+                var numEquationsPerDof = subdomains.Length - 1;
+                var positiveSubdomains = new XSubdomain2D[numEquationsPerDof];
+                var negativeSubdomains = new XSubdomain2D[numEquationsPerDof];
+                for (int equation = 0; equation < numEquationsPerDof; ++equation)
+                {
+                    positiveSubdomains[equation] = subdomains[equation];
+                    negativeSubdomains[equation] = subdomains[equation + 1];
+                }
+
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
+                {
+                    foreach (var dof in enrichment.Dofs)
+                    {
+                        for (int equation = 0; equation < positiveSubdomains.Length; ++equation)
+                        {
+                            int row = globalEquation + equation;
+                            int posCol = positiveSubdomains[equation].DofOrderer.GetGlobalEnrichedDofOf(node, dof);
+                            int negCol = negativeSubdomains[equation].DofOrderer.GetGlobalEnrichedDofOf(node, dof);
+                            signedBoolean.AddEntry(row, posCol, true);
+                            signedBoolean.AddEntry(row, negCol, false);
+                        }
+                        globalEquation += numEquationsPerDof;
+                    }
+                }
+            }
+
+            return signedBoolean;
         }
     }
 }

@@ -17,7 +17,9 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
         {
             XSubdomain2D[] subdomains = AssignNodesToSubdomains(nodes, regions);
             AddElementsToSubdomains(elements, subdomains);
-            return new XCluster2D(subdomains);
+            var cluster = new XCluster2D();
+            cluster.AddSubdomains(subdomains);
+            return cluster;
         }
 
         private void AddElementsToSubdomains(IReadOnlyList<XContinuumElement2D> elements, XSubdomain2D[] subdomains)
@@ -38,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
         private XSubdomain2D[] AssignNodesToSubdomains(IReadOnlyList<XNode2D> nodes, IReadOnlyList<IRegion2D> regions)
         {
             var subdomains = new XSubdomain2D[regions.Count];
-            for (int s = 0; s < regions.Count; ++s) subdomains[s] = new XSubdomain2D();
+            for (int s = 0; s < regions.Count; ++s) subdomains[s] = new XSubdomain2D(s);
 
             foreach (var node in nodes)
             {

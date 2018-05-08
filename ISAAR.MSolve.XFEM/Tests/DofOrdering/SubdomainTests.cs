@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -32,6 +35,14 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             cluster.OrderDofs(model);
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
+            BuildSignedBoolean(cluster);
+        }
+
+        private static void BuildSignedBoolean(XCluster2D cluster)
+        {
+            var assembler = new XClusterMatrixAssembler();
+            SignedBooleanMatrix B = assembler.BuildGlobalSignedBooleanMatrix(cluster);
+            B.WriteToConsole();
         }
 
         private static XCluster2D CreateSubdomains(Model2D model)
