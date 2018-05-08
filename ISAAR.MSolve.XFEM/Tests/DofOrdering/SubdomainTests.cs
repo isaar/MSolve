@@ -35,14 +35,25 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             cluster.OrderDofs(model);
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
-            BuildSignedBoolean(cluster);
+            BuildSignedBooleanMatrices(cluster);
         }
 
-        private static void BuildSignedBoolean(XCluster2D cluster)
+        private static void BuildSignedBooleanMatrices(XCluster2D cluster)
         {
             var assembler = new XClusterMatrixAssembler();
-            SignedBooleanMatrix B = assembler.BuildGlobalSignedBooleanMatrix(cluster);
-            B.WriteToConsole();
+
+            SignedBooleanMatrix globalB = assembler.BuildGlobalSignedBooleanMatrix(cluster);
+            Console.WriteLine("Global signed boolean matrix (all dofs):");
+            globalB.WriteToConsole();
+            Console.WriteLine();
+
+            Dictionary<XSubdomain2D, SignedBooleanMatrix> subdomainBs = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
+            foreach (var subdomainB in subdomainBs)
+            {
+                Console.WriteLine($"Signed boolean matrix of subdomain {subdomainB.Key.ID}:");
+                subdomainB.Value.WriteToConsole();
+                Console.WriteLine();
+            }
         }
 
         private static XCluster2D CreateSubdomains(Model2D model)

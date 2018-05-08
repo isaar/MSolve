@@ -71,22 +71,20 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return (Kee, Kes, Kec);
         }
 
-        // Create the signed boolean matrix/matrices to ensure continuity of displacements. 
+        /// <summary>
+        /// Create the signed boolean matrix with columns corresponding to all dofs in the system, to ensure continuity of 
+        /// displacements. 
+        /// </summary>
+        /// <param name="cluster"></param>
+        /// <returns></returns>
         public SignedBooleanMatrix BuildGlobalSignedBooleanMatrix(XCluster2D cluster)
         {
-            // Find the number of rows = number of continuity equations. TODO: It could be computed while each row is processed
-            int numContinuityEquations = 0;
-            var nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
-            foreach (var nodeSubdomains in nodeMembership)
-            {
-                int nodeMultiplicity = nodeSubdomains.Value.Count;
-                int numEnrichedDofs = nodeSubdomains.Key.EnrichedDofsCount;
-                numContinuityEquations += (nodeMultiplicity - 1) * numEnrichedDofs;
-            }
+            Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
+            int numContinuityEquations = CountContinuityEquations(nodeMembership);
 
-            //TODO: numCols could have been computed during matrix subdomain matrix assembly. numRows
+            //TODO: numCols could have been computed during matrix subdomain matrix assembly.
             int numColumns = cluster.DofOrderer.NumStandardDofs + cluster.DofOrderer.NumEnrichedDofs; // Not sure about the std dofs
-            var signedBoolean = new SignedBooleanMatrix(numContinuityEquations, numColumns);
+            var booleanMatrix = new SignedBooleanMatrix(numContinuityEquations, numColumns);
 
             int globalEquation = 0; // index of continuity equation onto the global signed boolean matrix
             foreach (var nodeSubdomains in nodeMembership)
@@ -113,15 +111,92 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                             int row = globalEquation + equation;
                             int posCol = positiveSubdomains[equation].DofOrderer.GetGlobalEnrichedDofOf(node, dof);
                             int negCol = negativeSubdomains[equation].DofOrderer.GetGlobalEnrichedDofOf(node, dof);
-                            signedBoolean.AddEntry(row, posCol, true);
-                            signedBoolean.AddEntry(row, negCol, false);
+                            booleanMatrix.AddEntry(row, posCol, true);
+                            booleanMatrix.AddEntry(row, negCol, false);
                         }
                         globalEquation += numEquationsPerDof;
                     }
                 }
             }
 
-            return signedBoolean;
+            return booleanMatrix;
+        }
+
+        /// <summary>
+        /// Create the signed boolean matrix of each subdomain to ensure continuity of displacements.
+        /// TODO: perhaps it is more efficient to precess each subdomain separately.
+        /// </summary>
+        /// <param name="cluster"></param>
+        /// <returns></returns>
+        public Dictionary<XSubdomain2D, SignedBooleanMatrix> BuildSubdomainSignedBooleanMatrices(XCluster2D cluster)
+        {
+            Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
+            int numContinuityEquations = CountContinuityEquations(nodeMembership);
+
+            //TODO: numCols could have been computed during matrix subdomain matrix assembly.
+            var booleanMatrices = new Dictionary<XSubdomain2D, SignedBooleanMatrix>();
+            foreach (var subdomain in cluster.Subdomains)
+            {
+                booleanMatrices.Add(subdomain, 
+                    new SignedBooleanMatrix(numContinuityEquations, subdomain.DofOrderer.NumEnrichedDofs));
+            }
+
+            int globalEquation = 0; // index of continuity equation onto the global signed boolean matrix
+            foreach (var nodeSubdomains in nodeMembership)
+            {
+                XNode2D node = nodeSubdomains.Key;
+
+                // All enriched dofs of this node will have the same [1 -1] pattern in B.
+                XSubdomain2D[] subdomains = nodeSubdomains.Value.ToArray();
+                var numEquationsPerDof = subdomains.Length - 1;
+                var positiveSubdomains = new XSubdomain2D[numEquationsPerDof];
+                var negativeSubdomains = new XSubdomain2D[numEquationsPerDof];
+                for (int equation = 0; equation < numEquationsPerDof; ++equation)
+                {
+                    positiveSubdomains[equation] = subdomains[equation];
+                    negativeSubdomains[equation] = subdomains[equation + 1];
+                }
+
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
+                {
+                    foreach (var dof in enrichment.Dofs)
+                    {
+                        for (int equation = 0; equation < positiveSubdomains.Length; ++equation)
+                        {
+                            int row = globalEquation + equation;
+
+                            XSubdomain2D posSubdomain = positiveSubdomains[equation];
+                            int posCol = posSubdomain.DofOrderer.GetSubdomainEnrichedDofOf(node, dof);
+                            booleanMatrices[posSubdomain].AddEntry(row, posCol, true);
+
+                            XSubdomain2D negSubdomain = negativeSubdomains[equation];
+                            int negCol = negSubdomain.DofOrderer.GetSubdomainEnrichedDofOf(node, dof);
+                            booleanMatrices[negSubdomain].AddEntry(row, negCol, false);
+                        }
+                        globalEquation += numEquationsPerDof;
+                    }
+                }
+            }
+
+            return booleanMatrices;
+        }
+
+        /// <summary>
+        /// Find the number of continuity equations = number of rows in the signed boolean matrices. 
+        /// TODO: It could be computed while each row is processed
+        /// </summary>
+        /// <param name="cluster"></param>
+        /// <returns></returns>
+        public int CountContinuityEquations(Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership)
+        {
+            int numContinuityEquations = 0;
+            foreach (var nodeSubdomains in nodeMembership)
+            {
+                int nodeMultiplicity = nodeSubdomains.Value.Count;
+                int numEnrichedDofs = nodeSubdomains.Key.EnrichedDofsCount;
+                numContinuityEquations += (nodeMultiplicity - 1) * numEnrichedDofs;
+            }
+            return numContinuityEquations;
         }
     }
 }

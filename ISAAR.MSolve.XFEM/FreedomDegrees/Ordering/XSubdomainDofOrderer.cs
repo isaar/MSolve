@@ -72,6 +72,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return globalEnrichedDofs[node, dofType];
         }
 
+        public int GetSubdomainEnrichedDofOf(XNode2D node, EnrichedDof dofType)
+        {
+            return subdomainEnrichedDofs[node, dofType];
+        }
+
         public IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofs(XContinuumElement2D element)
         {
             var element2Global = new Dictionary<int, int>();
