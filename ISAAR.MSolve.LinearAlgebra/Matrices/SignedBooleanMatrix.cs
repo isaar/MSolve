@@ -97,6 +97,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else return MultiplyUntransposed(vector);
         }
 
+        /// <summary>
+        /// Not efficient. Meant for testing purposes.
+        /// </summary>
+        /// <returns></returns>
+        public SignedBooleanMatrix Transpose()
+        {
+            var transpose = new SignedBooleanMatrix(NumColumns, NumRows);
+            foreach (var wholeRow in data)
+            {
+                foreach (var colSign in wholeRow.Value)
+                {
+                    transpose.AddEntry(colSign.Key, wholeRow.Key, colSign.Value == 1);
+                }
+            }
+            return transpose;
+        }
+
         //TODO: do this in a dedicated Writer class
         public void WriteToConsole()
         {
