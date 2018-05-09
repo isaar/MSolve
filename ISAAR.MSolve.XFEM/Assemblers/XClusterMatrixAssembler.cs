@@ -54,12 +54,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             {
                 // Build enriched element matrices and add their contributions to the global matrices
                 Dictionary<int, int> enrichedMap = subdomain.DofOrderer.MatchElementToSubdomainEnrichedDofs(element);
-                globalDofOrderer.MatchElementToGlobalStandardDofsOf(element, out IReadOnlyDictionary<int, int> standardMap,
-                    out IReadOnlyDictionary<int, int> constrainedMap);
+                
 
                 // Not all elements are enriched necessarily. The domain decomposition might be done only at the start.
                 if (enrichedMap.Count > 0)
                 {
+                    globalDofOrderer.MatchElementToGlobalStandardDofsOf(element, out IReadOnlyDictionary<int, int> standardMap,
+                    out IReadOnlyDictionary<int, int> constrainedMap);
+
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
 
                     Kee.AddSubmatrixSymmetric(kee, enrichedMap);

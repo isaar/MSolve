@@ -9,20 +9,21 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
 {
     class MenkBordasSystem
     {
-        private readonly int numSubdomains;
-        private readonly int numContinuityEquations;
+        public readonly int numSubdomains;
 
-        public MenkBordasSystem(int numSubdomains, int numContinuityEquations)
+        public MenkBordasSystem(int numSubdomains)
         {
             if (numSubdomains < 1) throw new ArgumentException(
                 $"There must be at least 1 subdomain, but {numSubdomains} were declared");
-            if (numContinuityEquations < 0) throw new ArgumentException(
-               $"There must be at least 0 continuity equations, but {numSubdomains} were declared");
-
             this.numSubdomains = numSubdomains;
-            this.numContinuityEquations = numContinuityEquations;
-
+            this.Kee = new List<IMatrixView>();
+            this.Kes = new List<IMatrixView>();
+            this.Kse = new List<IMatrixView>();
+            this.B = new List<SignedBooleanMatrix>();
+            this.be = new List<Vector>();
         }
+
+        public int numContinuityEquations;
 
         // Matrices
         public IMatrixView Kss;
@@ -34,6 +35,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
         // Right hand side vectors
         public Vector bs;
         public readonly List<Vector> be;
+        public Vector bc;
 
         // Initial guesses (optional) that will be overwritten by solutions
         public Vector xs;
@@ -41,6 +43,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
 
         public void CheckDimensions()
         {
+            if (numContinuityEquations < 0) throw new ArgumentException(
+               $"There must be at least 0 continuity equations, but {numSubdomains} were declared");
+
             // Standard dofs
             Preconditions.CheckSystemSolutionDimensions(Kss, bs);
 
@@ -62,6 +67,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
                 Preconditions.CheckSystemSolutionDimensions(Kes[i], be[i]);
                 Preconditions.CheckSystemSolutionDimensions(Kse[i], bs);
                 Preconditions.CheckMultiplicationDimensions(B[i].NumColumns, be[i].Length); //rhs.Length = lhs.Length
+                Preconditions.CheckSystemSolutionDimensions(B[i], bc);
             }
         }
 
@@ -73,8 +79,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
 
         public MenkBordasVector BuildRhsVector()
         {
-            return new MenkBordasVector(numSubdomains, numContinuityEquations, bs, be.ToArray(), 
-                Vector.CreateZero(numContinuityEquations)); //TODO: avoid creating the 0 vector, after validating it will stay 0
+            return new MenkBordasVector(numSubdomains, numContinuityEquations, bs, be.ToArray(), bc); 
+            //TODO: avoid creating the 0 vector bc, after validating it will stay 0
         }
     }
 }

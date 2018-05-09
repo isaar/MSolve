@@ -47,8 +47,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
             double rDot = r.DotProduct(r);
 
             // 3) norm2[0] = sqrt(dot(r[0]))
-            double rNormInit = Math.Sqrt(rDot);
-            double rNormRatio = 1.0;
+            var convergence = new Convergence(tolerance, r);
 
             IterativeStatistics statistics;
             for (int t = 0; t < maxIterations; ++t)
@@ -69,15 +68,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
                 double rDotNext = r.DotProduct(r);
 
                 // 9) convergence check: norm2[t] / norm2[0] < tol 
-                rNormRatio = Math.Sqrt(rDotNext) / rNormInit;
-                if (rNormRatio < tolerance) // resNormRatio is non negative
+                if (convergence.HasConvergedGlobally(r))
                 {
                     statistics = new IterativeStatistics
                     {
                         AlgorithmName = "Conjugate Gradient for Menk-Bordas system",
                         HasConverged = true,
                         IterationsRequired = t + 1,
-                        NormRatio = rNormRatio
+                        NormRatio = convergence.CurrentResNormRatio(rDot)
                     };
                     return (x, statistics);
                 }
@@ -97,9 +95,51 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
                 AlgorithmName = "Conjugate Gradient",
                 HasConverged = false,
                 IterationsRequired = maxIterations,
-                NormRatio = rNormRatio
+                NormRatio = convergence.CurrentResNormRatio(r.DotProduct(r)) // Actually I think I need the previous r here.
             };
             return (x, statistics);
+        }
+
+        private class Convergence
+        {
+            private readonly double tolerance;
+            private readonly double[] rDotsInit;
+            private readonly double[] rNorms2Init;
+            private readonly double totalNorm2Init;
+
+            public Convergence(double tolerance, MenkBordasVector rInit)
+            {
+                this.tolerance = tolerance;
+                rDotsInit = rInit.IndividualDots(rInit);
+                rNorms2Init = new double[rDotsInit.Length];
+                totalNorm2Init = 0;
+                for (int i = 0; i < rDotsInit.Length; ++i)
+                {
+                    rNorms2Init[i] = Math.Sqrt(rDotsInit[i]);
+                    totalNorm2Init += rDotsInit[i];
+                }
+                totalNorm2Init = Math.Sqrt(totalNorm2Init);
+            }
+
+            public bool HasConvergedIndividually(MenkBordasVector r)
+            {
+                double[] rNorms2 = r.IndividualNorms2();
+                for (int i = 0; i < rNorms2.Length; ++i)
+                {
+                    if (rNorms2[i] / rNorms2Init[i] > tolerance) return false;
+                }
+                return true;
+            }
+
+            public bool HasConvergedGlobally(MenkBordasVector r)
+            {
+                return Math.Sqrt(r.DotProduct(r)) / totalNorm2Init <= tolerance;
+            }
+
+            public double CurrentResNormRatio(double rDot)
+            {
+                return Math.Sqrt(rDot) / totalNorm2Init;
+            }
         }
     }
 }
