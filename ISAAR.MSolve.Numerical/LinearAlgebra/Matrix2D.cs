@@ -560,5 +560,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             Array.Copy(newData, data, data.Length);
         }
 
+        public static Matrix2D FromVector(double[] vector)
+        {
+            var m = new Matrix2D(vector.Length, 1);
+            for (int i = 0; i < m.Data.Length; i++)
+                m.Data[i, 0] = vector[i];
+            return m;
+        }
+
+        public static Matrix2D FromVectorTranspose(double[] vector)
+        {
+            var m = new Matrix2D(1, vector.Length);
+            for (int i = 0; i < m.Data.Length; i++)
+                m.Data[0, i] = vector[i];
+            return m;
+        }
+
     }
 }

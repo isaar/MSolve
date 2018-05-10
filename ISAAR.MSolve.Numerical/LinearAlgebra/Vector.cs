@@ -115,6 +115,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             for (int i = 0; i < data.Length; i++) v1Data[i] -= v2Data[i];
         }
 
+
+        public static Vector operator ^(Vector v1, Vector v2)
+        {
+            if (v1.Length != 3 || v2.Length != 3) throw new InvalidOperationException("Only 3D cross product is supported.");
+
+            double[] v1Data = v1.data as double[];
+            double[] v2Data = v2.data as double[];
+            double[] result = new[] { v1Data[1] * v2Data[2] - v1Data[2] * v2Data[1], v1Data[2] * v2Data[0] - v1Data[0] * v2Data[2], v1Data[0] * v2Data[1] - v1Data[1] * v2Data[0] };
+            return new Vector(result);
+        }
+
         #region IVector<T> Members
 
         public int Length

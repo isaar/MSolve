@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double Density { get; set; }
         public double SectionArea { get; set; }
         public double MomentOfInertia { get; set; }
-
+         
         public EulerBeam2D(double youngModulus)
         {
             this.youngModulus = youngModulus;
