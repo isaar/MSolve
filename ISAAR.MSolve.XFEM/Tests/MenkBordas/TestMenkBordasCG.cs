@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Solvers.Algorithms;
 using ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas;
 
@@ -27,10 +28,14 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             //PrintRhsVectors(sys, uExpected);
 
             // Solve with CG
-            SolveWithCG(model, cluster);
+            //SolveWithCG(model, cluster);
 
             // Solve with direct
             //SolveWithLU(model, cluster);
+
+            // Solve actual system with the dedicated solver
+            UseMenkBordasSolver(model, cluster);
+            //UseSkylineSolver(model);
         }
 
         public static (MenkBordasSystem sys, MenkBordasVector uExpected) BuildCustomSystem(Model2D model, XCluster2D cluster)
@@ -111,7 +116,7 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             Console.WriteLine();
 
             Console.WriteLine("************************* Global RHS Vector *************************");
-            var formatting = new Array1DFormatting("", "", "\n");
+            var formatting = Array1DFormatting.PlainVertical;
             Vector denseF = f.CopyToDense();
             FullVectorWriter.NumericFormat = new GeneralNumericFormat();
             (new FullVectorWriter(denseF, false, formatting)).WriteToConsole();
@@ -151,13 +156,83 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             Vector denseUExpected = uExpected.CopyToDense();
             Vector denseU = denseK.FactorLU().SolveLinearSystem(denseF);
 
-            var formatting = new Array1DFormatting("", "", "\n");
+            var formatting = Array1DFormatting.PlainVertical;
             FullVectorWriter.NumericFormat = new GeneralNumericFormat();
             Console.WriteLine("U expected (all dofs): ");
             (new FullVectorWriter(denseUExpected, false, formatting)).WriteToConsole();
             Console.WriteLine();
             Console.WriteLine("U computed (all dofs): ");
             (new FullVectorWriter(denseU, false, formatting)).WriteToConsole();
+        }
+
+        public static void UseMenkBordasSolver(Model2D model, XCluster2D cluster)
+        {
+            int maxIterations = 100000;
+            double tolerance = 1e-10;
+            var solver = new MenkBordasSolver(model, cluster, maxIterations, tolerance);
+            solver.Initialize();
+            solver.Solve();
+
+            var formatting = Array1DFormatting.PlainVertical;
+            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+            //Console.WriteLine("U computed (all dofs): ");
+            //(new FullVectorWriter(solver.Solution, false, formatting)).WriteToConsole();
+
+            int elementID = 0;
+            //TODO: isn't this computed in the solver as well?
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
+            foreach (var element in model.Elements)
+            {
+                Console.WriteLine($"Element {elementID++}: ");
+
+                Vector stdU = solver.DofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
+                    element, solver.Solution, constrainedDisplacements);
+                Console.WriteLine("Standard displacements: ");
+                (new FullVectorWriter(stdU, false, formatting)).WriteToConsole();
+                Console.WriteLine();
+
+                if (element.CountEnrichedDofs() > 0)
+                {
+                    Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, solver.Solution);
+                    Console.WriteLine("Enriched displacements: ");
+                    (new FullVectorWriter(enrU, false, formatting)).WriteToConsole();
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        public static void UseSkylineSolver(Model2D model)
+        {
+            var solver = new SkylineSolver(model);
+            solver.Initialize();
+            solver.Solve();
+
+            var formatting = Array1DFormatting.PlainVertical;
+            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+            //Console.WriteLine("U computed (all dofs): ");
+            //(new FullVectorWriter(solver.Solution, false, formatting)).WriteToConsole();
+
+            int elementID = 0;
+            //TODO: isn't this computed in the solver as well?
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
+            foreach (var element in model.Elements)
+            {
+                Console.WriteLine($"Element {elementID++}: ");
+
+                Vector stdU = solver.DofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
+                    element, solver.Solution, constrainedDisplacements);
+                Console.WriteLine("Standard displacements: ");
+                (new FullVectorWriter(stdU, false, formatting)).WriteToConsole();
+                Console.WriteLine();
+
+                if (element.CountEnrichedDofs() > 0)
+                {
+                    Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, solver.Solution);
+                    Console.WriteLine("Enriched displacements: ");
+                    (new FullVectorWriter(enrU, false, formatting)).WriteToConsole();
+                    Console.WriteLine();
+                }
+            }
         }
     }
 }

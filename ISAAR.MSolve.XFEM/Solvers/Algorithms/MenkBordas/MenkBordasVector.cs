@@ -112,17 +112,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
 
         public void WriteToConsole()
         {
-            var formatting = new Array1DFormatting("\n", "", "\n");
+            var formatting = Array1DFormatting.PlainVertical;
             FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-            Console.Write("\nStandard: ");
+            Console.WriteLine("\nStandard: ");
             (new FullVectorWriter(Vs, false, formatting)).WriteToConsole();
             for (int i = 0; i < numSubdomains; ++i)
             {
-                Console.Write($"\nEnriched subdomain {i}: ");
-
+                Console.WriteLine($"\nEnriched subdomain {i}: ");
                 (new FullVectorWriter(Ve[i], false, formatting)).WriteToConsole();
             }
-            Console.Write("\nContinuity equations: ");
+            Console.WriteLine("\nContinuity equations: ");
             (new FullVectorWriter(Vc, false, formatting)).WriteToConsole();
         }
     }

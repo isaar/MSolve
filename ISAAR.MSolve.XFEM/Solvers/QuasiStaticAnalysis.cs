@@ -80,6 +80,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 crack.UpdateEnrichments();
                 solver.Solve();
 
+                    //TODO: isn't this computed in the solver as well?
                 Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
                 Vector totalFreeDisplacements = solver.Solution;
 
