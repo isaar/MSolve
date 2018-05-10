@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
 
         public Array1DWriter(double[] vector, Array1DFormatting format = null)
         {
-            this.format = (format == null) ? Array1DFormatting.Plain : format;
+            this.format = (format == null) ? Array1DFormatting.PlainHorizontal : format;
             this.vector = vector;
         }
 

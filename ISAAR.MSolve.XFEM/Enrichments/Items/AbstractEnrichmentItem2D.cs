@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         protected List<XContinuumElement2D> affectedElements;
 
-        public IReadOnlyList<EnrichedDOF> DOFs { get; protected set; }
+        public IReadOnlyList<EnrichedDof> Dofs { get; protected set; }
         public IReadOnlyList<XContinuumElement2D> AffectedElements { get { return affectedElements; } }
 
         protected AbstractEnrichmentItem2D()

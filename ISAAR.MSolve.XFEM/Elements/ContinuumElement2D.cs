@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
@@ -134,19 +134,19 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         // TODO: This should return readonly collections publicly, but the XElement class should still have access to 
         // the mutable collections
-        // TODO: Perhaps this should be saved as a DOFEnumerator object. XElement will get a mutable one, while 
-        // others will get a view. I could still use a DOFEnumerator even if I do not save it.
-        public IReadOnlyDictionary<Node2D, HashSet<DisplacementDOF>> GetNodalDOFTypes()
+        // TODO: Perhaps this should be saved as a DofOrderer object. XElement will get a mutable one, while 
+        // others will get a view. I could still use a DofOrderer even if I do not save it.
+        public IReadOnlyDictionary<Node2D, HashSet<DisplacementDof>> GetNodalDofTypes()
         {
-            var nodalDOFTypes = new Dictionary<Node2D, HashSet<DisplacementDOF>>(Nodes.Count);
+            var nodalDofTypes = new Dictionary<Node2D, HashSet<DisplacementDof>>(Nodes.Count);
             foreach (Node2D node in Nodes)
             {
-                var dofTypesOfThisNode = new HashSet<DisplacementDOF>();
-                dofTypesOfThisNode.Add(DisplacementDOF.X);
-                dofTypesOfThisNode.Add(DisplacementDOF.Y);
-                nodalDOFTypes.Add(node, dofTypesOfThisNode);
+                var dofTypesOfThisNode = new HashSet<DisplacementDof>();
+                dofTypesOfThisNode.Add(DisplacementDof.X);
+                dofTypesOfThisNode.Add(DisplacementDof.Y);
+                nodalDofTypes.Add(node, dofTypesOfThisNode);
             }
-            return nodalDOFTypes;
+            return nodalDofTypes;
         }
     }
 }

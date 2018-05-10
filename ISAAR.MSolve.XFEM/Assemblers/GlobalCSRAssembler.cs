@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 
 //TODO: perhaps use a symmetric row major DOK and then build full CSR matrix.
@@ -15,10 +15,10 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalCSRAssembler
     {
-        public (DOKRowMajor Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        public (DOKRowMajor Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsConstrained = dofEnumerator.ConstrainedDofsCount;
-            int numDofsUnconstrained = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
+            int numDofsConstrained = dofOrderer.NumConstrainedDofs;
+            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             DOKRowMajor Kuu = DOKRowMajor.CreateEmpty(numDofsUnconstrained, numDofsUnconstrained);
@@ -31,14 +31,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             {
                 // Build standard element matrices and add it contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
+                dofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapFree, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
                 Kuu.AddSubmatrix(kss, mapFree, mapFree);
                 Kuc.AddSubmatrix(kss, mapFree, mapConstrained);
 
                 // Build enriched element matrices and add it contributions to the global matrices
-                IReadOnlyDictionary<int, int> mapEnriched = dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (mapEnriched.Count > 0)
                 {
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             }
             #region DEBUG code
             //var checker = new SubmatrixChecker();
-            //(Matrix expectedKuu, Matrix expectedKuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, dofEnumerator);
+            //(Matrix expectedKuu, Matrix expectedKuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, dofOrderer);
             //Console.WriteLine("Check Kuu:");
             //checker.Check(expectedKuu, Kuu);
             //Console.WriteLine("Check Kuc:");

@@ -4,24 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Tests.Tools
 {
-    class DofEnumerationChecker
+    class DofOrderingChecker
     {
-        public static void PrintEnumeration(IReadOnlyList<XNode2D> nodes, IDOFEnumerator dofEnumerator, 
-            IEnumerable<DisplacementDOF> standardDofs, IEnumerable<EnrichedDOF> enrichedDofs)
+        public static void PrintEnumeration(IReadOnlyList<XNode2D> nodes, IDofOrderer dofOrderer, 
+            IEnumerable<DisplacementDof> standardDofs, IEnumerable<EnrichedDof> enrichedDofs)
         {
             Console.WriteLine("Standards dofs:");
             foreach (XNode2D node in nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (DisplacementDOF dof in standardDofs)
+                foreach (DisplacementDof dof in standardDofs)
                 {
-                    Console.Write(dofEnumerator.GetFreeDofOf(node, dof) + " ");
+                    Console.Write(dofOrderer.GetStandardDofOf(node, dof) + " ");
                 }
-                foreach (int dof in dofEnumerator.GetConstrainedDofsOf(node))
+                foreach (int dof in dofOrderer.GetConstrainedDofsOf(node))
                 {
                     Console.Write("c" + dof + " ");
                 }
@@ -33,9 +34,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             foreach (XNode2D node in nodes)
             {
                 Console.Write("Node " + node.ID + ": ");
-                foreach (EnrichedDOF dof in enrichedDofs)
+                foreach (EnrichedDof dof in enrichedDofs)
                 {
-                    Console.Write(dofEnumerator.GetEnrichedDofOf(node, dof) + " ");
+                    Console.Write(dofOrderer.GetEnrichedDofOf(node, dof) + " ");
                 }
                 Console.WriteLine();
             }

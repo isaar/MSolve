@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -184,15 +184,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Fixed dofs
             foreach (var node in finder.FindNodesWithX(L))
             {
-                Model.AddConstraint(node, DisplacementDOF.X, 0.0);
-                Model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                Model.AddConstraint(node, DisplacementDof.Y, 0.0);
             }
 
             // Loads
             XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
             XNode2D topLeftNode = finder.FindNodeWith(0.0, h);
-            Model.AddNodalLoad(bottomLeftNode, DisplacementDOF.Y, -load);
-            Model.AddNodalLoad(topLeftNode, DisplacementDOF.Y, load);
+            Model.AddNodalLoad(bottomLeftNode, DisplacementDof.Y, -load);
+            Model.AddNodalLoad(topLeftNode, DisplacementDof.Y, load);
         }
 
         private void CreateMesh()

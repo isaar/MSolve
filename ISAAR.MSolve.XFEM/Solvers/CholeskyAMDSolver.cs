@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -27,16 +27,16 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             watch.Start();
 
-            var unorderedDOFs = DOFEnumeratorInterleaved.Create(model);
+            var unorderedDofs = InterleavedDofOrderer.Create(model);
             enumeratorName = "interleaved";
-            //var unorderedDOFs = DOFEnumeratorSeparate.Create(model);
+            //var unorderedDofs = DofOrdererSeparate.Create(model);
             //enumeratorName = "separate";
 
-            DOFEnumerator = unorderedDOFs.DeepCopy();
+            DofOrderer = unorderedDofs.DeepCopy();
             Reorder();
 
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             #region debug
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 Solution = factorization.SolveLinearSystem(rhs);
                 Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
             }
-            SolveWithoutReordering(unorderedDOFs);
+            SolveWithoutReordering(unorderedDofs);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -69,14 +69,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var orderingAlgorithm = new OrderingAMD();
 
-            int order = DOFEnumerator.FreeDofsCount + DOFEnumerator.EnrichedDofsCount;
+            int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
-            // Could build the sparsity pattern during DOF enumeration?
+            // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
             {
-                //TODO: what is the most efficient way to gather both? Perhaps the DOFEnumerator should do this 
-                var standardDofs = DOFEnumerator.GetFreeDofsOf(element);
-                var enrichedDofs = DOFEnumerator.GetEnrichedDofsOf(element);
+                //TODO: what is the most efficient way to gather both? Perhaps the DofOrderer should do this 
+                var standardDofs = DofOrderer.GetStandardDofsOf(element);
+                var enrichedDofs = DofOrderer.GetEnrichedDofsOf(element);
                 List<int> allDofs;
                 if (standardDofs.Count > enrichedDofs.Count)
                 {
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (int[] permutationOldToNew, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
 
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             (int[] permutation2, ReorderingStatistics stats2) = Kuu.Reorder(orderingAlgorithm);
             var comparer = new Comparer();
             bool sameReordering = comparer.AreEqual(permutationOldToNew, permutation2);
@@ -102,10 +102,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine($"Ordering {enumeratorName} + AMD, factor nnz predicted = {stats.FactorizedNumNonZeros}");
 
 
-            DOFEnumerator.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
         }
 
-        private void SolveWithoutReordering(IDOFEnumerator unordered)
+        private void SolveWithoutReordering(IDofOrderer unordered)
         {
             var assembler = new GlobalDOKAssembler();
             (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unordered);

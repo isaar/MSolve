@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Entities
@@ -20,27 +21,26 @@ namespace ISAAR.MSolve.XFEM.Entities
         private readonly List<XNode2D> nodes;
         private readonly List<XContinuumElement2D> elements;
         private readonly List<IEnrichmentItem2D> enrichments;
-        private readonly Table<XNode2D, DisplacementDOF, double> constraints;
+        private readonly Table<XNode2D, DisplacementDof, double> constraints;
 
         /// <summary>
         /// Multiple loads for the same dof are not allowed. Any attempt to input them will result in an exception 
         /// thrown by the table object.
         /// </summary>
-        private readonly Table<XNode2D, DisplacementDOF, double> loads;
+        private readonly Table<XNode2D, DisplacementDof, double> loads;
 
         public IReadOnlyList<XNode2D> Nodes { get { return nodes; } }
         public IReadOnlyList<XContinuumElement2D> Elements { get { return elements; } }
         public IReadOnlyList<IEnrichmentItem2D> Enrichments { get { return enrichments; } }
-        public ITable<XNode2D, DisplacementDOF, double> Constraints { get { return constraints; } }
-        //public DOFEnumerator DofEnumerator { get; private set; }
+        public ITable<XNode2D, DisplacementDof, double> Constraints { get { return constraints; } }
 
         public Model2D()
         {
             this.nodes = new List<XNode2D>();
             this.elements = new List<XContinuumElement2D>();
             this.enrichments = new List<IEnrichmentItem2D>();
-            this.constraints = new Table<XNode2D, DisplacementDOF, double>();
-            this.loads = new Table<XNode2D, DisplacementDOF, double>();
+            this.constraints = new Table<XNode2D, DisplacementDof, double>();
+            this.loads = new Table<XNode2D, DisplacementDof, double>();
         }
 
         public void AddNode(XNode2D node)
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             enrichments.Add(enrichment);
         }
 
-        public void AddConstraint(XNode2D node, DisplacementDOF dof, double displacement)
+        public void AddConstraint(XNode2D node, DisplacementDof dof, double displacement)
         {
             // TODO: This should be done more efficiently than O(N)
             if (!nodes.Contains(node)) throw new ArgumentException("There is no such node");
@@ -72,21 +72,21 @@ namespace ISAAR.MSolve.XFEM.Entities
         }
 
         //TODO: Should I use the node's id instead? In a UI class, I probably should.
-        public void AddNodalLoad(XNode2D node, DisplacementDOF dof, double magnitude)
+        public void AddNodalLoad(XNode2D node, DisplacementDof dof, double magnitude)
         {
             // TODO: This should be done more efficiently than O(N)
             if (!nodes.Contains(node)) throw new ArgumentException("There is no such node");
             loads[node, dof] = magnitude;
         }
 
-        public Vector CalculateFreeForces(IDOFEnumerator dofEnumerator)
+        public Vector CalculateFreeForces(IDofOrderer dofOrderer)
         {
-            double[] rhs = new double[dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount];
-            foreach (Tuple<XNode2D, DisplacementDOF, double> entry in loads)
+            double[] rhs = new double[dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs];
+            foreach (Tuple<XNode2D, DisplacementDof, double> entry in loads)
             {
                 try
                 {
-                    int dof = dofEnumerator.GetFreeDofOf(entry.Item1, entry.Item2);
+                    int dof = dofOrderer.GetStandardDofOf(entry.Item1, entry.Item2);
                     rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which isn't implemented yet
                 }
                 catch (KeyNotFoundException ex)
@@ -98,12 +98,12 @@ namespace ISAAR.MSolve.XFEM.Entities
             return Vector.CreateFromArray(rhs);
         }
 
-        public Vector CalculateConstrainedDisplacements(IDOFEnumerator dofEnumerator)
+        public Vector CalculateConstrainedDisplacements(IDofOrderer dofOrderer)
         {
-            double[] uc = new double[dofEnumerator.ConstrainedDofsCount];
-            foreach (Tuple<XNode2D, DisplacementDOF, double> entry in constraints)
+            double[] uc = new double[dofOrderer.NumConstrainedDofs];
+            foreach (Tuple<XNode2D, DisplacementDof, double> entry in constraints)
             {
-                int dof = dofEnumerator.GetConstrainedDofOf(entry.Item1, entry.Item2);
+                int dof = dofOrderer.GetConstrainedDofOf(entry.Item1, entry.Item2);
                 uc[dof] = entry.Item3;
             }
             return Vector.CreateFromArray(uc);

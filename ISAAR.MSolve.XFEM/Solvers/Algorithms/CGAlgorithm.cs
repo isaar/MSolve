@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
             CheckInput(matrix, rhs);
             Vector sol = Vector.CreateZero(matrix.NumColumns); // Start from x = 0
             Vector res = rhs.Copy(); // No need to do the multiplication A*0 = 0
-            return SolveInternal(matrix, rhs, sol, res);
+            return SolveInternal(matrix, sol, res);
         }
 
         public (Vector, IterativeStatistics) Solve(IMatrixView matrix, Vector rhs, Vector initialGuess)
@@ -34,17 +34,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
             CheckInput(matrix, rhs, initialGuess);
             Vector sol = initialGuess.Copy(); // Should I copy this?
             Vector res = rhs - matrix.MultiplyRight(sol);
-            return SolveInternal(matrix, rhs, sol, res);
+            return SolveInternal(matrix, sol, res);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="matrix"></param>
-        /// <param name="rhs"></param>
         /// <param name="sol">The solution vector initialized appropriately. It will also be returned.</param>
         /// <returns></returns>
-        private (Vector, IterativeStatistics) SolveInternal(IMatrixView matrix, Vector rhs, Vector sol, Vector res)
+        private (Vector, IterativeStatistics) SolveInternal(IMatrixView matrix, Vector sol, Vector res)
         {
             //TODO: dot = norm * norm might be faster since I need the norm anyway. Does it reduce accuracy? Needs testing;
             

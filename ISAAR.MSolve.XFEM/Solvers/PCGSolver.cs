@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Solvers.Algorithms;
 using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
@@ -32,11 +32,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Start();
 
             // Interleaced and separate dof enumerators seem to have similar performance.
-            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
-            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
+            DofOrderer = InterleavedDofOrderer.Create(model);
+            //DofOrderer = DofOrdererSeparate.Create(model);
 
             var assembler = new GlobalCSRAssembler();
-            (DOKRowMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKRowMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
 

@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Tensors;
@@ -17,19 +17,19 @@ namespace ISAAR.MSolve.XFEM.Output
     class StressRecovery
     {
         private readonly Model2D model;
-        private readonly IDOFEnumerator dofEnumerator;
+        private readonly IDofOrderer dofOrderer;
 
-        public StressRecovery(Model2D model, IDOFEnumerator dofEnumerator)
+        public StressRecovery(Model2D model, IDofOrderer dofOrderer)
         {
             this.model = model;
-            this.dofEnumerator = dofEnumerator;
+            this.dofOrderer = dofOrderer;
         }
 
         public IReadOnlyList<Tensor2D> ComputeSmoothedNodalStresses(Vector solution)
         {
             var stressesFromAllElements = new Dictionary<XNode2D, List<Tensor2D>>();
             foreach (var node in model.Nodes) stressesFromAllElements[node] = new List<Tensor2D>();
-            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
             foreach (var element in model.Elements)
             {
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Output
         public IReadOnlyDictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>> ComputeElementWiseStresses(
             Vector solution)
         {
-            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofEnumerator);
+            Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
             var allStresses = new Dictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>>();
             foreach (var element in model.Elements)
             {
@@ -81,10 +81,10 @@ namespace ISAAR.MSolve.XFEM.Output
         private IReadOnlyDictionary<XNode2D, Tensor2D> ComputeNodalStressesOfElement(XContinuumElement2D element,
             Vector freeDisplacements, Vector constrainedDisplacements)
         {
-            Vector standardDisplacements = dofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(element, 
+            Vector standardDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(element, 
                 freeDisplacements, constrainedDisplacements);
             Vector enrichedDisplacements = 
-                dofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
+                dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IReadOnlyList<INaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
             var nodalStresses = new Dictionary<XNode2D, Tensor2D>();

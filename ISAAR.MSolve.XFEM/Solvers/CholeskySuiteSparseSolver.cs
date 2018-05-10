@@ -11,10 +11,9 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -33,10 +32,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             watch.Start();
 
-            DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
-            //DOFEnumerator = DOFEnumeratorSeparate.Create(model);
+            DofOrderer = InterleavedDofOrderer.Create(model);
+            //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             #region debug
@@ -66,7 +65,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private Vector SolveWithSkyline()
         {
             var assembler = new GlobalSkylineAssembler();
-            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DOFEnumerator);
+            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             return Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
         }

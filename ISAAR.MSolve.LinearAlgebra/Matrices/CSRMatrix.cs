@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 
 
 // TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
@@ -560,6 +561,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        public void MultiplyVectorSection(IVectorView vectorRight, int vectorStart, Vector result, int resultStart)
+        {
+            Preconditions.CheckMultiplicationDimensionsSection(this, vectorRight, vectorStart, result, resultStart);
+            for (int i = 0; i < NumRows; ++i)
+            {
+                double dot = 0.0;
+                int rowStart = rowOffsets[i]; //inclusive
+                int rowEnd = rowOffsets[i + 1]; //exclusive
+                for (int k = rowStart; k < rowEnd; ++k)
+                {
+                    dot += values[k] * vectorRight[vectorStart + colIndices[k]];
+                }
+                result[resultStart + i] = dot;
+            }
+        }
+
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
             double aggregator = identityValue;
@@ -578,10 +595,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public IMatrixView Transpose()
         {
-            return Transpose(true);
+            return TransposeToCSC(true);
         }
 
-        public CSCMatrix Transpose(bool copyInternalArrays )
+        public CSCMatrix TransposeToCSC(bool copyInternalArrays)
         {
             if (copyInternalArrays)
             {
@@ -594,6 +611,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 return CSCMatrix.CreateFromArrays(NumColumns, NumRows, valuesCopy, colIndicesCopy, rowOffsetsCopy, false);
             }
             else return CSCMatrix.CreateFromArrays(NumColumns, NumRows, values, colIndices, rowOffsets, false);
+        }
+
+        public CSRMatrix TransposeToCSR()
+        {
+            // Use C# port of the scipy method.
+            // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use MKL
+            int nnz = this.values.Length;
+            var cscValues = new double[nnz];
+            var cscRowIndices = new int[nnz];
+            var cscColOffsets = new int[NumColumns + 1];
+
+            SparseArrays.CsrToCsc(NumRows, NumColumns, this.rowOffsets, this.colIndices, this.values, 
+                cscColOffsets, cscRowIndices, cscValues);
+
+            return new CSRMatrix(NumColumns, NumRows, cscValues, cscRowIndices, cscColOffsets);
         }
 
         /// <summary>

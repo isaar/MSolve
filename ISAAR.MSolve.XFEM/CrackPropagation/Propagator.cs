@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -64,11 +64,11 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.Logger = new PropagationLogger();
         }
 
-        public (double growthAngle, double growthLength) Propagate(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements, 
+        public (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, 
             Vector totalConstrainedDisplacements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
-            ComputeSIFS(dofEnumerator, totalFreeDisplacements, totalConstrainedDisplacements, 
+            ComputeSIFS(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
                 out double sifMode1, out double sifMode2);
             double growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
             double growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         }
 
-        private void ComputeSIFS(IDOFEnumerator dofEnumerator, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
+        private void ComputeSIFS(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
              out double sifMode1, out double sifMode2)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
@@ -87,9 +87,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             {
                 XContinuumElement2D element = pair.Key;
                 double[] nodalWeights = pair.Value;
-                Vector standardElementDisplacements = dofEnumerator.ExtractDisplacementVectorOfElementFromGlobal(
+                Vector standardElementDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
                     element, totalFreeDisplacements, totalConstrainedDisplacements);
-                Vector enrichedElementDisplacements = dofEnumerator.ExtractEnrichedDisplacementsOfElementFromGlobal(
+                Vector enrichedElementDisplacements = dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(
                     element, totalFreeDisplacements);
 
                 double partialIntegralMode1, partialIntegralMode2;

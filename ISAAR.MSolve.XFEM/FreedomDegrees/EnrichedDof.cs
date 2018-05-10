@@ -5,17 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+namespace ISAAR.MSolve.XFEM.FreedomDegrees
 {
-    internal class EnrichedDOF: IDOF
+    internal class EnrichedDof: IDof
     {
         public IEnrichmentFunction2D Enrichment { get; }
-        public IDOF StandardDOF { get; }
+        public IDof StandardDof { get; }
 
-        public EnrichedDOF(IEnrichmentFunction2D enrichment, IDOF standardDOF)
+        public EnrichedDof(IEnrichmentFunction2D enrichment, IDof standardDof)
         {
             this.Enrichment = enrichment;
-            this.StandardDOF = standardDOF;
+            this.StandardDof = standardDof;
         }
         
         public override string ToString()
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
             var builder = new StringBuilder();
             builder.Append(Enrichment.ToString());
             builder.Append(" enriched ");
-            builder.Append(StandardDOF);
+            builder.Append(StandardDof);
             return builder.ToString();
         }
     }

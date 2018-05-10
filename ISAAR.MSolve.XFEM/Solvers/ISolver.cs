@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
     interface ISolver
     {
-        IDOFEnumerator DOFEnumerator { get; }
+        IDofOrderer DofOrderer { get; }
         SolverLogger Logger { get; }
         Vector Solution { get; }
 

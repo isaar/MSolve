@@ -9,8 +9,8 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
@@ -264,15 +264,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // Fixed dofs
             foreach (var node in finder.FindNodesWithX(L))
             {
-                model.AddConstraint(node, DisplacementDOF.X, 0.0);
-                model.AddConstraint(node, DisplacementDOF.Y, 0.0);
+                model.AddConstraint(node, DisplacementDof.X, 0.0);
+                model.AddConstraint(node, DisplacementDof.Y, 0.0);
             }
 
             // Loads
             XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
             XNode2D topLeftNode = finder.FindNodeWith(0.0, h);
-            model.AddNodalLoad(bottomLeftNode, DisplacementDOF.Y, -load);
-            model.AddNodalLoad(topLeftNode, DisplacementDOF.Y, load);
+            model.AddNodalLoad(bottomLeftNode, DisplacementDof.Y, -load);
+            model.AddNodalLoad(topLeftNode, DisplacementDof.Y, load);
         }
 
         private void HandleCrack()

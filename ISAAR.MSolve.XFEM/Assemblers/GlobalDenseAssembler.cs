@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
@@ -15,24 +15,24 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     static class GlobalDenseAssembler
     {
-        public static (Matrix Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDOFEnumerator dofEnumerator)
+        public static (Matrix Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int constrainedDofsCount = dofEnumerator.ConstrainedDofsCount;
-            int freeEnrichedDofsCount = dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount;
+            int constrainedDofsCount = dofOrderer.NumConstrainedDofs;
+            int freeEnrichedDofsCount = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
             Matrix Kuu = Matrix.CreateZero(freeEnrichedDofsCount, freeEnrichedDofsCount);
 
             // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
             // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(dofEnumerator.FreeDofsCount + dofEnumerator.EnrichedDofsCount,
-                dofEnumerator.ConstrainedDofsCount);
+            Matrix Kuc = Matrix.CreateZero(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs,
+                dofOrderer.NumConstrainedDofs);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
                 // Build standard element matrices and add it contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                dofEnumerator.MatchElementToGlobalStandardDofsOf(element,
+                dofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
                     out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
                 // Build enriched element matrices and add it contributions to the global matrices
                 IReadOnlyDictionary<int, int> elementToGlobalEnrDofs =
-                    dofEnumerator.MatchElementToGlobalEnrichedDofsOf(element);
+                    dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (elementToGlobalEnrDofs.Count > 0)
                 {
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);

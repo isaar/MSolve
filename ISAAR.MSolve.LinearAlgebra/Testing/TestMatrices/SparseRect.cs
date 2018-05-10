@@ -231,10 +231,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Vector cscTimesX5 = csc.MultiplyRight(x5, false);
             Vector csrTimesX10 = csr.MultiplyRight(x10, true);
             Vector cscTimesX10 = csc.MultiplyRight(x10, true);
+
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, csrTimesX5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, cscTimesX5.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, csrTimesX10.InternalData);
             comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, cscTimesX10.InternalData);
+
+            //TODO: the next should be hard-coded
+            var x15 = Vector.CreateWithValue(5, 1000.0).Append(x5);
+            var b20 = Vector.CreateWithValue(20, 10.0);
+            var b20Expected = Vector.CreateWithValue(10, 10.0).Append(csrTimesX5);
+            csr.MultiplyVectorSection(x15, 5, b20, 10);
+            comparer.CheckVectorEquality(b20Expected, b20);
         }
 
         public static void CheckIndexing()
@@ -265,10 +273,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
             var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
-            var csrTrans = csr.Transpose(false);
-            var cscTrans = csc.Transpose(false);
-            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTrans.CopyToFullMatrix().CopyToArray2D());
-            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTrans.CopyToFullMatrix().CopyToArray2D());
+            CSCMatrix csrTransAsCSC = csr.TransposeToCSC(false);
+            CSRMatrix cscTransAsCSR = csc.TransposeToCSR(false);
+            CSRMatrix csrTransAsCSR = csr.TransposeToCSR();
+            CSCMatrix cscTransAsCSC = csc.TransposeToCSC();
+            Console.WriteLine("\nTranspose CSR as CSC: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTransAsCSC.CopyToFullMatrix().CopyToArray2D());
+            Console.WriteLine("\nTranspose CSC as CSR: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTransAsCSR.CopyToFullMatrix().CopyToArray2D());
+            Console.WriteLine("\nTranspose CSR as CSR: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTransAsCSR.CopyToFullMatrix().CopyToArray2D());
+            Console.WriteLine("\nTranspose CSC as CSC: ");
+            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), cscTransAsCSC.CopyToFullMatrix().CopyToArray2D());
         }
 
         public static void Print()

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Logger = new SolverLogger();
         }
 
-        public IDOFEnumerator DOFEnumerator { get; protected set; }
+        public IDofOrderer DofOrderer { get; protected set; }
 
         public SolverLogger Logger { get; }
 
@@ -45,8 +45,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// <returns></returns>
         protected Vector CalcEffectiveRhs(IMatrixView globalUnconstrainedConstrained)
         {
-            Vector Fu = model.CalculateFreeForces(DOFEnumerator);
-            Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
+            Vector Fu = model.CalculateFreeForces(DofOrderer);
+            Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
             Vector Feff = Fu - globalUnconstrainedConstrained.MultiplyRight(uc);
             return Feff;
         }

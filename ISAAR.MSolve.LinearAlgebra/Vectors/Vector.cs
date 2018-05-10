@@ -107,6 +107,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             CBlas.Daxpy(Length, 1.0, ref other.data[0], 1, ref this.data[0], 1);
         }
 
+        public Vector Append(Vector last)
+        {
+            int n1 = this.data.Length;
+            int n2 = last.data.Length;
+            var result = new double[n1 + n2];
+            Array.Copy(this.data, result, n1);
+            Array.Copy(last.data, 0, result, n1, n2);
+            return new Vector(result);
+        }
+
         /// <summary>
         /// result = this + scalar * other
         /// </summary>

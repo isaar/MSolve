@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
             this.Discontinuity = geometry;
             this.enrichmentFunction = new RampFunction2D();
-            this.DOFs = new EnrichedDOF[] {
-                new EnrichedDOF(enrichmentFunction, DisplacementDOF.X),
-                new EnrichedDOF(enrichmentFunction, DisplacementDOF.Y)
+            this.Dofs = new EnrichedDof[] {
+                new EnrichedDof(enrichmentFunction, DisplacementDof.X),
+                new EnrichedDof(enrichmentFunction, DisplacementDof.Y)
             };
         }
 

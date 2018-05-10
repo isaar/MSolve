@@ -5,35 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
+//TODO: Clean this up: Not all these methods are actually necessary. Some are only used for testing specific orderers.  
+namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    interface IDOFEnumerator
+    interface IDofOrderer
     {
-        int ConstrainedDofsCount { get; }
-        int EnrichedDofsCount { get ; }
-        int FreeDofsCount { get; }
+        int NumConstrainedDofs { get; }
+        int NumEnrichedDofs { get ; }
+        int NumStandardDofs { get; }
 
-        IDOFEnumerator DeepCopy();
-
-        int GetFreeDofOf(XNode2D node, DisplacementDOF dofType);
-        IEnumerable<int> GetFreeDofsOf(XNode2D node);
-        List<int> GetFreeDofsOf(XContinuumElement2D element);
-
-        int GetConstrainedDofOf(XNode2D node, DisplacementDOF dofType);
-        IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
-        List<int> GetConstrainedDofsOf(XContinuumElement2D element); // Also add a method that simultaneously returns free+constrained
-
-        int GetEnrichedDofOf(XNode2D node, EnrichedDOF dofType);
-        IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
-        List<int> GetEnrichedDofsOf(XContinuumElement2D element);
-
-        void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
-            out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
-            out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
-
-        IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element);
+        IDofOrderer DeepCopy();
 
         Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
             Vector globalFreeVector, Vector globalConstrainedVector);
@@ -42,7 +26,25 @@ namespace ISAAR.MSolve.XFEM.Entities.FreedomDegrees
 
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 
-        ITable<XNode2D, EnrichedDOF, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
+        ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
+
+        int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType);
+        IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
+        List<int> GetConstrainedDofsOf(XContinuumElement2D element); // Also add a method that simultaneously returns free+constrained
+
+        int GetEnrichedDofOf(XNode2D node, EnrichedDof dofType);
+        IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
+        List<int> GetEnrichedDofsOf(XContinuumElement2D element);
+
+        int GetStandardDofOf(XNode2D node, DisplacementDof dofType);
+        IEnumerable<int> GetStandardDofsOf(XNode2D node);
+        List<int> GetStandardDofsOf(XContinuumElement2D element);
+
+        void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,
+            out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
+            out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
+
+        IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element);
 
         /// <summary>
         /// Renumbers the dof indices according th the given permutation vector and direction. 

@@ -11,8 +11,8 @@ using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -213,12 +213,12 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             }
 
             // Boundary conditions
-            model.AddConstraint(model.Nodes[0], DisplacementDOF.X, 0.0);
-            model.AddConstraint(model.Nodes[0], DisplacementDOF.Y, 0.0);
-            model.AddConstraint(model.Nodes[3], DisplacementDOF.X, 0.0);
-            model.AddConstraint(model.Nodes[3], DisplacementDOF.Y, 0.0);
-            model.AddConstraint(model.Nodes[5], DisplacementDOF.Y, -0.05);
-            model.AddConstraint(model.Nodes[6], DisplacementDOF.Y, 0.05);
+            model.AddConstraint(model.Nodes[0], DisplacementDof.X, 0.0);
+            model.AddConstraint(model.Nodes[0], DisplacementDof.Y, 0.0);
+            model.AddConstraint(model.Nodes[3], DisplacementDof.X, 0.0);
+            model.AddConstraint(model.Nodes[3], DisplacementDof.Y, 0.0);
+            model.AddConstraint(model.Nodes[5], DisplacementDof.Y, -0.05);
+            model.AddConstraint(model.Nodes[6], DisplacementDof.Y, 0.05);
 
             return model;
         }
@@ -287,11 +287,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckGlobalStiffnessNode7(Model2D model, ISolver solver)
         {
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, solver.DOFEnumerator);
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, solver.DofOrderer);
 
             var dofsOfNode7 = new List<int>();
-            foreach (int dof in solver.DOFEnumerator.GetFreeDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
-            foreach (int dof in solver.DOFEnumerator.GetEnrichedDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
+            foreach (int dof in solver.DofOrderer.GetStandardDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
+            foreach (int dof in solver.DofOrderer.GetEnrichedDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
             dofsOfNode7.Sort();
 
             Matrix node7Submatrix = checker.ExtractRelevant(Kuu, dofsOfNode7);
@@ -308,16 +308,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             var displacements = new List<double>();
 
             // Standard dofs
-            int dofUx5 = solver.DOFEnumerator.GetFreeDofOf(model.Nodes[5], DisplacementDOF.X);
+            int dofUx5 = solver.DofOrderer.GetStandardDofOf(model.Nodes[5], DisplacementDof.X);
             displacements.Add(solver.Solution[dofUx5]);
             displacements.Add(-0.05);
-            int dofUx6 = solver.DOFEnumerator.GetFreeDofOf(model.Nodes[6], DisplacementDOF.X);
+            int dofUx6 = solver.DofOrderer.GetStandardDofOf(model.Nodes[6], DisplacementDof.X);
             displacements.Add(solver.Solution[dofUx6]);
             displacements.Add(0.05);
 
             // Enriched dofs Concatenate IEnumerables and then toArray()
-            var enrichedDofs = solver.DOFEnumerator.GetEnrichedDofsOf(model.Nodes[5]).
-                Concat(solver.DOFEnumerator.GetEnrichedDofsOf(model.Nodes[6]));
+            var enrichedDofs = solver.DofOrderer.GetEnrichedDofsOf(model.Nodes[5]).
+                Concat(solver.DofOrderer.GetEnrichedDofsOf(model.Nodes[6]));
             foreach (int dof in enrichedDofs) displacements.Add(solver.Solution[dof]);
             RoundList(displacements);
             Console.Write("Checking the solution vector for nodes 5, 6: ");
@@ -340,7 +340,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void PrintDisplacements(Model2D model, ISolver solver)
         {
-            double[,] nodalDisplacements = solver.DOFEnumerator.GatherNodalDisplacements(model, solver.Solution);
+            double[,] nodalDisplacements = solver.DofOrderer.GatherNodalDisplacements(model, solver.Solution);
            
             Console.WriteLine("\n-------------------- Standard displacements ------------------");
             for (int i = 0; i < nodalDisplacements.GetLength(0); ++i)
@@ -351,7 +351,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
 
             Console.WriteLine("\n-------------------- Artificial displacements ------------------");
-            Console.WriteLine(solver.DOFEnumerator.GatherEnrichedNodalDisplacements(model, solver.Solution));
+            Console.WriteLine(solver.DofOrderer.GatherEnrichedNodalDisplacements(model, solver.Solution));
         }
 
         private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)

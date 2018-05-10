@@ -10,7 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             this.Logger = new SolverLogger();
         }
 
-        public IDOFEnumerator DOFEnumerator { get; private set; }
+        public IDofOrderer DofOrderer { get; private set; }
 
         public SolverLogger Logger { get; }
 
@@ -40,8 +40,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             watch.Start();
 
-            DOFEnumerator = DOFEnumeratorSeparate.Create(model); // Actually this enumeration will result in huge bandwidths.
-            //DOFEnumerator = DOFEnumeratorInterleaved.Create(model);
+            DofOrderer = SeparateDofOrderer.Create(model); // Actually this enumeration will result in huge bandwidths.
+            //DofOrderer = DofOrdererInterleaved.Create(model);
             SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
             var solver = new SolverSkyline(ls); // A solver devoid of linear system must be passed into the constructor
             solver.Initialize();
@@ -66,11 +66,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// <returns></returns>
         private SkylineLinearSystem ReduceToSimpleLinearSystem()
         {
-            (Numerical.LinearAlgebra.SkylineMatrix2D Kuu, Matrix Kuc) = SingleGlobalSkylineAssemblerOLD.BuildGlobalMatrix(model, DOFEnumerator);
+            (Numerical.LinearAlgebra.SkylineMatrix2D Kuu, Matrix Kuc) = SingleGlobalSkylineAssemblerOLD.BuildGlobalMatrix(model, DofOrderer);
 
             // TODO: Perhaps a dedicated class should be responsible for these vectors
-            Vector Fu = model.CalculateFreeForces(DOFEnumerator);
-            Vector uc = model.CalculateConstrainedDisplacements(DOFEnumerator);
+            Vector Fu = model.CalculateFreeForces(DofOrderer);
+            Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
             Vector Feff = Fu - Kuc * uc;
 
             #region DEBUG code

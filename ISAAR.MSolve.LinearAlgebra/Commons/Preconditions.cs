@@ -74,6 +74,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
+        public static void CheckMultiplicationDimensionsSection(IIndexable2D matrixLeft, IVectorView vectorRight, int vectorStart,
+            IVectorView result, int resultStart)
+        {
+            if (vectorStart + matrixLeft.NumColumns > vectorRight.Length) throw new NonMatchingDimensionsException(
+                $"The multiplied vector's length = {vectorRight.Length} must be at least as large as the start index =" +
+                $" {vectorStart} + the matrix' columns = {matrixLeft.NumColumns}");
+            if (vectorStart + matrixLeft.NumRows > result.Length) throw new NonMatchingDimensionsException(
+                $"The result vector's length = {result.Length} must be at least as large as the start index =" +
+                $" {resultStart} + the matrix' rows = {matrixLeft.NumRows}");
+        }
+
         public static void CheckSameColDimension(IIndexable2D matrix, IVectorView vector)
         {
             if (matrix.NumColumns != vector.Length)

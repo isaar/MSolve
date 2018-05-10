@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     class CrackBodyEnrichment2D : IEnrichmentItem2D
     {
         private readonly IHeavisideFunction2D enrichmentFunction;
-        public IReadOnlyList<EnrichedDOF> DOFs { get; }
+        public IReadOnlyList<EnrichedDof> Dofs { get; }
         public ICrackGeometry crackDescription;
 
         public CrackBodyEnrichment2D(ICrackGeometry crackDescription): this(crackDescription, new SignFunction2D())
@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         {
             this.crackDescription = crackDescription;
             this.enrichmentFunction = enrichmentFunction;
-            this.DOFs = new EnrichedDOF[] {
-                new EnrichedDOF(enrichmentFunction, DisplacementDOF.X),
-                new EnrichedDOF(enrichmentFunction, DisplacementDOF.Y)
+            this.Dofs = new EnrichedDof[] {
+                new EnrichedDof(enrichmentFunction, DisplacementDof.X),
+                new EnrichedDof(enrichmentFunction, DisplacementDof.Y)
             };
         }
         

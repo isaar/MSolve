@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         /// <param name="format"></param>
         public FullVectorWriter(IVectorView vector, bool firstLineIsLength = false, Array1DFormatting format = null)
         {
-            this.format = (format == null) ? Array1DFormatting.Plain : format;
+            this.format = (format == null) ? Array1DFormatting.PlainHorizontal : format;
             this.writeLengthFirst = firstLineIsLength;
             this.vector = vector;
         }

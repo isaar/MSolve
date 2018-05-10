@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Entities.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
@@ -18,6 +17,8 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Tensors;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -111,7 +112,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             out Matrix stiffnessEnriched)
         {
             int standardDofsCount = StandardDofsCount;
-            int artificialDofsCount = CountArtificialDofs();
+            int artificialDofsCount = CountEnrichedDofs();
             stiffnessEnrichedStandard = Matrix.CreateZero(artificialDofsCount, standardDofsCount);
             stiffnessEnriched = Matrix.CreateZero(artificialDofsCount, artificialDofsCount);
 
@@ -301,48 +302,48 @@ namespace ISAAR.MSolve.XFEM.Elements
             return new Tensor2D(stressXX, stressYY, stressXY);
         }
 
-        #region Dofs (perhaps all these should be delegated to element specific std and enr DofEnumerators)
-        public int StandardDofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
-
-        public int CountArtificialDofs()
+        #region Dofs (perhaps all these should be delegated to element specific std and enr DofOrderers)
+        public int CountEnrichedDofs()
         {
             int count = 0;
-            foreach (XNode2D node in Nodes) count += node.ArtificialDofsCount; // in all nodes or in enriched interpolation nodes?
+            foreach (XNode2D node in Nodes) count += node.EnrichedDofsCount; // in all nodes or in enriched interpolation nodes?
             return count;
         }
 
-        /// <summary>
-        /// TODO: Perhaps this should be saved as a DOFEnumerator object (the dofs themselves would be created on  
-        /// demand though). XElement will have a mutable one, while others will get a view. I could still use a  
-        /// DOFEnumerator even if I do not save it. Transfering most of the code to the Enumerator class, also reduces  
-        /// code duplication with the standard ContinuumElement2D
-        /// </summary>
-        /// <returns></returns>
-        public ITable<XNode2D, DisplacementDOF, int> GetStandardDofs()
-        {
-            var elementDofs = new Table<XNode2D, DisplacementDOF, int>();
-            int dofCounter = 0;
-            foreach (XNode2D node in Nodes)
-            {
-                elementDofs[node, DisplacementDOF.X] = dofCounter++;
-                elementDofs[node, DisplacementDOF.Y] = dofCounter++;
-            }
-            return elementDofs;
-        }
+        public int StandardDofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
 
-        public ITable<XNode2D, EnrichedDOF, int> GetEnrichedDofs()
+        public DofTable<EnrichedDof> GetEnrichedDofs()
         {
-            var elementDofs = new Table<XNode2D, EnrichedDOF, int>();
+            var elementDofs = new DofTable<EnrichedDof>();
             int dofCounter = 0;
             foreach (XNode2D node in Nodes)
             {
                 foreach (var enrichment in node.EnrichmentItems.Keys)
                 {
-                    foreach (var enrichedDof in enrichment.DOFs) // there are different dofs for x and y axes
+                    foreach (var enrichedDof in enrichment.Dofs) // there are different dofs for x and y axes
                     {
                         elementDofs[node, enrichedDof] = dofCounter++;
                     }
                 }
+            }
+            return elementDofs;
+        }
+
+        /// <summary>
+        /// TODO: Perhaps this should be saved as a DofOrderer object (the dofs themselves would be created on  
+        /// demand though). XElement will have a mutable one, while others will get a view. I could still use a  
+        /// DofOrderer even if I do not save it. Transfering most of the code to the Enumerator class, also reduces  
+        /// code duplication with the standard ContinuumElement2D
+        /// </summary>
+        /// <returns></returns>
+        public DofTable<DisplacementDof> GetStandardDofs()
+        {
+            var elementDofs = new DofTable<DisplacementDof>();
+            int dofCounter = 0;
+            foreach (XNode2D node in Nodes)
+            {
+                elementDofs[node, DisplacementDof.X] = dofCounter++;
+                elementDofs[node, DisplacementDof.Y] = dofCounter++;
             }
             return elementDofs;
         }
