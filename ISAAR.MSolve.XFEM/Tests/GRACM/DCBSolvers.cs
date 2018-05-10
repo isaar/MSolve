@@ -23,13 +23,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             DCB.Builder builder = SetupBenchmark();
             builder.UseLSM = true; // Explicit crack results in a singular matrix. I probably broke sth. TODO: solve this
+            builder.LsmOutputDirectory = @"C:\Users\Serafeim\Desktop\GRACM";
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
             // Solvers
-            //var solver = CreateSkylineSolver(benchmark);
+            var solver = CreateSkylineSolver(benchmark);
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
-            var solver = CreateNoReanalysisSolver(benchmark);
+            //var solver = CreateNoReanalysisSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
             IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
@@ -39,9 +40,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //{
             //    crackPath = benchmark.Analyze(solver);
             //}
-
-
-
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)

@@ -62,6 +62,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public ISet<XNode2D> CrackTipNodesNew { get; private set; }
         public ISet<XNode2D> CrackTipNodesOld { get; private set; }
         public ICartesianPoint2D CrackMouth { get; private set; }
+        public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
+        public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }
+        public LsmLogger Logger { get; set; }
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
 
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
@@ -102,6 +105,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 levelSetsBody[node] = segment.SignedDistanceOf(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
             }
+
+            if (Logger != null) Logger.Log(); //TODO: handle this with a NullLogger.
         }
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)
@@ -129,6 +134,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                     levelSetsBody[node] = newSegment.SignedDistanceOf(node);
                 }
             }
+
+            if (Logger != null) Logger.Log(); //TODO: handle this with a NullLogger.
         }
 
         /// <summary>

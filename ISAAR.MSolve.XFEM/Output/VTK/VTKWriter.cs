@@ -8,6 +8,10 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Tensors;
 
+//TODO: This should be IDisposable
+//TODO: It should work with Mesh, not Model. What about data that is interpolated over specific regions (e.g. narrow band LSM)?
+//TODO: Passing dictionaries might be preferrable to passing arrays, since the user does not have to guess the entries order and
+//      he doesn't have to create the array from the dictionary he has. Even better, provide both functionalitites.
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class VTKWriter
@@ -29,10 +33,10 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             this.model = model;
         }
 
-        public void InitializeFile(string filename)
+        public void InitializeFile(string filename, bool isAbsolute)
         {
             // Header
-            string path = directory + filename + ".vtk";
+            string path = isAbsolute ? filename + ".vtk" : directory + filename + ".vtk";
             writer = new StreamWriter(path);
             writer.Write("# vtk DataFile Version ");
             writer.WriteLine(vtkReaderVersion);

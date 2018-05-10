@@ -85,11 +85,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         #endregion
 
         /// <summary>
-        /// The approximate size of the elements. If the mesh is not uniform, this applies to the finest region.
-        /// </summary>
-        private readonly double elementSize;
-
-        /// <summary>
         /// The length by which the crack grows in each iteration.
         /// </summary>
         private readonly double growthLength;
@@ -105,6 +100,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// rather than the using the J-integral method to predict it.
         /// </summary>
         private readonly PropagationLogger knownPropagation;
+
+        private readonly string lsmOutputDirectory;
 
         /// <summary>
         /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
@@ -126,11 +123,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         private DCB(double growthLength, double jIntegralRadiusOverElementSize, PropagationLogger knownPropagation,
-            int maxIterations, IMeshProvider meshProvider, bool useLSM)
+            string lsmOutputDirectory, int maxIterations, IMeshProvider meshProvider, bool useLSM)
         {
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.knownPropagation = knownPropagation;
+            this.lsmOutputDirectory = lsmOutputDirectory;
             this.maxIterations = maxIterations;
             this.meshProvider = meshProvider;
             this.useLSM = useLSM;
@@ -236,6 +234,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 // Create enrichments          
                 lsmCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(lsmCrack);
                 lsmCrack.CrackTipEnrichments = new CrackTipEnrichments2D(lsmCrack, CrackTipPosition.Single);
+                lsmCrack.Logger = new LsmLogger(Model, lsmCrack, lsmOutputDirectory);
 
                 // Mesh geometry interaction
                 lsmCrack.InitializeGeometry(crackVertex0, crackVertex1);
@@ -291,6 +290,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             public PropagationLogger KnownPropagation { get; set; } = null;
 
             /// <summary>
+            /// The absolute path of the directory where output vtk files with the crack path and the level set functions at 
+            /// each iteration will be written. Leave it null to avoid the performance cost it will introduce.
+            /// </summary>
+            public string LsmOutputDirectory { get; set; } = null;
+
+            /// <summary>
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
             /// boundary or if the fracture toughness is exceeded.
             /// </summary>
@@ -301,10 +306,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// </summary>
             public bool UseLSM { get; set; } = true;
 
+
             public DCB BuildBenchmark()
             {
-                return new DCB(growthLength, JintegralRadiusOverElementSize, KnownPropagation, MaxIterations, meshProvider,
-                    UseLSM);
+                return new DCB(growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmOutputDirectory,
+                    MaxIterations, meshProvider, UseLSM);
             }
         }
     }

@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static void Plot(Model2D model, IReadOnlyList<ICartesianPoint2D> crackPath)
         {
             var writer = new VTKWriter(model);
-            writer.InitializeFile(outputMesh);
+            writer.InitializeFile(outputMesh, false);
         }
 
         public Model2D model;

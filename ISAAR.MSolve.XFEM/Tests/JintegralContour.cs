@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             // Print results
             var writer = new VTKWriter(model);
-            writer.InitializeFile(outputFile);
+            writer.InitializeFile(outputFile, false);
             writer.WriteScalarField("weights", weights);
             writer.CloseCurrentFile();
         }
