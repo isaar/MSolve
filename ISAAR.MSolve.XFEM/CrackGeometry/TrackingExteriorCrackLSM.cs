@@ -21,6 +21,8 @@ using ISAAR.MSolve.XFEM.Utilities;
 //TODO: using narrow band, a superset of tipNodes and bodyNodes would include those sets. Need core class SuperSet.
 //TODO: perhaps the bookkeeping of nodes and elements can be done by a dedicated class. Narrow banding would then be implemented
 //      there. In general, this is a god class and should be broken down to smaller ones.
+//TODO: Crack tips should be handled differently than using enums. Interior and exterior cracks should compose their common 
+//      dedicated strategy classes with their common functionality and expose appropriate properties for the crack tip data.
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     /// <summary>
@@ -67,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public LsmLogger Logger { get; set; }
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
 
-        public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
+        public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 
         {
             if (tipPosition == CrackTipPosition.Single) return crackTip;
             else throw new ArgumentException("Only works for single tip cracks.");
@@ -106,7 +108,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
             }
 
-            if (Logger != null) Logger.Log(); //TODO: handle this with a NullLogger.
+            if (Logger != null) Logger.InitialLog(); //TODO: handle this with a NullLogger.
         }
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)

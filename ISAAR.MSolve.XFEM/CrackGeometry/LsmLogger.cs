@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: Decide between 1) push observer, 2) pull observer with the observable injected in observer.Observe(observarble) and  
@@ -11,27 +12,41 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     class LsmLogger
     {
-        private readonly Model2D model;
+        private readonly List<ICartesianPoint2D> crackPath;
         private readonly TrackingExteriorCrackLSM lsm;
+        private readonly Model2D model;
         private readonly string outputDirectory;
         private int iteration;
 
         public LsmLogger(Model2D model, TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
+            this.crackPath = new List<ICartesianPoint2D>();
             this.model = model;
             this.lsm = lsm;
             this.outputDirectory = outputDirectory;
-            this.iteration = 0;
+        }
+
+        // This could be handled better by having LSM storing the crack path (which is all around useful). However having an
+        // InitialLog() method also provides some versatility.
+        public void InitialLog()
+        {
+            iteration = 0;
+            crackPath.Add(lsm.CrackMouth); 
+            Log();
         }
 
         public void Log() 
         {
-            // TODO: Log the crack path
-
+            // Log the crack path
+            crackPath.Add(lsm.GetCrackTip(CrackTipPosition.Single));
+            var crackWriter = new PolylineWriter();
+            crackWriter.InitializeFile($"{outputDirectory}\\crack_{iteration}", true);
+            crackWriter.WritePolyline(crackPath);
+            crackWriter.CloseCurrentFile();
 
             // Log the level sets
-            var writer = new VTKWriter(model);
-            writer.InitializeFile($"{outputDirectory}\\level_sets_{iteration}", true);
+            var lsWriter = new VTKWriter(model);
+            lsWriter.InitializeFile($"{outputDirectory}\\level_sets_{iteration}", true);
 
             IReadOnlyDictionary<XNode2D, double> levelSetsBody = lsm.LevelSetsBody;
             IReadOnlyDictionary<XNode2D, double> levelSetsTip = lsm.LevelSetsTip;
@@ -44,10 +59,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 tipArray[i] = levelSetsTip[node];
             }
 
-            writer.WriteScalarField("level_set_crack_body", bodyArray);
-            writer.WriteScalarField("level_set_crack_tip", tipArray);
+            lsWriter.WriteScalarField("level_set_crack_body", bodyArray);
+            lsWriter.WriteScalarField("level_set_crack_tip", tipArray);
 
-            writer.CloseCurrentFile();
+            lsWriter.CloseCurrentFile();
             ++iteration;
         }
     }

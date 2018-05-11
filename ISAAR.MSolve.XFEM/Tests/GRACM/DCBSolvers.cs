@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             DCB.Builder builder = SetupBenchmark();
             builder.UseLSM = true; // Explicit crack results in a singular matrix. I probably broke sth. TODO: solve this
-            builder.LsmOutputDirectory = @"C:\Users\Serafeim\Desktop\GRACM";
+            builder.LsmOutputDirectory = @"C:\Users\Serafeim\Desktop\GRACM\LSM_debugging";
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
