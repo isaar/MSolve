@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface IStructuralModel
     {
-		Dictionary<int, ISubdomain> SubdomainsDictionary { get;  }
+		Dictionary<int, ISubdomain> ISubdomainsDictionary { get;  }
 	    IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; }
 		void AssignLoads();
 		void AssignMassAccelerationHistoryLoads(int timeStep);
