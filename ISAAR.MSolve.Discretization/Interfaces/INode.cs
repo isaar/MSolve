@@ -10,12 +10,5 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		double X { get; set; }
 		double Y { get; set; }
 		double Z { get; set; }
-
-		List<DOFType> Constraints { get; }
-		Dictionary<int, IElement> ElementsDictionary { get; }
-		Dictionary<int, ISubdomain> SubdomainsDictionary { get; }
-
-		string ToString();
-		void BuildSubdomainDictionary();
 	}
 }
