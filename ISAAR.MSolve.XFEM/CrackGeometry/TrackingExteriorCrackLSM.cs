@@ -37,8 +37,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly Dictionary<XNode2D, double> levelSetsTip;
         private readonly double tipEnrichmentAreaRadius;
         private readonly List<XContinuumElement2D> tipElements; // Ideally there is only 1, but what if the tip falls on the edge bewteen elements?
-        
         private readonly CartesianTriangulator triangulator;
+        private readonly ILevelSetUpdater levelSetUpdater;
+
         private ICartesianPoint2D crackTip;
         private TipCoordinateSystem tipSystem;
 
@@ -53,6 +54,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             this.CrackTipNodesNew = new HashSet<XNode2D>();
             this.CrackTipNodesOld = new HashSet<XNode2D>();
             this.triangulator = new CartesianTriangulator();
+            //this.levelSetUpdater = new LevelSetUpdaterOLD();
+            this.levelSetUpdater = new LevelSetUpdaterStolarska();
         }
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
@@ -116,26 +119,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double globalGrowthAngle = AngleUtilities.Wrap(localGrowthAngle + tipSystem.RotationAngle);
             double dx = growthLength * Math.Cos(globalGrowthAngle);
             double dy = growthLength * Math.Sin(globalGrowthAngle);
-            double unitDx = dx / growthLength;
-            double unitDy = dy / growthLength;
-
             var oldTip = crackTip;
             var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
             crackTip = newTip;
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
 
-            var newSegment = new DirectedSegment2D(oldTip, newTip);
-            foreach (XNode2D node in Mesh.Vertices)
-            {
-                // Rotate the ALL tip level sets towards the new tip and then advance them
-                double rotatedTipLevelSet = (node.X - crackTip.X) * unitDx + (node.Y - crackTip.Y) * unitDy;
-                levelSetsTip[node] = rotatedTipLevelSet - newSegment.Length;
-
-                if (rotatedTipLevelSet > 0.0) // Only some body level sets are updated (See Stolarska 2001) 
-                {
-                    levelSetsBody[node] = newSegment.SignedDistanceOf(node);
-                }
-            }
+            levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, levelSetsBody, levelSetsTip);
 
             if (Logger != null) Logger.Log(); //TODO: handle this with a NullLogger.
         }

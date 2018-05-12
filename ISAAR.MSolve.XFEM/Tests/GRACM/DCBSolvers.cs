@@ -22,7 +22,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static void TestSolver()
         {
             DCB.Builder builder = SetupBenchmark();
-            builder.UseLSM = true; // Explicit crack results in a singular matrix. I probably broke sth. TODO: solve this
             builder.LsmOutputDirectory = @"C:\Users\Serafeim\Desktop\GRACM\LSM_debugging";
             DCB benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
@@ -94,8 +93,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             double growthLength = 0.3;
             double fineElementSize = 0.08;
-            IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
+            //IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
             //IMeshProvider meshProvider = new GmshMeshProvider(@"C: \Users\Serafeim\Desktop\GMSH\dcb.msh");
+            IMeshProvider meshProvider = new DCBUniformMeshProvider(fineElementSize);
             var builder = new DCB.Builder(growthLength, meshProvider);
             builder.UseLSM = true;
             //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 
