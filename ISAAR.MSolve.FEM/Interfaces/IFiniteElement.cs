@@ -6,16 +6,16 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {
-    public interface IFiniteElement
+    public interface IFiniteElement:IElementType
     {
         int ID { get; }
         ElementDimensions ElementDimensions { get; }
-        IFiniteElementDOFEnumerator DOFEnumerator { get; set; }
-        IList<IList<DOFType>> GetElementDOFTypes(Element element);
+        //IElementDOFEnumerator DOFEnumerator { get; set; }
+        //IList<IList<DOFType>> GetElementDOFTypes(Element element);
         bool MaterialModified { get; }
-        IMatrix2D StiffnessMatrix(Element element);
-        IMatrix2D MassMatrix(Element element);
-        IMatrix2D DampingMatrix(Element element);
+        //IMatrix2D StiffnessMatrix(Element element);
+        //IMatrix2D MassMatrix(Element element);
+        //IMatrix2D DampingMatrix(Element element);
         void ResetMaterialModified();
         Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements);
