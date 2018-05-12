@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.FEM.Providers
         public IMatrix2D Matrix(IElement element)
         {
             //return element.M;
-            return element.ElementType.DampingMatrix(element);
+            return element.IElementType.DampingMatrix(element);
         }
 
         #endregion

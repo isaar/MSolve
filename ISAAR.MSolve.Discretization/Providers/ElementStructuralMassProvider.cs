@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.FEM.Providers
 
         public IMatrix2D Matrix(IElement element)
         {
-            return element.ElementType.MassMatrix(element);
+            return element.IElementType.MassMatrix(element);
         }
 
         #endregion

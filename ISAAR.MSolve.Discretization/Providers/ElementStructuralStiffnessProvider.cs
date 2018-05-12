@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Discretization.Providers
 
         public IMatrix2D Matrix(IElement element)
         {
-            return element.ElementType.StiffnessMatrix(element);
+            return element.IElementType.StiffnessMatrix(element);
         }
 
         #endregion

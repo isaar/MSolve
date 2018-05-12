@@ -11,20 +11,20 @@ namespace ISAAR.MSolve.Discretization
         private static int[] CalculateRowIndex(ISubdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary)
         {
             int[] rowHeights = new int[subdomain.TotalDOFs];
-            foreach (IElement element in subdomain.ElementsDictionary.Values)
+            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
             {
                 int minDOF = Int32.MaxValue;
-                foreach (INode node in element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
+                foreach (INode node in element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
                 {
-                    if ((nodalDOFsDictionary.ContainsKey(node.ID) == false) && (element.ElementType is IEmbeddedElement))
+                    if ((nodalDOFsDictionary.ContainsKey(node.ID) == false) && (element.IElementType is IEmbeddedElement))
                         continue;
                     foreach (int dof in nodalDOFsDictionary[node.ID].Values)
                         if (dof != -1) minDOF = Math.Min(dof, minDOF);
                 }
                 //foreach (Node node in element.NodesDictionary.Values.Where(e => e.EmbeddedInElement == null))
-                foreach (INode node in element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
+                foreach (INode node in element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
                 {
-                    if ((nodalDOFsDictionary.ContainsKey(node.ID) == false) && (element.ElementType is IEmbeddedElement))
+                    if ((nodalDOFsDictionary.ContainsKey(node.ID) == false) && (element.IElementType is IEmbeddedElement))
                         continue;
                     foreach (int dof in nodalDOFsDictionary[node.ID].Values)
                         if (dof != -1) rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
@@ -48,16 +48,16 @@ namespace ISAAR.MSolve.Discretization
             times.Add("rowIndexCalculation", DateTime.Now - totalStart);
             times.Add("element", TimeSpan.Zero);
             times.Add("addition", TimeSpan.Zero);
-            foreach (IElement element in subdomain.ElementsDictionary.Values)
+            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
             {
-                var isEmbeddedElement = element.ElementType is IEmbeddedElement;
+                var isEmbeddedElement = element.IElementType is IEmbeddedElement;
                 var elStart = DateTime.Now;
                 IMatrix2D ElementK = elementProvider.Matrix(element);
                 times["element"] += DateTime.Now - elStart;
 
                 elStart = DateTime.Now;
-                var elementDOFTypes = element.ElementType.DOFEnumerator.GetDOFTypes(element);
-                var matrixAssemblyNodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+                var elementDOFTypes = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+                var matrixAssemblyNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
                 int iElementMatrixRow = 0;
                 for (int i = 0; i < elementDOFTypes.Count; i++)
                 {

@@ -10,17 +10,17 @@ namespace ISAAR.MSolve.Discretization
 	{
 		public IList<IList<DOFType>> GetDOFTypes(IElement element)
 		{
-			return element.ElementType.GetElementDOFTypes(element);
+			return element.IElementType.GetElementDOFTypes(element);
 		}
 
 		public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement element)
 		{
-			return element.ElementType.GetElementDOFTypes(element);
+			return element.IElementType.GetElementDOFTypes(element);
 		}
 
 		public IList<INode> GetNodesForMatrixAssembly(IElement element)
 		{
-			return element.Nodes;
+			return element.INodes;
 		}
 
 		public IMatrix2D GetTransformedMatrix(IMatrix2D matrix)
