@@ -6,11 +6,8 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface IElement
     {
-		int ID { get; set; }
-		ISubdomain Subdomain { get; set; }
-		int[] DOFs { get; }
-		IList<INode> Nodes { get; }
-	    Dictionary<int, INode> NodesDictionary { get; }
-		IElementType ElementType { get; set; }
-	}
+	    int ID { get; set; }
+		IElementType IElementType { get; }
+	    IList<INode> INodes { get; }
+    }
 }
