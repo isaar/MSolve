@@ -11,17 +11,12 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		int TotalDOFs { get; set; }
 		bool MaterialsModified { get; set; }
 
-		Dictionary<int, IElement> ElementsDictionary { get; }
-		Dictionary<int, INode> NodesDictionary { get; }
+		Dictionary<int, IElement> ΙElementsDictionary { get; }
 		Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary { get; }
 		Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; }
-
-		IList<INode> Nodes { get; }
+		
 		double[] Forces { get; }
+		void ResetMaterialsModifiedProperty();
 
-		void EnumerateDOFs();
-		void AssignGlobalNodalDOFsFromModel();
-		void BuildNodesDictionary();
-	    double[] GetLocalVectorFromGlobal(IElement element, IVector globalVector);
-    }
+	}
 }
