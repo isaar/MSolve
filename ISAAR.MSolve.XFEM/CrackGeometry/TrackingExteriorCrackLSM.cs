@@ -23,6 +23,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 //      there. In general, this is a god class and should be broken down to smaller ones.
 //TODO: Crack tips should be handled differently than using enums. Interior and exterior cracks should compose their common 
 //      dedicated strategy classes with their common functionality and expose appropriate properties for the crack tip data.
+//TODO: Perhaps all loggers can be grouped and called together
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     /// <summary>
@@ -69,7 +70,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public ICartesianPoint2D CrackMouth { get; private set; }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }
-        public LsmLogger Logger { get; set; }
+        //public EnrichmentLogger EnrichmentLogger { get; set; }
+        public LevelSetLogger LevelSetLogger { get; set; }
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
 
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 
@@ -111,22 +113,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
             }
 
-            if (Logger != null) Logger.InitialLog(); //TODO: handle this with a NullLogger.
-        }
-
-        public void UpdateGeometry(double localGrowthAngle, double growthLength)
-        {
-            double globalGrowthAngle = AngleUtilities.Wrap(localGrowthAngle + tipSystem.RotationAngle);
-            double dx = growthLength * Math.Cos(globalGrowthAngle);
-            double dy = growthLength * Math.Sin(globalGrowthAngle);
-            var oldTip = crackTip;
-            var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
-            crackTip = newTip;
-            tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
-
-            levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, levelSetsBody, levelSetsTip);
-
-            if (Logger != null) Logger.Log(); //TODO: handle this with a NullLogger.
+            if (LevelSetLogger != null) LevelSetLogger.InitialLog(); //TODO: handle this with a NullLogger.
         }
 
         /// <summary>
@@ -219,6 +206,23 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             ApplyFixedEnrichmentArea(tipElements[0]);
             ResolveHeavisideEnrichmentDependencies();
             ApplyEnrichmentFunctions();
+
+            //if (EnrichmentLogger != null) EnrichmentLogger.Log(); //TODO: handle this with a NullLogger.
+        }
+
+        public void UpdateGeometry(double localGrowthAngle, double growthLength)
+        {
+            double globalGrowthAngle = AngleUtilities.Wrap(localGrowthAngle + tipSystem.RotationAngle);
+            double dx = growthLength * Math.Cos(globalGrowthAngle);
+            double dy = growthLength * Math.Sin(globalGrowthAngle);
+            var oldTip = crackTip;
+            var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
+            crackTip = newTip;
+            tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
+
+            levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, levelSetsBody, levelSetsTip);
+
+            if (LevelSetLogger != null) LevelSetLogger.Log(); //TODO: handle this with a NullLogger.
         }
 
         private void ApplyEnrichmentFunctions() 

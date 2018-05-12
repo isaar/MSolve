@@ -234,11 +234,24 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 // Create enrichments          
                 lsmCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(lsmCrack);
                 lsmCrack.CrackTipEnrichments = new CrackTipEnrichments2D(lsmCrack, CrackTipPosition.Single);
-                lsmCrack.Logger = new LsmLogger(Model, lsmCrack, lsmOutputDirectory);
+                if (lsmOutputDirectory != null)
+                {
+                    //lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmOutputDirectory);
+                    lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmOutputDirectory);
+                }
 
                 // Mesh geometry interaction
                 lsmCrack.InitializeGeometry(crackVertex0, crackVertex1);
                 lsmCrack.UpdateGeometry(-dTheta, da);
+                if (lsmOutputDirectory != null)
+                {
+                    // For Logging purposes, enrich the nodes, log them and then clear the enrichments.
+                    lsmCrack.UpdateEnrichments(); 
+                    foreach (var node in Model.Nodes)
+                    {
+                        node.EnrichmentItems.Clear();
+                    }
+                }
 
                 this.Crack = lsmCrack;
             }

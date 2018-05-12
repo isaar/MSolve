@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             var point1 = new CartesianPoint2D(30.0, 20.0);
             var point2 = new CartesianPoint2D(30.0, 0.0);
-            Polyline2D discontinuity = new Polyline2D(point1, point2);
+            Polyline2DOLD discontinuity = new Polyline2DOLD(point1, point2);
             MaterialInterface2D enrichmentItem = new MaterialInterface2D(discontinuity);
             var material = BiElasticMaterial2D.CreateMaterialForPlainStrain(0.5 * E, v, E, v, enrichmentItem);
 

@@ -10,7 +10,7 @@ using ISAAR.MSolve.XFEM.Output.VTK;
 //      in which case, there is no need for generics but construction is harder and possibly needs builders.
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    class LsmLogger
+    class LevelSetLogger
     {
         private readonly List<ICartesianPoint2D> crackPath;
         private readonly TrackingExteriorCrackLSM lsm;
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly string outputDirectory;
         private int iteration;
 
-        public LsmLogger(Model2D model, TrackingExteriorCrackLSM lsm, string outputDirectory)
+        public LevelSetLogger(Model2D model, TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
             this.crackPath = new List<ICartesianPoint2D>();
             this.model = model;
