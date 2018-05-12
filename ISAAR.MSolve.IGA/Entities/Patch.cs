@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Patch
-    {
+    public class Patch: ISubdomain
+	{
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> controlPointDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
@@ -68,7 +68,17 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return globalControlPointsDOFsDictionary; }
         }
 
-        public double[] Forces
+		public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
+		{
+			get { return controlPointDOFsDictionary; }
+		}
+
+		public Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary
+		{
+			get { return globalControlPointsDOFsDictionary; }
+		}
+
+		public double[] Forces
         {
             get { return forces; }
         }
@@ -88,11 +98,22 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return facesDictionary; }
         }
 
-        #endregion
+		public Dictionary<int, IElement> ΙElementsDictionary
+		{
+			get
+			{
+				var a = new Dictionary<int, IElement>();
+				foreach (var element in elementsDictionary.Values)
+					a.Add(element.ID, element);
+				return a;
+			}
+		}
 
-        #region Data Interconnection routines
+		#endregion
 
-        public void EnumerateDOFs()
+		#region Data Interconnection routines
+
+		public void EnumerateDOFs()
         {
             TotalDOFs = 0;
             Dictionary<int, List<DOFType>> controlPointDOFTypesDictionary = new Dictionary<int, List<DOFType>>();

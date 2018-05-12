@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class ControlPoint
+    public class ControlPoint:INode
     {
         private readonly List<DOFType> constrains = new List<DOFType>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();

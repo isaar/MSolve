@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Element
+    public class Element:IElement
     {
         private readonly Dictionary<int, ControlPoint> controlPointDictionary =new Dictionary<int, ControlPoint>();
 
@@ -24,8 +25,19 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return controlPointDictionary.Values.ToList<ControlPoint>(); }
         }
 
+	    public IList<INode> INodes
+	    {
+		    get
+		    {
+			    IList<INode> a = new List<INode>();
+			    foreach (var controlPoint in controlPointDictionary.Values)
+				    a.Add(controlPoint);
+			    return a;
+		    }
+	    }
 
-        public Dictionary<int, Knot> KnotsDictionary
+
+		public Dictionary<int, Knot> KnotsDictionary
         {
             get { return knotsDictionary; }
         }
@@ -40,6 +52,11 @@ namespace ISAAR.MSolve.IGA.Entities
         public Model Model { get; set; }
 
         public IIsogeometricElement ElementType { get; set; }
+
+		public IElementType IElementType
+		{
+			get => ElementType;
+		}
 
         public Patch Patch { get; set; }
 

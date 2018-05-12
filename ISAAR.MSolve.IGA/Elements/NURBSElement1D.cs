@@ -4,26 +4,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
-namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
+namespace ISAAR.MSolve.IGA.Elements
 {
     public class NURBSElement1D : Element, IStructuralIsogeometricElement
     {
 
         protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X};
         protected DOFType[][] dofTypes;
-        protected IIsogeometricDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         public  int Degree { get; set; }
 
         #region IStructuralIsogeometricElement
         public ElementDimensions ElementDimensions { get { return ElementDimensions.OneD; } }
 
-        public IIsogeometricDOFEnumerator DOFEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
+        public IElementDOFEnumerator DOFEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
 
         public bool MaterialModified => throw new NotImplementedException();
 
@@ -287,7 +288,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
@@ -301,6 +302,26 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         {
             throw new NotSupportedException();
         }
-        #endregion
-    }
+
+		public IMatrix2D StiffnessMatrix(Element element)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IMatrix2D MassMatrix(IElement element)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IMatrix2D DampingMatrix(IElement element)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		{
+			throw new NotImplementedException();
+		}
+		#endregion
+	}
 }

@@ -11,16 +11,16 @@ using ISAAR.MSolve.Discretization.Interfaces;
 namespace ISAAR.MSolve.IGA.Interfaces
 {
 
-    public interface IIsogeometricElement
-    {
+    public interface IIsogeometricElement: IElementType
+	{
         int ID { get; }
         ElementDimensions ElementDimensions { get; }
-        IIsogeometricDOFEnumerator DOFEnumerator { get; set; }
-        IList<IList<DOFType>> GetElementDOFTypes(Element element);
+	    IElementDOFEnumerator DOFEnumerator { get; set; }
+        //IList<IList<DOFType>> GetElementDOFTypes(IElement element);
         bool MaterialModified { get; }
-        IMatrix2D StiffnessMatrix(Element element);
-        IMatrix2D MassMatrix(Element element);
-        IMatrix2D DampingMatrix(Element element);
+        //IMatrix2D StiffnessMatrix(Element element);
+        //IMatrix2D MassMatrix(Element element);
+        //IMatrix2D DampingMatrix(Element element);
         Dictionary<int, double> CalculateLoadingCondition(Element element,Edge edge, NeumannBoundaryCondition neumann);
         Dictionary<int, double> CalculateLoadingCondition(Element element, Face face, NeumannBoundaryCondition neumann);
         Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge, PressureBoundaryCondition pressure);

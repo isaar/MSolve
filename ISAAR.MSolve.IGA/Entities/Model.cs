@@ -9,47 +9,28 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Model
+    public class Model:IStructuralModel
     {
         private int totalDOFs = 0;
         private int numberOfPatches=0;
         private int numberOfInterfaces=0;
-        //public int NumberOfDimensions{get; set;}
-
-        //public double Thickness { get; set; }
-
-        //public IIsogeometricMaterial3D Material { get; set; }
         
-        //public int NumberOfControlPointsKsi { get; set; }
-        //public int NumberOfControlPointsHeta { get; set; }
-        //public int NumberOfControlPointsZeta { get; set; }
-        ////private readonly Dictionary<int, int> numberOfControlPoints =new Dictionary<int, int>();
-
-        //public int DegreeKsi { get; set; }
-        //public int DegreeHeta { get; set; }
-        //public int DegreeZeta { get; set; }
-        ////private readonly Dictionary<int, int> Degree = new Dictionary<int, int>();
-
-        //public IVector KnotValueVectorKsi { get; set; }
-        //public IVector KnotValueVectorHeta { get; set; }
-        //public IVector KnotValueVectorZeta { get; set; }
-        ////private readonly Dictionary<int, IVector> KnotValueVector = new Dictionary<int, IVector>();
-
-
         private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Patch> patchesDictionary = new Dictionary<int, Patch>();
 
         private readonly Dictionary< int , Dictionary<DOFType,int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
         private readonly IList<Load> loads = new List<Load>();
-        //private readonly IList<ΙBoundaryCondition> boundaryConditions = new List<ΙBoundaryCondition>();
+	    private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads = new List<IMassAccelerationHistoryLoad>();
+		//private readonly IList<ΙBoundaryCondition> boundaryConditions = new List<ΙBoundaryCondition>();
 
-        #region Properties
+		#region Properties
 
-        public Dictionary<int, ControlPoint> ControlPointsDictionary
+		public Dictionary<int, ControlPoint> ControlPointsDictionary
         {
             get { return controlPointsDictionary; }
         }
@@ -64,7 +45,18 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return patchesDictionary; }
         }
 
-        public IList<ControlPoint> ControlPoints
+	    public Dictionary<int, ISubdomain> ISubdomainsDictionary
+	    {
+		    get
+		    {
+			    var a = new Dictionary<int, ISubdomain>();
+			    foreach (var subdomain in patchesDictionary.Values)
+				    a.Add(subdomain.ID, subdomain);
+			    return a;
+		    }
+	    }
+
+		public IList<ControlPoint> ControlPoints
         {
             get { return controlPointsDictionary.Values.ToList<ControlPoint>(); }
         }
@@ -109,11 +101,16 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return numberOfInterfaces; }
             set { numberOfInterfaces = value; }
         }
-        #endregion
 
-        #region Data Interconnection routines
+	    public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads
+	    {
+		    get { return massAccelerationHistoryLoads; }
+		}
+		#endregion
 
-        private void BuildElementDictionaryOfEachControlPoint()
+		#region Data Interconnection routines
+
+		private void BuildElementDictionaryOfEachControlPoint()
         {
             foreach (Element element in elementsDictionary.Values)
                 foreach (ControlPoint controlPoint in element.ControlPoints)
@@ -248,5 +245,9 @@ namespace ISAAR.MSolve.IGA.Entities
             controlPointsDOFsDictionary.Clear();
         }
 
-    }
+		public void AssignMassAccelerationHistoryLoads(int timeStep)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

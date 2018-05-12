@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
@@ -17,10 +18,10 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
     {
         protected readonly static DOFType[] controlPointDOFTypes = new  DOFType[] {DOFType.X, DOFType.Y , DOFType.Z };
         protected DOFType[][] dofTypes;
-        protected IIsogeometricDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
 
-        public IIsogeometricDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get
             {
@@ -41,10 +42,11 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
-            dofTypes = new DOFType[element.ControlPoints.Count][];
-            for (int i = 0; i < element.ControlPoints.Count; i++)
+	        var nurbsElement = (NURBSElement3D) element;
+			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+            for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
             {
                 dofTypes[i] = controlPointDOFTypes;
             }
@@ -84,26 +86,27 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
-            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(element);
-            Matrix2D stiffnessMatrixElement = new Matrix2D(element.ControlPointsDictionary.Count * 3, element.ControlPointsDictionary.Count * 3);
+	        var nurbsElement = (NURBSElement3D)element;
+			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
+            Matrix2D stiffnessMatrixElement = new Matrix2D(nurbsElement.ControlPointsDictionary.Count * 3, nurbsElement.ControlPointsDictionary.Count * 3);
 
-            NURBS3D nurbs = new NURBS3D(element, element.ControlPoints);
+            NURBS3D nurbs = new NURBS3D(nurbsElement, nurbsElement.ControlPoints);
 
             for (int j = 0; j < gaussPoints.Count; j++)
             {
-                Matrix2D jacobianMatrix = CalculateJacobian(element.ControlPoints, nurbs, j);
+                Matrix2D jacobianMatrix = CalculateJacobian(nurbsElement.ControlPoints, nurbs, j);
 
                 double jacdet = CalculateJacobianDeterminant(jacobianMatrix);
 
@@ -111,15 +114,15 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
                 Matrix2D B1 = CalculateDeformationMatrix1(inverseJacobian);
 
-                Matrix2D B2 = CalculateDeformationMatrix2(element.ControlPoints, nurbs, j);
+                Matrix2D B2 = CalculateDeformationMatrix2(nurbsElement.ControlPoints, nurbs, j);
 
                 Matrix2D B = B1 * B2;
 
-                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * element.Patch.Material.ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
+                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * nurbsElement.Patch.Material.ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
 
-                for (int m = 0; m < element.ControlPoints.Count * 3; m++)
+                for (int m = 0; m < nurbsElement.ControlPoints.Count * 3; m++)
                 {
-                    for (int n = 0; n < element.ControlPoints.Count * 3; n++)
+                    for (int n = 0; n < nurbsElement.ControlPoints.Count * 3; n++)
                     {
                         stiffnessMatrixElement[m, n] += stiffnessMatrixGaussPoint[m, n];
                     }
