@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly Dictionary<XNode2D, double> levelSetsTip;
         private readonly double tipEnrichmentAreaRadius;
         private readonly List<XContinuumElement2D> tipElements; // Ideally there is only 1, but what if the tip falls on the edge bewteen elements?
-        private readonly CartesianTriangulator triangulator;
+        private readonly IHeavisideEnrichmentResolver heavisideResolver;
         private readonly ILevelSetUpdater levelSetUpdater;
 
         private ICartesianPoint2D crackTip;
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             this.CrackBodyNodesNew = new HashSet<XNode2D>();
             this.CrackTipNodesNew = new HashSet<XNode2D>();
             this.CrackTipNodesOld = new HashSet<XNode2D>();
-            this.triangulator = new CartesianTriangulator();
+            this.heavisideResolver = new HeavisideResolverOLD(this);
             //this.levelSetUpdater = new LevelSetUpdaterOLD();
             this.levelSetUpdater = new LevelSetUpdaterStolarska();
         }
@@ -355,57 +355,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             ReportTipElements(tipElements);
         }
 
-        private void FindSignedAreasOfElement(XContinuumElement2D element,
-            out double positiveArea, out double negativeArea)
-        {
-            SortedSet<ICartesianPoint2D> triangleVertices = FindTriangleVertices(element);
-            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
-
-            positiveArea = 0.0;
-            negativeArea = 0.0;
-            foreach (var triangle in triangles)
-            {
-                ICartesianPoint2D v0 = triangle.Vertices[0];
-                ICartesianPoint2D v1 = triangle.Vertices[1];
-                ICartesianPoint2D v2 = triangle.Vertices[2];
-                double area = 0.5 * Math.Abs(v0.X * (v1.Y - v2.Y) + v1.X * (v2.Y - v0.Y) + v2.X * (v0.Y - v1.Y));
-
-                // The sign of the area can be derived from any node with body level set != 0
-                int sign = 0;
-                foreach (var vertex in triangle.Vertices)
-                {
-                    if (vertex is XNode2D)
-                    {
-                        sign = Math.Sign(levelSetsBody[(XNode2D)vertex]);
-                        if (sign != 0) break;
-                    }
-                }
-
-                // If no node with non-zero body level set is found, then find the body level set of its centroid
-                if (sign == 0)
-                {
-                    // Report this instance in DEBUG messages. It should not happen with linear level sets and only 1 crack.
-                    //if (reports)
-                    //{
-                    //    Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where no vertex is an element node. ---");
-                    //}
-
-
-                    var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
-                    INaturalPoint2D centroidNatural = element.Interpolation.
-                        CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
-                    EvaluatedInterpolation2D centroidInterpolation =
-                        element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
-                    sign = Math.Sign(SignedDistanceOf(centroidNatural, element, centroidInterpolation));
-                }
-
-                if (sign > 0) positiveArea += area;
-                else if (sign < 0) negativeArea += area;
-                else throw new Exception(
-                    "Even after finding the signed distance of its centroid, the sign of the area is unidentified");
-            }
-        }
-
         private bool IsTipElement(XContinuumElement2D elements, double minTipLevelSet, double maxTipLevelSet)
         {
             if (tipDetection == TipDetectionScheme.Implicit) //Stolarska criterion
@@ -431,47 +380,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             else throw new Exception("Unreachable code");
         }
 
-        //TODO: I suspect this is method is responsible for singular global matrices popping up randomly for many configurations.
-        //      Either this doesn't work as good as advertised or I messed it up. Try checking if there is at least  
-        //      least 1 GP on either side of the crack instead. Bonus points if the GPs are cached somehow (e.g. all std elements
-        //      have the same GPs in natural system, many enriched elements may also have the same active integration rule) for
-        //      when the integration actually happens.
         private void ResolveHeavisideEnrichmentDependencies()
         {
-            const double toleranceHeavisideEnrichmentArea = 1e-4;
-            var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
-            var nodesToRemove = new List<XNode2D>(); // Can't remove them while iterating the collection.
-            foreach (var node in CrackBodyNodesAll) //TODO: Is it safe to only search the newly enriched nodes?
-            {
-                double nodePositiveArea = 0.0;
-                double nodeNegativeArea = 0.0;
-
-                foreach (var element in Mesh.FindElementsWithNode(node))
-                {
-                    bool alreadyProcessed = processedElements.TryGetValue(element, out Tuple<double, double> elementPosNegAreas);
-                    if (!alreadyProcessed)
-                    {
-                        FindSignedAreasOfElement(element, out double elementPosArea, out double elementNegArea);
-                        elementPosNegAreas = new Tuple<double, double>(elementPosArea, elementNegArea);
-                        processedElements[element] = elementPosNegAreas;
-                    }
-                    nodePositiveArea += elementPosNegAreas.Item1;
-                    nodeNegativeArea += elementPosNegAreas.Item2;
-                }
-
-                if (levelSetsBody[node] >= 0.0)
-                {
-                    double negativeAreaRatio = nodeNegativeArea / (nodePositiveArea + nodeNegativeArea);
-                    if (negativeAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
-                }
-                else
-                {
-                    double positiveAreaRatio = nodePositiveArea / (nodePositiveArea + nodeNegativeArea);
-                    if (positiveAreaRatio < toleranceHeavisideEnrichmentArea) nodesToRemove.Add(node);
-                }
-            }
-
-            foreach (var node in nodesToRemove) // using sets and set operations might be better and faster
+            //TODO: Is it safe to only search the newly enriched nodes?
+            ISet<XNode2D> nodesToRemove = heavisideResolver.FindHeavisideNodesToRemove(Mesh, CrackBodyNodesAll); 
+            foreach (var node in nodesToRemove) // using set operations might be better and faster
             {
                 //Console.WriteLine("Removing Heaviside enrichment from node: " + node);
                 CrackBodyNodesAll.Remove(node);
