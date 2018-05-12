@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
@@ -27,7 +28,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //protected readonly IFiniteElementMaterial3D[] materialsAtGaussPoints; //Panos - What about 2D Material? Implemented
         protected readonly ElasticMaterial2D[] materialsAtGaussPoints;
 
-        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         protected Quad4()
         {
         }
@@ -37,12 +38,12 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < iInt2; i++)
                 materialsAtGaussPoints[i] = (ElasticMaterial2D)material.Clone();
         }
-        public Quad4(ElasticMaterial2D material, IFiniteElementDOFEnumerator dofEnumerator)
+        public Quad4(ElasticMaterial2D material, IElementDOFEnumerator dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -52,14 +53,14 @@ namespace ISAAR.MSolve.FEM.Elements
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
         //
-        protected double[,] GetCoordinates(Element element)
+        protected double[,] GetCoordinates(IElement element)
         {
             //double[,] faXYZ = new double[dofTypes.Length, 3];
             double[,] faXY = new double[dofTypes.Length, 2];
             for (int i = 0; i < dofTypes.Length; i++)
             {
-                faXY[i, 0] = element.Nodes[i].X;
-                faXY[i, 1] = element.Nodes[i].Y;
+                faXY[i, 0] = element.INodes[i].X;
+                faXY[i, 1] = element.INodes[i].Y;
             }
             return faXY;
         }
@@ -88,7 +89,7 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.TwoD; }
         }
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofTypes;
         }
@@ -291,7 +292,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return integrationPoints;
         }
 
-        public virtual IMatrix2D StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
@@ -324,12 +325,12 @@ namespace ISAAR.MSolve.FEM.Elements
         
         #endregion
 
-        public virtual IMatrix2D MassMatrix(Element element)
+        public virtual IMatrix2D MassMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public virtual IMatrix2D DampingMatrix(Element element)
+        public virtual IMatrix2D DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
