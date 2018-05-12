@@ -8,8 +8,8 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Subdomain
-    {
+    public class Subdomain: ISubdomain
+	{
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
@@ -28,7 +28,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, Node> NodesDictionary
+		public Dictionary<int, IElement> ΙElementsDictionary
+		{
+			get
+			{
+				var a = new Dictionary<int, IElement>();
+				foreach (var element in elementsDictionary.Values)
+					a.Add(element.ID, element);
+				return a;
+			}
+		}
+
+		public Dictionary<int, Node> NodesDictionary
         {
             get { return nodesDictionary; }
         }

@@ -6,8 +6,8 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Node
-    {
+    public class Node: INode
+	{
         private readonly List<DOFType> constraints = new List<DOFType>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();

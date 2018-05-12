@@ -7,7 +7,7 @@ using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Model
+    public class Model:IStructuralModel
     {
         private int totalDOFs = 0;
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
@@ -43,7 +43,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return subdomainsDictionary; }
         }
 
-        public Dictionary<int, Cluster> ClustersDictionary
+	    public Dictionary<int, ISubdomain> ISubdomainsDictionary
+	    {
+		    get
+		    {
+			    var a = new Dictionary<int, ISubdomain>();
+			    foreach (var subdomain in subdomainsDictionary.Values)
+				    a.Add(subdomain.ID,subdomain);
+				return a;
+		    }
+	    }
+
+		public Dictionary<int, Cluster> ClustersDictionary
         {
             get { return clustersDictionary; }
         }
