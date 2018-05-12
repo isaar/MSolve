@@ -19,5 +19,6 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 	    IMatrix2D StiffnessMatrix(IElement element);
 	    IMatrix2D MassMatrix(IElement element);
 	    IMatrix2D DampingMatrix(IElement element);
+	    IList<IList<DOFType>> GetElementDOFTypes(IElement element);
 	}
 }
