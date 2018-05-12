@@ -54,6 +54,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             this.tipElements = new List<XContinuumElement2D>();
             this.CrackBodyNodesAll = new HashSet<XNode2D>();
             this.CrackBodyNodesNew = new HashSet<XNode2D>();
+            this.CrackBodyNodesRejected = new HashSet<XNode2D>();
             this.CrackTipNodesNew = new HashSet<XNode2D>();
             this.CrackTipNodesOld = new HashSet<XNode2D>();
             this.heavisideResolver = new HeavisideResolverOLD(this);
@@ -68,12 +69,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public IReadOnlyList<ICartesianPoint2D> CrackPath { get { return crackPath; } }
         public ISet<XNode2D> CrackBodyNodesAll { get; private set; } // TODO: a TreeSet might be better if set intersections are applied
         public ISet<XNode2D> CrackBodyNodesNew { get; private set; }
+        public ISet<XNode2D> CrackBodyNodesRejected { get; private set; }
         public ISet<XNode2D> CrackTipNodesNew { get; private set; }
         public ISet<XNode2D> CrackTipNodesOld { get; private set; }
         public ICartesianPoint2D CrackMouth { get; private set; }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }
-        //public EnrichmentLogger EnrichmentLogger { get; set; }
+        public EnrichmentLogger EnrichmentLogger { get; set; }
         public LevelSetLogger LevelSetLogger { get; set; }
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
 
@@ -240,7 +242,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             ResolveHeavisideEnrichmentDependencies();
             ApplyEnrichmentFunctions();
 
-            //if (EnrichmentLogger != null) EnrichmentLogger.Log(); //TODO: handle this with a NullLogger.
+            if (EnrichmentLogger != null) EnrichmentLogger.Log(); //TODO: handle this with a NullLogger.
         }
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)
@@ -420,9 +422,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         private void ResolveHeavisideEnrichmentDependencies()
         {
-            //TODO: Is it safe to only search the newly enriched nodes?
-            ISet<XNode2D> nodesToRemove = heavisideResolver.FindHeavisideNodesToRemove(Mesh, CrackBodyNodesAll); 
-            foreach (var node in nodesToRemove) // using set operations might be better and faster
+            //TODO: Is it safe to only search the newly enriched nodes? Update the rejected set appropriately
+            CrackBodyNodesRejected.Clear();
+            CrackBodyNodesRejected = heavisideResolver.FindHeavisideNodesToRemove(Mesh, CrackBodyNodesAll); 
+            foreach (var node in CrackBodyNodesRejected) // using set operations might be better and faster
             {
                 //Console.WriteLine("Removing Heaviside enrichment from node: " + node);
                 CrackBodyNodesAll.Remove(node);
