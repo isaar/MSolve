@@ -54,17 +54,17 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         {
             // Nodes 
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");
-            writer.WriteLine(String.Format("POINTS {0} double", model.Nodes.Count));
+            writer.WriteLine($"POINTS {model.Nodes.Count} double");
             for (int n = 0; n < model.Nodes.Count; ++n) // Their indices in Model.Nodes are equal to their IDs
             {
                 XNode2D node = model.Nodes[n];
-                writer.Write(String.Format("{0} {1} 0.0\n", node.X, node.Y));
+                writer.WriteLine($"{node.X} {node.Y} 0.0");
             }
 
             // Element connectivity
             int elementDataCount = 0;
             foreach (var element in model.Elements) elementDataCount += 1 + element.Nodes.Count;
-            writer.WriteLine(String.Format("\nCELLS {0} {1}", model.Elements.Count, elementDataCount));
+            writer.WriteLine($"\nCELLS {model.Elements.Count} {elementDataCount}");
             foreach (var element in model.Elements)
             {
                 writer.Write(element.Nodes.Count); 
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public void WriteScalarField(string fieldName, double[] nodalValues)
         {
-            writer.WriteLine(String.Format("SCALARS {0} double 1", fieldName));
+            writer.WriteLine($"SCALARS {fieldName} double 1");
             writer.WriteLine("LOOKUP_TABLE default");
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
@@ -97,21 +97,20 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public void WriteVector2DField(string fieldName, double[,] nodalValues)
         {
-            writer.WriteLine(String.Format("VECTORS {0} double", fieldName));
+            writer.WriteLine($"VECTORS {fieldName} double");
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
-                writer.WriteLine(String.Format("{0} {1} 0.0", nodalValues[i, 0], nodalValues[i, 1]));
+                writer.WriteLine($"{nodalValues[i, 0]} {nodalValues[i, 1]} 0.0");
             }
             writer.WriteLine();
         }
         
         public void WriteTensor2DField(string fieldName, IReadOnlyList<Tensor2D> nodalTensors)
         {
-            writer.WriteLine(String.Format("TENSORS {0} double", fieldName));
+            writer.WriteLine($"TENSORS {fieldName} double");
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
-                writer.WriteLine(String.Format("{0} {1} {2} 0.0 0.0 0.0 0.0 0.0 0.0", 
-                    nodalTensors[i].XX, nodalTensors[i].YY, nodalTensors[i].XY));
+                writer.WriteLine($"{nodalTensors[i].XX} {nodalTensors[i].YY} {nodalTensors[i].XY} 0.0 0.0 0.0 0.0 0.0 0.0");
             }
             writer.WriteLine();
         }

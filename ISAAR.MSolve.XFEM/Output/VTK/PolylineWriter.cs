@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             // Vertices 
             writer.WriteLine("DATASET POLYDATA");
             writer.WriteLine($"POINTS {vertices.Count} double");
-            for (int i = 0; i < vertices.Count; ++i) // Their indices in Model.Nodes are equal to their IDs
+            for (int i = 0; i < vertices.Count; ++i)
             {
                 var vertex = vertices[i];
                 writer.WriteLine($"{vertex.X} {vertex.Y} 0.0");
@@ -54,6 +54,35 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 writer.WriteLine($"2 {i} {i+1}"); 
             }
             writer.WriteLine();
+        }
+
+        public void WritePolylineAsUnstructured(IReadOnlyList<ICartesianPoint2D> vertices)
+        {
+            // Nodes 
+            writer.WriteLine("DATASET UNSTRUCTURED_GRID");
+            writer.WriteLine($"POINTS {vertices.Count} double");
+            for (int i = 0; i < vertices.Count; ++i)
+            {
+                var vertex = vertices[i];
+                writer.WriteLine($"{vertex.X} {vertex.Y} 0.0");
+            }
+            writer.WriteLine();
+
+            // Cell connectivity
+            int numPolylines = 1;
+            int cellDataCount = vertices.Count + 1;
+            writer.WriteLine($"\nCELLS {numPolylines} {cellDataCount}");
+
+            writer.Write(vertices.Count);
+            for (int i = 0; i < vertices.Count; ++i)
+            {
+                writer.Write($" {i}");
+            }
+            writer.WriteLine();
+
+            // Cell types
+            writer.WriteLine("\nCELL_TYPES " + numPolylines);
+            writer.WriteLine("4");
         }
     }
 }
