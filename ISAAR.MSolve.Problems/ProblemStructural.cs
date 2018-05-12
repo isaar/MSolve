@@ -6,23 +6,25 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Providers;
-using ISAAR.MSolve.FEM;
 using System;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Providers;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Providers;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Problems
 {
     public class ProblemStructural : IImplicitIntegrationProvider, IStaticProvider, INonLinearProvider
     {
         private Dictionary<int, IMatrix2D> ms, cs, ks;
-        private readonly Model model;
+        private readonly IStructuralModel model;
         private IDictionary<int, ILinearSystem> subdomains;
         private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
         private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
 
-        public ProblemStructural(Model model, IDictionary<int, ILinearSystem> subdomains)
+        public ProblemStructural(IStructuralModel model, IDictionary<int, ILinearSystem> subdomains)
         {
             this.model = model;
             this.subdomains = subdomains;
@@ -91,7 +93,7 @@ namespace ISAAR.MSolve.Problems
 
         private void RebuildKs()
         {
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+            foreach (ISubdomain subdomain in model.SubdomainsDictionary.Values)
             //Parallel.ForEach(model.SubdomainsDictionary.Values, subdomain =>
             {
                 if (subdomain.MaterialsModified)
@@ -99,7 +101,7 @@ namespace ISAAR.MSolve.Problems
                     ks[subdomain.ID] = GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, stiffnessProvider);
                     subdomain.ResetMaterialsModifiedProperty();
                 }
-            }//);
+            }
         }
 
         private void BuildMs()
@@ -107,7 +109,7 @@ namespace ISAAR.MSolve.Problems
             ms = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
             //ms.Add(1, new SkylineMatrix2D<double>(new double[,] { { 2, 0 }, { 0, 1 } }));
             ElementStructuralMassProvider s = new ElementStructuralMassProvider();
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+            foreach (ISubdomain subdomain in model.SubdomainsDictionary.Values)
                 ms.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, s));
         }
 
@@ -117,7 +119,7 @@ namespace ISAAR.MSolve.Problems
             //foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
             //    cs.Add(subdomain.ID, SkylineMatrix2D<double>.Empty(subdomain.TotalDOFs));
             ElementStructuralDampingProvider s = new ElementStructuralDampingProvider();
-            foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+            foreach (ISubdomain subdomain in model.SubdomainsDictionary.Values)
                 cs.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, s));
         }
 
@@ -139,9 +141,6 @@ namespace ISAAR.MSolve.Problems
         public void CalculateEffectiveMatrix(ILinearSystem subdomain, ImplicitIntegrationCoefficients coefficients)
         {
             subdomain.Matrix = this.Ks[subdomain.ID];
-
-            //// REMOVE
-            //subdomain.CloneMatrix();
 
             if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized)
                 BuildKs();
@@ -174,7 +173,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (IMassAccelerationHistoryLoad l in model.MassAccelerationHistoryLoads)
                     m.Add(new MassAccelerationLoad() { Amount = l[timeStep], DOF = l.DOF });
 
-                foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
+                foreach (ISubdomain subdomain in model.SubdomainsDictionary.Values)
                 {
                     foreach (var nodeInfo in subdomain.GlobalNodalDOFsDictionary)
                     {
