@@ -41,11 +41,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         private readonly IHeavisideEnrichmentResolver heavisideResolver;
         private readonly ILevelSetUpdater levelSetUpdater;
 
+        private readonly List<ICartesianPoint2D> crackPath;
         private ICartesianPoint2D crackTip;
         private TipCoordinateSystem tipSystem;
 
         public TrackingExteriorCrackLSM(double tipEnrichmentAreaRadius = 0.0)
         {
+            this.crackPath = new List<ICartesianPoint2D>();
             this.levelSetsBody = new Dictionary<XNode2D, double>();
             this.levelSetsTip = new Dictionary<XNode2D, double>();
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
@@ -63,6 +65,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         // parameters to a CrackDescription builder and construct them there, without involving the user.
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
+        public IReadOnlyList<ICartesianPoint2D> CrackPath { get { return crackPath; } }
         public ISet<XNode2D> CrackBodyNodesAll { get; private set; } // TODO: a TreeSet might be better if set intersections are applied
         public ISet<XNode2D> CrackBodyNodesNew { get; private set; }
         public ISet<XNode2D> CrackTipNodesNew { get; private set; }
@@ -95,6 +98,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
             CrackMouth = crackMouth;
+            crackPath.Add(crackMouth);
             var segment = new DirectedSegment2D(crackMouth, crackTip);
 
             double tangentX = crackTip.X - crackMouth.X;
@@ -102,6 +106,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             double length = Math.Sqrt(tangentX * tangentX + tangentY * tangentY);
             double tangentSlope = Math.Atan2(tangentY, tangentX);
             this.crackTip = crackTip;
+            crackPath.Add(crackTip);
             tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
 
             tangentX /= length;
@@ -110,6 +115,34 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             foreach (XNode2D node in Mesh.Vertices)
             {
                 levelSetsBody[node] = segment.SignedDistanceOf(node);
+                levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
+            }
+
+            if (LevelSetLogger != null) LevelSetLogger.InitialLog(); //TODO: handle this with a NullLogger.
+        }
+
+        //TODO: This should work for any IOpenCurve2D. Same for all ICrackGeometryDescriptions.
+        //TODO: The tangent stuff should be done by the initial curve.
+        public void InitializeGeometry(PolyLine2D initialCrack)
+        {
+            foreach (var vertex in initialCrack.Vertices) crackPath.Add(vertex);
+
+            CrackMouth = initialCrack.Start;
+            var lastSegment = initialCrack.Segments[initialCrack.Segments.Count - 1];
+            
+            double tangentX = lastSegment.End.X - lastSegment.Start.X;
+            double tangentY = lastSegment.End.Y - lastSegment.Start.Y;
+            double length = Math.Sqrt(tangentX * tangentX + tangentY * tangentY);
+            double tangentSlope = Math.Atan2(tangentY, tangentX);
+            this.crackTip = initialCrack.End;
+            tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
+
+            tangentX /= length;
+            tangentY /= length;
+
+            foreach (XNode2D node in Mesh.Vertices)
+            {
+                levelSetsBody[node] = initialCrack.SignedDistance(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
             }
 
@@ -218,6 +251,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             var oldTip = crackTip;
             var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
             crackTip = newTip;
+            crackPath.Add(newTip);
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
 
             levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, levelSetsBody, levelSetsTip);

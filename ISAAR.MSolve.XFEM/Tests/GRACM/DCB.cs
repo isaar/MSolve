@@ -16,6 +16,7 @@ using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
+using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
@@ -224,6 +225,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             var crackVertex0 = new CartesianPoint2D(0.0, h / 2);
             var crackVertex1 = new CartesianPoint2D(a, h / 2);
+            var initialCrack = new PolyLine2D(crackVertex0, crackVertex1);
+            initialCrack.UpdateGeometry(-dTheta, da);
 
             if (useLSM)
             {
@@ -241,18 +244,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 }
 
                 // Mesh geometry interaction
-                lsmCrack.InitializeGeometry(crackVertex0, crackVertex1);
-                lsmCrack.UpdateGeometry(-dTheta, da);
-                if (lsmOutputDirectory != null)
-                {
-                    // For Logging purposes, enrich the nodes, log them and then clear the enrichments.
-                    lsmCrack.UpdateEnrichments(); 
-                    foreach (var node in Model.Nodes)
-                    {
-                        node.EnrichmentItems.Clear();
-                    }
-                }
-
+                lsmCrack.InitializeGeometry(initialCrack);
+                
                 this.Crack = lsmCrack;
             }
             else

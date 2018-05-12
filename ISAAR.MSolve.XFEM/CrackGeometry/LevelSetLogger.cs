@@ -12,7 +12,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     class LevelSetLogger
     {
-        private readonly List<ICartesianPoint2D> crackPath;
         private readonly TrackingExteriorCrackLSM lsm;
         private readonly Model2D model;
         private readonly string outputDirectory;
@@ -20,7 +19,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public LevelSetLogger(Model2D model, TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
-            this.crackPath = new List<ICartesianPoint2D>();
             this.model = model;
             this.lsm = lsm;
             this.outputDirectory = outputDirectory;
@@ -31,17 +29,15 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         public void InitialLog()
         {
             iteration = 0;
-            crackPath.Add(lsm.CrackMouth); 
             Log();
         }
 
         public void Log() 
         {
             // Log the crack path
-            crackPath.Add(lsm.GetCrackTip(CrackTipPosition.Single));
             var crackWriter = new PolylineWriter();
             crackWriter.InitializeFile($"{outputDirectory}\\crack_{iteration}", true);
-            crackWriter.WritePolyline(crackPath);
+            crackWriter.WritePolyline(lsm.CrackPath);
             crackWriter.CloseCurrentFile();
 
             // Log the level sets
