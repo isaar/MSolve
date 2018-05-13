@@ -135,7 +135,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Matrix2D(c);
         }
 
-        public static Vector operator *(Matrix2D A, Vector b)
+	    public static Matrix2D operator +(Matrix2D A, Matrix2D B)
+	    {
+		    if (A.Rows != B.Rows&& A.Columns != B.Columns) throw new ArgumentException("Matrix sizes mismatch.");
+
+		    double[,] c = new double[A.Rows, A.Columns];
+
+		    for (int i = 0; i < A.Rows; i++)
+		    for (int j = 0; j < A.Columns; j++)
+		    {
+			    c[i, j] = A[i, j] + B[i, j];
+		    }
+		    return new Matrix2D(c);
+	    }
+
+		public static Vector operator *(Matrix2D A, Vector b)
         {
             if (A.Columns != b.Length) throw new ArgumentException("Matrix sizes mismatch.");
 
