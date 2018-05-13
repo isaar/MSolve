@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
-namespace ISAAR.MSolve.XFEM.CrackGeometry
+namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
 {
     interface ILevelSetUpdater
     {

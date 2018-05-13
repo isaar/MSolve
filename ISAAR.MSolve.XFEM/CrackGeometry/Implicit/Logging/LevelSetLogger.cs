@@ -8,7 +8,7 @@ using ISAAR.MSolve.XFEM.Output.VTK;
 //TODO: Decide between 1) push observer, 2) pull observer with the observable injected in observer.Observe(observarble) and  
 //      possibly generics for specific concrete observables or 3) pull observer with the observable injected during construction,
 //      in which case, there is no need for generics but construction is harder and possibly needs builders.
-namespace ISAAR.MSolve.XFEM.CrackGeometry
+namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
 {
     class LevelSetLogger
     {

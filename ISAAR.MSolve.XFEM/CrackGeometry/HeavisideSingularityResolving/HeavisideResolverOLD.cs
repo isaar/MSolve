@@ -13,9 +13,9 @@ using ISAAR.MSolve.XFEM.Interpolation;
 //      least 1 GP on either side of the crack instead. Bonus points if the GPs are cached somehow (e.g. all std elements
 //      have the same GPs in natural system, many enriched elements may also have the same active integration rule) for
 //      when the integration actually happens.
-namespace ISAAR.MSolve.XFEM.CrackGeometry
+namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 {
-    class HeavisideResolverOLD: IHeavisideEnrichmentResolver
+    class HeavisideResolverOLD: IHeavisideSingularityResolver
     {
         private readonly ICrackGeometry crack;
         private readonly double relativeAreaTolerance;

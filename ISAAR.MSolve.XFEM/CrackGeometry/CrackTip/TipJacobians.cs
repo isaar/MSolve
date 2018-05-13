@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
-namespace ISAAR.MSolve.XFEM.CrackGeometry
+namespace ISAAR.MSolve.XFEM.CrackGeometry.CrackTip
 {
     // Perhaps I should not expose this class, but use it privately in TipCoordinateSystem and have batch methods when 
     // a lot of calls need to calculate the jacobians at the same point.

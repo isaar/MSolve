@@ -5,7 +5,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
-namespace ISAAR.MSolve.XFEM.CrackGeometry
+namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
 {
     class LevelSetUpdaterStolarska : ILevelSetUpdater
     {
