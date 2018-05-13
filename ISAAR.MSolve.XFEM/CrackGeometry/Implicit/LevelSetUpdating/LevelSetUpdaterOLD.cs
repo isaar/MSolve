@@ -5,6 +5,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
+//TODO: Delete this after testing. It is bugged.
 //TODO: different methods with local polar input or with global cartesian input
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
 {

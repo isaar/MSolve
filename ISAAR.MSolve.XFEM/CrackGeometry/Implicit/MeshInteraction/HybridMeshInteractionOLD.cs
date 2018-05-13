@@ -7,17 +7,19 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
+//TODO: Delete this after testing. The new version is more efficient and does the same.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
 {
-    class HybridMeshInteraction : IMeshInteraction
+    class HybridMeshInteractionOLD: IMeshInteraction
     {
         private readonly TrackingExteriorCrackLSM lsm;
 
-        public HybridMeshInteraction(TrackingExteriorCrackLSM lsm)
+        public HybridMeshInteractionOLD(TrackingExteriorCrackLSM lsm)
         {
             this.lsm = lsm;
         }
 
+        //TODO: replace this with the Faster~() version
         public CrackElementPosition FindRelativePositionOf(XContinuumElement2D element)
         {
             ICartesianPoint2D crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
@@ -36,15 +38,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
                 if (tipLevelSet > maxTipLevelSet) maxTipLevelSet = tipLevelSet;
             }
 
-            //Warning: this might actually be worse than Stolarska's criterion. At least that one enriched the dubious 
-            //intersected elements with tip enrichments. This one just ignores them.
+            // Warning: This criterion might give false positives for tip elements (see Serafeim's thesis for details)
             if (minBodyLevelSet * maxBodyLevelSet <= 0.0)
             {
-                if (minTipLevelSet * maxTipLevelSet <= 0)
-                {
-                    var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
-                    if (outline.IsPointInsidePolygon(crackTip)) return CrackElementPosition.ContainsTip;
-                }
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+                if (outline.IsPointInsidePolygon(crackTip)) return CrackElementPosition.ContainsTip;
                 else if (maxTipLevelSet < 0) return CrackElementPosition.Intersected;
             }
             return CrackElementPosition.Irrelevant;
