@@ -14,6 +14,7 @@ using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
@@ -22,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class ReanalysisSolver : SolverBase, IDisposable
     {
-        private readonly IExteriorCrack crack;
+        private readonly TrackingExteriorCrackLSM crack;
         private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
         private CholeskySuiteSparse factorizedKuu;
         private int counter;
@@ -31,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
         /// that, the enrichments will be cleared and only reapplied as needed by the crack propagation.
         /// </summary>
-        public ReanalysisSolver(Model2D model, IExteriorCrack crack) : base(model)
+        public ReanalysisSolver(Model2D model, TrackingExteriorCrackLSM crack) : base(model)
         {
             this.crack = crack;
             this.fullyEnrichedNodes = model.Nodes;
@@ -45,7 +46,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// </summary>
         /// <param name="fullyEnrichedNodes">The nodes to be enriched with Heaviside and crack tip functions. Make sure that only
         ///     these nodes need to be enriched, otherwise an exception will be thrown.</param>
-        public ReanalysisSolver(Model2D model, IReadOnlyList<XNode2D> fullyEnrichedNodes, IExteriorCrack crack) : base(model)
+        public ReanalysisSolver(Model2D model, IReadOnlyList<XNode2D> fullyEnrichedNodes, TrackingExteriorCrackLSM crack) : 
+            base(model)
         {
             this.crack = crack;
             this.fullyEnrichedNodes = fullyEnrichedNodes;
@@ -137,8 +139,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
-            CheckSolutionAndEnforce(1.0);
-            //CheckSolutionAndPrint(0.3);
+            //CheckSolutionAndEnforce(1.0);
+            //CheckSolutionAndPrint(0.0);
         }
 
         //TODO: Try and compare the performance of first delete then add, modifying dofs in the order of their gloabl index. 
@@ -179,6 +181,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 }
             }
 
+            //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
+            TreatNearEnrichedDofs(heavisideDofs, colsToAdd, tabooRows);
+
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
             // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
             // remaining ones.
@@ -195,8 +200,28 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
-            CheckSolutionAndEnforce(1.0);
-            //CheckSolutionAndPrint(0.3);
+            //CheckSolutionAndEnforce(1.0);
+            //CheckSolutionAndPrint(0.0);
+        }
+
+        private void TreatNearEnrichedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd, 
+            HashSet<int> tabooRows)
+        {
+            // Delete unmodified Heaviside dofs of nodes in elements with modified stiffness. 
+            // Their stiffness will be readded later. 
+            //TODO: Not sure, their stiffness can change. Investigate it.
+            //TODO: Check if their stiffness is really modified. Otherwise it is a waste of time.
+            foreach (var node in crack.CrackBodyNodesNearModified)
+            {
+                //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
+                foreach (var heavisideDof in heavisideDofs)
+                {
+                    int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);
+                    colsToAdd.Add(colIdx);
+                    tabooRows.Add(colIdx); // They must also be excluded when adding new columns
+                    factorizedKuu.DeleteRow(colIdx);
+                }
+            }
         }
 
         #region debugging

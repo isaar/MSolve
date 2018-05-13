@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //var solver = CreateCholeskyAMDSolver(benchmark);
             //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
-            // Reanalysis solvers
+            //Reanalysis solvers
             IReadOnlyList<ICartesianPoint2D> crackPath;
             using (var solver = CreateReanalysisSolver(benchmark))
             {
@@ -92,10 +92,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         public static DCB.Builder SetupBenchmark()
         {
             double growthLength = 0.3;
-            double fineElementSize = 0.08;
-            //IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
+            //double elementSize = 0.08;
+            //IMeshProvider meshProvider = new DCBUniformMeshProvider(elementSize);
+            double fineElementSize = 0.11;
+            IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
             //IMeshProvider meshProvider = new GmshMeshProvider(@"C: \Users\Serafeim\Desktop\GMSH\dcb.msh");
-            IMeshProvider meshProvider = new DCBUniformMeshProvider(fineElementSize);
             var builder = new DCB.Builder(growthLength, meshProvider);
             builder.UseLSM = true;
             //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 

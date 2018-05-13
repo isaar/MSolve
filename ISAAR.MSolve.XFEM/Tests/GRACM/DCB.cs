@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// The crack geometry description
         /// </summary>
-        public IExteriorCrack Crack { get; private set; }
+        public TrackingExteriorCrackLSM Crack { get; private set; }
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
@@ -266,7 +266,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 explicitCrack.InitializeGeometry(crackVertex0, crackVertex1);
                 explicitCrack.UpdateGeometry(-dTheta, da);
 
-                this.Crack = explicitCrack;
+                throw new NotImplementedException("Nope, you can't. You must use LSM.");
+                //this.Crack = explicitCrack;
             }
         }
 

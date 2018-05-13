@@ -29,6 +29,9 @@ using ISAAR.MSolve.XFEM.Utilities;
 //TODO: Crack tips should be handled differently than using enums. Interior and exterior cracks should compose their common 
 //      dedicated strategy classes with their common functionality and expose appropriate properties for the crack tip data.
 //TODO: Perhaps all loggers can be grouped and called together
+//TODO: a lot of the tracking is just wasted memory and cpu time for most cases. It would be better to use observers to do it.
+//      However, syncing the observers with the LSM is error prone and needs to be done at well defined points, without changing
+//      the LSM itself and without too much memory duplication.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 {
     /// <summary>
@@ -57,11 +60,15 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             this.levelSetsTip = new Dictionary<XNode2D, double>();
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.tipElements = new List<XContinuumElement2D>();
+
             this.CrackBodyNodesAll = new HashSet<XNode2D>();
+            this.CrackBodyNodesNearModified = new HashSet<XNode2D>();
             this.CrackBodyNodesNew = new HashSet<XNode2D>();
             this.CrackBodyNodesRejected = new HashSet<XNode2D>();
             this.CrackTipNodesNew = new HashSet<XNode2D>();
             this.CrackTipNodesOld = new HashSet<XNode2D>();
+            this.ElementsModified = new HashSet<XContinuumElement2D>();
+
             //this.levelSetUpdater = new LevelSetUpdaterOLD();
             this.levelSetUpdater = new LevelSetUpdaterStolarska();
             //this.meshInteraction = new StolarskaMeshInteraction(this);
@@ -75,11 +82,47 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D CrackTipEnrichments { get; set; }
         public IReadOnlyList<ICartesianPoint2D> CrackPath { get { return crackPath; } }
+
+        
+        /// <summary>
+        /// All nodes enriched with Heaviside.
+        /// </summary>
         public ISet<XNode2D> CrackBodyNodesAll { get; private set; } // TODO: a TreeSet might be better if set intersections are applied
+
+        /// <summary>
+        /// Nodes that were already enriched with Heaviside, but belong to elements, where at least one node has altered
+        /// enrichment, namely elements nodes with new Heaviside or tip enrichments or removed tip enrichements. The stiffness 
+        /// matrix of these elements will change, causing  a change in the stiffness terms associated with these nodes.
+        /// </summary>
+        public ISet<XNode2D> CrackBodyNodesNearModified { get; private set; }
+
+        /// <summary>
+        /// Nodes that were first enriched with Heaviside in the current iteration. Subset of <see cref="CrackBodyNodesAll"/>
+        /// </summary>
         public ISet<XNode2D> CrackBodyNodesNew { get; private set; }
+
+        /// <summary>
+        /// Nodes that belong to elements intersected by the 0 crack body level set, but must not be enriched with Heaviside to
+        /// avoid singularity in the global stiffness matrix.
+        /// </summary>
         public ISet<XNode2D> CrackBodyNodesRejected { get; private set; }
+
+        /// <summary>
+        /// Nodes that are currently enriched with tip functions.
+        /// </summary>
         public ISet<XNode2D> CrackTipNodesNew { get; private set; }
+
+        /// <summary>
+        /// Nodes that were enriched with tip functions in the previous iteration, but now are not. 
+        /// </summary>
         public ISet<XNode2D> CrackTipNodesOld { get; private set; }
+
+        /// <summary>
+        /// Elements with at least one node whose enrichment has changed (added Heaviside, tip or removed tip functions) since 
+        /// the previous iteration. These are the only elements whose stiffness matrices are modified.
+        /// </summary>
+        public ISet<XContinuumElement2D> ElementsModified { get; private set; }
+
         public ICartesianPoint2D CrackMouth { get; private set; }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }
@@ -251,6 +294,26 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             ResolveHeavisideEnrichmentDependencies();
             ApplyEnrichmentFunctions();
 
+            // Modified elements
+            ElementsModified.Clear();
+            var modifiedNodes = new HashSet<XNode2D>(CrackBodyNodesNew);
+            modifiedNodes.UnionWith(CrackTipNodesNew);
+            modifiedNodes.UnionWith(CrackTipNodesOld);
+            foreach (var node in modifiedNodes)
+            {
+                foreach (var element in Mesh.FindElementsWithNode(node)) ElementsModified.Add(element);
+            }
+
+            // Unmodified nodes of modified elements
+            CrackBodyNodesNearModified.Clear();
+            foreach (var element in ElementsModified)
+            {
+                foreach (var node in element.Nodes)
+                {
+                    if (!modifiedNodes.Contains(node)) CrackBodyNodesNearModified.Add(node);
+                }
+            }
+
             if (EnrichmentLogger != null) EnrichmentLogger.Log(); //TODO: handle this with a NullLogger.
             if (LevelSetComparer != null) LevelSetComparer.Log();
         }
@@ -345,7 +408,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             tipElements.Clear();
         }
 
-        private void FindBodyAndTipNodesAndElements()
+        private void FindBodyAndTipNodesAndElements() //TODO: perhaps the singularity resolution should be done inside this method
         {
             foreach (var element in Mesh.Cells)
             {
