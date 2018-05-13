@@ -69,9 +69,9 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return internalElements;
         }
 
-        public IReadOnlyList<TCell> FindElementsWithNode(TVertex node)
+        public ISet<TCell> FindElementsWithNode(TVertex node)
         {
-            var neighboringElements = new List<TCell>();
+            var neighboringElements = new HashSet<TCell>();
             foreach (TCell element in Cells)
             {
                 if (element.Vertices.Contains(node)) neighboringElements.Add(element);

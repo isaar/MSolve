@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         private readonly bool useLSM;
 
-        private IMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private BiMesh2D mesh;
 
         /// <summary>
         /// 
@@ -222,7 +222,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Mesh usable for crack-mesh interaction
             var boundary = new RectangularBoundary(0.0, L, 0.0, h);
-            mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(Model.Nodes, Model.Elements, boundary);
+            mesh = new BiMesh2D(Model.Nodes, Model.Elements, boundary);
         }
 
         private void InitializeCrack()

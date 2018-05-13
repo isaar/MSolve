@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public EnrichmentLogger EnrichmentLogger { get; set; }
         public LevelSetLogger LevelSetLogger { get; set; }
         public PreviousLevelSetComparer LevelSetComparer { get; set; }
-        public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
+        public BiMesh2D Mesh { get; set; }
 
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 
         {
