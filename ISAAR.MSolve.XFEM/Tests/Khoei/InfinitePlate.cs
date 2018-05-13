@@ -26,6 +26,8 @@ using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Output.VTK;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {

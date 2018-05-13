@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
-    class Polyline2D: IGeometryDescription2D
+    class Polyline2DOLD: IGeometryDescription2D
     {
         private readonly List<ICartesianPoint2D> vertices;
         private readonly List<DirectedSegment2D> segments;
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             return Math.Atan2(dy, dx);
         }
 
-        public Polyline2D(ICartesianPoint2D start, ICartesianPoint2D end)
+        public Polyline2DOLD(ICartesianPoint2D start, ICartesianPoint2D end)
         {
             vertices = new List<ICartesianPoint2D>();
             vertices.Add(start);

@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
         private static void WriteOutput(Model2D model, Vector solution, IDofOrderer dofOrderer)
         {
             var writer = new VTKWriter(model);
-            writer.InitializeFile(OUTPUT_FILE);
+            writer.InitializeFile(OUTPUT_FILE, false);
 
             var displacementsOutput = new DisplacementOutput(model, dofOrderer);
             double[,] nodalDisplacements = displacementsOutput.FindNodalDisplacements(solution);

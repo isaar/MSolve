@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
@@ -17,7 +18,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 // TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
 //       Could the enrichment type of an element be infered by just looking at its nodes, without storing state. Could it be
 //       cached for efficiency and how would the cache be updated safely?
-namespace ISAAR.MSolve.XFEM.CrackGeometry
+namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 {
     // For mouth cracks only (single tip). Warning: may misclassify elements as tip elements, causing gross errors.
     class BasicCrackLSM : IExteriorCrack

@@ -15,7 +15,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -25,6 +24,8 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Tests.Tools;
+using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {

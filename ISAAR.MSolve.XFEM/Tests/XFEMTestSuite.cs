@@ -11,11 +11,11 @@ namespace ISAAR.MSolve.XFEM.Tests
     {
         public static void RunAll()
         {
-            //DCBSolvers.Run();
+            DCBSolvers.Run();
             //ReorderingTests.Run();
             //SubdomainTest1.Run();
             //SubdomainTest2.Run();
-            TestMenkBordasCG.Run();
+            //TestMenkBordasCG.Run();
         }
     }
 }

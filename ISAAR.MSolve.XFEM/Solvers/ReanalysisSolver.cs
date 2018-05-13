@@ -137,8 +137,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
-            //CheckSolutionAndEnforce(0.0);
-            CheckSolutionAndPrint(0.3);
+            CheckSolutionAndEnforce(1.0);
+            //CheckSolutionAndPrint(0.3);
         }
 
         //TODO: Try and compare the performance of first delete then add, modifying dofs in the order of their gloabl index. 
@@ -195,8 +195,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
-            //CheckSolutionAndEnforce(0.0);
-            CheckSolutionAndPrint(0.3);
+            CheckSolutionAndEnforce(1.0);
+            //CheckSolutionAndPrint(0.3);
         }
 
         #region debugging

@@ -25,6 +25,8 @@ using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Output.VTK;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -67,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private static void Plot(Model2D model, IReadOnlyList<ICartesianPoint2D> crackPath)
         {
             var writer = new VTKWriter(model);
-            writer.InitializeFile(outputMesh);
+            writer.InitializeFile(outputMesh, false);
         }
 
         public Model2D model;
