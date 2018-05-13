@@ -28,27 +28,57 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
         public void Log()
         {
             var writer = new VTKPointWriter();
-
-            // Log the Heaviside enriched nodes and the signs of their crack body level sets.
-            writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_{iteration}", true);
-            var heavisideNodes = new Dictionary<ICartesianPoint2D, double>();
-            foreach (var node in lsm.CrackBodyNodesAll)
-            {
-                double sign = Math.Sign(lsm.LevelSetsBody[node]);
-                heavisideNodes.Add(node, sign);
-            }
-            writer.WriteScalarField("Heaviside_nodes", heavisideNodes);
-            writer.CloseCurrentFile();
-
-            // Log the tip enriched nodes and the signs of their crack body level sets.
-            writer.InitializeFile($"{outputDirectory}\\tip_nodes_{iteration}", true);
-            var tipNodes = new Dictionary<ICartesianPoint2D, double>();
+            
+            // Log the new tip enriched nodes and the signs of their crack body level sets.
+            writer.InitializeFile($"{outputDirectory}\\tip_nodes_new_{iteration}", true);
+            var tipNodesNew = new Dictionary<ICartesianPoint2D, double>();
             foreach (var node in lsm.CrackTipNodesNew)
             {
                 double sign = Math.Sign(lsm.LevelSetsTip[node]);
-                tipNodes.Add(node, sign);
+                tipNodesNew.Add(node, sign);
             }
-            writer.WriteScalarField("Tip_nodes", tipNodes);
+            writer.WriteScalarField("Tip_nodes_new", tipNodesNew);
+            writer.CloseCurrentFile();
+
+            // Log the old tip enriched nodes and the signs of their crack body level sets.
+            writer.InitializeFile($"{outputDirectory}\\tip_nodes_old_{iteration}", true);
+            var tipNodesOld = new Dictionary<ICartesianPoint2D, double>();
+            if (iteration > 0) 
+            {
+                foreach (var node in lsm.CrackTipNodesOld)
+                {
+                    double sign = Math.Sign(lsm.LevelSetsTip[node]);
+                    tipNodesOld.Add(node, sign);
+                }
+                writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
+            }
+            else // else a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+            {
+                tipNodesOld.Add(new CartesianPoint2D(-0.01, -0.01), 0);
+                writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
+            }
+            writer.CloseCurrentFile();
+
+            // Log all Heaviside enriched nodes and the signs of their crack body level sets.
+            writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_all_{iteration}", true);
+            var heavisideNodesAll = new Dictionary<ICartesianPoint2D, double>();
+            foreach (var node in lsm.CrackBodyNodesAll)
+            {
+                double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                heavisideNodesAll.Add(node, sign);
+            }
+            writer.WriteScalarField("Heaviside_nodes_all", heavisideNodesAll);
+            writer.CloseCurrentFile();
+
+            // Log only the new Heaviside enriched nodes and the signs of their crack body level sets.
+            writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_new_{iteration}", true);
+            var heavisideNodesNew = new Dictionary<ICartesianPoint2D, double>();
+            foreach (var node in lsm.CrackBodyNodesNew)
+            {
+                double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                heavisideNodesNew.Add(node, sign);
+            }
+            writer.WriteScalarField("Heaviside_nodes_new", heavisideNodesNew);
             writer.CloseCurrentFile();
 
             // Log the nodes that belong to elements intersected by the crack, but are not enriched with Heaviside 
