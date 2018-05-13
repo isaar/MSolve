@@ -20,7 +20,7 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
-    class ReanalysisSolver: SolverBase, IDisposable
+    class ReanalysisSolver : SolverBase, IDisposable
     {
         private readonly IExteriorCrack crack;
         private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Start();
 
             // Enrich all applicable nodes, without evaluating the enrichment functions
-            foreach (XNode2D node in fullyEnrichedNodes) 
+            foreach (XNode2D node in fullyEnrichedNodes)
             {
                 node.EnrichmentItems.Add(crack.CrackBodyEnrichment, null);
                 node.EnrichmentItems.Add(crack.CrackTipEnrichments, null);
@@ -236,10 +236,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void CheckSolutionAndPrint(double tolerance)
         {
-            string matrixPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_matrix_" + counter + ".txt";
-            string rhsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_expected_rhs_" + counter + ".txt";
-            string removedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_removed_rows_" + counter + ".txt";
-            string addedRowsPath = @"C:\Users\Serafeim\Desktop\GRACM\reanalysis_added_rows_" + counter + ".txt";
+            string directory = @"C:\Users\Serafeim\Desktop\GRACM\Reanalysis_debugging\";
+            string matrixPath = directory + "reanalysis_expected_matrix_" + counter + ".txt";
+            string rhsPath = directory + "reanalysis_expected_rhs_" + counter + ".txt";
+            string removedRowsPath = directory + "reanalysis_removed_rows_" + counter + ".txt";
+            string addedRowsPath = directory + "reanalysis_added_rows_" + counter + ".txt";
 
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");

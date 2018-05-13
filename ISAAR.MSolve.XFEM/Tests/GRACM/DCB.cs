@@ -245,6 +245,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 {
                     lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmOutputDirectory);
                     lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmOutputDirectory);
+                    lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmOutputDirectory);
                 }
 
                 // Mesh geometry interaction

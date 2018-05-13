@@ -85,6 +85,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }
         public EnrichmentLogger EnrichmentLogger { get; set; }
         public LevelSetLogger LevelSetLogger { get; set; }
+        public PreviousLevelSetComparer LevelSetComparer { get; set; }
         public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
 
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 
@@ -251,6 +252,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             ApplyEnrichmentFunctions();
 
             if (EnrichmentLogger != null) EnrichmentLogger.Log(); //TODO: handle this with a NullLogger.
+            if (LevelSetComparer != null) LevelSetComparer.Log();
         }
 
         public void UpdateGeometry(double localGrowthAngle, double growthLength)

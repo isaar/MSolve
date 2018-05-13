@@ -27,18 +27,18 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             benchmark.InitializeModel();
 
             // Solvers
-            var solver = CreateSkylineSolver(benchmark);
+            //var solver = CreateSkylineSolver(benchmark);
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
             //var solver = CreateNoReanalysisSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
             // Reanalysis solvers
-            //IReadOnlyList<ICartesianPoint2D> crackPath;
-            //using (var solver = CreateReanalysisSolver(benchmark))
-            //{
-            //    crackPath = benchmark.Analyze(solver);
-            //}
+            IReadOnlyList<ICartesianPoint2D> crackPath;
+            using (var solver = CreateReanalysisSolver(benchmark))
+            {
+                crackPath = benchmark.Analyze(solver);
+            }
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
@@ -55,11 +55,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             DCB.Builder builder = SetupBenchmark();
 
             // Define the solvers
-            string[] solvers = 
+            string[] solvers =
                 {
                 "Skyline", "Jacobi Preconditioned CG", "SuiteSparse Cholesky", "Reanalysis Pais"
             };
-            CreateSolver[] callbacks = 
+            CreateSolver[] callbacks =
             {
                 CreateSkylineSolver, CreatePCGSolver, CreateCholeskySuiteSparseSolver, CreateReanalysisSolver
             };
@@ -136,6 +136,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new NoReanalysisSolver(benchmark.Model, benchmark.Crack);
         }
 
-         
+
     }
 }
