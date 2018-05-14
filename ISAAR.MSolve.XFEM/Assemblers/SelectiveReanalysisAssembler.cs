@@ -9,36 +9,34 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 //TODO: perhaps the matrix should be stored in a dedicated DOK class. DOKColMajor with Dictionary<int, Dictionary<int, double>>
 //      as data seems like a good start.
-// WARNING: when other types of boundary conditions are needed (e.g. distributed loads, displacements) then the creationf rhs
-//      must be updated.
+// WARNING: when other types of boundary conditions are needed (e.g. distributed loads, displacements) then the rhs update
+//      must be modified appropriately.
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class SelectiveReanalysisAssembler
     {
-        private readonly int order;
-        private Vector rhs;
+        private readonly IDofOrderer dofOrderer;
 
-        public SelectiveReanalysisAssembler(int order)
+        public SelectiveReanalysisAssembler(IDofOrderer dofOrderer)
         {
-            this.order = order;
+            this.dofOrderer = dofOrderer;
         }
-
-        //TODO: should I return it without copying it? Actually that needs SolveLinearSystem() that use IVectorView and do not 
-        //      mutate it.
-        public Vector Rhs { get { return rhs.Copy(); } } 
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="dofOrderer"></param>
         /// <param name="modifiedElements"></param>
         /// <param name="wantedColumns">Should not include the columns that will be identity.</param>
-        public PartialMatrixColumns BuildGlobalMatrixColumns(IDofOrderer dofOrderer, ISet<int> wantedColumns, 
-            IEnumerable<XContinuumElement2D> modifiedElements)
+        /// <param name="previousRhs">It will be modified necessary.</param>
+        /// <param name="prescribedNodalDisplacements"></param>
+        /// <returns></returns>
+        public PartialMatrixColumns BuildGlobalMatrixColumns(IEnumerable<XContinuumElement2D> modifiedElements, 
+            ISet<int> wantedColumns, Vector previousRhs, Vector prescribedNodalDisplacements)
         {
-            //TODO: also update Rhs if needed
-
-            var globalK = new PartialMatrixColumns(order);
+            int numFreeDofs = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
+            var Kff = new PartialMatrixColumns(numFreeDofs);
+            var Kfc = new PartialMatrixRows(numFreeDofs, dofOrderer.NumConstrainedDofs);
+            bool isRhsChanged = false;
             foreach (XContinuumElement2D element in modifiedElements)
             {
                 dofOrderer.MatchElementToGlobalStandardDofsOf(element,
@@ -53,15 +51,29 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 // another set of tracked elements.
                 if (mapEnriched.Count > 0) 
                 {
+                    // Update modified stiffness matrix columns (free dofs)
                     element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
                     Matrix kse = kes.Transpose(); //TODO: use a version of BuildEnrichedStiffnessMatrices() that returns kee, kse
-                    AddElementStiffnessToGlobal(wantedColumns, globalK, kee, kse, mapEnriched, mapStandard);
+                    AddElementStiffnessToGlobal(wantedColumns, Kff, kee, kse, mapEnriched, mapStandard);
 
-                    //TODO: also update Rhs if needed
+                    // Update modified stiffness matrix rows for constrained dofs, if any
+                    if (mapConstrained.Count > 0)
+                    {
+                        isRhsChanged = true;
+                        AddElementStiffnessToGlobalConstrained(Kfc, kes, mapEnriched, mapConstrained);
+                    }
                 }
             }
 
-            return globalK;
+            if (isRhsChanged)
+            {
+                Console.WriteLine("The rhs vector is modified. This should happen only if an element on the boundary has at"
+                    + " least one node with changed enrichment or body level set");
+                SparseVector rhsChanges = Kfc.MultiplyRight(prescribedNodalDisplacements);
+                foreach ((int idx, double val) in rhsChanges.EnumerateNonZeros()) previousRhs[idx] = val;
+            }
+
+            return Kff;
         }
 
         //TODO: I process each enriched column in one loop, which saves some time. Provide this functionallity in the DOKs too
@@ -86,6 +98,25 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 {
                     double elementValue = elementMatrixStdEnr[rowPair.Key, elementCol];
                     globalMatrix.AddToEntry(rowPair.Value, globalCol, elementValue);
+                }
+            }
+        }
+
+        private void AddElementStiffnessToGlobalConstrained(PartialMatrixRows globalMatrixFreeConstr, Matrix elementMatrixEnrStd,
+            IReadOnlyDictionary<int, int> enrDofsElementToGlobal, IReadOnlyDictionary<int, int> stdDofsElementToGlobal)
+        {
+            foreach (var colPair in stdDofsElementToGlobal)
+            {
+                int elementCol = colPair.Key;
+                int globalCol = colPair.Value;
+
+                // Some dofs miss from wantedCols, beacuse they are identity and are handled differently. Not applicable here. 
+                //if (!wantedColumns.Contains(globalRow)) continue; 
+
+                foreach (var rowPair in enrDofsElementToGlobal)
+                {
+                    double elementValue = elementMatrixEnrStd[rowPair.Key, elementCol];
+                    globalMatrixFreeConstr.AddToEntry(rowPair.Value, globalCol, elementValue);
                 }
             }
         }
