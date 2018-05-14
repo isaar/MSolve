@@ -562,7 +562,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Returns the whole (super and sub-diagonal parts) of the column with index = <paramref name="colIdx"/>. However, the
+        /// Returns the whole (super and sub-diagonal parts of the) column with index = <paramref name="colIdx"/>. However, the
         /// entries with row index that belongs in <paramref name="tabooRows"/> will be set to 0. Actually they will not be 
         /// included in the sparsity pattern of the returned <see cref="SparseVector"/>. Note that the length of the returned 
         /// vector is equal to <see cref="NumRows"/>. Since the matrix is symmetric, row = column. 
@@ -571,7 +571,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <param name="tabooRows">The entries of the returned column vector at the indices <paramref name="tabooRows"/> will 
         ///     be equal to 0.</param>
         /// <returns></returns>
-        public SparseVector SliceColumnWithoutRows(int colIdx, ISet<int> tabooRows)
+        public SparseVector SliceColumnWithoutRows(int colIdx, ISet<int> tabooRows) //TODO: it's not really slicing, as the rejected rows are set to 0
         {
             // The super-diagonal part is straightforward
             var wholeColumn = new SortedDictionary<int, double>();
