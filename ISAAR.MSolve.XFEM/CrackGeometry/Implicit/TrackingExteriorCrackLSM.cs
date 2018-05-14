@@ -32,6 +32,12 @@ using ISAAR.MSolve.XFEM.Utilities;
 //TODO: a lot of the tracking is just wasted memory and cpu time for most cases. It would be better to use observers to do it.
 //      However, syncing the observers with the LSM is error prone and needs to be done at well defined points, without changing
 //      the LSM itself and without too much memory duplication.
+//TODO: A lot of functionality should be delegated to strategy classes. This can be done by having the strategy classes share
+//      the fields of LSM and then mutate them when called upon. Each strategy classes gets injected with the fields it needs  
+//      during construction. Alternatively I could have a readonly LSM interface that only exposes readonly properties, and a 
+//      mutable one for the various strategy classes to mutate LSM data that they pull.
+//TODO: If I do delegate a lot of functionality to strategy classes, how can the observers be updated correctly and efficiently,
+//      namely without a lot of memory copying?
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 {
     /// <summary>
@@ -62,6 +68,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             this.tipElements = new List<XContinuumElement2D>();
 
             this.CrackBodyNodesAll = new HashSet<XNode2D>();
+            this.CrackBodyNodesModified = new HashSet<XNode2D>();
             this.CrackBodyNodesNearModified = new HashSet<XNode2D>();
             this.CrackBodyNodesNew = new HashSet<XNode2D>();
             this.CrackBodyNodesRejected = new HashSet<XNode2D>();
@@ -90,9 +97,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public ISet<XNode2D> CrackBodyNodesAll { get; private set; } // TODO: a TreeSet might be better if set intersections are applied
 
         /// <summary>
-        /// Nodes that were already enriched with Heaviside, but belong to elements, where at least one node has altered
-        /// enrichment, namely elements nodes with new Heaviside or tip enrichments or removed tip enrichements. The stiffness 
-        /// matrix of these elements will change, causing  a change in the stiffness terms associated with these nodes.
+        /// Nodes that were already enriched with Heaviside, but their crack body level set changes in the current iteration.
+        /// Most of the time this should happen to nodes of the element containing the crack tip, thus this set should be empty.
+        /// </summary>
+        public ISet<XNode2D> CrackBodyNodesModified { get; private set; }
+
+        /// <summary>
+        /// Nodes that were already enriched with Heaviside, but belong to elements, where at least one node bleongs to one of
+        /// the sets <see cref="CrackBodyNodesNew"/>, <see cref="CrackBodyNodesModified"/>, <see cref="CrackTipNodesNew"/> or 
+        /// <see cref="CrackTipNodesOld"/>. The stiffness matrix of these elements will change, causing a change in the stiffness
+        /// terms associated with these nodes.
         /// </summary>
         public ISet<XNode2D> CrackBodyNodesNearModified { get; private set; }
 
@@ -299,6 +313,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             var modifiedNodes = new HashSet<XNode2D>(CrackBodyNodesNew);
             modifiedNodes.UnionWith(CrackTipNodesNew);
             modifiedNodes.UnionWith(CrackTipNodesOld);
+            modifiedNodes.UnionWith(CrackBodyNodesModified);
             foreach (var node in modifiedNodes)
             {
                 foreach (var element in Mesh.FindElementsWithNode(node)) ElementsModified.Add(element);
@@ -329,7 +344,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             crackPath.Add(newTip);
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
 
-            levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, levelSetsBody, levelSetsTip);
+            //TODO: it is inconsistent that the modified body nodes are updated here, while the other in UpdateEnrichments(); 
+            CrackBodyNodesModified = levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, 
+                CrackBodyNodesAll, levelSetsBody, levelSetsTip);
 
             if (LevelSetLogger != null) LevelSetLogger.Log(); //TODO: handle this with a NullLogger.
         }
@@ -401,6 +418,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 
         private void ClearPreviousEnrichments()
         {
+            //TODO: this method should not exist. Clearing these sets should be done in the methods where they are updated.
+            //WARNING: Do not clear CrackBodyNodesModified here, since they are updated during UpdateGeometry() which is called first. 
             CrackBodyNodesNew = new HashSet<XNode2D>();
             CrackTipNodesOld = CrackTipNodesNew;
             CrackTipNodesNew = new HashSet<XNode2D>();

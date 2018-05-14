@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             }
 
             //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
-            TreatNearEnrichedDofs(heavisideDofs, colsToAdd, tabooRows);
+            TreatOtherModifiedDofs(heavisideDofs, colsToAdd, tabooRows);
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
             // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
@@ -204,14 +204,15 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //CheckSolutionAndPrint(0.0);
         }
 
-        private void TreatNearEnrichedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd, 
+        private void TreatOtherModifiedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd, 
             HashSet<int> tabooRows)
         {
             // Delete unmodified Heaviside dofs of nodes in elements with modified stiffness. 
-            // Their stiffness will be readded later. 
+            // Their stiffness will be readded later.
+            // Same for previously Heaviside dofs with modified body level set.
             //TODO: Not sure, their stiffness can change. Investigate it.
             //TODO: Check if their stiffness is really modified. Otherwise it is a waste of time.
-            foreach (var node in crack.CrackBodyNodesNearModified)
+            foreach (var node in crack.CrackBodyNodesNearModified.Union(crack.CrackBodyNodesModified))
             {
                 //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
                 foreach (var heavisideDof in heavisideDofs)
