@@ -108,13 +108,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             return stiffness;
         }
 
-        public void BuildEnrichedStiffnessMatrices(out Matrix stiffnessEnrichedStandard,
-            out Matrix stiffnessEnriched)
+        public (Matrix stiffnessEnrichedEnriched, Matrix stiffnessEnrichedStandard) BuildEnrichedStiffnessMatricesLower()
         {
-            int standardDofsCount = StandardDofsCount;
-            int artificialDofsCount = CountEnrichedDofs();
-            stiffnessEnrichedStandard = Matrix.CreateZero(artificialDofsCount, standardDofsCount);
-            stiffnessEnriched = Matrix.CreateZero(artificialDofsCount, artificialDofsCount);
+            int numStandardDofs = StandardDofsCount;
+            int numEnrichedDofs = CountEnrichedDofs();
+            var stiffnessEnrichedStandard = Matrix.CreateZero(numEnrichedDofs, numStandardDofs);
+            var stiffnessEnrichedEnriched = Matrix.CreateZero(numEnrichedDofs, numEnrichedDofs);
 
             foreach (GaussPoint2D gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
@@ -124,7 +123,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
                 Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 Matrix Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
-                Matrix Benr = CalculateEnrichedDeformationMatrix(artificialDofsCount,
+                Matrix Benr = CalculateEnrichedDeformationMatrix(numEnrichedDofs,
                     gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices. 
@@ -137,8 +136,44 @@ namespace ISAAR.MSolve.XFEM.Elements
                 stiffnessEnrichedStandard.AxpyIntoThis(Kes, dVolume);
 
                 Matrix Kee = transposeBenrTimesConstitutive * Benr;  // enriched-enriched part
-                stiffnessEnriched.AxpyIntoThis(Kee, dVolume);
+                stiffnessEnrichedEnriched.AxpyIntoThis(Kee, dVolume);
             }
+
+            return (stiffnessEnrichedEnriched, stiffnessEnrichedStandard);
+        }
+
+        public (Matrix stiffnessEnrichedEnriched, Matrix stiffnessStandardEnriched) BuildEnrichedStiffnessMatricesUpper()
+        {
+            int numStandardDofs = StandardDofsCount;
+            int numEnrichedDofs = CountEnrichedDofs();
+            var stiffnessStandardEnriched = Matrix.CreateZero(numStandardDofs, numEnrichedDofs);
+            var stiffnessEnrichedEnriched = Matrix.CreateZero(numEnrichedDofs, numEnrichedDofs);
+
+            foreach (GaussPoint2D gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
+            {
+                // Calculate the necessary quantities for the integration
+                EvaluatedInterpolation2D evaluatedInterpolation =
+                    ElementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
+                Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
+                Matrix Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
+                Matrix Benr = CalculateEnrichedDeformationMatrix(numEnrichedDofs,
+                    gaussPoint, evaluatedInterpolation);
+
+                // Contributions of this gauss point to the element stiffness matrices. 
+                // Kee = SUM(Benr^T * E * Benr * dV), Kse = SUM(Bstd^T * E * Benr * dV)
+                // TODO: Scale only the smallest matrix (constitutive) before the multiplications. Probably requires a copy of the constitutive matrix.
+                double dVolume = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
+                Matrix constitutiveTimesBenr = constitutive * Benr; // cache the result
+
+                Matrix Kse = Bstd.MultiplyRight(constitutiveTimesBenr, true, false);  // enriched-standard part
+                stiffnessStandardEnriched.AxpyIntoThis(Kse, dVolume);
+
+                Matrix Kee = Benr.MultiplyRight(constitutiveTimesBenr, true, false);  // enriched-enriched part
+                stiffnessEnrichedEnriched.AxpyIntoThis(Kee, dVolume);
+            }
+
+            return (stiffnessEnrichedEnriched, stiffnessStandardEnriched);
         }
 
         /// <summary>

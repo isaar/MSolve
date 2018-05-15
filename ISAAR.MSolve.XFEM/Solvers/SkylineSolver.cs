@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
@@ -27,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalSkylineAssembler();
-            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (SkylineMatrix Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Solution = Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
 

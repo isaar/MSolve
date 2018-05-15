@@ -5,25 +5,31 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
+//TODO: Consider adding the functionality of initializing the global matrix as identity in the GlobalDOKAssembler. At the time 
+//      of writing, the only difference is in the line that created the DOK, which can easily be controlled with a flag.
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
-    class GlobalDOKAssembler
+    /// <summary>
+    /// The global matrix will also contain entries related to inactive enriched degrees of freedom. These entries are taken 
+    /// from the corresponding rows and columns of the identity matrix, and thus do not affect the solution. They do increase 
+    /// the order of the matrix and thus the lengths of the rhs and solution vectors. 
+    /// </summary>
+    class ReanalysisWholeAssembler
     {
-        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements, 
+            IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
             var Kff = DOKSymmetricColMajor.CreateEmpty(numDofsFree);
             var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
-            foreach (XContinuumElement2D element in model.Elements)
+            foreach (XContinuumElement2D element in allElements)
             {
-                // Build standard element matrix and add its contributions to the global matrices.
+                // Build standard element matrix and add its contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
@@ -48,6 +54,10 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             //Console.WriteLine("Check Kuc:");
             //CheckMatrix(expectedKuc, Kuc);
             #endregion
+
+            // Treat inactive/removed enriched dofs. I used to initialize the DOK to identity, but that was incorrect, since  
+            // I am adding the non zero diagonals to 1.0, instead of replacing the 1.0.
+            Kff.SetStructuralZeroDiagonalEntriesToUnity(); 
             return (Kff, Kfc);
         }
     }

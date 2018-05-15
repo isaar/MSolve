@@ -44,10 +44,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
         private readonly Model2D model;
 
-        private SelectiveReanalysisAssembler assembler;
         private Vector prescribedNodalDisplacements;
         private Vector rhs;
-        private CholeskySuiteSparse factorizedKuu;
+        private CholeskySuiteSparse factorizedKff;
         private int counter;
 
         /// <summary>
@@ -84,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void Dispose()
         {
-            if (factorizedKuu != null) factorizedKuu.Dispose();
+            if (factorizedKff != null) factorizedKff.Dispose();
         }
 
         public void Initialize()
@@ -117,7 +116,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //TODO: it would be more clear if the SolveFirstTime() was done in Initialize(). However Initialize() may be called
             //      before the initial configuration of the model is built correctly. Another approach is to use a specialized 
             //      variation of QuasiStaticAnalysis and have control over when Initialize() is called.
-            if (factorizedKuu == null) SolveFirstTime();
+            if (factorizedKff == null) SolveFirstTime();
             else SolveByUpdating();
         }
 
@@ -158,11 +157,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Start();
 
             // Build the whole stiffness matrix for the first and last time.
-            assembler = new SelectiveReanalysisAssembler(DofOrderer);
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements);
+            var assembler = new ReanalysisWholeAssembler();
+            (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
 
             /// The extended linear system is:
             /// [Kcc Kcf; Kuc Kff] * [uc; uf] = [Fc; Ff]
+            /// where c are the standard constrained dofs, s are the standard free dofs, e are the enriched dofs and 
             /// where c are the standard constrained dofs, s are the standard free dofs, e are the enriched dofs and 
             /// f = Union(s,e) are both the dofs with unknown left hand side vectors: uu = [us; ue].
             /// To solve the system (for the unknowns ul):
@@ -170,12 +170,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
             /// ii) uf = Kff \ Feff 
             Vector Ff = model.CalculateFreeForces(DofOrderer);
             prescribedNodalDisplacements = model.CalculateConstrainedDisplacements(DofOrderer);
-            rhs = Ff - Kuc.BuildCSRMatrix(true).MultiplyRight(prescribedNodalDisplacements); //TODO: directly multiply DOK*vector
+            rhs = Ff - Kfc.MultiplyRight(prescribedNodalDisplacements); //TODO: directly multiply DOK*vector
 
             // Factorize the whole stiffness matrix for the first and last time.
             // WARNING: DO NOT use using(){} here. We want the unmanaged resource to persist for the lifetime of this object.
-            factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); 
-            Solution = factorizedKuu.SolveLinearSystem(rhs);
+            factorizedKff = Kff.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); 
+            Solution = factorizedKff.SolveLinearSystem(rhs);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -213,7 +213,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 {
                     int colIdx = DofOrderer.GetEnrichedDofOf(node, tipDof);
                     tabooRows.Add(colIdx); // They must also be excluded when adding new columns
-                    factorizedKuu.DeleteRow(colIdx);
+                    factorizedKff.DeleteRow(colIdx);
                 }
             }
 
@@ -224,8 +224,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Build only the stiffness matrix columns that must be added (even those I just removed). 
             // Also update RHS if needed.
             var elementsToRebuild = FindElementsToRebuild();
-            PartialMatrixColumns changedStiffnessColumns =
-                assembler.BuildGlobalMatrixColumns(elementsToRebuild, colsToAdd, rhs, prescribedNodalDisplacements);
+            var assembler = new ReanalysisPartialAssembler();
+            PartialMatrixColumns changedStiffnessColumns = assembler.BuildGlobalMatrixColumns(
+                elementsToRebuild, DofOrderer, colsToAdd, rhs, prescribedNodalDisplacements);
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
             // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
@@ -234,11 +235,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
             {
                 tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
                 SparseVector newColVector = changedStiffnessColumns.GetColumnWithoutRows(col, tabooRows);
-                factorizedKuu.AddRow(col, newColVector);
+                factorizedKff.AddRow(col, newColVector);
             }
 
             // Solve the system
-            Solution = factorizedKuu.SolveLinearSystem(rhs);
+            Solution = factorizedKff.SolveLinearSystem(rhs);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -279,7 +280,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                     int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);
                     colsToAdd.Add(colIdx);
                     tabooRows.Add(colIdx); // They must also be excluded when adding new columns
-                    factorizedKuu.DeleteRow(colIdx);
+                    factorizedKff.DeleteRow(colIdx);
                 }
             }
         }
@@ -295,8 +296,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
-            var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            var assembler = new ReanalysisWholeAssembler();
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer) 
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
@@ -308,8 +309,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 Console.Write($". It is under the tolerance = {tolerance}.");
                 Console.Write(" Setting the expected vector as solution. Also setting the factorized matrix to the correct one");
                 Solution = solutionExpected;
-                factorizedKuu.Dispose();
-                factorizedKuu = factorization;
+                factorizedKff.Dispose();
+                factorizedKff = factorization;
             }
             else
             {
@@ -330,8 +331,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
-            var assembler = new GlobalReanalysisAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            var assembler = new ReanalysisWholeAssembler();
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer)
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             Vector solutionExpected;

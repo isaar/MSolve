@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMarshaling();
             //TestBuilders();
             //TestInverse();
-            TestIndexing();
+            //TestIndexing();
             //TestEquality();
             //TestFactorization();
             //TestMatrixOperations();
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
-            TestWriting();
+            //TestWriting();
         }
 
         public static void SuiteSparse()
@@ -155,7 +155,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SymmSingular.CheckMatrixVectorMult();
             //SparseRect.CheckMatrixVectorMult();
             //SparsePositiveDefinite.CheckMatrixVectorMult();
-            SignedBoolean.CheckMatrixVectorMultiplication();
+            //SignedBoolean.CheckMatrixVectorMultiplication();
+            SparseRandomMatrix.CompareDokCsrMultiplication();
         }
 
         public static void TestMatrixMatrixMultiplication()

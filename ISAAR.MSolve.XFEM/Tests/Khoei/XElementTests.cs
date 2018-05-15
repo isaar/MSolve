@@ -66,15 +66,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             crack.InitializeGeometry(point1, point2);
             crack.UpdateEnrichments();
 
-            Matrix stiffnessStd = bodyElement.BuildStandardStiffnessMatrix();
-            bodyElement.BuildEnrichedStiffnessMatrices(out Matrix stiffnessStdEnr, out Matrix stiffnessEnr);
+            Matrix Kss = bodyElement.BuildStandardStiffnessMatrix();
+            (Matrix Kee, Matrix Kes) = bodyElement.BuildEnrichedStiffnessMatricesLower();
             
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            (new FullMatrixWriter(stiffnessStd.Scale(1e-6))).WriteToConsole();
-            Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            (new FullMatrixWriter(stiffnessStdEnr.Scale(1e-6))).WriteToConsole();
+            (new FullMatrixWriter(Kss.Scale(1e-6))).WriteToConsole();
+            Console.WriteLine("Quad4 enriched-standard stiffness matrix = ");
+            (new FullMatrixWriter(Kes.Scale(1e-6))).WriteToConsole();
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            (new FullMatrixWriter(stiffnessEnr.Scale(1e-6))).WriteToConsole();
+            (new FullMatrixWriter(Kee.Scale(1e-6))).WriteToConsole();
         }
 
         private static void IsoparametricQuad4BimaterialTest(XNode2D[] nodes)
@@ -103,15 +103,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             enrichmentItem.EnrichNode(nodes[3]);
 
 
-            Matrix stiffnessStd = element.BuildStandardStiffnessMatrix();
-            element.BuildEnrichedStiffnessMatrices(out Matrix stiffnessStdEnr, out Matrix stiffnessEnr);
+            Matrix Kss = element.BuildStandardStiffnessMatrix();
+            (Matrix Kee, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
 
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            (new FullMatrixWriter(stiffnessStd.Scale(1e-6))).WriteToConsole();
-            Console.WriteLine("Quad4 standard-enriched stiffness matrix = ");
-            (new FullMatrixWriter(stiffnessStdEnr.Scale(1e-6))).WriteToConsole();
+            (new FullMatrixWriter(Kss.Scale(1e-6))).WriteToConsole();
+            Console.WriteLine("Quad4 enriched-standard stiffness matrix = ");
+            (new FullMatrixWriter(Kes.Scale(1e-6))).WriteToConsole();
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            (new FullMatrixWriter(stiffnessEnr.Scale(1e-6))).WriteToConsole();
+            (new FullMatrixWriter(Kee.Scale(1e-6))).WriteToConsole();
         }
 
         static void Main(string[] args)

@@ -17,17 +17,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-
-            // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            DOKRowMajor Kss = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsStandard);
-
-            // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
-            // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
+            var Kss = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsStandard);
             var Ksc = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Build standard element matrices and add it contributions to the global matrices
+                // Build standard element matrix and add its contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 globalDofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
@@ -42,10 +37,9 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) BuildSubdomainMatrices(XSubdomain2D subdomain, 
             XClusterDofOrderer globalDofOrderer)
         {
+            int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsEnriched = subdomain.DofOrderer.NumEnrichedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
-
             var Kee = DOKSymmetricColMajor.CreateEmpty(numDofsEnriched);
             var Kes = DOKRowMajor.CreateEmpty(numDofsEnriched, numDofsStandard);
             var Kec = DOKRowMajor.CreateEmpty(numDofsEnriched, numDofsConstrained);
@@ -55,15 +49,14 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 // Build enriched element matrices and add their contributions to the global matrices
                 Dictionary<int, int> enrichedMap = subdomain.DofOrderer.MatchElementToSubdomainEnrichedDofs(element);
                 
-
                 // Not all elements are enriched necessarily. The domain decomposition might be done only at the start.
                 if (enrichedMap.Count > 0)
                 {
-                    globalDofOrderer.MatchElementToGlobalStandardDofsOf(element, out IReadOnlyDictionary<int, int> standardMap,
-                    out IReadOnlyDictionary<int, int> constrainedMap);
+                    //TODO: This was already done in BuildStandardMatrices(). Find a way to reuse it.
+                    globalDofOrderer.MatchElementToGlobalStandardDofsOf(element, 
+                        out IReadOnlyDictionary<int, int> standardMap, out IReadOnlyDictionary<int, int> constrainedMap);
 
-                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
+                    (Matrix kee, Matrix kes) = element.BuildEnrichedStiffnessMatricesLower();
                     Kee.AddSubmatrixSymmetric(kee, enrichedMap);
                     Kes.AddSubmatrix(kes, enrichedMap, standardMap);
                     Kec.AddSubmatrix(kes, enrichedMap, constrainedMap);

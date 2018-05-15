@@ -374,7 +374,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Vector Solve()
         {
-            var solver = new SkylineSolverOLD(model);
+            var solver = new SkylineSolver(model);
             solver.Initialize();
             solver.Solve();
             dofOrderer = solver.DofOrderer;
