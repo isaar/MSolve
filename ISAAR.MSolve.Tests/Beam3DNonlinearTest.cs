@@ -105,14 +105,15 @@ namespace ISAAR.MSolve.Tests
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
             // Choose parent and child analyzers -> Parent: Static, Child: Linear
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-
-            //int increments = 10;
-            //int totalDOFs = model.TotalDOFs;
-            //int maximumIteration = 120;
-            //int iterationStepsForMatrixRebuild = 500;
-            //NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems[1], subdomainUpdaters, mappings,
-            //provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
+            // LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            
+            var linearSystemsArray = new[] { linearSystems[1] };
+            int increments = 10;
+            int totalDOFs = model.TotalDOFs;
+            int maximumIteration = 120;
+            int iterationStepsForMatrixRebuild = 500;
+            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, mappings,
+            provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
 
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
