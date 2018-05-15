@@ -319,13 +319,19 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                 foreach (var element in Mesh.FindElementsWithNode(node)) ElementsModified.Add(element);
             }
 
-            // Unmodified nodes of modified elements
+            // Unmodified body nodes of modified elements
             CrackBodyNodesNearModified.Clear();
             foreach (var element in ElementsModified)
             {
                 foreach (var node in element.Nodes)
                 {
-                    if (!modifiedNodes.Contains(node)) CrackBodyNodesNearModified.Add(node);
+                    // Only Heaviside enriched nodes of these elements are of concern.
+                    // TODO: what about tip enriched nodes?
+                    bool isEnrichedHeaviside = node.EnrichmentItems.ContainsKey(CrackBodyEnrichment);
+                    if (!modifiedNodes.Contains(node) && isEnrichedHeaviside) CrackBodyNodesNearModified.Add(node);
+
+                    //WARNING: The next would also mark std nodes which is incorrect. Code left over as a reminder.
+                    //if (!modifiedNodes.Contains(node)) CrackBodyNodesNearModified.Add(node);
                 }
             }
 
