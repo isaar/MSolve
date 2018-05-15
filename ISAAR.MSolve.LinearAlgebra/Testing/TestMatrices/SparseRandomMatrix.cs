@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -16,13 +17,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             int numCols = 10000;
             DOKRowMajor dok = CreateRandomMatrix(numRows, numCols, 0.15);
             Vector lhs = CreateRandomVector(numCols);
-            var watch = new Stopwatch();
 
+            var watch = new Stopwatch();
             watch.Start();
             Vector dokTimesLhs = dok.MultiplyRight(lhs);
             watch.Stop();
             long dokTime = watch.ElapsedMilliseconds;
 
+            CSRMatrix.UseMKL = false;
             watch.Restart();
             Vector csrUnsortedTimesLhs = dok.BuildCSRMatrix(false).MultiplyRight(lhs, false);
             watch.Stop();
@@ -33,16 +35,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             watch.Stop();
             long csrSortedTime = watch.ElapsedMilliseconds;
 
+            CSRMatrix.UseMKL = true;
+            watch.Restart();
+            Vector csrUnsortedMklTimesLhs = dok.BuildCSRMatrix(false).MultiplyRight(lhs, false);
+            watch.Stop();
+            long csrUnsortedMklTime = watch.ElapsedMilliseconds;
+
+            watch.Restart();
+            Vector csrSortedMklTimesLhs = dok.BuildCSRMatrix(true).MultiplyRight(lhs, false);
+            watch.Stop();
+            long csrSortedMklTime = watch.ElapsedMilliseconds;
+
             Console.WriteLine("Checking correctness and performance of DOK, sorted and unsorted CSR * vector:");
             Console.WriteLine($"DOK * vector: time = {dokTime} ms");
-            Console.WriteLine($"Unsorted CSR * vector: time = {csrUnsortedTime} ms");
-            Console.WriteLine($"Sorted CSR * vector: time = {csrSortedTime} ms");
+            Console.WriteLine($"Unsorted CSR * vector (C#): time = {csrUnsortedTime} ms");
+            Console.WriteLine($"Sorted CSR * vector (C#): time = {csrSortedTime} ms");
+            Console.WriteLine($"Unsorted CSR * vector (MKL): time = {csrUnsortedMklTime} ms");
+            Console.WriteLine($"Sorted CSR * vector (MKL): time = {csrSortedMklTime} ms");
 
             var comparer = new ValueComparer(1e-12);
             double errorUnsorted = csrUnsortedTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
             double errorSorted = csrSortedTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
-            Console.WriteLine("Multiplication DOK - unsorted CSR: normalized error = " + errorUnsorted);
-            Console.WriteLine("Multiplication DOK - sorted CSR: normalized error = " + errorSorted);
+            double errorUnsortedMkl = csrUnsortedMklTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
+            double errorSortedMkl = csrSortedMklTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
+            Console.WriteLine("Multiplication DOK - unsorted CSR (C#): normalized error = " + errorUnsorted);
+            Console.WriteLine("Multiplication DOK - sorted CSR (C#): normalized error = " + errorSorted);
+            Console.WriteLine("Multiplication DOK - unsorted CSR (MKL): normalized error = " + errorUnsortedMkl);
+            Console.WriteLine("Multiplication DOK - sorted CSR (MKL): normalized error = " + errorSortedMkl);
         }
 
         public static DOKRowMajor CreateRandomMatrix(int numRows, int numCols, double nonZeroChance)

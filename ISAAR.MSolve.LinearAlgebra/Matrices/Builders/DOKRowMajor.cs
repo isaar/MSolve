@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: sorting the Dictionaries with Linq seems to take a lot of time.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
     /// <summary>
@@ -293,12 +294,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Faster than creating a CSR matrix just for a single multiplication.
+        /// At least as fast as creating a CSR matrix and multiplying it with 1 vector. If more than 1 multiplications are 
+        /// needed, then the CSR matrix should be created.
         /// </summary>
         /// <param name="vector"></param>
+        /// <param name="avoidBuilding">If true, no matrices will be built internally. If false, such matrices may be built if 
+        ///     the method decides that using them is faster (e.g. fast native library), however that requires memory for 
+        ///     building them, which may not be available.</param>
         /// <returns></returns>
-        public Vector MultiplyRight(Vector vector)
+        public Vector MultiplyRight(Vector vector, bool avoidBuilding = false)
         {
+            // MKL >> managed code. Just don't sort the CSR.
+            bool buildCSR = (!avoidBuilding) && CSRMatrix.UseMKL; 
+            if (CSRMatrix.UseMKL) return BuildCSRMatrix(false).MultiplyRight(vector); 
+
             Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
             var result = new double[this.NumRows];
             for (int i = 0; i < NumRows; ++i)

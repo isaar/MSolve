@@ -31,6 +31,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class CSRMatrix: IMatrix, ISparseMatrix //TODO: Use MKL with descriptors
     {
+        //TODO: find a better design than this. Perhaps providers (strategy objects?) that are set for each matrix and/or system wide.
+        public static bool UseMKL { get; set; } = true;
         public static bool WriteRawArrays { get; set; } = true;
 
         private readonly double[] values;
@@ -525,6 +527,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <returns></returns>
         public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
+            if (UseMKL)
+            {
+                if (transposeThis)
+                {
+                    Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
+                    int m = NumRows;
+                    double[] result = new double[NumColumns];
+                    SpBlas.MklCspblasDcsrgemv("T", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
+                        ref vector.InternalData[0], ref result[0]);
+                    return Vector.CreateFromArray(result);
+                }
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
+                    int m = NumRows;
+                    double[] result = new double[NumRows];
+                    SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
+                        ref vector.InternalData[0], ref result[0]);
+                    return Vector.CreateFromArray(result);
+                }
+            }
+
             if (transposeThis)
             {
                 Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
