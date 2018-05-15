@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 //TODO: Consider adding the functionality of initializing the global matrix as identity in the GlobalDOKAssembler. At the time 
@@ -18,16 +17,17 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// from the corresponding rows and columns of the identity matrix, and thus do not affect the solution. They do increase 
     /// the order of the matrix and thus the lengths of the rhs and solution vectors. 
     /// </summary>
-    class GlobalReanalysisAssembler
+    class ReanalysisWholeAssembler
     {
-        public (DOKSymmetricColMajor Kff, CSRMatrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (DOKSymmetricColMajor Kff, CSRMatrix Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements, 
+            IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
             var Kff = DOKSymmetricColMajor.CreateEmpty(numDofsFree);
             var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
-            foreach (XContinuumElement2D element in model.Elements)
+            foreach (XContinuumElement2D element in allElements)
             {
                 // Build standard element matrix and add its contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice

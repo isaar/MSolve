@@ -13,61 +13,8 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 //      must be modified appropriately.
 namespace ISAAR.MSolve.XFEM.Assemblers
 {
-    class SelectiveReanalysisAssembler
+    class ReanalysisPartialAssembler
     {
-        private readonly IDofOrderer dofOrderer;
-
-        public SelectiveReanalysisAssembler(IDofOrderer dofOrderer)
-        {
-            this.dofOrderer = dofOrderer;
-        }
-
-        /// <summary>
-        /// Build the whole stiffness matrices.
-        /// </summary>
-        /// <param name="allElements"></param>
-        /// <returns></returns>
-        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements)
-        {
-            int numDofsConstrained = dofOrderer.NumConstrainedDofs;
-            int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-            var Kff = DOKSymmetricColMajor.CreateEmpty(numDofsFree);
-            var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
-
-            foreach (XContinuumElement2D element in allElements)
-            {
-                // Build standard element matrix and add its contributions to the global matrices
-                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                dofOrderer.MatchElementToGlobalStandardDofsOf(element,
-                    out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
-                Matrix kss = element.BuildStandardStiffnessMatrix();
-                Kff.AddSubmatrixSymmetric(kss, mapStandard);
-                Kfc.AddSubmatrix(kss, mapStandard, mapConstrained);
-
-                // Build enriched element matrices and add their contributions to the global matrices
-                IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
-                if (mapEnriched.Count > 0)
-                {
-                    (Matrix kee, Matrix kse) = element.BuildEnrichedStiffnessMatricesUpper();
-                    Kff.AddSubmatrix(kse, mapStandard, mapEnriched);
-                    Kff.AddSubmatrixSymmetric(kee, mapEnriched);
-                    if (mapConstrained.Count > 0) Kfc.AddSubmatrix(kse.Transpose(), mapEnriched, mapConstrained);
-                }
-            }
-            #region DEBUG code
-            //(Matrix expectedKuu, Matrix expectedKuc) = DenseGlobalAssembler.BuildGlobalMatrix(model, dofOrderer);
-            //Console.WriteLine("Check Kuu:");
-            //CheckMatrix(expectedKuu, Kuu);
-            //Console.WriteLine("Check Kuc:");
-            //CheckMatrix(expectedKuc, Kuc);
-            #endregion
-
-            // Treat inactive/removed enriched dofs. I used to initialize the DOK to identity, but that was incorrect, since  
-            // I am adding the non zero diagonals to 1.0, instead of replacing the 1.0.
-            Kff.SetStructuralZeroDiagonalEntriesToUnity(); 
-            return (Kff, Kfc);
-        }
-
         /// <summary>
         /// Only build the columns that change.
         /// </summary>
@@ -76,8 +23,8 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         /// <param name="previousRhs">It will be modified necessary.</param>
         /// <param name="prescribedNodalDisplacements"></param>
         /// <returns></returns>
-        public PartialMatrixColumns BuildGlobalMatrixColumns(IEnumerable<XContinuumElement2D> modifiedElements, 
-            ISet<int> wantedColumns, Vector previousRhs, Vector prescribedNodalDisplacements)
+        public PartialMatrixColumns BuildGlobalMatrixColumns(IEnumerable<XContinuumElement2D> modifiedElements,
+            IDofOrderer dofOrderer, ISet<int> wantedColumns, Vector previousRhs, Vector prescribedNodalDisplacements)
         {
             int numFreeDofs = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
             var Kff = new PartialMatrixColumns(numFreeDofs);
