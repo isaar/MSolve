@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.Tests
             int maximumIteration = 120;
             int iterationStepsForMatrixRebuild = 500;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
-            provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
+            provider, increments, totalDOFs);
 
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
