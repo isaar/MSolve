@@ -71,12 +71,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 //    Console.WriteLine("11th iteration. An expection will be thrown");
                 //}
 
-                #if (PRINT_PATH)
                 Console.WriteLine(
                 "********************************** Iteration {0} **********************************", iteration);
+#if (PRINT_PATH)
+                
                 if (propagator.Logger.GrowthAngles.Count > 0) Console.WriteLine(
                     $"angle = {propagator.Logger.GrowthAngles.Last()}, length = {propagator.Logger.GrowthLengths.Last()}");
-                #endif
+#endif
 
                 crack.UpdateEnrichments();
                 solver.Solve();

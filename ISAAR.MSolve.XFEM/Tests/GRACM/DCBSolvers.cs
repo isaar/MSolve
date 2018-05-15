@@ -27,18 +27,19 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             benchmark.InitializeModel();
 
             // Solvers
-            var solver = CreateSkylineSolver(benchmark);
+            //var solver = CreateSkylineSolver(benchmark);
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
             //var solver = CreateNoReanalysisSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
-            // Reanalysis solvers
-            //IReadOnlyList<ICartesianPoint2D> crackPath;
-            //using (var solver = CreateReanalysisSolver(benchmark))
-            //{
-            //    crackPath = benchmark.Analyze(solver);
-            //}
+            //Reanalysis solvers
+            IReadOnlyList<ICartesianPoint2D> crackPath;
+            //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
+            using (var solver = CreateReanalysisSolver(benchmark))
+            {
+                crackPath = benchmark.Analyze(solver);
+            }
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
@@ -55,13 +56,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             DCB.Builder builder = SetupBenchmark();
 
             // Define the solvers
-            string[] solvers = 
+            string[] solvers =
                 {
                 "Skyline", "Jacobi Preconditioned CG", "SuiteSparse Cholesky", "Reanalysis Pais"
             };
-            CreateSolver[] callbacks = 
+            CreateSolver[] callbacks =
             {
-                CreateSkylineSolver, CreatePCGSolver, CreateCholeskySuiteSparseSolver, CreateReanalysisSolver
+                CreateSkylineSolver, CreatePCGSolver, CreateCholeskySuiteSparseSolver, CreateReanalysisRebuildingSolver
             };
             var totalTimes = new long[solvers.Length];
 
@@ -92,10 +93,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         public static DCB.Builder SetupBenchmark()
         {
             double growthLength = 0.3;
-            double fineElementSize = 0.08;
-            //IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
+            //double elementSize = 0.08;
+            //IMeshProvider meshProvider = new DCBUniformMeshProvider(elementSize);
+            double fineElementSize = 0.11;
+            IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
             //IMeshProvider meshProvider = new GmshMeshProvider(@"C: \Users\Serafeim\Desktop\GMSH\dcb.msh");
-            IMeshProvider meshProvider = new DCBUniformMeshProvider(fineElementSize);
             var builder = new DCB.Builder(growthLength, meshProvider);
             builder.UseLSM = true;
             //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 
@@ -126,6 +128,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new CholeskyAMDSolver(benchmark.Model);
         }
 
+        private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(DCB benchmark)
+        {
+            return new ReanalysisRebuildingSolver(benchmark.Model, benchmark.Crack);
+        }
+
         private static ReanalysisSolver CreateReanalysisSolver(DCB benchmark)
         {
             return new ReanalysisSolver(benchmark.Model, benchmark.Crack);
@@ -136,6 +143,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new NoReanalysisSolver(benchmark.Model, benchmark.Crack);
         }
 
-         
+
     }
 }

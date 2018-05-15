@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <returns></returns>
         IReadOnlyList<TCell> FindElementsInsideCircle(Circle2D circle, TCell startingElement = null);
 
-        IReadOnlyList<TCell> FindElementsWithNode(TVertex node);
+        ISet<TCell> FindElementsWithNode(TVertex node);
 
         /// <summary>
         /// Find the nodes of the mesh which are inside (and optionally exactly on) the provided circle. If there are

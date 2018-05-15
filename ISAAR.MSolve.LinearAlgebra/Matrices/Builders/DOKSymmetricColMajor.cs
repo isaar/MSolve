@@ -70,6 +70,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return new DOKSymmetricColMajor(order, columns);
         }
 
+        /// <summary>
+        /// WARNING: if you initilaize the DOK to identity, then you need to overwrite the diagonal entries with the new values 
+        /// (in FEM you only write to diagonals once), instead of adding to them. This precludes the use of the methods that add 
+        /// a whole submatrix to the DOK. Therefore, it is more convenient to call <see cref="CreateEmpty(int)"/> and after all
+        /// submatrices have been added, call <see cref="SetStructuralZeroDiagonalEntriesToUnity"/>.
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         public static DOKSymmetricColMajor CreateIdentity(int order)
         {
             var columns = new Dictionary<int, double>[order];
@@ -540,6 +548,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             }
         }
 
+        public void SetStructuralZeroDiagonalEntriesToUnity()
+        {
+            for (int d = 0; d < NumColumns; ++d)
+            {
+                bool structuralZero = !columns[d].ContainsKey(d);
+                if (structuralZero) columns[d][d] = 1.0;
+            }
+        }
+
         /// <summary>
         /// Returns the whole (super and sub-diagonal parts) of the column with index = <paramref name="colIdx"/>. Since the 
         /// matrix is symmetric, row = column. 
@@ -562,7 +579,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Returns the whole (super and sub-diagonal parts) of the column with index = <paramref name="colIdx"/>. However, the
+        /// Returns the whole (super and sub-diagonal parts of the) column with index = <paramref name="colIdx"/>. However, the
         /// entries with row index that belongs in <paramref name="tabooRows"/> will be set to 0. Actually they will not be 
         /// included in the sparsity pattern of the returned <see cref="SparseVector"/>. Note that the length of the returned 
         /// vector is equal to <see cref="NumRows"/>. Since the matrix is symmetric, row = column. 
@@ -571,7 +588,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <param name="tabooRows">The entries of the returned column vector at the indices <paramref name="tabooRows"/> will 
         ///     be equal to 0.</param>
         /// <returns></returns>
-        public SparseVector SliceColumnWithoutRows(int colIdx, ISet<int> tabooRows)
+        public SparseVector SliceColumnWithoutRows(int colIdx, ISet<int> tabooRows) //TODO: it's not really slicing, as the rejected rows are set to 0
         {
             // The super-diagonal part is straightforward
             var wholeColumn = new SortedDictionary<int, double>();

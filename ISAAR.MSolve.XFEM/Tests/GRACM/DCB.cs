@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         private readonly bool useLSM;
 
-        private IMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private BiMesh2D mesh;
 
         /// <summary>
         /// 
@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// The crack geometry description
         /// </summary>
-        public IExteriorCrack Crack { get; private set; }
+        public TrackingExteriorCrackLSM Crack { get; private set; }
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
@@ -222,7 +222,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Mesh usable for crack-mesh interaction
             var boundary = new RectangularBoundary(0.0, L, 0.0, h);
-            mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(Model.Nodes, Model.Elements, boundary);
+            mesh = new BiMesh2D(Model.Nodes, Model.Elements, boundary);
         }
 
         private void InitializeCrack()
@@ -245,6 +245,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 {
                     lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmOutputDirectory);
                     lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmOutputDirectory);
+                    lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmOutputDirectory);
                 }
 
                 // Mesh geometry interaction
@@ -265,7 +266,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 explicitCrack.InitializeGeometry(crackVertex0, crackVertex1);
                 explicitCrack.UpdateGeometry(-dTheta, da);
 
-                this.Crack = explicitCrack;
+                throw new NotImplementedException("Nope, you can't. You must use LSM.");
+                //this.Crack = explicitCrack;
             }
         }
 

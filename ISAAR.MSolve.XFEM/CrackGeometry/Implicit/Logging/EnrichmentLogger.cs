@@ -50,13 +50,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                     double sign = Math.Sign(lsm.LevelSetsTip[node]);
                     tipNodesOld.Add(node, sign);
                 }
-                writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
             }
             else // else a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
             {
                 tipNodesOld.Add(new CartesianPoint2D(-0.01, -0.01), 0);
-                writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
             }
+            writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
             writer.CloseCurrentFile();
 
             // Log all Heaviside enriched nodes and the signs of their crack body level sets.
@@ -89,10 +88,31 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                 double sign = Math.Sign(lsm.LevelSetsBody[node]);
                 rejectedNodes.Add(node, sign);
             }
+            if (rejectedNodes.Count == 0) //a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+            {
+                rejectedNodes.Add(new CartesianPoint2D(-0.01, -0.01), 0);
+            }
             writer.WriteScalarField("Heaviside_rejected_nodes", rejectedNodes);
             writer.CloseCurrentFile();
 
+
+            // Log unmodified Heaviside nodes of elements with at least one modified node
+            writer.InitializeFile($"{outputDirectory}\\near_modified_heaviside_nodes_{iteration}", true);
+            var nearModifiedHeavisideNodes = new Dictionary<ICartesianPoint2D, double>();
+            foreach (var node in lsm.CrackBodyNodesNearModified)
+            {
+                double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                nearModifiedHeavisideNodes.Add(node, sign);
+            }
+            if (nearModifiedHeavisideNodes.Count == 0) // a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+            {
+                nearModifiedHeavisideNodes.Add(new CartesianPoint2D(-0.01, -0.01), 0);
+            }
+            writer.WriteScalarField("near_modified_heaviside_nodes", nearModifiedHeavisideNodes);
+            writer.CloseCurrentFile();
+
             ++iteration;
+
         }
     }
 }
