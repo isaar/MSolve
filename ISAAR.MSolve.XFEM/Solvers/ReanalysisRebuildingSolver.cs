@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
             //CheckSolutionAndEnforce(1.0);
-            //CheckSolutionAndPrint(0.0);
+            CheckSolutionAndPrint(0.0);
         }
 
         //TODO: Try and compare the performance of first delete then add, modifying dofs in the order of their gloabl index. 
@@ -188,7 +188,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
             TreatOtherModifiedDofs(heavisideDofs, colsToAdd, tabooRows);
-            Console.WriteLine($"{colsToAdd.Count} columns will be added");
+            //Console.WriteLine($"{colsToAdd.Count} columns will be added");
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
             // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
@@ -207,7 +207,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
             //CheckSolutionAndEnforce(1.0);
-            //CheckSolutionAndPrint(0.0);
+            CheckSolutionAndPrint(0.0);
         }
 
         private void TreatOtherModifiedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd, 
@@ -220,7 +220,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //TODO: Check if their stiffness is really modified. Otherwise it is a waste of time.
             foreach (var node in crack.CrackBodyNodesNearModified.Union(crack.CrackBodyNodesModified))
             {
-                Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
+                //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
                 foreach (var heavisideDof in heavisideDofs)
                 {
                     int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);

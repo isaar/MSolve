@@ -70,6 +70,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return new DOKSymmetricColMajor(order, columns);
         }
 
+        /// <summary>
+        /// WARNING: if you initilaize the DOK to identity, then you need to overwrite the diagonal entries with the new values 
+        /// (in FEM you only write to diagonals once), instead of adding to them. This precludes the use of the methods that add 
+        /// a whole submatrix to the DOK. Therefore, it is more convenient to call <see cref="CreateEmpty(int)"/> and after all
+        /// submatrices have been added, call <see cref="SetStructuralZeroDiagonalEntriesToUnity"/>.
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         public static DOKSymmetricColMajor CreateIdentity(int order)
         {
             var columns = new Dictionary<int, double>[order];
@@ -537,6 +545,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             for (int j = colIdx + 1; j < order; ++j)
             {
                 columns[j].Remove(colIdx); // If it is 0, then nothing will happen.
+            }
+        }
+
+        public void SetStructuralZeroDiagonalEntriesToUnity()
+        {
+            for (int d = 0; d < NumColumns; ++d)
+            {
+                bool structuralZero = !columns[d].ContainsKey(d);
+                if (structuralZero) columns[d][d] = 1.0;
             }
         }
 

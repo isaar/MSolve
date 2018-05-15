@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
 
             // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            var Kff = DOKSymmetricColMajor.CreateIdentity(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs);
+            var Kff = DOKSymmetricColMajor.CreateEmpty(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs);
 
             // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
             // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
@@ -64,6 +64,10 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     Kfc.AddSubmatrix(kes, mapEnriched, mapConstrained);
                 }
             }
+
+            // Treat inactive/removed enriched dofs. I used to initialized the DOK to identity, but that is wrong, since I am 
+            // adding the non zero diagonals to 1.0, instead of replacing the 1.0.
+            Kff.SetStructuralZeroDiagonalEntriesToUnity();
             return (Kff, Kfc);
         }
 
@@ -80,6 +84,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         {
             int numFreeDofs = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
             var Kff = new PartialMatrixColumns(numFreeDofs);
+
             var Kfc = new PartialMatrixRows(numFreeDofs, dofOrderer.NumConstrainedDofs);
             bool isRhsChanged = false;
             foreach (XContinuumElement2D element in modifiedElements)

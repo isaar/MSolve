@@ -93,10 +93,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         public static DCB.Builder SetupBenchmark()
         {
             double growthLength = 0.3;
-            double elementSize = 0.08;
-            IMeshProvider meshProvider = new DCBUniformMeshProvider(elementSize);
-            //double fineElementSize = 0.11;
-            //IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
+            //double elementSize = 0.08;
+            //IMeshProvider meshProvider = new DCBUniformMeshProvider(elementSize);
+            double fineElementSize = 0.11;
+            IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
             //IMeshProvider meshProvider = new GmshMeshProvider(@"C: \Users\Serafeim\Desktop\GMSH\dcb.msh");
             var builder = new DCB.Builder(growthLength, meshProvider);
             builder.UseLSM = true;

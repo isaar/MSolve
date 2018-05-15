@@ -79,8 +79,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             //this.levelSetUpdater = new LevelSetUpdaterOLD();
             this.levelSetUpdater = new LevelSetUpdaterStolarska();
             //this.meshInteraction = new StolarskaMeshInteraction(this);
-            this.meshInteraction = new HybridMeshInteraction(this);
-            //this.meshInteraction = new SerafeimMeshInteraction(this);
+            //this.meshInteraction = new HybridMeshInteraction(this);
+            this.meshInteraction = new SerafeimMeshInteraction(this);
             this.singularityResolver = new HeavisideResolverOLD(this);
         }
 

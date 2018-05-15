@@ -28,6 +28,10 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 //      5) Rebuilding all the elements of the model: Strangely this is closer to "no rebuilding" than "rebuilding whole K",
 //          which makes me suspect that its less about the stiffnesses and more about the underlying matrices. Needs further
 //          investigation. First check if the PartialMatrixColumns are identical with the columns of the whole rebuilt DOK.
+//      6) Initializing PartialMatrixColumns as identity columns, like the DOK in "rebuild" version does: Surprisingly, this
+//          produces almost identical results as the "rebuild" version, which revealed that the DOK initialization to unity was
+//          incorrect in the first place. After fixing it, the "no rebuild" and "rebuild" versions produce ALMOST identical 
+//          results. Currently it is not worth the time needed to find what causes this discrepancy, so it will be put on hold.
 namespace ISAAR.MSolve.XFEM.Solvers
 {
     /// <summary>
