@@ -292,6 +292,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return format;
         }
 
-        
+        /// <summary>
+        /// Faster than creating a CSR matrix just for a single multiplication.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public Vector MultiplyRight(Vector vector)
+        {
+            Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
+            var result = new double[this.NumRows];
+            for (int i = 0; i < NumRows; ++i)
+            {
+                double dot = 0.0;
+                foreach (var colValPair in rows[i]) dot += colValPair.Value * vector[colValPair.Key];
+                result[i] = dot;
+            }
+            return Vector.CreateFromArray(result, false);
+        }
     }
 }
