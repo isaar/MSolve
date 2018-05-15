@@ -17,9 +17,6 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam3DNonlinearTest
     {
-        private INonLinearSubdomainUpdater[] subdomainUpdaters;
-        private ISubdomainGlobalMapping[] mappings;
-
         [Fact]
         public void TestBeam3DNonlinearExample()
         {
@@ -120,14 +117,16 @@ namespace ISAAR.MSolve.Tests
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            //var linearSystemsArray = new[] { linearSystems[1] };
-            //int increments = 10;
-            //int totalDOFs = model.TotalDOFs;
-            //int maximumIteration = 120;
-            //int iterationStepsForMatrixRebuild = 500;
-            //NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, mappings,
-            //provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
+            //LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            var linearSystemsArray = new[] { linearSystems[1] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+            int increments = 10;
+            int totalDOFs = model.TotalDOFs;
+            int maximumIteration = 120;
+            int iterationStepsForMatrixRebuild = 500;
+            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, mappings,
+            provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
 
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
