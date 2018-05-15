@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			var shellElement = (NURBSKirchhoffLoveShellElement) element;
 			
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
-			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 2, shellElement.ControlPointsDictionary.Count * 2);
+			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
 
 			NURBS2D nurbs = new NURBS2D(shellElement, shellElement.ControlPoints);
 
