@@ -24,15 +24,17 @@ namespace ISAAR.MSolve.Tests
         public void TestBeam3DNonlinearExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
-            double youngModulus = 2.0e08;
+            double youngModulus = 21000.0;
             double poissonRatio = 0.3;
-            double nodalLoad = 10.0;
-            double area = 1.0;
-            double inertiaY = 1.0;
-            double inertiaZ = 1.0;
-            double torsionalInertia = 1.0;
-            double effectiveAreaY = 1.0;
-            double effectiveAreaZ = 1.0;
+            double nodalLoad = 500.0;
+            double area = 91.04;
+            double inertiaY = 2843.0;
+            double inertiaZ = 8091.0;
+            double torsionalInertia = 76.57;
+            double effectiveAreaY = 91.04;
+            double effectiveAreaZ = 91.04;
+            int nNodes = 6;
+            int nElems = 5;
 
             // Create new 3D material
             ElasticMaterial3D material = new ElasticMaterial3D
@@ -44,9 +46,17 @@ namespace ISAAR.MSolve.Tests
             // Node creation
             IList<Node> nodes = new List<Node>();
             Node node1 = new Node { ID = 1, X = 0.0,   Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 500.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0, Z = 0.0 };
+            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0, Z = 0.0 };
+            Node node4 = new Node { ID = 4, X = 300.0, Y = 0.0, Z = 0.0 };
+            Node node5 = new Node { ID = 5, X = 400.0, Y = 0.0, Z = 0.0 };
+            Node node6 = new Node { ID = 6, X = 500.0, Y = 0.0, Z = 0.0 };
             nodes.Add(node1);
             nodes.Add(node2);
+            nodes.Add(node3);
+            nodes.Add(node4);
+            nodes.Add(node5);
+            nodes.Add(node6);
 
             // Model creation
             Model model = new Model();
@@ -66,32 +76,37 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[1].Constraints.Add(DOFType.Z);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotX);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
-
-            // Create new Beam3D section
-            var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
-
-            // Create a new Beam3D element
-            var beam = new Beam3DCorotationalQuaternion(nodes, material, 1.0, beamSection);
-
-            var element = new Element()
+            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);  
+            // Generate elements of the structure
+            int iNode = 1;
+            for (int iElem = 0; iElem < nElems; iElem++)
             {
-                ID = 1,
-                ElementType = beam
-            };
+                // Create new Beam3D section
+                var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
 
-            // Add nodes to the created element
-            element.AddNode(model.NodesDictionary[1]);
-            element.AddNode(model.NodesDictionary[2]);
+                // Create a new Beam3D element
+                var beam = new Beam3DCorotationalQuaternion(nodes, material, 1.0, beamSection);
 
-            var a = beam.StiffnessMatrix(element);
+                // Create elements
+                var element = new Element()
+                {
+                    ID = iElem + 1,
+                    ElementType = beam
+                };
+                // Add nodes to the created element
+                element.AddNode(model.NodesDictionary[iNode]);
+                element.AddNode(model.NodesDictionary[iNode + 1]);
 
-            // Add Hexa element to the element and subdomains dictionary of the model
-            model.ElementsDictionary.Add(element.ID, element);
-            model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+                var a = beam.StiffnessMatrix(element);
+
+                // Add Hexa element to the element and subdomains dictionary of the model
+                model.ElementsDictionary.Add(element.ID, element);
+                model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+                iNode++;
+            }    
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[6], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -104,26 +119,24 @@ namespace ISAAR.MSolve.Tests
             // Choose the provider of the problem -> here a structural problem
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
-            // Choose parent and child analyzers -> Parent: Static, Child: Linear
-            // LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            
-            var linearSystemsArray = new[] { linearSystems[1] };
-            //var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
-            //var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 10;
-            int totalDOFs = model.TotalDOFs;
-            int maximumIteration = 120;
-            int iterationStepsForMatrixRebuild = 500;
-            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, mappings,
-            provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
+            // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
+            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            //var linearSystemsArray = new[] { linearSystems[1] };
+            //int increments = 10;
+            //int totalDOFs = model.TotalDOFs;
+            //int maximumIteration = 120;
+            //int iterationStepsForMatrixRebuild = 500;
+            //NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, mappings,
+            //provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
 
+            // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(-2.08333333333333333e-5, linearSystems[1].Solution[1], 10);
+            Assert.Equal(49.1812791359803, linearSystems[1].Solution[31-6], 12);
         }
     }
 }

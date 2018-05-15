@@ -160,6 +160,7 @@ namespace ISAAR.MSolve.Problems
 
         public void ProcessRHS(ILinearSystem subdomain, ImplicitIntegrationCoefficients coefficients)
         {
+            // Method intentionally left empty.
         }
 
         public IDictionary<int, double[]> GetAccelerationsOfTimeStep(int timeStep)
