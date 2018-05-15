@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //DofOrderer = DofOrdererSeparate.Create(model);
 
             var assembler = new GlobalCSRAssembler();
-            (DOKRowMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DOKRowMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
 

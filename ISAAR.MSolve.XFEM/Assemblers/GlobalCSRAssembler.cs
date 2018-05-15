@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalCSRAssembler
     {
-        public (DOKRowMajor Kff, CSRMatrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (DOKRowMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             //Console.WriteLine("Check Kuc:");
             //checker.Check(expectedKuc, Kuc);
             #endregion
-            return (Kff, Kfc.BuildCSRMatrix(true));
+            return (Kff, Kfc);
         }
     }
 }

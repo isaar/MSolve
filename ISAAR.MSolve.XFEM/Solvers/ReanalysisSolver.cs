@@ -158,7 +158,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Build the whole stiffness matrix for the first and last time.
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kff, CSRMatrix Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
 
             /// The extended linear system is:
             /// [Kcc Kcf; Kuc Kff] * [uc; uf] = [Fc; Ff]
@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer) 
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
@@ -332,7 +332,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer)
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             Vector solutionExpected;

@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalSkylineAssembler
     {
-        public (SkylineMatrix Kff, CSRMatrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (SkylineMatrix Kff, DOKRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             #endregion
 
             //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. sok.Build())
-            return (Kff.BuildSkylineMatrix(), Kfc.BuildCSRMatrix(true));
+            return (Kff.BuildSkylineMatrix(), Kfc);
         }
 
 

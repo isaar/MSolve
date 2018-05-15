@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             #region debug
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private Vector SolveWithSkyline()
         {
             var assembler = new GlobalSkylineAssembler();
-            (SkylineMatrix Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (SkylineMatrix Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             return Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
@@ -43,6 +44,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// ii) uu = Kuu \ Feff 
         /// </summary>
         /// <returns></returns>
+        protected Vector CalcEffectiveRhs(DOKRowMajor globalUnconstrainedConstrained)
+        {
+            Vector Fu = model.CalculateFreeForces(DofOrderer);
+            Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
+            Vector Feff = Fu - globalUnconstrainedConstrained.MultiplyRight(uc);
+            return Feff;
+        }
+
         protected Vector CalcEffectiveRhs(IMatrixView globalUnconstrainedConstrained)
         {
             Vector Fu = model.CalculateFreeForces(DofOrderer);

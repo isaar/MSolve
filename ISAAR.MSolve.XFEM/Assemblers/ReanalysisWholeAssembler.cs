@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     class ReanalysisWholeAssembler
     {
-        public (DOKSymmetricColMajor Kff, CSRMatrix Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements, 
+        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements, 
             IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             // Treat inactive/removed enriched dofs. I used to initialize the DOK to identity, but that was incorrect, since  
             // I am adding the non zero diagonals to 1.0, instead of replacing the 1.0.
             Kff.SetStructuralZeroDiagonalEntriesToUnity(); 
-            return (Kff, Kfc.BuildCSRMatrix(true));
+            return (Kff, Kfc);
         }
     }
 }

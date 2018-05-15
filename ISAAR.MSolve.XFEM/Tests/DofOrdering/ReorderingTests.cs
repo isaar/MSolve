@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
 
             // Before reorder
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
             Console.WriteLine($"CSC non zeros = {Kuu.CountNonZeros()}");
 
             watch.Start();

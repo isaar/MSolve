@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             counter = 0;
             // TODO: the matrices must not be built and factorized in each iteration
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             factorizedKff = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
@@ -158,7 +158,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             ++counter;
             // TODO: the matrices and vectors must not be built in each iteration
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kff, CSRMatrix Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kfc);
 
             // Group the new dofs
@@ -243,7 +243,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
@@ -277,7 +277,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Vector solutionExpected;
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))

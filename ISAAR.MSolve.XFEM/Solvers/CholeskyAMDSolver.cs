@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Reorder();
 
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             #region debug
@@ -92,15 +92,16 @@ namespace ISAAR.MSolve.XFEM.Solvers
             }
             (int[] permutationOldToNew, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
 
-            var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
-            (int[] permutation2, ReorderingStatistics stats2) = Kuu.Reorder(orderingAlgorithm);
-            var comparer = new Comparer();
-            bool sameReordering = comparer.AreEqual(permutationOldToNew, permutation2);
-            if (sameReordering) Console.WriteLine("Sparsity pattern and DOK produce the same reordering");
-            else Console.WriteLine("Sparsity pattern and DOK produce differenr reorderings");
-            Console.WriteLine($"Ordering {enumeratorName} + AMD, factor nnz predicted = {stats.FactorizedNumNonZeros}");
-
+            #region DEBUG
+            //var assembler = new GlobalDOKAssembler();
+            //(DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            //(int[] permutation2, ReorderingStatistics stats2) = Kuu.Reorder(orderingAlgorithm);
+            //var comparer = new Comparer();
+            //bool sameReordering = comparer.AreEqual(permutationOldToNew, permutation2);
+            //if (sameReordering) Console.WriteLine("Sparsity pattern and DOK produce the same reordering");
+            //else Console.WriteLine("Sparsity pattern and DOK produce differenr reorderings");
+            //Console.WriteLine($"Ordering {enumeratorName} + AMD, factor nnz predicted = {stats.FactorizedNumNonZeros}");
+            #endregion
 
             DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
         }
@@ -108,7 +109,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveWithoutReordering(IDofOrderer unordered)
         {
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, unordered);
+            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);
