@@ -23,7 +23,52 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
         /// <summary>
-        /// 
+        /// Build the whole stiffness matrices.
+        /// </summary>
+        /// <param name="allElements"></param>
+        /// <returns></returns>
+        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements)
+        {
+            int numDofsConstrained = dofOrderer.NumConstrainedDofs;
+            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
+
+            // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
+            var Kff = DOKSymmetricColMajor.CreateIdentity(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs);
+
+            // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
+            // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
+            var Kfc = DOKRowMajor.CreateEmpty(numDofsUnconstrained, numDofsConstrained);
+
+            foreach (XContinuumElement2D element in allElements)
+            {
+                // Build standard element matrices and add it contributions to the global matrices
+                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
+                dofOrderer.MatchElementToGlobalStandardDofsOf(element,
+                    out IReadOnlyDictionary<int, int> mapFree, out IReadOnlyDictionary<int, int> mapConstrained);
+                Matrix kss = element.BuildStandardStiffnessMatrix();
+                Kff.AddSubmatrixSymmetric(kss, mapFree);
+                Kfc.AddSubmatrix(kss, mapFree, mapConstrained);
+
+                // Build enriched element matrices and add it contributions to the global matrices
+                IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
+                if (mapEnriched.Count > 0)
+                {
+                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+
+                    // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
+                    // 2) The Elements have two versions of BuildStiffness(). 
+                    // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
+                    Matrix kse = kes.Transpose();
+                    Kff.AddSubmatrix(kse, mapFree, mapEnriched);
+                    Kff.AddSubmatrixSymmetric(kee, mapEnriched);
+                    Kfc.AddSubmatrix(kes, mapEnriched, mapConstrained);
+                }
+            }
+            return (Kff, Kfc);
+        }
+
+        /// <summary>
+        /// Only build the columns that change.
         /// </summary>
         /// <param name="modifiedElements"></param>
         /// <param name="wantedColumns">Should not include the columns that will be identity.</param>

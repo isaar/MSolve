@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
@@ -13,36 +14,22 @@ using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
-using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
-//TODO: There are slight differences (e.g. in crack path) between this version ("no rebuild" and the older one "rebuild". 
-//      Find the cause and fix it. I tried:
-//      1) Requesting the columns of all taboo row indices: No change
-//      2) Checking if the assembler builds all the requested columns: It does.
-//      3) Checked the added columns of "no rebuild" and "rebuild": Same count. I bet that checking them individually will prove 
-//          that they are identical. That needs to be done. Same needs to be done for removed columns.
-//      4) Rebuilding the columns of all dofs in the modified elements, instead of only the requested ones: No change
-//      5) Rebuilding all the elements of the model: Strangely this is closer to "no rebuilding" than "rebuilding whole K",
-//          which makes me suspect that its less about the stiffnesses and more about the underlying matrices. Needs further
-//          investigation. First check if the PartialMatrixColumns are identical with the columns of the whole rebuilt DOK.
+//TODO: compare this to the reanalysis solver that only rebuilds certain columns to figure out the effect of certain dofs:
+//      Heaviside dofs newa new body elements, old tip dofs, new tip dofs, etc. Also try varying the tip enrichment area.
 namespace ISAAR.MSolve.XFEM.Solvers
 {
     /// <summary>
-    /// In each iteration the factorization is updated with the added/removed columns. Only these columns are assembled, neither 
-    /// the whole stiffness matrix nor the whole rhs vector. 
+    /// In each iteration the factorization is updated with the added/removed columns, but these are calculated by assembling 
+    /// the whole stiffness matrix.
     /// </summary>
-    class ReanalysisSolver : ISolver, IDisposable
+    class ReanalysisRebuildingSolver : SolverBase, IDisposable
     {
         private readonly TrackingExteriorCrackLSM crack;
         private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
-        private readonly Model2D model;
-
-        private SelectiveReanalysisAssembler assembler;
-        private Vector prescribedNodalDisplacements;
-        private Vector rhs;
         private CholeskySuiteSparse factorizedKuu;
         private int counter;
 
@@ -50,12 +37,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
         /// that, the enrichments will be cleared and only reapplied as needed by the crack propagation.
         /// </summary>
-        public ReanalysisSolver(Model2D model, TrackingExteriorCrackLSM crack)
+        public ReanalysisRebuildingSolver(Model2D model, TrackingExteriorCrackLSM crack) : base(model)
         {
-            this.model = model;
             this.crack = crack;
             this.fullyEnrichedNodes = model.Nodes;
-            Logger = new SolverLogger();
         }
 
         /// <summary>
@@ -66,24 +51,19 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// </summary>
         /// <param name="fullyEnrichedNodes">The nodes to be enriched with Heaviside and crack tip functions. Make sure that only
         ///     these nodes need to be enriched, otherwise an exception will be thrown.</param>
-        public ReanalysisSolver(Model2D model, IReadOnlyList<XNode2D> fullyEnrichedNodes, TrackingExteriorCrackLSM crack)
+        public ReanalysisRebuildingSolver(Model2D model, IReadOnlyList<XNode2D> fullyEnrichedNodes, TrackingExteriorCrackLSM crack) : 
+            base(model)
         {
-            this.model = model;
             this.crack = crack;
             this.fullyEnrichedNodes = fullyEnrichedNodes;
-            Logger = new SolverLogger();
         }
-
-        public IDofOrderer DofOrderer { get; protected set; }
-        public SolverLogger Logger { get; }
-        public Vector Solution { get; protected set; }
 
         public void Dispose()
         {
             if (factorizedKuu != null) factorizedKuu.Dispose();
         }
 
-        public void Initialize()
+        public override void Initialize()
         {
             var watch = new Stopwatch();
             watch.Start();
@@ -108,7 +88,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Logger.InitializationTime = watch.ElapsedMilliseconds;
         }
 
-        public void Solve()
+        public override void Solve()
         {
             //TODO: it would be more clear if the SolveFirstTime() was done in Initialize(). However Initialize() may be called
             //      before the initial configuration of the model is built correctly. Another approach is to use a specialized 
@@ -149,28 +129,16 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void SolveFirstTime()
         {
-            counter = 0;
             var watch = new Stopwatch();
             watch.Start();
 
-            // Build the whole stiffness matrix for the first and last time.
-            assembler = new SelectiveReanalysisAssembler(DofOrderer);
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements);
+            counter = 0;
+            // TODO: the matrices must not be built and factorized in each iteration
+            var assembler = new GlobalReanalysisAssembler();
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            Vector rhs = CalcEffectiveRhs(Kuc);
 
-            /// The extended linear system is:
-            /// [Kcc Kcf; Kuc Kff] * [uc; uf] = [Fc; Ff]
-            /// where c are the standard constrained dofs, s are the standard free dofs, e are the enriched dofs and 
-            /// f = Union(s,e) are both the dofs with unknown left hand side vectors: uu = [us; ue].
-            /// To solve the system (for the unknowns ul):
-            /// i) Kff * uf = Ff - Kfc * uc = Feff
-            /// ii) uf = Kff \ Feff 
-            Vector Ff = model.CalculateFreeForces(DofOrderer);
-            prescribedNodalDisplacements = model.CalculateConstrainedDisplacements(DofOrderer);
-            rhs = Ff - Kuc.BuildCSRMatrix(true).MultiplyRight(prescribedNodalDisplacements); //TODO: directly multiply DOK*vector
-
-            // Factorize the whole stiffness matrix for the first and last time.
-            // WARNING: DO NOT use using(){} here. We want the unmanaged resource to persist for the lifetime of this object.
-            factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); 
+            factorizedKuu = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
             Solution = factorizedKuu.SolveLinearSystem(rhs);
 
             watch.Stop();
@@ -184,9 +152,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
         //I think that modifying a matrix left to right is faster
         private void SolveByUpdating()
         {
-            ++counter;
             var watch = new Stopwatch();
             watch.Start();
+
+            ++counter;
+            // TODO: the matrices and vectors must not be built in each iteration
+            var assembler = new GlobalReanalysisAssembler();
+            (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            Vector rhs = CalcEffectiveRhs(Kuc);
 
             // Group the new dofs
             IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
@@ -215,13 +188,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
             TreatOtherModifiedDofs(heavisideDofs, colsToAdd, tabooRows);
-            //Console.WriteLine($"{colsToAdd.Count} columns will be added");
-
-            // Build only the stiffness matrix columns that must be added (even those I just removed). 
-            // Also update RHS if needed.
-            var elementsToRebuild = FindElementsToRebuild();
-            PartialMatrixColumns changedStiffnessColumns =
-                assembler.BuildGlobalMatrixColumns(elementsToRebuild, colsToAdd, rhs, prescribedNodalDisplacements);
+            Console.WriteLine($"{colsToAdd.Count} columns will be added");
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
             // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
@@ -229,7 +196,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             foreach (int col in colsToAdd)
             {
                 tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
-                SparseVector newColVector = changedStiffnessColumns.GetColumnWithoutRows(col, tabooRows);
+                SparseVector newColVector = Kuu.SliceColumnWithoutRows(col, tabooRows);
                 factorizedKuu.AddRow(col, newColVector);
             }
 
@@ -243,23 +210,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //CheckSolutionAndPrint(0.0);
         }
 
-        private HashSet<XContinuumElement2D> FindElementsToRebuild()
-        {
-            var elementsToRebuild = new HashSet<XContinuumElement2D>(crack.ElementsModified);
-
-            /// The nodal support of <see cref="TrackingExteriorCrackLSM.CrackBodyNodesModified"/> includes elements with the 
-            /// same stiffness matrix. However these matrices must be recomputed in order to build the global stiffness columns 
-            /// corresponding to these nodes. 
-            foreach (var node in crack.CrackBodyNodesNearModified)
-            {
-                foreach (var element in crack.Mesh.FindElementsWithNode(node)) elementsToRebuild.Add(element);
-            }
-
-            return elementsToRebuild;
-            //return new HashSet<XContinuumElement2D>(model.Elements); // For debugging
-        }
-
-        private void TreatOtherModifiedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd,
+        private void TreatOtherModifiedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd, 
             HashSet<int> tabooRows)
         {
             // Delete unmodified Heaviside dofs of nodes in elements with modified stiffness. 
@@ -269,7 +220,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //TODO: Check if their stiffness is really modified. Otherwise it is a waste of time.
             foreach (var node in crack.CrackBodyNodesNearModified.Union(crack.CrackBodyNodesModified))
             {
-                //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
+                Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
                 foreach (var heavisideDof in heavisideDofs)
                 {
                     int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);
@@ -293,10 +244,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new GlobalReanalysisAssembler();
             (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
-            Vector rhsNew = model.CalculateFreeForces(DofOrderer) 
-                - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
+            Vector rhs = CalcEffectiveRhs(Kuc);
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
-            Vector solutionExpected = factorization.SolveLinearSystem(rhsNew);
+            Vector solutionExpected = factorization.SolveLinearSystem(rhs);
             double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");
             if (error < tolerance)
@@ -328,8 +278,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new GlobalReanalysisAssembler();
             (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
-            Vector rhsNew = model.CalculateFreeForces(DofOrderer)
-                - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
+            Vector rhs = CalcEffectiveRhs(Kuc);
             Vector solutionExpected;
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
