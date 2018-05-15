@@ -552,7 +552,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 var m = matrices[k];
                 for (int i = 0; i < rows; i++)
                     for (int j = 0; j < columns; j++)
-                        newData[i, j] += cs[i] * m[i, j];
+                        newData[i, j] += cs[k] * m[i, j];
                 //for (int j = 0; j < data.Length; j++)
                 //    newData[j] += cs[i] * m.Data[j];
             }

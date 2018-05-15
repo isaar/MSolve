@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
@@ -16,6 +17,9 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam3DNonlinearTest
     {
+        private readonly INonLinearSubdomainUpdater[] subdomainUpdaters;
+        private readonly ISubdomainGlobalMapping[] mappings;
+
         [Fact]
         public void TestBeam3DNonlinearExample()
         {
@@ -39,8 +43,8 @@ namespace ISAAR.MSolve.Tests
 
             // Node creation
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 5.0, Y = 0.0, Z = 0.0 };
+            Node node1 = new Node { ID = 1, X = 0.0,   Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 500.0, Y = 0.0, Z = 0.0 };
             nodes.Add(node1);
             nodes.Add(node2);
 
@@ -59,6 +63,9 @@ namespace ISAAR.MSolve.Tests
             // Constrain bottom nodes of the model
             model.NodesDictionary[1].Constraints.Add(DOFType.X);
             model.NodesDictionary[1].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[1].Constraints.Add(DOFType.Z);
+            model.NodesDictionary[1].Constraints.Add(DOFType.RotX);
+            model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
 
             // Create new Beam3D section
@@ -84,7 +91,7 @@ namespace ISAAR.MSolve.Tests
             model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -99,6 +106,14 @@ namespace ISAAR.MSolve.Tests
 
             // Choose parent and child analyzers -> Parent: Static, Child: Linear
             LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+
+            //int increments = 10;
+            //int totalDOFs = model.TotalDOFs;
+            //int maximumIteration = 120;
+            //int iterationStepsForMatrixRebuild = 500;
+            //NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems[1], subdomainUpdaters, mappings,
+            //provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
+
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
             parentAnalyzer.BuildMatrices();

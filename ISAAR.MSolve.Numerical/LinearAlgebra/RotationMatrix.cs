@@ -66,8 +66,8 @@ namespace ISAAR.MSolve.Numerical.Matrices
             rotationMatrix[1, 1] = 1d;
             rotationMatrix[2, 2] = 1d;
 
-            rotationMatrix.LinearCombination(new[] { 2d }, new[] { Matrix2D.FromVector(rotatedVectorLocal.Data) * Matrix2D.FromVectorTranspose(initialVectorLocal.Data) });
-            rotationMatrix.LinearCombination(new[] { -2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
+            //rotationMatrix.LinearCombination(new[] { 2d }, new[] { Matrix2D.FromVector(rotatedVectorLocal.Data) * Matrix2D.FromVectorTranspose(initialVectorLocal.Data) });
+            //rotationMatrix.LinearCombination(new[] { -2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
 
             return rotationMatrix;
         }
