@@ -17,8 +17,6 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam3DNonlinearTest
     {
-        private readonly INonLinearSubdomainUpdater[] subdomainUpdaters;
-        private readonly ISubdomainGlobalMapping[] mappings;
 
         [Fact]
         public void TestBeam3DNonlinearExample()
