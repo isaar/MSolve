@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Tests
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
-            double nodalLoad = 500.0;
+            double nodalLoad = 5000.0;
             double area = 91.04;
             double inertiaY = 2843.0;
             double inertiaZ = 8091.0;
@@ -121,11 +121,11 @@ namespace ISAAR.MSolve.Tests
             var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 10;
+            int increments = 50;
             int totalDOFs = model.TotalDOFs;
             int maximumIteration = 120;
             int iterationStepsForMatrixRebuild = 500;
-            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, mappings,
+            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs, maximumIteration, iterationStepsForMatrixRebuild);
 
             // Choose parent analyzer -> Parent: Static
