@@ -50,10 +50,10 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (elementToGlobalEnrDofs.Count > 0)
                 {
-                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-                    AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                    AddElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
-                    AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                    ////element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+                    //AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
+                    //AddElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
+                    //AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
                 }
             }
 

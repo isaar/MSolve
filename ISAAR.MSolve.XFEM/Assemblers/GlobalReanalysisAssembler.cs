@@ -20,41 +20,31 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     class GlobalReanalysisAssembler
     {
-        public (DOKSymmetricColMajor Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (DOKSymmetricColMajor Kff, CSRMatrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
-            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-
-            // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            var Kuu = DOKSymmetricColMajor.CreateEmpty(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs);
-
-            // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
-            // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
-            var Kuc = DOKRowMajor.CreateEmpty(numDofsUnconstrained, numDofsConstrained);
+            int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
+            var Kff = DOKSymmetricColMajor.CreateEmpty(numDofsFree);
+            var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Build standard element matrices and add it contributions to the global matrices
+                // Build standard element matrix and add its contributions to the global matrices
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofOrderer.MatchElementToGlobalStandardDofsOf(element,
-                    out IReadOnlyDictionary<int, int> mapFree, out IReadOnlyDictionary<int, int> mapConstrained);
+                    out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
-                Kuu.AddSubmatrixSymmetric(kss, mapFree);
-                Kuc.AddSubmatrix(kss, mapFree, mapConstrained);
+                Kff.AddSubmatrixSymmetric(kss, mapStandard);
+                Kfc.AddSubmatrix(kss, mapStandard, mapConstrained);
 
-                // Build enriched element matrices and add it contributions to the global matrices
+                // Build enriched element matrices and add their contributions to the global matrices
                 IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (mapEnriched.Count > 0)
                 {
-                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
-                    // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
-                    // 2) The Elements have two versions of BuildStiffness(). 
-                    // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
-                    Matrix kse = kes.Transpose();
-                    Kuu.AddSubmatrix(kse, mapFree, mapEnriched);
-                    Kuu.AddSubmatrixSymmetric(kee, mapEnriched);
-                    Kuc.AddSubmatrix(kes, mapEnriched, mapConstrained);
+                    (Matrix kee, Matrix kse) = element.BuildEnrichedStiffnessMatricesUpper();
+                    Kff.AddSubmatrix(kse, mapStandard, mapEnriched);
+                    Kff.AddSubmatrixSymmetric(kee, mapEnriched);
+                    if (mapConstrained.Count > 0) Kfc.AddSubmatrix(kse.Transpose(), mapEnriched, mapConstrained);
                 }
             }
             #region DEBUG code
@@ -65,11 +55,10 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             //CheckMatrix(expectedKuc, Kuc);
             #endregion
 
-            // Treat inactive/removed enriched dofs. I used to initialized the DOK to identity, but that is wrong, since I am 
-            // adding the non zero diagonals to 1.0, instead of replacing the 1.0.
-            Kuu.SetStructuralZeroDiagonalEntriesToUnity(); 
-
-            return (Kuu, Kuc.BuildCSRMatrix(true));
+            // Treat inactive/removed enriched dofs. I used to initialize the DOK to identity, but that was incorrect, since  
+            // I am adding the non zero diagonals to 1.0, instead of replacing the 1.0.
+            Kff.SetStructuralZeroDiagonalEntriesToUnity(); 
+            return (Kff, Kfc.BuildCSRMatrix(true));
         }
     }
 }

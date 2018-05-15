@@ -14,41 +14,31 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalSkylineAssembler
     {
-        public (SkylineMatrix Kuu, CSRMatrix Kuc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (SkylineMatrix Kff, CSRMatrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
-            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-
-            // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            SkylineBuilder Kuu = InitializeGlobalUncontrainedMatrix(model, dofOrderer);
-
-            // TODO: perhaps I should return a CSC matrix and do the transposed multiplication. This way I will not have to 
-            // transpose the element matrix. Another approach is to add an AddTransposed() method to the DOK.
-            var Kuc = DOKRowMajor.CreateEmpty(numDofsUnconstrained, numDofsConstrained);
+            int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
+            SkylineBuilder Kff = FindSkylineColumnHeights(model, dofOrderer);
+            var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Build standard element matrices and add it contributions to the global matrices
+                // Build standard element matrix and add its contributions to the global matrices.
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofOrderer.MatchElementToGlobalStandardDofsOf(element,
-                    out IReadOnlyDictionary<int, int> mapFree, out IReadOnlyDictionary<int, int> mapConstrained);
+                    out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
-                Kuu.AddSubmatrixSymmetric(kss, mapFree);
-                Kuc.AddSubmatrix(kss, mapFree, mapConstrained);
+                Kff.AddSubmatrixSymmetric(kss, mapStandard);
+                Kfc.AddSubmatrix(kss, mapStandard, mapConstrained);
 
-                // Build enriched element matrices and add it contributions to the global matrices
+                // Build enriched element matrices and add their contributions to the global matrices
                 IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (mapEnriched.Count > 0)
                 {
-                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
-                    // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
-                    // 2) The Elements have two versions of BuildStiffness(). 
-                    // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
-                    Matrix kse = kes.Transpose();
-                    Kuu.AddSubmatrix(kse, mapFree, mapEnriched);
-                    Kuu.AddSubmatrixSymmetric(kee, mapEnriched);
-                    Kuc.AddSubmatrix(kes, mapEnriched, mapConstrained);
+                    (Matrix kee, Matrix kse) = element.BuildEnrichedStiffnessMatricesUpper(); ;
+                    Kff.AddSubmatrix(kse, mapStandard, mapEnriched);
+                    Kff.AddSubmatrixSymmetric(kee, mapEnriched);
+                    if (mapConstrained.Count > 0) Kfc.AddSubmatrix(kse.Transpose(), mapEnriched, mapConstrained);
                 }                
             }
 
@@ -61,23 +51,26 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             #endregion
 
             //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. sok.Build())
-            return (Kuu.BuildSkylineMatrix(), Kuc.BuildCSRMatrix(true));
+            return (Kff.BuildSkylineMatrix(), Kfc.BuildCSRMatrix(true));
         }
 
 
-        private static SkylineBuilder InitializeGlobalUncontrainedMatrix(Model2D model, IDofOrderer dofOrderer)
+        private static SkylineBuilder FindSkylineColumnHeights(Model2D model, IDofOrderer dofOrderer)
         {
-            int numDofsUnconstrained = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-            int[] colHeights = new int[numDofsUnconstrained]; //only entries above the diagonal count towards the column height
+            int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
+            int[] colHeights = new int[numDofsFree]; //only entries above the diagonal count towards the column height
             foreach (XContinuumElement2D element in model.Elements)
             {
+                //TODO: perhaps the 2 outer loops could be done at once to avoid a lot of dof indexing. Could I update minDof
+                //      and colHeights[] at once?
+
                 // To determine the col height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0 entries in the element stiffness matrix.
                 int minDof = Int32.MaxValue;
                 foreach (XNode2D node in element.Nodes)
                 {
                     foreach (int dof in dofOrderer.GetStandardDofsOf(node)) minDof = Math.Min(dof, minDof);
-                    foreach (int dof in dofOrderer.GetEnrichedDofsOf(node)) Math.Min(dof, minDof);
+                    foreach (int dof in dofOrderer.GetEnrichedDofsOf(node)) minDof = Math.Min(dof, minDof);
                 }
 
                 // The height of each col is updated for all elements that engage the corresponding dof. 
@@ -94,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                     }
                 }
             }
-            return SkylineBuilder.Create(numDofsUnconstrained, colHeights);
+            return SkylineBuilder.Create(numDofsFree, colHeights);
         }
     }
 }

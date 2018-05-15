@@ -37,21 +37,21 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void Solve()
         {
-            var watch = new Stopwatch();
-            watch.Start();
+            //var watch = new Stopwatch();
+            //watch.Start();
 
-            DofOrderer = SeparateDofOrderer.Create(model); // Actually this enumeration will result in huge bandwidths.
-            //DofOrderer = DofOrdererInterleaved.Create(model);
-            SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
-            var solver = new SolverSkyline(ls); // A solver devoid of linear system must be passed into the constructor
-            solver.Initialize();
-            solver.Solve();
-            double[] solutionArray = new double[ls.Solution.Length];
-            ls.Solution.CopyTo(solutionArray, 0);
-            Solution = Vector.CreateFromArray(solutionArray);
+            //DofOrderer = SeparateDofOrderer.Create(model); // Actually this enumeration will result in huge bandwidths.
+            ////DofOrderer = DofOrdererInterleaved.Create(model);
+            //SkylineLinearSystem ls = ReduceToSimpleLinearSystem();
+            //var solver = new SolverSkyline(ls); // A solver devoid of linear system must be passed into the constructor
+            //solver.Initialize();
+            //solver.Solve();
+            //double[] solutionArray = new double[ls.Solution.Length];
+            //ls.Solution.CopyTo(solutionArray, 0);
+            //Solution = Vector.CreateFromArray(solutionArray);
 
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+            //watch.Stop();
+            //Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.XFEM.Tests.DofOrdering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
+using ISAAR.MSolve.XFEM.Tests.Khoei;
 using ISAAR.MSolve.XFEM.Tests.MenkBordas;
 
 namespace ISAAR.MSolve.XFEM.Tests
@@ -11,6 +12,7 @@ namespace ISAAR.MSolve.XFEM.Tests
     {
         public static void RunAll()
         {
+            //DCB3x1.Run();
             DCBSolvers.Run();
             //ReanalysisDebugging.Run();
             //ReorderingTests.Run();

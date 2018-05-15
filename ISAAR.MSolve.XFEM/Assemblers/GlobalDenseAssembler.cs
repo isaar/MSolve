@@ -17,47 +17,35 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     {
         public static (Matrix Kff, Matrix Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
-            int constrainedDofsCount = dofOrderer.NumConstrainedDofs;
-            int freeEnrichedDofsCount = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-
-            // Rows, columns = standard free dofs + enriched dofs (aka the left hand side sub-matrix)
-            Matrix Kuu = Matrix.CreateZero(freeEnrichedDofsCount, freeEnrichedDofsCount);
-
-            // TODO: this should be in a sparse format. Only used for SpMV and perhaps transpose SpMV.
-            // Row = standard free dofs + enriched dofs. Columns = standard constrained dofs. 
-            Matrix Kuc = Matrix.CreateZero(dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs,
-                dofOrderer.NumConstrainedDofs);
+            int numDofsConstrained = dofOrderer.NumConstrainedDofs;
+            int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
+            var Kff = Matrix.CreateZero(numDofsFree, numDofsFree);
+            var Kfc = Matrix.CreateZero(numDofsFree, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                // Build standard element matrices and add it contributions to the global matrices
+                // Build standard element matrix and add its contributions to the global matrices.
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofOrderer.MatchElementToGlobalStandardDofsOf(element,
-                    out IReadOnlyDictionary<int, int> elementToGlobalFreeDofs,
-                    out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs);
+                    out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
-                AddElementToGlobalMatrix(Kuu, kss, elementToGlobalFreeDofs, elementToGlobalFreeDofs);
-                AddElementToGlobalMatrix(Kuc, kss, elementToGlobalFreeDofs, elementToGlobalConstrainedDofs);
+                AddElementToGlobalMatrix(Kff, kss, mapStandard, mapStandard);
+                AddElementToGlobalMatrix(Kfc, kss, mapStandard, mapConstrained);
 
-                // Build enriched element matrices and add it contributions to the global matrices
-                IReadOnlyDictionary<int, int> elementToGlobalEnrDofs =
-                    dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
-                if (elementToGlobalEnrDofs.Count > 0)
+                // Build enriched element matrices and add their contributions to the global matrices
+                IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
+                if (mapEnriched.Count > 0)
                 {
-                    element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
-
-                    // TODO: options: 1) Only work with upper triangle in all symmetric matrices. Same applies to Elements.
-                    // 2) The Elements have two versions of BuildStiffness(). 
-                    // 3) The Elements return both (redundant; If someone needs it he can make it himself like here) 
+                    (Matrix kee, Matrix kes) = element.BuildEnrichedStiffnessMatricesLower();
                     Matrix kse = kes.Transpose();
-                    AddElementToGlobalMatrix(Kuu, kes, elementToGlobalEnrDofs, elementToGlobalFreeDofs);
-                    AddElementToGlobalMatrix(Kuu, kes.Transpose(), elementToGlobalFreeDofs, elementToGlobalEnrDofs);
-                    AddElementToGlobalMatrix(Kuu, kee, elementToGlobalEnrDofs, elementToGlobalEnrDofs);
-                    AddElementToGlobalMatrix(Kuc, kes, elementToGlobalEnrDofs, elementToGlobalConstrainedDofs);
+                    AddElementToGlobalMatrix(Kff, kes, mapEnriched, mapStandard);
+                    AddElementToGlobalMatrix(Kff, kse, mapStandard, mapEnriched);
+                    AddElementToGlobalMatrix(Kff, kee, mapEnriched, mapEnriched);
+                    AddElementToGlobalMatrix(Kfc, kes, mapEnriched, mapConstrained);
                 }
             }
 
-            return (Kuu, Kuc);
+            return (Kff, Kfc);
         }
 
         // TODO: The global matrix should be sparse. Probably in CSR/DOK format

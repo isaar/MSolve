@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
                 Matrix correctK = correctMatrices[el];
                 XContinuumElement2D element = elements[el];
                 Matrix kss = element.BuildStandardStiffnessMatrix();
-                element.BuildEnrichedStiffnessMatrices(out Matrix kes, out Matrix kee);
+                (Matrix kee, Matrix kes) = element.BuildEnrichedStiffnessMatricesLower();
 
 
                 // Check dimensions first
