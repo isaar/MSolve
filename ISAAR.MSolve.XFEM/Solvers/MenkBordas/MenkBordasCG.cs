@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
+namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasCG
     {

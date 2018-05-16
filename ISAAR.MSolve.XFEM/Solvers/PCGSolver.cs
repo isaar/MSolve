@@ -4,14 +4,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Solvers.Algorithms;
-using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -41,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
 
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
-            var pcg = new PCGAlgorithm(maxIterations, tolerance);
+            var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
 
             // Preconditioner could be abstracted, but I think it depends on the solver.
             (double[] diagonal, int firstZeroIdx) = Kuu.GetDiagonalAsArray();

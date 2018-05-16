@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Solvers.Algorithms;
-using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
+namespace ISAAR.MSolve.LinearAlgebra.Testing
 {
-    public class IterativeTests
+    public class CGTests
     {
         private delegate (Vector solution, IterativeStatistics statistics) SolveSystem(LinearSystem sys, double tol);
 
-        public static void Main()
+        public static void Run()
         {
             //CheckSystem(GetDenseSystem(), SolveWithCG, 1e-6);
             CheckSystem(GetSparseSystem(), SolveWithCG, 1e-6);
@@ -36,13 +38,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
 
         private static (Vector solution, IterativeStatistics statistics) SolveWithCG(LinearSystem sys, double tol)
         {
-            var cg = new CGAlgorithm(sys.Matrix.NumColumns, tol);
+            var cg = new ConjugateGradient(sys.Matrix.NumColumns, tol);
             return cg.Solve(sys.Matrix, sys.Rhs);
         }
 
         private static (Vector solution, IterativeStatistics statistics) SolveWithPCG(LinearSystem sys, double tol)
         {
-            var pcg = new PCGAlgorithm(sys.Matrix.NumColumns, tol);
+            var pcg = new PreconditionedConjugateGradient(sys.Matrix.NumColumns, tol);
             //var preconditioner = new IdentityPreconditioner(true);
             var preconditioner = new JacobiPreconditioner(sys.Matrix.GetDiagonalAsArray());
             return pcg.Solve(sys.Matrix, sys.Rhs, preconditioner);

@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
+namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasSystem
     {

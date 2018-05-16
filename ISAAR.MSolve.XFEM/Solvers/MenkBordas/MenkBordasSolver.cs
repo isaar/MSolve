@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Solvers.Algorithms;
-using ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas;
 
-namespace ISAAR.MSolve.XFEM.Solvers
+namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasSolver: ISolver
     {

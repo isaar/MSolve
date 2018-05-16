@@ -21,11 +21,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestEquality();
             //TestFactorization();
             //TestMatrixOperations();
-            TestMatrixVectorMultiplication();
+            //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestReordering();
             //TestReading();
-            //TestSystemSolution();
+            TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
             //TestWriting();
@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestSystemSolution()
         {
-            // Linear systems
+            /// Linear systems - direct
             //SquareInvertible.CheckSystemSolution();
             //SquareSingular.CheckSystemSolution();
             //SquareSingular1Deficiency.CheckSystemSolution();
@@ -178,9 +178,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SymmSingular.CheckSystemSolution();
             //SparsePositiveDefinite.CheckSystemSolution();
 
-            // Least squares systems
-            RectangularFullColRank.CheckSolutionLeastSquares();
-            RectangularFullColRank.CheckSolutionMinNorm();
+            /// Linear systems - iterative
+            CGTests.Run();
+
+            /// Least squares systems
+            //RectangularFullColRank.CheckSolutionLeastSquares();
+            //RectangularFullColRank.CheckSolutionMinNorm();
         }
 
         public static void TestTransposition()

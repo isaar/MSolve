@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Use a dedicated DiagonalMatrix class, instead of passing in double[] or Vector. It will also implement the inverse and 
 // multiplication routines.
-namespace ISAAR.MSolve.XFEM.Solvers.Preconditioning
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
 {
     public class JacobiPreconditioner: IPreconditioner
     {
