@@ -181,8 +181,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
             /// Linear systems - iterative
             //CGTests.Run();
-            MinresTests.CheckSolutionDefinite();
-            MinresTests.CheckSolutionIndefinite();
+            //MinresTests.CheckSolutionDefinite();
+            //MinresTests.CheckSolutionIndefinite();
+            MinresTests.AssessPreconditioning();
 
             /// Least squares systems
             //RectangularFullColRank.CheckSolutionLeastSquares();
