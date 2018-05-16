@@ -13,7 +13,7 @@ using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Testing
+namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
 {
     public class CGTests
     {

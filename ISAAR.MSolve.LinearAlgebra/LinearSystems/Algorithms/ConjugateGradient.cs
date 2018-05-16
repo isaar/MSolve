@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: needs to throw exceptions or at least report indefinite, nonsymmetric and singular matrices.
 namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 {
     public class ConjugateGradient
