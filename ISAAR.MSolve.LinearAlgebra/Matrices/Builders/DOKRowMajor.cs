@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -181,6 +182,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 rowOffsets[i] = nnz;
                 nnz += rows[i].Count;
             }
+            if (nnz == 0) throw new EmptyMatrixBuilderException("Cannot build CSR arrays from a DOK with nnz = 0.");
             rowOffsets[NumRows] = nnz; //The last CSR entry is nnz.
 
             int[] colIndices = new int[nnz];

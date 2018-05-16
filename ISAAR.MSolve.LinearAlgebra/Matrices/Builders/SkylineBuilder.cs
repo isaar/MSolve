@@ -201,6 +201,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         public SkylineMatrix BuildSkylineMatrix()
         {
+            if (values.Length == 0) throw new EmptyMatrixBuilderException("Cannot build skyline arrays from a DOK with nnz = 0.");
             return SkylineMatrix.CreateFromArrays(order, values, diagOffsets, false, false);
         }
 
