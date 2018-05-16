@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: perhaps some vectors and operations are not needed or can be simplified (e.g. norm2(r) instead of sqrt(r*r)) 
+//TODO: perhaps some vectors and operations are not needed or can be simplified 
 //      in the version without preconditioning
 namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 {
@@ -46,7 +47,6 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             double Acond = 0.0;
             double rnorm = 0.0;
             double ynorm = 0.0;
-            bool done = false; // TODO: not sure if needed
             var x = Vector.CreateZero(n);
 
             /// -------------------------------------------------
@@ -64,17 +64,10 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             if (beta1 == 0.0)
             {
                 var stats = new MinresStatistics { TerminationCause = 0 };
-                return (Vector.CreateZero(n), stats);
+                return (x, stats);
             }
             beta1 = Math.Sqrt(beta1); //Normalize y to get v1 later.
-            if (checkMatrixSymmetricity)
-            {
-                if (!IsMatrixSymmetric(A, y, r1))
-                {
-                    var stats = new MinresStatistics { TerminationCause = 7 };
-                    return (null, stats);
-                }
-            }
+            if (checkMatrixSymmetricity) CheckSymmetricMatrix(A, y, r1);
 
             /// ------------------------------------------------- 
             /// Initialize other quantities.
@@ -85,7 +78,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             double tnorm2 = 0.0, gmax = 0.0, gmin = double.MaxValue;
             double cs = -1.0, sn = 0.0;
             var w = Vector.CreateZero(n);
-            Vector w2 = Vector.CreateZero(n);
+            var w2 = Vector.CreateZero(n);
             Vector r2 = r1.Copy();
 
 
@@ -117,14 +110,13 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 y = ShiftedMatrixVectorMult(A, v, shift);
                 if (itn >= 2) y.AxpyIntoThis(-beta / oldb, r1); //WARNING: this works if itn is initialized and updated as in the matlab script
 
-                double alfa = v*y;              // alphak
+                double alfa = v * y;              // alphak
                 y.AxpyIntoThis(-alfa / beta, r2);
                 r1 = r2; // No need to copy: r2 will point to another vector after this
-                r2 = y.Copy(); //TODO: can I get away without copying it? I can in the preconditioned version
+                r2 = y.Copy(); // In the preconditioned version I must copy it, because in the next iteration v = y and v.ScaleIntoThis() will corrupt r2.
                 oldb = beta; // oldb = betak
-                beta = r2 * y;  // beta = betak+1^2
-                beta = Math.Sqrt(beta);
-                tnorm2 += alfa *alfa + oldb * oldb + beta * beta;
+                beta = Math.Sqrt(r2 * y);  // beta = betak+1^2
+                tnorm2 += alfa * alfa + oldb * oldb + beta * beta;
 
                 if (itn == 1) //Initialize a few things.
                 {
@@ -141,15 +133,16 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 double oldeps = epsln;
                 double delta = cs * dbar + sn * alfa; // delta1 = 0         deltak
                 double gbar = sn * dbar - cs * alfa;  // gbar 1 = alfa1     gbar k
+                double gbarSquared = gbar * gbar;
                 epsln = sn * beta;                    // epsln2 = 0         epslnk + 1
                 dbar = -cs * beta;                    // dbar 2 = beta2     dbar k+1
-                double root = Math.Sqrt(gbar * gbar + dbar * dbar);
+                double root = Math.Sqrt(gbarSquared + dbar * dbar);
                 double Arnorm = phibar * root;        // || Ar{ k - 1}||
 
                 /// Compute the next plane rotation Qk
 
-                double gamma = Math.Sqrt(gbar * gbar + beta * beta); // gammak
-                gamma = Math.Max(gamma, eps);
+                double gamma = Math.Sqrt(gbarSquared + beta * beta); // gammak
+                if (gamma < eps) gamma = eps;
                 cs = gbar / gamma;                                   // ck
                 sn = beta / gamma;                                   // sk
                 double phi = cs * phibar;                                   // phik
@@ -160,13 +153,16 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 double denom = 1.0 / gamma;
                 Vector w1 = w2.Copy();
                 w2 = w;
-                w = (v - oldeps * w1 - delta * w2) * denom;
-                x = x + phi * w;
+                // Do efficiently: w = (v - oldeps * w1 - delta * w2) * denom 
+                w = v.Axpy(-oldeps, w1);
+                w.AxpyIntoThis(-delta, w2);
+                w.ScaleIntoThis(denom);
+                x.AxpyIntoThis(phi, w);
 
                 /// Go round again.
 
-                gmax = Math.Max(gmax, gamma);
-                gmin = Math.Min(gmin, gamma);
+                if (gmax < gamma) gmax = gamma;
+                if (gmin > gamma) gmin = gamma;
                 double z = rhs1 / gamma;
                 rhs1 = rhs2 - delta * z;
                 rhs2 = -epsln * z;
@@ -206,7 +202,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                     if (t1 <= 1.0) istop = 1;
 
                     if (itn >= maxIterations) istop = 6; 
-                    if (Acond >= 0.1 / eps) istop = 4;
+                    if (Acond >= 0.1 / eps) istop = 4; // TODO: shouldn't this be case istop=5?
                     if (epsx >= beta1) istop = 3;
                     //%if rnorm <= epsx   , istop = 2; end //They were commented out in the original code
                     //%if rnorm <= epsr   , istop = 1; end //They were commented out in the original code
@@ -235,7 +231,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             throw new Exception("Should not have reached here");
         }
 
-        internal static bool IsMatrixSymmetric(IMatrixView A, Vector y, Vector r1)
+        internal static void CheckSymmetricMatrix(IMatrixView A, Vector y, Vector r1)
         {
             Vector w = A.MultiplyRight(y, false);
             Vector r2 = A.MultiplyRight(w, false);
@@ -243,8 +239,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             double t = y * r2;
             double z = Math.Abs(s - t);
             double epsa = (s + eps) * Math.Pow(eps, 1.0/3.0);
-            if (z > epsa) return false;
-            else return true;
+            if (z > epsa) throw new AsymmetricMatrixException("The matrix or linear transformation A is not symmetric.");
         }
 
         /// <summary>

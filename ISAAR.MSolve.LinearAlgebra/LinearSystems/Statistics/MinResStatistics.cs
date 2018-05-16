@@ -29,20 +29,14 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics
                         return "Reasonable accuracy achieved, given eps=double.Epsilon";
                     case 4:
                         return "x has converged to an eigenvector.";
-                    case 5:
-                        return "acond has exceeded 0.1/eps.";
+                    //case 5: //TODO: find out why this is never ouput. Instead when Acond > HUGE NUMBER case 4 is returned! 
+                    //    return "Acond has exceeded 0.1/double.Epsilon."; //TODO: This means divergence right? Should I throw an exception?
                     case 6:
                         return "The iteration limit was reached.";
-                    case 7:
-                        return "A does not define a symmetric matrix.";
-                    case 8:
-                        return "M does not define a symmetric matrix.";
-                    case 9:
-                        return "M does not define a positive-definite preconditioner.";
                     case int.MinValue:
-                        throw new ArgumentNullException("The termination cause has not been set");
+                        throw new ArgumentNullException("The termination cause has not been set.");
                     default:
-                        throw new ArgumentException("Invalid termination cause");
+                        throw new ArgumentException("Invalid termination cause.");
                 }
             }
         }
