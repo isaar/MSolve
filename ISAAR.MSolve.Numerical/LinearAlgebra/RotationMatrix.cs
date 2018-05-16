@@ -67,18 +67,51 @@ namespace ISAAR.MSolve.Numerical.Matrices
             rotationMatrix[2, 2] = 1d;
 
             // @Theo
-            rotationMatrix.LinearCombination(new[] { 2d }, new[] { Matrix2D.FromVector(rotatedVectorLocal.Data) * Matrix2D.FromVectorTranspose(initialVectorLocal.Data) });
-            rotationMatrix.LinearCombination(new[] { -2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
+            //rotationMatrix.LinearCombination(new[] { 2d }, new[] { Matrix2D.FromVector(rotatedVectorLocal.Data) * Matrix2D.FromVectorTranspose(initialVectorLocal.Data) });
+            //rotationMatrix.LinearCombination(new[] { -2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
+            //return rotationMatrix;
+
 
             // @GSoim
-            //var identityMatrix = new Matrix2D(3, 3);
-            //identityMatrix[0, 0] = 1d;
-            //identityMatrix[1, 1] = 1d;
-            //identityMatrix[2, 2] = 1d;
-            //rotationMatrix.LinearCombination(new[] { 2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
-            //rotationMatrix.Subtraction(identityMatrix, rotationMatrix);
+            var identityMatrix = new Matrix2D(3, 3);
+            identityMatrix[0, 0] = 1d;
+            identityMatrix[1, 1] = 1d;
+            identityMatrix[2, 2] = 1d;
+            var Helper3by3 = new Matrix2D(3, 3);
+            Helper3by3.LinearCombination(new[] { 2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
+            Helper3by3 = Subtraction(identityMatrix, Helper3by3);
+            var AA = new Matrix2D(3, 3);
+            AA[0, 0] = -rotationMatrix[0, 0];
+            AA[1, 0] = -rotationMatrix[1, 0];
+            AA[2, 0] = -rotationMatrix[2, 0];
+            AA[0, 1] = rotationMatrix[0, 1];
+            AA[1, 1] = rotationMatrix[1, 1];
+            AA[2, 1] = rotationMatrix[2, 1];
+            AA[0, 2] = rotationMatrix[0, 2];
+            AA[1, 2] = rotationMatrix[1, 2];
+            AA[2, 2] = rotationMatrix[2, 2];
+
+            rotationMatrix = Helper3by3 * AA;
 
             return rotationMatrix;
+        }
+
+        public static Matrix2D Subtraction(Matrix2D A, Matrix2D B)
+        {
+            if (A.Columns != B.Columns) throw new ArgumentException("Matrix sizes mismatch.");
+            if (A.Columns != B.Columns) throw new ArgumentException("Matrix sizes mismatch.");
+            double[,] newMatrix = new double[A.Rows, B.Columns];
+            int rowsNumber = A.Rows;
+            int columnsNumber = A.Columns;
+            //var newMatrix = new Matrix2D(rowsNumber, columnsNumber);
+            for (int i = 0; i < rowsNumber; i++)
+            {
+                for (int j = 0; j < columnsNumber; j++)
+                {
+                    newMatrix[i, j] = A[i, j] - B[i, j];
+                }
+            }
+            return new Matrix2D(newMatrix); // newMatrix; //
         }
 
         private RotationMatrix()

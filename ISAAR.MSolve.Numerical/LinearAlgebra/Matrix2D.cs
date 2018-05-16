@@ -574,27 +574,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             for (int i = 0; i < m.Data.Length; i++)
                 m.Data[0, i] = vector[i];
             return m;
-        }
-
-        public void Subtraction(Matrix2D matrixA, Matrix2D matrixB)
-        {
-            if (matrixA.rows != matrixB.rows)
-                throw new ArgumentException(String.Format("Matrix A has {0} rows instead of {1}.", matrixA.rows, matrixB.rows));
-            if (matrixA.columns != matrixB.columns)
-                throw new ArgumentException(String.Format("Matrix A has {0} columns instead of {1}.", matrixA.columns, matrixB.columns));
-
-            int rowsNumber = matrixA.rows;
-            int columnsNumber = matrixA.columns;
-            var newMatrix = new Matrix2D(rowsNumber, columnsNumber);
-            for (int i = 0; i < rowsNumber; i++)
-            {
-                for (int j = 0; j < columnsNumber; j++)
-                {
-                    newMatrix.Data[i, j] = matrixA[i, j] - matrixB[i, j];
-                }
-            }
-            //return newMatrix;
-        }
-
+        }        
     }
 }
