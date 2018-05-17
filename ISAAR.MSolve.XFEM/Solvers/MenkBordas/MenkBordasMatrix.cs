@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly int numSubdomains;
         private readonly int numEquations;
 
-        private readonly IMatrixView Kss;
-        private readonly IMatrixView[] Kee;
-        private readonly IMatrixView[] Kes;
-        private readonly IMatrixView[] Kse;
-        private readonly SignedBooleanMatrix[] B;
+        public readonly IMatrixView Kss;
+        public readonly IMatrixView[] Kee;
+        public readonly IMatrixView[] Kes;
+        public readonly IMatrixView[] Kse;
+        public readonly SignedBooleanMatrix[] B;
 
         public MenkBordasMatrix(int numSubdomains, int numEquations,
             IMatrixView Kss, IMatrixView[] Kee, IMatrixView[] Kes, IMatrixView[] Kse, SignedBooleanMatrix[] B)

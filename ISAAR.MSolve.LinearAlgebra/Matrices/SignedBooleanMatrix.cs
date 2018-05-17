@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
@@ -15,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// have 1 non zero entry (1 or -1). Columns that correspond to dofs with multiplicity > 2, will have at most 2 non zero 
     /// entries (1 and/or -1). The other columns do not correspond to boundary dofs and will be empty.
     /// </summary>
-    public class SignedBooleanMatrix: IIndexable2D
+    public class SignedBooleanMatrix: IIndexable2D, ISparseMatrix
     {
         /// <summary>
         /// (row, (column, sign))
@@ -84,9 +85,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.CopyToArray2D(this);
         }
 
+        public int CountNonZeros()
+        {
+            int count = 0;
+            foreach (var wholeRow in data.Values) count += wholeRow.Count;
+            return count;
+        }
+
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+        {
+            foreach (var wholeRow in data)
+            {
+                foreach (var colVal in wholeRow.Value)
+                {
+                    yield return (wholeRow.Key, colVal.Key, colVal.Value);
+                }
+            }
+        }
+
         public bool Equals(IIndexable2D other, double tolerance = 1E-13)
         {
             return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
+        public SparseFormat GetSparseFormat()
+        {
+            throw new NotImplementedException();
         }
 
         //TODO: I think that dealing with arrays will be faster than iterating the dictionaries. Another reason to separate 
@@ -162,5 +186,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return Vector.CreateFromArray(result, false);
         }
+
+        
     }
 }
