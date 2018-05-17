@@ -15,10 +15,10 @@ using Xunit;
 
 namespace ISAAR.MSolve.Tests
 {
-    public class Beam3DNonlinearTest
+    public class Beam3DQuaternionNonlinearTest
     {
         [Fact]
-        public void TestBeam3DNonlinearExample()
+        public void TestBeam3DQuaternionNonlinearExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
@@ -117,19 +117,16 @@ namespace ISAAR.MSolve.Tests
             // Choose the provider of the problem -> here a structural problem
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
-            // Choose child analyzer -> Child: LinearAnalyzer
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            //var linearSystemsArray = new[] { linearSystems[1] };
-            //var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
-            //var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            //int increments = 50;
-            //int totalDOFs = model.TotalDOFs;
-            //int maximumIteration = 120;
-            //int iterationStepsForMatrixRebuild = 500;
-            //NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
-            //provider, increments, totalDOFs);
+            var linearSystemsArray = new[] { linearSystems[1] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+            int increments = 50;
+            int totalDOFs = model.TotalDOFs;
+            int maximumIteration = 120;
+            int iterationStepsForMatrixRebuild = 500;
+            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
+            provider, increments, totalDOFs);
 
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);

@@ -83,6 +83,13 @@ namespace ISAAR.MSolve.FEM.Elements
                 c2*EAL+12*s2*EIL3, s*c*EAL-12*c*s*EIL3, 6*s*EIL2,
                 s2*EAL+12*c2*EIL3, -6*c*EIL2,
                 4*EIL }));
+            // @gsoim
+            //return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(new double[] { c2*EAL+12*s2*EIL3, 12*c*s*EIL3-c*s*EAL, 6*s*EIL2, -c2*EAL-12*s2*EIL3, c*s*EAL-12*c*s*EIL3, 6*s*EIL2,
+            //    s2*EAL+12*c2*EIL3, 6*c*EIL2, s*c*EAL-12*c*s*EIL3, -s2*EAL-12*c2*EIL3, 6*c*EIL2,
+            //    4*EIL, -6*s*EIL2, -6*c*EIL2, 2*EIL,
+            //    c2*EAL+12*s2*EIL3, -s*c*EAL+12*c*s*EIL3, -6*s*EIL2,
+            //    s2*EAL+12*c2*EIL3, -6*c*EIL2,
+            //    4*EIL }));
         }
 
         ////[ 140*c^2+156*s^2,         -16*c*s,         -22*s*L,   70*c^2+54*s^2,          16*c*s,          13*s*L]
@@ -91,6 +98,7 @@ namespace ISAAR.MSolve.FEM.Elements
         ////[   70*c^2+54*s^2,          16*c*s,         -13*s*L, 140*c^2+156*s^2,         -16*c*s,          22*s*L]
         ////[          16*c*s,   70*s^2+54*c^2,          13*c*L,         -16*c*s, 140*s^2+156*c^2,         -22*c*L]
         ////[          13*s*L,         -13*c*L,          -3*L^2,          22*s*L,         -22*c*L,           4*L^2]
+        
         //public IMatrix2D<double> MassMatrix(Element element)
         //{
         //    double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
