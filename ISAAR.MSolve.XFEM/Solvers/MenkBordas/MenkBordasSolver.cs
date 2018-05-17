@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Vector globalFu = model.CalculateFreeForces(DofOrderer); //TODO: wasted space on enriched dofs. They will always be 0.
             this.Uc = model.CalculateConstrainedDisplacements(DofOrderer); 
             Vector Fu = globalFu.Slice(0, numStdDofs);
-            this.Fs = Fu - globalKsc.BuildCSRMatrix(true) * Uc; //TODO: do this without building the CSR matrix
+            this.Fs = Fu - globalKsc.MultiplyRight(Uc);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -116,13 +116,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 sys.B.Add(booleanMatrices[subdomain]);
 
                 //Fe = 0 - Kec * Uc. TODO: do this without building the CSR matrix
-                sys.be.Add(Kec.BuildCSRMatrix(true) * Uc.Scale(-1.0)); 
+                sys.be.Add(Kec.MultiplyRight(Uc.Scale(-1.0), true)); 
             }
             sys.CheckDimensions();
 
             // Use an iterative algorithm to solve the system
-            var cg = new MenkBordasCG(maxIterations, tolerance);
+            var cg = new MenkBordasCG(maxIterations, tolerance); // CG is not suited for this indefinite matrix
             (MenkBordasVector u, IterativeStatistics stats) = cg.Solve(sys);
+            //var minres = new MenkBordasMinres(maxIterations, tolerance);
+            //(MenkBordasVector u, MinresStatistics stats) = minres.Solve(sys);
             Solution = u.CopyToDense();
             Console.WriteLine(stats);
 
@@ -136,11 +138,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
-        }
-
-        private class SubdomainMatrices
-        {
-
         }
     }
 }

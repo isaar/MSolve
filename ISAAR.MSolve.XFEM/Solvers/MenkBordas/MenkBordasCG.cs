@@ -21,7 +21,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public (MenkBordasVector, IterativeStatistics) Solve(MenkBordasSystem sys)
         {
-            sys.CheckDimensions();
             if ((sys.xs == null) || (sys.xe == null))
             {
                 // 0) r = b - K * x

@@ -14,7 +14,7 @@ using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
 
 namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
 {
-    class TestMenkBordasCG
+    class TestMenkBordasSolver
     {
         public static void Run()
         {
