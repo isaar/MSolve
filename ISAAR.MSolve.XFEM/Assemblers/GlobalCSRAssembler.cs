@@ -22,25 +22,37 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             var Kff = DOKRowMajor.CreateEmpty(numDofsFree, numDofsFree);
             var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
+            //int el = 0;
             foreach (XContinuumElement2D element in model.Elements)
             {
+                #region Debug
+                //double tol = double.Epsilon;
+                //bool isSymmetric;
+                #endregion
+
                 // Build standard element matrix and add its contributions to the global matrices.
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 dofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
-                Kff.AddSubmatrix(kss, mapStandard, mapStandard);
+                //isSymmetric = kss.IsSymmetric(tol);
+                Kff.AddSubmatrixSymmetric(kss, mapStandard);
                 Kfc.AddSubmatrix(kss, mapStandard, mapConstrained);
+
+                //isSymmetric = Kff.IsSymmetric(tol);
 
                 // Build enriched element matrices and add their contributions to the global matrices
                 IReadOnlyDictionary<int, int> mapEnriched = dofOrderer.MatchElementToGlobalEnrichedDofsOf(element);
                 if (mapEnriched.Count > 0)
                 {
-                    (Matrix kee, Matrix kes) = element.BuildEnrichedStiffnessMatricesLower();
-                    Matrix kse = kes.Transpose();
+                    (Matrix kee, Matrix kse) = element.BuildEnrichedStiffnessMatricesUpper();
+                    //isSymmetric = kee.IsSymmetric(tol);
+                    Matrix kes = kse.Transpose();
                     Kff.AddSubmatrix(kes, mapEnriched, mapStandard);
                     Kff.AddSubmatrix(kse, mapStandard, mapEnriched);
-                    Kff.AddSubmatrix(kee, mapEnriched, mapEnriched);
+                    //isSymmetric = Kff.IsSymmetric(tol);
+                    Kff.AddSubmatrixSymmetric(kee, mapEnriched);
+                    //isSymmetric = Kff.IsSymmetric(tol);
                     Kfc.AddSubmatrix(kes, mapEnriched, mapConstrained);
                 }                
             }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
@@ -36,6 +37,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
             (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            //if (!Kuu.IsSymmetric(double.Epsilon)) throw new AsymmetricMatrixException(
+            //    "Stiffness matrix corresponding to free-free dofs is not symmetric");
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             #region debug

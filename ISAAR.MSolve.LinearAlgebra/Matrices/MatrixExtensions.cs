@@ -52,6 +52,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return diag;
         }
 
+        public static bool IsSymmetric(this IIndexable2D matrix, double tolerance = double.Epsilon)
+        {
+            var comparer = new ValueComparer(tolerance);
+            if (matrix.NumRows != matrix.NumColumns) return false;
+            for (int i = 0; i < matrix.NumRows; ++i)
+            {
+                for (int j = 0; j < i; ++j)
+                {
+                    if (!comparer.AreEqual(matrix[i, j], matrix[j, i])) return false;
+                }
+            }
+            return true;
+        }
+
         public static Matrix Reorder(this IIndexable2D matrix, IReadOnlyList<int> permutation, bool oldToNew)
         {
             int order = matrix.NumRows;
