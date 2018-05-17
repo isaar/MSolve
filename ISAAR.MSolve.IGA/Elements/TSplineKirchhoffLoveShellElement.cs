@@ -15,7 +15,9 @@ namespace ISAAR.MSolve.IGA.Elements
 {
     public class TSplineKirchhoffLoveShellElement: Element, IStructuralIsogeometricElement
 	{
-	    public Matrix2D ExtractionOperator { get; private set; }
+	    public Matrix2D ExtractionOperator { get; set; } 
+		public int DegreeKsi { get; set; }
+		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
 		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
@@ -326,10 +328,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(Element element)
+		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElement element)
 		{
 			GaussQuadrature gauss = new GaussQuadrature();
-			return gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Knots);
+			return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, element.Knots);
 		}
 	}
 }

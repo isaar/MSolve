@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		public ShapeTSplines2DFromBezierExtraction(TSplineElement2D element, IList<ControlPoint> controlPoints)
 	    {
 			GaussQuadrature gauss = new GaussQuadrature();
-		    IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, 
+		    IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, 
 			    new List<Knot>
 			    {
 				    new Knot(){ID=0,Ksi=-1,Heta = -1,Zeta = 0},
@@ -30,38 +30,38 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 				    new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-		    IVector parametricGaussPointKsi = new Vector(element.Patch.DegreeKsi + 1);
-		    for (int i = 0; i < element.Patch.DegreeKsi + 1; i++)
+		    IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+		    for (int i = 0; i < element.DegreeKsi + 1; i++)
 		    {
-			    parametricGaussPointKsi[i] = gaussPoints[i * (element.Patch.DegreeHeta + 1)].Ksi;
+			    parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 		    }
 
-		    IVector parametricGaussPointHeta = new Vector(element.Patch.DegreeHeta + 1);
-		    for (int i = 0; i < element.Patch.DegreeHeta + 1; i++)
+		    IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+		    for (int i = 0; i < element.DegreeHeta + 1; i++)
 		    {
 			    parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 		    }
 
-		    Vector knotValueVectorKsi = new Vector((element.Patch.DegreeKsi + 1) * 2);
-		    Vector knotValueVectorHeta = new Vector((element.Patch.DegreeHeta + 1) * 2);
-		    for (int i = 0; i < element.Patch.DegreeKsi + 1; i++)
+		    Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
+		    Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+		    for (int i = 0; i < element.DegreeKsi + 1; i++)
 		    {
 			    knotValueVectorKsi[i]= -1;
-			    knotValueVectorKsi[element.Patch.DegreeKsi + 1 + i]= 1;
+			    knotValueVectorKsi[element.DegreeKsi + 1 + i]= 1;
 		    }
-		    for (int i = 0; i < element.Patch.DegreeHeta + 1; i++)
+		    for (int i = 0; i < element.DegreeHeta + 1; i++)
 		    {
 			    knotValueVectorHeta[i]= -1;
-			    knotValueVectorHeta[element.Patch.DegreeHeta + 1 + i]= 1;
+			    knotValueVectorHeta[element.DegreeHeta + 1 + i]= 1;
 		    }
 
-		    BSPLines1D bernsteinKsi = new BSPLines1D(element.Patch.DegreeKsi, knotValueVectorKsi, parametricGaussPointKsi);
-		    BSPLines1D bernsteinHeta = new BSPLines1D(element.Patch.DegreeHeta, knotValueVectorHeta, parametricGaussPointHeta);
+		    BSPLines1D bernsteinKsi = new BSPLines1D(element.DegreeKsi, knotValueVectorKsi, parametricGaussPointKsi);
+		    BSPLines1D bernsteinHeta = new BSPLines1D(element.DegreeHeta, knotValueVectorHeta, parametricGaussPointHeta);
 		    bernsteinKsi.calculateBSPLinesAndDerivatives();
 		    bernsteinHeta.calculateBSPLinesAndDerivatives();
 
-		    int supportKsi = element.Patch.DegreeKsi + 1;
-		    int supportHeta = element.Patch.DegreeHeta + 1;
+		    int supportKsi = element.DegreeKsi + 1;
+		    int supportHeta = element.DegreeHeta + 1;
 
 			Matrix2D bernsteinShapeFunctions = new Matrix2D(supportKsi*supportHeta,supportKsi*supportHeta);
 		    Matrix2D bernsteinShapeFunctionDerivativesKsi = new Matrix2D(supportKsi * supportHeta, supportKsi * supportHeta);
@@ -127,7 +127,7 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElement element, IList<ControlPoint> controlPoints)
 		{
 			GaussQuadrature gauss = new GaussQuadrature();
-			IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+			IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta,
 				new List<Knot>
 				{
 					new Knot(){ID=0,Ksi=-1,Heta = -1,Zeta = 0},
@@ -136,38 +136,38 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 					new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-			IVector parametricGaussPointKsi = new Vector(element.Patch.DegreeKsi + 1);
-			for (int i = 0; i < element.Patch.DegreeKsi + 1; i++)
+			IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
-				parametricGaussPointKsi[i] = gaussPoints[i * (element.Patch.DegreeHeta + 1)].Ksi;
+				parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 			}
 
-			IVector parametricGaussPointHeta = new Vector(element.Patch.DegreeHeta + 1);
-			for (int i = 0; i < element.Patch.DegreeHeta + 1; i++)
+			IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+			for (int i = 0; i < element.DegreeHeta + 1; i++)
 			{
 				parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 			}
 
-			Vector knotValueVectorKsi = new Vector((element.Patch.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.Patch.DegreeHeta + 1) * 2);
-			for (int i = 0; i < element.Patch.DegreeKsi + 1; i++)
+			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
+			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
-				knotValueVectorKsi[element.Patch.DegreeKsi + 1 + i] = 1;
+				knotValueVectorKsi[element.DegreeKsi + 1 + i] = 1;
 			}
-			for (int i = 0; i < element.Patch.DegreeHeta + 1; i++)
+			for (int i = 0; i < element.DegreeHeta + 1; i++)
 			{
 				knotValueVectorHeta[i] = -1;
-				knotValueVectorHeta[element.Patch.DegreeHeta + 1 + i] = 1;
+				knotValueVectorHeta[element.DegreeHeta + 1 + i] = 1;
 			}
 
-			BSPLines1D bernsteinKsi = new BSPLines1D(element.Patch.DegreeKsi, knotValueVectorKsi, parametricGaussPointKsi);
-			BSPLines1D bernsteinHeta = new BSPLines1D(element.Patch.DegreeHeta, knotValueVectorHeta, parametricGaussPointHeta);
+			BSPLines1D bernsteinKsi = new BSPLines1D(element.DegreeKsi, knotValueVectorKsi, parametricGaussPointKsi);
+			BSPLines1D bernsteinHeta = new BSPLines1D(element.DegreeHeta, knotValueVectorHeta, parametricGaussPointHeta);
 			bernsteinKsi.calculateBSPLinesAndDerivatives();
 			bernsteinHeta.calculateBSPLinesAndDerivatives();
 
-			int supportKsi = element.Patch.DegreeKsi + 1;
-			int supportHeta = element.Patch.DegreeHeta + 1;
+			int supportKsi = element.DegreeKsi + 1;
+			int supportHeta = element.DegreeHeta + 1;
 
 			Matrix2D bernsteinShapeFunctions = new Matrix2D(supportKsi * supportHeta, supportKsi * supportHeta);
 			Matrix2D bernsteinShapeFunctionDerivativesKsi = new Matrix2D(supportKsi * supportHeta, supportKsi * supportHeta);

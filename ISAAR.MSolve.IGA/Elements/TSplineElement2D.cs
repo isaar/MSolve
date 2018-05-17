@@ -42,8 +42,10 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public bool MaterialModified => throw new NotImplementedException();
 
-		public Matrix2D ExtractionOperator { get; private set; }
+		public Matrix2D ExtractionOperator { get; set; }
 
+		public int DegreeKsi { get; set; }
+		public int DegreeHeta { get; set; }
 		public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
 		{
 			throw new NotImplementedException();
@@ -198,10 +200,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(Element element)
+		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineElement2D element)
 		{
 			GaussQuadrature gauss = new GaussQuadrature();
-			return gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Knots);
+			return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, element.Knots);
 		}
 	}
 }
