@@ -23,15 +23,16 @@ namespace ISAAR.MSolve.Tests
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
-            double nodalLoad = 5000.0;
+            double nodalLoad = 2000.0;
             double area = 91.04;
             double inertiaY = 2843.0;
             double inertiaZ = 8091.0;
             double torsionalInertia = 76.57;
             double effectiveAreaY = 91.04;
             double effectiveAreaZ = 91.04;
-            int nNodes = 6;
-            int nElems = 5;
+            int nNodes = 3;
+            int nElems = 2;
+            int monitorNode = 3;
 
             // Create new 3D material
             ElasticMaterial3D material = new ElasticMaterial3D
@@ -45,15 +46,9 @@ namespace ISAAR.MSolve.Tests
             Node node1 = new Node { ID = 1, X = 0.0,   Y = 0.0, Z = 0.0 };
             Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0, Z = 0.0 };
             Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0, Z = 0.0 };
-            Node node4 = new Node { ID = 4, X = 300.0, Y = 0.0, Z = 0.0 };
-            Node node5 = new Node { ID = 5, X = 400.0, Y = 0.0, Z = 0.0 };
-            Node node6 = new Node { ID = 6, X = 500.0, Y = 0.0, Z = 0.0 };
             nodes.Add(node1);
             nodes.Add(node2);
             nodes.Add(node3);
-            nodes.Add(node4);
-            nodes.Add(node5);
-            nodes.Add(node6);
 
             // Model creation
             Model model = new Model();
@@ -78,11 +73,17 @@ namespace ISAAR.MSolve.Tests
             int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)
             {
-                // Create new Beam3D section
-                var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
+                // Create new Beam2D section and element
+                //var beam = new EulerBeam2D(youngModulus)
+                //{
+                //    Density = 7.85,
+                //    SectionArea = 91.04,
+                //    MomentOfInertia = 8091.00,
+                //};
 
-                // Create a new Beam3D element
-                var beam = new Beam3DCorotationalQuaternion(nodes, material, 1.0, beamSection);
+                // Create new Beam3D section and element
+                var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
+                var beam = new Beam3DCorotationalQuaternion(nodes, material, 7.85, beamSection);
 
                 // Create elements
                 var element = new Element()
@@ -103,7 +104,7 @@ namespace ISAAR.MSolve.Tests
             }    
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[6], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -116,17 +117,19 @@ namespace ISAAR.MSolve.Tests
             // Choose the provider of the problem -> here a structural problem
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
+            // Choose child analyzer -> Child: LinearAnalyzer
+            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            //LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            var linearSystemsArray = new[] { linearSystems[1] };
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
-            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 50;
-            int totalDOFs = model.TotalDOFs;
-            int maximumIteration = 120;
-            int iterationStepsForMatrixRebuild = 500;
-            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
-            provider, increments, totalDOFs);
+            //var linearSystemsArray = new[] { linearSystems[1] };
+            //var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+            //var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+            //int increments = 50;
+            //int totalDOFs = model.TotalDOFs;
+            //int maximumIteration = 120;
+            //int iterationStepsForMatrixRebuild = 500;
+            //NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
+            //provider, increments, totalDOFs);
 
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
@@ -135,7 +138,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(49.1812791359803, linearSystems[1].Solution[31-6], 12);
+            Assert.Equal(31.9329606505423, linearSystems[1].Solution[7], 12);
         }
     }
 }
