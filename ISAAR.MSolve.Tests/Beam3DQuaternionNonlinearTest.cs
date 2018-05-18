@@ -40,6 +40,11 @@ namespace ISAAR.MSolve.Tests
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
+            //ElasticMaterial material = new ElasticMaterial()
+            //{
+            //    YoungModulus = youngModulus,
+            //    PoissonRatio = poissonRatio,
+            //};
 
             // Node creation
             IList<Node> nodes = new List<Node>();
