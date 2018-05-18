@@ -196,20 +196,46 @@ namespace ISAAR.MSolve.FEM.Elements
         private void UpdateRotationMatrix()
         {
             var rotationMatrixLocal = new Matrix2D(AXIS_COUNT, AXIS_COUNT);
-            for (int i = 0; i < AXIS_COUNT; i++)
-                rotationMatrixLocal[i, i] = 1d;
-            rotationMatrixLocal.LinearCombination(new[] { -2d }, new[] { Matrix2D.FromVector(currentBeamAxis.Data) * Matrix2D.FromVectorTranspose(currentBeamAxis.Data) });
-            var minusBeamAxisX = new Vector(beamAxisX.Length);
-            var tempBeamAxisY = new Vector(beamAxisY.Length);
-            var tempBeamAxisZ = new Vector(beamAxisZ.Length);
-            beamAxisX.CopyTo(minusBeamAxisX.Data, 0);
-            minusBeamAxisX.Scale(-1d);
-            beamAxisY.CopyTo(tempBeamAxisY.Data, 0);
-            beamAxisZ.CopyTo(tempBeamAxisZ.Data, 0);
-            rotationMatrixLocal.Multiply(minusBeamAxisX, beamAxisX.Data);
-            rotationMatrixLocal.Multiply(tempBeamAxisY, beamAxisY.Data);
-            rotationMatrixLocal.Multiply(tempBeamAxisZ, beamAxisZ.Data);
-            this.currentRotationMatrix = RotationMatrix.CalculateFromOrthonormalVectors(this.beamAxisX, this.beamAxisY, this.beamAxisZ);
+            var Helper3by3 = new Matrix2D(AXIS_COUNT, AXIS_COUNT);
+            //@Theo
+            //for (int i = 0; i < AXIS_COUNT; i++)
+            //    rotationMatrixLocal[i, i] = 1d;
+            //rotationMatrixLocal.LinearCombination(new[] { -2d }, new[] { Matrix2D.FromVector(currentBeamAxis.Data) * Matrix2D.FromVectorTranspose(currentBeamAxis.Data) });
+            //var minusBeamAxisX = new Vector(beamAxisX.Length);
+            //var tempBeamAxisY = new Vector(beamAxisY.Length);
+            //var tempBeamAxisZ = new Vector(beamAxisZ.Length);
+            //beamAxisX.CopyTo(minusBeamAxisX.Data, 0);
+            //minusBeamAxisX.Scale(-1d);
+            //beamAxisY.CopyTo(tempBeamAxisY.Data, 0);
+            //beamAxisZ.CopyTo(tempBeamAxisZ.Data, 0);
+            //rotationMatrixLocal.Multiply(minusBeamAxisX, beamAxisX.Data);
+            //rotationMatrixLocal.Multiply(tempBeamAxisY, beamAxisY.Data);
+            //rotationMatrixLocal.Multiply(tempBeamAxisZ, beamAxisZ.Data);
+            //this.currentRotationMatrix = RotationMatrix.CalculateFromOrthonormalVectors(this.beamAxisX, this.beamAxisY, this.beamAxisZ);
+
+            //@gsoim
+            var identityMatrix = new Matrix2D(3, 3);
+            identityMatrix[0, 0] = 1d;
+            identityMatrix[1, 1] = 1d;
+            identityMatrix[2, 2] = 1d;
+            Helper3by3.LinearCombination(new[] { 2d }, new[] { Matrix2D.FromVector(currentBeamAxis.Data) * Matrix2D.FromVectorTranspose(currentBeamAxis.Data) });
+            for (int i = 0; i < Helper3by3.Rows; i++)
+            {
+                for (int j = 0; j < Helper3by3.Columns; j++)
+                {
+                    Helper3by3[i, j] = identityMatrix[i, j] - Helper3by3[i, j];
+                }
+            }
+            currentRotationMatrix[0, 0] = -beamAxisX[0];
+            currentRotationMatrix[1, 0] = -beamAxisX[1];
+            currentRotationMatrix[2, 0] = -beamAxisX[2];
+            currentRotationMatrix[0, 1] = beamAxisY[0];
+            currentRotationMatrix[1, 1] = beamAxisY[1];
+            currentRotationMatrix[2, 1] = beamAxisY[2];
+            currentRotationMatrix[0, 2] = beamAxisZ[0];
+            currentRotationMatrix[1, 2] = beamAxisZ[1];
+            currentRotationMatrix[2, 2] = beamAxisZ[2];
+            this.currentRotationMatrix = Helper3by3 * currentRotationMatrix;
         }
 
     }

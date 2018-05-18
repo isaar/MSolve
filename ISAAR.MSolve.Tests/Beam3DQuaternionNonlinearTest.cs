@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Tests
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
-            double nodalLoad = 2000.0;
+            double nodalLoad = 20000.0;
             double area = 91.04;
             double inertiaY = 2843.0;
             double inertiaZ = 8091.0;
@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.Tests
             var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 50;
+            int increments = 10;
             int totalDOFs = model.TotalDOFs;
             int maximumIteration = 120;
             int iterationStepsForMatrixRebuild = 500;
@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(31.9329606505423, linearSystems[1].Solution[7], 12);
+            Assert.Equal(146.5587362562, linearSystems[1].Solution[7], 12);
         }
     }
 }
