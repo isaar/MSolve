@@ -23,6 +23,7 @@ namespace ISAAR.MSolve.IGA.Readers
 		public Model Model { get;  }
 		public string Filename { get; private set; }
 
+
 	    public IGAFileReader(Model model, string filename)
 	    {
 		    Model = model;
@@ -32,7 +33,7 @@ namespace ISAAR.MSolve.IGA.Readers
 	    private int numberOfElements;
 	    private int controlPointIDcounter=0;
 	    private int elementIDCounter = 0;
-	    private List<Element> elements = new List<Element>();
+        private int numberOfDimensions;
 	    public void CreateTSplineShellsModelFromFile()
 	    {
 		    char[] delimeters = { ' ', '=', '\t' };
@@ -66,9 +67,9 @@ namespace ISAAR.MSolve.IGA.Readers
 							throw new KeyNotFoundException("Variable name " + line[0] + " is not found.");
 						}
 						if (type == Types.plane)
-							Model.NumberOfDimensions = 2;
+                            numberOfDimensions = 2;
 						else
-							Model.NumberOfDimensions = 3;
+                            numberOfDimensions = 3;
 						break;
 					case Attributes.noden:
 						break;
@@ -76,8 +77,9 @@ namespace ISAAR.MSolve.IGA.Readers
 						numberOfElements = Int32.Parse(line[1]);
 						break;
 					case Attributes.node:
-						Model.ControlPointsDictionary.Add(controlPointIDcounter++, new ControlPoint
+						Model.ControlPointsDictionary.Add(controlPointIDcounter, new ControlPoint
 						{
+                            ID= controlPointIDcounter++,
 							X = Double.Parse(line[1], CultureInfo.InvariantCulture),
 							Y= Double.Parse(line[2], CultureInfo.InvariantCulture),
 							Z = Double.Parse(line[3], CultureInfo.InvariantCulture),
@@ -105,37 +107,39 @@ namespace ISAAR.MSolve.IGA.Readers
 							}
 						}
 
-						if (Model.NumberOfDimensions == 2)
+						if (numberOfDimensions == 2)
 						{
-							var element=new Element
-							{
-								ID = elementIDCounter,
-								ElementType = new TSplineElement2D
-								{
-									DegreeKsi = elementDegreeKsi,
-									DegreeHeta = elementDegreeHeta,
-									ExtractionOperator = extractionOperator
-								}
-							};
-							foreach (int indexControlPoint in connectivity)
-								element.ControlPoints.Add(Model.ControlPointsDictionary[indexControlPoint]);
+                            Element element = new TSplineElement2D()
+                            {
+                                ID = elementIDCounter,
+                                Patch = Model.PatchesDictionary[0],
+                                ElementType = new TSplineElement2D(),
+                                DegreeKsi = elementDegreeKsi,
+                                DegreeHeta = elementDegreeHeta,
+                                ExtractionOperator = extractionOperator
+                            };
+                            for (int cp = 0; cp < connectivity.Length; cp++)
+                            {
+                                element.AddControlPoint(Model.ControlPointsDictionary[connectivity[cp]]);
+                            }
                             Model.ElementsDictionary.Add(elementIDCounter, element);
                             Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
                         }
 						else
 						{
-							var element = new Element
-							{
-								ID = elementIDCounter,
-								ElementType = new TSplineKirchhoffLoveShellElement()
-								{
-									DegreeKsi = elementDegreeKsi,
-									DegreeHeta = elementDegreeHeta,
-									ExtractionOperator = extractionOperator
-								}
-							};
-							foreach (int indexControlPoint in connectivity)
-								element.ControlPoints.Add(Model.ControlPointsDictionary[indexControlPoint]);
+                            Element element = new TSplineKirchhoffLoveShellElement()
+                            {
+                                ID = elementIDCounter,
+                                Patch = Model.PatchesDictionary[0],
+                                ElementType = new TSplineKirchhoffLoveShellElement(),
+                                DegreeKsi = elementDegreeKsi,
+                                DegreeHeta = elementDegreeHeta,
+                                ExtractionOperator = extractionOperator
+                            };
+                            for (int cp = 0; cp < connectivity.Length; cp++)
+                            {
+                                element.AddControlPoint(Model.ControlPointsDictionary[connectivity[cp]]);
+                            }
 							Model.ElementsDictionary.Add(elementIDCounter,element);
                             Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
 
