@@ -114,8 +114,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		public IMatrix2D StiffnessMatrix(IElement element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
-
-			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
+            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
 			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
@@ -328,10 +327,16 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElement element)
-		{
-			GaussQuadrature gauss = new GaussQuadrature();
-			return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, element.Knots);
+        private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElement element)
+        {
+            GaussQuadrature gauss = new GaussQuadrature();
+            return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, new List<Knot>
+                {
+                    new Knot(){ID=0,Ksi=-1,Heta = -1,Zeta = 0},
+                    new Knot(){ID=1,Ksi=-1,Heta = 1,Zeta = 0},
+                    new Knot(){ID=2,Ksi=1,Heta = -1,Zeta = 0},
+                    new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
+                });
 		}
 	}
 }
