@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -54,6 +56,16 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 
         public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, double shift = 0.0)
         {
+            return SolveInternal(A, b, null, shift);
+        }
+
+        public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, IPreconditioner M, double shift = 0.0)
+        {
+            return SolveInternal(A, b, M, shift);
+        }
+
+        private (Vector, MinresStatistics) SolveInternal(IMatrixView A, Vector b, IPreconditioner M, double shift)
+        {
             /// Initialize.
 
             int n = b.Length;
@@ -72,19 +84,36 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             /// v is really P' v1.
             /// -------------------------------------------------
 
-            Vector y = b.Copy();
+            Vector y;
+            if (M == null) y = b.Copy();
+            else y = M.SolveLinearSystem(b);
+
             Vector r1 = b.Copy(); // initial guess x = 0 initial residual
             double beta1 = b * y;
 
             /// If b = 0 exactly, stop with x = 0.            
 
+            CheckDefinitePreconditioner(M, beta1);
             if (beta1 == 0.0)
             {
                 var stats = new MinresStatistics { TerminationCause = 0, ResidualNorm = 0.0, IterationsRequired = 0 };
                 return (x, stats);
             }
             beta1 = Math.Sqrt(beta1); //Normalize y to get v1 later.
-            if (checkMatrixSymmetricity) CheckSymmetricMatrix(A, y, r1);
+            if (checkMatrixSymmetricity)
+            {
+                if (M == null) CheckSymmetricMatrix(A, y, r1);
+                else
+                {
+                    CheckSymmetricPreconditioner(M, y, r1);
+
+                    // WARNING: originally this had y instead of b. However, some precision is lost when multiplying inv(M)*b.
+                    // Coupled with the absurdely small tolerance used by IsMatrixSymmetric(), the matrix is flagged as 
+                    // non-symmetric even though it is. By using b instead of y, the check is identical to the one done in 
+                    // the unpreconditioned MINRES version.
+                    CheckSymmetricMatrix(A, b, r1);
+                }
+            }
 
             /// ------------------------------------------------- 
             /// Initialize other quantities.
@@ -137,11 +166,21 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 // This is explicit orthogonalizing it versus the previous localSize lanczos vectors.
                 orthogonalizer.Reorthogonalize(y);
 
-
                 r1 = r2; // r1 is unnormalized vold. No need to copy: r2 will point to another vector after this
-                r2 = y.Copy(); // r2 is unnormalized v. In the preconditioned version I must copy it, because in the next iteration v = y and v.ScaleIntoThis() will corrupt r2.
+
+                // r2 is unnormalized v. In the preconditioned version I must copy it, because in the next iteration v = y
+                // and v.ScaleIntoThis() will corrupt r2.
+                if (M == null) r2 = y.Copy();
+                else
+                {
+                    r2 = y;
+                    y = M.SolveLinearSystem(r2);
+                }
+
                 oldb = beta; // oldb = betak
-                beta = Math.Sqrt(r2 * y);  // beta = betak+1^2
+                beta = r2 * y;  // beta = betak+1^2
+                CheckDefinitePreconditioner(M, beta);
+                beta = Math.Sqrt(beta);
                 tnorm2 += alfa * alfa + oldb * oldb + beta * beta;
 
                 if (itn == 1) //Initialize a few things.
@@ -257,6 +296,15 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             throw new Exception("Should not have reached here");
         }
 
+        private static void CheckDefinitePreconditioner(IPreconditioner M, double beta)
+        {
+            if (beta < 0)
+            {
+                Debug.Assert(M != null); // If not, the dot product beta1 must be >= 0
+                throw new IndefiniteMatrixException("The preconditioner M is not positive definite.");
+            }
+        }
+
         internal static void CheckSymmetricMatrix(IMatrixView A, Vector y, Vector r1)
         {
             Vector w = A.MultiplyRight(y, false);
@@ -266,6 +314,16 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             double z = Math.Abs(s - t);
             double epsa = (s + eps) * Math.Pow(eps, 1.0/3.0);
             if (z > epsa) throw new AsymmetricMatrixException("The matrix or linear transformation A is not symmetric.");
+        }
+
+        private static void CheckSymmetricPreconditioner(IPreconditioner M, Vector y, Vector r1)
+        {
+            Vector r2 = M.SolveLinearSystem(y);
+            double s = y * y;
+            double t = r1 * r2;
+            double z = Math.Abs(s - t);
+            double epsa = (s + eps) * Math.Pow(eps, 1.0 / 3.0);
+            if (z > epsa) throw new AsymmetricMatrixException("The preconditioner M is not symmetric.");
         }
 
         /// <summary>

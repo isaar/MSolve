@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
 
             // With preconditioning
             Console.WriteLine("Sparse pos-def system WITH preconditioning:");
-            var minres1Prec = new PreconditionedMinimumResidual(A1.NumRows, 1e-10, true, false);
+            var minres1Prec = new MinimumResidual(A1.NumRows, 1e-10, 0, true, false);
             var M1 = new JacobiPreconditioner(A1.GetDiagonalAsArray());
             (Vector x1Prec, MinresStatistics stats1Prec) = minres1Prec.Solve(A1, b1, M1);
             Console.Write(stats1Prec);
@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
 
             // With preconditioning
             Console.WriteLine("DENSE pos-def system WITH preconditioning:");
-            var minres2Prec = new PreconditionedMinimumResidual(A2.NumRows, 1e-10, true, false);
+            var minres2Prec = new MinimumResidual(A2.NumRows, 1e-10, 0, true, false);
             var M2 = new JacobiPreconditioner(A2.GetDiagonalAsArray());
             (Vector x2Prec, MinresStatistics stats2Prec) = minres2Prec.Solve(A2, b2, M2);
             Console.Write(stats2Prec);
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
 
             // With preconditioning
             Console.WriteLine("Diagonal indefinite system WITH preconditioning:");
-            var minres3Prec = new PreconditionedMinimumResidual(A3.NumRows, 1e-6, true, false);
+            var minres3Prec = new MinimumResidual(A3.NumRows, 1e-6, 0, true, false);
             (Vector x3Prec, MinresStatistics stats3Prec) = minres3Prec.Solve(A3, b3, M3);
             Console.Write(stats3Prec);
             if (x3Prec != null) CheckSolution(x3Expected, x3Prec);
