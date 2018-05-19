@@ -139,9 +139,9 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				Matrix2D ElasticityMatrix = shellElement.Patch.Material.ConstitutiveMatrix;
 
-				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2);
+				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
 
-				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12);
+				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
 
 				double membraneStiffness = shellElement.Patch.Material.YoungModulus * shellElement.Patch.Thickness /
 										   (1 - Math.Pow(shellElement.Patch.Material.PoissonRatio, 2));
@@ -164,10 +164,10 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
 			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
-			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12)
+			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElement element)
 		{
-			Matrix2D Bbending = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int column = 0; column < ControlPoints.Count * 3; column++)
+			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column++)
 			{
 				#region BI1
 
@@ -252,10 +252,10 @@ namespace ISAAR.MSolve.IGA.Elements
 		}
 
 		private Matrix2D CalculateMembraneDeformationMatrix(ShapeTSplines2DFromBezierExtraction tsplines, int j, Vector surfaceBasisVector1,
-			Vector surfaceBasisVector2)
+			Vector surfaceBasisVector2, TSplineKirchhoffLoveShellElement element)
 		{
-			Matrix2D dRIa = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int i = 0; i < ControlPoints.Count * 3; i++)
+			Matrix2D dRIa = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int i = 0; i < element.ControlPoints.Count; i++)
 			{
 				for (int m = 0; m < 3; m++)
 				{
@@ -264,8 +264,8 @@ namespace ISAAR.MSolve.IGA.Elements
 				}
 			}
 
-			Matrix2D Bmembrane = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int column = 0; column < ControlPoints.Count * 3; column++)
+			Matrix2D Bmembrane = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column++)
 			{
 				Bmembrane[0, column] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[0];
 				Bmembrane[0, column + 1] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[1];
