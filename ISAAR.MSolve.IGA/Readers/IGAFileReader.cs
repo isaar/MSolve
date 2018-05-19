@@ -20,12 +20,12 @@ namespace ISAAR.MSolve.IGA.Readers
 			plane, surface
 	    }
 
-		public ModelCreator ModelCreator { get;  }
+		public Model Model { get;  }
 		public string Filename { get; private set; }
 
-	    public IGAFileReader(ModelCreator modelCreator, string filename)
+	    public IGAFileReader(Model model, string filename)
 	    {
-		    ModelCreator = modelCreator;
+		    Model = model;
 		    Filename = filename;
 	    }
 
@@ -40,6 +40,7 @@ namespace ISAAR.MSolve.IGA.Readers
 
 		    String[] text = System.IO.File.ReadAllLines(Filename);
 
+            Model.PatchesDictionary.Add(0, new Patch { ID = 0 });
 		    for (int i = 0; i < text.Length; i++)
 		    {
 				String[] line = text[i].Split(delimeters, StringSplitOptions.RemoveEmptyEntries);
@@ -65,23 +66,22 @@ namespace ISAAR.MSolve.IGA.Readers
 							throw new KeyNotFoundException("Variable name " + line[0] + " is not found.");
 						}
 						if (type == Types.plane)
-							ModelCreator.NumberOfDimensions = 2;
+							Model.NumberOfDimensions = 2;
 						else
-							ModelCreator.NumberOfDimensions = 3;
+							Model.NumberOfDimensions = 3;
 						break;
 					case Attributes.noden:
-						ModelCreator.NumberOfControlPoints = Int32.Parse(line[1]);
 						break;
 					case Attributes.elemn:
 						numberOfElements = Int32.Parse(line[1]);
 						break;
 					case Attributes.node:
-						ModelCreator.ControlPointsDictionary.Add(controlPointIDcounter++, new ControlPoint
+						Model.ControlPointsDictionary.Add(controlPointIDcounter++, new ControlPoint
 						{
 							X = Double.Parse(line[1], CultureInfo.InvariantCulture),
 							Y= Double.Parse(line[2], CultureInfo.InvariantCulture),
 							Z = Double.Parse(line[3], CultureInfo.InvariantCulture),
-							WeightFactor = Double.Parse(line[1], CultureInfo.InvariantCulture)
+							WeightFactor = Double.Parse(line[4], CultureInfo.InvariantCulture)
 						});
 						break;
 					case Attributes.belem:
@@ -96,22 +96,20 @@ namespace ISAAR.MSolve.IGA.Readers
 
 						Matrix2D extractionOperator = new Matrix2D(numberOfElementNodes,
 							(elementDegreeKsi+1)*(elementDegreeHeta+1));
-						i++;
 						for (int j = 0; j < numberOfElementNodes; j++)
 						{
-							i += j;
-							line = text[i].Split(delimeters);
+							line = text[++i].Split(delimeters);
 							for (int k = 0; k < (elementDegreeKsi+1)*(elementDegreeHeta+1); k++)
 							{
 								extractionOperator[j, k] = double.Parse(line[k]);
 							}
 						}
 
-						if (ModelCreator.NumberOfDimensions == 2)
+						if (Model.NumberOfDimensions == 2)
 						{
 							var element=new Element
 							{
-								ID = elementIDCounter++,
+								ID = elementIDCounter,
 								ElementType = new TSplineElement2D
 								{
 									DegreeKsi = elementDegreeKsi,
@@ -120,14 +118,15 @@ namespace ISAAR.MSolve.IGA.Readers
 								}
 							};
 							foreach (int indexControlPoint in connectivity)
-								element.ControlPoints.Add(ModelCreator.ControlPointsDictionary[indexControlPoint]);
-							elements.Add(element);
-						}
+								element.ControlPoints.Add(Model.ControlPointsDictionary[indexControlPoint]);
+                            Model.ElementsDictionary.Add(elementIDCounter, element);
+                            Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
+                        }
 						else
 						{
 							var element = new Element
 							{
-								ID = elementIDCounter++,
+								ID = elementIDCounter,
 								ElementType = new TSplineKirchhoffLoveShellElement()
 								{
 									DegreeKsi = elementDegreeKsi,
@@ -136,19 +135,19 @@ namespace ISAAR.MSolve.IGA.Readers
 								}
 							};
 							foreach (int indexControlPoint in connectivity)
-								element.ControlPoints.Add(ModelCreator.ControlPointsDictionary[indexControlPoint]);
-							elements.Add(element);
-						}
+								element.ControlPoints.Add(Model.ControlPointsDictionary[indexControlPoint]);
+							Model.ElementsDictionary.Add(elementIDCounter,element);
+                            Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
 
-
-
-
+                        }
 						break;
 					case Attributes.set:
 						break;
 			    }
 			}
-		}
+
+            var a = 0;
+        }
 
     }
 }

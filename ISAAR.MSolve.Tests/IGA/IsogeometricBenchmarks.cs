@@ -270,5 +270,28 @@ namespace ISAAR.MSolve.Tests.IGA
 
         }
 
+        [Fact]
+        public void TSplinesShellsBenchmark()
+        {
+            VectorExtensions.AssignTotalAffinityCount();
+            Model model = new Model();
+            string filename = "..\\..\\..\\IGA\\InputFiles\\tspline.iga";
+            IGAFileReader modelReader = new IGAFileReader(model, filename);
+            modelReader.CreateTSplineShellsModelFromFile();
+            model.Loads.Add(new Load() { Amount = -100, ControlPoint = model.ControlPointsDictionary[2], DOF = DOFType.Y });
+            model.ConnectDataStructures();
+
+            //var linearSystems = new Dictionary<int, ILinearSystem>();
+            //linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+            //SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            //ProblemStructural provider = new ProblemStructural(model, linearSystems);
+            //LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+            //StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+            //parentAnalyzer.BuildMatrices();
+            //parentAnalyzer.Initialize();
+            //parentAnalyzer.Solve();
+        }
+
     }
 }
