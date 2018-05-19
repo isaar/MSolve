@@ -8,13 +8,18 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: perhaps some vectors and operations are not needed or can be simplified 
 //      in the version without preconditioning
+//TODO: use invalid values as initial
+//TODO: remove Matlab/Fortran notation from comments
+//TODO: the orthogonalizer should not be private.
 namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 {
     /// <summary>
     /// MINRES algorithm for solving an n-by-n system of linear equations: A*x = b, where A is symmetric and b is a given vector 
     /// of length n. A may be indefinite. It can also be singular, in which case the least squares problem is solved instead.
-    /// The MINRES method is presented by Paige, Saunders in 
-    /// https://www.researchgate.net/publication/243578401_Solution_of_Sparse_Indefinite_Systems_of_Linear_Equations
+    /// The MINRES method is presented by C. C. Paige, M. A. Saunders in 
+    /// https://www.researchgate.net/publication/243578401_Solution_of_Sparse_Indefinite_Systems_of_Linear_Equations.
+    /// Reorthogonalization is introduced by D. Maddix. For more information, including the Matlab scripts from which this code 
+    /// is ported from, see http://web.stanford.edu/group/SOL/software/minres/.
     /// </summary>
     public class MinimumResidual
     {
@@ -22,22 +27,33 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 
         private readonly bool checkMatrixSymmetricity;
         private readonly int maxIterations;
+        private readonly int numStoredOrthogonalDirections;
         private readonly bool printIterations;
         private readonly double residualTolerance;
 
-        public MinimumResidual(int maxIterations, double residualTolerance, bool checkMatrixSymmetricity, bool printIterations)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="maxIterations"></param>
+        /// <param name="residualTolerance"></param>
+        /// <param name="numStoredOrthogonalDirections">If &gt;0 local reorthogonalization will be used to improve convergence. 
+        ///     However that requires extra memory equal to <paramref name="numStoredOrthogonalDirections"/> * matrixOrder. 
+        ///     The author suggests the values 10, 20 for memory economy or 50, 100 if the memory requirements can be met.
+        ///     It must not be greater than the order of the matrix though.</param>
+        /// <param name="checkMatrixSymmetricity"></param>
+        /// <param name="printIterations"></param>
+        public MinimumResidual(int maxIterations, double residualTolerance, int numStoredOrthogonalDirections = 0, 
+            bool checkMatrixSymmetricity = false, bool printIterations = false)
         {
-            this.checkMatrixSymmetricity = checkMatrixSymmetricity;
             this.maxIterations = maxIterations;
-            this.printIterations = printIterations;
             this.residualTolerance = residualTolerance;
+            this.numStoredOrthogonalDirections = numStoredOrthogonalDirections;
+            this.checkMatrixSymmetricity = checkMatrixSymmetricity;
+            this.printIterations = printIterations;
         }
 
         public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, double shift = 0.0)
         {
-            //TODO: use invalid values as initial
-            //TODO: remove Matlab/Fortran notation from comments
-
             /// Initialize.
 
             int n = b.Length;
@@ -48,6 +64,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             double rnorm = 0.0;
             double ynorm = 0.0;
             var x = Vector.CreateZero(n);
+            var orthogonalizer = new LocalReorthogonalizer(n, numStoredOrthogonalDirections);
 
             /// -------------------------------------------------
             /// Set up y and v for the first Lanczos vector v1.
@@ -56,7 +73,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             /// -------------------------------------------------
 
             Vector y = b.Copy();
-            Vector r1 = b.Copy();
+            Vector r1 = b.Copy(); // initial guess x = 0 initial residual
             double beta1 = b * y;
 
             /// If b = 0 exactly, stop with x = 0.            
@@ -95,7 +112,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 ///
                 /// p1 = Operator * v1 - beta1 * v0,
                 /// alpha1 = v1'p1,
-                /// q2 = p2 - alpha1 * v1,
+                /// q2 = p2 - alpha1 * v1,   // I think this comment was corrected to q2 = p1 - alpha1 * v1 in a later script
                 /// beta2 ^ 2 = q2'q2,
                 /// v2 = (1 / beta2) q2.
                 ///
@@ -106,14 +123,23 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 double s = 1.0 / beta;    // Normalize previous vector(in y).
                 Vector v = y; // No need to copy: y will point to another vector shortly after this
                 v.ScaleIntoThis(s); // v = vk if P = I
+                orthogonalizer.StoreDirection(v); // Store old v for local reorthogonalization of new v, if it is enabled. 
 
-                y = ShiftedMatrixVectorMult(A, v, shift);
-                if (itn >= 2) y.AxpyIntoThis(-beta / oldb, r1); //WARNING: this works if itn is initialized and updated as in the matlab script
+                y = ShiftedMatrixVectorMult(A, v, shift); // shift is 0 otherwise solving A - shift*I
+
+                //WARNING: the following works if itn is initialized and updated as in the matlab script
+                if (itn >= 2) y.AxpyIntoThis(-beta / oldb, r1); // normalization is the division r1 by oldb 
 
                 double alfa = v * y;              // alphak
-                y.AxpyIntoThis(-alfa / beta, r2);
-                r1 = r2; // No need to copy: r2 will point to another vector after this
-                r2 = y.Copy(); // In the preconditioned version I must copy it, because in the next iteration v = y and v.ScaleIntoThis() will corrupt r2.
+                y.AxpyIntoThis(-alfa / beta, r2); // normalization of r2/beta = v
+
+                // v will be normalized through y later. 
+                // This is explicit orthogonalizing it versus the previous localSize lanczos vectors.
+                orthogonalizer.Reorthogonalize(y);
+
+
+                r1 = r2; // r1 is unnormalized vold. No need to copy: r2 will point to another vector after this
+                r2 = y.Copy(); // r2 is unnormalized v. In the preconditioned version I must copy it, because in the next iteration v = y and v.ScaleIntoThis() will corrupt r2.
                 oldb = beta; // oldb = betak
                 beta = Math.Sqrt(r2 * y);  // beta = betak+1^2
                 tnorm2 += alfa * alfa + oldb * oldb + beta * beta;
@@ -289,6 +315,45 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                     double trueArnorm = ww.Norm2();
                     Console.WriteLine();
                     Console.WriteLine($"Arnorm = {Anorm}  - True |Ar| = {trueArnorm}");
+                }
+            }
+        }
+
+        class LocalReorthogonalizer
+        {
+            private readonly int localSize;
+            private readonly LinkedList<Vector> store;
+
+            internal LocalReorthogonalizer(int order, int localSize)
+            {
+                if ((localSize < 0) || (localSize > order)) throw new ArgumentException(
+                    "The number of stored vectors must belong to [0, matrix.Order), but was " + localSize);
+                this.localSize = localSize;
+                this.store = new LinkedList<Vector>();
+            }
+
+            /// <summary>
+            /// If orthogonalization is enabled, store a new direction <paramref name="v"/>.
+            /// </summary>
+            /// <param name="v"></param>
+            internal void StoreDirection(Vector v)
+            {
+                if (localSize > 0) store.AddLast(v);
+                if (store.Count > localSize) store.RemoveFirst();
+            }
+
+            /// <summary>
+            /// Gram–Schmidt orthogonalization to the stored vectors, without normalization. 
+            /// </summary>
+            /// <param name="v">The vector to reorthogonalize. It will be overwritten with the result. If there are no stored 
+            ///     vectors, it will remain unchanged without being copied.</param>
+            internal void Reorthogonalize(Vector v)
+            {
+                // reorthogonalize 1 by 1
+                foreach (var p in store)
+                {
+                    // we don't have to normalize since it is explicitly done in the code and so we don't need to redo it
+                    v.AxpyIntoThis(-(v * p), p); // orthogonalize to each stored vector
                 }
             }
         }

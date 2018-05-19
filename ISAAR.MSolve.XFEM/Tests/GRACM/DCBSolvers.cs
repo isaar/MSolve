@@ -122,7 +122,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ISolver CreateMinresSolver(DCB benchmark)
         {
-            return new MinresSolver(benchmark.Model, 1, 1e-10);
+            return new MinresSolver(benchmark.Model, 1, 1e-10, 0);
         }
 
         private static ISolver CreateCholeskySuiteSparseSolver(DCB benchmark)

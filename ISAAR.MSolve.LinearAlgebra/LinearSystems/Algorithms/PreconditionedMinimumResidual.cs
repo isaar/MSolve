@@ -14,8 +14,10 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
     /// <summary>
     /// MINRES algorithm for solving an n-by-n system of linear equations: A*x = b, where A is symmetric and b is a given vector 
     /// of length n. A may be indefinite. It can also be singular, in which case the least squares problem is solved instead.
-    /// The preconditioner M must be symmetric positive definite. The MINRES method is presented by Paige, Saunders in 
-    /// https://www.researchgate.net/publication/243578401_Solution_of_Sparse_Indefinite_Systems_of_Linear_Equations
+    /// The preconditioner M must be symmetric positive definite. The MINRES method is presented by C. C. Paige, M. A. Saunders 
+    /// in https://www.researchgate.net/publication/243578401_Solution_of_Sparse_Indefinite_Systems_of_Linear_Equations.
+    /// Reorthogonalization is introduced by D. Maddix. For more information, including the Matlab scripts from which this code 
+    /// is ported from, see http://web.stanford.edu/group/SOL/software/minres/.
     /// </summary>
     public class PreconditionedMinimumResidual
     {

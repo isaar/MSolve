@@ -181,10 +181,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             writer.WriteFullVector(F.Vs, directory + "fs.txt");
             for (int i = 0; i < sys.numSubdomains; ++i)
             {
-                writer.WriteSparseMatrix((ISparseMatrix)(K.Kee[i]), directory + $"Kee{i}.txt");
-                writer.WriteSparseMatrix((ISparseMatrix)(K.Kes[i]), directory + $"Kes{i}.txt");
-                writer.WriteSparseMatrix((ISparseMatrix)(K.B[i]), directory + $"B{i}.txt");
-                writer.WriteFullVector(F.Ve[i], directory + $"fe{i}.txt");
+                writer.WriteSparseMatrix((ISparseMatrix)(K.Kee[i]), directory + $"Kee{i+1}.txt");
+                writer.WriteSparseMatrix((ISparseMatrix)(K.Kes[i]), directory + $"Kes{i+1}.txt");
+                writer.WriteSparseMatrix((ISparseMatrix)(K.B[i]), directory + $"B{i+1}.txt");
+                writer.WriteFullVector(F.Ve[i], directory + $"fe{i+1}.txt");
             }
             writer.WriteFullVector(F.Vc, directory + "fc.txt"); // This vector is 0.
 
