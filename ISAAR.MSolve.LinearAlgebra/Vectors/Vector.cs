@@ -13,6 +13,7 @@ using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
+//TODO: rename all slice operations to GetSubvector, SetSubvector, etc.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     public class Vector: IVectorView, ISliceable1D
@@ -383,6 +384,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             for (int i = 0; i < Length; ++i) data[i] = value;
         }
 
+        public void SetSubvector(Vector subvector, int destinationIndex)
+        {
+            if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
+                "The entries to set exceed this vector's length");
+            Array.Copy(subvector.data, 0, this.data, destinationIndex, subvector.Length);
+        }
+
         /// <summary>
         /// Returns a subvector containing only the entries at the provided indices
         /// </summary>
@@ -403,9 +411,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <returns></returns>
         public Vector Slice(int startInclusive, int endExclusive)
         {
-            int newLength = endExclusive - startInclusive;
-            double[] subvector = new double[newLength];
-            for (int i = 0; i < newLength; ++i) subvector[i] = data[startInclusive + i];
+            Preconditions.CheckIndex1D(this, startInclusive);
+            Preconditions.CheckIndex1D(this, endExclusive - 1);
+            if (endExclusive < startInclusive) throw new ArgumentException(
+                $"Exclusive end = {endExclusive} must be >= inclusive start = {startInclusive}");
+
+            int subvectorLength = endExclusive - startInclusive;
+            double[] subvector = new double[subvectorLength];
+            Array.Copy(this.data, startInclusive, subvector, 0, subvectorLength);
             return new Vector(subvector);
         }
 

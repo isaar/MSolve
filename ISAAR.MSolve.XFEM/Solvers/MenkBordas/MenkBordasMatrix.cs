@@ -115,10 +115,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 ye.AddIntoThis(Kee[i].MultiplyRight(xe));
                 ye.AddIntoThis(B[i].MultiplyRight(xc, true));
                 yc.AddIntoThis(B[i].MultiplyRight(xe, false));
-                y.CopyFromVector(subdomainStarts[i], ye, 0, ye.Length);
+                y.SetSubvector(ye, subdomainStarts[i]);
             }
-            y.CopyFromVector(0, ys, 0, numDofsStd);
-            y.CopyFromVector(equationsStart, yc, 0, numEquations);
+            y.SetSubvector(ys, 0);
+            y.SetSubvector(yc, equationsStart);
             return y;
         }
 
