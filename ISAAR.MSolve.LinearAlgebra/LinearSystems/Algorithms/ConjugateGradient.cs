@@ -5,17 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
+//TODO: needs to throw exceptions or at least report indefinite, nonsymmetric and singular matrices.
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 {
-    public class CGAlgorithm
+    public class ConjugateGradient
     {
         private readonly int maxIterations;
         private readonly double tolerance;
 
-        public CGAlgorithm(int maxIterations, double tolerance)
+        public ConjugateGradient(int maxIterations, double tolerance)
         {
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;

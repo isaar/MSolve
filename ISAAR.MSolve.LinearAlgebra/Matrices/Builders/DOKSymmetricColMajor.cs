@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -351,6 +352,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 colOffsets[j] = nnz;
                 nnz += columns[j].Count;
             }
+            if (nnz == 0) throw new EmptyMatrixBuilderException("Cannot build symmetric CSC arrays from a DOK with nnz = 0.");
             colOffsets[order] = nnz; //The last CSC entry is nnz.
 
             int[] rowIndices = new int[nnz];

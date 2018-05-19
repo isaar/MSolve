@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
 
         public void CheckVectorEquality(Vector expected, Vector computed)
         {
-            bool isCorrect = expected.Equals(computed);
+            bool isCorrect = expected.Equals(computed, valueComparer);
             if (DecidePrint(isCorrect)) printer.PrintVectorEquality(isCorrect, expected.InternalData, computed.InternalData);
         }
 

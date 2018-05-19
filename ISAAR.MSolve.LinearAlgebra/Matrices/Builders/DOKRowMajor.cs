@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -105,16 +107,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             {
                 int subRow = rowPair.Key;
                 int globalRow = rowPair.Value;
+                //Debug.Assert((globalRow >= 0) && (globalRow < NumRows));
                 foreach (var colPair in subColsToGlobalCols)
                 {
                     int subCol = colPair.Key;
                     int globalCol = colPair.Value;
+                    //Debug.Assert((globalCol >= 0) && (globalCol < NumColumns));
                     double elementValue = subMatrix[subRow, subCol];
                     if (rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue))
                     {
                         rows[globalRow][globalCol] = elementValue + oldGlobalValue;
                     }
                     else rows[globalRow][globalCol] = elementValue;
+                }
+            }
+        }
+
+        public void AddSubmatrixSymmetric(IIndexable2D elementMatrix, IReadOnlyDictionary<int, int> elementToGlobalDOFs)
+        {
+            foreach (var rowPair in elementToGlobalDOFs)
+            {
+                int elementRow = rowPair.Key;
+                int globalRow = rowPair.Value;
+                foreach (var colPair in elementToGlobalDOFs)
+                {
+                    int elementCol = colPair.Key;
+                    int globalCol = colPair.Value;
+
+                    if (globalCol > globalRow)
+                    {
+                        double elementValue = elementMatrix[elementRow, elementCol];
+                        rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue); // default value = 0.0
+                        double newGlobalValue = oldGlobalValue + elementValue;
+                        rows[globalRow][globalCol] = newGlobalValue;
+                        rows[globalCol][globalRow] = newGlobalValue;
+                    }
+                    else if (globalCol == globalRow)
+                    {
+                        double elementValue = elementMatrix[elementRow, elementCol];
+                        rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue); // default value = 0.0
+                        rows[globalRow][globalCol] = oldGlobalValue + elementValue;
+                    }
                 }
             }
         }
@@ -181,6 +214,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 rowOffsets[i] = nnz;
                 nnz += rows[i].Count;
             }
+            if (nnz == 0) throw new EmptyMatrixBuilderException("Cannot build CSR arrays from a DOK with nnz = 0.");
             rowOffsets[NumRows] = nnz; //The last CSR entry is nnz.
 
             int[] colIndices = new int[nnz];
@@ -306,7 +340,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             // MKL >> managed code. Just don't sort the CSR.
             bool buildCSR = (!avoidBuilding) && CSRMatrix.UseMKL; 
-            if (CSRMatrix.UseMKL) return BuildCSRMatrix(false).MultiplyRight(vector); 
+            if (buildCSR) return BuildCSRMatrix(false).MultiplyRight(vector); 
 
             Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
             var result = new double[this.NumRows];

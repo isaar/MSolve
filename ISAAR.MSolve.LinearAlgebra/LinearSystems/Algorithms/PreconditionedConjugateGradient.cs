@@ -5,19 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Solvers.Preconditioning;
 
 // Needs Builder pattern
-namespace ISAAR.MSolve.XFEM.Solvers.Algorithms
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 {
-    public class PCGAlgorithm
+    public class PreconditionedConjugateGradient
     {
         private readonly int maxIterations;
         private readonly double tolerance;
 
-        public PCGAlgorithm(int maxIterations, double tolerance)
+        public PreconditionedConjugateGradient(int maxIterations, double tolerance)
         {
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;

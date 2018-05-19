@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestLibs;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 
@@ -21,11 +22,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestEquality();
             //TestFactorization();
             //TestMatrixOperations();
-            TestMatrixVectorMultiplication();
+            //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestReordering();
             //TestReading();
-            //TestSystemSolution();
+            TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
             //TestWriting();
@@ -166,7 +167,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestSystemSolution()
         {
-            // Linear systems
+            /// Linear systems - direct
             //SquareInvertible.CheckSystemSolution();
             //SquareSingular.CheckSystemSolution();
             //SquareSingular1Deficiency.CheckSystemSolution();
@@ -178,9 +179,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SymmSingular.CheckSystemSolution();
             //SparsePositiveDefinite.CheckSystemSolution();
 
-            // Least squares systems
-            RectangularFullColRank.CheckSolutionLeastSquares();
-            RectangularFullColRank.CheckSolutionMinNorm();
+            /// Linear systems - iterative
+            //CGTests.Run();
+            //MinresTests.CheckSolutionDefinite();
+            //MinresTests.CheckSolutionIndefinite();
+            MinresTests.AssessPreconditioning();
+
+            /// Least squares systems
+            //RectangularFullColRank.CheckSolutionLeastSquares();
+            //RectangularFullColRank.CheckSolutionMinNorm();
         }
 
         public static void TestTransposition()

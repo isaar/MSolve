@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -8,12 +10,11 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Solvers;
-using ISAAR.MSolve.XFEM.Solvers.Algorithms;
-using ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas;
+using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
 
 namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
 {
-    class TestMenkBordasCG
+    class TestMenkBordasSolver
     {
         public static void Run()
         {
@@ -42,11 +43,10 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
         {
             MenkBordasSystem sys = BuildMatrices(model, cluster);
             MenkBordasVector uExpected = BuildLhs(sys);
-            MenkBordasMatrix K = sys.BuildMatrix();
+            (MenkBordasMatrix K, Vector rhs) = sys.BuildSystem();
             MenkBordasVector f = K.MultiplyRight(uExpected);
             sys.bs = f.Vs;
             foreach (var subvector in f.Ve) sys.be.Add(subvector);
-            sys.bc = f.Vc;
             sys.CheckDimensions();
             return (sys, uExpected);
         }
@@ -67,9 +67,7 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
                 for (int i = 0; i < xe[sub].Length; ++i) xe[sub][i] = scale * rand.NextDouble();
             }
 
-            var xc = Vector.CreateZero(sys.numContinuityEquations); // This should be 0 right?
-
-            return new MenkBordasVector(sys.numSubdomains, sys.numContinuityEquations, xs, xe, xc);
+            return new MenkBordasVector(sys.numSubdomains, 0, xs, xe, null);
         }
 
         public static MenkBordasSystem BuildMatrices(Model2D model, XCluster2D cluster)
@@ -80,7 +78,6 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             sys.Kss = globalKss.BuildCSRMatrix(true);
             Dictionary<XSubdomain2D, SignedBooleanMatrix> booleanMatrices =
                 assembler.BuildSubdomainSignedBooleanMatrices(cluster);
-            sys.numContinuityEquations = booleanMatrices[cluster.Subdomains[0]].NumRows;
             foreach (var subdomain in cluster.Subdomains)
             {
                 (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
@@ -97,7 +94,7 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
         public static void PrintMatrices(MenkBordasSystem sys)
         {
             Console.WriteLine("************************* Subdomain Matrices *************************");
-            MenkBordasMatrix K = sys.BuildMatrix();
+            (MenkBordasMatrix K, Vector f) = sys.BuildSystem();
             K.WriteToConsole();
             Console.WriteLine();
 
@@ -110,14 +107,10 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
 
         public static void PrintRhsVectors(MenkBordasSystem sys, MenkBordasVector uExpected)
         {
-            Console.WriteLine("************************* Subdomain RHS Vectors *************************");
-            MenkBordasVector f = sys.BuildRhsVector();
-            f.WriteToConsole();
-            Console.WriteLine();
+            (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
 
             Console.WriteLine("************************* Global RHS Vector *************************");
             var formatting = Array1DFormatting.PlainVertical;
-            Vector denseF = f.CopyToDense();
             FullVectorWriter.NumericFormat = new GeneralNumericFormat();
             (new FullVectorWriter(denseF, false, formatting)).WriteToConsole();
             Console.WriteLine();
@@ -125,34 +118,32 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             Console.WriteLine("************************* Global RHS Vector computed only with dense *************************");
             Vector denseU = uExpected.CopyToDense();
             FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-            (new FullVectorWriter(sys.BuildMatrix().CopyToDense() * denseU, false, formatting)).WriteToConsole();
+            (new FullVectorWriter(K.CopyToDense() * denseU, false, formatting)).WriteToConsole();
             Console.WriteLine();
         }
 
         public static void SolveWithCG(Model2D model, XCluster2D cluster)
         {
-            (MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
-            var cg = new MenkBordasCG(1000, 1e-10);
-            (MenkBordasVector u, IterativeStatistics stats) = cg.Solve(sys);
-            Console.WriteLine(stats);
-            MenkBordasVector diff = u.Axpy(-1, uExpected);
-            double error = Math.Sqrt(diff.DotProduct(diff)) / Math.Sqrt(uExpected.DotProduct(uExpected));
-            Console.WriteLine("Normalized error = " + error);
-            Console.WriteLine();
-            Console.WriteLine("Solution expected = ");
-            uExpected.WriteToConsole();
-            Console.WriteLine();
-            Console.WriteLine("Solution computed = ");
-            u.WriteToConsole();
+            //(MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
+            //var cg = new MenkBordasCG(1000, 1e-10);
+            //(MenkBordasVector u, IterativeStatistics stats) = cg.Solve(sys);
+            //Console.WriteLine(stats);
+            //MenkBordasVector diff = u.Axpy(-1, uExpected);
+            //double error = Math.Sqrt(diff.DotProduct(diff)) / Math.Sqrt(uExpected.DotProduct(uExpected));
+            //Console.WriteLine("Normalized error = " + error);
+            //Console.WriteLine();
+            //Console.WriteLine("Solution expected = ");
+            //uExpected.WriteToConsole();
+            //Console.WriteLine();
+            //Console.WriteLine("Solution computed = ");
+            //u.WriteToConsole();
         }
 
         public static void SolveWithLU(Model2D model, XCluster2D cluster)
         {
             (MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
-            MenkBordasMatrix K = sys.BuildMatrix();
-            MenkBordasVector f = sys.BuildRhsVector();
+            (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
             Matrix denseK = K.CopyToDense();
-            Vector denseF = f.CopyToDense();
             Vector denseUExpected = uExpected.CopyToDense();
             Vector denseU = denseK.FactorLU().SolveLinearSystem(denseF);
 

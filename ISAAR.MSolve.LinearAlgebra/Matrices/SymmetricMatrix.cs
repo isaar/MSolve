@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             else
             {
-                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+                throw new SymmetricPatternModifiedException("This operation is legal only if the other matrix is also symmetric.");
             }
         }
 
@@ -300,7 +300,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             else
             {
-                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+                throw new SymmetricPatternModifiedException("This operation is legal only if the other matrix is also symmetric.");
             }
         }
 
@@ -419,7 +419,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             else
             {
-                throw new SymmetricPatternException("This operation is legal only if the other matrix is also symmetric.");
+                throw new SymmetricPatternModifiedException("This operation is legal only if the other matrix is also symmetric.");
             }
         }
 

@@ -31,15 +31,17 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
             //var solver = CreateNoReanalysisSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
-            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            //var solver = CreatePCGSolver(benchmark);
+            var solver = CreateMinresSolver(benchmark);
+            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
             //Reanalysis solvers
-            IReadOnlyList<ICartesianPoint2D> crackPath;
+            //IReadOnlyList<ICartesianPoint2D> crackPath;
             //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
-            using (var solver = CreateReanalysisSolver(benchmark))
-            {
-                crackPath = benchmark.Analyze(solver);
-            }
+            //using (var solver = CreateReanalysisSolver(benchmark))
+            //{
+            //    crackPath = benchmark.Analyze(solver);
+            //}
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
@@ -92,11 +94,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static DCB.Builder SetupBenchmark()
         {
-            double growthLength = 0.3;
-            //double elementSize = 0.08;
-            //IMeshProvider meshProvider = new DCBUniformMeshProvider(elementSize);
-            double fineElementSize = 0.11;
-            IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
+            double growthLength = 0.3; //0.3, 0.4 is good
+            double elementSize = 0.08; //0.08, 0.2 is good
+            IMeshProvider meshProvider = new DCBUniformMeshProvider(elementSize);
+            //double fineElementSize = 0.11;
+            //IMeshProvider meshProvider = new DCBRefinedMeshProvider(fineElementSize, 10 * fineElementSize);
             //IMeshProvider meshProvider = new GmshMeshProvider(@"C: \Users\Serafeim\Desktop\GMSH\dcb.msh");
             var builder = new DCB.Builder(growthLength, meshProvider);
             builder.UseLSM = true;
@@ -115,7 +117,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ISolver CreatePCGSolver(DCB benchmark)
         {
-            return new PCGSolver(benchmark.Model, 1, 1e-8);
+            return new PCGSolver(benchmark.Model, 1, 1e-10);
+        }
+
+        private static ISolver CreateMinresSolver(DCB benchmark)
+        {
+            return new MinresSolver(benchmark.Model, 1, 1e-10, 0);
         }
 
         private static ISolver CreateCholeskySuiteSparseSolver(DCB benchmark)

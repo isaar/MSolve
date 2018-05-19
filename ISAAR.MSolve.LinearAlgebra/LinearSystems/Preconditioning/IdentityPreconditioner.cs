@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Preconditioning
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
 {
     /// <summary>
     /// Use this class if you do not want to apply any preconditioning. It works for all matrix and vector dimensions. It can

@@ -5,8 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Preconditioning
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
 {
+    /// <summary>
+    /// Represents a matrix M such that inverse(M) is close to inverse(A), where A is the original matrix of the system.
+    /// </summary>
     public interface IPreconditioner
     {
         /// <summary>

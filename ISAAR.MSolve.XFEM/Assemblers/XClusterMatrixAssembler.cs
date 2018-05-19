@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
                 globalDofOrderer.MatchElementToGlobalStandardDofsOf(element,
                     out IReadOnlyDictionary<int, int> mapStandard, out IReadOnlyDictionary<int, int> mapConstrained);
                 Matrix kss = element.BuildStandardStiffnessMatrix();
-                Kss.AddSubmatrix(kss, mapStandard, mapStandard);
+                Kss.AddSubmatrixSymmetric(kss, mapStandard);
                 Ksc.AddSubmatrix(kss, mapStandard, mapConstrained);
             }
 

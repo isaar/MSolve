@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
+namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasVector
     {
@@ -108,6 +108,19 @@ namespace ISAAR.MSolve.XFEM.Solvers.Algorithms.MenkBordas
             for (int i = 0; i < numSubdomains; ++i) norms[1 + i] = Ve[i].Norm2();
             norms[numSubdomains + 1] = Vc.Norm2();
             return norms;
+        }
+
+        public double Norm2()
+        {
+            // TODO: should I compute the individual norms, add their squares and then take the root again?
+            return Math.Sqrt(this.DotProduct(this));
+        }
+
+        public void ScaleIntoThis(double scalar)
+        {
+            this.Vs.ScaleIntoThis(scalar);
+            for (int i = 0; i < numSubdomains; ++i) this.Ve[i].ScaleIntoThis(scalar);
+            this.Vc.ScaleIntoThis(scalar); // TODO: avoid this if it is 0
         }
 
         public void WriteToConsole()
