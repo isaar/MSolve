@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.Tests.IGA
             VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
             ModelCreator modelCreator = new ModelCreator(model);
-            string filename = "C:\\Users\\user\\Desktop\\MSolve-master\\ISAAR.MSolve.SamplesConsole\\IGA\\Input Files\\Cantilever2D.txt";
+            string filename = "..\\..\\..\\IGA\\InputFiles\\Cantilever2D.txt";
             IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
             modelReader.CreateModelFromFile();
 
