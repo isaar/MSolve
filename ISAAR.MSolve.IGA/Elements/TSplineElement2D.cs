@@ -203,7 +203,13 @@ namespace ISAAR.MSolve.IGA.Elements
 		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineElement2D element)
 		{
 			GaussQuadrature gauss = new GaussQuadrature();
-			return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, element.Knots);
+			return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, new List<Knot>
+                {
+                    new Knot(){ID=0,Ksi=-1,Heta = -1,Zeta = 0},
+                    new Knot(){ID=1,Ksi=-1,Heta = 1,Zeta = 0},
+                    new Knot(){ID=2,Ksi=1,Heta = -1,Zeta = 0},
+                    new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
+                });
 		}
 	}
 }
