@@ -7,6 +7,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Problems.Structural.Constitutive
 {
+    public enum StressStates { PlaneStress,PlaneStrain};
     public class ElasticMaterial2D : IIsogeometricMaterial3D
     {
         private readonly double[] strains = new double[3];
@@ -14,7 +15,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Constitutive
         private double [,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
-        public String StressState { get; set; }
+        public StressStates StressState { get; set; }
         public double[] Coordinates { get; set; }
 
 
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Constitutive
         {
             strains.CopyTo(this.strains, 0);
             constitutiveMatrix = new double[3, 3];
-            if (StressState.ToLower().Equals("plstress"))
+            if (StressState==StressStates.PlaneStress)
             {
                 double aux = YoungModulus / (1 - PoissonRatio * PoissonRatio);
                 constitutiveMatrix[0, 0] = aux;
