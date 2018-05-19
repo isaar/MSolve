@@ -112,7 +112,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             IEnumerable<(int row, int col, double value)> nonZeroEntries)
         {
             DOKSymmetricColMajor dok = CreateEmpty(order);
-            foreach (var (row, col, val) in nonZeroEntries) dok.columns[col][row] = val;
+            foreach (var (row, col, val) in nonZeroEntries)
+            {
+                if ( row <= col) dok.columns[col][row] = val;
+            }
             return dok;
         }
 

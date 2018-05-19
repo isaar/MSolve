@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            //SuiteSparse();
+            SuiteSparse();
             //TestMarshaling();
             //TestBuilders();
             //TestInverse();
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixMatrixMultiplication();
             //TestReordering();
             //TestReading();
-            TestSystemSolution();
+            //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
             //TestWriting();
@@ -39,7 +39,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestSuiteSparse.CheckRowAddition();
             //TestSuiteSparse.CheckRowAdditionReverse();
             //TestSuiteSparse.CheckRowDeletion();
-            TestSuiteSparse.CheckReordering1();
+            //TestSuiteSparse.CheckReordering1();
+            TestSuiteSparse.CheckSystemSolutions();
         }
 
         public static void TestMarshaling()

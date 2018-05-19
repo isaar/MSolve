@@ -175,7 +175,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public CholeskySuiteSparse FactorCholesky(SuiteSparseOrdering ordering)
         {
-            return CholeskySuiteSparse.Factorize(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets, ordering);
+            return CholeskySuiteSparse.Factorize(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets, false, ordering);
         }
 
         /// <summary>

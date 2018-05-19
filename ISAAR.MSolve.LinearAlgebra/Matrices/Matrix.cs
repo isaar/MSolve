@@ -311,7 +311,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 //Check each dimension, rather than the lengths of the internal buffers
                 if (!Preconditions.AreSameMatrixDimensions(this, casted)) return false;
                 double[] otherData = casted.data;
-                var comparer = new ValueComparer(1e-13);
+                var comparer = new ValueComparer(tolerance);
                 for (int i = 0; i < this.data.Length; ++i)
                 {
                     if (!comparer.AreEqual(this.data[i], otherData[i])) return false;

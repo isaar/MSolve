@@ -7,6 +7,8 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 
 //TODO: SuiteSparse Common should be represented here by an IDisposable class SuiteSparseCommon.
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
@@ -42,11 +44,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         public static CholeskySuiteSparse Factorize(int order, int nonZerosUpper, double[] values, int[] rowIndices,
-            int[] colOffsets, SuiteSparseOrdering ordering)
+            int[] colOffsets, bool superNodal, SuiteSparseOrdering ordering)
         {
-            IntPtr common = SuiteSparseUtilities.CreateCommon(0, (int)ordering);
+            int factorizationType = superNodal ? 1 : 0;
+            IntPtr common = SuiteSparseUtilities.CreateCommon(factorizationType, (int)ordering);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
-            int status = SuiteSparseUtilities.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets, 
+            int status = SuiteSparseUtilities.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets,
                 out IntPtr factorizedMatrix, common);
             if (status == -2)
             {
@@ -87,13 +90,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 
             int nnz = newRow.CountNonZeros();
             int[] colOffsets = { 0, nnz };
-            int status = SuiteSparseUtilities.RowAdd(Order, factorizedMatrix, rowIdx, 
+            int status = SuiteSparseUtilities.RowAdd(Order, factorizedMatrix, rowIdx,
                 nnz, newRow.InternalValues, newRow.InternalIndices, colOffsets, common);
             if (status != 1)
             {
                 throw new SuiteSparseException("Rows addition did not succeed. This could be caused by insufficent memory");
             }
         }
+
+        public Vector BackSubstitution(Vector rhs) { return SolveInternal(SystemType.BackSubstitution, rhs); }
+        public Matrix BackSubstitution(Matrix rhs) { return SolveInternal(SystemType.BackSubstitution, rhs); }
 
         public double CalcDeterminant()
         {
@@ -125,16 +131,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             GC.SuppressFinalize(this);
         }
 
-        public Vector SolveLinearSystem(Vector rhs)
-        {
-            if (factorizedMatrix == IntPtr.Zero)
-            {
-                throw new AccessViolationException("The factorized matrix has been freed from unmanaged memory");
-            }
-            double[] solution = new double[rhs.Length];
-            SuiteSparseUtilities.Solve(Order, factorizedMatrix, rhs.InternalData, solution, common);
-            return Vector.CreateFromArray(solution, false);
-        }
+        public Vector ForwardSubstitution(Vector rhs) { return SolveInternal(SystemType.ForwardSubstitution, rhs); }
+        public Matrix ForwardSubstitution(Matrix rhs) { return SolveInternal(SystemType.ForwardSubstitution, rhs); }
+        public Vector SolveLinearSystem(Vector rhs) { return SolveInternal(SystemType.Regular, rhs); }
+        public Matrix SolveLinearSystem(Matrix rhs) { return SolveInternal(SystemType.Regular, rhs); }
 
         /// <summary>
         /// Perhaps I should use SafeHandle (thread safety, etc). 
@@ -154,6 +154,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 SuiteSparseUtilities.DestroyCommon(ref common);
                 common = IntPtr.Zero;
             }
+        }
+
+        private Vector SolveInternal(SystemType system, Vector rhs)
+        {
+            if (factorizedMatrix == IntPtr.Zero)
+            {
+                throw new AccessViolationException("The factorized matrix has been freed from unmanaged memory");
+            }
+            Preconditions.CheckSystemSolutionDimensions(Order, Order, rhs.Length);
+            double[] solution = new double[rhs.Length];
+            int status = SuiteSparseUtilities.Solve((int)system, Order, 1, factorizedMatrix, rhs.InternalData, solution, common);
+            if (status != 1) throw new SuiteSparseException("System solution failed.");
+            return Vector.CreateFromArray(solution, false);
+        }
+
+        private Matrix SolveInternal(SystemType system, Matrix rhs)
+        {
+            if (factorizedMatrix == IntPtr.Zero)
+            {
+                throw new AccessViolationException("The factorized matrix has been freed from unmanaged memory");
+            }
+            Preconditions.CheckSystemSolutionDimensions(Order, Order, rhs.NumRows);
+            double[] solution = new double[rhs.NumRows * rhs.NumColumns];
+            int status = SuiteSparseUtilities.Solve((int)system, Order, rhs.NumColumns, factorizedMatrix, rhs.InternalData,
+                solution, common);
+            if (status != 1) throw new SuiteSparseException("System solution failed.");
+            return Matrix.CreateFromArray(solution, rhs.NumRows, rhs.NumColumns, false);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 Console.WriteLine($"Before factorization: nnz = {nnz}");
                 Console.WriteLine($"After factorization: nnz = {nnzFactor}");
             }
-            SuiteSparseUtilities.Solve(n, factor, rhs, solution, handle);
+            SuiteSparseUtilities.Solve(0, n, 1, factor, rhs, solution, handle);
             SuiteSparseUtilities.DestroyFactor(ref factor, handle);
             SuiteSparseUtilities.DestroyCommon(ref handle);
 
@@ -215,6 +215,60 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 Vector solutionComputed = factor.SolveLinearSystem(rhs);
                 comparer.CheckVectorEquality(solutionExpected, solutionComputed);
             }
+        }
+
+        public static void CheckSystemSolutions()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always, 1e-8);
+            int order = SparsePositiveDefinite.order;
+
+            // Build the matrices and right hand sides
+            var dense = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
+            //var skyline = SkylineMatrix.CreateFromArrays(order, SparsePositiveDefinite.skylineValues, 
+            //    SparsePositiveDefinite.skylineDiagOffsets, false);
+            //var dok = DOKSymmetricColMajor.CreateFromSparseMatrix(skyline);
+            var dok = DOKSymmetricColMajor.CreateEmpty(order);
+            for (int j = 0; j < order; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    if (dense[i, j] != 0) dok[i, j] = dense[i, j];
+                }
+            }
+            Vector b = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
+            Matrix B = Matrix.CreateFromArray(SquareInvertible.matrix);
+
+            // Solve using dense algebra
+            CholeskyFull chol = dense.FactorCholesky();
+            Matrix U = chol.GetFactorU();
+            Matrix L = U.Transpose();
+            Vector xSolveExpect = chol.SolveLinearSystem(b);
+            Matrix XSolveExpect = dense.Invert() * B;
+            Vector xBackExpect = U.Invert() * b;
+            Matrix XBackExpect = U.Invert() * B;
+            Vector xForwardExpect = L.Invert() * b;
+            Matrix XForwardExpect = L.Invert() * B;
+
+            // Solve using SuiteSparse
+            var (values, rowIndices, colOffsets) = dok.BuildSymmetricCSCArrays(true);
+            CholeskySuiteSparse factor = CholeskySuiteSparse.Factorize(order, values.Length, values, rowIndices, colOffsets,
+                true, SuiteSparseOrdering.Natural);
+            Vector xSolveComput = factor.SolveLinearSystem(b);
+            Matrix XSolveComput = factor.SolveLinearSystem(B);
+            Vector xBackComput = factor.BackSubstitution(b);
+            Matrix XBackComput = factor.BackSubstitution(B);
+            Vector xForwardComput = factor.ForwardSubstitution(b);
+            Matrix XForwardComput = factor.ForwardSubstitution(B);
+            Vector xSolveComput2 = factor.BackSubstitution(factor.ForwardSubstitution(b));
+
+            // Check results
+            FullMatrixWriter.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 10 };
+            comparer.CheckVectorEquality(xSolveExpect, xSolveComput);
+            comparer.CheckMatrixEquality(XSolveExpect.CopyToArray2D(), XSolveComput.CopyToArray2D());
+            comparer.CheckVectorEquality(xBackExpect, xBackComput);
+            comparer.CheckMatrixEquality(XBackExpect.CopyToArray2D(), XBackComput.CopyToArray2D());
+            comparer.CheckVectorEquality(xForwardExpect, xForwardComput);
+            comparer.CheckMatrixEquality(XForwardExpect.CopyToArray2D(), XForwardComput.CopyToArray2D());
         }
 
         private static void ProcessResult(double[] solution)
