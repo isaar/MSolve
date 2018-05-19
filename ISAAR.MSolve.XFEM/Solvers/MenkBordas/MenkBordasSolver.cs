@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
@@ -106,8 +107,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Signed boolean matrices and continuity equations
             Dictionary<XSubdomain2D, SignedBooleanMatrix> booleanMatrices =
                 assembler.BuildSubdomainSignedBooleanMatrices(cluster);
-            sys.numContinuityEquations = booleanMatrices[cluster.Subdomains[0]].NumRows;
-            sys.bc = Vector.CreateZero(sys.numContinuityEquations);
 
             // Subdomain enriched matrices and rhs
             foreach (var subdomain in cluster.Subdomains)
@@ -116,8 +115,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
 
                 sys.Kee.Add(DOKRowMajor.CreateFromSparseMatrix(Kee).BuildCSRMatrix(true)); // Not the most efficient, but ok for testing
-                if (!Kee.IsSymmetric()) throw new AsymmetricMatrixException(
-                    "Stiffness matrix corresponding to enr-enr dofs of a subdomain is not symmetric");
+                //if (!Kee.IsSymmetric()) throw new AsymmetricMatrixException(
+                //    "Stiffness matrix corresponding to enr-enr dofs of a subdomain is not symmetric");
                 var KesCSR = Kes.BuildCSRMatrix(true);
                 sys.Kes.Add(KesCSR);
                 sys.Kse.Add(KesCSR.TransposeToCSR());
@@ -126,18 +125,18 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 //Fe = 0 - Kec * Uc. TODO: do this without building the CSR matrix
                 sys.be.Add(Kec.MultiplyRight(Uc.Scale(-1.0), true)); 
             }
-            sys.CheckDimensions();
+            //sys.CheckDimensions();
 
             // Use an iterative algorithm to solve the system
-            //var cg = new MenkBordasCG(maxIterations, tolerance); // CG is not suited for this indefinite matrix
-            //(MenkBordasVector u, IterativeStatistics stats) = cg.Solve(sys);
-            var minres = new MenkBordasMinres(maxIterations, tolerance);
-            (MenkBordasVector u, MinresStatistics stats) = minres.Solve(sys);
-            Solution = u.CopyToDense();
-            Console.WriteLine(stats);
+            var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
+            (MenkBordasMatrix matrix, Vector rhs) = sys.BuildSystem();
+            (Vector u, MinresStatistics stats) = minres.Solve(matrix, rhs);
+            Solution = u;
+            //Console.WriteLine(stats);
 
             #region Debug
-            Vector xExpected = SolveLUandPrintMatrices(sys);
+            //CheckMultiplication(matrix, rhs);
+            //Vector xExpected = SolveLUandPrintMatrices(matrix, rhs);
             #endregion
 
             // Find the solution vector without multiple dofs
@@ -147,14 +146,22 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
-        private static Vector SolveLUandPrintMatrices(MenkBordasSystem sys)
+        private static void CheckMultiplication(MenkBordasMatrix K, Vector f)
         {
-            // Use a dense direct algorithm to solve the system (for testing)
-            MenkBordasMatrix K = sys.BuildMatrix();
-            MenkBordasVector F = sys.BuildRhsVector();
-
+            var rand = new Random();
+            var x = Vector.CreateZero(f.Length);
+            for (int i = 0; i < x.Length; ++i) x[i] = rand.NextDouble();
             Matrix denseK = K.CopyToDense();
-            Vector denseF = F.CopyToDense();
+
+            Vector yExpected = denseK * x;
+            Vector yComputed = K.Multiply(x);
+            double error = (yComputed - yExpected).Norm2() / yExpected.Norm2();
+        }
+
+        private static Vector SolveLUandPrintMatrices(MenkBordasMatrix K, Vector f)
+        {
+            Matrix denseK = K.CopyToDense();
+            Vector denseF = f;
             Vector denseX = denseK.FactorLU().SolveLinearSystem(denseF);
 
             // Sparse global matrix
@@ -177,16 +184,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             writer.WriteFullVector(denseX, directory + "solution.txt");
 
             // Export the submatrices to Matlab
-            writer.WriteSparseMatrix((ISparseMatrix)(K.Kss), directory + "Kss.txt");
-            writer.WriteFullVector(F.Vs, directory + "fs.txt");
-            for (int i = 0; i < sys.numSubdomains; ++i)
-            {
-                writer.WriteSparseMatrix((ISparseMatrix)(K.Kee[i]), directory + $"Kee{i+1}.txt");
-                writer.WriteSparseMatrix((ISparseMatrix)(K.Kes[i]), directory + $"Kes{i+1}.txt");
-                writer.WriteSparseMatrix((ISparseMatrix)(K.B[i]), directory + $"B{i+1}.txt");
-                writer.WriteFullVector(F.Ve[i], directory + $"fe{i+1}.txt");
-            }
-            writer.WriteFullVector(F.Vc, directory + "fc.txt"); // This vector is 0.
+            K.WriteToFiles(directory);
 
             return denseX;
         }

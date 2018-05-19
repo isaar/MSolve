@@ -56,15 +56,26 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
 
         public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, double shift = 0.0)
         {
-            return SolveInternal(A, b, null, shift);
+            return SolveInternal(new MatrixTransformation(A), b, null, shift);
         }
 
         public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, IPreconditioner M, double shift = 0.0)
         {
+            return SolveInternal(new MatrixTransformation(A), b, M, shift);
+        }
+
+        public (Vector, MinresStatistics) Solve(ILinearTransformation<Vector> A, Vector b, double shift = 0.0)
+        {
+            return SolveInternal(A, b, null, shift);
+        }
+
+        public (Vector, MinresStatistics) Solve(ILinearTransformation<Vector> A, Vector b, IPreconditioner M, double shift = 0.0)
+        {
             return SolveInternal(A, b, M, shift);
         }
 
-        private (Vector, MinresStatistics) SolveInternal(IMatrixView A, Vector b, IPreconditioner M, double shift)
+        private (Vector, MinresStatistics) SolveInternal(ILinearTransformation<Vector> A, Vector b, IPreconditioner M, 
+            double shift)
         {
             /// Initialize.
 
@@ -305,10 +316,10 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             }
         }
 
-        internal static void CheckSymmetricMatrix(IMatrixView A, Vector y, Vector r1)
+        private static void CheckSymmetricMatrix(ILinearTransformation<Vector> A, Vector y, Vector r1)
         {
-            Vector w = A.MultiplyRight(y, false);
-            Vector r2 = A.MultiplyRight(w, false);
+            Vector w = A.Multiply(y);
+            Vector r2 = A.Multiply(w);
             double s = w * w;
             double t = y * r2;
             double z = Math.Abs(s - t);
@@ -333,19 +344,19 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
         /// <param name="vector"></param>
         /// <param name="shift"></param>
         /// <returns></returns>
-        internal static Vector ShiftedMatrixVectorMult(IMatrixView matrix, Vector vector, double shift)
+        private static Vector ShiftedMatrixVectorMult(ILinearTransformation<Vector> matrix, Vector vector, double shift)
         {
-            if (shift == 0.0) return matrix.MultiplyRight(vector, false);
+            if (shift == 0.0) return matrix.Multiply(vector);
             else
             {
-                Vector result = matrix.MultiplyRight(vector, false);
+                Vector result = matrix.Multiply(vector);
                 result.AxpyIntoThis(shift, vector);
                 return result;
             }
         }
 
-        internal static void WriteIterationData(IMatrixView A, Vector b, double shift, Vector x, int iter, int maxIterations,
-            double test1, double test2, double Anorm, double Acond, double gbar, double qrnorm, 
+        private static void WriteIterationData(ILinearTransformation<Vector> A, Vector b, double shift, Vector x, int iter,
+            int maxIterations, double test1, double test2, double Anorm, double Acond, double gbar, double qrnorm, 
             int istop, double epsx, double epsr)
         {
             bool printThisOnce = false;

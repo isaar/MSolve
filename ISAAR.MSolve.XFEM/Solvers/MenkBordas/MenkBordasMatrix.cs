@@ -1,28 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: remove MenkBordasVector, MenkBordasCG, MenkBordasMINRES
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasMatrix
+    class MenkBordasMatrix: ILinearTransformation<Vector>
     {
         private readonly int numSubdomains;
         private readonly int numEquations;
-
-        public readonly IMatrixView Kss;
-        public readonly IMatrixView[] Kee;
-        public readonly IMatrixView[] Kes;
-        public readonly IMatrixView[] Kse;
+        private readonly int numDofsAll;
+        private readonly int numDofsStd;
+        private readonly int[] subdomainStarts;
+        private readonly int[] subdomainEnds;
+        private readonly int equationsStart;
+        
+        public readonly CSRMatrix Kss;
+        public readonly CSRMatrix[] Kee;
+        public readonly CSRMatrix[] Kes;
+        public readonly CSRMatrix[] Kse;
         public readonly SignedBooleanMatrix[] B;
 
-        public MenkBordasMatrix(int numSubdomains, int numEquations,
-            IMatrixView Kss, IMatrixView[] Kee, IMatrixView[] Kes, IMatrixView[] Kse, SignedBooleanMatrix[] B)
+        public MenkBordasMatrix(int numSubdomains, int numEquations, int numDofsStd, int numDofsAll, 
+            int[] subdomainStarts, int[] subdomainEnds, int equationsStart,
+            CSRMatrix Kss, CSRMatrix[] Kee, CSRMatrix[] Kes, CSRMatrix[] Kse, SignedBooleanMatrix[] B)
         {
             this.numSubdomains = numSubdomains;
             this.numEquations = numEquations;
+            this.numDofsStd = numDofsStd;
+            this.numDofsAll = numDofsAll;
+            this.subdomainStarts = subdomainStarts;
+            this.subdomainEnds = subdomainEnds;
+            this.equationsStart = equationsStart;
+
             this.Kss = Kss;
             this.Kee = Kee;
             this.Kes = Kes;
@@ -85,6 +100,28 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return K;
         }
 
+        public Vector Multiply(Vector x)
+        {
+            var y = Vector.CreateZero(numDofsAll);
+            var xs = x.Slice(0, numDofsStd);
+            var xc = x.Slice(equationsStart, numDofsAll);
+            Vector ys = Kss.MultiplyRight(xs); // Rows correspond to global standard dofs
+            var yc = Vector.CreateZero(numEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
+            for (int i = 0; i < numSubdomains; ++i)
+            {
+                var xe = x.Slice(subdomainStarts[i], subdomainEnds[i]);
+                ys.AddIntoThis(Kse[i].MultiplyRight(xe)); 
+                Vector ye = Kes[i].MultiplyRight(xs);
+                ye.AddIntoThis(Kee[i].MultiplyRight(xe));
+                ye.AddIntoThis(B[i].MultiplyRight(xc, true));
+                yc.AddIntoThis(B[i].MultiplyRight(xe, false));
+                y.CopyFromVector(subdomainStarts[i], ye, 0, ye.Length);
+            }
+            y.CopyFromVector(0, ys, 0, numDofsStd);
+            y.CopyFromVector(equationsStart, yc, 0, numEquations);
+            return y;
+        }
+
         public MenkBordasVector MultiplyRight(MenkBordasVector vector)
         {
             Vector ys = Kss.MultiplyRight(vector.Vs); // Rows correspond to global standard dofs
@@ -125,6 +162,18 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 Console.WriteLine($"Subdomain {i} - transpose B: ");
                 (new FullMatrixWriter(B[i].Transpose())).WriteToConsole();
                 Console.WriteLine();
+            }
+        }
+
+        public void WriteToFiles(string directoryPath)
+        {
+            var writer = new MatlabWriter();
+            writer.WriteSparseMatrix(Kss, directoryPath + "Kss.txt");
+            for (int i = 0; i < numSubdomains; ++i)
+            {
+                writer.WriteSparseMatrix(Kee[i], directoryPath + $"Kee{i + 1}.txt");
+                writer.WriteSparseMatrix(Kes[i], directoryPath + $"Kes{i + 1}.txt");
+                writer.WriteSparseMatrix(B[i], directoryPath + $"B{i + 1}.txt");
             }
         }
     }
