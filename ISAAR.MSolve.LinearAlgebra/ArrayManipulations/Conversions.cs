@@ -4,6 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: All the functions in this namespace serve to copy entries to other positions. They should be performed in C and Pinvoked.
+//      Some might exist in MKL, thus I should use that one instead. In C# I should write the Pinvoke methods and wrap them in
+//      classes, in order to group them and simplify the naming. Naming the functions in C code should be done used abbreviations
+//      e.g. c=colMajor, p=packed, l=lower, 2=to etc. Optionally I could use OpenMP (CUDA is meaningless here) for some of these. 
+//      This also serves as OpenMP practice.
 namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
 {
     // TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
@@ -254,26 +259,6 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         }
 
         /// <summary>
-        /// Extract the lower trapezoid (subdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
-        /// rectangular matrices.
-        /// </summary>
-        /// <param name="full"></param>
-        /// <returns></returns>
-        public static double[] FullColMajorToFullLowerColMajorRect(int numRows, int numCols, double[] full)
-        {
-            if (numRows > numCols) throw new NotImplementedException("For now: numRows <= numCols");
-            double[] lower = new double[full.Length];
-            for (int j = 0; j < numRows; ++j) // numRows < numCols, so this will not scan past the square submatrix that contains the diagonal
-            {
-                for (int i = j; i < numRows; ++i) // this will scan all rows of the relevant columns
-                {
-                    lower[j * numRows + i] = full[j * numRows + i];
-                }
-            }
-            return lower;
-        }
-
-        /// <summary>
         /// Extract the upper part only. Both I/O are column major with full storage.
         /// </summary>
         /// <param name="full"></param>
@@ -297,26 +282,6 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             else
             {
                 for (int d = 0; d < n; ++d) upper[d * n + d] = full[d * n + d];
-            }
-            return upper;
-        }
-
-        /// <summary>
-        /// Extract the upper trapezoid (superdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
-        /// rectangular matrices.
-        /// </summary>
-        /// <param name="full"></param>
-        /// <returns></returns>
-        public static double[] FullColMajorToFullUpperColMajorRect(int numRows, int numCols, double[] full)
-        {
-            if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
-            double[] upper = new double[full.Length];
-            for (int j = 0; j < numCols; ++j) // numCols < numRows, so this will scan all columns
-            {
-                for (int i = 0; i <= j; ++i) // numCols < numRows, so this will not scan past the square submatrix that contains the diagonal
-                {
-                    upper[j * numRows + i] = full[j * numRows + i];
-                }
             }
             return upper;
         }
@@ -566,6 +531,70 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
                 throw new ArgumentException("The length of the 1D array must be an integer L such that L=n*(n+1)/2");
             }
             return order;
+        }
+
+
+        public static double[] RectColMajorToPackedLowerColMajor(int numRows, int numCols, double[] rect)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static double[] RectColMajorToPackedUpperColMajor(int numRows, int numCols, double[] rect)
+        {
+            throw new NotImplementedException();
+
+        }
+
+        public static double[] RectColMajorToSquareFullLowerColMajor(int numRows, int numCols, double[] rect)
+        {
+            throw new NotImplementedException();
+
+        }
+
+        public static double[] RectColMajorToSquareFullUpperColMajor(int numRows, int numCols, double[] rect)
+        {
+            throw new NotImplementedException();
+
+        }
+
+        /// <summary>
+        /// Extract the lower trapezoid (subdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
+        /// rectangular matrices.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static double[] RectColMajorToRectLowerColMajor(int numRows, int numCols, double[] rect)
+        {
+            if (numRows > numCols) throw new NotImplementedException("For now: numRows <= numCols");
+            double[] lower = new double[rect.Length];
+            for (int j = 0; j < numRows; ++j) // numRows < numCols, so this will not scan past the square submatrix that contains the diagonal
+            {
+                for (int i = j; i < numRows; ++i) // this will scan all rows of the relevant columns
+                {
+                    lower[j * numRows + i] = rect[j * numRows + i];
+                }
+            }
+            return lower;
+        }
+
+        /// <summary>
+        /// Extract the upper trapezoid (superdiagonal) part only. Both I/O are column major with full storage. Appropriate for 
+        /// rectangular matrices.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static double[] RectColMajorToRectUpperColMajor(int numRows, int numCols, double[] rect)
+        {
+            if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
+            double[] upper = new double[rect.Length];
+            for (int j = 0; j < numCols; ++j) // numCols < numRows, so this will scan all columns
+            {
+                for (int i = 0; i <= j; ++i) // numCols < numRows, so this will not scan past the square submatrix that contains the diagonal
+                {
+                    upper[j * numRows + i] = rect[j * numRows + i];
+                }
+            }
+            return upper;
         }
     }
 }

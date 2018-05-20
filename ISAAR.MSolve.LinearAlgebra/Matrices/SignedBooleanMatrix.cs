@@ -85,6 +85,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.CopyToArray2D(this);
         }
 
+        public Matrix CopyToFullMatrix(bool transpose)
+        {
+            // TODO: perhaps I should work with th col major arrays.
+            if (transpose)
+            {
+                var dense = Matrix.CreateZero(this.NumColumns, this.NumRows);
+                foreach (var wholeRow in data)
+                {
+                    foreach (var colValuePair in wholeRow.Value) dense[colValuePair.Key, wholeRow.Key] = colValuePair.Value;
+                }
+                return dense;
+            }
+            else
+            {
+                var dense = Matrix.CreateZero(this.NumRows, this.NumColumns);
+                foreach (var wholeRow in data)
+                {
+                    foreach (var colValuePair in wholeRow.Value) dense[wholeRow.Key, colValuePair.Key] = colValuePair.Value;
+                }
+                return dense;
+            }
+        }
+
         public int CountNonZeros()
         {
             int count = 0;

@@ -100,8 +100,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             {
                 throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
-            double[] r = Conversions.FullColMajorToFullUpperColMajorRect(NumRows, NumColumns, reflectorsAndR);
+            double[] r = Conversions.RectColMajorToRectUpperColMajor(NumRows, NumColumns, reflectorsAndR);
             return Matrix.CreateFromArray(r , NumRows, NumColumns, false);
+        }
+
+        public Matrix GetFactorR1()
+        {
+            if (NumRows < NumColumns)
+            {
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
+            }
+            double[] r = Conversions.RectColMajorToSquareFullUpperColMajor(NumRows, NumColumns, reflectorsAndR);
+            return Matrix.CreateFromArray(r, NumColumns, NumColumns, false);
         }
 
         /// <summary>

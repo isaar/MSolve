@@ -612,6 +612,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public void SetSubmatrix(int rowStart, int colStart, Matrix submatrix)
         {
+            // TODO: create Preconditions.CheckOverflow1D() and 2D for such setters.
             Preconditions.CheckIndices(this, rowStart, colStart);
             if ((rowStart + submatrix.NumRows > this.NumRows) || (colStart + submatrix.NumColumns > this.NumColumns))
             {

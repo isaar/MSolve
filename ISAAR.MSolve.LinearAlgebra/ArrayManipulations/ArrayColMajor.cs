@@ -203,13 +203,22 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         internal static void SetSubmatrix(int numRowsBig, int numColsBig, double[] matrixBig, int rowStartBig, int colStartBig,
             int numRowsSub, int numColsSub, double[] matrixSub)
         {
-            for (int j = 0; j < numColsSub; ++j)
+            // Optimization case: if the submatrix has exactly as many rows as the big matrix and there is now row offset, then 
+            // the entries of the big matrix that will be set are contiguous.
+            if ((numRowsBig == numRowsSub) && (rowStartBig == 0))
             {
-                // The numRowsSub entries of column j are contigous.
-                Array.Copy(matrixSub, j * numRowsSub, matrixBig, (colStartBig + j) * numRowsBig + rowStartBig, numRowsSub);
+                Array.Copy(matrixSub, 0, matrixBig, colStartBig * numRowsBig, numRowsSub * numColsSub);
             }
-            // TODO: if the rows of submatrix are very few, the overhead of Array.Copy() may be worse than directly setting the 
-            // entries.
+            else
+            {
+                for (int j = 0; j < numColsSub; ++j)
+                {
+                    // The numRowsSub entries of column j are contigous.
+                    Array.Copy(matrixSub, j * numRowsSub, matrixBig, (colStartBig + j) * numRowsBig + rowStartBig, numRowsSub);
+                    // TODO: if the rows of submatrix are very few, the overhead of Array.Copy() may be worse than directly 
+                    // setting the entries.
+                }
+            }
         }
     }
 }
