@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
@@ -70,8 +71,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             for (int i = 0; i < numSubdomains; ++i)
             {
                 subdomainStarts[i] = nextStart;
-                subdomainEnds[i] = nextStart + Kee[i].NumRows;
-                nextStart = subdomainEnds[i];
+                nextStart = nextStart + Kee[i].NumRows;
+                subdomainEnds[i] = nextStart;
             }
             int equationsStart = nextStart;
             int numEquations = B[0].NumRows;
@@ -90,6 +91,51 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
 
             return (matrix, rhs);
+        }
+
+        public (MenkBordasPrecondMatrix matrix, MenkBordasPreconditioner precond, Vector rhs) BuildPreconditionedSystem()
+        {
+            // Count various dimensions
+            int numDofsStd = Kss.NumRows;
+            int[] subdomainStarts = new int[numSubdomains];
+            int[] subdomainEnds = new int[numSubdomains];
+            int nextStart = numDofsStd;
+            for (int i = 0; i < numSubdomains; ++i)
+            {
+                subdomainStarts[i] = nextStart;
+                nextStart = nextStart + Kee[i].NumRows;
+                subdomainEnds[i] = nextStart;
+            }
+            int equationsStart = nextStart;
+            int numEquations = B[0].NumRows;
+            int numDofsAll = nextStart + numEquations;
+
+
+            // Assemble the rhs vector
+            var rhs = Vector.CreateZero(numDofsAll);
+            rhs.CopyFromVector(0, bs, 0, numDofsStd);
+            for (int i = 0; i < numSubdomains; ++i)
+            {
+                rhs.CopyFromVector(subdomainStarts[i], be[i], 0, be[i].Length);
+            }
+
+            // Create the preconditioner
+            // TODO: for now just copy the DOKs, but a custom DOK is needed to avoid duplicate operations and memory.
+            //      actually Kee are not needed explicitly, just their factorization. Same holds for Kss if a cholesky 
+            //      preconditioner is used.
+            var copyKss = DOKSymmetricColMajor.CreateFromSparseMatrix(Kss);
+            var copyKee = new DOKSymmetricColMajor[numSubdomains];
+            for (int i = 0; i < numSubdomains; ++i) copyKee[i] = DOKSymmetricColMajor.CreateFromSparseMatrix(Kee[i]);
+            var precond = MenkBordasPreconditioner.Create(numSubdomains, numEquations, numDofsStd, numDofsAll,
+                subdomainStarts, subdomainEnds, equationsStart, 
+                copyKss, copyKee, B);
+
+            // Create the matrix
+            var matrix = new MenkBordasPrecondMatrix(numSubdomains, numEquations, numDofsStd, numDofsAll,
+                subdomainStarts, subdomainEnds, equationsStart, 
+                Kss, Kee.ToArray(), Kes.ToArray(), Kse.ToArray(), B.ToArray(), precond);
+
+            return (matrix, precond, rhs);
         }
     }
 }

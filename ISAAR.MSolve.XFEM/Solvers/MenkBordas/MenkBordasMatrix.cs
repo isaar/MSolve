@@ -12,13 +12,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasMatrix: ILinearTransformation<Vector>
     {
-        private readonly int numSubdomains;
-        private readonly int numEquations;
-        private readonly int numDofsAll;
-        private readonly int numDofsStd;
-        private readonly int[] subdomainStarts;
-        private readonly int[] subdomainEnds;
-        private readonly int equationsStart;
+        public readonly int numSubdomains;
+        public readonly int numEquations;
+        public readonly int numDofsAll;
+        public readonly int numDofsStd;
+        public readonly int[] subdomainStarts;
+        public readonly int[] subdomainEnds;
+        public readonly int equationsStart;
         
         public readonly CSRMatrix Kss;
         public readonly CSRMatrix[] Kee;

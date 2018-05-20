@@ -16,6 +16,12 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 //TODO: remove checks and prints
+//TODO: allow various preconditioners for Kss
+//TODO: use AMD first. 
+//TODO: Alternatively consider grouping all boundary dofs together. Perhaps this could reduce the QR effort to certain 
+//      submatrices and even allow decoupling of Q and R. Ideally this ordering could coexist with AMD's by using a permutation
+//      vector when multiplying with Q. Perhaps the permutation vector or the multiplication could also take advantage of empty
+//      submatrices in Q.
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasSolver: ISolver
@@ -98,17 +104,17 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             int numSubdomains = cluster.Subdomains.Count;
             // TODO: should I order the dofs (cluster.OrderDofs(model)) again?
 
-            // Create the linear system
+            /// Create the linear system
             var assembler = new XClusterMatrixAssembler();
             var sys = new MenkBordasSystem(cluster.Subdomains.Count);
             sys.Kss = Kss;
             sys.bs = Fs;
 
-            // Signed boolean matrices and continuity equations
+            /// Signed boolean matrices and continuity equations
             Dictionary<XSubdomain2D, SignedBooleanMatrix> booleanMatrices =
                 assembler.BuildSubdomainSignedBooleanMatrices(cluster);
 
-            // Subdomain enriched matrices and rhs
+            /// Subdomain enriched matrices and rhs
             foreach (var subdomain in cluster.Subdomains)
             {
                 (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
@@ -127,29 +133,40 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
             //sys.CheckDimensions();
 
-            // Use an iterative algorithm to solve the system
+            /// Use an iterative algorithm to solve the system
             var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
-            (MenkBordasMatrix matrix, Vector rhs) = sys.BuildSystem();
-            (Vector u, MinresStatistics stats) = minres.Solve(matrix, rhs);
-            Solution = u;
+
+            /// Without preconditioning
+            //(MenkBordasMatrix matrix, Vector rhs) = sys.BuildSystem();
+            //(Vector u, MinresStatistics stats) = minres.Solve(matrix, rhs);
+            //Solution = u;
             //Console.WriteLine(stats);
+
+            /// With preconditioning
+            (MenkBordasPrecondMatrix K, MenkBordasPreconditioner P, Vector rhs) = sys.BuildPreconditionedSystem();
+            Vector b = P.Multiply(rhs, true);
+            (Vector x, MinresStatistics stats) = minres.Solve(K, b);
+            Solution = P.Multiply(x, false);
+            Console.WriteLine(stats);
 
             #region Debug
             //CheckMultiplication(matrix, rhs);
+            //CheckPrecondMultiplication(sys);
             //Vector xExpected = SolveLUandPrintMatrices(matrix, rhs);
+            CompareSolutionWithLU(sys, Solution);
             #endregion
 
-            // Find the solution vector without multiple dofs
+            /// Find the solution vector without multiple dofs
             // TODO:Should I do that? Isn't the ClusterDofOrderer responsible for extracting the correct dofs, when needed?
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
-        private static void CheckMultiplication(MenkBordasMatrix K, Vector f)
+        private static void CheckMultiplication(MenkBordasMatrix K)
         {
             var rand = new Random();
-            var x = Vector.CreateZero(f.Length);
+            var x = Vector.CreateZero(K.numDofsAll);
             for (int i = 0; i < x.Length; ++i) x[i] = rand.NextDouble();
             Matrix denseK = K.CopyToDense();
 
@@ -158,11 +175,45 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             double error = (yComputed - yExpected).Norm2() / yExpected.Norm2();
         }
 
+        private static void CheckPrecondMultiplication(MenkBordasSystem sys)
+        {
+            // Build the matrices
+            (MenkBordasMatrix K, Vector fCopy) = sys.BuildSystem();
+            (MenkBordasPrecondMatrix Kbar, MenkBordasPreconditioner P, Vector f) = sys.BuildPreconditionedSystem();
+            Matrix denseK = K.CopyToDense();
+
+            // Build the lhs
+            var rand = new Random();
+            var xBar = Vector.CreateZero(K.numDofsAll);
+            for (int i = 0; i < K.numDofsAll; ++i)
+            {
+                xBar[i] = rand.NextDouble();
+                //xBar[i] = 1.0;
+            }
+
+            // Solve rigged system
+            Vector x = P.Multiply(xBar, false);
+            Vector yExpected = denseK * x;
+            Vector yBarExpected = P.Multiply(yExpected, true);
+            Vector yBar = Kbar.Multiply(xBar);
+
+            double error = (yBar - yBarExpected).Norm2() / yBarExpected.Norm2();
+            Console.WriteLine("Normalized error in preconditioned multiplication = " + error);
+        }
+
+        private static void CompareSolutionWithLU(MenkBordasSystem sys, Vector solution)
+        {
+            (MenkBordasMatrix K, Vector f) = sys.BuildSystem();
+            Matrix denseK = K.CopyToDense();
+            Vector xExpected = denseK.FactorLU().SolveLinearSystem(f);
+            double error = (solution - xExpected).Norm2() / xExpected.Norm2();
+            Console.WriteLine("Normalized difference |xMINRES - xLU| / |xLU| = " + error);
+        }
+
         private static Vector SolveLUandPrintMatrices(MenkBordasMatrix K, Vector f)
         {
             Matrix denseK = K.CopyToDense();
-            Vector denseF = f;
-            Vector denseX = denseK.FactorLU().SolveLinearSystem(denseF);
+            Vector denseX = denseK.FactorLU().SolveLinearSystem(f);
 
             // Sparse global matrix
             int order = denseK.NumRows;
@@ -180,7 +231,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var writer = new MatlabWriter();
             string directory = @"C:\Users\Serafeim\Desktop\GRACM\MenkBordas_debugging\";
             writer.WriteSparseMatrix(sparseK, directory + "global_matrix.txt");
-            writer.WriteFullVector(denseF, directory + "global_rhs.txt");
+            writer.WriteFullVector(f, directory + "global_rhs.txt");
             writer.WriteFullVector(denseX, directory + "solution.txt");
 
             // Export the submatrices to Matlab

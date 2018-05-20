@@ -158,8 +158,8 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
 
         public static void UseMenkBordasSolver(Model2D model, XCluster2D cluster)
         {
-            int maxIterations = 100000;
-            double tolerance = 1e-10;
+            int maxIterations = 1700;
+            double tolerance = double.Epsilon;
             var solver = new MenkBordasSolver(model, cluster, maxIterations, tolerance);
             solver.Initialize();
             solver.Solve();
