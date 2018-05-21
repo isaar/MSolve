@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Entities;
 
 //TODO: Allow it to update some submatrices, while keeping others the same. 
 //TODO: Break up Q and L into submatrices or store the submatrices that assemble the intermediate matrix before QR factorization.
@@ -21,78 +22,61 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      Also try to take advantage of the fact that B are boolean matrices, with at most 2 entries per column
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasPreconditioner: IDisposable
+    //TODO: apply AMD before factorizing. Perhaps this should be done by the solver itself, so that the dofOrders are also updated.
+    static class MenkBordasPreconditioner
     {
-        public readonly int numSubdomains;
-        public readonly int numEquations;
-        public readonly int numDofsAll;
-        public readonly int numDofsStd;
-        public readonly int[] subdomainStarts;
-        public readonly int[] subdomainEnds;
-        public readonly int equationsStart;
-
-        public readonly CholeskySuiteSparse Ps; //TODO: abstract this so other preconditioners can be used.
-        public readonly CholeskySuiteSparse[] Pe;
-        public readonly Matrix Q;
-        public readonly Matrix L;
-
-        private MenkBordasPreconditioner(int numSubdomains, int numEquations, int numDofsStd, int numDofsAll,
-            int[] subdomainStarts, int[] subdomainEnds, int equationsStart,
-            CholeskySuiteSparse Ps, CholeskySuiteSparse[] Pe, Matrix Q, Matrix L)
+        public static CholeskySuiteSparse CreateStandardPreconditioner(DOKSymmetricColMajor Kss)
         {
-            this.numSubdomains = numSubdomains;
-            this.numEquations = numEquations;
-            this.numDofsStd = numDofsStd;
-            this.numDofsAll = numDofsAll;
-            this.subdomainStarts = subdomainStarts;
-            this.subdomainEnds = subdomainEnds;
-            this.equationsStart = equationsStart;
-
-            this.Ps = Ps;
-            this.Pe = Pe;
-            this.Q = Q;
-            this.L = L;
+            // Standard preconditioner = cholesky factor U
+            var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
+            return CholeskySuiteSparse.Factorize(Kss.NumRows, valuesStd.Length, valuesStd, rowIndicesStd, colOffsetsStd,
+                true, SuiteSparseOrdering.Natural);
         }
 
-        public static MenkBordasPreconditioner Create(int numSubdomains, int numEquations, int numDofsStd, int numDofsAll,
-            int[] subdomainStarts, int[] subdomainEnds, int equationsStart,
-            DOKSymmetricColMajor Kss, IReadOnlyList<DOKSymmetricColMajor> Kee, IReadOnlyList<SignedBooleanMatrix> B)
+        public static CholeskySuiteSparse[] CreateEnrichedPreconditioners(MenkBordasSystem.Dimensions dimensions,
+             IReadOnlyList<DOKSymmetricColMajor> Kee)
         {
-            // Do not use "using(...){...}". We want the unmanaged memory to persist.
-            var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
-
-            // Standard preconditioner
-            var Ps = CholeskySuiteSparse.Factorize(Kss.NumRows, valuesStd.Length, valuesStd, rowIndicesStd, colOffsetsStd,
-                true, SuiteSparseOrdering.Natural);
-
-            // Matrix that will undergo QR:
-            // (B*Pe)^T = [B1*inv(U1) B2*inv(U2) ...]^T = [inv(L1)*B1^T inv(L2)*B2^T ...]
-            // Dims: B = numEquations -by- numDofsEnr, Pe = numDofsEnr -by- numDofsEnr, (B*Pe)^T = numDofsEnr -by- numEquations
-            int numDofsEnr = numDofsAll - numDofsStd - numEquations;
-            var BPeTransp = Matrix.CreateZero(numDofsEnr, numEquations);
-
-            var Pe = new CholeskySuiteSparse[numSubdomains];
-            for (int i = 0; i < numSubdomains; ++i)
+            var Pe = new CholeskySuiteSparse[dimensions.NumSubdomains];
+            for (int i = 0; i < dimensions.NumSubdomains; ++i)
             {
                 // Enriched preconditioner = cholesky factor U
                 var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee[i].BuildSymmetricCSCArrays(true);
                 Pe[i] = CholeskySuiteSparse.Factorize(Kee[i].NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr, colOffsetsEnr,
                     true, SuiteSparseOrdering.Natural);
+            }
+            return Pe;
+        }
 
+        public static CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetricColMajor Kee)
+        {
+            // Enriched preconditioner = cholesky factor U
+            var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCSCArrays(true);
+            return CholeskySuiteSparse.Factorize(Kee.NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr, 
+                colOffsetsEnr, true, SuiteSparseOrdering.Natural);
+        }
+
+        public static (Matrix L, Matrix Q) CreateContinuityEquationsPreconditioners(MenkBordasSystem.Dimensions dimensions,
+             IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B, IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe)
+        {
+            // Matrix that will undergo QR:
+            // (B*Pe)^T = [B1*inv(U1) B2*inv(U2) ...]^T = [inv(L1)*B1^T inv(L2)*B2^T ...]
+            // Dims: B = numEquations -by- numDofsEnr, Pe = numDofsEnr -by- numDofsEnr, (B*Pe)^T = numDofsEnr -by- numEquations
+            var BPeTransp = Matrix.CreateZero(dimensions.NumDofsEnr, dimensions.NumEquations);
+
+            foreach (var sub in dimensions.Subdomains)
+            {
                 // Contribution to the matrix that will undergo QR
-                Matrix contribution = Pe[i].ForwardSubstitution(B[i].CopyToFullMatrix(true));
-                BPeTransp.SetSubmatrix(subdomainStarts[i] - numDofsStd, 0, contribution);
+                Matrix contribution = Pe[sub].ForwardSubstitution(B[sub].CopyToFullMatrix(true));
+                BPeTransp.SetSubmatrix(dimensions.SubdomainStarts[sub] - dimensions.NumDofsStd, 0, contribution);
             }
 
             // LQ factorization 
             //TODO: various optimizations might be possible here
             var qr = BPeTransp.FactorQR();
-            Matrix L = qr.GetFactorR().Slice(0, numEquations, 0, numEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
-            Matrix Q = qr.GetFactorQ().Slice(0, numDofsEnr, 0, numEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
+            Matrix L = qr.GetFactorR().Slice(0, dimensions.NumEquations, 0, dimensions.NumEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
+            Matrix Q = qr.GetFactorQ().Slice(0, dimensions.NumDofsEnr, 0, dimensions.NumEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
 
             #region Debug
-            //The problem is with Q or with its multiplications (L is ok though). Print Q and Q1 and check it against matlab
-
             //FullMatrixWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 4 };
             //Console.WriteLine("Before QR: Pe^T * B^T = ");
             //(new FullMatrixWriter(BPeTransp)).WriteToConsole();
@@ -107,62 +91,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //Console.WriteLine();
             #endregion
 
-            return new MenkBordasPreconditioner(numSubdomains, numEquations, numDofsStd, numDofsAll,
-                subdomainStarts, subdomainEnds, equationsStart,
-                Ps, Pe, Q, L);
-        }
-
-        public void Dispose()
-        {
-            if (Ps != null) Ps.Dispose();
-            for (int i = 0; i < numSubdomains; ++i)
-            {
-                if (Pe[i] != null) Pe[i].Dispose();
-            }
-        }
-
-        public Vector Multiply(Vector x, bool transpose)
-        {
-            if (transpose)
-            {
-                var y = Vector.CreateZero(numDofsAll);
-
-                // ys = Ps * xs = inv(Us^T) * xs
-                Vector ys = Ps.ForwardSubstitution(x.Slice(0, numDofsStd));
-                y.SetSubvector(ys, 0);
-
-                for (int i = 0; i < numSubdomains; ++i)
-                {
-                    // ye = Pe * xe = inv(Ue^T) * xe
-                    Vector ye = Pe[i].ForwardSubstitution(x.Slice(subdomainStarts[i], subdomainEnds[i]));
-                    y.SetSubvector(ye, subdomainStarts[i]);
-                }
-
-                // yc = inv(L^T) * xc
-                Vector yc = L.Invert() * x.Slice(equationsStart, numDofsAll); //TODO: I MUST do optimizations here
-                y.SetSubvector(yc, equationsStart);
-                return y;
-            }
-            else
-            {
-                var y = Vector.CreateZero(numDofsAll);
-
-                // ys = Ps * xs = inv(Us) * xs
-                Vector ys = Ps.BackSubstitution(x.Slice(0, numDofsStd));
-                y.SetSubvector(ys, 0);
-
-                for (int i = 0; i < numSubdomains; ++i)
-                {
-                    // ye = Pe * xe = inv(Ue) * xe
-                    Vector ye = Pe[i].BackSubstitution(x.Slice(subdomainStarts[i], subdomainEnds[i]));
-                    y.SetSubvector(ye, subdomainStarts[i]);
-                }
-
-                // yc = inv(L^T) * xc
-                Vector yc = L.Transpose().Invert() * x.Slice(equationsStart, numDofsAll); //TODO: I MUST do optimizations here
-                y.SetSubvector(yc, equationsStart);
-                return y;
-            }
+            return (L, Q);
         }
     }
 }

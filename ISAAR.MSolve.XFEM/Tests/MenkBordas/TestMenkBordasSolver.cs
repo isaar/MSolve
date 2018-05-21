@@ -39,88 +39,90 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             //UseSkylineSolver(model);
         }
 
-        public static (MenkBordasSystem sys, MenkBordasVector uExpected) BuildCustomSystem(Model2D model, XCluster2D cluster)
-        {
-            MenkBordasSystem sys = BuildMatrices(model, cluster);
-            MenkBordasVector uExpected = BuildLhs(sys);
-            (MenkBordasMatrix K, Vector rhs) = sys.BuildSystem();
-            MenkBordasVector f = K.MultiplyRight(uExpected);
-            sys.bs = f.Vs;
-            foreach (var subvector in f.Ve) sys.be.Add(subvector);
-            sys.CheckDimensions();
-            return (sys, uExpected);
-        }
+        //public static (MenkBordasSystem sys, MenkBordasVector uExpected) BuildCustomSystem(Model2D model, XCluster2D cluster)
+        //{
+        //    MenkBordasSystem sys = BuildMatrices(model, cluster);
+        //    MenkBordasVector uExpected = BuildLhs(sys);
+        //    (MenkBordasMatrix K, Vector rhs) = sys.BuildSystem();
+        //    MenkBordasVector f = K.MultiplyRight(uExpected);
+        //    sys.bs = f.Vs;
+        //    foreach (var subvector in f.Ve) sys.be.Add(subvector);
+        //    sys.CheckDimensions();
+        //    return (sys, uExpected);
+        //}
 
-        public static MenkBordasVector BuildLhs(MenkBordasSystem sys)
-        {
-            int seed = 2;
-            double scale = 1000.0;
-            var rand = new Random(seed);
+        //public static MenkBordasVector BuildLhs(MenkBordasSystem sys)
+        //{
+        //    MenkBordasSystem.Dimensions dim = sys.CountDimensions();
 
-            var xs = Vector.CreateZero(sys.Kss.NumColumns);
-            for (int i = 0; i < xs.Length; ++i) xs[i] = scale * rand.NextDouble();
+        //    int seed = 2;
+        //    double scale = 1000.0;
+        //    var rand = new Random(seed);
 
-            var xe = new Vector[sys.Kee.Count];
-            for (int sub = 0; sub < sys.Kee.Count; ++sub)
-            {
-                xe[sub] = Vector.CreateZero(sys.Kee[sub].NumColumns);
-                for (int i = 0; i < xe[sub].Length; ++i) xe[sub][i] = scale * rand.NextDouble();
-            }
+        //    var xs = Vector.CreateZero(dim.NumDofsStd);
+        //    for (int i = 0; i < xs.Length; ++i) xs[i] = scale * rand.NextDouble();
 
-            return new MenkBordasVector(sys.numSubdomains, 0, xs, xe, null);
-        }
+        //    var xe = new Vector[dim.NumSubdomains];
+        //    for (int i = 0; i < dim.NumSubdomains; ++i)
+        //    {
+        //        xe[i] = Vector.CreateZero(dim.SubdomainEnds[i] - dim.SubdomainStarts[i]);
+        //        for (int j = 0; j < xe[j].Length; ++j) xe[i][j] = scale * rand.NextDouble();
+        //    }
 
-        public static MenkBordasSystem BuildMatrices(Model2D model, XCluster2D cluster)
-        {
-            var sys = new MenkBordasSystem(cluster.Subdomains.Count);
-            var assembler = new XClusterMatrixAssembler();
-            (DOKRowMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
-            sys.Kss = globalKss.BuildCSRMatrix(true);
-            Dictionary<XSubdomain2D, SignedBooleanMatrix> booleanMatrices =
-                assembler.BuildSubdomainSignedBooleanMatrices(cluster);
-            foreach (var subdomain in cluster.Subdomains)
-            {
-                (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
-                    assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
-                sys.Kee.Add(DOKRowMajor.CreateFromSparseMatrix(Kee).BuildCSRMatrix(true)); // Not the most efficient, but ok for testing
-                var KesCSR = Kes.BuildCSRMatrix(true);
-                sys.Kes.Add(KesCSR);
-                sys.Kse.Add(KesCSR.TransposeToCSR());
-                sys.B.Add(booleanMatrices[subdomain]);
-            }
-            return sys;
-        }
+        //    return new MenkBordasVector(sys.numSubdomains, 0, xs, xe, null);
+        //}
 
-        public static void PrintMatrices(MenkBordasSystem sys)
-        {
-            Console.WriteLine("************************* Subdomain Matrices *************************");
-            (MenkBordasMatrix K, Vector f) = sys.BuildSystem();
-            K.WriteToConsole();
-            Console.WriteLine();
+        //public static MenkBordasSystem BuildMatrices(Model2D model, XCluster2D cluster)
+        //{
+        //    var sys = new MenkBordasSystem(cluster.Subdomains.Count);
+        //    var assembler = new XClusterMatrixAssembler();
+        //    (DOKSymmetricColMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
+        //    sys.Kss = globalKss;
+        //    Dictionary<XSubdomain2D, SignedBooleanMatrix> booleanMatrices =
+        //        assembler.BuildSubdomainSignedBooleanMatrices(cluster);
+        //    foreach (var subdomain in cluster.Subdomains)
+        //    {
+        //        (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
+        //            assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
+        //        sys.Kee.Add(Kee);
+        //        var KesCSR = Kes.BuildCSRMatrix(true);
+        //        sys.Kes.Add(KesCSR);
+        //        sys.Kse.Add(KesCSR.TransposeToCSR());
+        //        sys.B.Add(booleanMatrices[subdomain]);
+        //    }
+        //    return sys;
+        //}
 
-            Console.WriteLine("************************* Global Matrix *************************");
-            Matrix denseK = K.CopyToDense();
-            FullMatrixWriter.NumericFormat = new GeneralNumericFormat();
-            (new FullMatrixWriter(denseK)).WriteToConsole();
-            Console.WriteLine();
-        }
+        //public static void PrintMatrices(MenkBordasSystem sys)
+        //{
+        //    Console.WriteLine("************************* Subdomain Matrices *************************");
+        //    (MenkBordasMatrix K, Vector f) = sys.BuildSystem();
+        //    K.WriteToConsole();
+        //    Console.WriteLine();
 
-        public static void PrintRhsVectors(MenkBordasSystem sys, MenkBordasVector uExpected)
-        {
-            (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
+        //    Console.WriteLine("************************* Global Matrix *************************");
+        //    Matrix denseK = K.CopyToDense();
+        //    FullMatrixWriter.NumericFormat = new GeneralNumericFormat();
+        //    (new FullMatrixWriter(denseK)).WriteToConsole();
+        //    Console.WriteLine();
+        //}
 
-            Console.WriteLine("************************* Global RHS Vector *************************");
-            var formatting = Array1DFormatting.PlainVertical;
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-            (new FullVectorWriter(denseF, false, formatting)).WriteToConsole();
-            Console.WriteLine();
+        //public static void PrintRhsVectors(MenkBordasSystem sys, MenkBordasVector uExpected)
+        //{
+        //    (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
 
-            Console.WriteLine("************************* Global RHS Vector computed only with dense *************************");
-            Vector denseU = uExpected.CopyToDense();
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-            (new FullVectorWriter(K.CopyToDense() * denseU, false, formatting)).WriteToConsole();
-            Console.WriteLine();
-        }
+        //    Console.WriteLine("************************* Global RHS Vector *************************");
+        //    var formatting = Array1DFormatting.PlainVertical;
+        //    FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+        //    (new FullVectorWriter(denseF, false, formatting)).WriteToConsole();
+        //    Console.WriteLine();
+
+        //    Console.WriteLine("************************* Global RHS Vector computed only with dense *************************");
+        //    Vector denseU = uExpected.CopyToDense();
+        //    FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+        //    (new FullVectorWriter(K.CopyToDense() * denseU, false, formatting)).WriteToConsole();
+        //    Console.WriteLine();
+        //}
 
         public static void SolveWithCG(Model2D model, XCluster2D cluster)
         {
@@ -139,22 +141,22 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             //u.WriteToConsole();
         }
 
-        public static void SolveWithLU(Model2D model, XCluster2D cluster)
-        {
-            (MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
-            (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
-            Matrix denseK = K.CopyToDense();
-            Vector denseUExpected = uExpected.CopyToDense();
-            Vector denseU = denseK.FactorLU().SolveLinearSystem(denseF);
+        //public static void SolveWithLU(Model2D model, XCluster2D cluster)
+        //{
+        //    (MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
+        //    (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
+        //    Matrix denseK = K.CopyToDense();
+        //    Vector denseUExpected = uExpected.CopyToDense();
+        //    Vector denseU = denseK.FactorLU().SolveLinearSystem(denseF);
 
-            var formatting = Array1DFormatting.PlainVertical;
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-            Console.WriteLine("U expected (all dofs): ");
-            (new FullVectorWriter(denseUExpected, false, formatting)).WriteToConsole();
-            Console.WriteLine();
-            Console.WriteLine("U computed (all dofs): ");
-            (new FullVectorWriter(denseU, false, formatting)).WriteToConsole();
-        }
+        //    var formatting = Array1DFormatting.PlainVertical;
+        //    FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+        //    Console.WriteLine("U expected (all dofs): ");
+        //    (new FullVectorWriter(denseUExpected, false, formatting)).WriteToConsole();
+        //    Console.WriteLine();
+        //    Console.WriteLine("U computed (all dofs): ");
+        //    (new FullVectorWriter(denseU, false, formatting)).WriteToConsole();
+        //}
 
         public static void UseMenkBordasSolver(Model2D model, XCluster2D cluster)
         {

@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// Perhaps a Dictionary should be used instead of SortedDictionary and only sort each column independently before 
         /// converting.
         /// </summary>
-        private readonly Dictionary<int, double>[] columns;
+        private Dictionary<int, double>[] columns;
         private readonly int order;
 
         private DOKSymmetricColMajor(int order, Dictionary<int, double>[] columns)
@@ -401,6 +401,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(sortRowsOfEachCol);
             return new SymmetricCSC(values, rowIndices, colOffsets, false);
+        }
+
+        /// <summary>
+        /// Afterwards, it cannot be reused.
+        /// </summary>
+        public void Clear()
+        {
+            columns = null;
         }
 
         public int CountNonZeros()

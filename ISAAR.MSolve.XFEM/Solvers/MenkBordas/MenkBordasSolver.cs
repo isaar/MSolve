@@ -31,15 +31,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly int maxIterations;
         private readonly double tolerance;
 
-        /// <summary>
-        /// Only entries related to free standard dofs are stored. These will not be modifed as the crack grows.
-        /// </summary>
-        private CSRMatrix Kss;
-
-        /// <summary>
-        /// Only entries related to free standard dofs are stored. These will not be modifed as the crack grows.
-        /// </summary>
-        private Vector Fs;
+        private MenkBordasSystem system;
 
         /// <summary>
         /// Only entries related to constrained standard dofs are stored. These will not be modifed as the crack grows.
@@ -62,9 +54,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public Vector Solution { get; private set; }
 
         /// <summary>
-        /// Create and store anything that pertains to the standard dofs and will not change as the crack propagates.
+        /// Create and store anything that pertains to the standard dofs and will not change as the crack propagates. 
         /// </summary>
-        public void Initialize()
+        public void Initialize() //TODO: I should also set up the domain decomposition, irregardless of current enrichments.
         {
             var watch = new Stopwatch();
             watch.Start();
@@ -73,10 +65,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             cluster.OrderDofs(model);
             int numStdDofs = cluster.DofOrderer.NumStandardDofs;
             var assembler = new XClusterMatrixAssembler();
-            (DOKRowMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
-            this.Kss = globalKss.BuildCSRMatrix(true);
-            if (!Kss.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
-                "Stiffness matrix corresponding to std-std dofs is not symmetric");
+            (DOKSymmetricColMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
+            //if (!Kss.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
+            //    "Stiffness matrix corresponding to std-std dofs is not symmetric");
 
             /* 
              * The extended linear system is:
@@ -90,70 +81,54 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Vector globalFu = model.CalculateFreeForces(DofOrderer); //TODO: wasted space on enriched dofs. They will always be 0.
             this.Uc = model.CalculateConstrainedDisplacements(DofOrderer); 
             Vector Fu = globalFu.Slice(0, numStdDofs);
-            this.Fs = Fu - globalKsc.MultiplyRight(Uc);
+            Vector Fs = Fu - globalKsc.MultiplyRight(Uc);
+
+            this.system = new MenkBordasSystem(globalKss, Fs);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
-        public void Solve()
+        public void Solve() //TODO: only update the subdomains with at least 1 modified element
         {
             var watch = new Stopwatch();
             watch.Start();
 
-            int numSubdomains = cluster.Subdomains.Count;
+            //int numSubdomains = cluster.Subdomains.Count;
             // TODO: should I order the dofs (cluster.OrderDofs(model)) again?
 
             /// Create the linear system
             var assembler = new XClusterMatrixAssembler();
-            var sys = new MenkBordasSystem(cluster.Subdomains.Count);
-            sys.Kss = Kss;
-            sys.bs = Fs;
 
             /// Signed boolean matrices and continuity equations
-            Dictionary<XSubdomain2D, SignedBooleanMatrix> booleanMatrices =
-                assembler.BuildSubdomainSignedBooleanMatrices(cluster);
+            system.SetBooleanMatrices(assembler.BuildSubdomainSignedBooleanMatrices(cluster));
 
             /// Subdomain enriched matrices and rhs
             foreach (var subdomain in cluster.Subdomains)
             {
                 (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
-
-                sys.Kee.Add(DOKRowMajor.CreateFromSparseMatrix(Kee).BuildCSRMatrix(true)); // Not the most efficient, but ok for testing
-                //if (!Kee.IsSymmetric()) throw new AsymmetricMatrixException(
-                //    "Stiffness matrix corresponding to enr-enr dofs of a subdomain is not symmetric");
                 var KesCSR = Kes.BuildCSRMatrix(true);
-                sys.Kes.Add(KesCSR);
-                sys.Kse.Add(KesCSR.TransposeToCSR());
-                sys.B.Add(booleanMatrices[subdomain]);
-
-                //Fe = 0 - Kec * Uc. TODO: do this without building the CSR matrix
-                sys.be.Add(Kec.MultiplyRight(Uc.Scale(-1.0), true)); 
+                var be = Kec.MultiplyRight(Uc.Scale(-1.0), true); //Fe = 0 - Kec * Uc.
+                system.SetSubdomainMatrices(subdomain, Kee, KesCSR, KesCSR.TransposeToCSR(), be);
             }
             //sys.CheckDimensions();
 
-            /// Use an iterative algorithm to solve the system
+            /// Use an iterative algorithm to solve the symmetric indefinite system
             var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
 
-            /// Without preconditioning
-            //(MenkBordasMatrix matrix, Vector rhs) = sys.BuildSystem();
-            //(Vector u, MinresStatistics stats) = minres.Solve(matrix, rhs);
-            //Solution = u;
-            //Console.WriteLine(stats);
-
             /// With preconditioning
-            (MenkBordasPrecondMatrix K, MenkBordasPreconditioner P, Vector rhs) = sys.BuildPreconditionedSystem();
-            Vector b = P.Multiply(rhs, true);
-            (Vector x, MinresStatistics stats) = minres.Solve(K, b);
-            Solution = P.Multiply(x, false);
+            (MenkBordasPrecondMatrix precMatrix, Vector rhs) = system.BuildPreconditionedSystem();
+            Vector precRhs = precMatrix.PreconditionerTimesVector(rhs, true);
+            (Vector precSolution, MinresStatistics stats) = minres.Solve(precMatrix, precRhs);
+            Solution = precMatrix.PreconditionerTimesVector(precSolution, false);
             Console.WriteLine(stats);
 
             #region Debug
             //CheckMultiplication(matrix, rhs);
             //CheckPrecondMultiplication(sys);
             //Vector xExpected = SolveLUandPrintMatrices(matrix, rhs);
-            CompareSolutionWithLU(sys, Solution);
+            //CompareSolutionWithLU(sys, Solution);
             #endregion
 
             /// Find the solution vector without multiple dofs
@@ -163,10 +138,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
-        private static void CheckMultiplication(MenkBordasMatrix K)
+        private static void CheckMultiplication(MenkBordasMatrix K, Vector b)
         {
             var rand = new Random();
-            var x = Vector.CreateZero(K.numDofsAll);
+            var x = Vector.CreateZero(b.Length);
             for (int i = 0; i < x.Length; ++i) x[i] = rand.NextDouble();
             Matrix denseK = K.CopyToDense();
 
@@ -175,40 +150,40 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             double error = (yComputed - yExpected).Norm2() / yExpected.Norm2();
         }
 
-        private static void CheckPrecondMultiplication(MenkBordasSystem sys)
-        {
-            // Build the matrices
-            (MenkBordasMatrix K, Vector fCopy) = sys.BuildSystem();
-            (MenkBordasPrecondMatrix Kbar, MenkBordasPreconditioner P, Vector f) = sys.BuildPreconditionedSystem();
-            Matrix denseK = K.CopyToDense();
+        //private static void CheckPrecondMultiplication(MenkBordasSystem sys)
+        //{
+        //    // Build the matrices
+        //    (MenkBordasMatrix K, Vector fCopy) = sys.BuildSystem();
+        //    (MenkBordasPrecondMatrix Kbar, Vector f) = sys.BuildPreconditionedSystem();
+        //    Matrix denseK = K.CopyToDense();
 
-            // Build the lhs
-            var rand = new Random();
-            var xBar = Vector.CreateZero(K.numDofsAll);
-            for (int i = 0; i < K.numDofsAll; ++i)
-            {
-                xBar[i] = rand.NextDouble();
-                //xBar[i] = 1.0;
-            }
+        //    // Build the lhs
+        //    var rand = new Random();
+        //    var xBar = Vector.CreateZero(f.Length);
+        //    for (int i = 0; i < f.Length; ++i)
+        //    {
+        //        xBar[i] = rand.NextDouble();
+        //        //xBar[i] = 1.0;
+        //    }
 
-            // Solve rigged system
-            Vector x = P.Multiply(xBar, false);
-            Vector yExpected = denseK * x;
-            Vector yBarExpected = P.Multiply(yExpected, true);
-            Vector yBar = Kbar.Multiply(xBar);
+        //    // Solve rigged system
+        //    Vector x = Kbar.PreconditionerTimesVector(xBar, false);
+        //    Vector yExpected = denseK * x;
+        //    Vector yBarExpected = Kbar.PreconditionerTimesVector(yExpected, true);
+        //    Vector yBar = Kbar.Multiply(xBar);
 
-            double error = (yBar - yBarExpected).Norm2() / yBarExpected.Norm2();
-            Console.WriteLine("Normalized error in preconditioned multiplication = " + error);
-        }
+        //    double error = (yBar - yBarExpected).Norm2() / yBarExpected.Norm2();
+        //    Console.WriteLine("Normalized error in preconditioned multiplication = " + error);
+        //}
 
-        private static void CompareSolutionWithLU(MenkBordasSystem sys, Vector solution)
-        {
-            (MenkBordasMatrix K, Vector f) = sys.BuildSystem();
-            Matrix denseK = K.CopyToDense();
-            Vector xExpected = denseK.FactorLU().SolveLinearSystem(f);
-            double error = (solution - xExpected).Norm2() / xExpected.Norm2();
-            Console.WriteLine("Normalized difference |xMINRES - xLU| / |xLU| = " + error);
-        }
+        //private static void CompareSolutionWithLU(MenkBordasSystem sys, Vector solution)
+        //{
+        //    (MenkBordasMatrix K, Vector f) = sys.BuildSystem();
+        //    Matrix denseK = K.CopyToDense();
+        //    Vector xExpected = denseK.FactorLU().SolveLinearSystem(f);
+        //    double error = (solution - xExpected).Norm2() / xExpected.Norm2();
+        //    Console.WriteLine("Normalized difference |xMINRES - xLU| / |xLU| = " + error);
+        //}
 
         private static Vector SolveLUandPrintMatrices(MenkBordasMatrix K, Vector f)
         {
