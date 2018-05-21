@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             List<int> zemColumns = new List<int>();
             SkylineMatrix2D m = (SkylineMatrix2D)subdomain.Matrix;
 
-            ((SkylineMatrix2D)subdomain.Matrix).Factorize(1e-15, zems, zemColumns);
+            ((SkylineMatrix2D)subdomain.Matrix).Factorize(1e-5, zems, zemColumns);
             if (zemColumns.Count > 0) throw new InvalidOperationException("Skyline solver does not operate on singular matrices.");
         }
 

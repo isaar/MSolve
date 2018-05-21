@@ -537,6 +537,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //  } 
         }
 
+        public void LinearCombinationGOAT(IList<double> coefficients, IList<IMatrix2D> matrices)
+        {
+            if (coefficients.Count != matrices.Count)
+                throw new ArgumentException("Coefficient and matrix sizes do not match");
+            foreach (var m in matrices)
+                if (m.Rows != this.Rows || m.Columns != this.Columns)
+                    throw new ArgumentException("Matrix sizes do not match");
+            var localData = data as double[,];
+            var localCoefficients = coefficients as IList<double>;
+
+            for (int k = 0; k < coefficients.Count; k++)
+            {
+                var m = (Matrix2D)matrices[k];
+                var d = localCoefficients[k];
+                for (int i = 0; i < this.Rows; i++)
+                    for (int j = 0; j < this.Columns; j++)
+                        localData[i, j] += d * m.Data[i, j];
+            }
+        }
+
         public void LinearCombination(IList<double> coefficients, IList<IMatrix2D> matrices)
         {
             if (coefficients.Count != matrices.Count)

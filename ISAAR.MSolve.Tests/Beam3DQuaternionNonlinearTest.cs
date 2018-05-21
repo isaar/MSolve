@@ -18,6 +18,47 @@ namespace ISAAR.MSolve.Tests
     public class Beam3DQuaternionNonlinearTest
     {
         [Fact]
+        public void SolveNLBeam()
+        {
+            var m = new Model();
+            m.NodesDictionary.Add(1, new Node() { ID = 1, X = 0, Y = 0, Z = 0 });
+            m.NodesDictionary.Add(2, new Node() { ID = 2, X = 5, Y = 0, Z = 0 });
+            m.NodesDictionary[1].Constraints.AddRange(new[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ });
+            m.ElementsDictionary.Add(1, new Element()
+            {
+                ID = 1,
+                ElementType = new Beam3DCorotationalQuaternion(m.Nodes, new ElasticMaterial3D() { YoungModulus = 2.1e6, PoissonRatio = 0.2 }, 1,
+                new BeamSection3D(0.06, 0.0002, 0.00045, 0.000818, 0.05, 0.05))
+            });
+            m.ElementsDictionary[1].AddNodes(m.Nodes);
+            m.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            m.SubdomainsDictionary[1].ElementsDictionary.Add(1, m.ElementsDictionary[1]);
+            m.Loads.Add(new Load() { Node = m.NodesDictionary[2], Amount = 100, DOF = DOFType.Y });
+
+            m.ConnectDataStructures();
+            VectorExtensions.AssignTotalAffinityCount();
+
+            var linearSystems = new Dictionary<int, ILinearSystem>();
+            linearSystems[1] = new SkylineLinearSystem(1, m.Subdomains[0].Forces);
+            var linearSystemsArray = new[] { linearSystems[1] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(m.Subdomains[0]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(m.Subdomains[0]) };
+            int increments = 10;
+            int totalDOFs = m.TotalDOFs;
+            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            ProblemStructural provider = new ProblemStructural(m, linearSystems);
+            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
+                provider, increments, totalDOFs);
+
+            // Choose parent analyzer -> Parent: Static
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+        }
+
+
+        [Fact]
         public void TestBeam3DQuaternionNonlinearExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
@@ -40,11 +81,6 @@ namespace ISAAR.MSolve.Tests
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
-            //ElasticMaterial material = new ElasticMaterial()
-            //{
-            //    YoungModulus = youngModulus,
-            //    PoissonRatio = poissonRatio,
-            //};
 
             // Node creation
             IList<Node> nodes = new List<Node>();
@@ -140,7 +176,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(146.5587362562, linearSystems[1].Solution[7], 12);
+            Assert.Equal(148.93590375922295, linearSystems[1].Solution[7], 12);
         }
     }
 }
