@@ -31,7 +31,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.Kee = new Dictionary<XSubdomain2D, DOKSymmetricColMajor>();
             this.Kes = new Dictionary<XSubdomain2D, CSRMatrix>();
             this.Kse = new Dictionary<XSubdomain2D, CSRMatrix>();
-            this.B = new Dictionary<XSubdomain2D, SignedBooleanMatrix>();
             this.be = new Dictionary<XSubdomain2D, Vector>();
             this.Pe = new Dictionary<XSubdomain2D, CholeskySuiteSparse>();
         }
@@ -147,12 +146,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
             Dimensions dim = CountDimensions();
 
-            // Copy to arrays
-            //Vector[] beArray = be.Values.ToArray();
-            //CSRMatrix[] KesArray = Kes.Values.ToArray();
-            //CSRMatrix[] KseArray = Kse.Values.ToArray();
-            //SignedBooleanMatrix[] BArray = B.Values.ToArray();
-
             // Assemble the rhs vector // TODO: just set the subvectors that change
             var rhs = Vector.CreateZero(dim.NumDofsAll);
             rhs.CopyFromVector(0, bs, 0, dim.NumDofsStd);
@@ -167,18 +160,24 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 if (subdomain.Value) // Do not recreate the preconditioners of unmodified Kee
                 {
                     DOKSymmetricColMajor kee = Kee[subdomain.Key];
+
                     // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
                     Pe.Add(subdomain.Key, MenkBordasPreconditioner.CreateEnrichedPreconditioner(kee)); 
+
                     // Dispose of each Kee, once it is no longer needed.
                     Kee.Remove(subdomain.Key);
                     kee.Clear();
                 }
             }
-            CholeskySuiteSparse[] PeArray = Pe.Values.ToArray();
 
             // Handle L,Q matrices
-            (Matrix L, Matrix Q) = MenkBordasPreconditioner.CreateContinuityEquationsPreconditioners(dim, B, Pe);
-            //TODO: I should probably dispose of B here.
+            Matrix L = null;
+            Matrix Q = null;
+            if (subdomains.Count > 1)
+            {
+                (L, Q) = MenkBordasPreconditioner.CreateContinuityEquationsPreconditioners(dim, B, Pe);
+                B = null; // Clear it to make sure an exception is thrown if the caller forgets to update B.
+            }
 
             var matrix = new MenkBordasPrecondMatrix(dim, Kes, Kse, Ps, Pe, L, Q);
             return (matrix, rhs);
@@ -186,6 +185,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public Dimensions CountDimensions()
         {
+            // Enriched dofs
             var subdomainStarts = new SortedDictionary<XSubdomain2D, int>();
             var subdomainEnds = new SortedDictionary<XSubdomain2D, int>();
             int nextStart = numDofsStd;
@@ -195,18 +195,31 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 nextStart = nextStart + subdomainKee.Value.NumRows;
                 subdomainEnds.Add(subdomainKee.Key, nextStart);
             }
-            int equationsStart = nextStart;
-            int numEquations = 0;
-            foreach (var subdomainMatrix in B)
-            {
-                numEquations = subdomainMatrix.Value.NumRows;
-                break;
-            }
-            int numDofsAll = nextStart + numEquations;
-            int numDofsEnr = numDofsAll - numDofsStd - numEquations;
 
-            return new Dimensions(numEquations, numDofsStd, numDofsEnr, numDofsAll, subdomains,
-                subdomainStarts, subdomainEnds, equationsStart);
+            // Continuity equations
+            if (subdomains.Count > 1)
+            {
+                int equationsStart = nextStart;
+                int numEquations = 0;
+                foreach (var subdomainMatrix in B)
+                {
+                    numEquations = subdomainMatrix.Value.NumRows;
+                    break;
+                }
+                int numDofsAll = nextStart + numEquations;
+                int numDofsEnr = numDofsAll - numDofsStd - numEquations;
+                return new Dimensions(numEquations, numDofsStd, numDofsEnr, numDofsAll, subdomains,
+                    subdomainStarts, subdomainEnds, equationsStart);
+            }
+            else //TODO: Setting illegal values will at least throw exceptions if sth goes wrong. Find a better way to handle it. 
+            {
+                int equationsStart = int.MinValue;
+                int numEquations = int.MinValue;
+                int numDofsAll = nextStart;
+                int numDofsEnr = numDofsAll - numDofsStd;
+                return new Dimensions(numEquations, numDofsStd, numDofsEnr, numDofsAll, subdomains,
+                    subdomainStarts, subdomainEnds, equationsStart);
+            }
         }
 
         public class Dimensions

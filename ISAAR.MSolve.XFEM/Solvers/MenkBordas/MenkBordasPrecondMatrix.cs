@@ -41,19 +41,23 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
             var y = Vector.CreateZero(dim.NumDofsAll);
             var xs = x.Slice(0, dim.NumDofsStd);
-            var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
 
             // ys = inv(Us^T) * Kss * inv(Us) * xs
             Vector ys = xs.Copy(); // For cholesky preconditioner
             //Vector ys = prec.Ps.ForwardSubstitution(Kss.MultiplyRight(prec.Ps.BackSubstitution(xs))); // For other preconditioners
 
-            // ye_all = Q^T * xc
-            Vector yeAll = Q.MultiplyRight(xc, true);
-            y.SetSubvector(yeAll, dim.NumDofsStd);
+            if (dim.NumSubdomains > 1) // There are no continuity equations and no B, Q, L with only 1 subdomain
+            {
+                var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
 
-            // yc = Q * xe_all
-            Vector yc = Q * x.Slice(dim.NumDofsStd, dim.EquationsStart); // Rows correspond to the continuity equations. TODO: these entries are sliced twice.
-            y.SetSubvector(yc, dim.EquationsStart);
+                // ye_all = Q^T * xc
+                Vector yeAll = Q.MultiplyRight(xc, true);
+                y.SetSubvector(yeAll, dim.NumDofsStd);
+
+                // yc = Q * xe_all
+                Vector yc = Q * x.Slice(dim.NumDofsStd, dim.EquationsStart); // Rows correspond to the continuity equations. TODO: these entries are sliced twice.
+                y.SetSubvector(yc, dim.EquationsStart);
+            }
 
             foreach (var sub in dim.Subdomains)
             {
@@ -88,9 +92,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
 
-                // yc = inv(L^T) * xc
-                Vector yc = L.Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here
-                y.SetSubvector(yc, dim.EquationsStart);
+                if (dim.NumSubdomains > 1) // There are no continuity equations and no B, Q, L with only 1 subdomain
+                {
+                    // yc = inv(L^T) * xc
+                    Vector yc = L.Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here
+                    y.SetSubvector(yc, dim.EquationsStart);
+                }
+                                           
                 return y;
             }
             else
@@ -108,9 +116,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
 
-                // yc = inv(L^T) * xc
-                Vector yc = L.Transpose().Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here
-                y.SetSubvector(yc, dim.EquationsStart);
+                if (dim.NumSubdomains > 1) // There are no continuity equations and no B, Q, L with only 1 subdomain
+                {
+                    // yc = inv(L^T) * xc
+                    Vector yc = L.Transpose().Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here
+                    y.SetSubvector(yc, dim.EquationsStart);
+                }
+
                 return y;
             }
         }

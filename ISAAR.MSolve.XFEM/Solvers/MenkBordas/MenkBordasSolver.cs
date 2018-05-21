@@ -97,11 +97,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //int numSubdomains = cluster.Subdomains.Count;
             // TODO: should I order the dofs (cluster.OrderDofs(model)) again?
 
+            // TODO: track which subdomains have enriched dofs and which have modified elements
+
             /// Create the linear system
             var assembler = new XClusterMatrixAssembler();
-
-            /// Signed boolean matrices and continuity equations
-            system.SetBooleanMatrices(assembler.BuildSubdomainSignedBooleanMatrices(cluster));
 
             /// Subdomain enriched matrices and rhs
             foreach (var subdomain in cluster.Subdomains)
@@ -113,6 +112,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 system.SetSubdomainMatrices(subdomain, Kee, KesCSR, KesCSR.TransposeToCSR(), be);
             }
             //sys.CheckDimensions();
+
+            /// Signed boolean matrices and continuity equations
+            if (cluster.Subdomains.Count > 1)
+            {
+                system.SetBooleanMatrices(assembler.BuildSubdomainSignedBooleanMatrices(cluster));
+            }
 
             /// Use an iterative algorithm to solve the symmetric indefinite system
             var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
