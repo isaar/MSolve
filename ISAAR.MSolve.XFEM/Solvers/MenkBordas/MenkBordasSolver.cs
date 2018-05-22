@@ -26,7 +26,7 @@ using ISAAR.MSolve.XFEM.Geometry.Mesh;
 //      submatrices in Q.
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasSolver: ISolver
+    class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
     {
         private readonly Model2D model;
         private readonly IDecomposer decomposer;
@@ -101,10 +101,21 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
 
             // TODO: track which subdomains have enriched dofs and which have modified elements
+            system.ClearSubdomains();
 
             /// Order enriched dofs //TODO: only for modified subdomains
             SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
             cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains);
+            #region debug
+            Console.Write("Enriched subdomains: ");
+            foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
+            Console.WriteLine();
+            if (enrichedSubdomains.Count > 2)
+            {
+                Console.WriteLine();
+            }
+            #endregion
+
 
             /// Subdomain enriched matrices and rhs
             var assembler = new XClusterMatrixAssembler();

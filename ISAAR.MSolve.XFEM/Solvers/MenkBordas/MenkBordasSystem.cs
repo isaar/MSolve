@@ -48,6 +48,23 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly Dictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
         // TODO: investigate if some submatrices of L, Q can be cached.
 
+        public void ClearSubdomains()
+        {
+            subdomains.Clear();
+            modifiedSubdomains.Clear();
+            Kee.Clear();
+            Kes.Clear();
+            Kse.Clear();
+            B = null;
+            be.Clear();
+            Pe.Clear();
+        }
+
+        public void SetBooleanMatrices(IDictionary<XSubdomain2D, SignedBooleanMatrix> B) // TODO: allow some to not change
+        {
+            this.B = new Dictionary<XSubdomain2D, SignedBooleanMatrix>(B);
+        }
+
         public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetricColMajor Kee, CSRMatrix Kes, CSRMatrix Kse,
             Vector be) 
         {
@@ -56,19 +73,17 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             modifiedSubdomains[subdomain] = true;
 
             // Dispose unmanaged factorization data of updated matrices
-            if (!isNew) this.Pe[subdomain].Dispose();
-            this.Pe.Remove(subdomain);
+            if (!isNew)
+            {
+                this.Pe[subdomain].Dispose();
+                this.Pe.Remove(subdomain);
+            }
 
             // Set the new matrices. The old ones will be GCed.
             this.Kee.Add(subdomain, Kee); // This should haven been removed or not added in the first place.
             this.Kes[subdomain] = Kes;
             this.Kse[subdomain] = Kse;
             this.be[subdomain] = be;
-        }
-
-        public void SetBooleanMatrices(IDictionary<XSubdomain2D, SignedBooleanMatrix> B) // TODO: allow some to not change
-        {
-            this.B = new Dictionary<XSubdomain2D, SignedBooleanMatrix>(B);
         }
 
         public void RemoveSubdomain(XSubdomain2D subdomain) // Not sure of needed. Once enriched, always enriched.

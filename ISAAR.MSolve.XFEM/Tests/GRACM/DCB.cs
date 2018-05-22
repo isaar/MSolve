@@ -15,6 +15,7 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -75,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// The material used for the J-integral computation. It msut be stored separately from individual element materials.
         /// </summary>
-        private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial = 
+        private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
             HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
 
         /// <summary>
@@ -138,11 +139,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.meshProvider = meshProvider;
             this.useLSM = useLSM;
         }
-        
+
         /// <summary>
         /// The crack geometry description
         /// </summary>
         public TrackingExteriorCrackLSM Crack { get; private set; }
+
+        public IDecomposer Decomposer {get; private set;}
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
@@ -165,7 +168,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
 
             IPropagator propagator;
-            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, actualPropagator);
+            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
             else propagator = actualPropagator;
             var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
             crackPath.AddRange(analysis.Analyze());
@@ -178,6 +181,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             CreateMesh();
             ApplyBoundaryConditions();
             InitializeCrack();
+            DomainDecomposition();
         }
 
         private void ApplyBoundaryConditions()
@@ -223,6 +227,51 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Mesh usable for crack-mesh interaction
             var boundary = new RectangularBoundary(0.0, L, 0.0, h);
             mesh = new BiMesh2D(Model.Nodes, Model.Elements, boundary);
+        }
+
+        private void DomainDecomposition() //TODO: this should not be hardcoded, but provided by the caller of the solver
+        {
+            var regions = new PolygonalRegion[4];
+
+            var vertices1 = new CartesianPoint2D[4];
+            vertices1[0] = new CartesianPoint2D(0.0, h);
+            vertices1[1] = new CartesianPoint2D(0.0, 0.0);
+            vertices1[2] = new CartesianPoint2D(L / 5.0, 0.0);
+            vertices1[3] = new CartesianPoint2D(L / 3.0, h);
+            var boundaries1 = new HashSet<LineSegment2D>();
+            boundaries1.Add(new LineSegment2D(vertices1[2], vertices1[3]));
+            regions[0] = new PolygonalRegion(vertices1, boundaries1);
+
+            var vertices2 = new CartesianPoint2D[4];
+            vertices2[0] = new CartesianPoint2D(L / 3.0, h);
+            vertices2[1] = new CartesianPoint2D(L / 5.0, 0.0);
+            vertices2[2] = new CartesianPoint2D(L / 2.0, 0.0);
+            vertices2[3] = new CartesianPoint2D(L / 2.0, h);
+            var boundaries2 = new HashSet<LineSegment2D>();
+            boundaries2.Add(new LineSegment2D(vertices2[0], vertices2[1]));
+            boundaries2.Add(new LineSegment2D(vertices2[2], vertices2[3]));
+            regions[1] = new PolygonalRegion(vertices2, boundaries2);
+
+            var vertices3 = new CartesianPoint2D[4];
+            vertices3[0] = new CartesianPoint2D(L / 2.0, h);
+            vertices3[1] = new CartesianPoint2D(L / 2.0, 0.0);
+            vertices3[2] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
+            vertices3[3] = new CartesianPoint2D(2.0 * L / 3.0, h);
+            var boundaries3 = new HashSet<LineSegment2D>();
+            boundaries3.Add(new LineSegment2D(vertices3[0], vertices3[1]));
+            boundaries3.Add(new LineSegment2D(vertices3[2], vertices3[3]));
+            regions[2] = new PolygonalRegion(vertices3, boundaries3);
+
+            var vertices4 = new CartesianPoint2D[4];
+            vertices4[0] = new CartesianPoint2D(2.0 * L / 3.0, h);
+            vertices4[1] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
+            vertices4[2] = new CartesianPoint2D(L, 0.0);
+            vertices4[3] = new CartesianPoint2D(L, h);
+            var boundaries4 = new HashSet<LineSegment2D>();
+            boundaries4.Add(new LineSegment2D(vertices4[0], vertices4[1]));
+            regions[3] = new PolygonalRegion(vertices4, boundaries4);
+
+            Decomposer = new GuideDecomposer(regions, mesh);
         }
 
         private void InitializeCrack()

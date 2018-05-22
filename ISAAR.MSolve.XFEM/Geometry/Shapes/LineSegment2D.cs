@@ -157,7 +157,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 
             if (Math.Abs(localY) < tolerance)
             {
-                if ((localX >= 0.0) && (localX <= length)) return SegmentPointPosition.PointOnSegment;
+                if ((localX >= -tolerance) && (localX <= length + tolerance)) return SegmentPointPosition.PointOnSegment;
             }
             return SegmentPointPosition.Disjoint;
         }
