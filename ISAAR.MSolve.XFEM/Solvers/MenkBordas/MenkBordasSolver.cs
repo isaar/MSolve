@@ -13,7 +13,9 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
+using ISAAR.MSolve.XFEM.Geometry.Mesh;
 
 //TODO: remove checks and prints
 //TODO: allow various preconditioners for Kss
@@ -27,10 +29,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasSolver: ISolver
     {
         private readonly Model2D model;
-        private readonly XCluster2D cluster;
+        private readonly IDecomposer decomposer;
         private readonly int maxIterations;
         private readonly double tolerance;
 
+        private XCluster2D cluster;
         private MenkBordasSystem system;
 
         /// <summary>
@@ -38,10 +41,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, XCluster2D cluster, int maxIterations, double tolerance)
+        public MenkBordasSolver(Model2D model, IDecomposer decomposer, int maxIterations, double tolerance)
         {
             this.model = model;
-            this.cluster = cluster;
+            this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
             Logger = new SolverLogger();
@@ -61,8 +64,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var watch = new Stopwatch();
             watch.Start();
 
+            // Partion the domain into subdomains
+            cluster = decomposer.CreateSubdomains();
+
             // Standard dofs are not divided into subdomains and will not change over time.
-            cluster.OrderDofs(model);
+            cluster.OrderStandardDofs(model);
             int numStdDofs = cluster.DofOrderer.NumStandardDofs;
             var assembler = new XClusterMatrixAssembler();
             (DOKSymmetricColMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
@@ -78,12 +84,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
              * i) Kuu * uu = Fu - Kuc * uc = Feff
              * ii) uu = Kuu \ Feff 
              */
-            Vector globalFu = model.CalculateFreeForces(DofOrderer); //TODO: wasted space on enriched dofs. They will always be 0.
+            Vector Fs = model.CalculateStandardForces(DofOrderer);
             this.Uc = model.CalculateConstrainedDisplacements(DofOrderer); 
-            Vector Fu = globalFu.Slice(0, numStdDofs);
-            Vector Fs = Fu - globalKsc.MultiplyRight(Uc);
+            Vector bs = Fs - globalKsc.MultiplyRight(Uc);
 
-            this.system = new MenkBordasSystem(globalKss, Fs);
+            this.system = new MenkBordasSystem(globalKss, bs);
 
             watch.Stop();
             Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
@@ -94,16 +99,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var watch = new Stopwatch();
             watch.Start();
 
-            //int numSubdomains = cluster.Subdomains.Count;
-            // TODO: should I order the dofs (cluster.OrderDofs(model)) again?
 
             // TODO: track which subdomains have enriched dofs and which have modified elements
 
-            /// Create the linear system
-            var assembler = new XClusterMatrixAssembler();
+            /// Order enriched dofs //TODO: only for modified subdomains
+            SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains);
 
             /// Subdomain enriched matrices and rhs
-            foreach (var subdomain in cluster.Subdomains)
+            var assembler = new XClusterMatrixAssembler();
+            foreach (var subdomain in enrichedSubdomains)
             {
                 (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
@@ -114,7 +119,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //sys.CheckDimensions();
 
             /// Signed boolean matrices and continuity equations
-            if (cluster.Subdomains.Count > 1)
+            if (enrichedSubdomains.Count > 1)
             {
                 system.SetBooleanMatrices(assembler.BuildSubdomainSignedBooleanMatrices(cluster));
             }

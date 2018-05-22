@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
     /// Automatic domain decomposition given initial regions as guides. Since the boundaries between these regions may intersect
     /// elements, the final decomposition will have different boundaries.
     /// </summary>
-    class GuideDecomposer
+    class GuideDecomposer: IDecomposer
     {
         private readonly int numRegions;
         private readonly IRegion2D[] guides;

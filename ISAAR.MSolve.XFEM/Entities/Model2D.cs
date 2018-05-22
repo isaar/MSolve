@@ -98,6 +98,25 @@ namespace ISAAR.MSolve.XFEM.Entities
             return Vector.CreateFromArray(rhs);
         }
 
+        public Vector CalculateStandardForces(IDofOrderer dofOrderer)
+        {
+            double[] rhs = new double[dofOrderer.NumStandardDofs];
+            foreach (Tuple<XNode2D, DisplacementDof, double> entry in loads)
+            {
+                try
+                {
+                    int dof = dofOrderer.GetStandardDofOf(entry.Item1, entry.Item2);
+                    rhs[dof] += entry.Item3; // This supports multiple loads on the same dof, which isn't implemented yet
+                }
+                catch (KeyNotFoundException ex)
+                {
+                    throw new NotImplementedException("Load on a constrained dof at node "
+                    + entry.Item1.ID + ", axis " + entry.Item2, ex);
+                }
+            }
+            return Vector.CreateFromArray(rhs);
+        }
+
         public Vector CalculateConstrainedDisplacements(IDofOrderer dofOrderer)
         {
             double[] uc = new double[dofOrderer.NumConstrainedDofs];

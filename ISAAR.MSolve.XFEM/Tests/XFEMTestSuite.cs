@@ -18,8 +18,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             //ReorderingTests.Run();
             //SubdomainTest1.Run();
             //SubdomainTest2.Run();
-            AutomaticDecompositionTest.Run();
-            //TestMenkBordasSolver.Run();
+            //AutomaticDecompositionTest.Run();
+            TestMenkBordasSolver.Run();
         }
     }
 }

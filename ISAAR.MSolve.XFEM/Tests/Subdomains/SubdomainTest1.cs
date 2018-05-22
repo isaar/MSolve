@@ -31,8 +31,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
         public static void Run()
         {
             Model2D model = CreateModel();
-            XCluster2D cluster = CreateSubdomains(model);
-            cluster.OrderDofs(model);
+            XCluster2D cluster = DefinePartition(model).CreateSubdomains();
+            cluster.OrderStandardDofs(model);
+            cluster.DofOrderer.OrderSubdomainDofs(cluster.FindEnrichedSubdomains());
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
             BuildSignedBooleanMatrices(cluster);
@@ -56,7 +57,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             }
         }
 
-        public static XCluster2D CreateSubdomains(Model2D model)
+        public static IDecomposer DefinePartition(Model2D model)
         {
             double tol = 1e-6;
             var regions = new RectangularRegion[4];
@@ -77,8 +78,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             regions[3].AddBoundaryEdge(RectangularRegion.RectangleEdge.Left);
             regions[3].AddBoundaryEdge(RectangularRegion.RectangleEdge.Down);
 
-            var decomposer = new NonOverlappingRegionDecomposer2D();
-            return decomposer.Decompose(model.Nodes, model.Elements, regions);
+            var decomposer = new NonOverlappingRegionDecomposer2D(model.Nodes, model.Elements, regions);
+            return decomposer;
         }
 
         public static Model2D CreateModel()

@@ -100,6 +100,16 @@ namespace ISAAR.MSolve.XFEM.Entities
             return membership;
         }
 
+        public SortedSet<XSubdomain2D> FindEnrichedSubdomains()
+        {
+            var enrichedSubdomains = new SortedSet<XSubdomain2D>();
+            foreach (var subdomain in subdomains)
+            {
+                if (subdomain.HasEnrichedNodes()) enrichedSubdomains.Add(subdomain);
+            }
+            return enrichedSubdomains;
+        }
+
         public XSubdomain2D FindSubdomainOfElement(XContinuumElement2D element)
         {
             foreach (var subdomain in subdomains)
@@ -109,7 +119,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             throw new KeyNotFoundException("This element does not belong to any subdomain.");
         }
 
-        public void OrderDofs(Model2D model)
+        public void OrderStandardDofs(Model2D model)
         {
             DofOrderer = XClusterDofOrderer.CreateNodeMajor(model, this);
         }

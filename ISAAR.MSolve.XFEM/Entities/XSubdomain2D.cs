@@ -82,5 +82,14 @@ namespace ISAAR.MSolve.XFEM.Entities
         {
             return this.ID - other.ID;
         }
+
+        public bool HasEnrichedNodes()
+        {
+            foreach (var node in allNodes)
+            {
+                if (node.IsEnriched) return true;
+            }
+            return false;
+        }
     }
 }

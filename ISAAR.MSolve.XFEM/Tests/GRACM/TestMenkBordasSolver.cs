@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
 using ISAAR.MSolve.XFEM.Tests.Subdomains;
@@ -21,8 +22,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             // Build the model
             Model2D model = SubdomainTest2.CreateModel();
-            XCluster2D cluster = SubdomainTest2.CreateSubdomains(model);
-            cluster.OrderDofs(model);
+            IDecomposer decomposer = SubdomainTest2.DefinePartition(model);
 
             // Print matrices
             //(MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //SolveWithLU(model, cluster);
 
             // Solve actual system with the dedicated solver
-            UseMenkBordasSolver(model, cluster);
+            UseMenkBordasSolver(model, decomposer);
             //UseSkylineSolver(model);
         }
 
@@ -159,11 +159,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         //    (new FullVectorWriter(denseU, false, formatting)).WriteToConsole();
         //}
 
-        public static void UseMenkBordasSolver(Model2D model, XCluster2D cluster)
+        public static void UseMenkBordasSolver(Model2D model, IDecomposer decomposer)
         {
             int maxIterations = 1700;
             double tolerance = double.Epsilon;
-            var solver = new MenkBordasSolver(model, cluster, maxIterations, tolerance);
+            var solver = new MenkBordasSolver(model, decomposer, maxIterations, tolerance);
             solver.Initialize();
             solver.Solve();
 
