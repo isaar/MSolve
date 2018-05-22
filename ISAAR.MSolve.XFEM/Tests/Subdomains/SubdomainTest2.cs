@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -22,17 +21,22 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
+namespace ISAAR.MSolve.XFEM.Tests.Subdomains
 {
-    class SubdomainTest1
+    class SubdomainTest2
     {
         public const double L = 40.0;
-
+        public const double crackStartX = 0.0;
+        public const double crackStartY = 1.2 * L/ 4;
+        public const double crackEndX = 1.2 * L / 4;
+        public const double crackEndY = 2.8 * L / 4;
+        
         public static void Run()
         {
             Model2D model = CreateModel();
-            XCluster2D cluster = CreateSubdomains(model);
-            cluster.OrderDofs(model);
+            XCluster2D cluster = DefinePartition(model).CreateSubdomains();
+            cluster.OrderStandardDofs(model);
+            cluster.DofOrderer.OrderSubdomainDofs(cluster.FindEnrichedSubdomains());
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
             BuildSignedBooleanMatrices(cluster);
@@ -56,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             }
         }
 
-        public static XCluster2D CreateSubdomains(Model2D model)
+        public static IDecomposer DefinePartition(Model2D model)
         {
             double tol = 1e-6;
             var regions = new RectangularRegion[4];
@@ -77,8 +81,8 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             regions[3].AddBoundaryEdge(RectangularRegion.RectangleEdge.Left);
             regions[3].AddBoundaryEdge(RectangularRegion.RectangleEdge.Down);
 
-            var decomposer = new NonOverlappingRegionDecomposer2D();
-            return decomposer.Decompose(model.Nodes, model.Elements, regions);
+            var decomposer = new NonOverlappingRegionDecomposer2D(model.Nodes, model.Elements, regions);
+            return decomposer;
         }
 
         public static Model2D CreateModel()
@@ -130,23 +134,15 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             // Crack
             var boundary = new RectangularBoundary(0.0, L, 0.0, L);
             var mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
-            var crackVertex0 = new CartesianPoint2D(0.0, 0.625 * L);
-            var crackVertex1 = new CartesianPoint2D(0.375 * L, 0.625 * L);
+            var crackVertex0 = new CartesianPoint2D(crackStartX, crackStartY);
+            var crackVertex1 = new CartesianPoint2D(crackEndX, crackEndY);
             var crack = new BasicExplicitCrack2D();
             crack.Mesh = mesh;
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
             crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
             crack.InitializeGeometry(crackVertex0, crackVertex1);
+            crack.UpdateEnrichments();
 
-            // Enrichment nodes manually (without tips for simplicity)        
-            int[] heavisideNodes = { 10, 11, 12, 15, 16, 17 };
-            foreach (var n in heavisideNodes)
-            {
-                var node = model.Nodes[n];
-                double[] enrichmentVal = crack.CrackBodyEnrichment.EvaluateFunctionsAt(node);
-                node.EnrichmentItems.Add(crack.CrackBodyEnrichment, enrichmentVal);
-            }
-            
             return model;
         }
 
@@ -156,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
             for (int e = 0; e < model.Elements.Count; ++e)
             {
                 Console.WriteLine($"Element {e} dofs:");
-                cluster.DofOrderer.MatchElementToGlobalStandardDofsOf(model.Elements[e], 
+                cluster.DofOrderer.MatchElementToGlobalStandardDofsOf(model.Elements[e],
                     out IReadOnlyDictionary<int, int> standardMap, out IReadOnlyDictionary<int, int> constrainedMap);
                 var enrichedMap = cluster.DofOrderer.MatchElementToGlobalEnrichedDofsOf(model.Elements[e]);
                 PrintElementDofMap(standardMap, "global standard");

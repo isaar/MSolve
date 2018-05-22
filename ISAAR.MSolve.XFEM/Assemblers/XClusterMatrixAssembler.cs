@@ -13,11 +13,11 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class XClusterMatrixAssembler
     {
-        public (DOKRowMajor Kss, DOKRowMajor Ksc) BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
+        public (DOKSymmetricColMajor Kss, DOKRowMajor Ksc) BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            var Kss = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsStandard);
+            var Kss = DOKSymmetricColMajor.CreateEmpty(numDofsStandard);
             var Ksc = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)

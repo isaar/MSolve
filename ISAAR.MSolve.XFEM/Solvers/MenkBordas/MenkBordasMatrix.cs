@@ -12,32 +12,17 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasMatrix: ILinearTransformation<Vector>
     {
-        private readonly int numSubdomains;
-        private readonly int numEquations;
-        private readonly int numDofsAll;
-        private readonly int numDofsStd;
-        private readonly int[] subdomainStarts;
-        private readonly int[] subdomainEnds;
-        private readonly int equationsStart;
-        
+        public readonly MenkBordasSystem.Dimensions dim;
         public readonly CSRMatrix Kss;
         public readonly CSRMatrix[] Kee;
         public readonly CSRMatrix[] Kes;
         public readonly CSRMatrix[] Kse;
         public readonly SignedBooleanMatrix[] B;
 
-        public MenkBordasMatrix(int numSubdomains, int numEquations, int numDofsStd, int numDofsAll, 
-            int[] subdomainStarts, int[] subdomainEnds, int equationsStart,
+        public MenkBordasMatrix(MenkBordasSystem.Dimensions dim,
             CSRMatrix Kss, CSRMatrix[] Kee, CSRMatrix[] Kes, CSRMatrix[] Kse, SignedBooleanMatrix[] B)
         {
-            this.numSubdomains = numSubdomains;
-            this.numEquations = numEquations;
-            this.numDofsStd = numDofsStd;
-            this.numDofsAll = numDofsAll;
-            this.subdomainStarts = subdomainStarts;
-            this.subdomainEnds = subdomainEnds;
-            this.equationsStart = equationsStart;
-
+            this.dim = dim;
             this.Kss = Kss;
             this.Kee = Kee;
             this.Kes = Kes;
@@ -48,45 +33,42 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public Matrix CopyToDense()
         {
             // Dimensions
-            int numStdDofs = Kss.NumRows;
-            int order = numStdDofs + numEquations;
-            for (int sub = 0; sub < numSubdomains; ++sub) order += Kee[sub].NumRows;
-            int startBDofs = order - numEquations;
+            int order = dim.NumDofsStd + dim.NumEquations;
+            for (int sub = 0; sub < dim.NumSubdomains; ++sub) order += Kee[sub].NumRows;
+            int startBDofs = order - dim.NumEquations;
             Matrix K = Matrix.CreateZero(order, order);
 
             // Kss
-            for (int i = 0; i < numStdDofs; ++i)
+            for (int i = 0; i < dim.NumDofsStd; ++i)
             {
-                for (int j = 0; j < numStdDofs; ++j) K[i, j] = Kss[i, j];
+                for (int j = 0; j < dim.NumDofsStd; ++j) K[i, j] = Kss[i, j];
             }
 
-            int dofOffset = numStdDofs;
-            for (int sub = 0; sub < numSubdomains; ++sub)
+            int dofOffset = dim.NumDofsStd;
+            for (int sub = 0; sub < dim.NumSubdomains; ++sub)
             {
-                int numEnrDofs = Kee[sub].NumRows;
-
                 // Kee
-                for (int i = 0; i < numEnrDofs; ++i)
+                for (int i = 0; i < dim.NumDofsEnr; ++i)
                 {
-                    for (int j = 0; j < numEnrDofs; ++j) K[dofOffset + i, dofOffset + j] = Kee[sub][i, j];
+                    for (int j = 0; j < dim.NumDofsEnr; ++j) K[dofOffset + i, dofOffset + j] = Kee[sub][i, j];
                 }
 
                 // Kes
-                for (int i = 0; i < numEnrDofs; ++i)
+                for (int i = 0; i < dim.NumDofsEnr; ++i)
                 {
-                    for (int j = 0; j < numStdDofs; ++j) K[dofOffset + i, j] = Kes[sub][i, j];
+                    for (int j = 0; j < dim.NumDofsStd; ++j) K[dofOffset + i, j] = Kes[sub][i, j];
                 }
 
                 // Kse
-                for (int i = 0; i < numStdDofs; ++i)
+                for (int i = 0; i < dim.NumDofsStd; ++i)
                 {
-                    for (int j = 0; j < numEnrDofs; ++j) K[i, dofOffset + j] = Kse[sub][i, j];
+                    for (int j = 0; j < dim.NumDofsEnr; ++j) K[i, dofOffset + j] = Kse[sub][i, j];
                 }
 
                 // B, Β^Τ
-                for (int i = 0; i < numEquations; ++i)
+                for (int i = 0; i < dim.NumEquations; ++i)
                 {
-                    for (int j = 0; j < numEnrDofs; ++j)
+                    for (int j = 0; j < dim.NumDofsEnr; ++j)
                     {
                         double sign = B[sub][i, j];
                         K[startBDofs + i, dofOffset + j] = sign;
@@ -94,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     }
                 }
 
-                dofOffset += numEnrDofs;
+                dofOffset += dim.NumDofsEnr;
             }
 
             return K;
@@ -102,32 +84,34 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public Vector Multiply(Vector x)
         {
-            var y = Vector.CreateZero(numDofsAll);
-            var xs = x.Slice(0, numDofsStd);
-            var xc = x.Slice(equationsStart, numDofsAll);
+            var y = Vector.CreateZero(dim.NumDofsAll);
+            var xs = x.Slice(0, dim.NumDofsStd);
+            var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
             Vector ys = Kss.MultiplyRight(xs); // Rows correspond to global standard dofs
-            var yc = Vector.CreateZero(numEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
-            for (int i = 0; i < numSubdomains; ++i)
+            var yc = Vector.CreateZero(dim.NumEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
+
+            foreach (var sub in dim.Subdomains)
             {
-                var xe = x.Slice(subdomainStarts[i], subdomainEnds[i]);
+                int i = sub.ID;
+                var xe = x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
                 ys.AddIntoThis(Kse[i].MultiplyRight(xe)); 
                 Vector ye = Kes[i].MultiplyRight(xs);
                 ye.AddIntoThis(Kee[i].MultiplyRight(xe));
                 ye.AddIntoThis(B[i].MultiplyRight(xc, true));
                 yc.AddIntoThis(B[i].MultiplyRight(xe, false));
-                y.SetSubvector(ye, subdomainStarts[i]);
+                y.SetSubvector(ye, dim.SubdomainStarts[sub]);
             }
             y.SetSubvector(ys, 0);
-            y.SetSubvector(yc, equationsStart);
+            y.SetSubvector(yc, dim.EquationsStart);
             return y;
         }
 
         public MenkBordasVector MultiplyRight(MenkBordasVector vector)
         {
             Vector ys = Kss.MultiplyRight(vector.Vs); // Rows correspond to global standard dofs
-            var ye = new Vector[numSubdomains]; // Rows correspond to subdomain enriched dofs
-            var yc = Vector.CreateZero(numEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
-            for (int i = 0; i < numSubdomains; ++i)
+            var ye = new Vector[dim.NumSubdomains]; // Rows correspond to subdomain enriched dofs
+            var yc = Vector.CreateZero(dim.NumEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
+            for (int i = 0; i < dim.NumSubdomains; ++i)
             {
                 ys.AddIntoThis(Kse[i].MultiplyRight(vector.Ve[i]));
                 ye[i] = Kes[i].MultiplyRight(vector.Vs);
@@ -135,7 +119,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 ye[i].AddIntoThis(B[i].MultiplyRight(vector.Vc, true)); //TODO: verify that it is not needed
                 yc.AddIntoThis(B[i].MultiplyRight(vector.Ve[i], false)); // Pretty sure this will not be 0
             }
-            return new MenkBordasVector(numSubdomains, numEquations, ys, ye, yc);
+            return new MenkBordasVector(dim.NumSubdomains, dim.NumEquations, ys, ye, yc);
         }
 
         public void WriteToConsole()
@@ -145,7 +129,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Console.WriteLine("Kss: ");
             (new FullMatrixWriter(Kss)).WriteToConsole();
             Console.WriteLine();
-            for (int i = 0; i < numSubdomains; ++i)
+            for (int i = 0; i < dim.NumSubdomains; ++i)
             {
                 Console.WriteLine($"Subdomain {i} - Kee: ");
                 (new FullMatrixWriter(Kee[i])).WriteToConsole();
@@ -169,7 +153,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
             var writer = new MatlabWriter();
             writer.WriteSparseMatrix(Kss, directoryPath + "Kss.txt");
-            for (int i = 0; i < numSubdomains; ++i)
+            for (int i = 0; i < dim.NumSubdomains; ++i)
             {
                 writer.WriteSparseMatrix(Kee[i], directoryPath + $"Kee{i + 1}.txt");
                 writer.WriteSparseMatrix(Kes[i], directoryPath + $"Kes{i + 1}.txt");

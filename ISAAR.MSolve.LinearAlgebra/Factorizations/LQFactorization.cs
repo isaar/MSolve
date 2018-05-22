@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             {
                 throw new NotImplementedException("For now, the number of rows must be <= the number of columns");
             }
-            double[] r = Conversions.FullColMajorToFullLowerColMajorRect(NumRows, NumColumns, reflectorsAndL);
+            double[] r = Conversions.RectColMajorToRectLowerColMajor(NumRows, NumColumns, reflectorsAndL);
             return Matrix.CreateFromArray(r, NumRows, NumColumns, false);
         }
 

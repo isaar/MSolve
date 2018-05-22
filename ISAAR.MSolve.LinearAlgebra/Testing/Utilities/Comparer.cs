@@ -19,6 +19,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
         }
 
         public PrintMode PMode { get; set; }
+        private readonly double tolerance;
         private readonly Printer printer;
         private readonly ValueComparer valueComparer;
 
@@ -27,6 +28,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
             this.printer = new Printer();
             this.PMode = printMode;
             this.valueComparer = new ValueComparer(tolerance);
+            this.tolerance = tolerance;
         }
 
         public bool AreEqual(int[] a, int[] b)
@@ -91,7 +93,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
 
         public void CheckMatrixEquality(Matrix matrixExpected, Matrix matrixComputed)
         {
-            if (matrixExpected.Equals(matrixComputed)) Console.WriteLine("Correct");
+            if (matrixExpected.Equals(matrixComputed, tolerance)) Console.WriteLine("Correct");
             else
             {
                 Console.WriteLine("Incorrect.");

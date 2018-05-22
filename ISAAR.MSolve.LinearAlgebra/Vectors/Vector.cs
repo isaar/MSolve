@@ -108,6 +108,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             CBlas.Daxpy(Length, 1.0, ref other.data[0], 1, ref this.data[0], 1);
         }
 
+        // TODO: have an AxpyToSubvector.
+        // TODO: this is like GetSubvector, SetSubvector, etc. Group them together and have a common naming/param convention.
+        public void AddSubvector(Vector subvector, int destinationIndex)
+        {
+            if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
+                "The entries to set exceed this vector's length");
+            CBlas.Daxpy(subvector.Length, 1.0, ref subvector.data[0], 1, ref this.data[destinationIndex], 1);
+        }
+
         public Vector Append(Vector last)
         {
             int n1 = this.data.Length;

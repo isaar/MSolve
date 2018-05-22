@@ -8,6 +8,8 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
+//TODO: This needs to be split between standard and enriched. Otherwise all enriched stuff may be uninitialized or in a 
+//      previous state.
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
     class XClusterDofOrderer: IDofOrderer
@@ -39,18 +41,28 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         public int NumStandardDofs { get; }
 
 
+        /// <summary>
+        /// Only standard free and standard constrained dofs.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="cluster"></param>
+        /// <returns></returns>
         public static XClusterDofOrderer CreateNodeMajor(Model2D model, XCluster2D cluster)
         {
             (int numConstrainedDofs, DofTable<DisplacementDof> constrainedDofs) = OrderConstrainedDofs(model.Constraints);
             (int numStandardDofs, DofTable<DisplacementDof> standardDofs) = OrderStandardDofs(model);
 
-            int numTotalDofs = numStandardDofs;
+            return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
+        }
+
+        public void OrderSubdomainDofs(SortedSet<XSubdomain2D> enrichedSubdomains)
+        {
+            int numTotalDofs = NumStandardDofs;
             foreach (var subdomain in cluster.Subdomains)
             {
                 subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(subdomain, numTotalDofs);
                 numTotalDofs += subdomain.DofOrderer.NumEnrichedDofs;
             }
-            return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
         }
 
         public IDofOrderer DeepCopy()

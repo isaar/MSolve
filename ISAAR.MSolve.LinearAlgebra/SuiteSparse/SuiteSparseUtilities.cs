@@ -8,15 +8,22 @@ using System.Threading.Tasks;
 //TODO: Use enums as return values or at least named constants.
 namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
 {
+    internal enum SystemType
+    {
+        Regular = 0, ForwardSubstitution = 4, BackSubstitution = 5
+    }
+
     internal static class SuiteSparseUtilities
     {
         /// <summary>
         /// Allocates in heap and returns a handle with matrix settings that must be passed to all CHOLMOD functions. Returns
         /// <see cref="IntPtr.Zero"/> if any failure occurs.
         /// </summary>
-        /// <param name="factorizationType">0 for for simplicial factorization, 1 for automatic decidion between supernodal / 
-        ///     simplicial factorization, 2 for automatic decidion between supernodal/simplicial factorization and after 
-        ///     factorization convert to simplicial. Supernodal is usually faster, but to modify the factorized matrix it must be
+        /// <param name="factorizationType">0 for for simplicial L^T*L or L^T*D*L factorization, 
+        ///     1 for supernodal L^T*L factorization, 
+        ///     2 for automatic decision between supernodal/simplicial factorization, 
+        ///     3 for automatic decision and after factorization convert to simplicial.
+        ///     Supernodal is usually faster and results in faster solutions, but to modify the factorized matrix it must be
         ///     converted to simplicial, though this can be	done automatically.</param>
         /// <param name="orderingType">0 for no reordering, 1 for automatic reordering (let suitesparse try some alternatives and
         ///     keep the best), 2 for AMD.</param>
@@ -125,16 +132,21 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         internal static extern int RowDelete(IntPtr factorizedMatrix, int rowIdx, IntPtr common);
 
         /// <summary>
-        /// Solves a linear system with a single right hand side vector.
+        /// Solves a linear system or applies back substitution or forward substituiton to 1 ore more right hand sides.
+        /// Returns 1 if the method succeeds, 0 otherwise.
         /// </summary>
-        /// <param name="order">Number of matrix rows = number of matrix columns = length of right hand side vector.</param>
+        /// <param name="system">0 for system solution (A*x=b), 4 for forward substitution (L*x=b), 
+        ///     5 for back substitution (L^T*x=b)</param>
+        /// <param name="numRows">Number of matrix rows = number of matrix columns = number of rhs matrix rows.</param>
+        /// <param name="numRhs">Number of rhs vectors = number of columns in rhs matrix.</param>
         /// <param name="factorizedMatrix">The data of the cholesky factorization of the matrix.</param>
-        /// <param name="rhs">The right hand side vector. Its length must be equal to the order of the matrix: 
-        ///     factorized_matrix->n.</param>
-        /// <param name="outSolution">Buffer for the left hand side vector (unknown). Its length must be equal to the order of 
-        ///     the matrix: factorized_matrix->n.</param>
+        /// <param name="rhs">The right hand side matrix. Column major array with dimensions = 
+        ///     <paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
+        /// <param name="outSolution">Buffer for the left hand side vector (unknown). Column major array with dimensions = 
+	 	/// 	<paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_solve")]
-        internal static extern void Solve(int order, IntPtr factorizedMatrix, double[] rhs, double[] outSolution, IntPtr common);
+        internal static extern int Solve(int system, int numRows, int numRhs, IntPtr factorizedMatrix, 
+            double[] rhs, double[] outSolution, IntPtr common);
     }
 }

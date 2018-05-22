@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Solvers;
+using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
 
 namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
@@ -32,7 +34,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //var solver = CreateNoReanalysisSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreatePCGSolver(benchmark);
-            var solver = CreateMinresSolver(benchmark);
+            //var solver = CreateMinresSolver(benchmark);
+            var solver = CreateMenkBordasSolver(benchmark);
             IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
             //Reanalysis solvers
@@ -105,7 +108,29 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip elements are 
             //      found. It happens at iteration 10.
             builder.MaxIterations = 10;
-            builder.KnownPropagation = null; // TODO: enter the fixed propagator here, perhaps by solving the benchmark once.
+            //builder.KnownPropagation = null; // TODO: enter the fixed propagator here, perhaps by solving the benchmark once.
+
+            // These are for uniform mesh, element size = 0.08;
+            var propagationLogger = new PropagationLogger();
+            propagationLogger.GrowthAngles.Add(-0.0349434289780521);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.0729848767244629);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.125892740180586);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.200116860828933);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.258299391791769);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.264803465603906);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.201411670680886);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.123234163953279);
+            propagationLogger.GrowthLengths.Add(0.3);
+            propagationLogger.GrowthAngles.Add(-0.0816346096256186);
+            propagationLogger.GrowthLengths.Add(0.3);
+            //builder.KnownPropagation = propagationLogger;
 
             return builder;
         }
@@ -123,6 +148,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreateMinresSolver(DCB benchmark)
         {
             return new MinresSolver(benchmark.Model, 1, 1e-10, 0);
+        }
+
+        private static ISolver CreateMenkBordasSolver(DCB benchmark)
+        {
+            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
         }
 
         private static ISolver CreateCholeskySuiteSparseSolver(DCB benchmark)

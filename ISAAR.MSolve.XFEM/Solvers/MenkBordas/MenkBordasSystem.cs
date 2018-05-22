@@ -1,45 +1,116 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Entities;
 
+//TODO: this only works for cholesky preconditioning of Kss. Extend it to other precoditioners. To abstract it, use a custom
+//      preconditioned matrix class (IDisposable) that does multiplications with Ps, Ps^T and KssBar = Ps^T*Kss*Ps
+//TODO: ok, this class might be necessarily coupled with XSubdomain2D to keep track of the stored ones. However,
+//      MenkBordasPrecMatrix and MenkBordasPreconditioner could just operate on arrays. Even this one could, using the subdomain
+//      IDs and Dictionararies. Granted, IDs are easy to overlap, if the subdomains get updated.
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasSystem
+    //TODO: this class should manage all matrices and vectors while they update. 
+    class MenkBordasSystem //TODO: IDisposable. Also dispose of modified matrices and factorizations.
     {
-        public readonly int numSubdomains;
-
-        public MenkBordasSystem(int numSubdomains)
+        public MenkBordasSystem(DOKSymmetricColMajor Kss, Vector bs)
         {
-            if (numSubdomains < 1) throw new ArgumentException(
-                $"There must be at least 1 subdomain, but {numSubdomains} were declared");
-            this.numSubdomains = numSubdomains;
-            this.Kee = new List<CSRMatrix>();
-            this.Kes = new List<CSRMatrix>();
-            this.Kse = new List<CSRMatrix>();
-            this.B = new List<SignedBooleanMatrix>();
-            this.be = new List<Vector>();
+            this.numDofsStd = Kss.NumRows;
+            this.bs = bs;
+            this.Ps = MenkBordasPreconditioner.CreateStandardPreconditioner(Kss);
+            Kss.Clear(); // No longer needed.
+
+            this.subdomains = new SortedSet<XSubdomain2D>();
+            this.modifiedSubdomains = new Dictionary<XSubdomain2D, bool>();
+            this.Kee = new Dictionary<XSubdomain2D, DOKSymmetricColMajor>();
+            this.Kes = new Dictionary<XSubdomain2D, CSRMatrix>();
+            this.Kse = new Dictionary<XSubdomain2D, CSRMatrix>();
+            this.be = new Dictionary<XSubdomain2D, Vector>();
+            this.Pe = new Dictionary<XSubdomain2D, CholeskySuiteSparse>();
         }
 
-        // Matrices
-        public CSRMatrix Kss;
-        public readonly List<CSRMatrix> Kee;
-        public readonly List<CSRMatrix> Kes;
-        public readonly List<CSRMatrix> Kse;
-        public readonly List<SignedBooleanMatrix> B;
+        private readonly int numDofsStd;
+        private readonly CholeskySuiteSparse Ps; 
+        private readonly Vector bs;
+        private readonly SortedSet<XSubdomain2D> subdomains;
+        private readonly Dictionary<XSubdomain2D, bool> modifiedSubdomains;
+        private readonly Dictionary<XSubdomain2D, DOKSymmetricColMajor> Kee; //TODO: only save the factorizations
+        private readonly Dictionary<XSubdomain2D, CSRMatrix> Kes;
+        private readonly Dictionary<XSubdomain2D, CSRMatrix> Kse;
+        private Dictionary<XSubdomain2D, SignedBooleanMatrix> B;
+        private readonly Dictionary<XSubdomain2D, Vector> be;
+        private readonly Dictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
+        // TODO: investigate if some submatrices of L, Q can be cached.
 
-        // Right hand side vectors
-        public Vector bs;
-        public readonly List<Vector> be;
+        public void ClearSubdomains()
+        {
+            subdomains.Clear();
+            modifiedSubdomains.Clear();
+            Kee.Clear();
+            Kes.Clear();
+            Kse.Clear();
+            B = null;
+            be.Clear();
+            Pe.Clear();
+        }
 
-        public void CheckDimensions()
+        public void SetBooleanMatrices(IDictionary<XSubdomain2D, SignedBooleanMatrix> B) // TODO: allow some to not change
+        {
+            this.B = new Dictionary<XSubdomain2D, SignedBooleanMatrix>(B);
+        }
+
+        public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetricColMajor Kee, CSRMatrix Kes, CSRMatrix Kse,
+            Vector be) 
+        {
+            // Update tracked subdomains
+            bool isNew = subdomains.Add(subdomain);
+            modifiedSubdomains[subdomain] = true;
+
+            // Dispose unmanaged factorization data of updated matrices
+            if (!isNew)
+            {
+                this.Pe[subdomain].Dispose();
+                this.Pe.Remove(subdomain);
+            }
+
+            // Set the new matrices. The old ones will be GCed.
+            this.Kee.Add(subdomain, Kee); // This should haven been removed or not added in the first place.
+            this.Kes[subdomain] = Kes;
+            this.Kse[subdomain] = Kse;
+            this.be[subdomain] = be;
+        }
+
+        public void RemoveSubdomain(XSubdomain2D subdomain) // Not sure of needed. Once enriched, always enriched.
+        {
+            // Update tracked subdomains
+            bool exists = subdomains.Remove(subdomain);
+            if (!exists) throw new KeyNotFoundException("No such subdomain is stored");
+            modifiedSubdomains.Remove(subdomain);
+
+            // Dispose unmanaged factorization data of updated matrices
+            Pe[subdomain].Dispose();
+
+            // Remove the matrices.
+            Kee.Remove(subdomain);
+            Kes.Remove(subdomain);
+            Kse.Remove(subdomain);
+            be.Remove(subdomain);
+            Pe.Remove(subdomain);
+        }
+
+        public void CheckDimensions() //TODO: update this
         {
             // Standard dofs
-            Preconditions.CheckSystemSolutionDimensions(Kss, bs);
+            Preconditions.CheckSystemSolutionDimensions(numDofsStd, numDofsStd, bs.Length);
 
             // Number of subdomains
+            int numSubdomains = subdomains.Count;
             if ((Kee.Count != numSubdomains) || (Kes.Count != numSubdomains) || (Kse.Count != numSubdomains) 
                 || (B.Count != numSubdomains) || (be.Count != numSubdomains))
             {
@@ -50,46 +121,148 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
 
             // Enriched dofs
-            for (int i = 0; i < numSubdomains; ++i)
+            foreach (var sub in modifiedSubdomains.Keys)
             {
                 //TODO: All dimensions could be checked.
-                Preconditions.CheckSystemSolutionDimensions(Kee[i], be[i]);
-                Preconditions.CheckSystemSolutionDimensions(Kes[i], be[i]);
-                Preconditions.CheckSystemSolutionDimensions(Kse[i], bs);
-                Preconditions.CheckMultiplicationDimensions(B[i].NumColumns, be[i].Length); //rhs.Length = lhs.Length
+                Preconditions.CheckSystemSolutionDimensions(Kee[sub], be[sub]);
+                Preconditions.CheckSystemSolutionDimensions(Kes[sub], be[sub]);
+                Preconditions.CheckSystemSolutionDimensions(Kse[sub], bs);
+                Preconditions.CheckMultiplicationDimensions(B[sub].NumColumns, be[sub].Length); //rhs.Length = lhs.Length
             }
         }
 
-        public (MenkBordasMatrix matrix, Vector rhs) BuildSystem()
-        { 
-            // Count various dimensions
-            int numDofsStd = Kss.NumRows;
-            int[] subdomainStarts = new int[numSubdomains];
-            int[] subdomainEnds = new int[numSubdomains];
-            int nextStart = numDofsStd;
-            for (int i = 0; i < numSubdomains; ++i)
+        //public (MenkBordasMatrix matrix, Vector rhs) BuildSystem(DOKSymmetricColMajor Kss)
+        //{
+        //    // Count various dimensions
+        //    Dimensions dim = CountDimensions();
+
+        //    // Create the matrix
+        //    var copyKss = DOKRowMajor.CreateFromSparseMatrix(Kss).BuildCSRMatrix(true);
+        //    var copyKee = new CSRMatrix[dim.NumSubdomains];
+        //    int i = 0;
+        //    foreach (var sub in modifiedSubdomains.Keys)
+        //    {
+        //        copyKee[i++] = DOKRowMajor.CreateFromSparseMatrix(Kee[sub]).BuildCSRMatrix(true);
+        //    }
+        //    var matrix = new MenkBordasMatrix(dim, copyKss, copyKee, Kes.Values.ToArray(), Kse.Values.ToArray(), B.Values.ToArray());
+
+        //    // Assemble the rhs vector
+        //    var rhs = Vector.CreateZero(dim.NumDofsAll);
+        //    rhs.CopyFromVector(0, bs, 0, dim.NumDofsStd);
+        //    for (i = 0; i < dim.NumSubdomains; ++i)
+        //    {
+        //        rhs.CopyFromVector(dim.SubdomainStarts[i], be[i], 0, be[i].Length);
+        //    }
+
+        //    return (matrix, rhs);
+        //}
+
+        public (MenkBordasPrecondMatrix matrix, Vector rhs) BuildPreconditionedSystem() // TODO: cache the matrices
+        {
+            Dimensions dim = CountDimensions();
+
+            // Assemble the rhs vector // TODO: just set the subvectors that change
+            var rhs = Vector.CreateZero(dim.NumDofsAll);
+            rhs.CopyFromVector(0, bs, 0, dim.NumDofsStd);
+            foreach (var sub in subdomains)
             {
-                subdomainStarts[i] = nextStart;
-                subdomainEnds[i] = nextStart + Kee[i].NumRows;
-                nextStart = subdomainEnds[i];
+                rhs.SetSubvector(be[sub], dim.SubdomainStarts[sub]);
             }
-            int equationsStart = nextStart;
-            int numEquations = B[0].NumRows;
-            int numDofsAll = nextStart + numEquations;
 
-            // Create the matrix
-            var matrix = new MenkBordasMatrix(numSubdomains, numEquations, numDofsStd, numDofsAll, subdomainStarts, subdomainEnds,
-                equationsStart, Kss, Kee.ToArray(), Kes.ToArray(), Kse.ToArray(), B.ToArray());
-
-            // Assemble the rhs vector
-            var rhs = Vector.CreateZero(numDofsAll);
-            rhs.CopyFromVector(0, bs, 0, numDofsStd);
-            for (int i = 0; i < numSubdomains; ++i)
+            // Create the preconditioned enriched matrices
+            foreach (var subdomain in modifiedSubdomains)
             {
-                rhs.CopyFromVector(subdomainStarts[i], be[i], 0, be[i].Length);
+                if (subdomain.Value) // Do not recreate the preconditioners of unmodified Kee
+                {
+                    DOKSymmetricColMajor kee = Kee[subdomain.Key];
+
+                    // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
+                    Pe.Add(subdomain.Key, MenkBordasPreconditioner.CreateEnrichedPreconditioner(kee)); 
+
+                    // Dispose of each Kee, once it is no longer needed.
+                    Kee.Remove(subdomain.Key);
+                    kee.Clear();
+                }
             }
 
+            // Handle L,Q matrices
+            Matrix L = null;
+            Matrix Q = null;
+            if (subdomains.Count > 1)
+            {
+                (L, Q) = MenkBordasPreconditioner.CreateContinuityEquationsPreconditioners(dim, B, Pe);
+                B = null; // Clear it to make sure an exception is thrown if the caller forgets to update B.
+            }
+
+            var matrix = new MenkBordasPrecondMatrix(dim, Kes, Kse, Ps, Pe, L, Q);
             return (matrix, rhs);
+        }
+
+        public Dimensions CountDimensions()
+        {
+            // Enriched dofs
+            var subdomainStarts = new SortedDictionary<XSubdomain2D, int>();
+            var subdomainEnds = new SortedDictionary<XSubdomain2D, int>();
+            int nextStart = numDofsStd;
+            foreach (var subdomainKee in Kee)
+            {
+                subdomainStarts.Add(subdomainKee.Key, nextStart);
+                nextStart = nextStart + subdomainKee.Value.NumRows;
+                subdomainEnds.Add(subdomainKee.Key, nextStart);
+            }
+
+            // Continuity equations
+            if (subdomains.Count > 1)
+            {
+                int equationsStart = nextStart;
+                int numEquations = 0;
+                foreach (var subdomainMatrix in B)
+                {
+                    numEquations = subdomainMatrix.Value.NumRows;
+                    break;
+                }
+                int numDofsAll = nextStart + numEquations;
+                int numDofsEnr = numDofsAll - numDofsStd - numEquations;
+                return new Dimensions(numEquations, numDofsStd, numDofsEnr, numDofsAll, subdomains,
+                    subdomainStarts, subdomainEnds, equationsStart);
+            }
+            else //TODO: Setting illegal values will at least throw exceptions if sth goes wrong. Find a better way to handle it. 
+            {
+                int equationsStart = int.MinValue;
+                int numEquations = int.MinValue;
+                int numDofsAll = nextStart;
+                int numDofsEnr = numDofsAll - numDofsStd;
+                return new Dimensions(numEquations, numDofsStd, numDofsEnr, numDofsAll, subdomains,
+                    subdomainStarts, subdomainEnds, equationsStart);
+            }
+        }
+
+        public class Dimensions
+        {
+            public Dimensions(int numEquations, int numDofsStd, int numDofsEnr, int numDofsAll,
+                SortedSet<XSubdomain2D> subdomains,  IReadOnlyDictionary<XSubdomain2D, int> subdomainStarts, 
+                IReadOnlyDictionary<XSubdomain2D, int> subdomainEnds, int equationsStart)
+            {
+                this.NumSubdomains = subdomains.Count;
+                this.NumEquations = numEquations;
+                this.NumDofsStd = numDofsStd;
+                this.NumDofsEnr = numDofsEnr;
+                this.NumDofsAll = numDofsAll;
+                this.Subdomains = subdomains;
+                this.SubdomainStarts = subdomainStarts;
+                this.SubdomainEnds = subdomainEnds;
+                this.EquationsStart = equationsStart;
+            }
+
+            public int NumSubdomains { get; }
+            public int NumEquations { get; }
+            public int NumDofsStd { get; }
+            public int NumDofsEnr { get; }
+            public int NumDofsAll { get; }
+            public SortedSet<XSubdomain2D> Subdomains { get; }
+            public IReadOnlyDictionary<XSubdomain2D, int> SubdomainStarts { get; }
+            public IReadOnlyDictionary<XSubdomain2D, int> SubdomainEnds { get; }
+            public int EquationsStart { get; }
         }
     }
 }

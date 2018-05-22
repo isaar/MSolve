@@ -24,11 +24,22 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public XSubdomain2D(int id)
         {
+            this.ID = id;
             this.allNodes = new SortedSet<XNode2D>();
             this.elements = new HashSet<XContinuumElement2D>();
             this.boundaryNodes = new HashSet<XNode2D>();
             this.internalNodes = new HashSet<XNode2D>();
+        }
+
+        public XSubdomain2D(int id, HashSet<XContinuumElement2D> elements, HashSet<XNode2D> internalNodes, 
+            HashSet<XNode2D> boundaryNodes)
+        {
             this.ID = id;
+            this.elements = elements;
+            this.internalNodes = internalNodes;
+            this.boundaryNodes = boundaryNodes;
+            this.allNodes = new SortedSet<XNode2D>(internalNodes);
+            this.allNodes.UnionWith(boundaryNodes);
         }
 
         public int ID { get; }
@@ -70,6 +81,15 @@ namespace ISAAR.MSolve.XFEM.Entities
         public int CompareTo(XSubdomain2D other)
         {
             return this.ID - other.ID;
+        }
+
+        public bool HasEnrichedNodes()
+        {
+            foreach (var node in allNodes)
+            {
+                if (node.IsEnriched) return true;
+            }
+            return false;
         }
     }
 }

@@ -13,6 +13,11 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems
     public interface ILinearTransformation<TVector>
         where TVector: IVectorView
     {
-        TVector Multiply(TVector vector); //TODO: should this be named Transform?
+        /// <summary>
+        /// y = T(x)
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        TVector Multiply(TVector x); //TODO: should this be named Transform?
     }
 }
