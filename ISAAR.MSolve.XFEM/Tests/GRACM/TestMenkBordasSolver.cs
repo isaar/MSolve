@@ -11,8 +11,9 @@ using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
+using ISAAR.MSolve.XFEM.Tests.Subdomains;
 
-namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
+namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
     class TestMenkBordasSolver
     {

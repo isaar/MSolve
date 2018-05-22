@@ -21,7 +21,7 @@ using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
-namespace ISAAR.MSolve.XFEM.Tests.MenkBordas
+namespace ISAAR.MSolve.XFEM.Tests.Subdomains
 {
     class SubdomainTest2
     {

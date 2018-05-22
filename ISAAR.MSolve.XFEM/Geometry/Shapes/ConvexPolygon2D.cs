@@ -19,6 +19,21 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 
     class ConvexPolygon2D
     {
+        private ConvexPolygon2D(IReadOnlyList<ICartesianPoint2D> vertices)
+        {
+            this.Vertices = vertices;
+
+            var edges = new LineSegment2D[vertices.Count];
+            for (int i = 0; i < vertices.Count; ++i)
+            {
+                edges[i] = new LineSegment2D(vertices[i], vertices[(i + 1) % vertices.Count]);
+            }
+            this.Edges = edges;
+        }
+
+        public IReadOnlyList<ICartesianPoint2D> Vertices { get; }
+        public IReadOnlyList<LineSegment2D> Edges { get; }
+
         public static ConvexPolygon2D CreateUnsafe(IReadOnlyList<ICartesianPoint2D> vertices)
         {
             return new ConvexPolygon2D(vertices);
@@ -33,9 +48,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             }
             return new ConvexPolygon2D(points);
         }
-
-        public IReadOnlyList<ICartesianPoint2D> Vertices { get; }
-        public IReadOnlyList<LineSegment2D> Edges { get; }
 
         public double ComputeArea()
         {
@@ -139,18 +151,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
                 if ((verticesInsideCircle >= 1) || (verticesOnCircle >= 2)) return true;
             }
             return false;
-        }
-
-        private ConvexPolygon2D(IReadOnlyList<ICartesianPoint2D> vertices)
-        {
-            this.Vertices = vertices;
-
-            var edges = new LineSegment2D[vertices.Count];
-            for (int i = 0; i < vertices.Count; ++i)
-            {
-                edges[i] = new LineSegment2D(vertices[i], vertices[(i + 1) % vertices.Count]);
-            }
-            this.Edges = edges;
         }
     }
 }

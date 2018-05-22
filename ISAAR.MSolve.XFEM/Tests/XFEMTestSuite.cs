@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.Tests.DofOrdering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
 using ISAAR.MSolve.XFEM.Tests.Khoei;
-using ISAAR.MSolve.XFEM.Tests.MenkBordas;
+using ISAAR.MSolve.XFEM.Tests.Subdomains;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -18,7 +18,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             //ReorderingTests.Run();
             //SubdomainTest1.Run();
             //SubdomainTest2.Run();
-            TestMenkBordasSolver.Run();
+            AutomaticDecompositionTest.Run();
+            //TestMenkBordasSolver.Run();
         }
     }
 }
