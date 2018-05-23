@@ -16,10 +16,14 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh
 
         private readonly StreamReader reader;
 
-        public GmshReader(string filename)
+        public GmshReader(string filename, bool absolute = false)
         {
-            string path = directory + filename;
-            reader = new StreamReader(path);
+            if (absolute) reader = new StreamReader(filename);
+            else
+            {
+                string path = directory + filename;
+                reader = new StreamReader(path);
+            }
         }
 
         ~GmshReader()

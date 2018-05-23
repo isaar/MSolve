@@ -13,7 +13,9 @@ namespace ISAAR.MSolve.XFEM.Tests
         public static void RunAll()
         {
             //DCB3x1.Run();
-            DCBSolvers.Run();
+            //DCBSolvers.Run();
+            SlopeSolvers.Run();
+
             //ReanalysisDebugging.Run();
             //ReorderingTests.Run();
             //SubdomainTest1.Run();
