@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             //DCB3x1.Run();
             //DCBSolvers.Run();
-            SlopeSolvers.Run();
+            BenchmarkSolvers.Run();
 
             //ReanalysisDebugging.Run();
             //ReorderingTests.Run();

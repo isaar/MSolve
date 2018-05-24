@@ -26,25 +26,33 @@ using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Solvers;
+using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
+
 
 namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
-    class Slope: IBenchmark
+    class Fillet: IBenchmark
     {
         public static Builder SetupBenchmark()
         {
-            string meshPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Meshes\fillet.msh";
-            string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Plots";
-            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Timing";
-            //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Slope\Meshes\fillet.msh";
-            //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Slope\Plots";
-            //string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Slope\Timing";
+            string meshPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Meshes\fillet.msh";
+            string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Plots";
+            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing";
+            //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Meshes\fillet.msh";
+            //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Plots";
+            //string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Fillet\Timing";
 
-            double growthLength = 2.0; // mm. Must be sufficiently larger than the element size.
+            double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
             builder.LsmOutputDirectory = plotPath;
-            builder.MaxIterations = 10;
+            builder.MaxIterations = 20;
+
+            // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
+            // the element that contains the crack tip. However it must not be so large that an element intersected by the 
+            // J-integral contour is containes the previous crack tip. Thus the J-integral radius must be sufficiently smaller
+            // than the crack growth length.
+            builder.JintegralRadiusOverElementSize = 2.0; 
 
             // TODO: enter the fixed propagator here, perhaps by solving the benchmark once.
             // These are for mesh: ...
@@ -72,16 +80,17 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return builder;
         }
 
+
         #region constants
         /// <summary>
         /// Thickness of the whole domain
         /// </summary>
-        private const double t = 1.0;
+        private const double t = 1.0; // mm
 
         /// <summary>
-        /// Young's modulus in Pa
+        /// Young's modulus
         /// </summary>
-        private const double E = 10e6;
+        private const double E = 2.1e12; // kN/mm^2
 
         /// <summary>
         /// Poisson's ratio
@@ -100,22 +109,19 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private const double fractureToughness = double.MaxValue;
 
         /// <summary>
-        /// Magnitude in lbs of "opening" point loads applied at the upper left and lower left corners of the domain.
+        /// Magnitude in kN of "opening" load
         /// </summary>
-        private const double load = 4e5; // N
+        private const double load = 20.0; // kN
 
 
         // Geometry (m)
-        private const double yTop = 10.0;
-        private const double yExtra = 10.4;
-        private const double xRight = 20.0;
-        private const double crackMouthX = 15.5;
-        private const double crackMouthY = 10.0;
-        private const double crackTipX = 15.5;
-        private const double crackTipY = 9.5;
+        private const double bottomWidth = 375.0, topWidth = 75.0, radius = 20.0;// mm
+        private const double flangeHeight = 75.0, totalHeight = 150.0; // mm
+        private const double crackHeight = flangeHeight + radius, crackLength = 5, webLeft = 0.5 * (bottomWidth - topWidth); //mm
+        private const double infCrackHeight = 90.0, supCrackHeight = 105.0; //mm
 
         #endregion
-
+        private readonly bool constrainBottomEdge;
 
         /// <summary>
         /// The length by which the crack grows in each iteration.
@@ -149,8 +155,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// 
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-        private Slope(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
-             PropagationLogger knownPropagation, string lsmOutputDirectory, int maxIterations)
+        private Fillet(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
+             PropagationLogger knownPropagation, string lsmOutputDirectory, int maxIterations, bool constrainBottomEdge)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
@@ -158,6 +164,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.knownPropagation = knownPropagation;
             this.lsmOutputDirectory = lsmOutputDirectory;
             this.maxIterations = maxIterations;
+            this.constrainBottomEdge = constrainBottomEdge;
         }
 
         /// <summary>
@@ -167,18 +174,19 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public IDecomposer Decomposer { get; private set; }
 
-        public IReadOnlyList<XNode2D> EnrichedArea { get { return Model.Nodes; } }
+        public IReadOnlyList<XNode2D> EnrichedArea { get; private set; }
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
         /// </summary>
         public Model2D Model { get; private set; }
 
+
         public IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver)
         {
-            var crackPath = new List<ICartesianPoint2D>();
-            crackPath.Add(new CartesianPoint2D(crackMouthX, crackMouthY));
-            crackPath.Add(new CartesianPoint2D(crackTipX, crackTipY));
+            //var crackPath = new List<ICartesianPoint2D>();
+            //crackPath.Add(new CartesianPoint2D(webLeft, crackHeight));
+            //crackPath.Add(new CartesianPoint2D(webLeft + crackLength, crackHeight));
 
             var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
@@ -189,8 +197,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
             else propagator = actualPropagator;
             var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
-            crackPath.AddRange(analysis.Analyze());
-            return crackPath;
+            analysis.Analyze();
+            //crackPath.AddRange();
+            return Crack.CrackPath;
         }
 
         public void InitializeModel()
@@ -199,6 +208,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             CreateMesh();
             ApplyBoundaryConditions();
             InitializeCrack();
+            LimitEnrichedArea();
             DomainDecomposition();
         }
 
@@ -206,23 +216,33 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             var finder = new EntityFinder(Model, 1e-6);
 
-            // Fixed dofs
-            foreach (var node in finder.FindNodesWithY(0.0))
+            // Constraints
+            XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
+            Model.AddConstraint(bottomLeftNode, DisplacementDof.X, 0.0);
+            if (constrainBottomEdge)
             {
-                Model.AddConstraint(node, DisplacementDof.X, 0.0);
-                Model.AddConstraint(node, DisplacementDof.Y, 0.0);
+                foreach (var node in finder.FindNodesWithY(0.0))
+                {
+                    Model.AddConstraint(node, DisplacementDof.Y, 0.0);
+                }
             }
-            foreach (var node in finder.FindNodesWithX(xRight))
+            else
             {
-                if (node.Y != 0.0) Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                XNode2D bottomRightNode = finder.FindNodeWith(bottomWidth, 0.0);
+                Model.AddConstraint(bottomRightNode, DisplacementDof.Y, 0.0);
+                Model.AddConstraint(bottomLeftNode, DisplacementDof.Y, 0.0);
             }
 
+
             // Loads
-            IReadOnlyList<XNode2D> loadedNodes = finder.FindNodesWithY(yTop).Where(node => node.X <= 14.0).ToArray();
-            double pressure = load / loadedNodes.Count;
-            foreach (var node in loadedNodes)
+            double distributedLoad = load / topWidth;
+            var distrubutor = new LoadDistributor();
+            IReadOnlyList<XNode2D> topNodes = finder.FindNodesWithY(totalHeight);
+            double[,] topLoads = distrubutor.DistributeLoad(topNodes, 0.0, distributedLoad);
+            for (int i = 0; i < topNodes.Count; ++i)
             {
-                Model.AddNodalLoad(node, DisplacementDof.Y, -pressure);
+                Model.AddNodalLoad(topNodes[i], DisplacementDof.X, topLoads[i, 0]);
+                Model.AddNodalLoad(topNodes[i], DisplacementDof.Y, topLoads[i, 1]);
             }
         }
 
@@ -257,12 +277,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             }
 
             // Mesh usable for crack-mesh interaction
-            var vertices = new CartesianPoint2D[4];
-            vertices[0] = new CartesianPoint2D(0.0, 0.0);
-            vertices[1] = new CartesianPoint2D(xRight, 0.0);
-            vertices[2] = new CartesianPoint2D(xRight, 10.0);
-            vertices[3] = new CartesianPoint2D(10.0, 10.0);
-            mesh = new BiMesh2D(Model.Nodes, Model.Elements, new PolygonalBoundary(vertices));
+            
+            mesh = new BiMesh2D(Model.Nodes, Model.Elements, new FilletBoundary());
         }
 
         private void DomainDecomposition() //TODO: this should not be hardcoded, but provided by the caller of the solver
@@ -312,9 +328,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void InitializeCrack()
         {
-            var crackVertex0 = new CartesianPoint2D(crackMouthX, crackMouthY);
-            var crackVertex1 = new CartesianPoint2D(crackTipX, crackTipY);
-            var initialCrack = new PolyLine2D(crackVertex0, crackVertex1);
+            var crackMouth = new CartesianPoint2D(webLeft, crackHeight);
+            var crackTip = new CartesianPoint2D(webLeft + crackLength, crackHeight);
+            var initialCrack = new PolyLine2D(crackMouth, crackTip);
             var lsmCrack = new TrackingExteriorCrackLSM();
             lsmCrack.Mesh = mesh;
 
@@ -331,6 +347,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Mesh geometry interaction
             lsmCrack.InitializeGeometry(initialCrack);
             this.Crack = lsmCrack;
+        }
+
+        private void LimitEnrichedArea()
+        {
+            EnrichedArea = Model.Nodes.Where(node => (node.Y >= infCrackHeight) && (node.Y <= supCrackHeight)).ToList();
         }
 
         public class Builder: IBenchmarkBuilder
@@ -350,6 +371,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 this.meshPath = meshPath;
                 this.TimingPath = timingPath;
             }
+
+            /// <summary>
+            /// If set to true, the global y dof will be constrained for all nodes along the bottom edge, in order to simulate 
+            /// a very thick rigid I-beam. If set to false, the global � degree of freedom is constrained only for the corner
+            ///  nodes of the bottom edge, in order to simulate a very thin, flexible I-beam
+            /// </summary>
+            public bool ConstrainBottomEdge { get; set; } = true;
 
             /// <summary>
             /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
@@ -375,16 +403,69 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// </summary>
             public int MaxIterations { get; set; } = int.MaxValue;
 
-            public IBenchmark BuildBenchmark()
-            {
-                return new Slope(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmOutputDirectory,
-                    MaxIterations);
-            }
-
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
             public string TimingPath { get; }
+
+            public IBenchmark BuildBenchmark()
+            {
+                return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmOutputDirectory,
+                    MaxIterations, ConstrainBottomEdge);
+            }
+        }
+
+        private class FilletBoundary : IDomainBoundary
+        {
+            private readonly double voidRectWidth, centerY, leftCenterX, rightCenterX;
+
+            public FilletBoundary()
+            {
+                voidRectWidth = 0.5 * (bottomWidth - topWidth);
+                centerY = flangeHeight + radius;
+                leftCenterX = voidRectWidth - radius;
+                rightCenterX = bottomWidth - voidRectWidth + radius;
+            }
+
+            public bool IsInside(ICartesianPoint2D point)
+            {
+                // Shapes
+                var rectHull = new RectangularBoundary(0.0, bottomWidth, 0.0, totalHeight);
+                var leftVoid = new RectangularBoundary(0.0, voidRectWidth, flangeHeight, totalHeight);
+                var rightVoid = new RectangularBoundary(bottomWidth - voidRectWidth, bottomWidth, flangeHeight, totalHeight);
+                var leftCircle = new Circle2D(new CartesianPoint2D(leftCenterX, centerY), radius);
+                var rightCircle = new Circle2D(new CartesianPoint2D(rightCenterX, centerY), radius);
+
+                if (rectHull.IsInside(point))
+                {
+                    if (leftVoid.IsInside(point)) // Over flange, left of web
+                    {
+                        if ((point.X > leftCenterX) && (point.Y < centerY))
+                        {
+                            if (leftCircle.FindRelativePositionOfPoint(point) == CirclePointPosition.Outside)
+                            {
+                                return true; // Inside left fillet
+                            }
+                            else return false;
+                        }
+                        else return false;
+                    }
+                    else if (rightVoid.IsInside(point)) // Over flange, right of web
+                    {
+                        if ((point.X < leftCenterX) && (point.Y < centerY))
+                        {
+                            if (leftCircle.FindRelativePositionOfPoint(point) == CirclePointPosition.Outside)
+                            {
+                                return true; // Inside right fillet
+                            }
+                            else return false;
+                        }
+                        else return false;
+                    }
+                    else return true; // Inside the flange or the web
+                }
+                else return false;
+            }
         }
     }
 }
