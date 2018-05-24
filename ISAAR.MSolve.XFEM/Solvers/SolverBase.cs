@@ -29,7 +29,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public virtual void Initialize() // Many solvers do not need to initialize state
         {
-            Logger.InitializationTime = 0;
         } 
 
         public abstract void Solve();

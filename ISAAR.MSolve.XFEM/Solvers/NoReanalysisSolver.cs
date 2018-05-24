@@ -55,9 +55,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Initialize()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             // Enrich all applicable nodes, without evaluating the enrichment functions
             foreach (XNode2D node in fullyEnrichedNodes) 
             {
@@ -72,9 +69,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //unorderedDofs.WriteToConsole();
 
             // Keep a copy of the unordered dofs
-            watch.Stop();
             DofOrderer = unorderedDofs.DeepCopy();
-            watch.Start();
 
             // Reorder and count the reordering time
             ReorderPatternSuperset();
@@ -82,16 +77,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
             foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
-
-            watch.Stop();
-            Logger.InitializationTime = watch.ElapsedMilliseconds;
         }
 
         public override void Solve()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             var assembler = new ReanalysisWholeAssembler();
             //This is not posdef. Debugger showed empty columns. Also there are no enriched dofs!!!
             (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer); 
@@ -103,9 +92,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 Solution = factorization.SolveLinearSystem(rhs);
                 nnzOrderedFactor = factorization.NumNonZeros;
             }
-
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
             #region test
             int nnzUnorderedFactor = CheckSolutionWithUnordered();

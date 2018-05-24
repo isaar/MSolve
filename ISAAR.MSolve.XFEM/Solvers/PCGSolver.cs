@@ -31,9 +31,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Solve()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             // Interleaced and separate dof enumerators seem to have similar performance.
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
@@ -64,9 +61,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
             #region Debugging
             //CheckPCG(model, DofOrderer, Kuu, Solution);
             #endregion
-
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
         private static void CheckPCG(Model2D model, IDofOrderer dofOrderer, DOKRowMajor Kuu, Vector solution)

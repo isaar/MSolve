@@ -20,18 +20,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Solve()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             //DofOrderer = DofOrdererSeparate.Create(model);
             DofOrderer = InterleavedDofOrderer.Create(model);
             var assembler = new GlobalSkylineAssembler();
             (Matrix Kuu, Matrix Kuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Solution = Kuu.FactorCholesky().SolveLinearSystem(rhs);
-
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
     }
 }

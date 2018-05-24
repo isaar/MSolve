@@ -13,8 +13,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static void Run()
         {
-            SingleTest();
-            //BenchmarkSolver();
+            //SingleTest();
+            BenchmarkSolver();
         }
 
 
@@ -54,12 +54,35 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void BenchmarkSolver()
         {
+            int numRepetitions = 10;
 
-        }
+            // Define the benchmark problem once
+            IBenchmarkBuilder builder = Fillet.SetupBenchmark();
+            builder.LsmOutputDirectory = null; // Don't waste time with all that I/O when benchmarking
 
-        private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
-        {
-            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
+            for (int t = 0; t < numRepetitions; ++t)
+            {
+                // Create a new benchmark at each iteration
+                IBenchmark benchmark = builder.BuildBenchmark();
+                benchmark.InitializeModel();
+
+                // Choose solver
+                //var solver = CreateCholeskyAMDSolver(benchmark);
+                //string solverName = "CholeskyAMDSolver";
+                var solver = CreateReanalysisSolver(benchmark);
+                string solverName = "ReanalysisSolver";
+                //var solver = CreateMenkBordasSolver(benchmark);
+                //string solverName = "MenkBordasSolver";
+
+                // Run the analysis
+                benchmark.Analyze(solver);
+
+                // Write the timing results
+                solver.Logger.WriteToFile(builder.TimingPath, solverName, true);
+
+                // Dispose any unmanaged memory
+                if (solver is IDisposable handle) handle.Dispose();
+            }
         }
 
         private static ISolver CreateCholeskySuiteSparseSolver(IBenchmark benchmark)
@@ -70,6 +93,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreateCholeskyAMDSolver(IBenchmark benchmark)
         {
             return new CholeskyAMDSolver(benchmark.Model);
+        }
+
+        private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
+        {
+            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
         }
 
         private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(IBenchmark benchmark)

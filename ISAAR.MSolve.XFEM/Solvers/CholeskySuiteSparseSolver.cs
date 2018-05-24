@@ -30,9 +30,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Solve()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
@@ -60,9 +57,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
             {
                 Solution = factorization.SolveLinearSystem(rhs);
             }
-
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
         private Vector SolveWithSkyline()

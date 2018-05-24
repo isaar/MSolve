@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             string meshPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Meshes\fillet.msh";
             string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Plots";
-            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing";
+            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing\results.txt";
             //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Meshes\fillet.msh";
             //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Plots";
             //string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Fillet\Timing";
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
             builder.LsmOutputDirectory = plotPath;
-            builder.MaxIterations = 20;
+            builder.MaxIterations = 10;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 

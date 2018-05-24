@@ -20,9 +20,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Solve()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             // Interleaved dof enumerator seems to be faster. I expect it to result in reduced bandwidth compared to separate
             // dof enumerator.
             DofOrderer = InterleavedDofOrderer.Create(model);
@@ -31,9 +28,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (SkylineMatrix Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Solution = Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
-
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
     }
 }

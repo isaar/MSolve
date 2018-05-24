@@ -1,47 +1,59 @@
-﻿using System;
+﻿using ISAAR.MSolve.XFEM.Utilities;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
-//TODO: Separate dof enumeration, global matrix assembly and linear system solution times
-//TODO: use something more sophisticated than Stopwatch.ElapsedMilliseconds
-//TODO: encapsulate the time measurement in methods of this class, rather than letting each solver do it.
+//TODO: make a sorted table
 namespace ISAAR.MSolve.XFEM.Solvers
 {
     class SolverLogger
     {
+        private readonly SortedDictionary<int, SortedDictionary<string, long>> durations;
+
         public SolverLogger()
         {
-            this.SolutionTimes = new List<long>();
+            this.durations = new SortedDictionary<int, SortedDictionary<string, long>>();
         }
 
         /// <summary>
-        /// The duration in milliseconds of the initialization.
+        /// 
         /// </summary>
-        public long InitializationTime { get; set; }
-
-        /// <summary>
-        /// The durations in milliseconds of all linear system solutions, if the solver is called more than once.
-        /// </summary>
-        public List<long> SolutionTimes { get; }
-
-        /// <summary>
-        /// The total duration of initialization and all linear system solutions
-        /// </summary>
-        /// <returns></returns>
-        public long CalcTotalTime()
+        /// <param name="iteration">Iteration 0 = initialization, before any linear system solutions take place.</param>
+        /// <param name="task"></param>
+        /// <param name="duration"></param>
+        public void LogDuration(int iteration, string task, long duration)
         {
-            // TODO: perhaps I should use a data type that will not overflow
-            long sum = InitializationTime;
-            for (int i = 0; i < SolutionTimes.Count; ++i) sum += SolutionTimes[i];
-            return sum;
+            if (durations.ContainsKey(iteration)) durations[iteration].Add(task, duration);
+            else
+            {
+                var newEntry = new SortedDictionary<string, long>();
+                newEntry.Add(task, duration);
+                durations.Add(iteration, newEntry);
+            }
         }
 
-        public void Clear()
+        public void WriteToFile(string path, string header, bool append)
         {
-            InitializationTime = 0;
-            SolutionTimes.Clear();
+            using (var writer = new StreamWriter(path, append))
+            {
+                writer.WriteLine("*********************************************************************");
+                writer.WriteLine(header);
+                writer.WriteLine("*********************************************************************");
+                writer.WriteLine();
+
+                foreach (var wholeIteration in durations)
+                {
+                    writer.Write($"Iteration {wholeIteration.Key}: ");
+                    foreach (var taskTime in wholeIteration.Value)
+                    {
+                        writer.WriteLine($"Task = {taskTime.Key} - duration = {taskTime.Value} ms");
+                    }
+                }
+                writer.WriteLine();
+                writer.WriteLine();
+            }
         }
+
     }
 }

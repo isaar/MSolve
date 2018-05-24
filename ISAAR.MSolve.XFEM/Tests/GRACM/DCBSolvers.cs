@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 CreateSkylineSolver, CreatePCGSolver, CreateCholeskySuiteSparseSolver, CreateReanalysisRebuildingSolver
             };
-            var totalTimes = new long[solvers.Length];
+            //var totalTimes = new long[solvers.Length];
 
             // Run the analyses by alternating them to reduce bias.
             for (int t = 0; t < numRepetitions; ++t)
@@ -81,18 +81,18 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                     benchmark.InitializeModel();
                     var solver = callbacks[s](benchmark);
                     benchmark.Analyze(solver);
-                    long totalTime = solver.Logger.CalcTotalTime();
-                    Console.WriteLine($"Solver {solvers[s]}: total time = {totalTime} ms.");
-                    totalTimes[s] += totalTime;
+                    //long totalTime = solver.Logger.CalcTotalTime();
+                    //Console.WriteLine($"Solver {solvers[s]}: total time = {totalTime} ms.");
+                    //totalTimes[s] += totalTime;
                 }
                 Console.WriteLine();
             }
 
             // Print statistics
-            for (int s = 0; s < solvers.Length; ++s)
-            {
-                Console.WriteLine($"Solver {solvers[s]}: Total time = {totalTimes[s] / numRepetitions} ms");
-            }
+            //for (int s = 0; s < solvers.Length; ++s)
+            //{
+            //    Console.WriteLine($"Solver {solvers[s]}: Total time = {totalTimes[s] / numRepetitions} ms");
+            //}
         }
 
         public static DCB.Builder SetupBenchmark()

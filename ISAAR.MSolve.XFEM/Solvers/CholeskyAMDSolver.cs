@@ -15,29 +15,56 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
-    class CholeskyAMDSolver: SolverBase
+    class CholeskyAMDSolver: ISolver
     {
+        protected readonly Model2D model;
         private string enumeratorName;
+        private int iteration;
 
-        public CholeskyAMDSolver(Model2D model) : base(model)
-        { }
-
-        public override void Solve()
+        public CholeskyAMDSolver(Model2D model)
         {
-            var watch = new Stopwatch();
-            watch.Start();
+            this.model = model;
+            Logger = new SolverLogger();
+        }
 
+        public IDofOrderer DofOrderer { get; private set; }
+        public SolverLogger Logger { get; }
+        public Vector Solution { get; private set; }
+
+        public void Initialize()
+        {
+            iteration = 0;
+        }
+
+        public void Solve()
+        {
+            ++iteration;
+            var watch = new Stopwatch();
+
+            // Linear system assembly (part 1)
+            watch.Start();
             var unorderedDofs = InterleavedDofOrderer.Create(model);
             enumeratorName = "interleaved";
             //var unorderedDofs = DofOrdererSeparate.Create(model);
             //enumeratorName = "separate";
+            watch.Stop();
+            long assemblyTime = watch.ElapsedMilliseconds;
 
+            // Reordering
+            watch.Restart();
             DofOrderer = unorderedDofs.DeepCopy();
             Reorder();
+            watch.Stop();
+            Logger.LogDuration(iteration, "AMD ordering", watch.ElapsedMilliseconds);
 
+            // Linear system assembly (part 2)
+            watch.Restart();
             var assembler = new GlobalDOKAssembler();
             (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
+            watch.Stop();
+            assemblyTime += watch.ElapsedMilliseconds;
+            Logger.LogDuration(iteration, "linear system assembly", assemblyTime);
 
             #region debug
             //// Matrix
@@ -54,15 +81,20 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //(new FullVectorWriter(expectedSolution, true)).WriteToFile(solutionPath);
             #endregion
 
+            // Linear system solution
+            watch.Restart();
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
-                Solution = factorization.SolveLinearSystem(rhs);
-                Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
-            }
-            SolveWithoutReordering(unorderedDofs);
+                watch.Stop();
+                Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
 
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+                watch.Restart();
+                Solution = factorization.SolveLinearSystem(rhs);
+                watch.Stop();
+                Logger.LogDuration(iteration, "back & forward substitution", watch.ElapsedMilliseconds);
+                //Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
+            }
+            //SolveWithoutReordering(unorderedDofs);
         }
 
         private void Reorder()
@@ -106,6 +138,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
         }
 
+        private Vector CalcEffectiveRhs(DOKRowMajor globalUnconstrainedConstrained)
+        {
+            Vector Fu = model.CalculateFreeForces(DofOrderer);
+            Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
+            Vector Feff = Fu - globalUnconstrainedConstrained.MultiplyRight(uc);
+            return Feff;
+        }
+
         private void SolveWithoutReordering(IDofOrderer unordered)
         {
             var assembler = new GlobalDOKAssembler();
@@ -116,7 +156,5 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factorization.NumNonZeros}");
             }
         }
-
-
     }
 }

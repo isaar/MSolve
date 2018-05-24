@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private Vector prescribedNodalDisplacements;
         private Vector rhs;
         private CholeskySuiteSparse factorizedKff;
-        private int counter;
+        private int iteration;
 
         /// <summary>
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
@@ -88,6 +88,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void Initialize()
         {
+            iteration = 0;
             var watch = new Stopwatch();
             watch.Start();
 
@@ -108,7 +109,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
 
             watch.Stop();
-            Logger.InitializationTime = watch.ElapsedMilliseconds;
+            Logger.LogDuration(iteration, "AMD ordering", watch.ElapsedMilliseconds);
         }
 
         public void Solve()
@@ -152,11 +153,11 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void SolveFirstTime()
         {
-            counter = 0;
+            ++iteration;
             var watch = new Stopwatch();
-            watch.Start();
 
             // Build the whole stiffness matrix for the first and last time.
+            watch.Start();
             var assembler = new ReanalysisWholeAssembler();
             (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
 
@@ -172,13 +173,21 @@ namespace ISAAR.MSolve.XFEM.Solvers
             prescribedNodalDisplacements = model.CalculateConstrainedDisplacements(DofOrderer);
             rhs = Ff - Kfc.MultiplyRight(prescribedNodalDisplacements); //TODO: directly multiply DOK*vector
 
+            watch.Stop();
+            Logger.LogDuration(iteration, "linear system assembly", watch.ElapsedMilliseconds);
+
             // Factorize the whole stiffness matrix for the first and last time.
             // WARNING: DO NOT use using(){} here. We want the unmanaged resource to persist for the lifetime of this object.
-            factorizedKff = Kff.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); 
-            Solution = factorizedKff.SolveLinearSystem(rhs);
-
+            watch.Restart();
+            factorizedKff = Kff.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+            Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
+
+            // Solve using the factorization
+            watch.Restart();
+            Solution = factorizedKff.SolveLinearSystem(rhs);
+            watch.Stop();
+            Logger.LogDuration(iteration, "back & forward substitution", watch.ElapsedMilliseconds);
 
             //CheckSolutionAndEnforce(1.0);
             //CheckSolutionAndPrint(0.0);
@@ -188,11 +197,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
         //I think that modifying a matrix left to right is faster
         private void SolveByUpdating()
         {
-            ++counter;
+            ++iteration;
             var watch = new Stopwatch();
-            watch.Start();
+            long assemblyTime = 0, modifyTime = 0;
 
             // Group the new dofs
+            watch.Start();
             IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
             IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
             var colsToAdd = new HashSet<int>();
@@ -213,36 +223,58 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 {
                     int colIdx = DofOrderer.GetEnrichedDofOf(node, tipDof);
                     tabooRows.Add(colIdx); // They must also be excluded when adding new columns
+                    watch.Stop();
+                    assemblyTime += watch.ElapsedMilliseconds;
+
+                    // Delete column from cholesky factorization
+                    watch.Restart();
                     factorizedKff.DeleteRow(colIdx);
+                    watch.Stop();
+                    modifyTime += watch.ElapsedMilliseconds;
                 }
             }
 
             //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
-            TreatOtherModifiedDofs(heavisideDofs, colsToAdd, tabooRows);
+            TreatOtherModifiedDofs(heavisideDofs, colsToAdd, tabooRows, ref assemblyTime, ref modifyTime);
             //Console.WriteLine($"{colsToAdd.Count} columns will be added");
 
             // Build only the stiffness matrix columns that must be added (even those I just removed). 
             // Also update RHS if needed.
+            watch.Restart();
             var elementsToRebuild = FindElementsToRebuild();
             var assembler = new ReanalysisPartialAssembler();
             PartialMatrixColumns changedStiffnessColumns = assembler.BuildGlobalMatrixColumns(
                 elementsToRebuild, DofOrderer, colsToAdd, rhs, prescribedNodalDisplacements);
+            watch.Stop();
+            assemblyTime += watch.ElapsedMilliseconds;
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
             // new one. Adding the whole column is incorrect When a new column is added, that dof is removed from the set of 
             // remaining ones.
             foreach (int col in colsToAdd)
             {
+                // Create the column to add
+                watch.Restart();
                 tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
                 SparseVector newColVector = changedStiffnessColumns.GetColumnWithoutRows(col, tabooRows);
+                watch.Stop();
+                assemblyTime += watch.ElapsedMilliseconds;
+
+                // Add the column to the cholesky factorization
+                watch.Restart();
                 factorizedKff.AddRow(col, newColVector);
+                watch.Stop();
+                modifyTime += watch.ElapsedMilliseconds;
             }
 
-            // Solve the system
-            Solution = factorizedKff.SolveLinearSystem(rhs);
+            Logger.LogDuration(iteration, "linear system assembly", assemblyTime);
+            Logger.LogDuration(iteration, "Cholesky modifications", modifyTime);
 
+            // Solve the system
+            watch.Restart();
+            Solution = factorizedKff.SolveLinearSystem(rhs);
             watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+            Logger.LogDuration(iteration, "back & forward substitution", modifyTime);
 
             //CheckSolutionAndEnforce(1.0);
             //CheckSolutionAndPrint(0.0);
@@ -265,22 +297,35 @@ namespace ISAAR.MSolve.XFEM.Solvers
         }
 
         private void TreatOtherModifiedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd,
-            HashSet<int> tabooRows)
+            HashSet<int> tabooRows, ref long assemblyTime, ref long modifyTime)
         {
+            var watch = new Stopwatch();
+            watch.Start();
+            IEnumerable<XNode2D> nodesToDelete = crack.CrackBodyNodesNearModified.Union(crack.CrackBodyNodesModified);
+            watch.Stop();
+            assemblyTime += watch.ElapsedMilliseconds;
+
             // Delete unmodified Heaviside dofs of nodes in elements with modified stiffness. 
             // Their stiffness will be readded later.
             // Same for previously Heaviside dofs with modified body level set.
             //TODO: Not sure, their stiffness can change. Investigate it.
             //TODO: Check if their stiffness is really modified. Otherwise it is a waste of time.
-            foreach (var node in crack.CrackBodyNodesNearModified.Union(crack.CrackBodyNodesModified))
+            foreach (var node in nodesToDelete)
             {
                 //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
                 foreach (var heavisideDof in heavisideDofs)
                 {
+                    watch.Restart();
                     int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);
                     colsToAdd.Add(colIdx);
                     tabooRows.Add(colIdx); // They must also be excluded when adding new columns
+                    watch.Stop();
+                    assemblyTime += watch.ElapsedMilliseconds;
+
+                    watch.Restart();
                     factorizedKff.DeleteRow(colIdx);
+                    watch.Stop();
+                    modifyTime += watch.ElapsedMilliseconds;
                 }
             }
         }
@@ -324,10 +369,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void CheckSolutionAndPrint(double tolerance)
         {
             string directory = @"C:\Users\Serafeim\Desktop\GRACM\Reanalysis_debugging\";
-            string matrixPath = directory + "reanalysis_expected_matrix_" + counter + ".txt";
-            string rhsPath = directory + "reanalysis_expected_rhs_" + counter + ".txt";
-            string removedRowsPath = directory + "reanalysis_removed_rows_" + counter + ".txt";
-            string addedRowsPath = directory + "reanalysis_added_rows_" + counter + ".txt";
+            string matrixPath = directory + "reanalysis_expected_matrix_" + iteration + ".txt";
+            string rhsPath = directory + "reanalysis_expected_rhs_" + iteration + ".txt";
+            string removedRowsPath = directory + "reanalysis_removed_rows_" + iteration + ".txt";
+            string addedRowsPath = directory + "reanalysis_added_rows_" + iteration + ".txt";
 
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");

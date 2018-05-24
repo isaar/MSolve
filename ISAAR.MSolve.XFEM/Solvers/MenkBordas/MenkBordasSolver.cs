@@ -61,8 +61,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         public void Initialize() //TODO: I should also set up the domain decomposition, irregardless of current enrichments.
         {
-            var watch = new Stopwatch();
-            watch.Start();
+            //var watch = new Stopwatch();
+            //watch.Start();
 
             // Partion the domain into subdomains
             cluster = decomposer.CreateSubdomains();
@@ -90,14 +90,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             this.system = new MenkBordasSystem(globalKss, bs);
 
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+            //watch.Stop();
+            //Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
         public void Solve() //TODO: only update the subdomains with at least 1 modified element
         {
-            var watch = new Stopwatch();
-            watch.Start();
+            //var watch = new Stopwatch();
+            //watch.Start();
 
 
             // TODO: track which subdomains have enriched dofs and which have modified elements
@@ -155,8 +155,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             /// Find the solution vector without multiple dofs
             // TODO:Should I do that? Isn't the ClusterDofOrderer responsible for extracting the correct dofs, when needed?
 
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+            //watch.Stop();
+            //Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
         }
 
         private static void CheckMultiplication(MenkBordasMatrix K, Vector b)

@@ -65,9 +65,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public override void Initialize()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             // Enrich all applicable nodes, without evaluating the enrichment functions
             foreach (XNode2D node in fullyEnrichedNodes)
             {
@@ -83,9 +80,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
             foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
-
-            watch.Stop();
-            Logger.InitializationTime = watch.ElapsedMilliseconds;
         }
 
         public override void Solve()
@@ -129,9 +123,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void SolveFirstTime()
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             counter = 0;
             // TODO: the matrices must not be built and factorized in each iteration
             var assembler = new ReanalysisWholeAssembler();
@@ -141,9 +132,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
             factorizedKff = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
             Solution = factorizedKff.SolveLinearSystem(rhs);
 
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
-
             //CheckSolutionAndEnforce(1.0);
             CheckSolutionAndPrint(0.0);
         }
@@ -152,8 +140,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
         //I think that modifying a matrix left to right is faster
         private void SolveByUpdating()
         {
-            var watch = new Stopwatch();
-            watch.Start();
 
             ++counter;
             // TODO: the matrices and vectors must not be built in each iteration
@@ -202,9 +188,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Solve the system
             Solution = factorizedKff.SolveLinearSystem(rhs);
-
-            watch.Stop();
-            Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
 
             //CheckSolutionAndEnforce(1.0);
             CheckSolutionAndPrint(0.0);

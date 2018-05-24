@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             string meshPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Meshes\fillet.msh";
             string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Plots";
-            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Timing";
+            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Slope\Timing\results.txt";
             //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Slope\Meshes\fillet.msh";
             //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Slope\Plots";
             //string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Slope\Timing";
