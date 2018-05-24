@@ -14,6 +14,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         TrackingExteriorCrackLSM Crack { get; }
         IDecomposer Decomposer { get; }
         IReadOnlyList<XNode2D> EnrichedArea { get; }
+        IReadOnlyList<double> GrowthAngles { get; }
+
         Model2D Model { get; }
         IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver);
         void InitializeModel();

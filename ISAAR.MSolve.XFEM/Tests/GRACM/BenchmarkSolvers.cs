@@ -43,6 +43,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 Console.WriteLine("{0} {1}", point.X, point.Y);
             }
+            Console.WriteLine();
+
+            Console.WriteLine("Crack growth angles:");
+            foreach (var angle in benchmark.GrowthAngles)
+            {
+                Console.WriteLine(angle);
+            }
         }
 
         private static void BenchmarkSolver()

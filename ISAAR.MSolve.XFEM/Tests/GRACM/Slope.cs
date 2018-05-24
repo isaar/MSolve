@@ -169,6 +169,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public IReadOnlyList<XNode2D> EnrichedArea { get { return Model.Nodes; } }
 
+        public IReadOnlyList<double> GrowthAngles { get; private set; }
+
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
         /// </summary>
@@ -190,6 +192,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             else propagator = actualPropagator;
             var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
             crackPath.AddRange(analysis.Analyze());
+            GrowthAngles = propagator.Logger.GrowthAngles;
             return crackPath;
         }
 
