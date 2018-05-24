@@ -74,6 +74,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 
         private (double positiveArea, double negativeArea) FindSignedAreasOfElement(XContinuumElement2D element)
         {
+            #region Debug
+            //if (element.Nodes[0].ID==154)
+            //{
+            //    Console.WriteLine();
+            //}
+            #endregion
+
             SortedSet<ICartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
             IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
 
@@ -90,9 +97,18 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
                 int sign = 0;
                 foreach (var vertex in triangle.Vertices)
                 {
-                    if (vertex is XNode2D node)
+                    XNode2D vertexAsNode = null;
+                    foreach (var node in element.Nodes) // TODO: find a faster way to do this
                     {
-                        sign = Math.Sign(crack.SignedDistanceOf(node));
+                        if ((vertex.X == node.X) && (vertex.Y == node.Y))
+                        {
+                            vertexAsNode = node;
+                            break;
+                        }
+                    }
+                    if (vertexAsNode != null)
+                    {
+                        sign = Math.Sign(crack.SignedDistanceOf(vertexAsNode));
                         if (sign != 0) break;
                     }
                 }

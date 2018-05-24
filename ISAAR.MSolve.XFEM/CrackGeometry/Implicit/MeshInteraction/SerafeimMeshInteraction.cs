@@ -89,8 +89,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
 
                     intersections.Add(new CartesianPoint2D(x, y), tipLevelSet);
                 }
-                else if (bodyLevelSet1 == 0.0) intersections.Add(node1, lsm.LevelSetsTip[node1]); // TODO: perhaps some tolerance is needed.
-                else if (bodyLevelSet2 == 0.0) intersections.Add(node2, lsm.LevelSetsTip[node2]);
+                else if (bodyLevelSet1 == 0.0) intersections[node1] = lsm.LevelSetsTip[node1]; // TODO: perhaps some tolerance is needed.
+                else if (bodyLevelSet2 == 0.0) intersections[node2] = lsm.LevelSetsTip[node2];
             }
 
             return intersections;
