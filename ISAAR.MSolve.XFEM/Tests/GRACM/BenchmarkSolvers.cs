@@ -13,8 +13,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static void Run()
         {
-            //SingleTest();
-            BenchmarkSolver();
+            SingleTest();
+            //BenchmarkSolver();
         }
 
 
@@ -56,31 +56,38 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             int numRepetitions = 10;
 
-            // Define the benchmark problem once
+            /// Define the benchmark problem once
             IBenchmarkBuilder builder = Fillet.SetupBenchmark();
             builder.LsmOutputDirectory = null; // Don't waste time with all that I/O when benchmarking
 
+            /// Choose solver
+            //CreateSolver solverFunc = CreateCholeskyAMDSolver;
+            //string solverName = "CholeskyAMDSolver";
+            CreateSolver solverFunc = CreateReanalysisSolver;
+            string solverName = "ReanalysisSolver";
+            //CreateSolver solverFunc = CreateMenkBordasSolver;
+            //string solverName = "MenkBordasSolver";
+
+            /// Call once to load all necessary DLLs
+            IBenchmark firstTry = builder.BuildBenchmark();
+            firstTry.InitializeModel();
+            firstTry.Analyze(solverFunc(firstTry));
+
+            /// Actually time the solver
             for (int t = 0; t < numRepetitions; ++t)
             {
-                // Create a new benchmark at each iteration
+                /// Create a new benchmark at each iteration
                 IBenchmark benchmark = builder.BuildBenchmark();
                 benchmark.InitializeModel();
 
-                // Choose solver
-                //var solver = CreateCholeskyAMDSolver(benchmark);
-                //string solverName = "CholeskyAMDSolver";
-                var solver = CreateReanalysisSolver(benchmark);
-                string solverName = "ReanalysisSolver";
-                //var solver = CreateMenkBordasSolver(benchmark);
-                //string solverName = "MenkBordasSolver";
-
-                // Run the analysis
+                /// Run the analysis
+                ISolver solver = solverFunc(benchmark);
                 benchmark.Analyze(solver);
 
-                // Write the timing results
+                /// Write the timing results
                 solver.Logger.WriteToFile(builder.TimingPath, solverName, true);
 
-                // Dispose any unmanaged memory
+                /// Dispose any unmanaged memory
                 if (solver is IDisposable handle) handle.Dispose();
             }
         }

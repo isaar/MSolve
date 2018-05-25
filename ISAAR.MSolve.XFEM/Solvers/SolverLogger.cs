@@ -35,18 +35,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public void WriteToFile(string path, string header, bool append)
         {
+            if (append && !File.Exists(path)) append = false;
             using (var writer = new StreamWriter(path, append))
             {
                 writer.WriteLine("*********************************************************************");
                 writer.WriteLine(header);
                 writer.WriteLine("*********************************************************************");
-                writer.WriteLine();
 
                 foreach (var wholeIteration in durations)
                 {
-                    writer.Write($"Iteration {wholeIteration.Key}: ");
                     foreach (var taskTime in wholeIteration.Value)
                     {
+                        writer.Write($"Iteration {wholeIteration.Key}: ");
                         writer.WriteLine($"Task = {taskTime.Key} - duration = {taskTime.Value} ms");
                     }
                 }
