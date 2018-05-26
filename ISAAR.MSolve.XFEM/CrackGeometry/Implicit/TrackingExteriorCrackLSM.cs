@@ -14,6 +14,7 @@ using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -138,11 +139,19 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         /// </summary>
         public ISet<XNode2D> CrackTipNodesOld { get; private set; }
 
+        public IReadOnlyList<EnrichedDof> DofsHeaviside { get { return CrackBodyEnrichment.Dofs; } }
+        public IReadOnlyList<EnrichedDof> DofsTip { get { return CrackTipEnrichments.Dofs; } }
+
         /// <summary>
         /// Elements with at least one node whose enrichment has changed (added Heaviside, tip or removed tip functions) since 
         /// the previous iteration. These are the only elements whose stiffness matrices are modified.
         /// </summary>
         public ISet<XContinuumElement2D> ElementsModified { get; private set; }
+
+        public IReadOnlyList<IEnrichmentItem2D> Enrichments
+        {
+            get { return new IEnrichmentItem2D [] { CrackBodyEnrichment, CrackTipEnrichments }; }
+        }
 
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }

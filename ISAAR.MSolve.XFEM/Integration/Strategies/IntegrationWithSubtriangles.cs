@@ -21,10 +21,10 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
         private readonly ITriangulator2D triangulator;
-        private readonly ICrackGeometry crack;
+        private readonly ISingleCrack crack;
         private readonly double triangleOverElementArea;
 
-        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ICrackGeometry crack, 
+        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ISingleCrack crack, 
             ITriangulator2D triangulator, double triangleOverElementArea = double.PositiveInfinity)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;

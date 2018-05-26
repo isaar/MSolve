@@ -24,12 +24,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private readonly Model2D model;
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
-        private readonly ICrackGeometry crack;
+        private readonly ICrackDescription crack;
         private readonly ISolver solver;
         private readonly double fractureToughness;
         private readonly int maxIterations;
 
-        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackGeometry crack,
+        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
             ISolver solver, double fractureToughness, int maxIterations)
         {
             this.model = model;

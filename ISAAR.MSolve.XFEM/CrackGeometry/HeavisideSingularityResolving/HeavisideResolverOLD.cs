@@ -17,11 +17,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 {
     class HeavisideResolverOLD: IHeavisideSingularityResolver
     {
-        private readonly ICrackGeometry crack;
+        private readonly ISingleCrack crack;
         private readonly double relativeAreaTolerance;
         private readonly CartesianTriangulator triangulator;
 
-        public HeavisideResolverOLD(ICrackGeometry crack, double relativeAreaTolerance = 1e-4)
+        public HeavisideResolverOLD(ISingleCrack crack, double relativeAreaTolerance = 1e-4)
         {
             this.crack = crack;
             this.relativeAreaTolerance = relativeAreaTolerance;

@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ReanalysisSolver CreateReanalysisSolver(IBenchmark benchmark)
         {
-            return new ReanalysisSolver(benchmark.Model, benchmark.EnrichedArea, benchmark.Crack);
+            return new ReanalysisSolver(benchmark.Model, benchmark.Crack, benchmark.EnrichedArea);
         }
     }
 }

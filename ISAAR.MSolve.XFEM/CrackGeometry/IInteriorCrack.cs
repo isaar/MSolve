@@ -9,7 +9,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    interface IInteriorCrack: ICrackGeometry
+    interface IInteriorCrack: ISingleCrack
     {
         CrackBodyEnrichment2D CrackBodyEnrichment { get; }
         CrackTipEnrichments2D StartTipEnrichments { get; }

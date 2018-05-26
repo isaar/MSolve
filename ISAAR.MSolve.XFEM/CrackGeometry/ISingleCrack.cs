@@ -16,29 +16,24 @@ using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    interface ICrackGeometry
+    /// <summary>
+    /// A crack that has one tip point and: a) a mouth point (exterior crack), b) another tip point (interior crack) or 
+    /// c) a junction point (branch of a crack tree)
+    /// </summary>
+    interface ISingleCrack: ICrackDescription
     {
-        ISet<XNode2D> CrackBodyNodesAll { get; }
-        ISet<XNode2D> CrackBodyNodesNew { get; }
-        ISet<XNode2D> CrackTipNodesNew { get; }
-        ISet<XNode2D> CrackTipNodesOld { get; }
-
+        
         double SignedDistanceOf(XNode2D node);
         double SignedDistanceOf(INaturalPoint2D point, XContinuumElement2D element,
             EvaluatedInterpolation2D interpolation);
 
         //ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition);
-        IReadOnlyList<ICartesianPoint2D> GetCrackTips();
-        IReadOnlyList<IPropagator> GetCrackTipPropagators();
         /// TODO: an interface is needed for TipSystems. Then the explicit (global, local, polar) systems or the level 
         /// sets could be used for the transformations (points, vectors, derivatives)
         //TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition);
         //IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition);
 
         void InitializeGeometry(PolyLine2D initialCrack);
-
         SortedSet<ICartesianPoint2D> FindTriangleVertices(XContinuumElement2D element);
-        void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements);
-        void UpdateEnrichments();
     }
 }

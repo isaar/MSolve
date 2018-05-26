@@ -19,13 +19,13 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         private readonly IHeavisideFunction2D enrichmentFunction;
         public IReadOnlyList<EnrichedDof> Dofs { get; }
-        public ICrackGeometry crackDescription;
+        public ISingleCrack crackDescription;
 
-        public CrackBodyEnrichment2D(ICrackGeometry crackDescription): this(crackDescription, new SignFunction2D())
+        public CrackBodyEnrichment2D(ISingleCrack crackDescription): this(crackDescription, new SignFunction2D())
         {
         }
 
-        public CrackBodyEnrichment2D(ICrackGeometry crackDescription, IHeavisideFunction2D enrichmentFunction)
+        public CrackBodyEnrichment2D(ISingleCrack crackDescription, IHeavisideFunction2D enrichmentFunction)
         {
             this.crackDescription = crackDescription;
             this.enrichmentFunction = enrichmentFunction;

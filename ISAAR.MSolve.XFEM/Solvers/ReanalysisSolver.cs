@@ -12,8 +12,10 @@ using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
@@ -40,9 +42,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
     /// </summary>
     class ReanalysisSolver : ISolver, IDisposable
     {
-        private readonly TrackingExteriorCrackLSM crack;
-        private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
+        private readonly ICrackDescription crack;
         private readonly Model2D model;
+        private readonly Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> possibleEnrichments;
 
         private Vector prescribedNodalDisplacements;
         private Vector rhs;
@@ -53,27 +55,48 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
         /// that, the enrichments will be cleared and only reapplied as needed by the crack propagation.
         /// </summary>
-        public ReanalysisSolver(Model2D model, TrackingExteriorCrackLSM crack)
+        public ReanalysisSolver(Model2D model, ICrackDescription crack)
         {
             this.model = model;
             this.crack = crack;
-            this.fullyEnrichedNodes = model.Nodes;
+
+            // Possible enrichments
+            possibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
+            foreach (var enrichment in crack.Enrichments)
+            {
+                possibleEnrichments.Add(enrichment, model.Nodes);
+            }
+
             Logger = new SolverLogger();
         }
 
         /// <summary>
-        /// Only the provided nodes will be enriched with both Heaviside and crack tip functions to create the initial dof. After 
+        /// Only the provided nodes will be enriched with all Heaviside and crack tip functions to create the initial dof. After 
         /// that, the enrichments will be cleared and only reapplied as needed by the crack propagation. WARNING: if the crack 
         /// necessitates the enrichment of other nodes, an exception will be thrown.
         /// numbering.
         /// </summary>
         /// <param name="fullyEnrichedNodes">The nodes to be enriched with Heaviside and crack tip functions. Make sure that only
         ///     these nodes need to be enriched, otherwise an exception will be thrown.</param>
-        public ReanalysisSolver(Model2D model, IReadOnlyList<XNode2D> fullyEnrichedNodes, TrackingExteriorCrackLSM crack)
+        public ReanalysisSolver(Model2D model, TrackingExteriorCrackLSM crack, IReadOnlyList<XNode2D> fullyEnrichedNodes)
         {
             this.model = model;
             this.crack = crack;
-            this.fullyEnrichedNodes = fullyEnrichedNodes;
+            
+            // Possible enrichments
+            possibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
+            possibleEnrichments.Add(crack.CrackBodyEnrichment, fullyEnrichedNodes);
+            possibleEnrichments.Add(crack.CrackTipEnrichments, fullyEnrichedNodes);
+
+            Logger = new SolverLogger();
+        }
+
+        public ReanalysisSolver(Model2D model, ICrackDescription crack,
+            Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> possibleEnrichments)
+        {
+            this.model = model;
+            this.crack = crack;
+            this.possibleEnrichments = possibleEnrichments;
             Logger = new SolverLogger();
         }
 
@@ -93,10 +116,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Start();
 
             // Enrich all applicable nodes, without evaluating the enrichment functions
-            foreach (XNode2D node in fullyEnrichedNodes)
+            foreach (var enrichmentNodes in possibleEnrichments)
             {
-                node.EnrichmentItems.Add(crack.CrackBodyEnrichment, null);
-                node.EnrichmentItems.Add(crack.CrackTipEnrichments, null);
+                foreach (XNode2D node in enrichmentNodes.Value) node.EnrichmentItems.Add(enrichmentNodes.Key, null);
             }
 
             //DofOrderer = DofOrdererSeparate.Create(model);
@@ -106,7 +128,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             ReorderPatternSuperset(); //TODO: this actually increases fill-in
 
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
-            foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
+            foreach (var enrichmentNodes in possibleEnrichments)
+            {
+                foreach (XNode2D node in enrichmentNodes.Value) node.EnrichmentItems.Clear();
+            }
 
             watch.Stop();
             Logger.LogDuration(iteration, "AMD ordering", watch.ElapsedMilliseconds);
@@ -203,8 +228,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Group the new dofs
             watch.Start();
-            IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
-            IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
+            IReadOnlyList<EnrichedDof> heavisideDofs = crack.DofsHeaviside;
+            IReadOnlyList<EnrichedDof> tipDofs = crack.DofsTip;
             var colsToAdd = new HashSet<int>();
             foreach (var node in crack.CrackTipNodesNew)
             {
@@ -402,8 +427,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 // Modified dofs
                 var removedRows = new List<int>();
                 var addedRows = new List<int>();
-                IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
-                IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
+                IReadOnlyList<EnrichedDof> heavisideDofs = crack.DofsHeaviside;
+                IReadOnlyList<EnrichedDof> tipDofs = crack.DofsTip;
                 foreach (var node in crack.CrackTipNodesOld)
                 {
                     foreach (var tipDof in tipDofs) removedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));

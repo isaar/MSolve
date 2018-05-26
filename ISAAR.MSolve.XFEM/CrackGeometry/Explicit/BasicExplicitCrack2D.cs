@@ -10,6 +10,7 @@ using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
@@ -21,7 +22,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 {
-    class BasicExplicitCrack2D: ICrackGeometry
+    class BasicExplicitCrack2D: ISingleCrack
     {
         private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
@@ -47,6 +48,20 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         public ISet<XNode2D> CrackTipNodesNew => throw new NotImplementedException();
         public ISet<XNode2D> CrackBodyNodesNew => throw new NotImplementedException();
         public ISet<XNode2D> CrackTipNodesOld => throw new NotImplementedException();
+
+        public ISet<XNode2D> CrackBodyNodesModified => throw new NotImplementedException();
+
+        public ISet<XNode2D> CrackBodyNodesNearModified => throw new NotImplementedException();
+
+        public IReadOnlyList<EnrichedDof> DofsHeaviside => throw new NotImplementedException();
+
+        public IReadOnlyList<EnrichedDof> DofsTip => throw new NotImplementedException();
+
+        public ISet<XContinuumElement2D> ElementsModified => throw new NotImplementedException();
+
+        public IReadOnlyList<IEnrichmentItem2D> Enrichments => throw new NotImplementedException();
+
+        BiMesh2D ICrackDescription.Mesh => throw new NotImplementedException();
 
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;

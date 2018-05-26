@@ -35,16 +35,16 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreatePCGSolver(benchmark);
             //var solver = CreateMinresSolver(benchmark);
-            var solver = CreateMenkBordasSolver(benchmark);
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            //var solver = CreateMenkBordasSolver(benchmark);
+            //IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
 
             //Reanalysis solvers
-            //IReadOnlyList<ICartesianPoint2D> crackPath;
+            IReadOnlyList<ICartesianPoint2D> crackPath;
             //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
-            //using (var solver = CreateReanalysisSolver(benchmark))
-            //{
-            //    crackPath = benchmark.Analyze(solver);
-            //}
+            using (var solver = CreateReanalysisSolver(benchmark))
+            {
+                crackPath = benchmark.Analyze(solver);
+            }
 
             Console.WriteLine("Crack path:");
             foreach (var point in crackPath)
