@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -11,13 +13,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
     interface IBenchmark
     {
-        TrackingExteriorCrackLSM Crack { get; }
+        ICrackDescription Crack { get; }
         IDecomposer Decomposer { get; }
-        IReadOnlyList<XNode2D> EnrichedArea { get; }
-        IReadOnlyList<double> GrowthAngles { get; }
 
         Model2D Model { get; }
-        IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver);
+        Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; }
+
+        void Analyze(ISolver solver);
         void InitializeModel();
     }
 }

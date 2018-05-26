@@ -29,28 +29,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var solver = CreateCholeskySuiteSparseSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreateMenkBordasSolver(benchmark);
-            IReadOnlyList<ICartesianPoint2D> crackPath = benchmark.Analyze(solver);
+            benchmark.Analyze(solver);
 
             //Reanalysis solvers
-            //IReadOnlyList<ICartesianPoint2D> crackPath;
             //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
             //using (var solver = CreateReanalysisSolver(benchmark))
             //{
-            //    crackPath = benchmark.Analyze(solver);
+            //    benchmark.Analyze(solver);
             //}
-
-            Console.WriteLine("Crack path:");
-            foreach (var point in crackPath)
-            {
-                Console.WriteLine("{0} {1}", point.X, point.Y);
-            }
-            Console.WriteLine();
-
-            Console.WriteLine("Crack growth angles:");
-            foreach (var angle in benchmark.GrowthAngles)
-            {
-                Console.WriteLine(angle);
-            }
         }
 
         private static void BenchmarkSolver()
@@ -59,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Define the benchmark problem once
             IBenchmarkBuilder builder = Fillet.SetupBenchmark();
-            builder.LsmOutputDirectory = null; // Don't waste time with all that I/O when benchmarking
+            builder.LeftLsmPlotDirectory = null; // Don't waste time with all that I/O when benchmarking
 
             /// Choose solver
             //CreateSolver solverFunc = CreateCholeskyAMDSolver;
@@ -108,14 +94,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
         }
 
-        private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(IBenchmark benchmark)
-        {
-            return new ReanalysisRebuildingSolver(benchmark.Model, benchmark.EnrichedArea, benchmark.Crack);
-        }
+        //private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(IBenchmark benchmark)
+        //{
+        //    return new ReanalysisRebuildingSolver(benchmark.Model, benchmark.EnrichedArea, benchmark.Crack);
+        //}
 
         private static ReanalysisSolver CreateReanalysisSolver(IBenchmark benchmark)
         {
-            return new ReanalysisSolver(benchmark.Model, benchmark.Crack, benchmark.EnrichedArea);
+            return new ReanalysisSolver(benchmark.Model, benchmark.Crack, benchmark.PossibleEnrichments);
         }
     }
 }

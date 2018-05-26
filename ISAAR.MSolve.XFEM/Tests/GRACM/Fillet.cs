@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
-            builder.LsmOutputDirectory = plotPath;
+            builder.LeftLsmPlotDirectory = plotPath;
             builder.MaxIterations = 10;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
@@ -141,7 +141,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private readonly PropagationLogger knownPropagation;
 
         private readonly string meshPath;
-        private readonly string lsmOutputDirectory;
+        private readonly string lsmPlotDirectory;
 
         /// <summary>
         /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
@@ -149,6 +149,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         private readonly int maxIterations;
 
+        private TrackingExteriorCrackLSM crack;
         private BiMesh2D mesh;
 
         /// <summary>
@@ -162,7 +163,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.knownPropagation = knownPropagation;
-            this.lsmOutputDirectory = lsmOutputDirectory;
+            this.lsmPlotDirectory = lsmOutputDirectory;
             this.maxIterations = maxIterations;
             this.constrainBottomEdge = constrainBottomEdge;
         }
@@ -170,11 +171,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// The crack geometry description
         /// </summary>
-        public TrackingExteriorCrackLSM Crack { get; private set; }
+        public ICrackDescription Crack { get; private set; }
 
         public IDecomposer Decomposer { get; private set; }
-
-        public IReadOnlyList<XNode2D> EnrichedArea { get; private set; }
 
         public IReadOnlyList<double> GrowthAngles { get; private set; }
 
@@ -183,19 +182,24 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         public Model2D Model { get; private set; }
 
+        public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
-        public IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver)
+        public void Analyze(ISolver solver)
         {
-            //var crackPath = new List<ICartesianPoint2D>();
-            //crackPath.Add(new CartesianPoint2D(webLeft, crackHeight));
-            //crackPath.Add(new CartesianPoint2D(webLeft + crackLength, crackHeight));
-
-            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations);
+            var analysis = new QuasiStaticAnalysis(Model, mesh, crack, solver, fractureToughness, maxIterations);
             analysis.Analyze();
-            //crackPath.AddRange();
-            
-            GrowthAngles = Crack.GetCrackTipPropagators()[0].Logger.GrowthAngles;
-            return Crack.CrackPath;
+
+            Console.WriteLine("Crack path:");
+            foreach (var point in crack.CrackPath)
+            {
+                Console.WriteLine("{0} {1}", point.X, point.Y);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Crack growth angles:");
+            foreach (var angle in crack.GetCrackTipPropagators()[0].Logger.GrowthAngles)
+            {
+                Console.WriteLine(angle);
+            }
         }
 
         public void InitializeModel()
@@ -341,21 +345,24 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Create enrichments          
             lsmCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(lsmCrack);
             lsmCrack.CrackTipEnrichments = new CrackTipEnrichments2D(lsmCrack, CrackTipPosition.Single);
-            if (lsmOutputDirectory != null)
+            if (lsmPlotDirectory != null)
             {
-                lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmOutputDirectory);
-                lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmOutputDirectory);
-                lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmOutputDirectory);
+                lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmPlotDirectory);
+                lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmPlotDirectory);
+                lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmPlotDirectory);
             }
 
             // Mesh geometry interaction
             lsmCrack.InitializeGeometry(initialCrack);
-            this.Crack = lsmCrack;
+            this.crack = lsmCrack;
         }
 
         private void LimitEnrichedArea()
         {
-            EnrichedArea = Model.Nodes.Where(node => (node.Y >= infCrackHeight) && (node.Y <= supCrackHeight)).ToList();
+            var enrichedNodes = Model.Nodes.Where(node => (node.Y >= infCrackHeight) && (node.Y <= supCrackHeight)).ToList();
+            PossibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
+            PossibleEnrichments.Add(crack.CrackBodyEnrichment, enrichedNodes);
+            PossibleEnrichments.Add(crack.CrackTipEnrichments, enrichedNodes);
         }
 
         public class Builder: IBenchmarkBuilder
@@ -399,7 +406,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// The absolute path of the directory where output vtk files with the crack path and the level set functions at 
             /// each iteration will be written. Leave it null to avoid the performance cost it will introduce.
             /// </summary>
-            public string LsmOutputDirectory { get; set; } = null;
+            public string LeftLsmPlotDirectory { get; set; } = null;
 
             /// <summary>
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
@@ -414,7 +421,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             public IBenchmark BuildBenchmark()
             {
-                return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmOutputDirectory,
+                return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LeftLsmPlotDirectory,
                     MaxIterations, ConstrainBottomEdge);
             }
         }
