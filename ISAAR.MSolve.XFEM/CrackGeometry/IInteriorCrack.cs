@@ -16,6 +16,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         CrackTipEnrichments2D EndTipEnrichments { get; }
 
         void InitializeGeometry(ICartesianPoint2D startTip, ICartesianPoint2D endTip);
+
+        //TODO: remove it. It is obsolete and should be handled by ICrackGeometry.Propagate()
         void UpdateGeometry(double localGrowthAngleStart, double growthLengthStart,
             double localGrowthAngleEnd, double growthLengthEnd); // Perhaps the global angle should be passed in
     }

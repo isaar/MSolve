@@ -4,14 +4,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction;
+using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
@@ -53,18 +56,22 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private readonly List<XContinuumElement2D> tipElements; // Ideally there is only 1, but what if the tip falls on the edge bewteen elements?
         private readonly ILevelSetUpdater levelSetUpdater;
         private readonly IMeshInteraction meshInteraction;
+        private readonly IPropagator propagator;
         private readonly IHeavisideSingularityResolver singularityResolver;
 
         private readonly List<ICartesianPoint2D> crackPath;
+        private ICartesianPoint2D crackMouth;
         private ICartesianPoint2D crackTip;
         private TipCoordinateSystem tipSystem;
 
-        public TrackingExteriorCrackLSM(double tipEnrichmentAreaRadius = 0.0)
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0)
         {
+            this.propagator = propagator;
+            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
+
             this.crackPath = new List<ICartesianPoint2D>();
             this.levelSetsBody = new Dictionary<XNode2D, double>();
             this.levelSetsTip = new Dictionary<XNode2D, double>();
-            this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
             this.tipElements = new List<XContinuumElement2D>();
 
             this.CrackBodyNodesAll = new HashSet<XNode2D>();
@@ -137,7 +144,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         /// </summary>
         public ISet<XContinuumElement2D> ElementsModified { get; private set; }
 
-        public ICartesianPoint2D CrackMouth { get; private set; }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
         public IReadOnlyDictionary<XNode2D, double> LevelSetsTip { get { return levelSetsTip; } }
         public EnrichmentLogger EnrichmentLogger { get; set; }
@@ -145,18 +151,31 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public PreviousLevelSetComparer LevelSetComparer { get; set; }
         public BiMesh2D Mesh { get; set; }
 
+        // TODO: remove this
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 
         {
             if (tipPosition == CrackTipPosition.Single) return crackTip;
             else throw new ArgumentException("Only works for single tip cracks.");
         }
 
+        public IReadOnlyList<ICartesianPoint2D> GetCrackTips()
+        {
+            return new ICartesianPoint2D[] { crackTip };
+        }
+
+        public IReadOnlyList<IPropagator> GetCrackTipPropagators()
+        {
+            return new IPropagator[] { propagator };
+        }
+
+        // TODO: remove this
         public TipCoordinateSystem GetTipSystem(CrackTipPosition tip)
         {
             if (tip == CrackTipPosition.Single) return tipSystem;
             else throw new ArgumentException("Only works for single tip cracks.");
         }
 
+        // TODO: remove this
         public IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition)
         {
             if (tipPosition == CrackTipPosition.Single) return tipElements;
@@ -165,7 +184,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 
         public void InitializeGeometry(ICartesianPoint2D crackMouth, ICartesianPoint2D crackTip)
         {
-            CrackMouth = crackMouth;
+            this.crackMouth = crackMouth;
             crackPath.Add(crackMouth);
             var segment = new DirectedSegment2D(crackMouth, crackTip);
 
@@ -195,7 +214,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             foreach (var vertex in initialCrack.Vertices) crackPath.Add(vertex);
 
-            CrackMouth = initialCrack.Start;
+            crackMouth = initialCrack.Start;
             var lastSegment = initialCrack.Segments[initialCrack.Segments.Count - 1];
             
             double tangentX = lastSegment.End.X - lastSegment.Start.X;
@@ -204,6 +223,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             double tangentSlope = Math.Atan2(tangentY, tangentX);
             this.crackTip = initialCrack.End;
             tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
+            CrackTipEnrichments.TipSystem = tipSystem;
 
             tangentX /= length;
             tangentY /= length;
@@ -296,6 +316,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             return triangleVertices;
         }
 
+        public void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
+        {
+            (double growthAngle, double growthLength) = propagator.Propagate(dofOrderer, totalFreeDisplacements,
+                totalConstrainedDisplacements, crackTip, tipSystem, tipElements);
+            UpdateGeometry(growthAngle, growthLength);
+        }
+
         // The tip enrichments are cleared and reapplied at each call. In constrast, nodes previously enriched with Heavise will 
         // continue to do so, with the addition of newly Heaviside enriched nodes. If the caller needs the nodes to be cleared of 
         // Heaviside enrichments he must do so himself.
@@ -339,6 +366,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             if (LevelSetComparer != null) LevelSetComparer.Log();
         }
 
+        //TODO: make this private
         public void UpdateGeometry(double localGrowthAngle, double growthLength)
         {
             double globalGrowthAngle = AngleUtilities.Wrap(localGrowthAngle + tipSystem.RotationAngle);
@@ -349,6 +377,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             crackTip = newTip;
             crackPath.Add(newTip);
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
+            CrackTipEnrichments.TipSystem = tipSystem;
 
             //TODO: it is inconsistent that the modified body nodes are updated here, while the other in UpdateEnrichments(); 
             CrackBodyNodesModified = levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, 

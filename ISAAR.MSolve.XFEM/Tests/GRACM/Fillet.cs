@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing\results.txt";
             //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Meshes\fillet.msh";
             //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Plots";
-            //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Timing";
+            //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Timing\results.txt";
 
             double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
@@ -190,19 +190,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //crackPath.Add(new CartesianPoint2D(webLeft, crackHeight));
             //crackPath.Add(new CartesianPoint2D(webLeft + crackLength, crackHeight));
 
-            var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
-            IPropagator propagator;
-            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
-            else propagator = actualPropagator;
-            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
+            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations);
             analysis.Analyze();
             //crackPath.AddRange();
             
-            GrowthAngles = propagator.Logger.GrowthAngles;
+            GrowthAngles = Crack.GetCrackTipPropagators()[0].Logger.GrowthAngles;
             return Crack.CrackPath;
         }
 
@@ -332,10 +324,18 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void InitializeCrack()
         {
+            IPropagator propagator;
+            var actualPropagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
+            else propagator = actualPropagator;
+
             var crackMouth = new CartesianPoint2D(webLeft, crackHeight);
             var crackTip = new CartesianPoint2D(webLeft + crackLength, crackHeight);
             var initialCrack = new PolyLine2D(crackMouth, crackTip);
-            var lsmCrack = new TrackingExteriorCrackLSM();
+            var lsmCrack = new TrackingExteriorCrackLSM(propagator);
             lsmCrack.Mesh = mesh;
 
             // Create enrichments          

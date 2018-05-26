@@ -31,6 +31,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -78,7 +79,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private HomogeneousElasticMaterial2D globalHomogeneousMaterial;
         private Model2D model;
         private IDofOrderer dofOrderer;
-        private BasicExplicitCrack2D crack;
+        private TrackingExteriorCrackLSM crack;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
         private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
         //private XNode2D bottomLeftNode;
@@ -105,7 +106,6 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             // TODO: Fix the construction order. The crack needed for integration schemes. However the mesh depends
             // on the elements than need the integration schemes. Perhaps pass the model to the crack and acces s
             // the mesh through the model.
-            crack = new BasicExplicitCrack2D();
             model = new Model2D();
             HandleIntegrations();
             if (structuredMesh) CreateStructuredMesh(elementsPerY);
@@ -118,6 +118,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         {
             if (integrationWithTriangles)
             {
+                throw new NotImplementedException("The crack is not defined yet, thus cannot be used for creating triangles."); ; 
                 ITriangulator2D triangulator = new IncrementalTriangulator();
                 integration = new IntegrationForCrackPropagation2D(
                     new IntegrationWithSubtriangles(GaussQuadratureForTriangle.Order2Points3, crack, triangulator),
@@ -190,8 +191,17 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         private void HandleCrack()
         {
             var boundary = new RectangularBoundary(0.0, DIM_X, 0.0, DIM_Y);
-            crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
+            var mesh = new BiMesh2D(model.Nodes, model.Elements, boundary);
 
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            propagator = new Propagator(crack.Mesh, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
+
+
+            crack = new TrackingExteriorCrackLSM(propagator);
+            crack.Mesh = mesh;
             // Create enrichments          
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());
             crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
@@ -243,16 +253,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private Tuple<double, double> Propagate(Vector solution)
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(5));
-
             Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
-            (double growthAngle, double growthIncrement) = propagator.Propagate(dofOrderer, solution, 
-                totalConstrainedDisplacements);
+            crack.Propagate(dofOrderer, solution, totalConstrainedDisplacements);
             double jIntegral = (Math.Pow(propagator.Logger.SIFsMode1[0], 2) +
                 Math.Pow(propagator.Logger.SIFsMode2[0], 2))
                 / globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
@@ -267,17 +270,18 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckJintegralCountour()
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.05));
+            throw new NotImplementedException();
+            //globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            //propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
+            //    new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+            //    new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+            //    new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.05));
 
-            double radius = propagator.ComputeRadiusOfJintegralOuterContour();
-            Circle2D outerContour = new Circle2D(crack.GetCrackTip(CrackTipPosition.Single), radius);
-            IReadOnlyList<XContinuumElement2D> intersectedElements =
-                crack.Mesh.FindElementsIntersectedByCircle(outerContour, 
-                crack.GetTipElements(CrackTipPosition.Single)[0]);
+            //double radius = propagator.ComputeRadiusOfJintegralOuterContour();
+            //Circle2D outerContour = new Circle2D(crack.GetCrackTip(CrackTipPosition.Single), radius);
+            //IReadOnlyList<XContinuumElement2D> intersectedElements =
+            //    crack.Mesh.FindElementsIntersectedByCircle(outerContour, 
+            //    crack.GetTipElements(CrackTipPosition.Single)[0]);
         }
     }
 }

@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
+using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
@@ -63,14 +66,17 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         //    return new FixedPropagator(angles, lengths, actualPropagator);
         //}
 
-        public (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements,
-            Vector totalConstrainedDisplacements)
+        
+        public (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, 
+            Vector totalConstrainedDisplacements, ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, 
+            IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double angle = Logger.GrowthAngles[iteration];
             double length = Logger.GrowthLengths[iteration];
             if (checkPropagation)
             {
-                actualPropagator.Propagate(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements);
+                actualPropagator.Propagate(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
+                    crackTip, tipSystem, tipElements);
                 Console.Write($"Growth angle: expected = {angle}");
                 Console.WriteLine($"   -   computed = {actualPropagator.Logger.GrowthAngles[iteration]}");
                 Console.Write($"Growth length: expected = {length}");
@@ -80,6 +86,5 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             ++iteration;
             return (angle, length);
         }
-
     }
 }

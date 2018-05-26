@@ -162,16 +162,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             double dy = da * Math.Sin(dTheta);
             crackPath.Add(new CartesianPoint2D(crackPath.Last().X + dx, crackPath.Last().Y - dy));
 
-            var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
-            IPropagator propagator;
-            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
-            else propagator = actualPropagator;
-            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
-            crackPath.AddRange(analysis.Analyze());
+            
+            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations);
+            analysis.Analyze();
+            crackPath.AddRange(Crack.CrackPath);
             return crackPath;
         }
 
@@ -281,43 +275,31 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var initialCrack = new PolyLine2D(crackVertex0, crackVertex1);
             initialCrack.UpdateGeometry(-dTheta, da);
 
-            if (useLSM)
+            var actualPropagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+            IPropagator propagator;
+            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
+            else propagator = actualPropagator;
+
+            var lsmCrack = new TrackingExteriorCrackLSM(propagator);
+            lsmCrack.Mesh = mesh;
+
+            // Create enrichments          
+            lsmCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(lsmCrack);
+            lsmCrack.CrackTipEnrichments = new CrackTipEnrichments2D(lsmCrack, CrackTipPosition.Single);
+            if (lsmOutputDirectory != null)
             {
-                //var lsmCrack = new BasicCrackLSM();
-                var lsmCrack = new TrackingExteriorCrackLSM();
-                lsmCrack.Mesh = mesh;
-
-                // Create enrichments          
-                lsmCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(lsmCrack);
-                lsmCrack.CrackTipEnrichments = new CrackTipEnrichments2D(lsmCrack, CrackTipPosition.Single);
-                if (lsmOutputDirectory != null)
-                {
-                    lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmOutputDirectory);
-                    lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmOutputDirectory);
-                    lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmOutputDirectory);
-                }
-
-                // Mesh geometry interaction
-                lsmCrack.InitializeGeometry(initialCrack);
-                
-                this.Crack = lsmCrack;
+                lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmOutputDirectory);
+                lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmOutputDirectory);
+                lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmOutputDirectory);
             }
-            else
-            {
-                var explicitCrack = new BasicExplicitCrack2D();
-                explicitCrack.Mesh = mesh;
 
-                // Create enrichments          
-                explicitCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(explicitCrack);
-                explicitCrack.CrackTipEnrichments = new CrackTipEnrichments2D(explicitCrack, CrackTipPosition.Single);
+            // Mesh geometry interaction
+            lsmCrack.InitializeGeometry(initialCrack);
 
-                // Mesh geometry interaction
-                explicitCrack.InitializeGeometry(crackVertex0, crackVertex1);
-                explicitCrack.UpdateGeometry(-dTheta, da);
-
-                throw new NotImplementedException("Nope, you can't. You must use LSM.");
-                //this.Crack = explicitCrack;
-            }
+            this.Crack = lsmCrack;
         }
 
         public class Builder

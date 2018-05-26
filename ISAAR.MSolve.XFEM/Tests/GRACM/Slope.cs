@@ -182,17 +182,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             crackPath.Add(new CartesianPoint2D(crackMouthX, crackMouthY));
             crackPath.Add(new CartesianPoint2D(crackTipX, crackTipY));
 
-            var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
-            IPropagator propagator;
-            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
-            else propagator = actualPropagator;
-            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
-            crackPath.AddRange(analysis.Analyze());
-            GrowthAngles = propagator.Logger.GrowthAngles;
+            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations);
+            analysis.Analyze();
+            crackPath.AddRange(Crack.CrackPath);
+            GrowthAngles = Crack.GetCrackTipPropagators()[0].Logger.GrowthAngles;
             return crackPath;
         }
 
@@ -315,10 +308,18 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void InitializeCrack()
         {
+            IPropagator propagator;
+            var actualPropagator = new Propagator(mesh,jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
+            else propagator = actualPropagator;
+
             var crackVertex0 = new CartesianPoint2D(crackMouthX, crackMouthY);
             var crackVertex1 = new CartesianPoint2D(crackTipX, crackTipY);
             var initialCrack = new PolyLine2D(crackVertex0, crackVertex1);
-            var lsmCrack = new TrackingExteriorCrackLSM();
+            var lsmCrack = new TrackingExteriorCrackLSM(propagator);
             lsmCrack.Mesh = mesh;
 
             // Create enrichments          
