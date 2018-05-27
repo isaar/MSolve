@@ -179,7 +179,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveFirstTime()
         {
             ++iteration;
-            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
 
             // Build the whole stiffness matrix for the first and last time.
@@ -215,6 +214,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Stop();
             Logger.LogDuration(iteration, "back & forward substitution", watch.ElapsedMilliseconds);
 
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             //CheckSolutionAndEnforce(1.0);
             //CheckSolutionAndPrint(0.0);
         }
@@ -224,7 +224,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveByUpdating()
         {
             ++iteration;
-            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
             long assemblyTime = 0, modifyTime = 0;
 
@@ -303,6 +302,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Stop();
             Logger.LogDuration(iteration, "back & forward substitution", modifyTime);
 
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             //CheckSolutionAndEnforce(1.0);
             //CheckSolutionAndPrint(0.0);
         }

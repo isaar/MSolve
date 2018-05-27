@@ -47,7 +47,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public void Solve()
         {
             ++iteration;
-            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
             watch.Start();
 
@@ -85,6 +84,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine(statistics);
             Solution = x;
 
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             #region Debugging
             //CheckPCG(model, DofOrderer, Kuu, Solution);
             #endregion

@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void SingleTest()
         {
-            //IBenchmarkBuilder builder = Fillet.SetupBenchmark();
-            IBenchmarkBuilder builder = Holes.SetupBenchmark();
+            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
+            IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -47,13 +47,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             int numRepetitions = 10;
 
             /// Define the benchmark problem once
-            IBenchmarkBuilder builder = Fillet.SetupBenchmark();
-            builder.LeftLsmPlotDirectory = null; // Don't waste time with all that I/O when benchmarking
+            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, false);
+            IBenchmarkBuilder builder = Holes.SetupBenchmark(false, false);
 
             /// Choose solver
             //CreateSolver solverFunc = CreateCholeskyAMDSolver;
-            CreateSolver solverFunc = CreateReanalysisSolver;
-            //var solverFunc = CreatePCGSolver;
+            //CreateSolver solverFunc = CreateReanalysisSolver;
+            CreateSolver solverFunc = CreatePCGSolver;
             //CreateSolver solverFunc = CreateMenkBordasSolver;
 
             /// Call once to load all necessary DLLs

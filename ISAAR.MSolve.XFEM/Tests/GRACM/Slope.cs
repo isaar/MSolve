@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 2.0; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
-            builder.LeftLsmPlotDirectory = plotPath;
+            builder.LsmPlotDirectory = plotPath;
             builder.MaxIterations = 10;
 
             // TODO: enter the fixed propagator here, perhaps by solving the benchmark once.
@@ -386,7 +386,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// The absolute path of the directory where output vtk files with the crack path and the level set functions at 
             /// each iteration will be written. Leave it null to avoid the performance cost it will introduce.
             /// </summary>
-            public string LeftLsmPlotDirectory { get; set; } = null;
+            public string LsmPlotDirectory { get; set; } = null;
 
             /// <summary>
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
@@ -396,7 +396,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             public IBenchmark BuildBenchmark()
             {
-                return new Slope(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LeftLsmPlotDirectory,
+                return new Slope(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmPlotDirectory,
                     MaxIterations);
             }
 

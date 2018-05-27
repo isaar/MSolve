@@ -39,7 +39,6 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public void Solve()
         {
             ++iteration;
-            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
 
             // Linear system assembly (part 1)
@@ -96,6 +95,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 //Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
             }
             //SolveWithoutReordering(unorderedDofs);
+
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
         }
 
         private void Reorder()
