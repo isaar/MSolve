@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var integration = new XSimpleIntegration2D();
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(2.1e6, 0.3, 1.0);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(2.1e6, 0.3, 1.0);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     elementNodes, materialField, integration));
             }

@@ -30,7 +30,6 @@ using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 
-//TODO: use fixed enrichment area
 //TODO: limit enriched nodes in the areas around the cracks
 namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
@@ -49,11 +48,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 1.0; // mm. Must be sufficiently larger than the element size. 0.8 works for left crack, 0.9 is so-so for right crack
             var builder = new Builder(meshPath, growthLength, timingPath);
-            builder.BC = BoundaryConditions.BottomDisplacementY_TopDisplacementY;
+            
             builder.HeavisideEnrichmentTolerance = 0.09;
-            builder.LeftLsmPlotDirectory = plotPathLeft;
-            builder.RightLsmPlotDirectory = plotPathRight;
-            builder.MaxIterations = 20;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 
@@ -61,26 +57,37 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // than the crack growth length.
             builder.JintegralRadiusOverElementSize = 2.0;
 
+            // If you modify the following two parameters significantly, then you will need to redefine which nodes are expected 
+            // to be enriched.
+            builder.TipEnrichmentRadius = 0.5;
+            builder.BC = BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY;
+
+            builder.MaxIterations = 14;
+            builder.LeftLsmPlotDirectory = plotPathLeft;
+            builder.RightLsmPlotDirectory = plotPathRight;
+
             // TODO: enter the fixed propagator here, perhaps by solving the benchmark once.
             // These are for mesh: ...
             //var propagationLogger = new PropagationLogger();
-            //propagationLogger.GrowthAngles.Add(-0.0349434289780521);
+            //propagationLogger.GrowthAngles.Add(-0.118193658628303);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.0729848767244629);
+            //propagationLogger.GrowthAngles.Add(0.0763367328997691);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.125892740180586);
+            //propagationLogger.GrowthAngles.Add(0.029759049884286);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.200116860828933);
+            //propagationLogger.GrowthAngles.Add(0.0489304909324009);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.258299391791769);
+            //propagationLogger.GrowthAngles.Add(0.0138866721744939);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.264803465603906);
+            //propagationLogger.GrowthAngles.Add(0.00944088457288846);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.201411670680886);
+            //propagationLogger.GrowthAngles.Add(-9.00590053220607E-05);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.123234163953279);
+            //propagationLogger.GrowthAngles.Add(-0.00320567265182513);
             //propagationLogger.GrowthLengths.Add(growthLength);
-            //propagationLogger.GrowthAngles.Add(-0.0816346096256186);
+            //propagationLogger.GrowthAngles.Add(0.00146085359240718);
+            //propagationLogger.GrowthLengths.Add(growthLength);
+            //propagationLogger.GrowthAngles.Add(0.00146085359240718);
             //propagationLogger.GrowthLengths.Add(growthLength);
             //builder.KnownPropagation = propagationLogger;
 
@@ -113,7 +120,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// The material used for the J-integral computation. It msut be stored separately from individual element materials.
         /// </summary>
         private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
-            HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
 
         /// <summary>
         /// The maximum value that the effective SIF can reach before collapse occurs.
@@ -170,6 +177,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         private readonly int maxIterations;
 
+        private readonly double tipEnrichmentRadius;
+
         private TrackingExteriorCrackLSM leftCrack;
         private TrackingExteriorCrackLSM rightCrack;
         private BiMesh2D mesh;
@@ -179,13 +188,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         private Holes(string meshPath, double growthLength, BoundaryConditions bc, double jIntegralRadiusOverElementSize,
-             PropagationLogger knownLeftPropagation, PropagationLogger knownRightPropagation, 
+             double tipEnrichmentRadius, PropagationLogger knownLeftPropagation, PropagationLogger knownRightPropagation, 
              string leftLsmPlotDirectory, string rightLsmPlotDirectory, int maxIterations, double heavisideTol)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
             this.bc = bc;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
+            this.tipEnrichmentRadius = tipEnrichmentRadius;
             this.knownLeftPropagation = knownLeftPropagation;
             this.knownRightPropagation = knownRightPropagation;
             this.leftLsmPlotDirectory = leftLsmPlotDirectory;
@@ -357,7 +367,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Elements
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 Model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
                     integration, jIntegration));
             }
@@ -426,7 +436,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             var initialLeftCrack = new PolyLine2D(new CartesianPoint2D(leftCrackMouthX, leftCrackMouthY),
                 new CartesianPoint2D(leftCrackTipX, leftCrackTipY));
-            leftCrack = new TrackingExteriorCrackLSM(leftPropagator, 0.0, new RelativeAreaResolver(heavisideTol));
+            leftCrack = new TrackingExteriorCrackLSM(leftPropagator, tipEnrichmentRadius, new RelativeAreaResolver(heavisideTol));
             leftCrack.Mesh = mesh;
 
             // Create enrichments          
@@ -455,7 +465,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             var initialRightCrack = new PolyLine2D(new CartesianPoint2D(rightCrackMouthX, rightCrackMouthY),
                 new CartesianPoint2D(rightCrackTipX, rightCrackTipY));
-            rightCrack = new TrackingExteriorCrackLSM(rightPropagator, 0.0, new RelativeAreaResolver(heavisideTol));
+            rightCrack = new TrackingExteriorCrackLSM(rightPropagator, tipEnrichmentRadius, new RelativeAreaResolver(heavisideTol));
             rightCrack.Mesh = mesh;
 
             // Create enrichments          
@@ -478,15 +488,23 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void LimitEnrichedArea()
         {
+            // TODO: these need to be adjucted if the dimensions of the benchmark change.
+            double leftMinX = 0, leftMaxX = 15.6, leftMinY = 1.6, leftMaxY = 4.2;
+            double rightMinX = 4.5, rightMaxX = 20.0, rightMinY = 5.5, rightMaxY = 8.5;
+
             //TODO: do that
             //EnrichedArea = Model.Nodes.Where(node => (node.Y >= infCrackHeight) && (node.Y <= supCrackHeight)).ToList();
             PossibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
 
             var leftEnrichedNodes = Model.Nodes;
+            //var leftEnrichedNodes = Model.Nodes.Where(node =>
+            //    (node.X >= leftMinX) && (node.X <= leftMaxX) && (node.Y >= leftMinY) && (node.Y <= leftMaxY)).ToList();
             PossibleEnrichments.Add(leftCrack.CrackBodyEnrichment, leftEnrichedNodes);
             PossibleEnrichments.Add(leftCrack.CrackTipEnrichments, leftEnrichedNodes);
 
             var rightEnrichedNodes = Model.Nodes;
+            //var rightEnrichedNodes = Model.Nodes.Where(node =>
+            //    (node.X >= rightMinX) && (node.X <= rightMaxX) && (node.Y >= rightMinY) && (node.Y <= rightMaxY)).ToList();
             PossibleEnrichments.Add(rightCrack.CrackBodyEnrichment, rightEnrichedNodes);
             PossibleEnrichments.Add(rightCrack.CrackTipEnrichments, rightEnrichedNodes);
         }
@@ -561,9 +579,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// </summary>
             public string TimingPath { get; }
 
+            public double TipEnrichmentRadius { get; set; } = 0.0;
+
             public IBenchmark BuildBenchmark()
             {
-                return new Holes(meshPath, growthLength, BC, JintegralRadiusOverElementSize, 
+                return new Holes(meshPath, growthLength, BC, JintegralRadiusOverElementSize, TipEnrichmentRadius,
                     KnownLeftPropagation, KnownRightPropagation, LeftLsmPlotDirectory, RightLsmPlotDirectory, MaxIterations,
                     HeavisideEnrichmentTolerance);
             }

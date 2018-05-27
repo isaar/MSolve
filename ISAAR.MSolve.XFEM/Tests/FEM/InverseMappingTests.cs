@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Tests.FEM
             double E = 1;
             double v = 0.25;
             double t = 1.0;
-            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
+            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, t);
             var element = new ContinuumElement2D(IsoparametricElementType2D.Quad4, nodes, 
                 new SimpleIntegration2D(), material);
 

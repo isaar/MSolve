@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// The material used for the J-integral computation. It msut be stored separately from individual element materials.
         /// </summary>
         private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
-            HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
 
         /// <summary>
         /// The maximum value that the effective SIF can reach before collapse occurs.
@@ -252,7 +252,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Elements
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 Model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
                     integration, jIntegration));
             }

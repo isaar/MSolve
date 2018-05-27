@@ -164,7 +164,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateMaterial()
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
         }
 
         public Model2D CreateModel()
@@ -208,7 +208,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             for (int e = 0; e < 3; ++e)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     connectivity[e], materialField, integration, jIntegration));
             }

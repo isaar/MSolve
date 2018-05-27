@@ -22,12 +22,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             //IBenchmarkBuilder builder = Fillet.SetupBenchmark();
             IBenchmarkBuilder builder = Holes.SetupBenchmark();
+
+
             IBenchmark benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
             // Solvers
-            var solver = CreateCholeskySuiteSparseSolver(benchmark);
-            //var solver = CreateCholeskyAMDSolver(benchmark);
+            //var solver = CreateCholeskySuiteSparseSolver(benchmark);
+            var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreateMenkBordasSolver(benchmark);
             //var solver = CreatePCGSolver(benchmark);
             benchmark.Analyze(solver);
@@ -51,10 +53,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// Choose solver
             //CreateSolver solverFunc = CreateCholeskyAMDSolver;
             //string solverName = "CholeskyAMDSolver";
+
             CreateSolver solverFunc = CreateReanalysisSolver;
             string solverName = "ReanalysisSolver";
+
             //var solverFunc = CreatePCGSolver;
             //string solverName = "PCGSolver";
+
             //CreateSolver solverFunc = CreateMenkBordasSolver;
             //string solverName = "MenkBordasSolver";
 

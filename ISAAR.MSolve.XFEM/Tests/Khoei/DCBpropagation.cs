@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateModel(int elementsPerY)
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
             model = new Model2D();
             HandleIntegrations();
             if (structuredMesh) CreateStructuredMesh(elementsPerY);
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in nodes) model.AddNode(node);
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
                     integration, jIntegration));
             }
@@ -131,7 +131,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
             foreach (var element in meshEntities.Item2)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(element.ElementType, element.Nodes, materialField,
                     integration, jIntegration));
             }

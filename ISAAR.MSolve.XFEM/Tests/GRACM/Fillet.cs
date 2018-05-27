@@ -47,8 +47,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
             builder.HeavisideEnrichmentTolerance = 0.001;
+            builder.RigidBCs = true;
+
             builder.LeftLsmPlotDirectory = plotPath;
             builder.MaxIterations = 10;
+
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 
@@ -103,7 +106,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// The material used for the J-integral computation. It msut be stored separately from individual element materials.
         /// </summary>
         private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
-            HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
 
         /// <summary>
         /// The maximum value that the effective SIF can reach before collapse occurs.
@@ -124,7 +127,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         #endregion
 
-        private readonly bool constrainBottomEdge;
+        private readonly bool rigid;
 
         private readonly double heavisideTol;
 
@@ -171,14 +174,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.knownPropagation = knownPropagation;
             this.lsmPlotDirectory = lsmOutputDirectory;
             this.maxIterations = maxIterations;
-            this.constrainBottomEdge = constrainBottomEdge;
+            this.rigid = constrainBottomEdge;
             this.heavisideTol = heavisideTol;
         }
 
         /// <summary>
         /// The crack geometry description
         /// </summary>
-        public ICrackDescription Crack { get; private set; }
+        public ICrackDescription Crack { get { return crack; } }
 
         public IDecomposer Decomposer { get; private set; }
 
@@ -224,22 +227,23 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var finder = new EntityFinder(Model, 1e-6);
 
             // Constraints
-            XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
-            Model.AddConstraint(bottomLeftNode, DisplacementDof.X, 0.0);
-            if (constrainBottomEdge)
+            if (rigid)
             {
                 foreach (var node in finder.FindNodesWithY(0.0))
                 {
+                    Model.AddConstraint(node, DisplacementDof.X, 0.0);
                     Model.AddConstraint(node, DisplacementDof.Y, 0.0);
                 }
             }
-            else
+            else // flexible
             {
+                XNode2D bottomLeftNode = finder.FindNodeWith(0.0, 0.0);
                 XNode2D bottomRightNode = finder.FindNodeWith(bottomWidth, 0.0);
-                Model.AddConstraint(bottomRightNode, DisplacementDof.Y, 0.0);
+                Model.AddConstraint(bottomLeftNode, DisplacementDof.X, 0.0);
                 Model.AddConstraint(bottomLeftNode, DisplacementDof.Y, 0.0);
+                Model.AddConstraint(bottomRightNode, DisplacementDof.X, 0.0);
+                Model.AddConstraint(bottomRightNode, DisplacementDof.Y, 0.0);
             }
-
 
             // Loads
             double distributedLoad = load / topWidth;
@@ -278,7 +282,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Elements
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 Model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
                     integration, jIntegration));
             }
@@ -395,7 +399,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// a very thick rigid I-beam. If set to false, the global � degree of freedom is constrained only for the corner
             ///  nodes of the bottom edge, in order to simulate a very thin, flexible I-beam
             /// </summary>
-            public bool ConstrainBottomEdge { get; set; } = true;
+            public bool RigidBCs { get; set; } = true;
 
             /// <summary>
             /// A node that lies in the positive halfplane defined by the body level set of a crack, will be enriched with 
@@ -438,7 +442,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             public IBenchmark BuildBenchmark()
             {
                 return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LeftLsmPlotDirectory,
-                    MaxIterations, ConstrainBottomEdge, HeavisideEnrichmentTolerance);
+                    MaxIterations, RigidBCs, HeavisideEnrichmentTolerance);
             }
         }
 

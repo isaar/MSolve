@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
 
             foreach (XNode2D[] elementNodes in meshEntities.Item2)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     elementNodes, materialField, integration));
             }

@@ -206,7 +206,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             report.enrichmentRadiusOverElementSize = enrichmentRadiusOverElementSize;
             this.fineElementSize = fineElementSize;
 
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, 1.0);
             CalculateAnalytic();
 
             CreateModel();
@@ -247,7 +247,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, 1.0);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     elementNodes, materialField, integration, jIntegration));
             }

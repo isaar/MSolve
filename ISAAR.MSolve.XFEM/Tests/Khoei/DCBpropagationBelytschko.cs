@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateModel(double fineElementSize)
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
             model = new Model2D();
             HandleIntegrations();
             CreateMesh(fineElementSize);
@@ -222,7 +222,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in nodes) model.AddNode(node);
             foreach (XNode2D[] element in elementNodes)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, element, materialField,
                     integration, jIntegration));
             }
