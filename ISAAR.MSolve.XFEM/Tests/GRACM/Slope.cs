@@ -168,6 +168,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public IDecomposer Decomposer { get; private set; }
 
+        public string Name { get { return "GRACM Slope"; } }
+
         public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
         /// <summary>
@@ -365,7 +367,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 this.growthLength = growthLength;
                 this.meshPath = meshPath;
-                this.TimingPath = timingPath;
+                this.TimingOutputDirectory = timingPath;
             }
 
             /// <summary>
@@ -401,7 +403,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
-            public string TimingPath { get; }
+            public string TimingOutputDirectory { get; }
         }
     }
 }

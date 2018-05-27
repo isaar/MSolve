@@ -39,10 +39,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             string meshPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Meshes\fillet.msh";
             string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Plots";
-            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing\results.txt";
+            string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing";
             //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Meshes\fillet.msh";
             //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Plots";
-            //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Timing\results.txt";
+            //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Timing";
 
             double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
@@ -191,6 +191,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
         /// </summary>
         public Model2D Model { get; private set; }
+
+        public string Name { get { return "GRACM Fillet"; } }
 
         public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
@@ -386,12 +388,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// </summary>
             /// <param name="meshPath">The absolute path of the mesh file.</param>
             /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-            /// <param name="timingPath">The absolute path of the file where slover timing will be written.</param>
-            public Builder(string meshPath, double growthLength, string timingPath)
+            /// <param name="timingDirectory">The absolute path of the file where slover timing will be written.</param>
+            public Builder(string meshPath, double growthLength, string timingDirectory)
             {
                 this.growthLength = growthLength;
                 this.meshPath = meshPath;
-                this.TimingPath = timingPath;
+                this.TimingOutputDirectory = timingDirectory;
             }
 
             /// <summary>
@@ -437,7 +439,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
-            public string TimingPath { get; }
+            public string TimingOutputDirectory { get; }
 
             public IBenchmark BuildBenchmark()
             {

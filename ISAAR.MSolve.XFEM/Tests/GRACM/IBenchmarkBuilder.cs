@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
     interface IBenchmarkBuilder
     {
         string LeftLsmPlotDirectory { get; set; }
-        string TimingPath { get; }
+        string TimingOutputDirectory { get; }
         IBenchmark BuildBenchmark();
     }
 }

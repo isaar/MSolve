@@ -59,7 +59,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// Call once to load all necessary DLLs
             IBenchmark firstTry = builder.BuildBenchmark();
             firstTry.InitializeModel();
-            firstTry.Analyze(solverFunc(firstTry));
+            ISolver firstSolver = solverFunc(firstTry);
+            firstTry.Analyze(firstSolver);
+
+            /// Timing output path
+            string timingOutputPath = builder.TimingOutputDirectory + "\\" + firstSolver.Logger.SolverName + "_results.txt";
 
             /// Actually time the solver
             for (int t = 0; t < numRepetitions; ++t)
@@ -73,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 benchmark.Analyze(solver);
 
                 /// Write the timing results
-                solver.Logger.WriteToFile(builder.TimingPath, true);
+                solver.Logger.WriteSumsToFile(timingOutputPath, benchmark.Name, true);
 
                 /// Dispose any unmanaged memory
                 if (solver is IDisposable handle) handle.Dispose();

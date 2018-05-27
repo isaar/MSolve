@@ -13,6 +13,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
     interface IBenchmark
     {
+        string Name { get; }
+
         ICrackDescription Crack { get; }
         IDecomposer Decomposer { get; }
 
