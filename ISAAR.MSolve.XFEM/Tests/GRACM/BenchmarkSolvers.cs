@@ -13,8 +13,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static void Run()
         {
-            SingleTest();
-            //BenchmarkSolver();
+            //SingleTest();
+            BenchmarkSolver();
         }
 
 
@@ -52,16 +52,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Choose solver
             //CreateSolver solverFunc = CreateCholeskyAMDSolver;
-            //string solverName = "CholeskyAMDSolver";
-
             CreateSolver solverFunc = CreateReanalysisSolver;
-            string solverName = "ReanalysisSolver";
-
             //var solverFunc = CreatePCGSolver;
-            //string solverName = "PCGSolver";
-
             //CreateSolver solverFunc = CreateMenkBordasSolver;
-            //string solverName = "MenkBordasSolver";
 
             /// Call once to load all necessary DLLs
             IBenchmark firstTry = builder.BuildBenchmark();
@@ -80,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 benchmark.Analyze(solver);
 
                 /// Write the timing results
-                solver.Logger.WriteToFile(builder.TimingPath, solverName, true);
+                solver.Logger.WriteToFile(builder.TimingPath, true);
 
                 /// Dispose any unmanaged memory
                 if (solver is IDisposable handle) handle.Dispose();
@@ -106,11 +99,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             return new PCGSolver(benchmark.Model, 1, 1e-10);
         }
-
-        //private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(IBenchmark benchmark)
-        //{
-        //    return new ReanalysisRebuildingSolver(benchmark.Model, benchmark.EnrichedArea, benchmark.Crack);
-        //}
 
         private static ReanalysisSolver CreateReanalysisSolver(IBenchmark benchmark)
         {

@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             this.model = model;
             this.maxIterationsOverOrder = maxIterationsOverOrder;
             this.tolerance = tolerance;
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("PcgSolver");
 
         }
         public IDofOrderer DofOrderer { get; protected set; }
@@ -47,6 +47,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public void Solve()
         {
             ++iteration;
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
             watch.Start();
 

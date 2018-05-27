@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public CholeskyAMDSolver(Model2D model)
         {
             this.model = model;
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("CholeskyAMDSolver");
         }
 
         public IDofOrderer DofOrderer { get; private set; }
@@ -39,6 +39,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public void Solve()
         {
             ++iteration;
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
 
             // Linear system assembly (part 1)

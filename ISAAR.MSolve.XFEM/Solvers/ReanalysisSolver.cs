@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 possibleEnrichments.Add(enrichment, model.Nodes);
             }
 
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("ReanalysisSolver");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             possibleEnrichments.Add(crack.CrackBodyEnrichment, fullyEnrichedNodes);
             possibleEnrichments.Add(crack.CrackTipEnrichments, fullyEnrichedNodes);
 
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("ReanalysisSolver");
         }
 
         public ReanalysisSolver(Model2D model, ICrackDescription crack,
@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             this.model = model;
             this.crack = crack;
             this.possibleEnrichments = possibleEnrichments;
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("ReanalysisSolver");
         }
 
         public IDofOrderer DofOrderer { get; protected set; }
@@ -179,6 +179,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveFirstTime()
         {
             ++iteration;
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
 
             // Build the whole stiffness matrix for the first and last time.
@@ -223,6 +224,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveByUpdating()
         {
             ++iteration;
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             var watch = new Stopwatch();
             long assemblyTime = 0, modifyTime = 0;
 

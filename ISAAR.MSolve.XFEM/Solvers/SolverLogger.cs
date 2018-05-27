@@ -9,11 +9,20 @@ namespace ISAAR.MSolve.XFEM.Solvers
 {
     class SolverLogger
     {
+        private readonly string solverName;
+        private readonly SortedDictionary<int, long> freedomDegrees;
         private readonly SortedDictionary<int, SortedDictionary<string, long>> durations;
 
-        public SolverLogger()
+        public SolverLogger(string solverName = "") //TODO: remove the default parameter value
         {
+            this.solverName = solverName;
+            this.freedomDegrees = new SortedDictionary<int, long>();
             this.durations = new SortedDictionary<int, SortedDictionary<string, long>>();
+        }
+
+        public void LogDofs(int iteration, long numDofs)
+        {
+            freedomDegrees.Add(iteration, numDofs);
         }
 
         /// <summary>
@@ -33,15 +42,19 @@ namespace ISAAR.MSolve.XFEM.Solvers
             }
         }
 
-        public void WriteToFile(string path, string header, bool append)
+        public void WriteToFile(string directory, bool append)
         {
-            if (append && !File.Exists(path)) append = false;
-            using (var writer = new StreamWriter(path, append))
+            if (append && !File.Exists(directory)) append = false;
+            using (var writer = new StreamWriter(directory, append))
             {
                 writer.WriteLine("*********************************************************************");
-                writer.WriteLine(header);
+                writer.WriteLine(solverName);
                 writer.WriteLine("*********************************************************************");
-
+                foreach (var wholeIteration in freedomDegrees)
+                {
+                    writer.Write($"Iteration {wholeIteration.Key}: ");
+                    writer.WriteLine($"dofs = {wholeIteration.Value}");
+                }
                 foreach (var wholeIteration in durations)
                 {
                     foreach (var taskTime in wholeIteration.Value)
