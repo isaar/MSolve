@@ -49,7 +49,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 1.0; // mm. Must be sufficiently larger than the element size. 0.8 works for left crack, 0.9 is so-so for right crack
             var builder = new Builder(meshPath, growthLength, timingPath);
-            builder.HeavisideEnrichmentTolerance = 0.03;
+            builder.BC = BoundaryConditions.BottomDisplacementY_TopDisplacementY;
+            builder.HeavisideEnrichmentTolerance = 0.09;
             builder.LeftLsmPlotDirectory = plotPathLeft;
             builder.RightLsmPlotDirectory = plotPathRight;
             builder.MaxIterations = 20;
@@ -130,9 +131,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private const double initialCrackLength = 1.0;
         private const double leftCrackMouthX = 0.0, leftCrackMouthY = 2.85, leftCrackTipX = minX + initialCrackLength, leftCrackTipY = 2.85; //mm
         private const double rightCrackMouthX = 20.0, rightCrackMouthY = 7.15, rightCrackTipX = maxX - initialCrackLength, rightCrackTipY = 7.15; //mm
-
-        private const bool fixCornersInsteadOfBottom = false;
         #endregion
+
+        private readonly BoundaryConditions bc;
 
         /// <summary>
         /// The length by which the crack grows in each iteration.
@@ -177,12 +178,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// 
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-        private Holes(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
+        private Holes(string meshPath, double growthLength, BoundaryConditions bc, double jIntegralRadiusOverElementSize,
              PropagationLogger knownLeftPropagation, PropagationLogger knownRightPropagation, 
              string leftLsmPlotDirectory, string rightLsmPlotDirectory, int maxIterations, double heavisideTol)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
+            this.bc = bc;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.knownLeftPropagation = knownLeftPropagation;
             this.knownRightPropagation = knownRightPropagation;
@@ -190,6 +192,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.rightLsmPlotDirectory = rightLsmPlotDirectory;
             this.maxIterations = maxIterations;
             this.heavisideTol = heavisideTol;
+        }
+
+        internal enum BoundaryConditions
+        {
+            BottomConstrainXY_TopDisplacementY, BottomConstrainXY_TopConstrainXDisplacementY,
+            BottomConstrainY_TopDisplacementY, BottomDisplacementY_TopDisplacementY,
+            BottomConstrainXDisplacementY_TopConstrainXDisplacementY
         }
 
         /// <summary>
@@ -251,17 +260,76 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private void ApplyBoundaryConditions()
         {
             var finder = new EntityFinder(Model, 1e-6);
+            XNode2D leftTopCorner = finder.FindNodeWith(minX, maxY);
+            XNode2D rightBottomCorner = finder.FindNodeWith(maxX, minY);
+            IReadOnlyList<XNode2D> bottomNodes = finder.FindNodesWithY(minY);
+            IReadOnlyList<XNode2D> topNodes = finder.FindNodesWithY(maxY);
 
-            // Dirichlet
-            foreach (var node in finder.FindNodesWithY(minY))
+            if (bc == BoundaryConditions.BottomConstrainXY_TopDisplacementY)
             {
-                Model.AddConstraint(node, DisplacementDof.X, 0.0);
-                Model.AddConstraint(node, DisplacementDof.Y, 0.0);
+                foreach (var node in bottomNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                    Model.AddConstraint(node, DisplacementDof.Y, 0.0);
+                }
+                foreach (var node in topNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.Y, displacement);
+                }
             }
-            foreach (var node in finder.FindNodesWithY(maxY))
+            else if (bc == BoundaryConditions.BottomConstrainXY_TopConstrainXDisplacementY)
             {
-                Model.AddConstraint(node, DisplacementDof.Y, displacement);
+                foreach (var node in bottomNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                    Model.AddConstraint(node, DisplacementDof.Y, 0.0);
+                }
+                foreach (var node in topNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                    Model.AddConstraint(node, DisplacementDof.Y, displacement);
+                }
             }
+            else if (bc == BoundaryConditions.BottomConstrainY_TopDisplacementY)
+            {
+                foreach (var node in bottomNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.Y, 0.0);
+                }
+                foreach (var node in topNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.Y, displacement);
+                }             
+                Model.AddConstraint(leftTopCorner, DisplacementDof.X, 0.0);
+                Model.AddConstraint(rightBottomCorner, DisplacementDof.X, 0.0);
+            }
+            else if (bc == BoundaryConditions.BottomDisplacementY_TopDisplacementY)
+            {
+                foreach (var node in bottomNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.Y, - displacement / 2.0);
+                }
+                foreach (var node in topNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.Y, displacement / 2.0);
+                }
+                Model.AddConstraint(leftTopCorner, DisplacementDof.X, 0.0);
+                Model.AddConstraint(rightBottomCorner, DisplacementDof.X, 0.0);
+            }
+            else if (bc == BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY)
+            {
+                foreach (var node in bottomNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                    Model.AddConstraint(node, DisplacementDof.Y, - displacement / 2.0);
+                }
+                foreach (var node in topNodes)
+                {
+                    Model.AddConstraint(node, DisplacementDof.X, 0.0);
+                    Model.AddConstraint(node, DisplacementDof.Y, displacement / 2.0);
+                }
+            }
+            else throw new Exception("Shouldn't have been reached.");
         }
 
         private void CreateMesh()
@@ -441,6 +509,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 this.TimingPath = timingPath;
             }
 
+            public BoundaryConditions BC { get; set; } = BoundaryConditions.BottomConstrainXY_TopDisplacementY;
+
             /// <summary>
             /// A node that lies in the positive halfplane defined by the body level set of a crack, will be enriched with 
             /// heaviside enrichment if Apos/(Apos+Aneg) &gt; <see cref="HeavisideEnrichmentTolerance"/> where Apos, Aneg 
@@ -493,7 +563,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             public IBenchmark BuildBenchmark()
             {
-                return new Holes(meshPath, growthLength, JintegralRadiusOverElementSize, 
+                return new Holes(meshPath, growthLength, BC, JintegralRadiusOverElementSize, 
                     KnownLeftPropagation, KnownRightPropagation, LeftLsmPlotDirectory, RightLsmPlotDirectory, MaxIterations,
                     HeavisideEnrichmentTolerance);
             }
