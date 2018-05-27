@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging;
 using ISAAR.MSolve.XFEM.CrackPropagation;
@@ -45,6 +46,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 6; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
+            builder.HeavisideEnrichmentTolerance = 0.001;
             builder.LeftLsmPlotDirectory = plotPath;
             builder.MaxIterations = 10;
 
@@ -121,7 +123,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private const double infCrackHeight = 90.0, supCrackHeight = 105.0; //mm
 
         #endregion
+
         private readonly bool constrainBottomEdge;
+
+        private readonly double heavisideTol;
 
         /// <summary>
         /// The length by which the crack grows in each iteration.
@@ -157,7 +162,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         private Fillet(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
-             PropagationLogger knownPropagation, string lsmOutputDirectory, int maxIterations, bool constrainBottomEdge)
+             PropagationLogger knownPropagation, string lsmOutputDirectory, int maxIterations, bool constrainBottomEdge,
+             double heavisideTol)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
@@ -166,6 +172,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.lsmPlotDirectory = lsmOutputDirectory;
             this.maxIterations = maxIterations;
             this.constrainBottomEdge = constrainBottomEdge;
+            this.heavisideTol = heavisideTol;
         }
 
         /// <summary>
@@ -339,7 +346,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var crackMouth = new CartesianPoint2D(webLeft, crackHeight);
             var crackTip = new CartesianPoint2D(webLeft + crackLength, crackHeight);
             var initialCrack = new PolyLine2D(crackMouth, crackTip);
-            var lsmCrack = new TrackingExteriorCrackLSM(propagator);
+            var lsmCrack = new TrackingExteriorCrackLSM(propagator, 0.0, new RelativeAreaResolver(heavisideTol));
             lsmCrack.Mesh = mesh;
 
             // Create enrichments          
@@ -391,6 +398,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             public bool ConstrainBottomEdge { get; set; } = true;
 
             /// <summary>
+            /// A node that lies in the positive halfplane defined by the body level set of a crack, will be enriched with 
+            /// heaviside enrichment if Apos/(Apos+Aneg) &gt; <see cref="HeavisideEnrichmentTolerance"/> where Apos, Aneg 
+            /// are the subareas of its nodal support  in the positive and negative halfplanes respectively. Similarly a
+            /// node in the negative halfplane will be enriched if Aneg/(Apos+Aneg) &gt; 
+            /// <see cref="HeavisideEnrichmentTolerance"/>.
+            /// </summary>
+            public double HeavisideEnrichmentTolerance { get; set; } = 0.0001;
+
+            /// <summary>
             /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
             /// radius is larger than the length of the crack segments.
             /// </summary>
@@ -422,7 +438,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             public IBenchmark BuildBenchmark()
             {
                 return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LeftLsmPlotDirectory,
-                    MaxIterations, ConstrainBottomEdge);
+                    MaxIterations, ConstrainBottomEdge, HeavisideEnrichmentTolerance);
             }
         }
 

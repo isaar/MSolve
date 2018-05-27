@@ -17,13 +17,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 {
     class HeavisideResolverOLD: IHeavisideSingularityResolver
     {
-        private readonly ISingleCrack crack;
         private readonly double relativeAreaTolerance;
         private readonly CartesianTriangulator triangulator;
 
-        public HeavisideResolverOLD(ISingleCrack crack, double relativeAreaTolerance = 1e-4)
+        public HeavisideResolverOLD(double relativeAreaTolerance = 1e-4)
         {
-            this.crack = crack;
             this.relativeAreaTolerance = relativeAreaTolerance;
             this.triangulator = new CartesianTriangulator();
         }
@@ -35,7 +33,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
         /// <param name="mesh"></param>
         /// <param name="heavisideNodes">They will not be altered.</param>
         /// <returns></returns>
-        public ISet<XNode2D> FindHeavisideNodesToRemove(IMesh2D<XNode2D, XContinuumElement2D> mesh, ISet<XNode2D> heavisideNodes)
+        public ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IMesh2D<XNode2D, XContinuumElement2D> mesh, 
+            ISet<XNode2D> heavisideNodes)
         {
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
             var nodesToRemove = new HashSet<XNode2D>();
@@ -49,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
                     bool alreadyProcessed = processedElements.TryGetValue(element, out Tuple<double, double> elementPosNegAreas);
                     if (!alreadyProcessed)
                     {
-                        (double elementPosArea, double elementNegArea) = FindSignedAreasOfElement(element);
+                        (double elementPosArea, double elementNegArea) = FindSignedAreasOfElement(crack, element);
                         elementPosNegAreas = new Tuple<double, double>(elementPosArea, elementNegArea);
                         processedElements[element] = elementPosNegAreas;
                     }
@@ -72,7 +71,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
             return nodesToRemove;
         }
 
-        private (double positiveArea, double negativeArea) FindSignedAreasOfElement(XContinuumElement2D element)
+        private (double positiveArea, double negativeArea) FindSignedAreasOfElement(ISingleCrack crack, 
+            XContinuumElement2D element)
         {
             #region Debug
             //if (element.Nodes[0].ID==154)

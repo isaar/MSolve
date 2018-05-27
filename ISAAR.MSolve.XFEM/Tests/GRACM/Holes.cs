@@ -28,6 +28,7 @@ using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 
 //TODO: use fixed enrichment area
 //TODO: limit enriched nodes in the areas around the cracks
@@ -48,6 +49,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 1.0; // mm. Must be sufficiently larger than the element size. 0.8 works for left crack, 0.9 is so-so for right crack
             var builder = new Builder(meshPath, growthLength, timingPath);
+            builder.HeavisideEnrichmentTolerance = 0.03;
             builder.LeftLsmPlotDirectory = plotPathLeft;
             builder.RightLsmPlotDirectory = plotPathRight;
             builder.MaxIterations = 20;
@@ -128,12 +130,16 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private const double initialCrackLength = 1.0;
         private const double leftCrackMouthX = 0.0, leftCrackMouthY = 2.85, leftCrackTipX = minX + initialCrackLength, leftCrackTipY = 2.85; //mm
         private const double rightCrackMouthX = 20.0, rightCrackMouthY = 7.15, rightCrackTipX = maxX - initialCrackLength, rightCrackTipY = 7.15; //mm
+
+        private const bool fixCornersInsteadOfBottom = false;
         #endregion
 
         /// <summary>
         /// The length by which the crack grows in each iteration.
         /// </summary>
         private readonly double growthLength;
+
+        private readonly double heavisideTol;
 
         /// <summary>
         /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
@@ -173,7 +179,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         private Holes(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
              PropagationLogger knownLeftPropagation, PropagationLogger knownRightPropagation, 
-             string leftLsmPlotDirectory, string rightLsmPlotDirectory, int maxIterations)
+             string leftLsmPlotDirectory, string rightLsmPlotDirectory, int maxIterations, double heavisideTol)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
@@ -183,6 +189,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.leftLsmPlotDirectory = leftLsmPlotDirectory;
             this.rightLsmPlotDirectory = rightLsmPlotDirectory;
             this.maxIterations = maxIterations;
+            this.heavisideTol = heavisideTol;
         }
 
         /// <summary>
@@ -351,7 +358,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             var initialLeftCrack = new PolyLine2D(new CartesianPoint2D(leftCrackMouthX, leftCrackMouthY),
                 new CartesianPoint2D(leftCrackTipX, leftCrackTipY));
-            leftCrack = new TrackingExteriorCrackLSM(leftPropagator);
+            leftCrack = new TrackingExteriorCrackLSM(leftPropagator, 0.0, new RelativeAreaResolver(heavisideTol));
             leftCrack.Mesh = mesh;
 
             // Create enrichments          
@@ -380,7 +387,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             var initialRightCrack = new PolyLine2D(new CartesianPoint2D(rightCrackMouthX, rightCrackMouthY),
                 new CartesianPoint2D(rightCrackTipX, rightCrackTipY));
-            rightCrack = new TrackingExteriorCrackLSM(rightPropagator);
+            rightCrack = new TrackingExteriorCrackLSM(rightPropagator, 0.0, new RelativeAreaResolver(heavisideTol));
             rightCrack.Mesh = mesh;
 
             // Create enrichments          
@@ -435,6 +442,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             }
 
             /// <summary>
+            /// A node that lies in the positive halfplane defined by the body level set of a crack, will be enriched with 
+            /// heaviside enrichment if Apos/(Apos+Aneg) &gt; <see cref="HeavisideEnrichmentTolerance"/> where Apos, Aneg 
+            /// are the subareas of its nodal support  in the positive and negative halfplanes respectively. Similarly a
+            /// node in the negative halfplane will be enriched if Aneg/(Apos+Aneg) &gt; 
+            /// <see cref="HeavisideEnrichmentTolerance"/>.
+            /// </summary>
+            public double HeavisideEnrichmentTolerance { get; set; } = 0.0001;
+
+            /// <summary>
             /// Controls how large will the radius of the J-integral contour be. WARNING: errors are introduced if the J-integral 
             /// radius is larger than the length of the crack segments.
             /// </summary>
@@ -478,7 +494,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             public IBenchmark BuildBenchmark()
             {
                 return new Holes(meshPath, growthLength, JintegralRadiusOverElementSize, 
-                    KnownLeftPropagation, KnownRightPropagation, LeftLsmPlotDirectory, RightLsmPlotDirectory, MaxIterations);
+                    KnownLeftPropagation, KnownRightPropagation, LeftLsmPlotDirectory, RightLsmPlotDirectory, MaxIterations,
+                    HeavisideEnrichmentTolerance);
             }
         }
 

@@ -29,6 +29,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var solver = CreateCholeskySuiteSparseSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreateMenkBordasSolver(benchmark);
+            //var solver = CreatePCGSolver(benchmark);
             benchmark.Analyze(solver);
 
             //Reanalysis solvers
@@ -52,6 +53,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //string solverName = "CholeskyAMDSolver";
             CreateSolver solverFunc = CreateReanalysisSolver;
             string solverName = "ReanalysisSolver";
+            //var solverFunc = CreatePCGSolver;
+            //string solverName = "PCGSolver";
             //CreateSolver solverFunc = CreateMenkBordasSolver;
             //string solverName = "MenkBordasSolver";
 
@@ -92,6 +95,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
         {
             return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
+        }
+
+        private static ISolver CreatePCGSolver(IBenchmark benchmark)
+        {
+            return new PCGSolver(benchmark.Model, 1, 1e-10);
         }
 
         //private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(IBenchmark benchmark)

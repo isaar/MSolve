@@ -42,6 +42,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 //      mutable one for the various strategy classes to mutate LSM data that they pull.
 //TODO: If I do delegate a lot of functionality to strategy classes, how can the observers be updated correctly and efficiently,
 //      namely without a lot of memory copying?
+//TODO: Use a builder. It deserves one.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 {
     /// <summary>
@@ -65,7 +66,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private ICartesianPoint2D crackTip;
         private TipCoordinateSystem tipSystem;
 
-        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0)
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius, 
+            IHeavisideSingularityResolver singularityResolver)
         {
             this.propagator = propagator;
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
@@ -89,7 +91,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             //this.meshInteraction = new StolarskaMeshInteraction(this);
             //this.meshInteraction = new HybridMeshInteraction(this);
             this.meshInteraction = new SerafeimMeshInteraction(this);
-            this.singularityResolver = new HeavisideResolverOLD(this);
+            this.singularityResolver = singularityResolver;
+        }
+
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0): 
+            this(propagator, tipEnrichmentAreaRadius, null)
+        {
+            this.singularityResolver = new RelativeAreaResolver();
         }
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
@@ -509,7 +517,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             //TODO: Is it safe to only search the newly enriched nodes? Update the rejected set appropriately
             CrackBodyNodesRejected.Clear();
-            CrackBodyNodesRejected = singularityResolver.FindHeavisideNodesToRemove(Mesh, CrackBodyNodesAll); 
+            CrackBodyNodesRejected = singularityResolver.FindHeavisideNodesToRemove(this, Mesh, CrackBodyNodesAll); 
             foreach (var node in CrackBodyNodesRejected) // using set operations might be better and faster
             {
                 //Console.WriteLine("Removing Heaviside enrichment from node: " + node);
