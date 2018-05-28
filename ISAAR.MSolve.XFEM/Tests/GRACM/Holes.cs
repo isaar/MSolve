@@ -487,6 +487,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Container for both cracks
             Crack = new MultipleCracksDisjoint(new TrackingExteriorCrackLSM[] { leftCrack, rightCrack });
+            //Crack = new MultipleCracksDisjoint(new TrackingExteriorCrackLSM[] { leftCrack });
         }
 
         private void LimitEnrichedArea()

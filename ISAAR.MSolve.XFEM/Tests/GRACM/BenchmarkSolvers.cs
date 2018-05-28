@@ -13,15 +13,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static void Run()
         {
-            //SingleTest();
-            BenchmarkSolver();
+            SingleTest();
+            //BenchmarkSolver();
         }
 
 
         private static void SingleTest()
         {
-            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
-            IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
+            IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
+            //IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -29,17 +29,17 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Solvers
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
-            var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreateMenkBordasSolver(benchmark);
             //var solver = CreatePCGSolver(benchmark);
-            benchmark.Analyze(solver);
+            //var solver = CreateCholeskyAMDSolver(benchmark);
+            //benchmark.Analyze(solver);
 
             //Reanalysis solvers
             //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
-            //using (var solver = CreateReanalysisSolver(benchmark))
-            //{
-            //    benchmark.Analyze(solver);
-            //}
+            using (var solver = CreateReanalysisSolver(benchmark))
+            {
+                benchmark.Analyze(solver);
+            }
         }
 
         private static void BenchmarkSolver()
@@ -102,6 +102,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreatePCGSolver(IBenchmark benchmark)
         {
             return new PCGSolver(benchmark.Model, 1, 1e-10);
+        }
+
+        private static ReanalysisRebuildingSolver CreateReanalysisRebuildingSolver(IBenchmark benchmark)
+        {
+            return new ReanalysisRebuildingSolver(benchmark.Model, benchmark.Crack, benchmark.PossibleEnrichments);
         }
 
         private static ReanalysisSolver CreateReanalysisSolver(IBenchmark benchmark)

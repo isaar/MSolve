@@ -25,83 +25,115 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             this.cracks = cracks;
         }
 
-        public ISet<XNode2D> CrackBodyNodesAll
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesAll
         {
             get
             {
-                var nodes = new HashSet<XNode2D>();
-                foreach (var crack in cracks) nodes.UnionWith(crack.CrackBodyNodesAll);
-                return nodes;
+                var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackBodyNodesAll)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 
-        public ISet<XNode2D> CrackBodyNodesNew
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNew
         {
             get
             {
-                var nodes = new HashSet<XNode2D>();
-                foreach (var crack in cracks) nodes.UnionWith(crack.CrackBodyNodesNew);
-                return nodes;
+                var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackBodyNodesNew)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 
-        public ISet<XNode2D> CrackBodyNodesModified
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesModified
         {
             get
             {
-                var nodes = new HashSet<XNode2D>();
-                foreach (var crack in cracks) nodes.UnionWith(crack.CrackBodyNodesModified);
-                return nodes;
+                var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackBodyNodesModified)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 
-        public ISet<XNode2D> CrackBodyNodesNearModified
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNearModified
         {
             get
             {
-                var nodes = new HashSet<XNode2D>();
-                foreach (var crack in cracks) nodes.UnionWith(crack.CrackBodyNodesNearModified);
-                return nodes;
+                var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackBodyNodesNearModified)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 
-        public ISet<XNode2D> CrackTipNodesNew
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected
         {
             get
             {
-                var nodes = new HashSet<XNode2D>();
-                foreach (var crack in cracks) nodes.UnionWith(crack.CrackTipNodesNew);
-                return nodes;
+                var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackBodyNodesRejected)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 
-        public ISet<XNode2D> CrackTipNodesOld
+        public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesNew
         {
             get
             {
-                var nodes = new HashSet<XNode2D>();
-                foreach (var crack in cracks) nodes.UnionWith(crack.CrackTipNodesOld);
-                return nodes;
+                var union = new Dictionary<CrackTipEnrichments2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackTipNodesNew)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 
-        public IReadOnlyList<EnrichedDof> DofsHeaviside
+        public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesOld
         {
             get
             {
-                var dofs = new List<EnrichedDof>();
-                foreach (var crack in cracks) dofs.AddRange(crack.DofsHeaviside);
-                return dofs;
-            }
-        }
-
-        public IReadOnlyList<EnrichedDof> DofsTip
-        {
-            get
-            {
-                var dofs = new List<EnrichedDof>();
-                foreach (var crack in cracks) dofs.AddRange(crack.DofsTip);
-                return dofs;
+                var union = new Dictionary<CrackTipEnrichments2D, ISet<XNode2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var enrichementNodes in crack.CrackTipNodesOld)
+                    {
+                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                    }
+                }
+                return union;
             }
         }
 

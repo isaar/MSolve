@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             // Log the new tip enriched nodes and the signs of their crack body level sets.
             writer.InitializeFile($"{outputDirectory}\\tip_nodes_new_{iteration}", true);
             var tipNodesNew = new Dictionary<ICartesianPoint2D, double>();
-            foreach (var node in lsm.CrackTipNodesNew)
+            foreach (var node in lsm.CrackTipNodesNew[lsm.CrackTipEnrichments])
             {
                 double sign = Math.Sign(lsm.LevelSetsTip[node]);
                 tipNodesNew.Add(node, sign);
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             var tipNodesOld = new Dictionary<ICartesianPoint2D, double>();
             if (iteration > 0) 
             {
-                foreach (var node in lsm.CrackTipNodesOld)
+                foreach (var node in lsm.CrackTipNodesOld[lsm.CrackTipEnrichments])
                 {
                     double sign = Math.Sign(lsm.LevelSetsTip[node]);
                     tipNodesOld.Add(node, sign);
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             // Log all Heaviside enriched nodes and the signs of their crack body level sets.
             writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_all_{iteration}", true);
             var heavisideNodesAll = new Dictionary<ICartesianPoint2D, double>();
-            foreach (var node in lsm.CrackBodyNodesAll)
+            foreach (var node in lsm.CrackBodyNodesAll[lsm.CrackBodyEnrichment])
             {
                 double sign = Math.Sign(lsm.LevelSetsBody[node]);
                 heavisideNodesAll.Add(node, sign);
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             // Log only the new Heaviside enriched nodes and the signs of their crack body level sets.
             writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_new_{iteration}", true);
             var heavisideNodesNew = new Dictionary<ICartesianPoint2D, double>();
-            foreach (var node in lsm.CrackBodyNodesNew)
+            foreach (var node in lsm.CrackBodyNodesNew[lsm.CrackBodyEnrichment])
             {
                 double sign = Math.Sign(lsm.LevelSetsBody[node]);
                 heavisideNodesNew.Add(node, sign);
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             // Log the nodes that belong to elements intersected by the crack, but are not enriched with Heaviside 
             writer.InitializeFile($"{outputDirectory}\\heaviside_rejected_nodes_{iteration}", true);
             var rejectedNodes = new Dictionary<ICartesianPoint2D, double>();
-            foreach (var node in lsm.CrackBodyNodesRejected)
+            foreach (var node in lsm.CrackBodyNodesRejected[lsm.CrackBodyEnrichment])
             {
                 double sign = Math.Sign(lsm.LevelSetsBody[node]);
                 rejectedNodes.Add(node, sign);
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             // Log unmodified Heaviside nodes of elements with at least one modified node
             writer.InitializeFile($"{outputDirectory}\\near_modified_heaviside_nodes_{iteration}", true);
             var nearModifiedHeavisideNodes = new Dictionary<ICartesianPoint2D, double>();
-            foreach (var node in lsm.CrackBodyNodesNearModified)
+            foreach (var node in lsm.CrackBodyNodesNearModified[lsm.CrackBodyEnrichment])
             {
                 double sign = Math.Sign(lsm.LevelSetsBody[node]);
                 nearModifiedHeavisideNodes.Add(node, sign);

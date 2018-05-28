@@ -29,7 +29,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                 using (var writer = new StreamWriter($"{outputDirectory}\\level_set_comparison_{iteration}.txt", false))
                 {
                     writer.WriteLine("Old Heaviside nodes, body level set:");
-                    foreach (var node in lsm.CrackBodyNodesAll.Except(lsm.CrackBodyNodesNew))
+                    foreach (var node in lsm.CrackBodyNodesAll[lsm.CrackBodyEnrichment].
+                        Except(lsm.CrackBodyNodesNew[lsm.CrackBodyEnrichment]))
                     {
                         double previous = previousBodyLevelSets[node];
                         double current = lsm.LevelSetsBody[node];
@@ -40,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                     writer.WriteLine();
 
                     writer.WriteLine("New Heaviside nodes, body level set:");
-                    foreach (var node in lsm.CrackBodyNodesNew)
+                    foreach (var node in lsm.CrackBodyNodesNew[lsm.CrackBodyEnrichment])
                     {
                         double previous = previousBodyLevelSets[node];
                         double current = lsm.LevelSetsBody[node];
@@ -51,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                     writer.WriteLine();
 
                     writer.WriteLine("Old tip nodes, tip level set:");
-                    foreach (var node in lsm.CrackTipNodesOld)
+                    foreach (var node in lsm.CrackTipNodesOld[lsm.CrackTipEnrichments])
                     {
                         double previous = previousTipLevelSets[node];
                         double current = lsm.LevelSetsTip[node];
@@ -62,7 +63,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                     writer.WriteLine();
 
                     writer.WriteLine("New tip nodes, tip level set:");
-                    foreach (var node in lsm.CrackTipNodesNew)
+                    foreach (var node in lsm.CrackTipNodesNew[lsm.CrackTipEnrichments])
                     {
                         double previous = previousTipLevelSets[node];
                         double current = lsm.LevelSetsTip[node];

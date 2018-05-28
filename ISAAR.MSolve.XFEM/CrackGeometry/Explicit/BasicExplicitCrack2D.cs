@@ -44,24 +44,25 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
         private List<double> Angles { get; }
 
-        public ISet<XNode2D> CrackBodyNodesAll => throw new NotImplementedException();
-        public ISet<XNode2D> CrackTipNodesNew => throw new NotImplementedException();
-        public ISet<XNode2D> CrackBodyNodesNew => throw new NotImplementedException();
-        public ISet<XNode2D> CrackTipNodesOld => throw new NotImplementedException();
-
-        public ISet<XNode2D> CrackBodyNodesModified => throw new NotImplementedException();
-
-        public ISet<XNode2D> CrackBodyNodesNearModified => throw new NotImplementedException();
-
-        public IReadOnlyList<EnrichedDof> DofsHeaviside => throw new NotImplementedException();
-
-        public IReadOnlyList<EnrichedDof> DofsTip => throw new NotImplementedException();
-
         public ISet<XContinuumElement2D> ElementsModified => throw new NotImplementedException();
 
         public IReadOnlyList<IEnrichmentItem2D> Enrichments => throw new NotImplementedException();
 
         BiMesh2D ICrackDescription.Mesh => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesAll => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNew => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesModified => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNearModified => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesNew => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesOld => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected => throw new NotImplementedException();
 
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;

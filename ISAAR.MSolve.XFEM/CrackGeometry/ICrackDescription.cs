@@ -15,15 +15,52 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     interface ICrackDescription
     {
-        ISet<XNode2D> CrackBodyNodesAll { get; }
-        ISet<XNode2D> CrackBodyNodesNew { get; }
-        ISet<XNode2D> CrackBodyNodesModified { get; }
-        ISet<XNode2D> CrackBodyNodesNearModified { get;}
-        ISet<XNode2D> CrackTipNodesNew { get; }
-        ISet<XNode2D> CrackTipNodesOld { get; }
-        IReadOnlyList<EnrichedDof> DofsHeaviside { get; }
-        IReadOnlyList<EnrichedDof> DofsTip { get; }
+        /// <summary>
+        /// All nodes enriched with Heaviside.
+        /// </summary>
+        IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesAll { get; }
+
+        /// <summary>
+        /// Nodes that were first enriched with Heaviside in the current iteration. Subset of <see cref="crackBodyNodesAll"/>
+        /// </summary>
+        IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNew { get; }
+
+        /// <summary>
+        /// Nodes that were already enriched with Heaviside, but their crack body level set changes in the current iteration.
+        /// Most of the time this should happen to nodes of the element containing the crack tip, thus this set should be empty.
+        /// </summary>
+        IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesModified { get; }
+
+        /// <summary>
+        /// Nodes that were already enriched with Heaviside, but belong to elements, where at least one node bleongs to one of
+        /// the sets <see cref="crackBodyNodesNew"/>, <see cref="crackBodyNodesModified"/>, <see cref="crackTipNodesNew"/> or 
+        /// <see cref="crackTipNodesOld"/>. The stiffness matrix of these elements will change, causing a change in the stiffness
+        /// terms associated with these nodes.
+        /// </summary>
+        IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNearModified { get;}
+
+        /// <summary>
+        /// Nodes that belong to elements intersected by the 0 crack body level set, but must not be enriched with Heaviside to
+        /// avoid singularity in the global stiffness matrix.
+        /// </summary>
+        IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected { get; }
+
+        /// <summary>
+        /// Nodes that are currently enriched with tip functions.
+        /// </summary>
+        IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesNew { get; }
+
+        /// <summary>
+        /// Nodes that were enriched with tip functions in the previous iteration, but now are not. 
+        /// </summary>
+        IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesOld { get; }
+
+        /// <summary>
+        /// Elements with at least one node whose enrichment has changed (added Heaviside, tip or removed tip functions) since 
+        /// the previous iteration. These are the only elements whose stiffness matrices are modified.
+        /// </summary>
         ISet<XContinuumElement2D> ElementsModified { get; }
+
         IReadOnlyList<IEnrichmentItem2D> Enrichments { get; }
         BiMesh2D Mesh { get; } //TODO: abstract this
 
