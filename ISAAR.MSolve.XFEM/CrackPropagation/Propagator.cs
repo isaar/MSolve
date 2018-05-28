@@ -26,8 +26,6 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
     class Propagator: IPropagator
     {
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
-        private readonly ICrackGeometry crack;
-        private readonly CrackTipPosition tipPosition;
         private readonly double magnificationOfJintegralRadius;
         private readonly IAuxiliaryStates auxiliaryStatesStrategy;
         private readonly ISIFCalculator sifCalculationStrategy;
@@ -48,14 +46,11 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         ///     (see Ahmed thesis, 2009).</param>
         /// <param name="auxiliaryStatesStrategy"></param>
         /// <param name="sifCalculationStrategy"></param>
-        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackGeometry crack,
-            CrackTipPosition tipPosition, double magnificationOfJintegralRadius,
+        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, double magnificationOfJintegralRadius,
             IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy,
             ICrackGrowthDirectionLaw2D growthDirectionLaw, ICrackGrowthLengthLaw2D growthLengthLaw)
         {
             this.mesh = mesh;
-            this.crack = crack;
-            this.tipPosition = tipPosition;
             this.magnificationOfJintegralRadius = magnificationOfJintegralRadius;
             this.auxiliaryStatesStrategy = auxiliaryStatesStrategy;
             this.sifCalculationStrategy = sifCalculationStrategy;
@@ -64,12 +59,13 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.Logger = new PropagationLogger();
         }
 
-        public (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, 
-            Vector totalConstrainedDisplacements)
+        public (double growthAngle, double growthLength) Propagate(
+            IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements, 
+            ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
-            ComputeSIFS(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
-                out double sifMode1, out double sifMode2);
+            (double sifMode1, double sifMode2) = ComputeSIFS(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
+                crackTip, tipSystem, tipElements);
             double growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
             double growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
             Logger.GrowthAngles.Add(growthAngle);
@@ -78,11 +74,13 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         }
 
-        private void ComputeSIFS(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
-             out double sifMode1, out double sifMode2)
+        private (double sifMode1, double sifMode2) ComputeSIFS(
+            IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
+            ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
-            IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = FindJintegralElementsAndNodalWeights();
+            IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = 
+                FindJintegralElementsAndNodalWeights(crackTip, tipSystem, tipElements);
             foreach (var pair in elementWeights)
             {
                 XContinuumElement2D element = pair.Key;
@@ -94,27 +92,30 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
                 double partialIntegralMode1, partialIntegralMode2;
                 ComputeInteractionIntegrals(element, standardElementDisplacements, enrichedElementDisplacements,
-                    nodalWeights, out partialIntegralMode1, out partialIntegralMode2);
+                    nodalWeights, tipSystem, out partialIntegralMode1, out partialIntegralMode2);
 
                 interactionIntegralMode1 += partialIntegralMode1;
                 interactionIntegralMode2 += partialIntegralMode2;
             }
 
-            sifMode1 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode1);
-            sifMode2 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode2);
+            double sifMode1 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode1);
+            double sifMode2 = sifCalculationStrategy.CalculateSIF(interactionIntegralMode2);
 
             Logger.InteractionIntegralsMode1.Add(interactionIntegralMode1);
             Logger.InteractionIntegralsMode2.Add(interactionIntegralMode2);
             Logger.SIFsMode1.Add(sifMode1);
             Logger.SIFsMode2.Add(sifMode2);
+
+            return (sifMode1, sifMode2);
         }
 
-        private IReadOnlyDictionary<XContinuumElement2D, double[]> FindJintegralElementsAndNodalWeights()
+        private IReadOnlyDictionary<XContinuumElement2D, double[]> FindJintegralElementsAndNodalWeights(
+            ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             Circle2D outerContour = 
-                new Circle2D(crack.GetCrackTip(tipPosition), ComputeRadiusOfJintegralOuterContour());
+                new Circle2D(crackTip, ComputeRadiusOfJintegralOuterContour(tipSystem, tipElements));
             IReadOnlyList<XContinuumElement2D> intersectedElements =
-                mesh.FindElementsIntersectedByCircle(outerContour, crack.GetTipElements(tipPosition)[0]);
+                mesh.FindElementsIntersectedByCircle(outerContour, tipElements[0]);
 
             var elementsAndWeights = new Dictionary<XContinuumElement2D, double[]>();
             foreach (var element in intersectedElements)
@@ -143,10 +144,11 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         // TODO: This method should directly return the elements and take care of cases near the domain boundaries (see Ahmed)
         // TODO: The J-integral radius should not exceed the last crack segment's length
-        public double ComputeRadiusOfJintegralOuterContour()
+        public double ComputeRadiusOfJintegralOuterContour(TipCoordinateSystem tipSystem, 
+            IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double maxTipElementArea = -1.0;
-            foreach (var element in crack.GetTipElements(tipPosition))
+            foreach (var element in tipElements)
             {
                 var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
                 double elementArea = outline.ComputeArea();
@@ -156,10 +158,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         }
 
         private void ComputeInteractionIntegrals(XContinuumElement2D element, Vector standardNodalDisplacements,
-            Vector enrichedNodalDisplacements, double[] nodalWeights, 
+            Vector enrichedNodalDisplacements, double[] nodalWeights, TipCoordinateSystem tipSystem,
             out double integralMode1, out double integralMode2)
         {
-            TipCoordinateSystem tipSystem = crack.GetTipSystem(tipPosition);
             integralMode1 = 0.0;
             integralMode2 = 0.0;
             foreach (GaussPoint2D naturalGP in element.JintegralStrategy.GenerateIntegrationPoints(element))

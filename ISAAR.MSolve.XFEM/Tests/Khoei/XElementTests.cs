@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         {
             double E = 2e6;
             double v = 0.3;
-            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
 
             var integrationStrategy = new IntegrationForCrackPropagation2D(
                 new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.Order2x2),

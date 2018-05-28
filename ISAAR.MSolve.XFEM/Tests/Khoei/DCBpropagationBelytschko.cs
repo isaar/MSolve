@@ -172,8 +172,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         public Model2D model;
-        private IExteriorCrack crack;
-        private IMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private TrackingExteriorCrackLSM crack;
+        private BiMesh2D mesh;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
         private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
         private readonly double jIntegralRadiusOverElementSize;
@@ -196,8 +196,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateModel(double fineElementSize)
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            crack = new BasicExplicitCrack2D();
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
             model = new Model2D();
             HandleIntegrations();
             CreateMesh(fineElementSize);
@@ -223,13 +222,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in nodes) model.AddNode(node);
             foreach (XNode2D[] element in elementNodes)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, element, materialField,
                     integration, jIntegration));
             }
 
             var boundary = new RectangularBoundary(0.0, L, 0.0, h);
-            mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
+            mesh = new BiMesh2D(model.Nodes, model.Elements, boundary);
         }
 
 
@@ -280,9 +279,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleCrack()
         {
+            propagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
+               new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+               new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+               new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+
             if (useLSM)
             {
-                var lsmCrack = new BasicCrackLSM();
+                var lsmCrack = new TrackingExteriorCrackLSM(propagator);
                 this.crack = lsmCrack;
                 lsmCrack.Mesh = mesh;
 
@@ -298,8 +302,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             }
             else
             {
+                throw new NotImplementedException();
                 var explicitCrack = new BasicExplicitCrack2D();
-                this.crack = explicitCrack;
+                //this.crack = explicitCrack;
                 explicitCrack.Mesh = mesh;
 
                 // Create enrichments          
@@ -317,15 +322,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private IReadOnlyList<ICartesianPoint2D> Analyze()
         {
-            propagator = new Propagator(mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
             var solver = new SkylineSolver(model);
-            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, mesh, crack, solver,
-                propagator, fractureToughness, maxIterations);
-            return analysis.Analyze();
+            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, mesh, crack, solver, fractureToughness, maxIterations);
+            analysis.Analyze();
+            return crack.CrackPath;
         }
     }
 }

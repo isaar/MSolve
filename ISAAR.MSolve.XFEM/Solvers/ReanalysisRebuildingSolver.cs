@@ -13,7 +13,9 @@ using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
@@ -28,8 +30,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
     /// </summary>
     class ReanalysisRebuildingSolver : SolverBase, IDisposable
     {
-        private readonly TrackingExteriorCrackLSM crack;
-        private readonly IReadOnlyList<XNode2D> fullyEnrichedNodes; // TODO: model must be passed in the constructor a parameter.
+        private readonly ICrackDescription crack;
+        private readonly Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> possibleEnrichments;
         private CholeskySuiteSparse factorizedKff;
         private int counter;
 
@@ -37,10 +39,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// All nodes will be enriched with both Heaviside and crack tip functions to create the initial dof numbering. After 
         /// that, the enrichments will be cleared and only reapplied as needed by the crack propagation.
         /// </summary>
-        public ReanalysisRebuildingSolver(Model2D model, TrackingExteriorCrackLSM crack) : base(model)
+        public ReanalysisRebuildingSolver(Model2D model, ICrackDescription crack): base(model)
         {
             this.crack = crack;
-            this.fullyEnrichedNodes = model.Nodes;
+
+            // Possible enrichments
+            possibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
+            foreach (var enrichment in crack.Enrichments)
+            {
+                possibleEnrichments.Add(enrichment, model.Nodes);
+            }
+
+            //Logger = new SolverLogger("ReanalysisSolver");
         }
 
         /// <summary>
@@ -55,7 +65,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
             base(model)
         {
             this.crack = crack;
-            this.fullyEnrichedNodes = fullyEnrichedNodes;
+
+            // Possible enrichments
+            possibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
+            possibleEnrichments.Add(crack.CrackBodyEnrichment, fullyEnrichedNodes);
+            possibleEnrichments.Add(crack.CrackTipEnrichments, fullyEnrichedNodes);
+        }
+
+        public ReanalysisRebuildingSolver(Model2D model, ICrackDescription crack,
+            Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> possibleEnrichments) : base(model)
+        {
+            this.crack = crack;
+            this.possibleEnrichments = possibleEnrichments;
         }
 
         public void Dispose()
@@ -66,10 +87,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public override void Initialize()
         {
             // Enrich all applicable nodes, without evaluating the enrichment functions
-            foreach (XNode2D node in fullyEnrichedNodes)
+            foreach (var enrichmentNodes in possibleEnrichments)
             {
-                node.EnrichmentItems.Add(crack.CrackBodyEnrichment, null);
-                node.EnrichmentItems.Add(crack.CrackTipEnrichments, null);
+                foreach (XNode2D node in enrichmentNodes.Value) node.EnrichmentItems.Add(enrichmentNodes.Key, null);
             }
 
             //DofOrderer = DofOrdererSeparate.Create(model);
@@ -79,7 +99,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             ReorderPatternSuperset(); //TODO: this actually increases fill-in
 
             // Clear all the possible enrichments. Only the required ones will be used as the crack propagates.
-            foreach (XNode2D node in fullyEnrichedNodes) node.EnrichmentItems.Clear();
+            foreach (var enrichmentNodes in possibleEnrichments)
+            {
+                foreach (XNode2D node in enrichmentNodes.Value) node.EnrichmentItems.Clear();
+            }
         }
 
         public override void Solve()
@@ -148,32 +171,44 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kfc);
 
             // Group the new dofs
-            IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
-            IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
             var colsToAdd = new HashSet<int>();
-            foreach (var node in crack.CrackTipNodesNew)
+            foreach (var tipNodes in crack.CrackTipNodesNew)
             {
-                foreach (var tipDof in tipDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
+                IReadOnlyList<EnrichedDof> tipDofs = tipNodes.Key.Dofs;
+                foreach (var node in tipNodes.Value)
+                {
+                    foreach (var tipDof in tipDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
+                }
             }
-            foreach (var node in crack.CrackBodyNodesNew)
+            foreach (var bodyNodes in crack.CrackBodyNodesNew)
             {
-                foreach (var heavisideDof in heavisideDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
+                IReadOnlyList<EnrichedDof> heavisideDofs = bodyNodes.Key.Dofs;
+                foreach (var node in bodyNodes.Value)
+                {
+                    foreach (var heavisideDof in heavisideDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
+                }
             }
             var tabooRows = new HashSet<int>(colsToAdd);
 
             // Delete old tip enriched Dofs. Should this be done before or after addition?
-            foreach (var node in crack.CrackTipNodesOld)
+            foreach (var tipNodes in crack.CrackTipNodesOld)
             {
-                foreach (var tipDof in tipDofs)
+                IReadOnlyList<EnrichedDof> tipDofs = tipNodes.Key.Dofs;
+                foreach (var node in tipNodes.Value)
                 {
-                    int colIdx = DofOrderer.GetEnrichedDofOf(node, tipDof);
-                    tabooRows.Add(colIdx); // They must also be excluded when adding new columns
-                    factorizedKff.DeleteRow(colIdx);
+                    foreach (var tipDof in tipDofs)
+                    {
+                        int colIdx = DofOrderer.GetEnrichedDofOf(node, tipDof);
+                        tabooRows.Add(colIdx); // They must also be excluded when adding new columns
+
+                        // Delete column from cholesky factorization
+                        factorizedKff.DeleteRow(colIdx);
+                    }
                 }
             }
 
             //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
-            TreatOtherModifiedDofs(heavisideDofs, colsToAdd, tabooRows);
+            TreatOtherModifiedDofs(colsToAdd, tabooRows);
             //Console.WriteLine($"{colsToAdd.Count} columns will be added");
 
             // Add a column for each new dof. That column only contains entries corresponding to already active dofs and the 
@@ -193,23 +228,41 @@ namespace ISAAR.MSolve.XFEM.Solvers
             CheckSolutionAndPrint(0.0);
         }
 
-        private void TreatOtherModifiedDofs(IReadOnlyList<EnrichedDof> heavisideDofs, HashSet<int> colsToAdd, 
+        private void TreatOtherModifiedDofs(HashSet<int> colsToAdd, 
             HashSet<int> tabooRows)
         {
+            var enrichments = new List<CrackBodyEnrichment2D>();
+            var nodesToDelete = new List<ISet<XNode2D>>();
+            foreach (var bodyNodes in crack.CrackBodyNodesModified)
+            {
+                enrichments.Add(bodyNodes.Key);
+                nodesToDelete.Add(bodyNodes.Value);
+            }
+            foreach (var bodyNodes in crack.CrackBodyNodesNearModified)
+            {
+                enrichments.Add(bodyNodes.Key);
+                nodesToDelete.Add(bodyNodes.Value);
+            }
+
             // Delete unmodified Heaviside dofs of nodes in elements with modified stiffness. 
             // Their stiffness will be readded later.
             // Same for previously Heaviside dofs with modified body level set.
             //TODO: Not sure, their stiffness can change. Investigate it.
             //TODO: Check if their stiffness is really modified. Otherwise it is a waste of time.
-            foreach (var node in crack.CrackBodyNodesNearModified.Union(crack.CrackBodyNodesModified))
+            for (int i = 0; i < nodesToDelete.Count; ++i)
             {
-                //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
-                foreach (var heavisideDof in heavisideDofs)
+                IReadOnlyList<EnrichedDof> heavisideDofs = enrichments[i].Dofs;
+                foreach (var node in nodesToDelete[i])
                 {
-                    int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);
-                    colsToAdd.Add(colIdx);
-                    tabooRows.Add(colIdx); // They must also be excluded when adding new columns
-                    factorizedKff.DeleteRow(colIdx);
+                    //Console.WriteLine($"Iteration {counter} - Near modified node: {node}");
+                    foreach (var heavisideDof in heavisideDofs)
+                    {
+                        int colIdx = DofOrderer.GetEnrichedDofOf(node, heavisideDof);
+                        colsToAdd.Add(colIdx);
+                        tabooRows.Add(colIdx); // They must also be excluded when adding new columns
+
+                        factorizedKff.DeleteRow(colIdx);
+                    }
                 }
             }
         }
@@ -251,60 +304,60 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void CheckSolutionAndPrint(double tolerance)
         {
-            string directory = @"C:\Users\Serafeim\Desktop\GRACM\Reanalysis_debugging\";
-            string matrixPath = directory + "reanalysis_expected_matrix_" + counter + ".txt";
-            string rhsPath = directory + "reanalysis_expected_rhs_" + counter + ".txt";
-            string removedRowsPath = directory + "reanalysis_removed_rows_" + counter + ".txt";
-            string addedRowsPath = directory + "reanalysis_added_rows_" + counter + ".txt";
+            //string directory = @"C:\Users\Serafeim\Desktop\GRACM\Reanalysis_debugging\";
+            //string matrixPath = directory + "reanalysis_expected_matrix_" + counter + ".txt";
+            //string rhsPath = directory + "reanalysis_expected_rhs_" + counter + ".txt";
+            //string removedRowsPath = directory + "reanalysis_removed_rows_" + counter + ".txt";
+            //string addedRowsPath = directory + "reanalysis_added_rows_" + counter + ".txt";
 
-            Console.WriteLine();
-            Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
-            var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
-            Vector rhs = CalcEffectiveRhs(Kuc);
-            Vector solutionExpected;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
-            {
-                solutionExpected = factorization.SolveLinearSystem(rhs);
-            }
-            double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
-            Console.Write($"Normalized error = {error}");
+            //Console.WriteLine();
+            //Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
+            //var assembler = new ReanalysisWholeAssembler();
+            //(DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            //Vector rhs = CalcEffectiveRhs(Kuc);
+            //Vector solutionExpected;
+            //using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            //{
+            //    solutionExpected = factorization.SolveLinearSystem(rhs);
+            //}
+            //double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
+            //Console.Write($"Normalized error = {error}");
 
-            if (error < tolerance)
-            {
-                Console.Write($". It is under the tolerance = {tolerance}.");
-                Console.Write("Printing the expected matrix, rhs vector and altered dofs");
+            //if (error < tolerance)
+            //{
+            //    Console.Write($". It is under the tolerance = {tolerance}.");
+            //    Console.Write("Printing the expected matrix, rhs vector and altered dofs");
 
-                // Expected matrix and rhs
-                CoordinateTextFileSymmetricWriter.NumericFormat = new GeneralNumericFormat();
-                (new CoordinateTextFileSymmetricWriter(Kuu)).WriteToFile(matrixPath);
-                FullVectorWriter.NumericFormat = new GeneralNumericFormat();
-                (new FullVectorWriter(rhs, true)).WriteToFile(rhsPath);
+            //    // Expected matrix and rhs
+            //    CoordinateTextFileSymmetricWriter.NumericFormat = new GeneralNumericFormat();
+            //    (new CoordinateTextFileSymmetricWriter(Kuu)).WriteToFile(matrixPath);
+            //    FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+            //    (new FullVectorWriter(rhs, true)).WriteToFile(rhsPath);
 
-                // Modified dofs
-                var removedRows = new List<int>();
-                var addedRows = new List<int>();
-                IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
-                IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
-                foreach (var node in crack.CrackTipNodesOld)
-                {
-                    foreach (var tipDof in tipDofs) removedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
-                }
-                foreach (var node in crack.CrackTipNodesNew)
-                {
-                    foreach (var tipDof in tipDofs) addedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
-                }
-                foreach (var node in crack.CrackBodyNodesNew)
-                {
-                    foreach (var heavisideDof in heavisideDofs) addedRows.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
-                }
-                WriteList(removedRows, removedRowsPath);
-                WriteList(addedRows, addedRowsPath);
-            }
+            //    // Modified dofs
+            //    var removedRows = new List<int>();
+            //    var addedRows = new List<int>();
+            //    IReadOnlyList<EnrichedDof> heavisideDofs = crack.CrackBodyEnrichment.Dofs;
+            //    IReadOnlyList<EnrichedDof> tipDofs = crack.CrackTipEnrichments.Dofs;
+            //    foreach (var node in crack.CrackTipNodesOld)
+            //    {
+            //        foreach (var tipDof in tipDofs) removedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
+            //    }
+            //    foreach (var node in crack.CrackTipNodesNew)
+            //    {
+            //        foreach (var tipDof in tipDofs) addedRows.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
+            //    }
+            //    foreach (var node in crack.CrackBodyNodesNew)
+            //    {
+            //        foreach (var heavisideDof in heavisideDofs) addedRows.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
+            //    }
+            //    WriteList(removedRows, removedRowsPath);
+            //    WriteList(addedRows, addedRowsPath);
+            //}
 
-            Console.WriteLine();
-            Console.WriteLine("------------- /DEBUG: reanalysis solver -------------");
-            Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine("------------- /DEBUG: reanalysis solver -------------");
+            //Console.WriteLine();
         }
 
         private static void WriteList(List<int> dofs, string path)

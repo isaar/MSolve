@@ -24,20 +24,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private readonly Model2D model;
         private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
-        private readonly IExteriorCrack crack;
+        private readonly ICrackDescription crack;
         private readonly ISolver solver;
-        private readonly IPropagator propagator;
         private readonly double fractureToughness;
         private readonly int maxIterations;
 
-        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, IExteriorCrack crack,
-            ISolver solver, IPropagator propagator, double fractureToughness, int maxIterations)
+        public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
+            ISolver solver, double fractureToughness, int maxIterations)
         {
             this.model = model;
             this.mesh = mesh;
             this.crack = crack;
             this.solver = solver;
-            this.propagator = propagator;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
         }
@@ -46,10 +44,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// Returns the crack path after repeatedly executing: XFEM analysis, SIF calculation, crack propagation
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyList<ICartesianPoint2D> Analyze()
+        public void Analyze()
         {
-            var crackPath = new List<ICartesianPoint2D>();
-
             #if (PRINT_PATH)
             //Console.WriteLine("Crack path: X Y");
             //crackPath.Add(crack.CrackMouth);
@@ -78,42 +74,46 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 if (propagator.Logger.GrowthAngles.Count > 0) Console.WriteLine(
                     $"angle = {propagator.Logger.GrowthAngles.Last()}, length = {propagator.Logger.GrowthLengths.Last()}");
 #endif
-
+                // Update the model and solve it
                 crack.UpdateEnrichments();
                 solver.Solve();
 
-                    //TODO: isn't this computed in the solver as well?
+                // Let the crack propagate
+                //TODO: isn't this computed in the solver as well?
                 Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
                 Vector totalFreeDisplacements = solver.Solution;
-
-                (double growthAngle, double growthIncrement) = propagator.Propagate(solver.DofOrderer,
-                    totalFreeDisplacements, totalConstrainedDisplacements);
-                crack.UpdateGeometry(growthAngle, growthIncrement);
-                ICartesianPoint2D newTip = crack.GetCrackTip(CrackTipPosition.Single);
-                crackPath.Add(newTip);
-
-                double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
+                crack.Propagate(solver.DofOrderer, totalFreeDisplacements, totalConstrainedDisplacements);
+                
+                // Check convergence 
+                //TODO: Perhaps this should be done by the crack geometry or the Propagator itself and handled via exceptions 
+                foreach (var propagator in crack.GetCrackTipPropagators())
+                {
+                    double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
                     propagator.Logger.SIFsMode2[iteration]);
-                if (sifEffective >= fractureToughness)
-                {
-                    Console.WriteLine(
-                        "Propagation analysis terminated: Failure due to fracture tougness being exceeded.");
-                    break;
+                    if (sifEffective >= fractureToughness)
+                    {
+                        Console.WriteLine(
+                            "Propagation analysis terminated: Failure due to fracture tougness being exceeded.");
+                        return;
+                    }
                 }
-                else if (!mesh.IsInsideBoundary(newTip))
+                foreach (var tip in crack.GetCrackTips())
                 {
-                    Console.WriteLine(
-                        "Propagation analysis terminated: Failure due to the crack reaching the domain's boudary.");
-                    break;
+                    if (!mesh.IsInsideBoundary(tip))
+                    {
+                        Console.WriteLine(
+                            "Propagation analysis terminated: Failure due to the crack reaching the domain's boudary.");
+                        return;
+                    }
                 }
             }
-            if (iteration == maxIterations)
+            if (iteration == maxIterations) //TODO: this check is probably not needed.
             {
                 Console.WriteLine(
                 "Propagation analysis terminated: All {0} iterations were completed.", maxIterations);
+                return;
             }
 
-            return crackPath;
             #if (PRINT_PATH)
             }
             catch (Exception ex)

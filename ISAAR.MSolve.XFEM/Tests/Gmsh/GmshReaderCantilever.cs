@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Gmsh
             var integration = new XSimpleIntegration2D();
             foreach (var el in meshEntites.Item2)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, thickness);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, thickness);
                 var element = new XContinuumElement2D(el.ElementType, el.Nodes, materialField, integration);
                 model.AddElement(element);
             }

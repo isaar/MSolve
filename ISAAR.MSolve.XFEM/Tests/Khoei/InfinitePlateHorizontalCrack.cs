@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             checker = new SubmatrixChecker(1e-4);
 
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, 1.0);
             results = new PropagationResults();
             CalculateAnalytic();
 
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, 1.0);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, 1.0);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4,
                     elementNodes, materialField, integration, jIntegration));
             }
@@ -278,20 +278,22 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleCrack()
         {
-            crack = new BasicExplicitInteriorCrack(3.0 * fineElementSize);
-            var boundary = new RectangularBoundary(0.0, width, 0.0, width);
-            crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
+            throw new NotImplementedException();
 
-            // Create enrichments          
-            crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
-            crack.StartTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Start);
-            crack.EndTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.End);
+            //crack = new BasicExplicitInteriorCrack(3.0 * fineElementSize);
+            //var boundary = new RectangularBoundary(0.0, width, 0.0, width);
+            //crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
 
-            // Mesh geometry interaction
-            var startTip = new CartesianPoint2D(0.5 * width - 0.5 * crackLength, 0.5 * width);
-            var endTip = new CartesianPoint2D(0.5 * width + 0.5 * crackLength, 0.5 * width);
-            crack.InitializeGeometry(startTip, endTip);
-            crack.UpdateEnrichments();
+            //// Create enrichments          
+            //crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
+            //crack.StartTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Start);
+            //crack.EndTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.End);
+
+            //// Mesh geometry interaction
+            //var startTip = new CartesianPoint2D(0.5 * width - 0.5 * crackLength, 0.5 * width);
+            //var endTip = new CartesianPoint2D(0.5 * width + 0.5 * crackLength, 0.5 * width);
+            //crack.InitializeGeometry(startTip, endTip);
+            //crack.UpdateEnrichments();
         }
 
         private Vector Solve()
@@ -305,37 +307,39 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private PropagationResults Propagate(Vector solution)
         {
-            Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
+            throw new NotImplementedException();
 
-            // Start tip propagation
-            var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            (double startGrowthAngle, double startGrowthIncrement) = startPropagator.Propagate(dofOrderer, solution, 
-                totalConstrainedDisplacements);
-            double startSIF1 = startPropagator.Logger.SIFsMode1[0];
-            double startSIF2 = startPropagator.Logger.SIFsMode2[0];            
+            //Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
-            // End tip propagation
-            var endPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.End, jIntegralRadiusOverElementSize,
-               new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-               new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-               new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
-            (double endGrowthAngle, double endGrowthIncrement) = endPropagator.Propagate(dofOrderer, solution,
-                totalConstrainedDisplacements);
-            double endSIF1 = endPropagator.Logger.SIFsMode1[0];
-            double endSIF2 = endPropagator.Logger.SIFsMode2[0];
-            
-            // Return results
-            double equivalentE = globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
-            results.startSIF1 = startSIF1;
-            results.startSIF2 = startSIF2;
-            results.startJIntegral = (startSIF1 * startSIF1 + startSIF2 * startSIF2) / equivalentE;
-            results.endSIF1 = endSIF1;
-            results.endSIF2 = endSIF2;
-            results.endJIntegral = (endSIF1 * endSIF1 + endSIF2 * endSIF2) / equivalentE;
-            return results;
+            //// Start tip propagation
+            //var startPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Start, jIntegralRadiusOverElementSize,
+            //    new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+            //    new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+            //    new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
+            //(double startGrowthAngle, double startGrowthIncrement) = startPropagator.Propagate(dofOrderer, solution, 
+            //    totalConstrainedDisplacements);
+            //double startSIF1 = startPropagator.Logger.SIFsMode1[0];
+            //double startSIF2 = startPropagator.Logger.SIFsMode2[0];            
+
+            //// End tip propagation
+            //var endPropagator = new Propagator(crack.Mesh, crack, CrackTipPosition.End, jIntegralRadiusOverElementSize,
+            //   new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+            //   new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+            //   new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(0.5 * crackLength));
+            //(double endGrowthAngle, double endGrowthIncrement) = endPropagator.Propagate(dofOrderer, solution,
+            //    totalConstrainedDisplacements);
+            //double endSIF1 = endPropagator.Logger.SIFsMode1[0];
+            //double endSIF2 = endPropagator.Logger.SIFsMode2[0];
+
+            //// Return results
+            //double equivalentE = globalHomogeneousMaterial.HomogeneousEquivalentYoungModulus;
+            //results.startSIF1 = startSIF1;
+            //results.startSIF2 = startSIF2;
+            //results.startJIntegral = (startSIF1 * startSIF1 + startSIF2 * startSIF2) / equivalentE;
+            //results.endSIF1 = endSIF1;
+            //results.endSIF2 = endSIF2;
+            //results.endJIntegral = (endSIF1 * endSIF1 + endSIF2 * endSIF2) / equivalentE;
+            //return results;
         }
     }
 }

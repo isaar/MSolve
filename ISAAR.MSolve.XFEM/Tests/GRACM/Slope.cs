@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             double growthLength = 2.0; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath);
-            builder.LsmOutputDirectory = plotPath;
+            builder.LsmPlotDirectory = plotPath;
             builder.MaxIterations = 10;
 
             // TODO: enter the fixed propagator here, perhaps by solving the benchmark once.
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// The material used for the J-integral computation. It msut be stored separately from individual element materials.
         /// </summary>
         private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
-            HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+            HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
 
         /// <summary>
         /// The maximum value that the effective SIF can reach before collapse occurs.
@@ -143,6 +143,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         private readonly int maxIterations;
 
+        private TrackingExteriorCrackLSM crack;
         private BiMesh2D mesh;
 
         /// <summary>
@@ -159,41 +160,39 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.lsmOutputDirectory = lsmOutputDirectory;
             this.maxIterations = maxIterations;
         }
-
+        
         /// <summary>
         /// The crack geometry description
         /// </summary>
-        public TrackingExteriorCrackLSM Crack { get; private set; }
+        public ICrackDescription Crack { get { return crack; } }
 
         public IDecomposer Decomposer { get; private set; }
 
-        public IReadOnlyList<XNode2D> EnrichedArea { get { return Model.Nodes; } }
+        public string Name { get { return "GRACM Slope"; } }
 
-        public IReadOnlyList<double> GrowthAngles { get; private set; }
+        public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
         /// </summary>
         public Model2D Model { get; private set; }
 
-        public IReadOnlyList<ICartesianPoint2D> Analyze(ISolver solver)
+        public void Analyze(ISolver solver)
         {
-            var crackPath = new List<ICartesianPoint2D>();
-            crackPath.Add(new CartesianPoint2D(crackMouthX, crackMouthY));
-            crackPath.Add(new CartesianPoint2D(crackTipX, crackTipY));
+            var analysis = new QuasiStaticAnalysis(Model, mesh, crack, solver, fractureToughness, maxIterations);
+            analysis.Analyze();
 
-            var actualPropagator = new Propagator(mesh, Crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
-            IPropagator propagator;
-            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
-            else propagator = actualPropagator;
-            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, propagator, fractureToughness, maxIterations);
-            crackPath.AddRange(analysis.Analyze());
-            GrowthAngles = propagator.Logger.GrowthAngles;
-            return crackPath;
+            Console.WriteLine("Crack path:");
+            foreach (var point in crack.CrackPath)
+            {
+                Console.WriteLine("{0} {1}", point.X, point.Y);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Crack growth angles:");
+            foreach (var angle in crack.GetCrackTipPropagators()[0].Logger.GrowthAngles)
+            {
+                Console.WriteLine(angle);
+            }
         }
 
         public void InitializeModel()
@@ -202,6 +201,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             CreateMesh();
             ApplyBoundaryConditions();
             InitializeCrack();
+            LimitEnrichedArea();
             DomainDecomposition();
         }
 
@@ -254,7 +254,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Elements
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 Model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
                     integration, jIntegration));
             }
@@ -315,10 +315,18 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void InitializeCrack()
         {
+            IPropagator propagator;
+            var actualPropagator = new Propagator(mesh,jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+            if (knownPropagation != null) propagator = new FixedPropagator(knownPropagation, null);
+            else propagator = actualPropagator;
+
             var crackVertex0 = new CartesianPoint2D(crackMouthX, crackMouthY);
             var crackVertex1 = new CartesianPoint2D(crackTipX, crackTipY);
             var initialCrack = new PolyLine2D(crackVertex0, crackVertex1);
-            var lsmCrack = new TrackingExteriorCrackLSM();
+            var lsmCrack = new TrackingExteriorCrackLSM(propagator);
             lsmCrack.Mesh = mesh;
 
             // Create enrichments          
@@ -333,7 +341,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Mesh geometry interaction
             lsmCrack.InitializeGeometry(initialCrack);
-            this.Crack = lsmCrack;
+            this.crack = lsmCrack;
+        }
+
+        private void LimitEnrichedArea()
+        {
+            var enrichedNodes = Model.Nodes;
+            PossibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
+            PossibleEnrichments.Add(crack.CrackBodyEnrichment, enrichedNodes);
+            PossibleEnrichments.Add(crack.CrackTipEnrichments, enrichedNodes);
         }
 
         public class Builder: IBenchmarkBuilder
@@ -351,7 +367,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 this.growthLength = growthLength;
                 this.meshPath = meshPath;
-                this.TimingPath = timingPath;
+                this.TimingOutputDirectory = timingPath;
             }
 
             /// <summary>
@@ -370,7 +386,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// The absolute path of the directory where output vtk files with the crack path and the level set functions at 
             /// each iteration will be written. Leave it null to avoid the performance cost it will introduce.
             /// </summary>
-            public string LsmOutputDirectory { get; set; } = null;
+            public string LsmPlotDirectory { get; set; } = null;
 
             /// <summary>
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
@@ -380,14 +396,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             public IBenchmark BuildBenchmark()
             {
-                return new Slope(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmOutputDirectory,
+                return new Slope(meshPath, growthLength, JintegralRadiusOverElementSize, KnownPropagation, LsmPlotDirectory,
                     MaxIterations);
             }
 
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
-            public string TimingPath { get; }
+            public string TimingOutputDirectory { get; }
         }
     }
 }

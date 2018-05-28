@@ -26,6 +26,7 @@ using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -55,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         
         private Model2D model;
-        private BasicExplicitCrack2D crack;
+        private TrackingExteriorCrackLSM crack;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
         private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
         private readonly double jIntegralRadiusOverElementSize;
@@ -78,8 +79,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateModel(int elementsPerY)
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
-            crack = new BasicExplicitCrack2D();
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
             model = new Model2D();
             HandleIntegrations();
             if (structuredMesh) CreateStructuredMesh(elementsPerY);
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in nodes) model.AddNode(node);
             foreach (XNode2D[] elementNodes in elementConnectivity)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(IsoparametricElementType2D.Quad4, elementNodes, materialField,
                     integration, jIntegration));
             }
@@ -131,7 +131,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
             foreach (var element in meshEntities.Item2)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStrain(E, v);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
                 model.AddElement(new XContinuumElement2D(element.ElementType, element.Nodes, materialField,
                     integration, jIntegration));
             }
@@ -157,9 +157,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleCrack()
         {
-            crack = new BasicExplicitCrack2D();
             var boundary = new RectangularBoundary(0.0, DIM_X, 0.0, DIM_Y);
-            crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
+            var mesh = new BiMesh2D(model.Nodes, model.Elements, boundary);
+            propagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+            crack = new TrackingExteriorCrackLSM(propagator);
+            crack.Mesh = mesh;
 
             // Create enrichments          
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());
@@ -172,14 +177,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void Analyze()
         {
-            propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
             var solver = new SkylineSolver(model);
-            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, solver,
-                propagator, fractureToughness, maxIterations);
+            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, solver, 
+                fractureToughness, maxIterations);
             analysis.Analyze();
         }
     }

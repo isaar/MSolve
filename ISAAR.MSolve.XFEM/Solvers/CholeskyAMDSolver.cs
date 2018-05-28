@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         public CholeskyAMDSolver(Model2D model)
         {
             this.model = model;
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("CholeskyAMDSolver");
         }
 
         public IDofOrderer DofOrderer { get; private set; }
@@ -95,6 +95,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 //Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
             }
             //SolveWithoutReordering(unorderedDofs);
+
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
         }
 
         private void Reorder()

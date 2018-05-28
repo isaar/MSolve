@@ -4,10 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
@@ -18,7 +22,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 {
-    class BasicExplicitCrack2D: IExteriorCrack
+    class BasicExplicitCrack2D: ISingleCrack
     {
         private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
@@ -40,10 +44,25 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
         private List<double> Angles { get; }
 
-        public ISet<XNode2D> CrackBodyNodesAll => throw new NotImplementedException();
-        public ISet<XNode2D> CrackTipNodesNew => throw new NotImplementedException();
-        public ISet<XNode2D> CrackBodyNodesNew => throw new NotImplementedException();
-        public ISet<XNode2D> CrackTipNodesOld => throw new NotImplementedException();
+        public ISet<XContinuumElement2D> ElementsModified => throw new NotImplementedException();
+
+        public IReadOnlyList<IEnrichmentItem2D> Enrichments => throw new NotImplementedException();
+
+        BiMesh2D ICrackDescription.Mesh => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesAll => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNew => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesModified => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesNearModified => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesNew => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesOld => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected => throw new NotImplementedException();
 
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;
@@ -85,6 +104,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             double dy = crackTip.Y - crackMouth.Y;
             double tangentSlope = Math.Atan2(dy, dx);
             tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
+            CrackTipEnrichments.TipSystem = tipSystem;
 
             Vertices.Add(crackMouth);
             Vertices.Add(crackTip);
@@ -103,6 +123,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             Segments.Add(new DirectedSegment2D(oldTip, newTip));
             Angles.Add(localGrowthAngle); // These are independent of the global coordinate system
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
+            CrackTipEnrichments.TipSystem = tipSystem;
         }
 
         public double SignedDistanceOf(XNode2D node)
@@ -518,6 +539,26 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             }
 
             Console.WriteLine("------ /DEBUG: TRIANGULATION ------");
+        }
+
+        public IReadOnlyList<ICartesianPoint2D> GetCrackTips()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyList<IPropagator> GetCrackTipPropagators()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InitializeGeometry(PolyLine2D initialCrack)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

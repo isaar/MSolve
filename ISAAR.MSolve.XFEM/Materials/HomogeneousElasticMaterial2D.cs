@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Materials
         public double HomogeneousEquivalentPoissonRatio { get; }
         public double HomogeneousThickness { get; }
 
-        public static HomogeneousElasticMaterial2D CreateMaterialForPlainStrain(double youngModulus, 
+        public static HomogeneousElasticMaterial2D CreateMaterialForPlaneStrain(double youngModulus, 
             double poissonRatio)
         {
             double equivalentE = youngModulus / (1.0 - poissonRatio * poissonRatio);
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Materials
             return new HomogeneousElasticMaterial2D(youngModulus, equivalentE, poissonRatio, equivalentV, thickness);
         }
 
-        public static HomogeneousElasticMaterial2D CreateMaterialForPlainStress(double youngModulus,
+        public static HomogeneousElasticMaterial2D CreateMaterialForPlaneStress(double youngModulus,
             double poissonRatio, double thickness)
         {
             return new HomogeneousElasticMaterial2D(youngModulus, youngModulus, poissonRatio, poissonRatio, thickness);

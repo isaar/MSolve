@@ -12,19 +12,20 @@ using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
+// TODO: this class should not be associated with the whole crack geometry, just the part that stores a single branch.
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     class CrackBodyEnrichment2D : IEnrichmentItem2D
     {
         private readonly IHeavisideFunction2D enrichmentFunction;
         public IReadOnlyList<EnrichedDof> Dofs { get; }
-        public ICrackGeometry crackDescription;
+        public ISingleCrack crackDescription;
 
-        public CrackBodyEnrichment2D(ICrackGeometry crackDescription): this(crackDescription, new SignFunction2D())
+        public CrackBodyEnrichment2D(ISingleCrack crackDescription): this(crackDescription, new SignFunction2D())
         {
         }
 
-        public CrackBodyEnrichment2D(ICrackGeometry crackDescription, IHeavisideFunction2D enrichmentFunction)
+        public CrackBodyEnrichment2D(ISingleCrack crackDescription, IHeavisideFunction2D enrichmentFunction)
         {
             this.crackDescription = crackDescription;
             this.enrichmentFunction = enrichmentFunction;

@@ -9,13 +9,15 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    interface IInteriorCrack: ICrackGeometry
+    interface IInteriorCrack: ISingleCrack
     {
         CrackBodyEnrichment2D CrackBodyEnrichment { get; }
         CrackTipEnrichments2D StartTipEnrichments { get; }
         CrackTipEnrichments2D EndTipEnrichments { get; }
 
         void InitializeGeometry(ICartesianPoint2D startTip, ICartesianPoint2D endTip);
+
+        //TODO: remove it. It is obsolete and should be handled by ICrackGeometry.Propagate()
         void UpdateGeometry(double localGrowthAngleStart, double growthLengthStart,
             double localGrowthAngleEnd, double growthLengthEnd); // Perhaps the global angle should be passed in
     }

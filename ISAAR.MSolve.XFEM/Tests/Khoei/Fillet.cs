@@ -27,6 +27,7 @@ using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
@@ -73,7 +74,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
         }
 
         public Model2D model;
-        private BasicExplicitCrack2D crack;
+        private TrackingExteriorCrackLSM crack;
         private IIntegrationStrategy2D<XContinuumElement2D> integration;
         private IIntegrationStrategy2D<XContinuumElement2D> jIntegration;
         private readonly double jIntegralRadiusOverElementSize;
@@ -96,8 +97,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CreateModel()
         {
-            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
-            crack = new BasicExplicitCrack2D();
+            globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, t);
             model = new Model2D();
             HandleIntegrations();
             CreateMesh();
@@ -136,7 +136,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             foreach (XNode2D node in meshEntities.Item1) model.AddNode(node);
             foreach (var element in meshEntities.Item2)
             {
-                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlainStress(E, v, t);
+                var materialField = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, v, t);
                 model.AddElement(new XContinuumElement2D(element.ElementType, element.Nodes, materialField,
                     integration, jIntegration));
             }
@@ -178,9 +178,16 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void HandleCrack()
         {
-            crack = new BasicExplicitCrack2D();
             var boundary = new FilletBoundary();
-            crack.Mesh = new SimpleMesh2D<XNode2D, XContinuumElement2D>(model.Nodes, model.Elements, boundary);
+            var mesh = new BiMesh2D(model.Nodes, model.Elements, boundary);
+
+            propagator = new Propagator(crack.Mesh, jIntegralRadiusOverElementSize,
+                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
+                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
+                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
+
+            crack = new TrackingExteriorCrackLSM(propagator);
+            crack.Mesh = mesh;
 
             // Create enrichments          
             crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
@@ -195,15 +202,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private IReadOnlyList<ICartesianPoint2D> Analyze()
         {
-            propagator = new Propagator(crack.Mesh, crack, CrackTipPosition.Single, jIntegralRadiusOverElementSize,
-                new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-                new HomogeneousSIFCalculator(globalHomogeneousMaterial),
-                new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
-
+            
             var solver = new SkylineSolver(model);
-            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, solver, 
-                propagator, fractureToughness, maxIterations);
-            return analysis.Analyze();
+            QuasiStaticAnalysis analysis = new QuasiStaticAnalysis(model, crack.Mesh, crack, solver, fractureToughness, maxIterations);
+             analysis.Analyze();
+            return crack.CrackPath;
         }
 
         private class FilletBoundary: IDomainBoundary
