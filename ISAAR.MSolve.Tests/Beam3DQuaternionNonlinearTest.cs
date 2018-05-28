@@ -112,17 +112,9 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);  
             // Generate elements of the structure
-            int iNode = 0;
+            int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)
             {
-                // Create new Beam2D section and element
-                //var beam = new EulerBeam2D(youngModulus)
-                //{
-                //    Density = 7.85,
-                //    SectionArea = 91.04,
-                //    MomentOfInertia = 8091.00,
-                //};
-
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
                 var beam = new Beam3DCorotationalQuaternion(nodes, material, 7.85, beamSection);
@@ -133,13 +125,14 @@ namespace ISAAR.MSolve.Tests
                     ID = iElem + 1,
                     ElementType = beam
                 };
+
                 // Add nodes to the created element
                 element.AddNode(model.NodesDictionary[iNode]);
                 element.AddNode(model.NodesDictionary[iNode + 1]);
 
                 var a = beam.StiffnessMatrix(element);
 
-                // Add Hexa element to the element and subdomains dictionary of the model
+                // Add beam element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
                 model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
                 iNode++;
@@ -177,7 +170,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(148.93590375922295, linearSystems[1].Solution[7], 12);
+            Assert.Equal(148.936792350562, linearSystems[1].Solution[7], 12);
         }
     }
 }

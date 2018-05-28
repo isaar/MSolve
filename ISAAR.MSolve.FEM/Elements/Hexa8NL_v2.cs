@@ -42,7 +42,6 @@ namespace ISAAR.MSolve.FEM.Elements
             materialsAtGaussPoints = new IFiniteElementMaterial3D[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++)
                 materialsAtGaussPoints[i] = (IFiniteElementMaterial3D)material.Clone();
-
         }
 
         public int endeixiShapeFunctionAndGaussPointData = 1;

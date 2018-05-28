@@ -44,12 +44,12 @@ namespace ISAAR.MSolve.Tests
             Node node4 = new Node { ID = 4, X = 300.0, Y = 0.0, Z = 0.0 };
             Node node5 = new Node { ID = 5, X = 400.0, Y = 0.0, Z = 0.0 };
             Node node6 = new Node { ID = 6, X = 500.0, Y = 0.0, Z = 0.0 };
-            Node node7 = new Node { ID = 7, X = 0.0, Y = 100.0, Z = 0.0 };
-            Node node8 = new Node { ID = 8, X = 100.0, Y = 100.0, Z = 0.0 };
-            Node node9 = new Node { ID = 9, X = 200.0, Y = 100.0, Z = 0.0 };
-            Node node10 = new Node { ID = 10, X = 300.0, Y = 100.0, Z = 0.0 };
-            Node node11 = new Node { ID = 11, X = 400.0, Y = 100.0, Z = 0.0 };
-            Node node12 = new Node { ID = 12, X = 500.0, Y = 100.0, Z = 0.0 };
+            Node node7 = new Node { ID = 7, X = 0.0, Y = 20.0, Z = 0.0 };
+            Node node8 = new Node { ID = 8, X = 100.0, Y = 20.0, Z = 0.0 };
+            Node node9 = new Node { ID = 9, X = 200.0, Y = 20.0, Z = 0.0 };
+            Node node10 = new Node { ID = 10, X = 300.0, Y = 20.0, Z = 0.0 };
+            Node node11 = new Node { ID = 11, X = 400.0, Y = 20.0, Z = 0.0 };
+            Node node12 = new Node { ID = 12, X = 500.0, Y = 20.0, Z = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -83,6 +83,7 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[1].Constraints.Add(DOFType.RotX);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+
             // Generate elements of the structure
             int iNode = 0;
             for (int iElem = 0; iElem < nElems; iElem++)
@@ -96,7 +97,7 @@ namespace ISAAR.MSolve.Tests
                 //};
 
                 // Create new Beam3D section and element
-                var hexa = new Hexa8NL_v2();
+                var hexa = new Hexa8NL_v2(material, 1, 2, 2);
 
                 // Create elements
                 var element = new Element()
