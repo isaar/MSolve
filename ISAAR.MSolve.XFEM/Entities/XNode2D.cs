@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
@@ -22,6 +23,19 @@ namespace ISAAR.MSolve.XFEM.Entities
                     count += enrichment.Dofs.Count;
                 }
                 return count;
+            }
+        }
+
+        public ISet<EnrichedDof> EnrichedDofs
+        {
+            get
+            {
+                var dofs = new HashSet<EnrichedDof>();
+                foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys)
+                {
+                    dofs.UnionWith(enrichment.Dofs);
+                }
+                return dofs;
             }
         }
 
