@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
         {
-            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
+            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, 1e-10);
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

@@ -16,6 +16,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
+using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: remove checks and prints
 //TODO: allow various preconditioners for Kss
@@ -32,6 +33,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly IDecomposer decomposer;
         private readonly int maxIterations;
         private readonly double tolerance;
+        private readonly string subdomainsDirectory;
 
         private XCluster2D cluster;
         private MenkBordasSystem system;
@@ -41,12 +43,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, IDecomposer decomposer, int maxIterations, double tolerance)
+        public MenkBordasSolver(Model2D model, IDecomposer decomposer, int maxIterations, double tolerance, 
+            string subdomainsDirectory = null)
         {
             this.model = model;
             this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
+            this.subdomainsDirectory = subdomainsDirectory;
             Logger = new SolverLogger();
         }
 
@@ -66,6 +70,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Partion the domain into subdomains
             cluster = decomposer.CreateSubdomains();
+            if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
             // Standard dofs are not divided into subdomains and will not change over time.
             cluster.OrderStandardDofs(model);
@@ -106,14 +111,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             /// Order enriched dofs //TODO: only for modified subdomains
             SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
             cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains);
+
             #region debug
-            Console.Write("Enriched subdomains: ");
-            foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
-            Console.WriteLine();
-            if (enrichedSubdomains.Count > 2)
-            {
-                Console.WriteLine();
-            }
+            //Console.Write("Enriched subdomains: ");
+            //foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
+            //Console.WriteLine();
+            //if (enrichedSubdomains.Count > 2)
+            //{
+            //    Console.WriteLine();
+            //}
             #endregion
 
 
@@ -234,6 +240,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             K.WriteToFiles(directory);
 
             return denseX;
+        }
+
+        private static void WriteDecomposition(string subdomainsDirectory, XCluster2D cluster)
+        {
+            var writer = new DomainDecompositionWriter();
+
+            //writer.WriteRegions(directory + "regions.vtk", regions);
+            writer.WriteSubdomainElements(subdomainsDirectory + "\\subdomains.vtk", cluster.Subdomains);
+            writer.WriteBoundaryNodes(subdomainsDirectory + "\\boundaryNodes", cluster.Subdomains);
         }
     }
 }
