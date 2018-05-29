@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -63,6 +64,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesOld => throw new NotImplementedException();
 
         public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected => throw new NotImplementedException();
+
+        public IHeavisideSingularityResolver SingularityResolver => throw new NotImplementedException();
 
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;
