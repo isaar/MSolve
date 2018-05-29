@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
@@ -96,7 +97,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
         {
-            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, 1e-10);
+            return new MenkBordasSolver(benchmark.Model, (ISingleCrack)benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10);
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

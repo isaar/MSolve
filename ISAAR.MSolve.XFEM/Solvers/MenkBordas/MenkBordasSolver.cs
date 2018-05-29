@@ -12,6 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
@@ -29,6 +30,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
     {
+        private readonly ISingleCrack crack;
         private readonly Model2D model;
         private readonly IDecomposer decomposer;
         private readonly int maxIterations;
@@ -43,10 +45,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, IDecomposer decomposer, int maxIterations, double tolerance, 
+        public MenkBordasSolver(Model2D model, ISingleCrack crack, IDecomposer decomposer, int maxIterations, double tolerance, 
             string subdomainsDirectory = null)
         {
             this.model = model;
+            this.crack = crack;
             this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
@@ -110,7 +113,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             /// Order enriched dofs //TODO: only for modified subdomains
             SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
-            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains);
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, crack);
 
             #region debug
             //Console.Write("Enriched subdomains: ");
@@ -138,7 +141,17 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             /// Signed boolean matrices and continuity equations
             if (enrichedSubdomains.Count > 1)
             {
-                system.SetBooleanMatrices(assembler.BuildSubdomainSignedBooleanMatrices(cluster));
+                //var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatricesOLD(cluster);
+                var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
+                system.SetBooleanMatrices(booleanMatrices);
+                #region debug
+                //foreach (var subdomainB in booleanMatrices)
+                //{
+                //    Console.WriteLine("Subdomain " + subdomainB.Key.ID);
+                //    (new FullMatrixWriter(subdomainB.Value)).WriteToConsole();
+                //    Console.WriteLine();
+                //}
+                #endregion
             }
 
             /// Use an iterative algorithm to solve the symmetric indefinite system

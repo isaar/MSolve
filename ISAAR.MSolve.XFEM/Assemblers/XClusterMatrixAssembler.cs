@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.Assemblers
@@ -75,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public SignedBooleanMatrix BuildGlobalSignedBooleanMatrix(XCluster2D cluster)
         {
             Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
-            int numContinuityEquations = CountContinuityEquations(nodeMembership);
+            int numContinuityEquations = CountContinuityEquations(cluster, nodeMembership);
 
             //TODO: numCols could have been computed during matrix subdomain matrix assembly.
             int numColumns = cluster.DofOrderer.NumStandardDofs + cluster.DofOrderer.NumEnrichedDofs; // Not sure about the std dofs
@@ -119,20 +120,62 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 
         /// <summary>
         /// Create the signed boolean matrix of each subdomain to ensure continuity of displacements.
-        /// TODO: perhaps it is more efficient to precess each subdomain separately.
+        /// TODO: perhaps it is more efficient to process each subdomain separately.
         /// </summary>
         /// <param name="cluster"></param>
         /// <returns></returns>
         public Dictionary<XSubdomain2D, SignedBooleanMatrix> BuildSubdomainSignedBooleanMatrices(XCluster2D cluster)
         {
             Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
-            int numContinuityEquations = CountContinuityEquations(nodeMembership);
+            var enrichedSubdomains = new HashSet<XSubdomain2D>();
+            foreach (var nodeSubdomains in nodeMembership) enrichedSubdomains.UnionWith(nodeSubdomains.Value);
+            ContinuityEquations eqs = FindContinuityEquations(nodeMembership);
 
             //TODO: numCols could have been computed during matrix subdomain matrix assembly.
             var booleanMatrices = new Dictionary<XSubdomain2D, SignedBooleanMatrix>();
-            foreach (var subdomain in cluster.Subdomains)
+            foreach (var subdomain in enrichedSubdomains)
             {
                 booleanMatrices.Add(subdomain, 
+                    new SignedBooleanMatrix(eqs.NumEquations, subdomain.DofOrderer.NumEnrichedDofs));
+            }
+
+            for (int i = 0; i < eqs.NumEquations; ++i)
+            {
+                XNode2D node = eqs.Nodes[i];
+                EnrichedDof dof = eqs.Dofs[i];
+
+                XSubdomain2D subdomainPos = eqs.PositiveSubdomains[i];
+                // Presumably this will not try to access singular boundary Heaviside dofs.
+                int dofIdxPos = subdomainPos.DofOrderer.GetSubdomainEnrichedDofOf(node, dof);
+                booleanMatrices[subdomainPos].AddEntry(i, dofIdxPos, true);
+
+                XSubdomain2D subdomainNeg = eqs.NegativeSubdomains[i];
+                int dofIdxNeg = subdomainNeg.DofOrderer.GetSubdomainEnrichedDofOf(node, dof);
+                booleanMatrices[subdomainNeg].AddEntry(i, dofIdxNeg, false);
+
+            }
+
+            return booleanMatrices;
+        }
+
+        /// <summary>
+        /// Create the signed boolean matrix of each subdomain to ensure continuity of displacements.
+        /// TODO: perhaps it is more efficient to process each subdomain separately.
+        /// </summary>
+        /// <param name="cluster"></param>
+        /// <returns></returns>
+        public Dictionary<XSubdomain2D, SignedBooleanMatrix> BuildSubdomainSignedBooleanMatricesOLD(XCluster2D cluster)
+        {
+            Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
+            var enrichedSubdomains = new HashSet<XSubdomain2D>();
+            foreach (var nodeSubdomains in nodeMembership) enrichedSubdomains.UnionWith(nodeSubdomains.Value);
+            int numContinuityEquations = CountContinuityEquations(cluster, nodeMembership);
+
+            //TODO: numCols could have been computed during matrix subdomain matrix assembly.
+            var booleanMatrices = new Dictionary<XSubdomain2D, SignedBooleanMatrix>();
+            foreach (var subdomain in enrichedSubdomains)
+            {
+                booleanMatrices.Add(subdomain,
                     new SignedBooleanMatrix(numContinuityEquations, subdomain.DofOrderer.NumEnrichedDofs));
             }
 
@@ -182,16 +225,69 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         /// </summary>
         /// <param name="cluster"></param>
         /// <returns></returns>
-        public int CountContinuityEquations(Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership)
+        public int CountContinuityEquations(XCluster2D cluster, Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership)
         {
             int numContinuityEquations = 0;
+
+            bool singularHeavisideDofsExists = true;
+            //bool singularHeavisideDofsExists = false; //TODO: comment out when done debugging
+            //foreach (var subdomain in cluster.Subdomains)
+            //{
+            //    if (subdomain.DofOrderer.SingularHeavisideNodes.Count > 0)
+            //    {
+            //        singularHeavisideDofsExists = true;
+            //        break;
+            //    }
+            //}
+            
+            if (singularHeavisideDofsExists)
+            {
+                // The following works even if a node is not enriched with Heaviside in one subdomain, but is enriched in others
+                foreach (var nodeSubdomains in nodeMembership)
+                {
+                    XNode2D node = nodeSubdomains.Key;
+                    foreach (EnrichedDof dof in node.EnrichedDofs) //TODO: perhaps this should be done for enrichment items instead to reduce cost
+                    {
+                        int dofMultiplicity = 0;
+                        foreach (XSubdomain2D subdomain in nodeSubdomains.Value)
+                        {
+                            if (subdomain.DofOrderer.BoundaryDofs[node].Contains(dof)) ++dofMultiplicity;
+                        }
+                        numContinuityEquations += dofMultiplicity - 1;
+                    }
+                }
+            }
+            else
+            {
+                // The following works if dofs of the nodes are enriched in all subdomains
+                foreach (var nodeSubdomains in nodeMembership)
+                {
+                    int nodeMultiplicity = nodeSubdomains.Value.Count;
+                    int numEnrichedDofs = nodeSubdomains.Key.EnrichedDofsCount;
+                    numContinuityEquations += (nodeMultiplicity - 1) * numEnrichedDofs;
+                }
+            }
+
+            //Console.WriteLine("Num continuity equations = " + numContinuityEquations);
+
+            return numContinuityEquations;
+        }
+
+        public ContinuityEquations FindContinuityEquations(Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership)
+        {
+            var eqsBuilder = new ContinuityEquations.Builder();
             foreach (var nodeSubdomains in nodeMembership)
             {
-                int nodeMultiplicity = nodeSubdomains.Value.Count;
-                int numEnrichedDofs = nodeSubdomains.Key.EnrichedDofsCount;
-                numContinuityEquations += (nodeMultiplicity - 1) * numEnrichedDofs;
+                XNode2D node = nodeSubdomains.Key;
+                foreach (EnrichedDof dof in node.EnrichedDofs)
+                {
+                    foreach (XSubdomain2D subdomain in nodeSubdomains.Value)
+                    {
+                        if (subdomain.DofOrderer.BoundaryDofs[node].Contains(dof)) eqsBuilder.Register(node, dof, subdomain);
+                    }
+                }
             }
-            return numContinuityEquations;
+            return eqsBuilder.Build(ContinuityEquations.EquationOrder.DofMajor); // TODO: Subdomain major is probably better for the QR factorization
         }
     }
 }

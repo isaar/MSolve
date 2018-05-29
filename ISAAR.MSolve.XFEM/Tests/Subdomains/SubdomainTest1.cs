@@ -30,10 +30,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
 
         public static void Run()
         {
-            Model2D model = CreateModel();
+            (Model2D model, ISingleCrack crack) = CreateModel();
             XCluster2D cluster = DefinePartition(model).CreateSubdomains();
             cluster.OrderStandardDofs(model);
-            cluster.DofOrderer.OrderSubdomainDofs(cluster.FindEnrichedSubdomains());
+            cluster.DofOrderer.OrderSubdomainDofs(cluster.FindEnrichedSubdomains(), crack);
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
             BuildSignedBooleanMatrices(cluster);
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             return decomposer;
         }
 
-        public static Model2D CreateModel()
+        public static (Model2D, ISingleCrack) CreateModel()
         {
             var model = new Model2D();
 
@@ -148,7 +148,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
                 node.EnrichmentItems.Add(crack.CrackBodyEnrichment, enrichmentVal);
             }
             
-            return model;
+            return (model, crack);
         }
 
         public static void PrintElementDofs(Model2D model, XCluster2D cluster)

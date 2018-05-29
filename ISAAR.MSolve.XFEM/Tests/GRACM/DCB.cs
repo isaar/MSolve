@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private readonly IMeshProvider meshProvider;
 
-        private readonly int numSubdomains = 3;
+        private readonly int numSubdomains = 4;
 
         /// <summary>
         /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
