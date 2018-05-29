@@ -13,8 +13,8 @@ namespace ISAAR.MSolve.XFEM.Tests
         public static void RunAll()
         {
             //DCB3x1.Run();
-            DCBSolvers.Run();
-            //BenchmarkSolvers.Run();
+            //DCBSolvers.Run();
+            BenchmarkSolvers.Run();
 
             //ReanalysisDebugging.Run();
             //ReorderingTests.Run();

@@ -201,6 +201,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public string Name { get { return "GRACM Holes"; } }
 
+        public string PlotDirectory { get { return leftLsmPlotDirectory; } }
+
         public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
         public void Analyze(ISolver solver)

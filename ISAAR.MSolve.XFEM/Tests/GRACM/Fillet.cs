@@ -47,14 +47,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Plots";
             //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Timing";
 
-            double growthLength = 6; // mm. Must be sufficiently larger than the element size.
+            double growthLength = 5; // mm. Must be sufficiently larger than the element size.
             var builder = new Builder(meshPath, growthLength, timingPath, propagationPath);
             builder.WritePropagation = writePropagationPath;
-            builder.HeavisideEnrichmentTolerance = 0.001;
+            builder.HeavisideEnrichmentTolerance = 0.01;
             builder.RigidBCs = true;
+            builder.NumSubdomains = 3;
 
             builder.LsmPlotDirectory = plotLSM ? plotPath: null;
-            builder.MaxIterations = 10;
+            builder.MaxIterations = 12;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 
@@ -132,6 +133,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// boundary or if the fracture toughness is exceeded.
         /// </summary>
         private readonly int maxIterations;
+        private readonly int numSubdomains;
 
         private TrackingExteriorCrackLSM crack;
         private BiMesh2D mesh;
@@ -142,7 +144,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         private Fillet(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
              string lsmOutputDirectory, string propagationPath, bool writePropagation, int maxIterations,
-              bool rigidBCs, double heavisideTol)
+              bool rigidBCs, double heavisideTol, int numSubdomains)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
@@ -153,6 +155,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.maxIterations = maxIterations;
             this.rigidBCs = rigidBCs;
             this.heavisideTol = heavisideTol;
+            this.numSubdomains = numSubdomains;
         }
 
         /// <summary>
@@ -170,6 +173,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         public Model2D Model { get; private set; }
 
         public string Name { get { return "GRACM Fillet"; } }
+
+        public string PlotDirectory { get { return lsmPlotDirectory; } }
 
         public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
@@ -288,47 +293,57 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void DomainDecomposition() //TODO: this should not be hardcoded, but provided by the caller of the solver
         {
-            //var regions = new PolygonalRegion[4];
+            //Needs adjusting if the geometric constants change
+            if (numSubdomains == 1)
+            {
+                var regions = new PolygonalRegion[1];
+                var vertices = new CartesianPoint2D[4];
+                vertices[0] = new CartesianPoint2D(0.0, 0.0);
+                vertices[1] = new CartesianPoint2D(375.0, 0.0);
+                vertices[2] = new CartesianPoint2D(375.0, 150.0);
+                vertices[3] = new CartesianPoint2D(0.0, 150.0);
+                var boundaries = new HashSet<LineSegment2D>();
+                regions[0] = new PolygonalRegion(vertices, boundaries);
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else if (numSubdomains == 3)
+            {
+                double boundary1X = 176.0, boundary2X = 201.0;
 
-            //var vertices1 = new CartesianPoint2D[4];
-            //vertices1[0] = new CartesianPoint2D(0.0, h);
-            //vertices1[1] = new CartesianPoint2D(0.0, 0.0);
-            //vertices1[2] = new CartesianPoint2D(L / 5.0, 0.0);
-            //vertices1[3] = new CartesianPoint2D(L / 3.0, h);
-            //var boundaries1 = new HashSet<LineSegment2D>();
-            //boundaries1.Add(new LineSegment2D(vertices1[2], vertices1[3]));
-            //regions[0] = new PolygonalRegion(vertices1, boundaries1);
+                var regions = new PolygonalRegion[3];
 
-            //var vertices2 = new CartesianPoint2D[4];
-            //vertices2[0] = new CartesianPoint2D(L / 3.0, h);
-            //vertices2[1] = new CartesianPoint2D(L / 5.0, 0.0);
-            //vertices2[2] = new CartesianPoint2D(L / 2.0, 0.0);
-            //vertices2[3] = new CartesianPoint2D(L / 2.0, h);
-            //var boundaries2 = new HashSet<LineSegment2D>();
-            //boundaries2.Add(new LineSegment2D(vertices2[0], vertices2[1]));
-            //boundaries2.Add(new LineSegment2D(vertices2[2], vertices2[3]));
-            //regions[1] = new PolygonalRegion(vertices2, boundaries2);
+                var vertices1 = new CartesianPoint2D[4];
+                vertices1[0] = new CartesianPoint2D(0.0, 0.0);
+                vertices1[1] = new CartesianPoint2D(boundary1X, 0.0);
+                vertices1[2] = new CartesianPoint2D(boundary1X, 150.0);
+                vertices1[3] = new CartesianPoint2D(0.0, 150.0);
+                var boundaries1 = new HashSet<LineSegment2D>();
+                boundaries1.Add(new LineSegment2D(vertices1[1], vertices1[2]));
+                regions[0] = new PolygonalRegion(vertices1, boundaries1);
 
-            //var vertices3 = new CartesianPoint2D[4];
-            //vertices3[0] = new CartesianPoint2D(L / 2.0, h);
-            //vertices3[1] = new CartesianPoint2D(L / 2.0, 0.0);
-            //vertices3[2] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
-            //vertices3[3] = new CartesianPoint2D(2.0 * L / 3.0, h);
-            //var boundaries3 = new HashSet<LineSegment2D>();
-            //boundaries3.Add(new LineSegment2D(vertices3[0], vertices3[1]));
-            //boundaries3.Add(new LineSegment2D(vertices3[2], vertices3[3]));
-            //regions[2] = new PolygonalRegion(vertices3, boundaries3);
+                var vertices2 = new CartesianPoint2D[4];
+                vertices2[0] = new CartesianPoint2D(boundary1X, 0.0);
+                vertices2[1] = new CartesianPoint2D(boundary2X, 0.0);
+                vertices2[2] = new CartesianPoint2D(boundary2X, 150.0);
+                vertices2[3] = new CartesianPoint2D(boundary1X, 150.0);
+                var boundaries2 = new HashSet<LineSegment2D>();
+                boundaries2.Add(new LineSegment2D(vertices2[3], vertices2[1]));
+                boundaries2.Add(new LineSegment2D(vertices2[1], vertices2[2]));
+                regions[1] = new PolygonalRegion(vertices2, boundaries2);
 
-            //var vertices4 = new CartesianPoint2D[4];
-            //vertices4[0] = new CartesianPoint2D(2.0 * L / 3.0, h);
-            //vertices4[1] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
-            //vertices4[2] = new CartesianPoint2D(L, 0.0);
-            //vertices4[3] = new CartesianPoint2D(L, h);
-            //var boundaries4 = new HashSet<LineSegment2D>();
-            //boundaries4.Add(new LineSegment2D(vertices4[0], vertices4[1]));
-            //regions[3] = new PolygonalRegion(vertices4, boundaries4);
+                var vertices3 = new CartesianPoint2D[4];
+                vertices3[0] = new CartesianPoint2D(boundary2X, 0.0);
+                vertices3[1] = new CartesianPoint2D(375.0, 0.0);
+                vertices3[2] = new CartesianPoint2D(375.0, 150.0);
+                vertices3[3] = new CartesianPoint2D(boundary2X, 150.0);
+                var boundaries3 = new HashSet<LineSegment2D>();
+                boundaries3.Add(new LineSegment2D(vertices3[3], vertices3[1]));
+                regions[2] = new PolygonalRegion(vertices3, boundaries3);
 
-            //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else throw new NotImplementedException();
+           
         }
 
         private void InitializeCrack()
@@ -426,6 +441,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// </summary>
             public int MaxIterations { get; set; } = int.MaxValue;
 
+            public int NumSubdomains { get; set; } = 1;
+
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
@@ -435,8 +452,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             public IBenchmark BuildBenchmark()
             {
-                return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, LsmPlotDirectory, 
-                    propagationPath, WritePropagation, MaxIterations, RigidBCs, HeavisideEnrichmentTolerance);
+                return new Fillet(meshPath, growthLength, JintegralRadiusOverElementSize, LsmPlotDirectory,
+                    propagationPath, WritePropagation, MaxIterations, RigidBCs, HeavisideEnrichmentTolerance, NumSubdomains);
             }
         }
 
