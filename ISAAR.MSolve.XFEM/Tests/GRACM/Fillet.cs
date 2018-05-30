@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Plots";
             string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing";
             //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Meshes\fillet.msh";
-            //string propagationPath = @"C:\Users\seraf\Desktop\GRACM\Benchmark_Fillet\Propagation\crack_growth.txt";
+            //string propagationPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Propagation\crack_growth.txt";
             //string plotPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Plots";
             //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Fillet\Timing";
 
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             builder.NumSubdomains = 3;
 
             builder.LsmPlotDirectory = plotLSM ? plotPath: null;
-            builder.MaxIterations = 12;
+            builder.MaxIterations = 13;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 
@@ -293,7 +293,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void DomainDecomposition() //TODO: this should not be hardcoded, but provided by the caller of the solver
         {
-            //Needs adjusting if the geometric constants change
+            //WARNING: Needs adjusting if the geometric constants change
             if (numSubdomains == 1)
             {
                 var regions = new PolygonalRegion[1];
@@ -343,7 +343,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 Decomposer = new GuideDecomposer(regions, mesh);
             }
             else throw new NotImplementedException();
-           
         }
 
         private void InitializeCrack()

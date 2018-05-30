@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void SingleTest()
         {
-            IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
-            //IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
+            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
+            IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -36,11 +36,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             benchmark.Analyze(solver);
 
             //Reanalysis solvers
-            //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
-            //using (var solver = CreateReanalysisSolver(benchmark))
-            //{
-            //    benchmark.Analyze(solver);
-            //}
+            //var solver = CreateReanalysisRebuildingSolver(benchmark);
+            //var solver = CreateReanalysisSolver(benchmark);
+            //benchmark.Analyze(solver);
+            //solver.Dispose();
 
             // Timing output path
             string timingOutputPath = builder.TimingOutputDirectory + "\\" + solver.Logger.SolverName + "_results.txt";
