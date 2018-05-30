@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
         }
 
-        public void OrderSubdomainDofs(SortedSet<XSubdomain2D> enrichedSubdomains, ISingleCrack crack)
+        public void OrderSubdomainDofs(SortedSet<XSubdomain2D> enrichedSubdomains, ICrackDescription crack)
         {
             int numTotalDofs = NumStandardDofs;
             foreach (var subdomain in cluster.Subdomains)

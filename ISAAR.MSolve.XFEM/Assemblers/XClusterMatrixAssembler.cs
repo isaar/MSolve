@@ -119,7 +119,8 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         }
 
         /// <summary>
-        /// Create the signed boolean matrix of each subdomain to ensure continuity of displacements.
+        /// Create the signed boolean matrix of each subdomain to ensure continuity of displacements. If there are no boundary
+        /// enriched dofs, the returned dictionary will be empty.
         /// TODO: perhaps it is more efficient to process each subdomain separately.
         /// </summary>
         /// <param name="cluster"></param>
@@ -127,9 +128,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
         public Dictionary<XSubdomain2D, SignedBooleanMatrix> BuildSubdomainSignedBooleanMatrices(XCluster2D cluster)
         {
             Dictionary<XNode2D, SortedSet<XSubdomain2D>> nodeMembership = cluster.FindEnrichedBoundaryNodeMembership();
+            if (nodeMembership.Count == 0) return new Dictionary<XSubdomain2D, SignedBooleanMatrix>();
             var enrichedSubdomains = new HashSet<XSubdomain2D>();
             foreach (var nodeSubdomains in nodeMembership) enrichedSubdomains.UnionWith(nodeSubdomains.Value);
+
             ContinuityEquations eqs = FindContinuityEquations(nodeMembership);
+            if (eqs.NumEquations == 0) return new Dictionary<XSubdomain2D, SignedBooleanMatrix>(); // Not sure if possible
 
             //TODO: numCols could have been computed during matrix subdomain matrix assembly.
             var booleanMatrices = new Dictionary<XSubdomain2D, SignedBooleanMatrix>();

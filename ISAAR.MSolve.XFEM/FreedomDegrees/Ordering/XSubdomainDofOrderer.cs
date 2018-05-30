@@ -49,7 +49,8 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         public Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> SingularHeavisideEnrichments { get; } //TODO: this should probably be a HashSet
 
 
-        public static XSubdomainDofOrderer CreateNodeMajor(ISingleCrack crack, XSubdomain2D subdomain, int globalIndicesStart) //TODO: also add AMD reordering
+        public static XSubdomainDofOrderer CreateNodeMajor(ICrackDescription crack, XSubdomain2D subdomain, 
+            int globalIndicesStart) //TODO: also add AMD reordering
         {
             // Handle nodes with singular Heaviside enrichment
             Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularityHeavisideEnrichments = 
@@ -233,46 +234,60 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// </summary>
         /// <param name="subdomain"></param>
         /// <returns></returns>
-        private static Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> FindBoundaryNodesWithSingularHeaviside(ISingleCrack crack,
-            XSubdomain2D subdomain)
+        private static Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> FindBoundaryNodesWithSingularHeaviside(
+            ICrackDescription crack, XSubdomain2D subdomain)
         {
-            var boundaryHeavisideNodes = new List<XNode2D>();
-            var nodalSupports = new List<ISet<XContinuumElement2D>>();
-            foreach (var node in subdomain.BoundaryNodes)
-            {
-                // Only process Heaviside nodes
-                bool isHeaviside = false;
-                foreach (var enrichment in node.EnrichmentItems.Keys)
-                {
-                    if (enrichment == crack.CrackBodyEnrichment)
-                    {
-                        boundaryHeavisideNodes.Add(node);
-                        isHeaviside = true;
-                        break;
-                    }
-                }
-                if (isHeaviside)
-                {
-                    // Intersection of nodal support and subdomain
-                    var support = new HashSet<XContinuumElement2D>();
-                    foreach (var element in crack.Mesh.FindElementsWithNode(node))
-                    {
-                        if (subdomain.Elements.Contains(element)) support.Add(element);
-                    }
-                    nodalSupports.Add(support);
-                }
-
-            }
-
-            ISet<XNode2D> singularNodes = 
-                crack.SingularityResolver.FindHeavisideNodesToRemove(crack, boundaryHeavisideNodes, nodalSupports);
             var singularNodeEnrichments = new Dictionary<XNode2D, HashSet<IEnrichmentItem2D>>();
-            foreach (var node in singularNodes)
+
+            foreach (ISingleCrack singleCrack in crack.SingleCracks)
             {
-                var enrichmentsOnly = new HashSet<IEnrichmentItem2D>();
-                enrichmentsOnly.Add(crack.CrackBodyEnrichment);
-                singularNodeEnrichments.Add(node, enrichmentsOnly);
+                // Build nodal supports of boundary Heaviside nodes. 
+                // TODO: if the same node is enriched with more than one cracks, then avoid redoing the following for each crack
+                var boundaryHeavisideNodes = new List<XNode2D>();
+                var nodalSupports = new List<ISet<XContinuumElement2D>>();
+                foreach (var node in subdomain.BoundaryNodes)
+                {
+                    // Only process Heaviside nodes
+                    bool isHeaviside = false;
+                    foreach (var enrichment in node.EnrichmentItems.Keys)
+                    {
+                        if (enrichment == singleCrack.CrackBodyEnrichment)
+                        {
+                            boundaryHeavisideNodes.Add(node);
+                            isHeaviside = true;
+                            break;
+                        }
+                    }
+                    if (isHeaviside)
+                    {
+                        // Intersection of nodal support and subdomain
+                        var support = new HashSet<XContinuumElement2D>();
+                        foreach (var element in singleCrack.Mesh.FindElementsWithNode(node))
+                        {
+                            if (subdomain.Elements.Contains(element)) support.Add(element);
+                        }
+                        nodalSupports.Add(support);
+                    }
+
+                }
+
+                // Find problematic nodes
+                ISet<XNode2D> singularNodes = singleCrack.SingularityResolver.
+                    FindHeavisideNodesToRemove(singleCrack, boundaryHeavisideNodes, nodalSupports);
+
+                // Register the problematic nodes
+                foreach (var node in singularNodes)
+                {
+                    bool nodeExists = singularNodeEnrichments.TryGetValue(node, out HashSet<IEnrichmentItem2D> enrichmentsOnly);
+                    if (!nodeExists)
+                    {
+                        enrichmentsOnly = new HashSet<IEnrichmentItem2D>();
+                        singularNodeEnrichments.Add(node, enrichmentsOnly);
+                    }
+                    enrichmentsOnly.Add(singleCrack.CrackBodyEnrichment);
+                }
             }
+
             return singularNodeEnrichments;
         }
 

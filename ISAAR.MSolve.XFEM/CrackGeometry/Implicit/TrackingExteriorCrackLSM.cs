@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
     /// <summary>
     /// Warning: may misclassify elements as tip elements, causing gross errors.
     /// </summary>
-    class TrackingExteriorCrackLSM: IExteriorCrack
+    class TrackingExteriorCrackLSM : IExteriorCrack
     {
         private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private ISet<XNode2D> crackTipNodesNew;
         private ISet<XNode2D> crackTipNodesOld;
 
-        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius, 
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius,
             IHeavisideSingularityResolver singularityResolver)
         {
             this.propagator = propagator;
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             this.SingularityResolver = singularityResolver;
         }
 
-        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0): 
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0) :
             this(propagator, tipEnrichmentAreaRadius, null)
         {
             this.SingularityResolver = new RelativeAreaResolver();
@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 
         public IReadOnlyList<IEnrichmentItem2D> Enrichments
         {
-            get { return new IEnrichmentItem2D [] { CrackBodyEnrichment, CrackTipEnrichments }; }
+            get { return new IEnrichmentItem2D[] { CrackBodyEnrichment, CrackTipEnrichments }; }
         }
 
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
@@ -182,6 +182,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public PreviousLevelSetComparer LevelSetComparer { get; set; }
         public BiMesh2D Mesh { get; set; }
         public IHeavisideSingularityResolver SingularityResolver { get; }
+        public IReadOnlyList<ISingleCrack> SingleCracks { get { return new ISingleCrack[] { this }; } }
 
         // TODO: remove this
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 

@@ -67,6 +67,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 
         public IHeavisideSingularityResolver SingularityResolver => throw new NotImplementedException();
 
+        public IReadOnlyList<ISingleCrack> SingleCracks => throw new NotImplementedException();
+
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;
 

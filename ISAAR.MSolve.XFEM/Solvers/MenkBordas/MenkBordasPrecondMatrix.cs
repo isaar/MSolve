@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Vector ys = xs.Copy(); // For cholesky preconditioner
             //Vector ys = prec.Ps.ForwardSubstitution(Kss.MultiplyRight(prec.Ps.BackSubstitution(xs))); // For other preconditioners
 
-            if (dim.NumSubdomains > 1) // There are no continuity equations and no B, Q, L with only 1 subdomain
+            if (Q != null) //TODO: something more explicit is needed
             {
                 var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
 
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
 
-                if (dim.NumSubdomains > 1) // There are no continuity equations and no B, Q, L with only 1 subdomain
+                if (L != null) //TODO: something more explicit is needed
                 {
                     // yc = inv(L^T) * xc
                     Vector yc = L.Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
 
-                if (dim.NumSubdomains > 1) // There are no continuity equations and no B, Q, L with only 1 subdomain
+                if (L != null) //TODO: something more explicit is needed
                 {
                     // yc = inv(L^T) * xc
                     Vector yc = L.Transpose().Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here

@@ -188,7 +188,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Handle L,Q matrices
             Matrix L = null;
             Matrix Q = null;
-            if (subdomains.Count > 1)
+            if (B != null)
             {
                 (L, Q) = MenkBordasPreconditioner.CreateContinuityEquationsPreconditioners(dim, B, Pe);
                 B = null; // Clear it to make sure an exception is thrown if the caller forgets to update B.
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
 
             // Continuity equations
-            if (subdomains.Count > 1)
+            if (B != null)
             {
                 int equationsStart = nextStart;
                 int numEquations = 0;

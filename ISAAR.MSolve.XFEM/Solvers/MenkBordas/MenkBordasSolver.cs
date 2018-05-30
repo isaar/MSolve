@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
     {
-        private readonly ISingleCrack crack;
+        private readonly ICrackDescription crack;
         private readonly Model2D model;
         private readonly IDecomposer decomposer;
         private readonly int maxIterations;
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, ISingleCrack crack, IDecomposer decomposer, int maxIterations, double tolerance, 
+        public MenkBordasSolver(Model2D model, ICrackDescription crack, IDecomposer decomposer, int maxIterations, double tolerance, 
             string subdomainsDirectory = null)
         {
             this.model = model;
@@ -139,20 +139,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //sys.CheckDimensions();
 
             /// Signed boolean matrices and continuity equations
-            if (enrichedSubdomains.Count > 1)
-            {
-                //var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatricesOLD(cluster);
-                var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
-                system.SetBooleanMatrices(booleanMatrices);
-                #region debug
-                //foreach (var subdomainB in booleanMatrices)
-                //{
-                //    Console.WriteLine("Subdomain " + subdomainB.Key.ID);
-                //    (new FullMatrixWriter(subdomainB.Value)).WriteToConsole();
-                //    Console.WriteLine();
-                //}
-                #endregion
-            }
+            var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
+            if (booleanMatrices.Count > 1) system.SetBooleanMatrices(booleanMatrices);
+            #region debug
+            //foreach (var subdomainB in booleanMatrices)
+            //{
+            //    Console.WriteLine("Subdomain " + subdomainB.Key.ID);
+            //    (new FullMatrixWriter(subdomainB.Value)).WriteToConsole();
+            //    Console.WriteLine();
+            //}
+            #endregion
 
             /// Use an iterative algorithm to solve the symmetric indefinite system
             var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
