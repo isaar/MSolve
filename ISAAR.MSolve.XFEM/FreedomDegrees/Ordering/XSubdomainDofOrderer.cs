@@ -26,14 +26,15 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         private readonly DofTable<EnrichedDof> subdomainEnrichedDofs;
 
         private XSubdomainDofOrderer(int numEnrichedDofs, int firstGlobalDofIndex, DofTable<EnrichedDof> subdomainEnrichedDofs,
-            DofTable<EnrichedDof> globalEnrichedDofs, ISet<XNode2D> singularHeavisideNodes, 
+            DofTable<EnrichedDof> globalEnrichedDofs, 
+            Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularHeavisideEnrichments, 
             Dictionary<XNode2D, ISet<EnrichedDof>> boundaryDofs)
         {
             this.FirstGlobalDofIndex = firstGlobalDofIndex;
             this.NumEnrichedDofs = numEnrichedDofs;
             this.subdomainEnrichedDofs = subdomainEnrichedDofs;
             this.globalEnrichedDofs = globalEnrichedDofs;
-            this.SingularHeavisideNodes = singularHeavisideNodes;
+            this.SingularHeavisideEnrichments = singularHeavisideEnrichments;
             this.BoundaryDofs = boundaryDofs;
         }
 
@@ -45,20 +46,21 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// nodal support with this subdomain lie on the same side of the crack. Thus H(x)-H(xNode) = 0 and the stiffness 
         /// matrices would have 0 rows. Thus they must be avoided during dof ordering and all other operations of this object.
         /// </summary>
-        public ISet<XNode2D> SingularHeavisideNodes { get; } //TODO: this should probably be a HashSet
+        public Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> SingularHeavisideEnrichments { get; } //TODO: this should probably be a HashSet
 
 
         public static XSubdomainDofOrderer CreateNodeMajor(ISingleCrack crack, XSubdomain2D subdomain, int globalIndicesStart) //TODO: also add AMD reordering
         {
             // Handle nodes with singular Heaviside enrichment
-            var singularityNodes = FindBoundaryNodesWithSingularHeaviside(crack, subdomain);
-            if (singularityNodes.Count > 0)
+            Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularityHeavisideEnrichments = 
+                FindBoundaryNodesWithSingularHeaviside(crack, subdomain);
+            if (singularityHeavisideEnrichments.Count > 0)
             {
                 Console.Write($"WARNING: Subdomain {subdomain.ID} has boundary nodes that are enriched with Heaviside,");
                 Console.Write(" but that would lead to singular matrices, since the nodal support in this subdomain only");
                 Console.Write(" contains Gauss points with the same sign. It would be better to use another domain");
                 Console.Write(" decomposition. The nodes in question are: ");
-                foreach (var node in singularityNodes) Console.Write(node + " ");
+                foreach (var node in singularityHeavisideEnrichments.Keys) Console.Write(node + " ");
                 Console.WriteLine();
             }
 
@@ -66,6 +68,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             var globalEnrichedDofs = new DofTable<EnrichedDof>();
             var boundaryDofs = new Dictionary<XNode2D, ISet<EnrichedDof>>();
             int dofCounter = 0;
+
             foreach (XNode2D node in subdomain.AllNodes)
             {
                 bool isboundaryNode = subdomain.BoundaryNodes.Contains(node);
@@ -73,11 +76,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 {
                     boundaryDofs.Add(node, new HashSet<EnrichedDof>());
                 }
-                bool isSingularityNode = singularityNodes.Contains(node);
+                bool isSingularityNode = singularityHeavisideEnrichments.TryGetValue(node, 
+                    out HashSet<IEnrichmentItem2D> singularEnrichments);
 
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    if (isSingularityNode && (enrichment is CrackBodyEnrichment2D)) continue; //TODO: I should probably do this with the crack's enrichment object
+                    if (isSingularityNode && singularEnrichments.Contains(enrichment)) continue;
                     foreach (EnrichedDof dof in enrichment.Dofs)
                     {
                         if (isboundaryNode) boundaryDofs[node].Add(dof);
@@ -87,8 +91,8 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                     }
                 }
             }
-            return new XSubdomainDofOrderer(dofCounter, globalIndicesStart, subdomainEnrichedDofs, globalEnrichedDofs, 
-                singularityNodes, boundaryDofs);
+            return new XSubdomainDofOrderer(dofCounter, globalIndicesStart, subdomainEnrichedDofs, globalEnrichedDofs,
+                singularityHeavisideEnrichments, boundaryDofs);
         }
 
         /// <summary>
@@ -107,13 +111,14 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             double[] elementVector = new double[elementDofs.EntryCount];
             foreach (XNode2D node in element.Nodes)
             {
-                bool isSingularityNode = SingularHeavisideNodes.Contains(node);
+                bool isSingularityNode = SingularHeavisideEnrichments.TryGetValue(node, 
+                    out HashSet<IEnrichmentItem2D> singularEnrichments);
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    if (isSingularityNode && (enrichment is CrackBodyEnrichment2D)) //TODO: I should probably do this with the crack's enrichment object
+                    if (isSingularityNode && singularEnrichments.Contains(enrichment))
                     {
                         // Find global dof index from other subdomain, sine it is not stored here
-                        XSubdomain2D otherSubdomain = FindSubdomainWhereHeavisideNodeIsNotSingular(cluster, node);
+                        XSubdomain2D otherSubdomain = FindSubdomainWhereNodeEnrichmentIsNotSingular(cluster, node, enrichment);
                         foreach (var dofType in enrichment.Dofs)
                         {
                             int elementDofIdx = elementDofs[node, dofType];
@@ -158,13 +163,14 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             int elementDof = 0;
             foreach (XNode2D node in element.Nodes)
             {
-                bool isSingularityNode = SingularHeavisideNodes.Contains(node);
+                bool isSingularityNode = SingularHeavisideEnrichments.TryGetValue(node,
+                    out HashSet<IEnrichmentItem2D> singularEnrichments);
 
                 // TODO: Perhaps the nodal dof types should be decided by the element type (structural, continuum) 
                 // and drawn from XXContinuumElement2D instead of from enrichment items
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    if (isSingularityNode && (enrichment is CrackBodyEnrichment2D)) //TODO: I should probably do this with the crack's enrichment object
+                    if (isSingularityNode && singularEnrichments.Contains(enrichment))
                     {
                         ++elementDof;
                         continue;
@@ -186,13 +192,14 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             int elementDof = 0;
             foreach (XNode2D node in element.Nodes)
             {
-                bool isSingularityNode = SingularHeavisideNodes.Contains(node);
+                bool isSingularityNode = SingularHeavisideEnrichments.TryGetValue(node,
+                   out HashSet<IEnrichmentItem2D> singularEnrichments);
 
                 // TODO: Perhaps the nodal dof types should be decided by the element type (structural, continuum) 
                 // and drawn from XXContinuumElement2D instead of from enrichment items
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
-                    if (isSingularityNode && (enrichment is CrackBodyEnrichment2D)) //TODO: I should probably do this with the crack's enrichment object
+                    if (isSingularityNode && singularEnrichments.Contains(enrichment))
                     {
                         ++elementDof;
                         continue;
@@ -226,7 +233,8 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// </summary>
         /// <param name="subdomain"></param>
         /// <returns></returns>
-        private static ISet<XNode2D> FindBoundaryNodesWithSingularHeaviside(ISingleCrack crack, XSubdomain2D subdomain)
+        private static Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> FindBoundaryNodesWithSingularHeaviside(ISingleCrack crack,
+            XSubdomain2D subdomain)
         {
             var boundaryHeavisideNodes = new List<XNode2D>();
             var nodalSupports = new List<ISet<XContinuumElement2D>>();
@@ -236,7 +244,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 bool isHeaviside = false;
                 foreach (var enrichment in node.EnrichmentItems.Keys)
                 {
-                    if (enrichment is CrackBodyEnrichment2D) //TODO: I should probably do this with the crack's enrichment object
+                    if (enrichment == crack.CrackBodyEnrichment)
                     {
                         boundaryHeavisideNodes.Add(node);
                         isHeaviside = true;
@@ -255,22 +263,35 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 }
 
             }
-            return crack.SingularityResolver.FindHeavisideNodesToRemove(crack, boundaryHeavisideNodes, nodalSupports);
+
+            ISet<XNode2D> singularNodes = 
+                crack.SingularityResolver.FindHeavisideNodesToRemove(crack, boundaryHeavisideNodes, nodalSupports);
+            var singularNodeEnrichments = new Dictionary<XNode2D, HashSet<IEnrichmentItem2D>>();
+            foreach (var node in singularNodes)
+            {
+                var enrichmentsOnly = new HashSet<IEnrichmentItem2D>();
+                enrichmentsOnly.Add(crack.CrackBodyEnrichment);
+                singularNodeEnrichments.Add(node, enrichmentsOnly);
+            }
+            return singularNodeEnrichments;
         }
 
-        private XSubdomain2D FindSubdomainWhereHeavisideNodeIsNotSingular(XCluster2D cluster, XNode2D node)
+        private XSubdomain2D FindSubdomainWhereNodeEnrichmentIsNotSingular(XCluster2D cluster, XNode2D node, 
+            IEnrichmentItem2D enrichment)
         {
             foreach (XSubdomain2D subdomain in cluster.Subdomains)
             {
-                if (subdomain.BoundaryNodes.Contains(node) &&
-                    !subdomain.DofOrderer.SingularHeavisideNodes.Contains(node))
+                if (subdomain.BoundaryNodes.Contains(node))
                 {
-                    return subdomain;
+                    bool isSingularityNode = subdomain.DofOrderer.SingularHeavisideEnrichments.TryGetValue(node,
+                        out HashSet<IEnrichmentItem2D> singularEnrichments);
+                    if (!isSingularityNode) return subdomain;
+                    else if (!singularEnrichments.Contains(enrichment)) return subdomain;
                 }
             }
 
             // This point should not be reached under normal circumstances
-            if (SingularHeavisideNodes.Contains(node)) throw new IncorrectDecompositionException(
+            if (SingularHeavisideEnrichments.ContainsKey(node)) throw new IncorrectDecompositionException(
                  $"Heaviside dofs of {node} are singular in all subdomains. Investigate further");
             else throw new ArgumentException(
                 $"In this subdomain, {node} is not a boundary node with singular Heaviside enrichment");

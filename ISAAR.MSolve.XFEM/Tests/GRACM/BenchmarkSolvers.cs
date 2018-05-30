@@ -41,6 +41,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //{
             //    benchmark.Analyze(solver);
             //}
+
+            // Timing output path
+            string timingOutputPath = builder.TimingOutputDirectory + "\\" + solver.Logger.SolverName + "_results.txt";
+            solver.Logger.WriteSumsToFile(timingOutputPath, benchmark.Name, true);
         }
 
         private static void BenchmarkSolver()

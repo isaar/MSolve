@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -24,6 +25,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     /// </summary>
     interface ISingleCrack: ICrackDescription
     {
+        CrackBodyEnrichment2D CrackBodyEnrichment { get; }
+        CrackTipEnrichments2D CrackTipEnrichments { get; }
+
         IHeavisideSingularityResolver SingularityResolver { get; }
 
         double SignedDistanceOf(XNode2D node);
