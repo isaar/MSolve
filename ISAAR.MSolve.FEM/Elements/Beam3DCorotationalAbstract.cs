@@ -170,7 +170,7 @@ namespace ISAAR.MSolve.FEM.Elements
             constitutiveStiffness[11, 11] = psiZ_3_Plus_1_E_Iz_Overl;
 
             return constitutiveStiffness;
-        }
+           }
 
         /**
 	     * Calculates the forces in the global coordinate system.
