@@ -117,6 +117,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private readonly IMeshProvider meshProvider;
 
+        private readonly int numSubdomains = 4;
+
         /// <summary>
         /// If true, LSM will be used to describe the crack. If false, an explicit crack description (polyline) will be used.
         /// </summary>
@@ -225,47 +227,101 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void DomainDecomposition() //TODO: this should not be hardcoded, but provided by the caller of the solver
         {
-            var regions = new PolygonalRegion[4];
+            if (numSubdomains == 1)
+            {
+                var regions = new PolygonalRegion[1];
+                var vertices1 = new CartesianPoint2D[4];
+                vertices1[0] = new CartesianPoint2D(0.0, 0.0);
+                vertices1[1] = new CartesianPoint2D(L, 0.0);
+                vertices1[2] = new CartesianPoint2D(L, h);
+                vertices1[3] = new CartesianPoint2D(0.0, h);
+                var boundaries1 = new HashSet<LineSegment2D>();
+                regions[0] = new PolygonalRegion(vertices1, boundaries1);
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else if (numSubdomains == 3)
+            {
+                var regions = new PolygonalRegion[3];
 
-            var vertices1 = new CartesianPoint2D[4];
-            vertices1[0] = new CartesianPoint2D(0.0, h);
-            vertices1[1] = new CartesianPoint2D(0.0, 0.0);
-            vertices1[2] = new CartesianPoint2D(L / 5.0, 0.0);
-            vertices1[3] = new CartesianPoint2D(L / 3.0, h);
-            var boundaries1 = new HashSet<LineSegment2D>();
-            boundaries1.Add(new LineSegment2D(vertices1[2], vertices1[3]));
-            regions[0] = new PolygonalRegion(vertices1, boundaries1);
+                var vertices1 = new CartesianPoint2D[4];
+                vertices1[0] = new CartesianPoint2D(0.0, h);
+                vertices1[1] = new CartesianPoint2D(0.0, 0.0);
+                vertices1[2] = new CartesianPoint2D(L / 3.0, 0.0);
+                vertices1[3] = new CartesianPoint2D(L / 3.0, h);
+                var boundaries1 = new HashSet<LineSegment2D>();
+                boundaries1.Add(new LineSegment2D(vertices1[2], vertices1[3]));
+                regions[0] = new PolygonalRegion(vertices1, boundaries1);
 
-            var vertices2 = new CartesianPoint2D[4];
-            vertices2[0] = new CartesianPoint2D(L / 3.0, h);
-            vertices2[1] = new CartesianPoint2D(L / 5.0, 0.0);
-            vertices2[2] = new CartesianPoint2D(L / 2.0, 0.0);
-            vertices2[3] = new CartesianPoint2D(L / 2.0, h);
-            var boundaries2 = new HashSet<LineSegment2D>();
-            boundaries2.Add(new LineSegment2D(vertices2[0], vertices2[1]));
-            boundaries2.Add(new LineSegment2D(vertices2[2], vertices2[3]));
-            regions[1] = new PolygonalRegion(vertices2, boundaries2);
+                var vertices2 = new CartesianPoint2D[4];
+                vertices2[0] = new CartesianPoint2D(L / 3.0, h);
+                vertices2[1] = new CartesianPoint2D(L / 3.0, 0.0);
+                vertices2[2] = new CartesianPoint2D(2.0 * L / 3.0, 0.0);
+                vertices2[3] = new CartesianPoint2D(2.0 * L / 3.0, h);
+                var boundaries2 = new HashSet<LineSegment2D>();
+                boundaries2.Add(new LineSegment2D(vertices2[0], vertices2[1]));
+                boundaries2.Add(new LineSegment2D(vertices2[2], vertices2[3]));
+                regions[1] = new PolygonalRegion(vertices2, boundaries2);
 
-            var vertices3 = new CartesianPoint2D[4];
-            vertices3[0] = new CartesianPoint2D(L / 2.0, h);
-            vertices3[1] = new CartesianPoint2D(L / 2.0, 0.0);
-            vertices3[2] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
-            vertices3[3] = new CartesianPoint2D(2.0 * L / 3.0, h);
-            var boundaries3 = new HashSet<LineSegment2D>();
-            boundaries3.Add(new LineSegment2D(vertices3[0], vertices3[1]));
-            boundaries3.Add(new LineSegment2D(vertices3[2], vertices3[3]));
-            regions[2] = new PolygonalRegion(vertices3, boundaries3);
+                var vertices3 = new CartesianPoint2D[4];
+                vertices3[0] = new CartesianPoint2D(2 * L / 3.0, h);
+                vertices3[1] = new CartesianPoint2D(2 * L / 3.0, 0.0);
+                vertices3[2] = new CartesianPoint2D(L, 0.0);
+                vertices3[3] = new CartesianPoint2D(L, h);
+                var boundaries3 = new HashSet<LineSegment2D>();
+                boundaries3.Add(new LineSegment2D(vertices3[0], vertices3[1]));
+                boundaries3.Add(new LineSegment2D(vertices3[2], vertices3[3]));
+                regions[2] = new PolygonalRegion(vertices3, boundaries3);
 
-            var vertices4 = new CartesianPoint2D[4];
-            vertices4[0] = new CartesianPoint2D(2.0 * L / 3.0, h);
-            vertices4[1] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
-            vertices4[2] = new CartesianPoint2D(L, 0.0);
-            vertices4[3] = new CartesianPoint2D(L, h);
-            var boundaries4 = new HashSet<LineSegment2D>();
-            boundaries4.Add(new LineSegment2D(vertices4[0], vertices4[1]));
-            regions[3] = new PolygonalRegion(vertices4, boundaries4);
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else if (numSubdomains == 4)
+            {
+                var regions = new PolygonalRegion[4];
 
-            Decomposer = new GuideDecomposer(regions, mesh);
+                var vertices1 = new CartesianPoint2D[4];
+                vertices1[0] = new CartesianPoint2D(0.0, h);
+                vertices1[1] = new CartesianPoint2D(0.0, 0.0);
+                vertices1[2] = new CartesianPoint2D(L / 5.0, 0.0);
+                vertices1[3] = new CartesianPoint2D(L / 3.0, h);
+                var boundaries1 = new HashSet<LineSegment2D>();
+                boundaries1.Add(new LineSegment2D(vertices1[2], vertices1[3]));
+                regions[0] = new PolygonalRegion(vertices1, boundaries1);
+
+                var vertices2 = new CartesianPoint2D[4];
+                vertices2[0] = new CartesianPoint2D(L / 3.0, h);
+                vertices2[1] = new CartesianPoint2D(L / 5.0, 0.0);
+                vertices2[2] = new CartesianPoint2D(L / 2.0, 0.0);
+                vertices2[3] = new CartesianPoint2D(L / 2.0, h);
+                var boundaries2 = new HashSet<LineSegment2D>();
+                boundaries2.Add(new LineSegment2D(vertices2[0], vertices2[1]));
+                boundaries2.Add(new LineSegment2D(vertices2[2], vertices2[3]));
+                regions[1] = new PolygonalRegion(vertices2, boundaries2);
+
+                var vertices3 = new CartesianPoint2D[4];
+                vertices3[0] = new CartesianPoint2D(L / 2.0, h);
+                vertices3[1] = new CartesianPoint2D(L / 2.0, 0.0);
+                vertices3[2] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
+                vertices3[3] = new CartesianPoint2D(2.0 * L / 3.0, h);
+                var boundaries3 = new HashSet<LineSegment2D>();
+                boundaries3.Add(new LineSegment2D(vertices3[0], vertices3[1]));
+                boundaries3.Add(new LineSegment2D(vertices3[2], vertices3[3]));
+                regions[2] = new PolygonalRegion(vertices3, boundaries3);
+
+                var vertices4 = new CartesianPoint2D[4];
+                vertices4[0] = new CartesianPoint2D(2.0 * L / 3.0, h);
+                vertices4[1] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
+                vertices4[2] = new CartesianPoint2D(L, 0.0);
+                vertices4[3] = new CartesianPoint2D(L, h);
+                var boundaries4 = new HashSet<LineSegment2D>();
+                boundaries4.Add(new LineSegment2D(vertices4[0], vertices4[1]));
+                regions[3] = new PolygonalRegion(vertices4, boundaries4);
+
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else
+            {
+
+            }
         }
 
         private void InitializeCrack()

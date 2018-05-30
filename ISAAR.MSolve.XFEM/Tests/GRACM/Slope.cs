@@ -170,6 +170,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public string Name { get { return "GRACM Slope"; } }
 
+        public string PlotDirectory { get { return lsmOutputDirectory; } }
+
         public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
         /// <summary>

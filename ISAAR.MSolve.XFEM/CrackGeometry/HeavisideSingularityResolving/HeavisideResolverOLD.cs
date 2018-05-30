@@ -71,6 +71,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
             return nodesToRemove;
         }
 
+        public ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IReadOnlyList<XNode2D> heavisideNodes, IReadOnlyList<ISet<XContinuumElement2D>> nodalSupports)
+        {
+            throw new NotImplementedException();
+        }
+
         private (double positiveArea, double negativeArea) FindSignedAreasOfElement(ISingleCrack crack, 
             XContinuumElement2D element)
         {

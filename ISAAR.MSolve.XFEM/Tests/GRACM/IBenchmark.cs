@@ -19,6 +19,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         IDecomposer Decomposer { get; }
 
         Model2D Model { get; }
+        string PlotDirectory { get; }
         Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; }
 
         void Analyze(ISolver solver);

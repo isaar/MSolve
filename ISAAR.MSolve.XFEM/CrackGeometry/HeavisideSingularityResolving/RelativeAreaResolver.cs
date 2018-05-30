@@ -66,16 +66,56 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
             return nodesToRemove;
         }
 
+        /// <summary>
+        /// Given a set of Heaviside enriched nodes, find which of them must not be enriched, in order to avoid the global
+        /// stiffness matrix being singular.
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="heavisideNodes">They will not be altered.</param>
+        /// <returns></returns>
+        public ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IReadOnlyList<XNode2D> heavisideNodes, 
+            IReadOnlyList<ISet<XContinuumElement2D>> nodalSupports)
+        {
+            var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
+            var nodesToRemove = new HashSet<XNode2D>();
+            for (int i = 0; i < heavisideNodes.Count; ++i)
+            {
+                XNode2D node = heavisideNodes[i];
+                double nodePositiveArea = 0.0;
+                double nodeNegativeArea = 0.0;
+
+                foreach (var element in nodalSupports[i])
+                {
+                    bool alreadyProcessed = processedElements.TryGetValue(element, out Tuple<double, double> elementPosNegAreas);
+                    if (!alreadyProcessed)
+                    {
+                        (double elementPosArea, double elementNegArea) = FindSignedAreasOfElement(crack, element);
+                        elementPosNegAreas = new Tuple<double, double>(elementPosArea, elementNegArea);
+                        processedElements[element] = elementPosNegAreas;
+                    }
+                    nodePositiveArea += elementPosNegAreas.Item1;
+                    nodeNegativeArea += elementPosNegAreas.Item2;
+                }
+
+                if (crack.SignedDistanceOf(node) >= 0.0)
+                {
+                    double negativeAreaRatio = nodeNegativeArea / (nodePositiveArea + nodeNegativeArea);
+                    if (negativeAreaRatio < relativeAreaTolerance) nodesToRemove.Add(node);
+                }
+                else
+                {
+                    double positiveAreaRatio = nodePositiveArea / (nodePositiveArea + nodeNegativeArea);
+                    if (positiveAreaRatio < relativeAreaTolerance) nodesToRemove.Add(node);
+                }
+            }
+
+            return nodesToRemove;
+        }
+
+        // TODO: I should really cache these somehow, so that they can be accessible from the crack object. They are used at various points.
         private (double positiveArea, double negativeArea) FindSignedAreasOfElement(ISingleCrack crack, 
             XContinuumElement2D element)
         {
-            #region Debug
-            //if (element.Nodes[0].ID==154)
-            //{
-            //    Console.WriteLine();
-            //}
-            #endregion
-
             SortedSet<ICartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
             IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
 

@@ -12,10 +12,12 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
+using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: remove checks and prints
 //TODO: allow various preconditioners for Kss
@@ -28,10 +30,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
     {
+        private readonly ICrackDescription crack;
         private readonly Model2D model;
         private readonly IDecomposer decomposer;
         private readonly int maxIterations;
         private readonly double tolerance;
+        private readonly string subdomainsDirectory;
 
         private XCluster2D cluster;
         private MenkBordasSystem system;
@@ -41,12 +45,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, IDecomposer decomposer, int maxIterations, double tolerance)
+        public MenkBordasSolver(Model2D model, ICrackDescription crack, IDecomposer decomposer, int maxIterations, double tolerance, 
+            string subdomainsDirectory = null)
         {
             this.model = model;
+            this.crack = crack;
             this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
+            this.subdomainsDirectory = subdomainsDirectory;
             Logger = new SolverLogger();
         }
 
@@ -66,6 +73,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Partion the domain into subdomains
             cluster = decomposer.CreateSubdomains();
+            if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
             // Standard dofs are not divided into subdomains and will not change over time.
             cluster.OrderStandardDofs(model);
@@ -105,15 +113,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             /// Order enriched dofs //TODO: only for modified subdomains
             SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
-            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains);
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, crack);
+
             #region debug
-            Console.Write("Enriched subdomains: ");
-            foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
-            Console.WriteLine();
-            if (enrichedSubdomains.Count > 2)
-            {
-                Console.WriteLine();
-            }
+            //Console.Write("Enriched subdomains: ");
+            //foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
+            //Console.WriteLine();
+            //if (enrichedSubdomains.Count > 2)
+            //{
+            //    Console.WriteLine();
+            //}
             #endregion
 
 
@@ -130,10 +139,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //sys.CheckDimensions();
 
             /// Signed boolean matrices and continuity equations
-            if (enrichedSubdomains.Count > 1)
-            {
-                system.SetBooleanMatrices(assembler.BuildSubdomainSignedBooleanMatrices(cluster));
-            }
+            var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
+            if (booleanMatrices.Count > 1) system.SetBooleanMatrices(booleanMatrices);
+            #region debug
+            //foreach (var subdomainB in booleanMatrices)
+            //{
+            //    Console.WriteLine("Subdomain " + subdomainB.Key.ID);
+            //    (new FullMatrixWriter(subdomainB.Value)).WriteToConsole();
+            //    Console.WriteLine();
+            //}
+            #endregion
 
             /// Use an iterative algorithm to solve the symmetric indefinite system
             var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
@@ -234,6 +249,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             K.WriteToFiles(directory);
 
             return denseX;
+        }
+
+        private static void WriteDecomposition(string subdomainsDirectory, XCluster2D cluster)
+        {
+            var writer = new DomainDecompositionWriter();
+
+            //writer.WriteRegions(directory + "regions.vtk", regions);
+            writer.WriteSubdomainElements(subdomainsDirectory + "\\subdomains.vtk", cluster.Subdomains);
+            writer.WriteBoundaryNodes(subdomainsDirectory + "\\boundaryNodes", cluster.Subdomains);
         }
     }
 }

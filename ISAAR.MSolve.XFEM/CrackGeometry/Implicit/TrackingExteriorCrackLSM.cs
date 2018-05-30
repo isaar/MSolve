@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
     /// <summary>
     /// Warning: may misclassify elements as tip elements, causing gross errors.
     /// </summary>
-    class TrackingExteriorCrackLSM: IExteriorCrack
+    class TrackingExteriorCrackLSM : IExteriorCrack
     {
         private static readonly bool reports = false;
         private static readonly IComparer<ICartesianPoint2D> pointComparer = new Point2DComparerXMajor();
@@ -59,7 +59,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private readonly ILevelSetUpdater levelSetUpdater;
         private readonly IMeshInteraction meshInteraction;
         private readonly IPropagator propagator;
-        private readonly IHeavisideSingularityResolver singularityResolver;
 
         private readonly List<ICartesianPoint2D> crackPath;
         private ICartesianPoint2D crackMouth;
@@ -73,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private ISet<XNode2D> crackTipNodesNew;
         private ISet<XNode2D> crackTipNodesOld;
 
-        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius, 
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius,
             IHeavisideSingularityResolver singularityResolver)
         {
             this.propagator = propagator;
@@ -98,13 +97,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             //this.meshInteraction = new StolarskaMeshInteraction(this);
             //this.meshInteraction = new HybridMeshInteraction(this);
             this.meshInteraction = new SerafeimMeshInteraction(this);
-            this.singularityResolver = singularityResolver;
+            this.SingularityResolver = singularityResolver;
         }
 
-        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0): 
+        public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0) :
             this(propagator, tipEnrichmentAreaRadius, null)
         {
-            this.singularityResolver = new RelativeAreaResolver();
+            this.SingularityResolver = new RelativeAreaResolver();
         }
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
@@ -173,7 +172,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 
         public IReadOnlyList<IEnrichmentItem2D> Enrichments
         {
-            get { return new IEnrichmentItem2D [] { CrackBodyEnrichment, CrackTipEnrichments }; }
+            get { return new IEnrichmentItem2D[] { CrackBodyEnrichment, CrackTipEnrichments }; }
         }
 
         public IReadOnlyDictionary<XNode2D, double> LevelSetsBody { get { return levelSetsBody; } }
@@ -182,6 +181,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public LevelSetLogger LevelSetLogger { get; set; }
         public PreviousLevelSetComparer LevelSetComparer { get; set; }
         public BiMesh2D Mesh { get; set; }
+        public IHeavisideSingularityResolver SingularityResolver { get; }
+        public IReadOnlyList<ISingleCrack> SingleCracks { get { return new ISingleCrack[] { this }; } }
 
         // TODO: remove this
         public ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition) 
@@ -532,7 +533,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             //TODO: Is it safe to only search the newly enriched nodes? Update the rejected set appropriately
             crackBodyNodesRejected.Clear();
-            crackBodyNodesRejected = singularityResolver.FindHeavisideNodesToRemove(this, Mesh, crackBodyNodesAll); 
+            crackBodyNodesRejected = SingularityResolver.FindHeavisideNodesToRemove(this, Mesh, crackBodyNodesAll); 
             foreach (var node in crackBodyNodesRejected) // using set operations might be better and faster
             {
                 //Console.WriteLine("Removing Heaviside enrichment from node: " + node);

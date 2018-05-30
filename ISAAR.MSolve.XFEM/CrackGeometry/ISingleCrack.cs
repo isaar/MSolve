@@ -5,11 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -22,7 +25,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     /// </summary>
     interface ISingleCrack: ICrackDescription
     {
-        
+        CrackBodyEnrichment2D CrackBodyEnrichment { get; }
+        CrackTipEnrichments2D CrackTipEnrichments { get; }
+
+        IHeavisideSingularityResolver SingularityResolver { get; }
+
         double SignedDistanceOf(XNode2D node);
         double SignedDistanceOf(INaturalPoint2D point, XContinuumElement2D element,
             EvaluatedInterpolation2D interpolation);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
@@ -20,8 +21,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void SingleTest()
         {
-            IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
-            //IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
+            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
+            IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -29,17 +30,20 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Solvers
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
-            //var solver = CreateMenkBordasSolver(benchmark);
+            var solver = CreateMenkBordasSolver(benchmark);
             //var solver = CreatePCGSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
-            //benchmark.Analyze(solver);
+            benchmark.Analyze(solver);
 
             //Reanalysis solvers
-            //using (var solver = CreateReanalysisRebuildingSolver(benchmark))
-            using (var solver = CreateReanalysisSolver(benchmark))
-            {
-                benchmark.Analyze(solver);
-            }
+            //var solver = CreateReanalysisRebuildingSolver(benchmark);
+            //var solver = CreateReanalysisSolver(benchmark);
+            //benchmark.Analyze(solver);
+            //solver.Dispose();
+
+            // Timing output path
+            string timingOutputPath = builder.TimingOutputDirectory + "\\" + solver.Logger.SolverName + "_results.txt";
+            solver.Logger.WriteSumsToFile(timingOutputPath, benchmark.Name, true);
         }
 
         private static void BenchmarkSolver()
@@ -96,7 +100,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
         {
-            return new MenkBordasSolver(benchmark.Model, benchmark.Decomposer, 1000000, double.Epsilon);
+            return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
+                benchmark.PlotDirectory);
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

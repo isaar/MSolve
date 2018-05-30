@@ -45,10 +45,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             string plotPathRight = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Holes\Plots\Right";
             string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Holes\Timing";
             //string meshPath = @"C:\Users\seraf\Desktop\GRACM\Holes\Meshes\holes.msh";
-            //string propagationPathLeft = @"C:\Users\seraf\Desktop\GRACM\Benchmark_Holes\Propagation\left_growth.txt";
-            //string propagationPathRight = @"C:\Users\seraf\Desktop\GRACM\Benchmark_Holes\Propagation\right_growth.txt";
-            //string plotPathLeft = @"C:\Users\seraf\Desktop\GRACM\Benchmark_Holes\Plots\Left";
-            //string plotPathRight = @"C:\Users\seraf\Desktop\GRACM\Benchmark_Holes\Plots\Right";
+            //string propagationPathLeft = @"C:\Users\seraf\Desktop\GRACM\Holes\Propagation\left_growth.txt";
+            //string propagationPathRight = @"C:\Users\seraf\Desktop\GRACM\Holes\Propagation\right_growth.txt";
+            //string plotPathLeft = @"C:\Users\seraf\Desktop\GRACM\Holes\Plots\Left";
+            //string plotPathRight = @"C:\Users\seraf\Desktop\GRACM\Holes\Plots\Right";
             //string timingPath = @"C:\Users\seraf\Desktop\GRACM\Holes\Timing";
 
             double growthLength = 1.0; // mm. Must be sufficiently larger than the element size. 0.8 works for left crack, 0.9 is so-so for right crack
@@ -67,6 +67,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // to be enriched.
             builder.TipEnrichmentRadius = 0.5;
             builder.BC = BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY;
+            builder.NumSubdomains = 8;
 
             builder.MaxIterations = 14;
             builder.LeftLsmPlotDirectory = plotLSM ? plotPathLeft : null;
@@ -148,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// boundary or if the fracture toughness is exceeded.
         /// </summary>
         private readonly int maxIterations;
-
+        private readonly int numSubdomains;
         private readonly double tipEnrichmentRadius;
 
         private TrackingExteriorCrackLSM leftCrack;
@@ -162,7 +163,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private Holes(string meshPath, double growthLength, BoundaryConditions bc, double jIntegralRadiusOverElementSize,
              double tipEnrichmentRadius, string leftLsmPlotDirectory, string rightLsmPlotDirectory,
              string leftPropagationPath, string rightPropagationPath, bool writePropagation, 
-             int maxIterations, double heavisideTol)
+             int maxIterations, double heavisideTol, int numSubdomains)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
@@ -176,6 +177,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             this.writePropagation = writePropagation;
             this.maxIterations = maxIterations;
             this.heavisideTol = heavisideTol;
+            this.numSubdomains = numSubdomains;
         }
 
         internal enum BoundaryConditions
@@ -200,6 +202,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         public Model2D Model { get; private set; }
 
         public string Name { get { return "GRACM Holes"; } }
+
+        public string PlotDirectory { get { return leftLsmPlotDirectory; } }
 
         public Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>> PossibleEnrichments { get; private set; }
 
@@ -378,47 +382,63 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private void DomainDecomposition() //TODO: this should not be hardcoded, but provided by the caller of the solver
         {
-            //var regions = new PolygonalRegion[4];
+            //WARNING: Needs adjusting if the geometric constants change
+            if (numSubdomains == 1)
+            {
+                var regions = new PolygonalRegion[1];
+                regions[0] = DecomposeRectangle(minX, minY, maxX, maxY, new bool[] { false, false, false, false });
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else if (numSubdomains == 8)
+            {
+                var regions = new PolygonalRegion[8];
+                double boundaryY = 5.0;
+                double leftBoundary1X = 3.5, leftBoundary2X = 7.0, leftBoundary3X = 10.5;
+                double rightBoundary1X = 9.5, rightBoundary2X = 13.0, rightBoundary3X = 16.5;
 
-            //var vertices1 = new CartesianPoint2D[4];
-            //vertices1[0] = new CartesianPoint2D(0.0, h);
-            //vertices1[1] = new CartesianPoint2D(0.0, 0.0);
-            //vertices1[2] = new CartesianPoint2D(L / 5.0, 0.0);
-            //vertices1[3] = new CartesianPoint2D(L / 3.0, h);
-            //var boundaries1 = new HashSet<LineSegment2D>();
-            //boundaries1.Add(new LineSegment2D(vertices1[2], vertices1[3]));
-            //regions[0] = new PolygonalRegion(vertices1, boundaries1);
+                // Left crack
+                regions[0] = DecomposeRectangle(minX, minY, leftBoundary1X, boundaryY, 
+                    new bool[] { false, true, true, false });
+                regions[1] = DecomposeRectangle(leftBoundary1X, minY, leftBoundary2X, boundaryY, 
+                    new bool[] { false, true, true, true });
+                regions[2] = DecomposeRectangle(leftBoundary2X, minY, leftBoundary3X, boundaryY,
+                    new bool[] { false, true, true, true });
+                regions[3] = DecomposeRectangle(leftBoundary3X, minY, maxX, boundaryY,
+                    new bool[] { false, false, true, true });
 
-            //var vertices2 = new CartesianPoint2D[4];
-            //vertices2[0] = new CartesianPoint2D(L / 3.0, h);
-            //vertices2[1] = new CartesianPoint2D(L / 5.0, 0.0);
-            //vertices2[2] = new CartesianPoint2D(L / 2.0, 0.0);
-            //vertices2[3] = new CartesianPoint2D(L / 2.0, h);
-            //var boundaries2 = new HashSet<LineSegment2D>();
-            //boundaries2.Add(new LineSegment2D(vertices2[0], vertices2[1]));
-            //boundaries2.Add(new LineSegment2D(vertices2[2], vertices2[3]));
-            //regions[1] = new PolygonalRegion(vertices2, boundaries2);
+                // Right crack
+                regions[4] = DecomposeRectangle(minX, boundaryY, rightBoundary1X, maxY,
+                    new bool[] { true, true, false, false });
+                regions[5] = DecomposeRectangle(rightBoundary1X, boundaryY, rightBoundary2X, maxY,
+                    new bool[] { true, true, false, true });
+                regions[6] = DecomposeRectangle(rightBoundary2X, boundaryY, rightBoundary3X, maxY,
+                    new bool[] { true, true, false, true });
+                regions[7] = DecomposeRectangle(rightBoundary3X, boundaryY, maxX, maxY,
+                    new bool[] { true, false, false, true });
 
-            //var vertices3 = new CartesianPoint2D[4];
-            //vertices3[0] = new CartesianPoint2D(L / 2.0, h);
-            //vertices3[1] = new CartesianPoint2D(L / 2.0, 0.0);
-            //vertices3[2] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
-            //vertices3[3] = new CartesianPoint2D(2.0 * L / 3.0, h);
-            //var boundaries3 = new HashSet<LineSegment2D>();
-            //boundaries3.Add(new LineSegment2D(vertices3[0], vertices3[1]));
-            //boundaries3.Add(new LineSegment2D(vertices3[2], vertices3[3]));
-            //regions[2] = new PolygonalRegion(vertices3, boundaries3);
+                Decomposer = new GuideDecomposer(regions, mesh);
+            }
+            else throw new NotImplementedException();
+        }
 
-            //var vertices4 = new CartesianPoint2D[4];
-            //vertices4[0] = new CartesianPoint2D(2.0 * L / 3.0, h);
-            //vertices4[1] = new CartesianPoint2D(3.0 * L / 4.0, 0.0);
-            //vertices4[2] = new CartesianPoint2D(L, 0.0);
-            //vertices4[3] = new CartesianPoint2D(L, h);
-            //var boundaries4 = new HashSet<LineSegment2D>();
-            //boundaries4.Add(new LineSegment2D(vertices4[0], vertices4[1]));
-            //regions[3] = new PolygonalRegion(vertices4, boundaries4);
-
-            //Decomposer = new GuideDecomposer(regions, mesh);
+        private PolygonalRegion DecomposeRectangle(double x1, double y1, double x2, double y2, bool[] areBoundaries)
+        {
+            var vertices = new CartesianPoint2D[4];
+            vertices[0] = new CartesianPoint2D(x1, y1);
+            vertices[1] = new CartesianPoint2D(x2, y1);
+            vertices[2] = new CartesianPoint2D(x2, y2);
+            vertices[3] = new CartesianPoint2D(x1, y2);
+            var boundaries = new HashSet<LineSegment2D>();
+            for (int i = 0; i < areBoundaries.Length; ++i)
+            {
+                if (areBoundaries[i])
+                {
+                    CartesianPoint2D start = vertices[i];
+                    CartesianPoint2D end = vertices[(i + 1) % vertices.Length];
+                    boundaries.Add(new LineSegment2D(start, end));
+                }
+            }
+            return new PolygonalRegion(vertices, boundaries);
         }
 
         private void InitializeCrack()
@@ -500,15 +520,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //EnrichedArea = Model.Nodes.Where(node => (node.Y >= infCrackHeight) && (node.Y <= supCrackHeight)).ToList();
             PossibleEnrichments = new Dictionary<IEnrichmentItem2D, IReadOnlyList<XNode2D>>();
 
-            var leftEnrichedNodes = Model.Nodes;
-            //var leftEnrichedNodes = Model.Nodes.Where(node =>
-            //    (node.X >= leftMinX) && (node.X <= leftMaxX) && (node.Y >= leftMinY) && (node.Y <= leftMaxY)).ToList();
+            //var leftEnrichedNodes = Model.Nodes;
+            var leftEnrichedNodes = Model.Nodes.Where(node =>
+                (node.X >= leftMinX) && (node.X <= leftMaxX) && (node.Y >= leftMinY) && (node.Y <= leftMaxY)).ToList();
             PossibleEnrichments.Add(leftCrack.CrackBodyEnrichment, leftEnrichedNodes);
             PossibleEnrichments.Add(leftCrack.CrackTipEnrichments, leftEnrichedNodes);
 
-            var rightEnrichedNodes = Model.Nodes;
-            //var rightEnrichedNodes = Model.Nodes.Where(node =>
-            //    (node.X >= rightMinX) && (node.X <= rightMaxX) && (node.Y >= rightMinY) && (node.Y <= rightMaxY)).ToList();
+            //var rightEnrichedNodes = Model.Nodes;
+            var rightEnrichedNodes = Model.Nodes.Where(node =>
+                (node.X >= rightMinX) && (node.X <= rightMaxX) && (node.Y >= rightMinY) && (node.Y <= rightMaxY)).ToList();
             PossibleEnrichments.Add(rightCrack.CrackBodyEnrichment, rightEnrichedNodes);
             PossibleEnrichments.Add(rightCrack.CrackTipEnrichments, rightEnrichedNodes);
         }
@@ -583,6 +603,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// </summary>
             public int MaxIterations { get; set; } = int.MaxValue;
 
+            public int NumSubdomains { get; set; } = 1;
+
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
@@ -596,7 +618,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 return new Holes(meshPath, growthLength, BC, JintegralRadiusOverElementSize, TipEnrichmentRadius,
                     LeftLsmPlotDirectory, RightLsmPlotDirectory, leftPropagationPath, rightPropagationPath, WritePropagation, 
-                    MaxIterations, HeavisideEnrichmentTolerance);
+                    MaxIterations, HeavisideEnrichmentTolerance, NumSubdomains);
             }
         }
 

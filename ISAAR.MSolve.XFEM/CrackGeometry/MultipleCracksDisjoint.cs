@@ -16,7 +16,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    class MultipleCracksDisjoint: ICrackDescription
+    class MultipleCracksDisjoint : ICrackDescription
     {
         private readonly IReadOnlyList<TrackingExteriorCrackLSM> cracks;
 
@@ -158,6 +158,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 return enrichments;
             }
         }
+
+        public IReadOnlyList<ISingleCrack> SingleCracks { get {return cracks;} }
 
         public IReadOnlyList<IPropagator> GetCrackTipPropagators()
         {

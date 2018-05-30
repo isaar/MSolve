@@ -58,14 +58,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public static (Matrix L, Matrix Q) CreateContinuityEquationsPreconditioners(MenkBordasSystem.Dimensions dimensions,
              IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B, IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe)
         {
-            if (dimensions.NumSubdomains < 2) throw new ArgumentException("There must be at least 2 subdomains.");
+            if (B.Count < 2 ) throw new ArgumentException("There must be at least 2 subdomains.");
 
             // Matrix that will undergo QR:
             // (B*Pe)^T = [B1*inv(U1) B2*inv(U2) ...]^T = [inv(L1)*B1^T inv(L2)*B2^T ...]
             // Dims: B = numEquations -by- numDofsEnr, Pe = numDofsEnr -by- numDofsEnr, (B*Pe)^T = numDofsEnr -by- numEquations
             var BPeTransp = Matrix.CreateZero(dimensions.NumDofsEnr, dimensions.NumEquations);
 
-            foreach (var sub in dimensions.Subdomains)
+            foreach (var sub in B.Keys)
             {
                 // Contribution to the matrix that will undergo QR
                 Matrix contribution = Pe[sub].ForwardSubstitution(B[sub].CopyToFullMatrix(true));

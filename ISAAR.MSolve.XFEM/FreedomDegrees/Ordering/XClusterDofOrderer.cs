@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
@@ -18,8 +19,8 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         private readonly DofTable<DisplacementDof> constrainedDofs;
         private readonly DofTable<DisplacementDof> standardDofs;
 
-        private XClusterDofOrderer(XCluster2D cluster, int numConstrainedDofs, DofTable<DisplacementDof> constrainedDofs, 
-            int numStandardDofs, DofTable<DisplacementDof> standardDofs)
+        private XClusterDofOrderer(XCluster2D cluster, int numConstrainedDofs,
+            DofTable<DisplacementDof> constrainedDofs, int numStandardDofs, DofTable<DisplacementDof> standardDofs)
         {
             this.cluster = cluster;
             this.NumConstrainedDofs = numConstrainedDofs;
@@ -55,12 +56,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
         }
 
-        public void OrderSubdomainDofs(SortedSet<XSubdomain2D> enrichedSubdomains)
+        public void OrderSubdomainDofs(SortedSet<XSubdomain2D> enrichedSubdomains, ICrackDescription crack)
         {
             int numTotalDofs = NumStandardDofs;
             foreach (var subdomain in cluster.Subdomains)
             {
-                subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(subdomain, numTotalDofs);
+                subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(crack, subdomain, numTotalDofs);
                 numTotalDofs += subdomain.DofOrderer.NumEnrichedDofs;
             }
         }
@@ -106,7 +107,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         public Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalFreeVector)
         {
             XSubdomain2D subdomain = cluster.FindSubdomainOfElement(element);
-            return subdomain.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, globalFreeVector);
+            return subdomain.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(cluster, element, globalFreeVector);
         }
 
         public ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution)

@@ -64,6 +64,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         IReadOnlyList<IEnrichmentItem2D> Enrichments { get; }
         BiMesh2D Mesh { get; } //TODO: abstract this
 
+        IReadOnlyList<ISingleCrack> SingleCracks { get; } //Not sure about this one
+
         IReadOnlyList<ICartesianPoint2D> GetCrackTips();
         IReadOnlyList<IPropagator> GetCrackTipPropagators();
         void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements);
