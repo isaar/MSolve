@@ -191,7 +191,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             }
             Console.WriteLine();
             Console.WriteLine("Crack growth angles:");
-            foreach (var angle in crack.GetCrackTipPropagators()[0].Logger.GrowthAngles)
+            foreach (var angle in crack.CrackTipPropagators[crack.CrackTips[0]].Logger.GrowthAngles)
             {
                 Console.WriteLine(angle);
             }

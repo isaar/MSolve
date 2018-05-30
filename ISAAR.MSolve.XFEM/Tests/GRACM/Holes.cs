@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 using (var writer = new StreamWriter(leftPropagationPath))
                 {
-                    PropagationLogger logger = leftCrack.GetCrackTipPropagators()[0].Logger;
+                    PropagationLogger logger = leftCrack.CrackTipPropagators[leftCrack.CrackTips[0]].Logger;
                     int numIterations = logger.GrowthAngles.Count;
                     writer.WriteLine(numIterations);
                     for (int i = 0; i < numIterations; ++i)
@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 }
                 using (var writer = new StreamWriter(rightPropagationPath))
                 {
-                    PropagationLogger logger = rightCrack.GetCrackTipPropagators()[0].Logger;
+                    PropagationLogger logger = rightCrack.CrackTipPropagators[rightCrack.CrackTips[0]].Logger;
                     int numIterations = logger.GrowthAngles.Count;
                     writer.WriteLine(numIterations);
                     for (int i = 0; i < numIterations; ++i)
