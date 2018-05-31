@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             builder.BC = BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY;
             builder.NumSubdomains = 8;
 
-            builder.MaxIterations = 14;
+            builder.MaxIterations = 10;
             builder.LeftLsmPlotDirectory = plotLSM ? plotPathLeft : null;
             builder.RightLsmPlotDirectory = plotLSM ? plotPathRight : null;
 
