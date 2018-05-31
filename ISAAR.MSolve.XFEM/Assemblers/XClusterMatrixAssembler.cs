@@ -133,6 +133,7 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             foreach (var nodeSubdomains in nodeMembership) enrichedSubdomains.UnionWith(nodeSubdomains.Value);
 
             ContinuityEquations eqs = FindContinuityEquations(nodeMembership);
+            Console.WriteLine("Number of continuity equations = " + eqs.NumEquations);
             if (eqs.NumEquations == 0) return new Dictionary<XSubdomain2D, SignedBooleanMatrix>(); // Not sure if possible
 
             //TODO: numCols could have been computed during matrix subdomain matrix assembly.

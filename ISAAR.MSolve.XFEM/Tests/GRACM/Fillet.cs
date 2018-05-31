@@ -340,7 +340,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 boundaries3.Add(new LineSegment2D(vertices3[3], vertices3[1]));
                 regions[2] = new PolygonalRegion(vertices3, boundaries3);
 
-                Decomposer = new GuideDecomposer(regions, mesh);
+                //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new TipAdaptiveDecomposer(mesh, regions, crack, new GuideDecomposer(regions, mesh));
             }
             else throw new NotImplementedException();
         }

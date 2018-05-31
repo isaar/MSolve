@@ -416,7 +416,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 regions[7] = DecomposeRectangle(rightBoundary3X, boundaryY, maxX, maxY,
                     new bool[] { true, false, false, true });
 
-                Decomposer = new GuideDecomposer(regions, mesh);
+                //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new TipAdaptiveDecomposer(mesh, regions, Crack, new GuideDecomposer(regions, mesh));
             }
             else throw new NotImplementedException();
         }

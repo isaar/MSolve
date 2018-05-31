@@ -176,6 +176,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 {
                     DOKSymmetricColMajor kee = Kee[subdomain.Key];
 
+                    #region debug
+                    //for (int i = 0; i < kee.NumColumns; ++i)
+                    //{
+                    //    if (kee[i, i] == 0.0)
+                    //    {
+                    //        Console.WriteLine($"Singular kee at index {i}");
+                    //    }
+                    //}
+                    #endregion
+
                     // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
                     Pe.Add(subdomain.Key, MenkBordasPreconditioner.CreateEnrichedPreconditioner(kee)); 
 

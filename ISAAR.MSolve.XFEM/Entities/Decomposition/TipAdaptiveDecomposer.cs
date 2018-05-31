@@ -11,12 +11,12 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 {
     class TipAdaptiveDecomposer: IDomainDecomposer //TODO: extend it to more than one tips/cracks
     {
-        private readonly ISingleCrack crack;
+        private readonly ICrackDescription crack;
         private readonly BiMesh2D mesh;
         private readonly IReadOnlyList<IRegion2D> regions;
         private IDomainDecomposer initialDecomposer; //TODO: this should be discarded once used.
 
-        public TipAdaptiveDecomposer(BiMesh2D mesh, IReadOnlyList<IRegion2D> regions, ISingleCrack crack,
+        public TipAdaptiveDecomposer(BiMesh2D mesh, IReadOnlyList<IRegion2D> regions, ICrackDescription crack,
             IDomainDecomposer initialDecomposer)
         {
             this.mesh = mesh;
@@ -34,48 +34,53 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 
         public void UpdateSubdomains(XCluster2D cluster)
         {
-            // Find the subdomain that contains the crack tip
-            ICartesianPoint2D tip = crack.CrackTips[0];
-            XContinuumElement2D tipElement = crack.CrackTipElements[tip][0]; // If there are more neighboring ones, we don't need them
-            XSubdomain2D tipSubdomain = cluster.FindSubdomainOfElement(tipElement);
-
-            // Find all elements that have at least one tip enriched node
-            //TODO: this can be merged with the next subtask
-            var tipEnrichedElements = new HashSet<XContinuumElement2D>();
-            ISet<XNode2D> tipNodes = crack.CrackTipNodesNew[crack.CrackTipEnrichments];
-            foreach (XNode2D node in tipNodes) tipEnrichedElements.UnionWith(mesh.FindElementsWithNode(node));
-
-            // Find which of these elements must be removed and from which subdomains
-            var removedElements = new Dictionary<XContinuumElement2D, XSubdomain2D>();
-            foreach (var element in tipEnrichedElements)
+            //TODO: this can be done without accessing the single crack. We just need to access the same tip element and nodes
+            foreach (ISingleCrack singleCrack in crack.SingleCracks)
             {
-                if (!tipSubdomain.Elements.Contains(element))
+                // Find the subdomain that contains the crack tip
+                ICartesianPoint2D tip = singleCrack.CrackTips[0];
+                XContinuumElement2D tipElement = singleCrack.CrackTipElements[tip][0]; // If there are more neighboring ones, we don't need them
+                XSubdomain2D tipSubdomain = cluster.FindSubdomainOfElement(tipElement);
+
+                // Find all elements that have at least one tip enriched node
+                //TODO: this can be merged with the next subtask
+                var tipEnrichedElements = new HashSet<XContinuumElement2D>();
+                ISet<XNode2D> tipNodes = singleCrack.CrackTipNodesNew[singleCrack.CrackTipEnrichments];
+                foreach (XNode2D node in tipNodes) tipEnrichedElements.UnionWith(mesh.FindElementsWithNode(node));
+
+                // Find which of these elements must be removed and from which subdomains
+                var removedElements = new Dictionary<XContinuumElement2D, XSubdomain2D>();
+                foreach (var element in tipEnrichedElements)
                 {
-                    XSubdomain2D previousSubdomain = cluster.FindSubdomainOfElement(element);
-                    removedElements.Add(element, previousSubdomain);
+                    if (!tipSubdomain.Elements.Contains(element))
+                    {
+                        XSubdomain2D previousSubdomain = cluster.FindSubdomainOfElement(element);
+                        removedElements.Add(element, previousSubdomain);
+                    }
                 }
+                if (removedElements.Count == 0) continue;
+
+                // Find the old subdomains of the nodes of the elements to be removed, before moving the elements
+                Dictionary<XNode2D, HashSet<XSubdomain2D>> oldNodeMembership = FindOldNodeMembership(cluster, removedElements);
+
+                // Move these elements to the subdomain that contains the crack tip
+                //var modifiedSubdomains = new HashSet<XSubdomain2D>();
+                foreach (var elementSubdomainPair in removedElements)
+                {
+                    XContinuumElement2D element = elementSubdomainPair.Key;
+                    XSubdomain2D oldSubdomain = elementSubdomainPair.Value;
+                    oldSubdomain.Elements.Remove(element);
+                    tipSubdomain.Elements.Add(element);
+                    //modifiedSubdomains.Add(previousSubdomain);
+                    //modifiedSubdomains.Add(tipSubdomain); //TODO: this only needs to be added once
+                }
+
+                // Move their nodes to their new subdomains, which also updates the boundaries.
+                RemoveNodesFromSubdomains(oldNodeMembership);
+                Dictionary<XNode2D, HashSet<XSubdomain2D>> newNodeMembership =
+                    FindNewNodeMembership(cluster, oldNodeMembership.Keys);
+                AddNodesToSubdomains(newNodeMembership);
             }
-
-            // Find the old subdomains of the nodes of the elements to be removed, before moving the elements
-            Dictionary<XNode2D, HashSet<XSubdomain2D>> oldNodeMembership = FindOldNodeMembership(cluster, removedElements);
-
-            // Move these elements to the subdomain that contains the crack tip
-            //var modifiedSubdomains = new HashSet<XSubdomain2D>();
-            foreach (var elementSubdomainPair in removedElements)
-            {
-                XContinuumElement2D element = elementSubdomainPair.Key;
-                XSubdomain2D oldSubdomain = elementSubdomainPair.Value;
-                oldSubdomain.Elements.Remove(element);
-                tipSubdomain.Elements.Add(element);
-                //modifiedSubdomains.Add(previousSubdomain);
-                //modifiedSubdomains.Add(tipSubdomain); //TODO: this only needs to be added once
-            }
-
-            // Move their nodes to their new subdomains, which also updates the boundaries.
-            RemoveNodesFromSubdomains(oldNodeMembership);
-            Dictionary<XNode2D, HashSet<XSubdomain2D>> newNodeMembership = 
-                FindNewNodeMembership(cluster, oldNodeMembership.Keys);
-            AddNodesToSubdomains(newNodeMembership);
         }
 
         // TODO: perhaps adding and deleting must be done simultaneously with building the node memberships
