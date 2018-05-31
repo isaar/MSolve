@@ -72,24 +72,6 @@ namespace ISAAR.MSolve.Numerical.Matrices
             return rotationMatrix;
         }
 
-        public static Matrix2D Subtraction(Matrix2D A, Matrix2D B)
-        {
-            if (A.Columns != B.Columns) throw new ArgumentException("Matrix sizes mismatch.");
-            if (A.Columns != B.Columns) throw new ArgumentException("Matrix sizes mismatch.");
-            double[,] newMatrix = new double[A.Rows, B.Columns];
-            int rowsNumber = A.Rows;
-            int columnsNumber = A.Columns;
-            //var newMatrix = new Matrix2D(rowsNumber, columnsNumber);
-            for (int i = 0; i < rowsNumber; i++)
-            {
-                for (int j = 0; j < columnsNumber; j++)
-                {
-                    newMatrix[i, j] = A[i, j] - B[i, j];
-                }
-            }
-            return new Matrix2D(newMatrix); // newMatrix; //
-        }
-
         private RotationMatrix()
         {
             // DO Nothing
