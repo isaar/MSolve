@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             }
         }
 
-        public static IDecomposer DefinePartition(Model2D model)
+        public static IDomainDecomposer DefinePartition(Model2D model)
         {
             double tol = 1e-6;
             var regions = new RectangularRegion[4];

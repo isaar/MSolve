@@ -32,12 +32,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         private readonly ICrackDescription crack;
         private readonly Model2D model;
-        private readonly IDecomposer decomposer;
+        private readonly IDomainDecomposer decomposer;
         private readonly int maxIterations;
         private readonly double tolerance;
         private readonly string subdomainsDirectory;
 
         private XCluster2D cluster;
+        private int iteration;
         private MenkBordasSystem system;
 
         /// <summary>
@@ -45,8 +46,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, ICrackDescription crack, IDecomposer decomposer, int maxIterations, double tolerance, 
-            string subdomainsDirectory = null)
+        public MenkBordasSolver(Model2D model, ICrackDescription crack, IDomainDecomposer decomposer, int maxIterations,
+            double tolerance, string subdomainsDirectory = null)
         {
             this.model = model;
             this.crack = crack;
@@ -68,12 +69,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         public void Initialize() //TODO: I should also set up the domain decomposition, irregardless of current enrichments.
         {
+            iteration = 0;
+
             //var watch = new Stopwatch();
             //watch.Start();
 
             // Partion the domain into subdomains
             cluster = decomposer.CreateSubdomains();
-            if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
+            //if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
             // Standard dofs are not divided into subdomains and will not change over time.
             cluster.OrderStandardDofs(model);
@@ -104,9 +107,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void Solve() //TODO: only update the subdomains with at least 1 modified element
         {
+            ++iteration;
+
             //var watch = new Stopwatch();
             //watch.Start();
 
+            // Possibly update the domain decomposition
+            decomposer.UpdateSubdomains(cluster);
+            if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
             // TODO: track which subdomains have enriched dofs and which have modified elements
             system.ClearSubdomains();
@@ -251,13 +259,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return denseX;
         }
 
-        private static void WriteDecomposition(string subdomainsDirectory, XCluster2D cluster)
+        private void WriteDecomposition(string subdomainsDirectory, XCluster2D cluster)
         {
             var writer = new DomainDecompositionWriter();
 
             //writer.WriteRegions(directory + "regions.vtk", regions);
-            writer.WriteSubdomainElements(subdomainsDirectory + "\\subdomains.vtk", cluster.Subdomains);
-            writer.WriteBoundaryNodes(subdomainsDirectory + "\\boundaryNodes", cluster.Subdomains);
+            writer.WriteSubdomainElements(subdomainsDirectory + $"\\subdomains_{iteration-1}.vtk", cluster.Subdomains);
+            writer.WriteBoundaryNodes(subdomainsDirectory + $"\\boundaryNodes_{iteration-1}.vtk", cluster.Subdomains);
         }
     }
 }

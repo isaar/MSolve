@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Exceptions;
 namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 {
     // Can be abstracted for any vertices, cells
-    class NonOverlappingRegionDecomposer2D: IDecomposer
+    class NonOverlappingRegionDecomposer2D: IDomainDecomposer
     {
         private readonly IReadOnlyList<XNode2D> nodes;
         private readonly IReadOnlyList<XContinuumElement2D> elements;
@@ -28,6 +28,11 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             var cluster = new XCluster2D();
             cluster.AddSubdomains(subdomains);
             return cluster;
+        }
+
+        public void UpdateSubdomains(XCluster2D cluster)
+        {
+            // Do nothing
         }
 
         private void AddElementsToSubdomains(IReadOnlyList<XContinuumElement2D> elements, XSubdomain2D[] subdomains)

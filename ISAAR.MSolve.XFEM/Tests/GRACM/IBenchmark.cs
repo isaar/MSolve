@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         string Name { get; }
 
         ICrackDescription Crack { get; }
-        IDecomposer Decomposer { get; }
+        IDomainDecomposer Decomposer { get; }
 
         Model2D Model { get; }
         string PlotDirectory { get; }

@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
     /// Automatic domain decomposition given initial regions as guides. Since the boundaries between these regions may intersect
     /// elements, the final decomposition will have different boundaries.
     /// </summary>
-    class GuideDecomposer: IDecomposer
+    class GuideDecomposer: IDomainDecomposer
     {
         private readonly int numRegions;
         private readonly IRegion2D[] guides;
@@ -42,6 +42,11 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
                 cluster.AddSubdomain(new XSubdomain2D(i, subdomains[i], internalNodes[i], boundaryNodes[i]));
             }
             return cluster;
+        }
+
+        public void UpdateSubdomains(XCluster2D cluster)
+        {
+            // Do nothing
         }
 
         private int DecideElementRegion(XContinuumElement2D element, HashSet<XNode2D>[] internalNodes,

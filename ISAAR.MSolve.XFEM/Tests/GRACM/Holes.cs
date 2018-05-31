@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         public ICrackDescription Crack { get; private set; }
 
-        public IDecomposer Decomposer { get; private set; }
+        public IDomainDecomposer Decomposer { get; private set; }
 
         public IReadOnlyList<XNode2D> EnrichedArea { get; private set; }
 

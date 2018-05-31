@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         public ICrackDescription Crack { get { return crack; } }
 
-        public IDecomposer Decomposer { get; private set; }
+        public IDomainDecomposer Decomposer { get; private set; }
 
         public string Name { get { return "GRACM Slope"; } }
 
