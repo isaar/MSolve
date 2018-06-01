@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // Solvers
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
-            var solver = CreateMenkBordasSolver(benchmark);
+            var solver = CreateMenkBordasSolverCholesky(benchmark);
             //var solver = CreatePCGSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
             benchmark.Analyze(solver);
@@ -98,10 +98,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             return new CholeskyAMDSolver(benchmark.Model);
         }
 
-        private static ISolver CreateMenkBordasSolver(IBenchmark benchmark)
+        private static ISolver CreateMenkBordasSolverCholesky(IBenchmark benchmark)
         {
             return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
-                benchmark.PlotDirectory);
+                new StandardPreconditionerCholesky.Builder(), benchmark.PlotDirectory);
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

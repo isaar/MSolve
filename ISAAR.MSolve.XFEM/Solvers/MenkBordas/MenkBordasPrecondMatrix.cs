@@ -19,14 +19,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly MenkBordasSystem.Dimensions dim;
         private readonly IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kes;
         private readonly IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kse;
-        private readonly CholeskySuiteSparse Ps;
+        private readonly IStandardPreconditioner Ps;
         private readonly IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
         private readonly Matrix L;
         private readonly Matrix Q;
 
         public MenkBordasPrecondMatrix(MenkBordasSystem.Dimensions dimensions,
             IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kes, IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kse,
-            CholeskySuiteSparse Ps, IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe, Matrix L, Matrix Q)
+            IStandardPreconditioner Ps, IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe, Matrix L, Matrix Q)
         {
             this.dim = dimensions;
             this.Kes = Kes;
@@ -42,8 +42,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var y = Vector.CreateZero(dim.NumDofsAll);
             var xs = x.Slice(0, dim.NumDofsStd);
 
-            // ys = inv(Us^T) * Kss * inv(Us) * xs
-            Vector ys = xs.Copy(); // For cholesky preconditioner
+            // ys = Ps^T * Kss * Ps * xs
+            Vector ys = Ps.PreconditionedMatrixTimesVector(xs);
             //Vector ys = prec.Ps.ForwardSubstitution(Kss.MultiplyRight(prec.Ps.BackSubstitution(xs))); // For other preconditioners
 
             if (Q != null) //TODO: something more explicit is needed
@@ -63,11 +63,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 var xe = x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
 
-                // ys += inv(Us^T) * Kse * inv(Ue) * xe
-                ys.AddIntoThis(Ps.ForwardSubstitution(Kse[sub].MultiplyRight(Pe[sub].BackSubstitution(xe))));
+                // ys += Ps^T * Kse * inv(Ue) * xe
+                ys.AddIntoThis(Ps.PreconditionerTimesVector(Kse[sub].MultiplyRight(Pe[sub].BackSubstitution(xe)), true));
 
-                // ye = inv(Ue^T) * Kes * inv(Us) * xs + I * xe
-                Vector ye = Pe[sub].ForwardSubstitution(Kes[sub].MultiplyRight(Ps.BackSubstitution(xs)));
+                // ye = inv(Ue^T) * Kes * Ps * xs + I * xe
+                Vector ye = Pe[sub].ForwardSubstitution(Kes[sub].MultiplyRight(Ps.PreconditionerTimesVector(xs, false)));
                 ye.AddIntoThis(xe);
                 y.AddSubvector(ye, dim.SubdomainStarts[sub]);
             }
@@ -81,20 +81,20 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 var y = Vector.CreateZero(dim.NumDofsAll);
 
-                // ys = Ps * xs = inv(Us^T) * xs
-                Vector ys = Ps.ForwardSubstitution(x.Slice(0, dim.NumDofsStd));
+                // ys = Ps^T * xs
+                Vector ys = Ps.PreconditionerTimesVector(x.Slice(0, dim.NumDofsStd), true);
                 y.SetSubvector(ys, 0);
 
                 foreach (var sub in dim.Subdomains)
                 {
-                    // ye = Pe * xe = inv(Ue^T) * xe
+                    // ye = Pe^T * xe = inv(Ue^T) * xe
                     Vector ye = Pe[sub].ForwardSubstitution(x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
 
                 if (L != null) //TODO: something more explicit is needed
                 {
-                    // yc = inv(L^T) * xc
+                    // yc = inv(L) * xc
                     Vector yc = L.Invert() * x.Slice(dim.EquationsStart, dim.NumDofsAll); //TODO: I MUST do optimizations here
                     y.SetSubvector(yc, dim.EquationsStart);
                 }
@@ -105,8 +105,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 var y = Vector.CreateZero(dim.NumDofsAll);
 
-                // ys = Ps * xs = inv(Us) * xs
-                Vector ys = Ps.BackSubstitution(x.Slice(0, dim.NumDofsStd));
+                // ys = Ps * xs
+                Vector ys = Ps.PreconditionerTimesVector(x.Slice(0, dim.NumDofsStd), false);
                 y.SetSubvector(ys, 0);
 
                 foreach (var sub in dim.Subdomains)

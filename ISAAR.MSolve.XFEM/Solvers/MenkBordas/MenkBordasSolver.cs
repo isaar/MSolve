@@ -36,12 +36,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly int maxIterations;
         private readonly double tolerance;
         private readonly string subdomainsDirectory;
+        private readonly MenkBordasSystem system;
 
         private XCluster2D cluster;
         private ISet<XSubdomain2D> enrichedSubdomains;
         private HashSet<XSubdomain2D> tipEnrichedSubdomains;
         private int iteration;
-        private MenkBordasSystem system;
 
         /// <summary>
         /// Only entries related to constrained standard dofs are stored. These will not be modifed as the crack grows.
@@ -49,13 +49,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private Vector Uc;
 
         public MenkBordasSolver(Model2D model, ICrackDescription crack, IDomainDecomposer decomposer, int maxIterations,
-            double tolerance, string subdomainsDirectory = null)
+            double tolerance, IStandardPreconditionerBuilder PsBuilder, string subdomainsDirectory = null)
         {
             this.model = model;
             this.crack = crack;
             this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
+            this.system = new MenkBordasSystem(PsBuilder);
+
             this.subdomainsDirectory = subdomainsDirectory;
             Logger = new SolverLogger("MenkBordasSolver");
         }
@@ -107,7 +109,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Preconditioner for Kss
             watch.Restart();
-            this.system = new MenkBordasSystem(globalKss, bs);
+            system.ProcessStandardDofs(globalKss, bs);
             watch.Stop();
             Logger.LogDuration(iteration, "standard preconditioner", watch.ElapsedMilliseconds);
         }

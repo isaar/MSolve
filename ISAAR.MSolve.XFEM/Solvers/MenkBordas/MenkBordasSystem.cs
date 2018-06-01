@@ -22,12 +22,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     //TODO: this class should manage all matrices and vectors while they update. 
     class MenkBordasSystem //TODO: IDisposable. Also dispose of modified matrices and factorizations.
     {
-        public MenkBordasSystem(DOKSymmetricColMajor Kss, Vector bs)
+        public MenkBordasSystem(IStandardPreconditionerBuilder PsBuilder)
         {
-            this.numDofsStd = Kss.NumRows;
-            this.bs = bs;
-            this.Ps = MenkBordasPreconditioner.CreateStandardPreconditioner(Kss);
-            Kss.Clear(); // No longer needed.
+            this.PsBuilder = PsBuilder;
 
             this.subdomains = new SortedSet<XSubdomain2D>();
             this.modifiedSubdomains = new SortedDictionary<XSubdomain2D, bool>();
@@ -38,9 +35,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.Pe = new SortedDictionary<XSubdomain2D, CholeskySuiteSparse>();
         }
 
-        private readonly int numDofsStd;
-        private readonly CholeskySuiteSparse Ps; 
-        private readonly Vector bs;
+        private readonly IStandardPreconditionerBuilder PsBuilder;
+
+        private int numDofsStd;
+        private IStandardPreconditioner Ps; 
+        private Vector bs;
         private readonly SortedSet<XSubdomain2D> subdomains;
         private readonly SortedDictionary<XSubdomain2D, bool> modifiedSubdomains;
         private readonly SortedDictionary<XSubdomain2D, DOKSymmetricColMajor> Kee; //TODO: only save the factorizations
@@ -61,6 +60,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             B = null;
             //be.Clear();
             Pe.Clear();
+        }
+
+        public void ProcessStandardDofs(DOKSymmetricColMajor Kss, Vector bs)
+        {
+            this.numDofsStd = Kss.NumRows;
+            this.bs = bs;
+            this.Ps = PsBuilder.Build(Kss);
         }
 
         public void SetBooleanMatrices(IDictionary<XSubdomain2D, SignedBooleanMatrix> B) // TODO: allow some to not change

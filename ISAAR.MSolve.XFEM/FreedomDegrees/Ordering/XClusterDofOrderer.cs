@@ -255,6 +255,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             elementToGlobalConstrainedDofs = globalConstrainedDofs;
         }
 
+        public void ReorderStandardDofs(IReadOnlyList<int> permutation, bool oldToNew)
+        {
+            standardDofs.Reorder(permutation, oldToNew);
+        }
+
         /// <summary>
         /// Renumbers the dof indices according th the given permutation vector and direction. 
         /// If (<paramref name="oldToNew"/> == true), then newIndex[dof] = <paramref name="permutation"/>[oldIndex[dof]].

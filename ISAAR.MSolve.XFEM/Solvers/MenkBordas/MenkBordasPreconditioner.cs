@@ -25,6 +25,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     //TODO: apply AMD before factorizing. Perhaps this should be done by the solver itself, so that the dofOrders are also updated.
     static class MenkBordasPreconditioner
     {
+        // TODO: delete this
         public static CholeskySuiteSparse CreateStandardPreconditioner(DOKSymmetricColMajor Kss)
         {
             // Standard preconditioner = cholesky factor U
