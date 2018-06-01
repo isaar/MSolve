@@ -35,7 +35,10 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             get
             {
                 int count = 0;
-                foreach (var subdomain in cluster.Subdomains) count += subdomain.DofOrderer.NumEnrichedDofs;
+                foreach (var subdomain in cluster.Subdomains)
+                {
+                    if (subdomain.DofOrderer != null) count += subdomain.DofOrderer.NumEnrichedDofs;
+                }
                 return count;
             }
         }
@@ -56,12 +59,17 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
         }
 
-        public void OrderSubdomainDofs(SortedSet<XSubdomain2D> enrichedSubdomains, ICrackDescription crack)
+        public void OrderSubdomainDofs(ISet<XSubdomain2D> enrichedSubdomains, ISet<XSubdomain2D> modifiedSubdomains, 
+            ICrackDescription crack)
         {
             int numTotalDofs = NumStandardDofs;
-            foreach (var subdomain in cluster.Subdomains)
+            foreach (var subdomain in enrichedSubdomains)
             {
-                subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(crack, subdomain, numTotalDofs);
+                if (modifiedSubdomains.Contains(subdomain))
+                {
+                    subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(crack, subdomain);
+                }
+                subdomain.DofOrderer.FirstGlobalDofIndex = numTotalDofs;
                 numTotalDofs += subdomain.DofOrderer.NumEnrichedDofs;
             }
         }

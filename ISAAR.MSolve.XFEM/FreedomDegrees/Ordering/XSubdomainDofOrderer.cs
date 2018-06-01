@@ -22,38 +22,34 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     class XSubdomainDofOrderer
     {
         //TODO: perhaps the rows, columns of the 2 tables can be shared, for less memory and faster simultaneous iteration
-        private readonly DofTable<EnrichedDof> globalEnrichedDofs;
         private readonly DofTable<EnrichedDof> subdomainEnrichedDofs;
 
-        private XSubdomainDofOrderer(int numEnrichedDofs, int firstGlobalDofIndex, DofTable<EnrichedDof> subdomainEnrichedDofs,
-            DofTable<EnrichedDof> globalEnrichedDofs, 
-            Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularHeavisideEnrichments, 
+        private XSubdomainDofOrderer(int numEnrichedDofs, DofTable<EnrichedDof> subdomainEnrichedDofs,
+            Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularHeavisideEnrichments,
             Dictionary<XNode2D, ISet<EnrichedDof>> boundaryDofs)
         {
-            this.FirstGlobalDofIndex = firstGlobalDofIndex;
             this.NumEnrichedDofs = numEnrichedDofs;
             this.subdomainEnrichedDofs = subdomainEnrichedDofs;
-            this.globalEnrichedDofs = globalEnrichedDofs;
             this.SingularHeavisideEnrichments = singularHeavisideEnrichments;
             this.BoundaryDofs = boundaryDofs;
         }
 
         public IReadOnlyDictionary<XNode2D, ISet<EnrichedDof>> BoundaryDofs { get; }
-        public int FirstGlobalDofIndex { get; }
+        public int FirstGlobalDofIndex { get; set; } = -1; //TODO: Perhaps someone else should manage this altogether
         public int NumEnrichedDofs { get; }
+
         /// <summary>
         /// These are boundary nodes which are enriched with Heaviside, but all Gauss points in the intersection of their 
         /// nodal support with this subdomain lie on the same side of the crack. Thus H(x)-H(xNode) = 0 and the stiffness 
         /// matrices would have 0 rows. Thus they must be avoided during dof ordering and all other operations of this object.
         /// </summary>
-        public Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> SingularHeavisideEnrichments { get; } //TODO: this should probably be a HashSet
+        public Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> SingularHeavisideEnrichments { get; }
 
 
-        public static XSubdomainDofOrderer CreateNodeMajor(ICrackDescription crack, XSubdomain2D subdomain, 
-            int globalIndicesStart) //TODO: also add AMD reordering
+        public static XSubdomainDofOrderer CreateNodeMajor(ICrackDescription crack, XSubdomain2D subdomain) //TODO: also add AMD reordering
         {
             // Handle nodes with singular Heaviside enrichment
-            Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularityHeavisideEnrichments = 
+            Dictionary<XNode2D, HashSet<IEnrichmentItem2D>> singularityHeavisideEnrichments =
                 FindBoundaryNodesWithSingularHeaviside(crack, subdomain);
             if (singularityHeavisideEnrichments.Count > 0)
             {
@@ -66,7 +62,6 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             }
 
             var subdomainEnrichedDofs = new DofTable<EnrichedDof>();
-            var globalEnrichedDofs = new DofTable<EnrichedDof>();
             var boundaryDofs = new Dictionary<XNode2D, ISet<EnrichedDof>>();
             int dofCounter = 0;
 
@@ -77,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 {
                     boundaryDofs.Add(node, new HashSet<EnrichedDof>());
                 }
-                bool isSingularityNode = singularityHeavisideEnrichments.TryGetValue(node, 
+                bool isSingularityNode = singularityHeavisideEnrichments.TryGetValue(node,
                     out HashSet<IEnrichmentItem2D> singularEnrichments);
 
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
@@ -87,13 +82,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                     {
                         if (isboundaryNode) boundaryDofs[node].Add(dof);
                         subdomainEnrichedDofs[node, dof] = dofCounter;
-                        globalEnrichedDofs[node, dof] = globalIndicesStart + dofCounter; // Then I could just subtract the offest to go local -> global
                         ++dofCounter;
                     }
                 }
             }
-            return new XSubdomainDofOrderer(dofCounter, globalIndicesStart, subdomainEnrichedDofs, globalEnrichedDofs,
-                singularityHeavisideEnrichments, boundaryDofs);
+            return new XSubdomainDofOrderer(dofCounter, subdomainEnrichedDofs, singularityHeavisideEnrichments, boundaryDofs);
         }
 
         /// <summary>
@@ -112,29 +105,22 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             double[] elementVector = new double[elementDofs.EntryCount];
             foreach (XNode2D node in element.Nodes)
             {
-                bool isSingularityNode = SingularHeavisideEnrichments.TryGetValue(node, 
+                bool isSingularityNode = SingularHeavisideEnrichments.TryGetValue(node,
                     out HashSet<IEnrichmentItem2D> singularEnrichments);
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
+                    XSubdomainDofOrderer correctOrderer = this;
                     if (isSingularityNode && singularEnrichments.Contains(enrichment))
                     {
                         // Find global dof index from other subdomain, sine it is not stored here
-                        XSubdomain2D otherSubdomain = FindSubdomainWhereNodeEnrichmentIsNotSingular(cluster, node, enrichment);
-                        foreach (var dofType in enrichment.Dofs)
-                        {
-                            int elementDofIdx = elementDofs[node, dofType];
-                            int globalDofIdx = otherSubdomain.DofOrderer.globalEnrichedDofs[node, dofType];
-                            elementVector[elementDofIdx] = globalFreeVector[globalDofIdx];
-                        }
+                        correctOrderer = FindSubdomainWhereNodeEnrichmentIsNotSingular(cluster, node, enrichment).DofOrderer;
                     }
-                    else
+                    foreach (var dofType in enrichment.Dofs)
                     {
-                        foreach (var dofType in enrichment.Dofs)
-                        {
-                            int elementDofIdx = elementDofs[node, dofType];
-                            int globalDofIdx = globalEnrichedDofs[node, dofType];
-                            elementVector[elementDofIdx] = globalFreeVector[globalDofIdx];
-                        }
+                        int elementDofIdx = elementDofs[node, dofType];
+                        int globalDofIdx = correctOrderer.FirstGlobalDofIndex + 
+                            correctOrderer.subdomainEnrichedDofs[node, dofType];
+                        elementVector[elementDofIdx] = globalFreeVector[globalDofIdx];
                     }
                 }
             }
@@ -150,7 +136,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         //
         public int GetGlobalEnrichedDofOf(XNode2D node, EnrichedDof dofType)
         {
-            return globalEnrichedDofs[node, dofType];
+            return FirstGlobalDofIndex + subdomainEnrichedDofs[node, dofType];
         }
 
         public int GetSubdomainEnrichedDofOf(XNode2D node, EnrichedDof dofType)
@@ -180,7 +166,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                     // TODO: Perhaps I could iterate directly on the dofs, ignoring dof types for performance, if the order is guarranteed
                     foreach (EnrichedDof dofType in enrichment.Dofs)
                     {
-                        element2Global[elementDof++] = this.globalEnrichedDofs[node, dofType];
+                        element2Global[elementDof++] = FirstGlobalDofIndex + this.subdomainEnrichedDofs[node, dofType];
                     }
                 }
             }
@@ -225,8 +211,6 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         {
             Console.WriteLine("Enriched dofs - subdomain order: ");
             Console.WriteLine(subdomainEnrichedDofs);
-            Console.WriteLine("Enriched dofs - global order: ");
-            Console.WriteLine(globalEnrichedDofs);
         }
 
         /// <summary>
@@ -291,7 +275,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return singularNodeEnrichments;
         }
 
-        private XSubdomain2D FindSubdomainWhereNodeEnrichmentIsNotSingular(XCluster2D cluster, XNode2D node, 
+        private XSubdomain2D FindSubdomainWhereNodeEnrichmentIsNotSingular(XCluster2D cluster, XNode2D node,
             IEnrichmentItem2D enrichment)
         {
             foreach (XSubdomain2D subdomain in cluster.Subdomains)

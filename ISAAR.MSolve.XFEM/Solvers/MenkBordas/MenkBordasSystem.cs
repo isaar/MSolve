@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 
@@ -14,6 +15,8 @@ using ISAAR.MSolve.XFEM.Entities;
 //TODO: ok, this class might be necessarily coupled with XSubdomain2D to keep track of the stored ones. However,
 //      MenkBordasPrecMatrix and MenkBordasPreconditioner could just operate on arrays. Even this one could, using the subdomain
 //      IDs and Dictionararies. Granted, IDs are easy to overlap, if the subdomains get updated.
+//TODO: weird bug. If I use Dictionary instead of SortedDictionary for the data and I do not call ClearSubdomains(), the result 
+//      changes. Why?
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     //TODO: this class should manage all matrices and vectors while they update. 
@@ -27,42 +30,43 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Kss.Clear(); // No longer needed.
 
             this.subdomains = new SortedSet<XSubdomain2D>();
-            this.modifiedSubdomains = new Dictionary<XSubdomain2D, bool>();
-            this.Kee = new Dictionary<XSubdomain2D, DOKSymmetricColMajor>();
-            this.Kes = new Dictionary<XSubdomain2D, CSRMatrix>();
-            this.Kse = new Dictionary<XSubdomain2D, CSRMatrix>();
-            this.be = new Dictionary<XSubdomain2D, Vector>();
-            this.Pe = new Dictionary<XSubdomain2D, CholeskySuiteSparse>();
+            this.modifiedSubdomains = new SortedDictionary<XSubdomain2D, bool>();
+            this.Kee = new SortedDictionary<XSubdomain2D, DOKSymmetricColMajor>();
+            this.Kes = new SortedDictionary<XSubdomain2D, CSRMatrix>();
+            this.Kse = new SortedDictionary<XSubdomain2D, CSRMatrix>();
+            this.be = new SortedDictionary<XSubdomain2D, Vector>();
+            this.Pe = new SortedDictionary<XSubdomain2D, CholeskySuiteSparse>();
         }
 
         private readonly int numDofsStd;
         private readonly CholeskySuiteSparse Ps; 
         private readonly Vector bs;
         private readonly SortedSet<XSubdomain2D> subdomains;
-        private readonly Dictionary<XSubdomain2D, bool> modifiedSubdomains;
-        private readonly Dictionary<XSubdomain2D, DOKSymmetricColMajor> Kee; //TODO: only save the factorizations
-        private readonly Dictionary<XSubdomain2D, CSRMatrix> Kes;
-        private readonly Dictionary<XSubdomain2D, CSRMatrix> Kse;
-        private Dictionary<XSubdomain2D, SignedBooleanMatrix> B;
-        private readonly Dictionary<XSubdomain2D, Vector> be;
-        private readonly Dictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
+        private readonly SortedDictionary<XSubdomain2D, bool> modifiedSubdomains;
+        private readonly SortedDictionary<XSubdomain2D, DOKSymmetricColMajor> Kee; //TODO: only save the factorizations
+        private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kes;
+        private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kse;
+        private SortedDictionary<XSubdomain2D, SignedBooleanMatrix> B;
+        private readonly SortedDictionary<XSubdomain2D, Vector> be;
+        private readonly SortedDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
         // TODO: investigate if some submatrices of L, Q can be cached.
 
         public void ClearSubdomains()
         {
             subdomains.Clear();
             modifiedSubdomains.Clear();
-            Kee.Clear();
-            Kes.Clear();
-            Kse.Clear();
+            //Kee.Clear();
+            //Kes.Clear();
+            //Kse.Clear();
             B = null;
-            be.Clear();
+            //be.Clear();
             Pe.Clear();
         }
 
         public void SetBooleanMatrices(IDictionary<XSubdomain2D, SignedBooleanMatrix> B) // TODO: allow some to not change
         {
-            this.B = new Dictionary<XSubdomain2D, SignedBooleanMatrix>(B);
+            //Console.WriteLine("Calling MenkBordasSystem.SetBooleanMatrices(B)");
+            this.B = new SortedDictionary<XSubdomain2D, SignedBooleanMatrix>(B);
         }
 
         public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetricColMajor Kee, CSRMatrix Kes, CSRMatrix Kse,
@@ -160,6 +164,21 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public (MenkBordasPrecondMatrix matrix, Vector rhs) BuildPreconditionedSystem() // TODO: cache the matrices
         {
             Dimensions dim = CountDimensions();
+            #region debug
+            //Console.WriteLine("Num total subdomains = " + subdomains.Count);
+            //Console.WriteLine("Num Kee = " + Kee.Count);
+            //Console.WriteLine("Num Kes = " + Kes.Count);
+            //Console.WriteLine("Num Kse = " + Kse.Count);
+            //Console.WriteLine("Num be = " + be.Count);
+            //Console.WriteLine("Num B = " + ((B != null) ? B.Count : 0));
+            //Console.WriteLine("Num rows in B = " + dim.NumEquations);
+            //foreach (var sub_be in be)
+            //{
+            //    Console.WriteLine("Subdomain = " + sub_be.Key.ID);
+            //    (new FullVectorWriter(sub_be.Value, false, Array1DFormatting.PlainVertical)).WriteToConsole();
+            //    Console.WriteLine();
+            //}
+            #endregion
 
             // Assemble the rhs vector // TODO: just set the subvectors that change
             var rhs = Vector.CreateZero(dim.NumDofsAll);
@@ -170,11 +189,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
 
             // Create the preconditioned enriched matrices
-            foreach (var subdomain in modifiedSubdomains)
+            Console.Write("Modified subdomains: ");
+            foreach (var subdomain in subdomains)
             {
-                if (subdomain.Value) // Do not recreate the preconditioners of unmodified Kee
+                if (modifiedSubdomains[subdomain]) // Do not recreate the preconditioners of unmodified Kee
                 {
-                    DOKSymmetricColMajor kee = Kee[subdomain.Key];
+                    Console.Write(subdomain.ID + " ");
+                    DOKSymmetricColMajor kee = Kee[subdomain];
 
                     #region debug
                     //for (int i = 0; i < kee.NumColumns; ++i)
@@ -187,13 +208,18 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     #endregion
 
                     // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
-                    Pe.Add(subdomain.Key, MenkBordasPreconditioner.CreateEnrichedPreconditioner(kee)); 
+                    //TODO: if it is not discarded in the setter, then this doesn't throw a KeyExists excpetion. Why?
+                    Pe.Add(subdomain, MenkBordasPreconditioner.CreateEnrichedPreconditioner(kee)); 
 
                     // Dispose of each Kee, once it is no longer needed.
-                    Kee.Remove(subdomain.Key);
+                    Kee.Remove(subdomain);
                     kee.Clear();
+
+                    // Mark this subdomain us unmodified until the caller modifies it again
+                    modifiedSubdomains[subdomain] = false;
                 }
             }
+            Console.WriteLine();
 
             // Handle L,Q matrices
             Matrix L = null;
@@ -214,11 +240,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var subdomainStarts = new SortedDictionary<XSubdomain2D, int>();
             var subdomainEnds = new SortedDictionary<XSubdomain2D, int>();
             int nextStart = numDofsStd;
-            foreach (var subdomainKee in Kee)
+            foreach (var subdomainRhs in be)
             {
-                subdomainStarts.Add(subdomainKee.Key, nextStart);
-                nextStart = nextStart + subdomainKee.Value.NumRows;
-                subdomainEnds.Add(subdomainKee.Key, nextStart);
+                subdomainStarts.Add(subdomainRhs.Key, nextStart);
+                nextStart = nextStart + subdomainRhs.Value.Length;
+                subdomainEnds.Add(subdomainRhs.Key, nextStart);
             }
 
             // Continuity equations

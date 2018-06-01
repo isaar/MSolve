@@ -38,6 +38,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly string subdomainsDirectory;
 
         private XCluster2D cluster;
+        private ISet<XSubdomain2D> enrichedSubdomains;
+        private HashSet<XSubdomain2D> tipEnrichedSubdomains;
         private int iteration;
         private MenkBordasSystem system;
 
@@ -70,6 +72,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public void Initialize() //TODO: I should also set up the domain decomposition, irregardless of current enrichments.
         {
             iteration = 0;
+            tipEnrichedSubdomains = new HashSet<XSubdomain2D>();
             var watch = new Stopwatch();
 
             // Partion the domain into subdomains
@@ -122,13 +125,27 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
             watch.Restart();
-            // TODO: track which subdomains have enriched dofs and which have modified elements
-            system.ClearSubdomains();
-
-            /// Order enriched dofs //TODO: only for modified subdomains
-            SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
-            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, crack);
+            
+            /// Order the dofs of subdomains that are modified.
+            if (enrichedSubdomains == null) enrichedSubdomains = cluster.FindEnrichedSubdomains();
+            HashSet<XSubdomain2D> previousTipSubdomains = tipEnrichedSubdomains;
+            tipEnrichedSubdomains = FindTipEnrichedSubdomains();
+            var modifiedSubdomains = new SortedSet<XSubdomain2D>();
+            foreach (var subdomain in cluster.Subdomains)
+            {
+                if (tipEnrichedSubdomains.Contains(subdomain) || previousTipSubdomains.Contains(subdomain))
+                {
+                    modifiedSubdomains.Add(subdomain);
+                    enrichedSubdomains.Add(subdomain);
+                }
+            }
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, modifiedSubdomains, crack);
             #region debug
+            // These are inefficient, but useful for debugging
+            //system.ClearSubdomains();
+            //SortedSet<XSubdomain2D> modifiedSubdomains = cluster.FindEnrichedSubdomains();
+            //cluster.DofOrderer.OrderSubdomainDofs(modifiedSubdomains, modifiedSubdomains, crack);
+
             //Console.Write("Enriched subdomains: ");
             //foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
             //Console.WriteLine();
@@ -140,7 +157,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             /// Subdomain enriched matrices and rhs
             var assembler = new XClusterMatrixAssembler();
-            foreach (var subdomain in enrichedSubdomains)
+            foreach (var subdomain in modifiedSubdomains)
             {
                 (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
@@ -186,6 +203,29 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //Vector xExpected = SolveLUandPrintMatrices(matrix, rhs);
             //CompareSolutionWithLU(sys, Solution);
             #endregion
+        }
+
+        private HashSet<XSubdomain2D> FindTipEnrichedSubdomains()
+        {
+            var tipSubdomains = new HashSet<XSubdomain2D>();
+            IEnumerable<ISet<XNode2D>> allTipNodes = crack.CrackTipNodesNew.Values;
+            foreach (var subdomain in cluster.Subdomains)
+            {
+                if (IsEnrichedSubdomain(subdomain, allTipNodes)) tipSubdomains.Add(subdomain);
+            }
+            return tipSubdomains;
+        }
+
+        private bool IsEnrichedSubdomain(XSubdomain2D subdomain, IEnumerable<ISet<XNode2D>> allTipNodes)
+        {
+            foreach (var tipNodes in allTipNodes)
+            {
+                foreach (var node in tipNodes)
+                {
+                    if (subdomain.AllNodes.Contains(node)) return true;
+                }
+            }
+            return false;
         }
 
         private static void CheckMultiplication(MenkBordasMatrix K, Vector b)

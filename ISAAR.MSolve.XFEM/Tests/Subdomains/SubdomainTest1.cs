@@ -33,7 +33,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             (Model2D model, ISingleCrack crack) = CreateModel();
             XCluster2D cluster = DefinePartition(model).CreateSubdomains();
             cluster.OrderStandardDofs(model);
-            cluster.DofOrderer.OrderSubdomainDofs(cluster.FindEnrichedSubdomains(), crack);
+            var enrichedSubs = cluster.FindEnrichedSubdomains();
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubs, enrichedSubs, crack);
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
             BuildSignedBooleanMatrices(cluster);
