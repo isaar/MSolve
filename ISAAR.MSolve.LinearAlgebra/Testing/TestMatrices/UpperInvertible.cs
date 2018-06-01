@@ -55,6 +55,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
         }
 
+        public static void CheckSystemSolutions2()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+            var b = Vector.CreateFromArray(rhs);
+            var U = TriangularUpper.CreateFromArray(matrix);
+            var A = Matrix.CreateFromArray(matrix);
+            Vector x1Expected = A.Invert() * b;
+            Vector x2Expected = A.Invert().Transpose() * b;
+            Vector x1 = U.SolveLinearSystem(b, false);
+            Vector x2 = U.SolveLinearSystem(b, true);
+            comparer.CheckSystemSolution(matrix, rhs, x1Expected.CopyToArray(), x1.CopyToArray());
+            comparer.CheckSystemSolution(A.Transpose().CopyToArray2D(), rhs, x2Expected.CopyToArray(), x2.CopyToArray());
+        }
+
         public static void CheckTransposition()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);

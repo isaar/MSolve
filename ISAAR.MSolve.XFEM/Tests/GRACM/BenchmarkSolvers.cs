@@ -103,14 +103,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreateMenkBordasSolverCholesky(IBenchmark benchmark)
         {
             return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
-                new StandardPreconditionerCholesky.Builder(benchmark.Model), new EnrichedPreconditioningNaive(), 
+                new StandardPreconditionerCholesky.Builder(benchmark.Model), new EnrichedPreconditioningDenseQ(), 
                 benchmark.PlotDirectory);
         }
 
         private static ISolver CreateMenkBordasSolverJacobi(IBenchmark benchmark)
         {
             return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
-                new StandardPreconditionerJacobi.Builder(benchmark.Model), new EnrichedPreconditioningNaive());
+                new StandardPreconditionerJacobi.Builder(benchmark.Model), new EnrichedPreconditioningDenseQ());
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

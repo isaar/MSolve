@@ -74,6 +74,38 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
+        public Matrix GetEconomyFactorQ()
+        {
+            if (NumRows < NumColumns)
+            {
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
+            }
+            int m = NumRows;
+            int n = NumColumns;
+            int k = NumColumns;
+            int ldA = m;
+
+            var q = new double[NumRows * NumColumns];
+            Array.Copy(reflectorsAndR, q, q.Length);
+
+            int info = MKLUtilities.DefaultInfo;
+            info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
+
+            // Check MKL execution
+            if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumColumns, false);
+            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+        }
+
+        public TriangularUpper GetEconomyFactorR()
+        {
+            if (NumRows < NumColumns)
+            {
+                throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
+            }
+            double[] r = Conversions.RectColMajorToSquarePackedUpperColMajor(NumRows, NumColumns, reflectorsAndR);
+            return TriangularUpper.CreateFromArray(NumColumns, r, false);
+        }
+
         public Matrix GetFactorQ()
         {
             if (NumRows < NumColumns)

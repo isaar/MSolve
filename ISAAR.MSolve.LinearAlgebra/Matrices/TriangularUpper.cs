@@ -108,6 +108,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static TriangularUpper CreateFromArray(double[] array1D, bool copyArray = false)
         {
             int order = Conversions.PackedLengthToOrder(array1D.Length);
+            return CreateFromArray(order, array1D, copyArray);
+        }
+
+        public static TriangularUpper CreateFromArray(int order, double[] array1D, bool copyArray = false)
+        {
             if (copyArray)
             {
                 var clone = new double[array1D.Length];
@@ -320,11 +325,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        public Vector SolveLinearSystem(Vector rhs)
+        public Vector SolveLinearSystem(Vector rhs, bool transpose = false)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
+            CBLAS_TRANSPOSE transposeBLAS = transpose ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
             double[] result = rhs.CopyToArray();
-            CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit, 
+            CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, transposeBLAS, CBLAS_DIAG.CblasNonUnit, 
                 Order, ref data[0], ref result[0], 1);
             return Vector.CreateFromArray(result, false);
         }

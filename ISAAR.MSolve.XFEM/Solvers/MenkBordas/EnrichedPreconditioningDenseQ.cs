@@ -1,26 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+﻿using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class EnrichedPreconditioningNaive : IEnrichedPreconditioning
+    class EnrichedPreconditioningDenseQ : IEnrichedPreconditioning
     {
-        public EnrichedPreconditioningNaive()
+        public EnrichedPreconditioningDenseQ()
         {
-            this.Ordering = new EnrichedOrderingNatural();
+            this.Ordering = new EnrichedOrderingAmd();
         }
 
-        public IEnrichedOrdering Ordering { get; } 
+        public IEnrichedOrdering Ordering { get; }
 
-        public IFactorizationLQ CreateContinuityEquationsPreconditioner(MenkBordasSystem.Dimensions dimensions, 
-            IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B, 
+        public IFactorizationLQ CreateContinuityEquationsPreconditioner(MenkBordasSystem.Dimensions dimensions,
+            IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B,
             IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe)
         {
             if (B.Count < 2) throw new ArgumentException("There must be at least 2 subdomains.");
@@ -40,8 +40,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // LQ factorization 
             //TODO: various optimizations might be possible here
             var qr = BPeTransp.FactorQR();
-            Matrix L = qr.GetFactorR().Slice(0, dimensions.NumEquations, 0, dimensions.NumEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
-            Matrix Q = qr.GetFactorQ().Slice(0, dimensions.NumDofsEnr, 0, dimensions.NumEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
+            Matrix Q = qr.GetEconomyFactorQ();
+            TriangularUpper R = qr.GetEconomyFactorR();
 
             #region Debug
             //FullMatrixWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 4 };
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //Console.WriteLine();
             #endregion
 
-            return new LQ(L, Q);
+            return new QR(Q, R);
         }
 
         public CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetricColMajor Kee)
@@ -70,33 +70,32 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //TODO: perhaps I should discard Kee here, instead of in MenkBordasSystem.
         }
 
-        private class LQ : IFactorizationLQ
+        private class QR : IFactorizationLQ
         {
-            private readonly Matrix L;
-            private readonly Matrix Q;
+            private readonly Matrix Q1;
+            private readonly TriangularUpper R1;
 
-            internal LQ(Matrix L, Matrix Q)
+            internal QR(Matrix Q, TriangularUpper R)
             {
-                this.L = L;
-                this.Q = Q;
+                this.Q1 = Q;
+                this.R1 = R;
             }
 
             public Vector InverseLTimesVector(Vector x, bool transposePreconditioner)
             {
-                // The preconditioner has L^(-T) = R^(-1), thus the transpositions are:
-                if (transposePreconditioner) 
+                if (transposePreconditioner) // (L^(-T))^T * x = R^T \ x
                 {
-                    return L.Invert() * x;
+                    return R1.SolveLinearSystem(x, true);
                 }
-                else
+                else // L^(-T) * x = R \ x
                 {
-                    return L.Transpose().Invert() * x;
+                    return R1.SolveLinearSystem(x, false);
                 }
             }
 
             public Vector QTimesVector(Vector x, bool transposeQ)
             {
-                return Q.MultiplyRight(x, transposeQ);
+                return Q1.MultiplyRight(x, !transposeQ); //The stored Q1 of QR is the transpose of the Q1 of LQ
             }
         }
     }
