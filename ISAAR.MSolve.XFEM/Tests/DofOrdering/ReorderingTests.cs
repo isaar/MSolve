@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
 
             // After reorder
             (int[] permutation, ReorderingStatistics stats) = Kuu.Reorder(new OrderingAMD());
-            Console.WriteLine($"{unorderedName} ordering -> AMD : Non zeros predicted by AMD = {stats.FactorizedNumNonZeros}");
+            Console.WriteLine($"{unorderedName} ordering -> AMD : Non zeros predicted by AMD = {stats.SupFactorizedNumNonZeros}");
             IDofOrderer reorderedDofs = unorderedDofs.DeepCopy();
             reorderedDofs.ReorderUnconstrainedDofs(permutation, false);
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDofs);

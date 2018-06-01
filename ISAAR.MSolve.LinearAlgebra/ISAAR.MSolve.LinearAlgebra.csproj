@@ -18,7 +18,6 @@
     <Content Include="lib\libamd.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="lib\libblas.dll" />
     <Content Include="lib\libbtf.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -37,16 +36,12 @@
     <Content Include="lib\libcxsparse.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="lib\libgcc_s_sjlj-1.dll" />
-    <Content Include="lib\libgfortran-3.dll" />
     <Content Include="lib\libklu.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="lib\liblapack.dll" />
     <Content Include="lib\libldl.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="lib\libquadmath-0.dll" />
     <Content Include="lib\libspqr.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -65,8 +60,6 @@
     <None Include="lib\libamd.lib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="lib\libblas.exp" />
-    <None Include="lib\libblas.lib" />
     <None Include="lib\libbtf.exp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -109,7 +102,6 @@
     <None Include="lib\libklu.lib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="lib\liblapack.lib" />
     <None Include="lib\libldl.exp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

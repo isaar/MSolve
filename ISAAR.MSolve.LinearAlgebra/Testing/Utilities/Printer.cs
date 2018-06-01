@@ -17,6 +17,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
             this.SectionSeparator = "************************************************************************************";
         }
 
+        public void Print(int[] array)
+        {
+            for (int i = 0; i < array.Length; ++i) Console.Write(array[i] + " ");
+            Console.WriteLine();
+        }
+
         public void Print(double[] vector)
         {
             (new Array1DWriter(vector)).WriteToConsole();

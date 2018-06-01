@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             if (status == 0) throw new SuiteSparseException("AMD failed. This could be caused by the matrix being so large it"
                 + " cannot be processed with the available memory.");
             SuiteSparseUtilities.DestroyCommon(ref common);
-            return (permutation, new ReorderingStatistics(nnzFactor));
+            return (permutation, new ReorderingStatistics(nnzFactor, -1)); //TODO: also get the other statistics
         }
     }
 }

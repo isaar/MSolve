@@ -6,11 +6,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
 {
     public class ReorderingStatistics
     {
-        public ReorderingStatistics(int factorizedNumNonZeros)
+        public ReorderingStatistics(int supFactorizedNumNonZeros, int numMovedDenseRows)
         {
-            this.FactorizedNumNonZeros = factorizedNumNonZeros;
+            this.SupFactorizedNumNonZeros = supFactorizedNumNonZeros;
+            this.NumMovedDenseRows = numMovedDenseRows;
         }
 
-        public int FactorizedNumNonZeros { get; }
+        public int SupFactorizedNumNonZeros { get; }
+        public int NumMovedDenseRows { get; }
     }
 }

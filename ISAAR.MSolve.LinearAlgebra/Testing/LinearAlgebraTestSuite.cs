@@ -20,13 +20,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestInverse();
             //TestIndexing();
             //TestEquality();
-            TestFactorization();
+            //TestFactorization();
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            //TestReordering();
+            TestReordering();
             //TestReading();
-            TestSystemSolution();
+            //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
             //TestWriting();
@@ -105,11 +105,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestReordering()
         {
-            SparsePositiveDefinite.PrintPatternAsBoolean();
-            Console.WriteLine();
-            MatrixAssembly.BuildPattern();
-            Console.WriteLine();
-            SparsePositiveDefinite.CheckReordering();
+            //SparsePositiveDefinite.PrintPatternAsBoolean();
+            //Console.WriteLine();
+            //MatrixAssembly.BuildPattern();
+            //Console.WriteLine();
+            //SparsePositiveDefinite.CheckReorderingAMD();
+            //Console.WriteLine();
+            SparsePositiveDefinite.CheckReorderingCAMD();
             Console.WriteLine();
         }
 
