@@ -7,6 +7,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     interface IStandardOrdering
     {
-        void ReorderStdDofs(XClusterDofOrderer stdDofOrderer);
+        void ReorderStandardDofs(XClusterDofOrderer stdDofOrderer);
     }
 }

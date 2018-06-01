@@ -197,12 +197,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
 
             // Create the preconditioned enriched matrices
-            Console.Write("Modified subdomains: ");
+            Console.WriteLine("Modified subdomains: ");
             foreach (var subdomain in subdomains)
             {
                 if (modifiedSubdomains[subdomain]) // Do not recreate the preconditioners of unmodified Kee
                 {
-                    Console.Write(subdomain.ID + " ");
+                    Console.Write($"Subdomain {subdomain.ID}: ");
                     DOKSymmetricColMajor kee = Kee[subdomain];
 
                     #region debug
@@ -217,7 +217,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
                     // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
                     //TODO: if it is not discarded in the setter, then this doesn't throw a KeyExists excpetion. Why?
-                    Pe.Add(subdomain, enrichedPreconditioning.CreateEnrichedPreconditioner(kee)); 
+                    CholeskySuiteSparse subPe = enrichedPreconditioning.CreateEnrichedPreconditioner(kee);
+                    Console.WriteLine("Num non zeros in Kee after factorization = " + subPe.NumNonZeros);
+                    Pe.Add(subdomain, subPe);
 
                     // Dispose of each Kee, once it is no longer needed.
                     Kee.Remove(subdomain);

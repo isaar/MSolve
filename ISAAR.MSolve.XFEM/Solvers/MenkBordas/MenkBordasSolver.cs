@@ -32,6 +32,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         private readonly ICrackDescription crack;
         private readonly IDomainDecomposer decomposer;
+        private readonly IEnrichedOrdering enrOrdering;
         private readonly int maxIterations;
         private readonly Model2D model;
         private readonly IStandardMatrixAssembler stdAssembler;
@@ -62,6 +63,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.system = new MenkBordasSystem(PsBuilder, enrichedPreconditioning);
             this.stdAssembler = PsBuilder.Assembler;
             this.stdOrdering = PsBuilder.Ordering;
+            this.enrOrdering = enrichedPreconditioning.Ordering;
 
             this.subdomainsDirectory = subdomainsDirectory;
             Logger = new SolverLogger("MenkBordasSolver");
@@ -82,21 +84,21 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             tipEnrichedSubdomains = new HashSet<XSubdomain2D>();
             var watch = new Stopwatch();
 
-            // Partion the domain into subdomains
+            /// Partion the domain into subdomains
             watch.Start();
             cluster = decomposer.CreateSubdomains();
             watch.Stop();
             Logger.LogDuration(iteration, "domain decomposition", watch.ElapsedMilliseconds);
 
-            // Order standard dofs
+            /// Order standard dofs
             // Standard dofs are not divided into subdomains and will not change over time.
             watch.Restart();
             cluster.OrderStandardDofs(model);
-            stdOrdering.ReorderStdDofs(cluster.DofOrderer);
+            stdOrdering.ReorderStandardDofs(cluster.DofOrderer);
             watch.Stop();
-            Logger.LogDuration(iteration, "standard dofs ordering", watch.ElapsedMilliseconds);
+            Logger.LogDuration(iteration, "ordering dofs", watch.ElapsedMilliseconds);
 
-            // Build Standard matrices
+            /// Build Standard matrices
             watch.Restart();
             stdAssembler.BuildStandardMatrices(model, cluster.DofOrderer);
             //if (!Kss.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
@@ -118,7 +120,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             watch.Stop();
             Logger.LogDuration(iteration, "linear system assembly", watch.ElapsedMilliseconds);
 
-            // Preconditioner for Kss
+            /// Preconditioner for Kss
             watch.Restart();
             system.ProcessStandardDofs(bs);
             watch.Stop();
@@ -130,16 +132,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             ++iteration;
             var watch = new Stopwatch();
 
-            // Possibly update the domain decomposition
+            /// Possibly update the domain decomposition
             watch.Start();
             decomposer.UpdateSubdomains(cluster);
             watch.Stop();
             Logger.LogDuration(iteration, "domain decomposition", watch.ElapsedMilliseconds);
             if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
-            watch.Restart();
-            
+
             /// Order the dofs of subdomains that are modified.
+            watch.Restart();
             if (enrichedSubdomains == null) enrichedSubdomains = cluster.FindEnrichedSubdomains();
             HashSet<XSubdomain2D> previousTipSubdomains = tipEnrichedSubdomains;
             tipEnrichedSubdomains = FindTipEnrichedSubdomains();
@@ -153,6 +155,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 }
             }
             cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, modifiedSubdomains, crack);
+            foreach (var subdomain in modifiedSubdomains) enrOrdering.ReorderEnrichedDofs(subdomain);
+            watch.Stop();
+            Logger.LogDuration(iteration, "ordering dofs", watch.ElapsedMilliseconds);
             #region debug
             // These are inefficient, but useful for debugging
             //system.ClearSubdomains();
@@ -168,7 +173,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //}
             #endregion
 
-            /// Subdomain enriched matrices and rhs
+            /// Assemble subdomain enriched matrices and rhs
+            watch.Restart();
             var assembler = new XClusterMatrixAssembler();
             foreach (var subdomain in modifiedSubdomains)
             {
@@ -179,7 +185,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 system.SetSubdomainMatrices(subdomain, Kee, KesCSR, KesCSR.TransposeToCSR(), be);
             }
 
-            /// Signed boolean matrices and continuity equations
+            /// Build signed boolean matrices and continuity equations
             var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
             if (booleanMatrices.Count > 1) system.SetBooleanMatrices(booleanMatrices);
             #region debug

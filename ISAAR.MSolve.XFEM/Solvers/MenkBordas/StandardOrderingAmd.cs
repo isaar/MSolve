@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.model = model;
         }
 
-        public void ReorderStdDofs(XClusterDofOrderer stdDofOrderer)
+        public void ReorderStandardDofs(XClusterDofOrderer stdDofOrderer)
         {
             var orderingAlgorithm = new OrderingAMD();
 

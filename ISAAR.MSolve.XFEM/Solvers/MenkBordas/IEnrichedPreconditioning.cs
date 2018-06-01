@@ -11,6 +11,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     interface IEnrichedPreconditioning
     {
+        IEnrichedOrdering Ordering { get; }
+
         IFactorizationLQ CreateContinuityEquationsPreconditioner(MenkBordasSystem.Dimensions dimensions,
              IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B,
              IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe);

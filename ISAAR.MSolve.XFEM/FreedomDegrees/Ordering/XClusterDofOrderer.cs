@@ -7,6 +7,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
 using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: This needs to be split between standard and enriched. Otherwise all enriched stuff may be uninitialized or in a 
@@ -57,21 +58,6 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             (int numStandardDofs, DofTable<DisplacementDof> standardDofs) = OrderStandardDofs(model);
 
             return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
-        }
-
-        public void OrderSubdomainDofs(ISet<XSubdomain2D> enrichedSubdomains, ISet<XSubdomain2D> modifiedSubdomains, 
-            ICrackDescription crack)
-        {
-            int numTotalDofs = NumStandardDofs;
-            foreach (var subdomain in enrichedSubdomains)
-            {
-                if (modifiedSubdomains.Contains(subdomain))
-                {
-                    subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(crack, subdomain);
-                }
-                subdomain.DofOrderer.FirstGlobalDofIndex = numTotalDofs;
-                numTotalDofs += subdomain.DofOrderer.NumEnrichedDofs;
-            }
         }
 
         public IDofOrderer DeepCopy()
@@ -253,6 +239,21 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             }
             elementToGlobalStandardDofs = globalStandardDofs;
             elementToGlobalConstrainedDofs = globalConstrainedDofs;
+        }
+
+        public void OrderSubdomainDofs(ISet<XSubdomain2D> enrichedSubdomains, ISet<XSubdomain2D> modifiedSubdomains,
+            ICrackDescription crack)
+        {
+            int numTotalDofs = NumStandardDofs;
+            foreach (var subdomain in enrichedSubdomains)
+            {
+                if (modifiedSubdomains.Contains(subdomain))
+                {
+                    subdomain.DofOrderer = XSubdomainDofOrderer.CreateNodeMajor(crack, subdomain);
+                }
+                subdomain.DofOrderer.FirstGlobalDofIndex = numTotalDofs;
+                numTotalDofs += subdomain.DofOrderer.NumEnrichedDofs;
+            }
         }
 
         public void ReorderStandardDofs(IReadOnlyList<int> permutation, bool oldToNew)

@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class StandardOrderingNatural : IStandardOrdering
     {
-        public void ReorderStdDofs(XClusterDofOrderer stdDofOrderer)
+        public void ReorderStandardDofs(XClusterDofOrderer stdDofOrderer)
         {
             // Do nothing
         }

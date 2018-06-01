@@ -12,6 +12,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class EnrichedPreconditioningNaive : IEnrichedPreconditioning
     {
+        public EnrichedPreconditioningNaive()
+        {
+            this.Ordering = new EnrichedOrderingNatural();
+        }
+
+        public IEnrichedOrdering Ordering { get; } 
+
         public IFactorizationLQ CreateContinuityEquationsPreconditioner(MenkBordasSystem.Dimensions dimensions, 
             IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B, 
             IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe)

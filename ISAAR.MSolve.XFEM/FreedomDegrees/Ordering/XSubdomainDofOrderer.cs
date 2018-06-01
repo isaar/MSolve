@@ -144,6 +144,32 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return subdomainEnrichedDofs[node, dofType];
         }
 
+        public List<int> GetSubdomainEnrichedDofsOf(XContinuumElement2D element)
+        {
+            var dofs = new List<int>();
+            foreach (XNode2D node in element.Nodes)
+            {
+                bool isSingularityNode = SingularHeavisideEnrichments.TryGetValue(node,
+                    out HashSet<IEnrichmentItem2D> singularEnrichments);
+
+                // TODO: Perhaps the nodal dof types should be decided by the element type (structural, continuum) 
+                // and drawn from XXContinuumElement2D instead of from enrichment items
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
+                {
+                    if (isSingularityNode && singularEnrichments.Contains(enrichment))
+                    {
+                        continue;
+                    }
+
+                    foreach (EnrichedDof dofType in enrichment.Dofs)
+                    {
+                        dofs.Add(this.subdomainEnrichedDofs[node, dofType]);
+                    }
+                }
+            }
+            return dofs;
+        }
+
         public IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofs(XContinuumElement2D element)
         {
             var element2Global = new Dictionary<int, int>();
@@ -202,9 +228,9 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return element2Subdomain;
         }
 
-        public void ReorderEnrichedSubdomainDofs(OrderingAMD orderingAlgorithm)
+        public void ReorderSubdomainDofs(IReadOnlyList<int> permutation, bool oldToNew)
         {
-            throw new NotImplementedException();
+            subdomainEnrichedDofs.Reorder(permutation, oldToNew);
         }
 
         public void WriteToConsole()
