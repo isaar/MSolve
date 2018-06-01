@@ -51,14 +51,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private Vector Uc;
 
         public MenkBordasSolver(Model2D model, ICrackDescription crack, IDomainDecomposer decomposer, int maxIterations,
-            double tolerance, IStandardPreconditionerBuilder PsBuilder, string subdomainsDirectory = null)
+            double tolerance, IStandardPreconditionerBuilder PsBuilder, IEnrichedPreconditioning enrichedPreconditioning, 
+            string subdomainsDirectory = null)
         {
             this.model = model;
             this.crack = crack;
             this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
-            this.system = new MenkBordasSystem(PsBuilder);
+            this.system = new MenkBordasSystem(PsBuilder, enrichedPreconditioning);
             this.stdAssembler = PsBuilder.Assembler;
             this.stdOrdering = PsBuilder.Ordering;
 

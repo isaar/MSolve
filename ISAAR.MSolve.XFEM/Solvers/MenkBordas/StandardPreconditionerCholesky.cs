@@ -27,8 +27,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             ReleaseResources();
         }
 
-        
-
         public void Dispose()
         {
             ReleaseResources();
@@ -65,8 +63,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             public Builder(Model2D model)
             {
                 assembler = new StandardMatrixAssemblerCsc();
-                //Ordering = new StandardOrderingNatural(); //TODO: find why they give different results. Is it error built-up by so many back/forward solutions?
+                //Ordering = new StandardOrderingNatural(); 
                 Ordering = new StandardOrderingAmd(model);
+
+                //TODO: find why the orderings give different results. Is it error built-up by so many back/forward solutions?
             }
 
             public IStandardMatrixAssembler Assembler { get { return assembler; } }

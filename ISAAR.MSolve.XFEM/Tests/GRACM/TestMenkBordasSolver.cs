@@ -165,7 +165,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             int maxIterations = 1700;
             double tolerance = double.Epsilon;
             var solver = new MenkBordasSolver(model, crack, decomposer, maxIterations, tolerance, 
-                new StandardPreconditionerCholesky.Builder(model));
+                new StandardPreconditionerCholesky.Builder(model), new EnrichedPreconditioningNaive());
             solver.Initialize();
             solver.Solve();
 

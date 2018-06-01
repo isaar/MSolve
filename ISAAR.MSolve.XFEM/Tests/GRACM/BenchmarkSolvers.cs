@@ -31,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             // Solvers
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
             var solver = CreateMenkBordasSolverCholesky(benchmark);
+            //var solver = CreateMenkBordasSolverJacobi(benchmark);
             //var solver = CreatePCGSolver(benchmark);
             //var solver = CreateCholeskyAMDSolver(benchmark);
             benchmark.Analyze(solver);
@@ -55,10 +56,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             IBenchmarkBuilder builder = Holes.SetupBenchmark(false, false);
 
             /// Choose solver
-            //CreateSolver solverFunc = CreateCholeskyAMDSolver;
+            CreateSolver solverFunc = CreateCholeskyAMDSolver;
             //CreateSolver solverFunc = CreateReanalysisSolver;
-            CreateSolver solverFunc = CreatePCGSolver;
-            //CreateSolver solverFunc = CreateMenkBordasSolver;
+            //CreateSolver solverFunc = CreatePCGSolver;
+            //CreateSolver solverFunc = CreateMenkBordasSolverCholesky;
+            //CreateSolver solverFunc = CreateMenkBordasSolverJacobi;
 
             /// Call once to load all necessary DLLs
             IBenchmark firstTry = builder.BuildBenchmark();
@@ -101,7 +103,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreateMenkBordasSolverCholesky(IBenchmark benchmark)
         {
             return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
-                new StandardPreconditionerCholesky.Builder(benchmark.Model), benchmark.PlotDirectory);
+                new StandardPreconditionerCholesky.Builder(benchmark.Model), new EnrichedPreconditioningNaive(), 
+                benchmark.PlotDirectory);
+        }
+
+        private static ISolver CreateMenkBordasSolverJacobi(IBenchmark benchmark)
+        {
+            return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
+                new StandardPreconditionerJacobi.Builder(benchmark.Model), new EnrichedPreconditioningNaive());
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

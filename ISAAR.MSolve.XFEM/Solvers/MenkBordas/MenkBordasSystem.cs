@@ -22,9 +22,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     //TODO: this class should manage all matrices and vectors while they update. 
     class MenkBordasSystem //TODO: IDisposable. Also dispose of modified matrices and factorizations.
     {
-        public MenkBordasSystem(IStandardPreconditionerBuilder PsBuilder)
+        public MenkBordasSystem(IStandardPreconditionerBuilder PsBuilder, IEnrichedPreconditioning enrichedPreconditioning)
         {
             this.PsBuilder = PsBuilder;
+            this.enrichedPreconditioning = enrichedPreconditioning;
 
             this.subdomains = new SortedSet<XSubdomain2D>();
             this.modifiedSubdomains = new SortedDictionary<XSubdomain2D, bool>();
@@ -36,6 +37,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         }
 
         private readonly IStandardPreconditionerBuilder PsBuilder;
+        private readonly IEnrichedPreconditioning enrichedPreconditioning;
 
         private int numDofsStd;
         private IStandardPreconditioner Ps; 
@@ -215,11 +217,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
                     // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
                     //TODO: if it is not discarded in the setter, then this doesn't throw a KeyExists excpetion. Why?
-                    Pe.Add(subdomain, MenkBordasPreconditioner.CreateEnrichedPreconditioner(kee)); 
+                    Pe.Add(subdomain, enrichedPreconditioning.CreateEnrichedPreconditioner(kee)); 
 
                     // Dispose of each Kee, once it is no longer needed.
                     Kee.Remove(subdomain);
-                    kee.Clear();
+                    kee.Clear(); //TODO: perhaps this should be done in the object that creates Pe
 
                     // Mark this subdomain us unmodified until the caller modifies it again
                     modifiedSubdomains[subdomain] = false;
@@ -228,15 +230,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Console.WriteLine();
 
             // Handle L,Q matrices
-            Matrix L = null;
-            Matrix Q = null;
+            IFactorizationLQ LQ = null;
             if (B != null)
             {
-                (L, Q) = MenkBordasPreconditioner.CreateContinuityEquationsPreconditioners(dim, B, Pe);
+                LQ = enrichedPreconditioning.CreateContinuityEquationsPreconditioner(dim, B, Pe);
                 B = null; // Clear it to make sure an exception is thrown if the caller forgets to update B.
+                //TODO: also clear each boolean matrix
             }
 
-            var matrix = new MenkBordasPrecondMatrix(dim, Kes, Kse, Ps, Pe, L, Q);
+            var matrix = new MenkBordasPrecondMatrix(dim, Kes, Kse, Ps, Pe, LQ);
             return (matrix, rhs);
         }
 

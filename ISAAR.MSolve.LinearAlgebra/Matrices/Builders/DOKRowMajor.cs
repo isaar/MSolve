@@ -306,7 +306,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// -1 is returned as the index.
         /// </summary>
         /// <returns></returns>
-        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
+        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray() //TODO: the -1 sentinel value should be a constant somewhere
         {
             Preconditions.CheckSquare(this);
             double[] diag = new double[NumRows];

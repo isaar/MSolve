@@ -271,6 +271,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
         }
 
+        public Vector MultiplyEntrywise(Vector other) //TODO: use MKL's vector math
+        {
+            Preconditions.CheckVectorDimensions(this, other);
+            double[] result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = this.data[i] * other.data[i];
+            return new Vector(result);
+        }
+
         public double Norm2()
         {
             return CBlas.Dnrm2(Length, ref data[0], 1);
