@@ -5,6 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
@@ -25,6 +26,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
             ReleaseResources();
         }
+
+        
 
         public void Dispose()
         {
@@ -57,6 +60,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public class Builder: IStandardPreconditionerBuilder
         {
+            public Builder(Model2D model)
+            {
+                //Ordering = new StandardOrderingNatural();
+                Ordering = new StandardOrderingAmd(model);
+            }
+
+            public IStandardOrdering Ordering { get; }
+
             public IStandardPreconditioner Build(DOKSymmetricColMajor Kss)
             {
                 return new StandardPreconditionerCholesky(Kss);

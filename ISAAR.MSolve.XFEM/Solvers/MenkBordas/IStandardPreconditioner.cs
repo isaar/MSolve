@@ -14,6 +14,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
     interface IStandardPreconditionerBuilder
     {
+        IStandardOrdering Ordering { get; }
         IStandardPreconditioner Build(DOKSymmetricColMajor Kss);
     }
 }

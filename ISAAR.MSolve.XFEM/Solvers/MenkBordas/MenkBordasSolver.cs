@@ -31,12 +31,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
     {
         private readonly ICrackDescription crack;
-        private readonly Model2D model;
         private readonly IDomainDecomposer decomposer;
         private readonly int maxIterations;
-        private readonly double tolerance;
+        private readonly Model2D model;
+        private readonly IStandardOrdering stdOrdering;
         private readonly string subdomainsDirectory;
         private readonly MenkBordasSystem system;
+        private readonly double tolerance;
 
         private XCluster2D cluster;
         private ISet<XSubdomain2D> enrichedSubdomains;
@@ -57,6 +58,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
             this.system = new MenkBordasSystem(PsBuilder);
+            this.stdOrdering = PsBuilder.Ordering;
 
             this.subdomainsDirectory = subdomainsDirectory;
             Logger = new SolverLogger("MenkBordasSolver");
@@ -83,10 +85,16 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             watch.Stop();
             Logger.LogDuration(iteration, "domain decomposition", watch.ElapsedMilliseconds);
 
+            // Order standard dofs
             // Standard dofs are not divided into subdomains and will not change over time.
             watch.Restart();
             cluster.OrderStandardDofs(model);
-            int numStdDofs = cluster.DofOrderer.NumStandardDofs;
+            stdOrdering.ReorderStdDofs(cluster.DofOrderer);
+            watch.Stop();
+            Logger.LogDuration(iteration, "standard dofs ordering", watch.ElapsedMilliseconds);
+
+            // Build Standard matrices
+            watch.Restart();
             var assembler = new XClusterMatrixAssembler();
             (DOKSymmetricColMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
             //if (!Kss.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
