@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         /// <param name="rhs">The right hand side matrix. Column major array with dimensions = 
         ///     <paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
         /// <param name="outSolution">Buffer for the left hand side vector (unknown). Column major array with dimensions = 
-	 	/// 	<paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
+        /// 	<paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_solve")]
         internal static extern int Solve(int system, int numRows, int numRhs, IntPtr factorizedMatrix, 
