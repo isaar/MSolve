@@ -62,11 +62,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Pe.Clear();
         }
 
-        public void ProcessStandardDofs(DOKSymmetricColMajor Kss, Vector bs)
+        public void ProcessStandardDofs(Vector bs)
         {
-            this.numDofsStd = Kss.NumRows;
+            this.numDofsStd = bs.Length;
             this.bs = bs;
-            this.Ps = PsBuilder.Build(Kss);
+            this.Ps = PsBuilder.Build();
         }
 
         public void SetBooleanMatrices(IDictionary<XSubdomain2D, SignedBooleanMatrix> B) // TODO: allow some to not change

@@ -34,6 +34,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly IDomainDecomposer decomposer;
         private readonly int maxIterations;
         private readonly Model2D model;
+        private readonly IStandardMatrixAssembler stdAssembler;
         private readonly IStandardOrdering stdOrdering;
         private readonly string subdomainsDirectory;
         private readonly MenkBordasSystem system;
@@ -58,6 +59,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
             this.system = new MenkBordasSystem(PsBuilder);
+            this.stdAssembler = PsBuilder.Assembler;
             this.stdOrdering = PsBuilder.Ordering;
 
             this.subdomainsDirectory = subdomainsDirectory;
@@ -95,8 +97,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Build Standard matrices
             watch.Restart();
-            var assembler = new XClusterMatrixAssembler();
-            (DOKSymmetricColMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
+            stdAssembler.BuildStandardMatrices(model, cluster.DofOrderer);
             //if (!Kss.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to std-std dofs is not symmetric");
 
@@ -111,13 +112,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
              */
             Vector Fs = model.CalculateStandardForces(DofOrderer);
             this.Uc = model.CalculateConstrainedDisplacements(DofOrderer); 
-            Vector bs = Fs - globalKsc.MultiplyRight(Uc);
+            Vector bs = Fs - stdAssembler.Ksc.MultiplyRight(Uc);
+            stdAssembler.Ksc.Clear();
             watch.Stop();
             Logger.LogDuration(iteration, "linear system assembly", watch.ElapsedMilliseconds);
 
             // Preconditioner for Kss
             watch.Restart();
-            system.ProcessStandardDofs(globalKss, bs);
+            system.ProcessStandardDofs(bs);
             watch.Stop();
             Logger.LogDuration(iteration, "standard preconditioner", watch.ElapsedMilliseconds);
         }

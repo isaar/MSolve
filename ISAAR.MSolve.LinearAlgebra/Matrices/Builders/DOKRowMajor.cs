@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <summary>
         /// See the rant in <see cref="DOKSymmetricColMajor.columns"/> about performance.
         /// </summary>
-        private readonly Dictionary<int, double>[] rows;
+        private Dictionary<int, double>[] rows;
 
         private DOKRowMajor(int numRows, int numCols, Dictionary<int, double>[] rows)
         {
@@ -257,6 +257,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(sortColsOfEachCol);
             return CSRMatrix.CreateFromArrays(NumRows, NumColumns, values, colIndices, rowOffsets, false);
+        }
+
+        /// <summary>
+        /// Afterwards, it cannot be reused.
+        /// </summary>
+        public void Clear()
+        {
+            rows = null;
         }
 
         public int CountNonZeros()

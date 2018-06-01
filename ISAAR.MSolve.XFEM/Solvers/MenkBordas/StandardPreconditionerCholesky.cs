@@ -60,18 +60,23 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public class Builder: IStandardPreconditionerBuilder
         {
+            private readonly StandardMatrixAssemblerCsc assembler;
+
             public Builder(Model2D model)
             {
-                //Ordering = new StandardOrderingNatural();
+                assembler = new StandardMatrixAssemblerCsc();
+                //Ordering = new StandardOrderingNatural(); //TODO: find why they give different results. Is it error built-up by so many back/forward solutions?
                 Ordering = new StandardOrderingAmd(model);
             }
 
-            public IStandardOrdering Ordering { get; }
+            public IStandardMatrixAssembler Assembler { get { return assembler; } }
 
-            public IStandardPreconditioner Build(DOKSymmetricColMajor Kss)
+            public IStandardPreconditioner Build()
             {
-                return new StandardPreconditionerCholesky(Kss);
+                return new StandardPreconditionerCholesky(assembler.Kss);
             }
+
+            public IStandardOrdering Ordering { get; }
         }
     }
 }
