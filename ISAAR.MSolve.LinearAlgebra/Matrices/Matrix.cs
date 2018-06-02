@@ -408,6 +408,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tolerance">Can be 0</param>
+        /// <returns></returns>
+        public bool IsZero(double tolerance)
+        {
+            return DenseArrays.IsZero(data, tolerance);
+        }
+
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
@@ -593,9 +603,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public void SetColumn(int colIdx, Vector colValues)
         {
+            SetColumn(colIdx, 0, colValues);
+        }
+
+        public void SetColumn(int colIdx, int rowStart, Vector colValues)
+        {
             Preconditions.CheckIndexCol(this, colIdx);
-            Preconditions.CheckSameRowDimension(this, colValues);
-            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, colValues.InternalData);
+            if (rowStart + colValues.Length > this.NumRows) throw new NonMatchingDimensionsException(
+                "The entries to set exceed this matrix's number of rows");
+            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, rowStart, colValues.InternalData);
         }
 
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
@@ -673,7 +689,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             double[] result = new double[NumRows];
             Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
-            return Vector.CreateFromArray(data, false);
+            return Vector.CreateFromArray(result, false);
         }
 
         public Vector SliceRow(int rowIndex)

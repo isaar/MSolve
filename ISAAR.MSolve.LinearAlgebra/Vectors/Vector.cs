@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
@@ -245,6 +246,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 if (!comparer.AreEqual(this.data[i], other.data[i])) return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tolerance">Can be 0</param>
+        /// <returns></returns>
+        public bool IsZero(double tolerance)
+        {
+            return DenseArrays.IsZero(data, tolerance);
         }
 
         /// <summary>

@@ -1,12 +1,12 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Factorizations;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
@@ -14,7 +14,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         public EnrichedPreconditioningDenseQ()
         {
-            this.Ordering = new EnrichedOrderingAmd();
+            //this.Ordering = new EnrichedOrderingAmd();
+            this.Ordering = new EnrichedOrderingCamd();
         }
 
         public IEnrichedOrdering Ordering { get; }

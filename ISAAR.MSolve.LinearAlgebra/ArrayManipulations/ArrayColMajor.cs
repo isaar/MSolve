@@ -155,12 +155,14 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// <param name="matrix">The matrix entries in column major layout. This array will be modified.</param>
         /// <param name="colIdx">The index of the column to alter: 
         ///     0 &lt;= <paramref name="colIdx"/> &lt; <paramref name="numCols"/></param>
+        /// <param name="rowStart">The (inclusive) index of the row of column <paramref name="colIdx"/> after which 
+        ///     <paramref name="newCol"/> will be copied.</param>
         /// <param name="newCol">The new entries of column <paramref name="colIdx"/>. Its length must be equal to 
         ///     <paramref name="numRows"/></param>
-        internal static void SetCol(int numRows, int numCols, double[] matrix, int colIdx, double[] newCol)
+        internal static void SetCol(int numRows, int numCols, double[] matrix, int colIdx, int rowStart, double[] newCol)
         {
             // Column entries are contiguous:
-            Array.Copy(newCol, 0, matrix, colIdx * numRows, numRows);
+            Array.Copy(newCol, 0, matrix, colIdx * numRows + rowStart, newCol.Length);
         }
 
         /// <summary>

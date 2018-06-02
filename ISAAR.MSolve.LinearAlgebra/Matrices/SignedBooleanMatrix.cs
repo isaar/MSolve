@@ -108,6 +108,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        public Dictionary<int, Vector> CopyNonZeroRowsToVectors()
+        {
+            var nonZeroRows = new Dictionary<int, Vector>();
+            for (int i = 0; i < NumRows; ++i)
+            {
+                bool exists = data.TryGetValue(i, out Dictionary<int, int> columns);
+                if (exists && (columns.Count > 0)) // TODO: checking if the Dictionary<int, int> of each row is empty is probably useless. If it exists it has >= 1 entries
+                {
+                    var rowVector = new double[NumColumns];
+                    foreach (var colValuePair in columns) rowVector[colValuePair.Key] = colValuePair.Value;
+                    nonZeroRows.Add(i, Vector.CreateFromArray(rowVector));
+                }
+            }
+            return nonZeroRows;
+        }
+
+        public Vector CopyRowToVector(int rowIdx)
+        {
+            var rowVector = new double[NumColumns];
+            bool exists = data.TryGetValue(rowIdx, out Dictionary<int, int> columns);
+            if (exists)
+            {
+                foreach (var colValuePair in columns) rowVector[colValuePair.Key] = colValuePair.Value;
+            }
+            return Vector.CreateFromArray(rowVector);
+        }
+
         public int CountNonZeros()
         {
             int count = 0;
@@ -129,6 +156,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public bool Equals(IIndexable2D other, double tolerance = 1E-13)
         {
             return DenseStrategies.AreEqual(this, other, tolerance);
+        }
+
+        public IReadOnlyList<int> FindNonZeroRows()
+        {
+            // TODO: checking if the Dictionary<int, int> of each row is empty is probably useless. If it exists it has >= 1 entries
+
+            var nonZeroRows = new List<int>();
+            for (int i = 0; i < NumRows; ++i)
+            {
+                bool exists = data.TryGetValue(i, out Dictionary<int, int> columns);
+                if (exists && (columns.Count > 0)) nonZeroRows.Add(i);
+            }
+            return nonZeroRows;
         }
 
         public SparseFormat GetSparseFormat()

@@ -24,8 +24,8 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
-            LinearAlgebraTestSuite.TestAll();
-            //XFEMTestSuite.RunAll();
+            //LinearAlgebraTestSuite.TestAll();
+            XFEMTestSuite.RunAll();
         }
 
         private static void SolveBuildingInNoSoilSmall()
