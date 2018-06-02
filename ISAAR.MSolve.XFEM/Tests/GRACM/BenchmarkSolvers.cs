@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void SingleTest()
         {
-            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(true, true);
-            IBenchmarkBuilder builder = Holes.SetupBenchmark(true, true);
+            IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
+            //IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         private static ISolver CreateMenkBordasSolverJacobi(IBenchmark benchmark)
         {
             return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10,
-                new StandardPreconditionerJacobi.Builder(benchmark.Model), new EnrichedPreconditioningDenseQ());
+                new StandardPreconditionerJacobi.Builder(benchmark.Model), new EnrichedPreconditioningPermutations());
         }
 
         private static ISolver CreatePCGSolver(IBenchmark benchmark)

@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var builder = new Builder(meshPath, growthLength, timingPath, propagationPathLeft, propagationPathRight);
             builder.WritePropagation = writePropagationPath;
 
-            builder.HeavisideEnrichmentTolerance = 0.09;
+            builder.HeavisideEnrichmentTolerance = 0.12;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             builder.BC = BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY;
             builder.NumSubdomains = 8;
 
-            builder.MaxIterations = 10;
+            builder.MaxIterations = 12;
             builder.LeftLsmPlotDirectory = plotLSM ? plotPathLeft : null;
             builder.RightLsmPlotDirectory = plotLSM ? plotPathRight : null;
 

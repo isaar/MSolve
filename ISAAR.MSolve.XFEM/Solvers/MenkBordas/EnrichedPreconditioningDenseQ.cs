@@ -14,8 +14,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         public EnrichedPreconditioningDenseQ()
         {
-            //this.Ordering = new EnrichedOrderingAmd();
-            this.Ordering = new EnrichedOrderingCamd();
+            this.Ordering = new EnrichedOrderingAmd();
+            //this.Ordering = new EnrichedOrderingCamd();
         }
 
         public IEnrichedOrdering Ordering { get; }
