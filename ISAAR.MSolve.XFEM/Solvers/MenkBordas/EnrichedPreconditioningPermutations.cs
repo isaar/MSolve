@@ -26,33 +26,78 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> allPe)
         {
             if (allB.Count < 2) throw new ArgumentException("There must be at least 2 subdomains.");
+            IEnumerable<XSubdomain2D> subdomains = allB.Keys; // WARNING: Use this collection in all subsequent loops
+
+
+            //Go through the boundary dofs of each subdomain, store it original index in Q, find its new index, so that it is 
+            // moved to the top, after all other boundary dofs of all subdomains, and store it in a permutation matrix 
+
+
+            // For each subdomain find the number of boundary dofs, the offset of the first into the subdomain's B, into the 
+            // original Q and into the permuted Q
+            int totalEnrichedDofs = dimensions.NumDofsEnr; // Subdomains with no boundary dofs are also included in here
+            int totalBoundaryDofs = 0;
+            var numBoundaryDofs = new Dictionary<XSubdomain2D, int>();
+            var numSubdomainDofs = new Dictionary<XSubdomain2D, int>();
+            var offsetB = new Dictionary<XSubdomain2D, int>();
+            var offsetQoriginal = new Dictionary<XSubdomain2D, int>();
+            var offsetQpermuted = new Dictionary<XSubdomain2D, int>();
+            foreach (XSubdomain2D sub in subdomains)
+            {
+                int counter = 0;
+                foreach (var nodeDofsPair in sub.DofOrderer.BoundaryDofs) counter += nodeDofsPair.Value.Count;
+                numBoundaryDofs[sub] = counter;
+                numSubdomainDofs[sub] = allB[sub].NumColumns;
+
+                offsetB[sub] = numSubdomainDofs[sub] - numBoundaryDofs[sub]; // the boundary dofs are last
+                offsetQoriginal[sub] = (dimensions.SubdomainStarts[sub] - dimensions.NumDofsStd) + offsetB[sub];
+                offsetQpermuted[sub] = totalBoundaryDofs; // Bring all boundary dofs to the beginning
+
+                totalBoundaryDofs += numBoundaryDofs[sub]; // this must be done after offsetQpermuted
+            }
+
+            // Build the permutation matrix
+            var permutation = PermutationMatrix.CreateIdentity(totalEnrichedDofs);
+            int nextNonzeroRowQ = 0;
+            foreach (XSubdomain2D sub in subdomains)
+            {
+                for (int i = 0; i < numBoundaryDofs[sub]; ++i)
+                {
+                    // Move each boundary dof under the rest boundary dofs
+                    int originalIdx = offsetQoriginal[sub] + i;
+                    int permutedIdx = nextNonzeroRowQ++;
+                    permutation.ExchangeRows(originalIdx, permutedIdx);
+                }
+            }
 
             // Matrix that will undergo QR:
             // (B*Pe)^T = [B1*inv(U1) B2*inv(U2) ...]^T = [inv(L1)*B1^T inv(L2)*B2^T ...]
             // Dims: B = numEquations -by- numDofsEnr, Pe = numDofsEnr -by- numDofsEnr, (B*Pe)^T = numDofsEnr -by- numEquations
-            var BPeTransp = Matrix.CreateZero(dimensions.NumDofsEnr, dimensions.NumEquations);
+            // All non zero rows correspong to boundary dofs and are moved to the top. The rest of (B*Pe)^T is 0 and will remain 
+            // so after factorization. Thus only totalBoundaryDofs -by -numEquations is needed
+            var BPeTransp = Matrix.CreateZero(totalBoundaryDofs, dimensions.NumEquations);
 
-            foreach (var subB in allB)
+            foreach (XSubdomain2D sub in subdomains)
             {
-                var subdomain = subB.Key;
-                SignedBooleanMatrix B = subB.Value;
-                CholeskySuiteSparse Pe = allPe[subdomain];
+                SignedBooleanMatrix B = allB[sub];
+                CholeskySuiteSparse Pe = allPe[sub];
 
                 // Dimensions and offsets
-                int numDofsSubdomain = B.NumColumns;
-                int numDofsBoundary = 0;
-                foreach (var nodeDofsPair in subdomain.DofOrderer.BoundaryDofs) numDofsBoundary += nodeDofsPair.Value.Count;
-                int boundaryDofsStart = numDofsSubdomain - numDofsBoundary;
-                int globalStart = dimensions.SubdomainStarts[subdomain] - dimensions.NumDofsStd;
+                //int numDofsSubdomain = B.NumColumns;
+                //int numDofsBoundary = 0;
+                //foreach (var nodeDofsPair in subdomain.DofOrderer.BoundaryDofs) numDofsBoundary += nodeDofsPair.Value.Count;
+                //int boundaryDofsStart = numDofsSubdomain - numDofsBoundary;
+                //int globalStart = dimensions.SubdomainStarts[subdomain] - dimensions.NumDofsStd;
 
                 // Contribution to the matrix that will undergo QR
                 foreach (var row in B.CopyNonZeroRowsToVectors())
                 {
                     int rowIdx = row.Key;
                     Vector rowVector = row.Value;
-                    Vector contribution = allPe[subdomain].ForwardSubstitution(rowVector); //TODO: only apply forward substitution for the last dofs
-                    BPeTransp.SetColumn(rowIdx, globalStart + boundaryDofsStart,
-                        contribution.Slice(boundaryDofsStart, numDofsSubdomain)); //TODO: directly copy them. No need to create a temporary Vector first
+                    Vector contribution = allPe[sub].ForwardSubstitution(rowVector); //TODO: only apply forward substitution for the last dofs
+                    //BPeTransp.SetColumn(rowIdx, offsetQoriginal[sub],
+                    BPeTransp.SetColumn(rowIdx, offsetQpermuted[sub],
+                        contribution.Slice(offsetB[sub], numSubdomainDofs[sub])); //TODO: directly copy them. No need to create a temporary Vector first
                     //Debug.Assert(contribution.Equals(contribution2, new LinearAlgebra.Testing.Utilities.ValueComparer(double.Epsilon)));
                 }
 
@@ -70,7 +115,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // LQ factorization 
             //TODO: various optimizations might be possible here
             var qr = BPeTransp.FactorQR();
-            Matrix Q = qr.GetEconomyFactorQ();
+            Matrix blockQ1 = qr.GetEconomyFactorQ();
             TriangularUpper R = qr.GetEconomyFactorR();
 
             #region Debug
@@ -88,7 +133,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //Console.WriteLine();
             #endregion
 
-            return new QR(Q, R);
+            return new PQR(blockQ1, R, permutation);
         }
 
         public CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetricColMajor Kee)
@@ -142,15 +187,17 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         }
 
-        private class QR : IFactorizationLQ
+        private class PQR : IFactorizationLQ
         {
-            private readonly Matrix Q1;
+            private readonly PermutationMatrix permutation;
+            private readonly Matrix blockQ1;
             private readonly TriangularUpper R1;
 
-            internal QR(Matrix Q, TriangularUpper R)
+            internal PQR(Matrix blockQ1, TriangularUpper R, PermutationMatrix permutation)
             {
-                this.Q1 = Q;
+                this.blockQ1 = blockQ1;
                 this.R1 = R;
+                this.permutation = permutation;
             }
 
             public Vector InverseLTimesVector(Vector x, bool transposePreconditioner)
@@ -167,7 +214,28 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             public Vector QTimesVector(Vector x, bool transposeQ)
             {
-                return Q1.MultiplyRight(x, !transposeQ); //The stored Q1 of QR is the transpose of the Q1 of LQ
+                // TODO: in a lot of steps, I could avoid zero
+                // Since I work with QR instead of LQ, the transposed flags are opposite
+                if (transposeQ) 
+                {
+                    // Q1 * x = [blockQ1 * x ; 0] = upper block vector
+                    //TODO: The following could be done by multiply matrix * subVector1 into subVector2
+                    Vector blockQ1x = blockQ1.MultiplyRight(x, false);
+                    var Q1x = Vector.CreateZero(permutation.NumRows);
+                    Q1x.SetSubvector(blockQ1x, 0);
+
+                    // P^T * (Q1*x)
+                    return permutation.MultiplyRight(Q1x, true);
+                }
+                else
+                {
+                    // P * x
+                    Vector Px = permutation.MultiplyRight(x, false);
+
+                    // (P^T * Q1)^T = Q1^T * P*x = Q1^T * block(Px) = dense vector
+                    Vector blockPx = Px.Slice(0, blockQ1.NumRows);
+                    return blockQ1.MultiplyRight(blockPx, true);
+                }
             }
         }
     }

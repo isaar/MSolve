@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void SingleTest()
         {
-            IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
-            //IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
+            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
+            IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
