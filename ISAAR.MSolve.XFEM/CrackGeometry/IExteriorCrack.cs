@@ -17,9 +17,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     // TODO: this only works for cracks with a single tip
     interface IExteriorCrack: ISingleCrack
     {
-        CrackBodyEnrichment2D CrackBodyEnrichment { get; }
-        CrackTipEnrichments2D CrackTipEnrichments { get; }
-
         IReadOnlyList<ICartesianPoint2D> CrackPath { get; }
 
         //TODO: remove it. It is obsolete and should be handled by ICrackGeometry.InitializeGeometry(PolyLine2D initialCrack)

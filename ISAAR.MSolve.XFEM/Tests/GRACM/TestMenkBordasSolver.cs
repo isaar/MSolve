@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             // Build the model
             (Model2D model, ISingleCrack crack) = SubdomainTest2.CreateModel();
-            IDecomposer decomposer = SubdomainTest2.DefinePartition(model);
+            IDomainDecomposer decomposer = SubdomainTest2.DefinePartition(model);
 
             // Print matrices
             //(MenkBordasSystem sys, MenkBordasVector uExpected) = BuildCustomSystem(model, cluster);
@@ -160,11 +160,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         //    (new FullVectorWriter(denseU, false, formatting)).WriteToConsole();
         //}
 
-        public static void UseMenkBordasSolver(Model2D model, ISingleCrack crack, IDecomposer decomposer)
+        public static void UseMenkBordasSolver(Model2D model, ISingleCrack crack, IDomainDecomposer decomposer)
         {
             int maxIterations = 1700;
             double tolerance = double.Epsilon;
-            var solver = new MenkBordasSolver(model, crack, decomposer, maxIterations, tolerance);
+            var solver = new MenkBordasSolver(model, crack, decomposer, maxIterations, tolerance, 
+                new StandardPreconditionerCholesky.Builder(model), new EnrichedPreconditioningNaive());
             solver.Initialize();
             solver.Solve();
 

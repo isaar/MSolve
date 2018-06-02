@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+//TODO: replace the boilerplate code with one or more (or generic) Union() private methods
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     class MultipleCracksDisjoint : ICrackDescription
@@ -32,9 +33,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackBodyNodesAll)
+                    foreach (var enrichmentNodes in crack.CrackBodyNodesAll)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
                     }
                 }
                 return union;
@@ -48,9 +49,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackBodyNodesNew)
+                    foreach (var enrichmentNodes in crack.CrackBodyNodesNew)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
                     }
                 }
                 return union;
@@ -64,9 +65,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackBodyNodesModified)
+                    foreach (var enrichmentNodes in crack.CrackBodyNodesModified)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
                     }
                 }
                 return union;
@@ -80,9 +81,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackBodyNodesNearModified)
+                    foreach (var enrichmentNodes in crack.CrackBodyNodesNearModified)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
                     }
                 }
                 return union;
@@ -96,9 +97,35 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackBodyEnrichment2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackBodyNodesRejected)
+                    foreach (var enrichmentNodes in crack.CrackBodyNodesRejected)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
+                    }
+                }
+                return union;
+            }
+        }
+
+        public IReadOnlyList<ICartesianPoint2D> CrackTips
+        {
+            get
+            {
+                var tips = new List<ICartesianPoint2D>();
+                foreach (var crack in cracks) tips.AddRange(crack.CrackTips);
+                return tips;
+            }
+        }
+
+        public IReadOnlyDictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements
+        {
+            get
+            {
+                var union = new Dictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var tipElements in crack.CrackTipElements)
+                    {
+                        union.Add(tipElements.Key, tipElements.Value);
                     }
                 }
                 return union;
@@ -112,9 +139,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackTipEnrichments2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackTipNodesNew)
+                    foreach (var enrichmentNodes in crack.CrackTipNodesNew)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
                     }
                 }
                 return union;
@@ -128,9 +155,25 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
                 var union = new Dictionary<CrackTipEnrichments2D, ISet<XNode2D>>();
                 foreach (var crack in cracks)
                 {
-                    foreach (var enrichementNodes in crack.CrackTipNodesOld)
+                    foreach (var enrichmentNodes in crack.CrackTipNodesOld)
                     {
-                        union.Add(enrichementNodes.Key, enrichementNodes.Value);
+                        union.Add(enrichmentNodes.Key, enrichmentNodes.Value);
+                    }
+                }
+                return union;
+            }
+        }
+
+        public IReadOnlyDictionary<ICartesianPoint2D, IPropagator> CrackTipPropagators
+        {
+            get
+            {
+                var union = new Dictionary<ICartesianPoint2D, IPropagator>();
+                foreach (var crack in cracks)
+                {
+                    foreach (var tipPropagator in crack.CrackTipPropagators)
+                    {
+                        union.Add(tipPropagator.Key, tipPropagator.Value);
                     }
                 }
                 return union;
@@ -160,20 +203,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         }
 
         public IReadOnlyList<ISingleCrack> SingleCracks { get {return cracks;} }
-
-        public IReadOnlyList<IPropagator> GetCrackTipPropagators()
-        {
-            var propagators = new List<IPropagator>();
-            foreach (var crack in cracks) propagators.AddRange(crack.GetCrackTipPropagators());
-            return propagators;
-        }
-
-        public IReadOnlyList<ICartesianPoint2D> GetCrackTips()
-        {
-            var tips = new List<ICartesianPoint2D>();
-            foreach (var crack in cracks) tips.AddRange(crack.GetCrackTips());
-            return tips;
-        }
 
         public void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
         {

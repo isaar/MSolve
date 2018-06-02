@@ -86,20 +86,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 
                 // Check convergence 
                 //TODO: Perhaps this should be done by the crack geometry or the Propagator itself and handled via exceptions 
-                foreach (var propagator in crack.GetCrackTipPropagators())
+                
+                foreach (var tipPropagator in crack.CrackTipPropagators)
                 {
-                    double sifEffective = EquivalentSIF(propagator.Logger.SIFsMode1[iteration],
-                    propagator.Logger.SIFsMode2[iteration]);
+                    double sifEffective = EquivalentSIF(tipPropagator.Value.Logger.SIFsMode1[iteration],
+                    tipPropagator.Value.Logger.SIFsMode2[iteration]);
                     if (sifEffective >= fractureToughness)
                     {
                         Console.WriteLine(
                             "Propagation analysis terminated: Failure due to fracture tougness being exceeded.");
                         return;
                     }
-                }
-                foreach (var tip in crack.GetCrackTips())
-                {
-                    if (!mesh.IsInsideBoundary(tip))
+                    if (!mesh.IsInsideBoundary(tipPropagator.Key))
                     {
                         Console.WriteLine(
                             "Propagation analysis terminated: Failure due to the crack reaching the domain's boudary.");

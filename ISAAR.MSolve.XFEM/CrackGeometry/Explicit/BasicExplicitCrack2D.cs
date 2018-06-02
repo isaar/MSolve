@@ -69,6 +69,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 
         public IReadOnlyList<ISingleCrack> SingleCracks => throw new NotImplementedException();
 
+        public IReadOnlyDictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements => throw new NotImplementedException();
+
+        public IReadOnlyList<ICartesianPoint2D> CrackTips => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<ICartesianPoint2D, IPropagator> CrackTipPropagators => throw new NotImplementedException();
+
         private TipCoordinateSystem tipSystem;
         private List<XContinuumElement2D> tipElements;
 
@@ -546,17 +552,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             Console.WriteLine("------ /DEBUG: TRIANGULATION ------");
         }
 
-        public IReadOnlyList<ICartesianPoint2D> GetCrackTips()
-        {
-            throw new NotImplementedException();
-        }
-
         public void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IReadOnlyList<IPropagator> GetCrackTipPropagators()
         {
             throw new NotImplementedException();
         }

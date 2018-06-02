@@ -43,6 +43,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 //TODO: If I do delegate a lot of functionality to strategy classes, how can the observers be updated correctly and efficiently,
 //      namely without a lot of memory copying?
 //TODO: Use a builder. It deserves one.
+//TODO: a lot of bookkeeping could be done by an abstract base class.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 {
     /// <summary>
@@ -152,6 +153,28 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             }
         }
 
+        public IReadOnlyList<ICartesianPoint2D> CrackTips { get { return new ICartesianPoint2D[] { crackTip }; } }
+
+        public IReadOnlyDictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements
+        {
+            get
+            {
+                var crackTipElements = new Dictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>>();
+                crackTipElements.Add(this.crackTip, this.tipElements);
+                return crackTipElements;
+            }
+        }
+
+        public IReadOnlyDictionary<ICartesianPoint2D, IPropagator> CrackTipPropagators
+        {
+            get
+            {
+                var tipPropagators = new Dictionary<ICartesianPoint2D, IPropagator>();
+                tipPropagators.Add(this.crackTip, this.propagator);
+                return tipPropagators;
+            }
+        }
+
         public IReadOnlyDictionary<CrackTipEnrichments2D, ISet<XNode2D>> CrackTipNodesNew
         {
             get
@@ -189,16 +212,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             if (tipPosition == CrackTipPosition.Single) return crackTip;
             else throw new ArgumentException("Only works for single tip cracks.");
-        }
-
-        public IReadOnlyList<ICartesianPoint2D> GetCrackTips()
-        {
-            return new ICartesianPoint2D[] { crackTip };
-        }
-
-        public IReadOnlyList<IPropagator> GetCrackTipPropagators()
-        {
-            return new IPropagator[] { propagator };
         }
 
         // TODO: remove this

@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+//TODO: decide on consistent collections, indexes/keys and naming
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     interface ICrackDescription
@@ -45,6 +46,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         /// </summary>
         IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected { get; }
 
+        IReadOnlyList<ICartesianPoint2D> CrackTips { get; }
+        IReadOnlyDictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements { get; }
+        IReadOnlyDictionary<ICartesianPoint2D, IPropagator> CrackTipPropagators { get; }
+
         /// <summary>
         /// Nodes that are currently enriched with tip functions.
         /// </summary>
@@ -65,9 +70,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         BiMesh2D Mesh { get; } //TODO: abstract this
 
         IReadOnlyList<ISingleCrack> SingleCracks { get; } //Not sure about this one
-
-        IReadOnlyList<ICartesianPoint2D> GetCrackTips();
-        IReadOnlyList<IPropagator> GetCrackTipPropagators();
+        
         void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements);
         void UpdateEnrichments();
     }

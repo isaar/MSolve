@@ -103,6 +103,59 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
             [Out] out int outFactorNNZ, IntPtr common);
 
         /// <summary>
+        /// Calculates a fill reducing ordering using the Constrained Approximate Minimum Degree algorithm for a A + A^T,  
+        /// where A is a square sparse matrix. The pattern of A + A^T is formed first. The constrains enforce groups of indices 
+        /// to be ordered consecutively, before other groups.
+        /// Returns: 
+        ///	    0 if the input was ok and the ordering is successful, 
+        ///	    1 if the matrix had unsorted columns or duplicate entries, but was otherwise valid, 
+        ///	    2 if input arguments <paramref name="order"/>, <paramref name="colOffsets"/>, <paramref name="rowIndices"/> are 
+        ///	        invalid, or if <paramref name="outPermutation"/> is NULL,
+        ///	    3 if not enough memory can be allocated.
+        /// </summary> 
+        /// <param name="order">Number of rows = number of columns.</param>
+        /// <param name="rowIndices">Array containing the row indices of the non zero entries of the upper triangle. 
+        ///     Length = <paramref name="nnz"/>. They must be sorted.</param>
+        /// <param name="colOffsets">Array containing the indices into <paramref name="rowIndices"/> of the first entry of each 
+        ///     column. Length = <paramref name="order"/> + 1. They must be sorted. 
+        ///     The first entry is <paramref name="colOffsets"/>[0] = 0. 
+        ///     The last entry is <paramref name="colOffsets"/>[<paramref name="order"/>] = nnz.</param>
+        /// <param name="constraints">Array of length = order with ordering constraints. Its values must be 
+        ///     0 &lt;= <paramref name="constraints"/>[i] &lt; order. If <paramref name="constraints"/> = NULL, no constraints 
+        ///     will be enforced.
+        ///		Example: <paramref name="constraints"/> = { 2, 0, 0, 0, 1 }. This means that indices 1, 2, 3 that have 
+        ///		<paramref name="constraints"/>[i] = 0, will be ordered before index 4 with <paramref name="constraints"/>[4] = 1,
+        ///		which will be ordered before index 0 with <paramref name="constraints"/>[0] = 2. Indeed for a certain pattern, 
+        ///		<paramref name="outPermutation"/> = { 3, 2, 1, 4, 0 } (remember <paramref name="outPermutation"/> is a new-to-old 
+        ///		mapping).</param>
+        ///	<param name="denseThreshold">A dense row/column in A + A^T can cause CAMD to spend significant time in ordering    
+        /// 	the matrix. If <paramref name="denseThreshold"/> &gt;= 0, rows/columns with more than 
+        /// 	<paramref name="denseThreshold"/> * sqrt(order) entries are ignored during the ordering, and placed last in the 
+        /// 	output order. The default value of <paramref name="denseThreshold"/> is 10. If negative, no rows/columns are 
+        /// 	treated as dense. Rows/columns with 16 or fewer off-diagonal entries are never considered dense. WARNING: 
+        /// 	allowing dense rows/columns may violate the constraints.</param>
+        /// <param name="aggressiveAbsorption">If non zero, aggressive absorption will be performed, which means that a  
+        /// 	prior element is absorbed into the current element if it is a subset of the current element, even if it is not  
+        /// 	adjacent to the current pivot element. This nearly always leads to a better ordering (because the approximate  
+        /// 	degrees are more accurate) and a lower execution time. There are cases where it can lead to a slightly worse 
+        /// 	ordering, however. The default value is nonzero. To turn it off, set <paramref name="aggressiveAbsorption"/> 
+        /// 	to 0.</param>
+        /// <param name="outPermutation">Out parameter: buffer of length = <paramref name="order"/>. Will be filled with a  
+        ///     fill-reducing permutation vector, such that: original index = i, reordered index = 
+        ///     <paramref name="outPermutation"/>[i].</param>
+        /// <param name="outFactorNNZ">Out parameter: upper bound on the number of non zero entries in L of a subsequent L*L^T   
+        ///     factorization. Will be -1 if the ordering fails.</param>
+        /// <param name="outMovedDense">Out parameter: the number of dense rows/columns of A + A^T that were removed from A  
+        ///     prior to ordering. These are placed last in the output order of <paramref name="outPermutation"/>. Will be -1 
+        ///     if the ordering fails. WARNING: if <paramref name="outMovedDense"/> &gt; 0, it indicates that the constraints  
+        ///     are violated.</param>
+        /// <returns></returns>
+        [DllImport("suitesparse_utilities.dll", EntryPoint = "util_reorder_camd")]
+        internal static extern int ReorderCAMD(int order, int[] rowIndices, int[] colOffsets, int[] constraints,
+            int denseThreshold, int aggressiveAbsorption, int[] outPermutation, [Out] out int outFactorNNZ, 
+            [Out] out int outMovedDense);
+
+        /// <summary>
         /// Adds a row and column to an LDL' factorization. Before updating the kth row and column of L must be equal to the kth  
         /// row and column of the identity matrix. The row/column to add must be a sparse CSC matrix with dimensions n-by-1,  
         /// where n is the order of the matrix. Returns 1 if the method succeeds, 0 otherwise.
@@ -143,7 +196,7 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         /// <param name="rhs">The right hand side matrix. Column major array with dimensions = 
         ///     <paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
         /// <param name="outSolution">Buffer for the left hand side vector (unknown). Column major array with dimensions = 
-	 	/// 	<paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
+        /// 	<paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_solve")]
         internal static extern int Solve(int system, int numRows, int numRhs, IntPtr factorizedMatrix, 

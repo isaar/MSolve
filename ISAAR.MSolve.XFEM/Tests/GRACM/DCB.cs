@@ -147,7 +147,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         public TrackingExteriorCrackLSM Crack { get; private set; }
 
-        public IDecomposer Decomposer {get; private set;}
+        public IDomainDecomposer Decomposer {get; private set;}
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
@@ -316,7 +316,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 boundaries4.Add(new LineSegment2D(vertices4[0], vertices4[1]));
                 regions[3] = new PolygonalRegion(vertices4, boundaries4);
 
-                Decomposer = new GuideDecomposer(regions, mesh);
+                //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new TipAdaptiveDecomposer(mesh, regions, Crack, new GuideDecomposer(regions, mesh));
             }
             else
             {

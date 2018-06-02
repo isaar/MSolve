@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
+using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
@@ -248,6 +249,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tolerance">Can be 0</param>
+        /// <returns></returns>
+        public bool IsZero(double tolerance)
+        {
+            return DenseArrays.IsZero(data, tolerance);
+        }
+
+        /// <summary>
         /// result = thisScalar * this + otherScalar * otherVector
         /// </summary>
         /// <returns></returns>
@@ -269,6 +280,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
+        }
+
+        public Vector MultiplyEntrywise(Vector other) //TODO: use MKL's vector math
+        {
+            Preconditions.CheckVectorDimensions(this, other);
+            double[] result = new double[data.Length];
+            for (int i = 0; i < data.Length; ++i) result[i] = this.data[i] * other.data[i];
+            return new Vector(result);
         }
 
         public double Norm2()

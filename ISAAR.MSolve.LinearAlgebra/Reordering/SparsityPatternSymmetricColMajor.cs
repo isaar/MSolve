@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 //TODO: Should sparsity pattern classes be together with MatrixBuilders, in a Reordering namespace in LinearAlgebra or in a 
 //      Reordering namespace in Solvers?
 //TODO: SuiteSparse ignores the diagonals (needs verification). Can I also ignore them when building the pattern? Update the docs
+//TODO: Find a unified ordering interface and abstract the calls
 namespace ISAAR.MSolve.LinearAlgebra.Reordering
 {
     /// <summary>
@@ -187,6 +188,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         {
             (int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
             return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);
+        }
+
+        /// <summary>
+        /// Returns a permutation vector using the provided ordering algorithm and constraints.
+        /// </summary>
+        /// <param name="orderingAlgorithm"></param>
+        /// <param name="constraints">Array of length = order with ordering constraints. Its values must be 
+        ///     0 &lt;= <paramref name="constraints"/>[i] &lt; order. If <paramref name="constraints"/> = NULL, no constraints 
+        ///     will be enforced.
+        ///		Example: <paramref name="constraints"/> = { 2, 0, 0, 0, 1 }. This means that indices 1, 2, 3 that have 
+        ///		<paramref name="constraints"/>[i] = 0, will be ordered before index 4 with <paramref name="constraints"/>[4] = 1,
+        ///		which will be ordered before index 0 with <paramref name="constraints"/>[0] = 2. Indeed for a certain pattern, 
+        ///		permutation = { 3, 2, 1, 4, 0 } (remember permutation is a new-to-old 
+        ///		mapping).</param>
+        /// <returns></returns>
+        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingCAMD orderingAlgorithm, int[] constraints)
+        {
+            (int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
+            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets, constraints);
         }
 
         private (int[] rowIndices, int[] colOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)

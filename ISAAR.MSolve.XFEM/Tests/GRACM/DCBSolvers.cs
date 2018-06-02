@@ -154,7 +154,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static ISolver CreateMenkBordasSolver(DCB benchmark)
         {
-            return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10, outputPath);
+            return new MenkBordasSolver(benchmark.Model, benchmark.Crack, benchmark.Decomposer, 1000000, 1e-10, 
+                new StandardPreconditionerCholesky.Builder(benchmark.Model), new EnrichedPreconditioningNaive(), outputPath);
         }
 
         private static ISolver CreateCholeskySuiteSparseSolver(DCB benchmark)

@@ -587,6 +587,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         {
             if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
             double[] upper = new double[rect.Length];
+
             for (int j = 0; j < numCols; ++j) // numCols < numRows, so this will scan all columns
             {
                 for (int i = 0; i <= j; ++i) // numCols < numRows, so this will not scan past the square submatrix that contains the diagonal
@@ -594,6 +595,31 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
                     upper[j * numRows + i] = rect[j * numRows + i];
                 }
             }
+            return upper;
+        }
+
+        public static double[] RectColMajorToSquarePackedUpperColMajor(int numRows, int numCols, double[] rect)
+        {
+            if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
+            double[] upper = new double[(numCols * (numCols + 1)) / 2];
+
+            int breakOff = 10; //TODO: this should be a parameter or constant
+            if (numCols < breakOff) breakOff = numCols;
+
+            // These columns are too short to use Array.Copy()
+            for (int j = 0; j < breakOff; ++j) // numCols < numRows, so this will scan all columns
+            {
+                for (int i = 0; i <= j; ++i) // numCols < numRows, so this will not scan past the square submatrix that contains the diagonal
+                {
+                    upper[i + ((j + 1) * j) / 2] = rect[j * numRows + i];
+                }
+            }
+
+            for (int j = breakOff; j < numCols; ++j)
+            {
+                Array.Copy(rect, j * numRows, upper, ((j + 1) * j) / 2, j + 1);
+            }
+
             return upper;
         }
     }

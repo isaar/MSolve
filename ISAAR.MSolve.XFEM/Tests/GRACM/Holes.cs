@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             var builder = new Builder(meshPath, growthLength, timingPath, propagationPathLeft, propagationPathRight);
             builder.WritePropagation = writePropagationPath;
 
-            builder.HeavisideEnrichmentTolerance = 0.09;
+            builder.HeavisideEnrichmentTolerance = 0.12;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around
             // the element that contains the crack tip. However it must not be so large that an element intersected by the 
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             builder.BC = BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY;
             builder.NumSubdomains = 8;
 
-            builder.MaxIterations = 14;
+            builder.MaxIterations = 12;
             builder.LeftLsmPlotDirectory = plotLSM ? plotPathLeft : null;
             builder.RightLsmPlotDirectory = plotLSM ? plotPathRight : null;
 
@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         public ICrackDescription Crack { get; private set; }
 
-        public IDecomposer Decomposer { get; private set; }
+        public IDomainDecomposer Decomposer { get; private set; }
 
         public IReadOnlyList<XNode2D> EnrichedArea { get; private set; }
 
@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 using (var writer = new StreamWriter(leftPropagationPath))
                 {
-                    PropagationLogger logger = leftCrack.GetCrackTipPropagators()[0].Logger;
+                    PropagationLogger logger = leftCrack.CrackTipPropagators[leftCrack.CrackTips[0]].Logger;
                     int numIterations = logger.GrowthAngles.Count;
                     writer.WriteLine(numIterations);
                     for (int i = 0; i < numIterations; ++i)
@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 }
                 using (var writer = new StreamWriter(rightPropagationPath))
                 {
-                    PropagationLogger logger = rightCrack.GetCrackTipPropagators()[0].Logger;
+                    PropagationLogger logger = rightCrack.CrackTipPropagators[rightCrack.CrackTips[0]].Logger;
                     int numIterations = logger.GrowthAngles.Count;
                     writer.WriteLine(numIterations);
                     for (int i = 0; i < numIterations; ++i)
@@ -416,7 +416,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 regions[7] = DecomposeRectangle(rightBoundary3X, boundaryY, maxX, maxY,
                     new bool[] { true, false, false, true });
 
-                Decomposer = new GuideDecomposer(regions, mesh);
+                //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new TipAdaptiveDecomposer(mesh, regions, Crack, new GuideDecomposer(regions, mesh));
             }
             else throw new NotImplementedException();
         }

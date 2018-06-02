@@ -31,21 +31,28 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
     {
         private readonly ICrackDescription crack;
-        private readonly Model2D model;
-        private readonly IDecomposer decomposer;
+        private readonly IDomainDecomposer decomposer;
+        private readonly IEnrichedOrdering enrOrdering;
         private readonly int maxIterations;
-        private readonly double tolerance;
+        private readonly Model2D model;
+        private readonly IStandardMatrixAssembler stdAssembler;
+        private readonly IStandardOrdering stdOrdering;
         private readonly string subdomainsDirectory;
+        private readonly MenkBordasSystem system;
+        private readonly double tolerance;
 
         private XCluster2D cluster;
-        private MenkBordasSystem system;
+        private ISet<XSubdomain2D> enrichedSubdomains;
+        private HashSet<XSubdomain2D> tipEnrichedSubdomains;
+        private int iteration;
 
         /// <summary>
         /// Only entries related to constrained standard dofs are stored. These will not be modifed as the crack grows.
         /// </summary>
         private Vector Uc;
 
-        public MenkBordasSolver(Model2D model, ICrackDescription crack, IDecomposer decomposer, int maxIterations, double tolerance, 
+        public MenkBordasSolver(Model2D model, ICrackDescription crack, IDomainDecomposer decomposer, int maxIterations,
+            double tolerance, IStandardPreconditionerBuilder PsBuilder, IEnrichedPreconditioning enrichedPreconditioning, 
             string subdomainsDirectory = null)
         {
             this.model = model;
@@ -53,8 +60,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.decomposer = decomposer;
             this.maxIterations = maxIterations;
             this.tolerance = tolerance;
+            this.system = new MenkBordasSystem(PsBuilder, enrichedPreconditioning);
+            this.stdAssembler = PsBuilder.Assembler;
+            this.stdOrdering = PsBuilder.Ordering;
+            this.enrOrdering = enrichedPreconditioning.Ordering;
+
             this.subdomainsDirectory = subdomainsDirectory;
-            Logger = new SolverLogger();
+            Logger = new SolverLogger("MenkBordasSolver");
         }
 
         public IDofOrderer DofOrderer { get { return cluster.DofOrderer; } }
@@ -68,18 +80,27 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         /// </summary>
         public void Initialize() //TODO: I should also set up the domain decomposition, irregardless of current enrichments.
         {
-            //var watch = new Stopwatch();
-            //watch.Start();
+            iteration = 0;
+            tipEnrichedSubdomains = new HashSet<XSubdomain2D>();
+            var watch = new Stopwatch();
 
-            // Partion the domain into subdomains
+            /// Partion the domain into subdomains
+            watch.Start();
             cluster = decomposer.CreateSubdomains();
-            if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
+            watch.Stop();
+            Logger.LogDuration(iteration, "domain decomposition", watch.ElapsedMilliseconds);
 
+            /// Order standard dofs
             // Standard dofs are not divided into subdomains and will not change over time.
+            watch.Restart();
             cluster.OrderStandardDofs(model);
-            int numStdDofs = cluster.DofOrderer.NumStandardDofs;
-            var assembler = new XClusterMatrixAssembler();
-            (DOKSymmetricColMajor globalKss, DOKRowMajor globalKsc) = assembler.BuildStandardMatrices(model, cluster.DofOrderer);
+            stdOrdering.ReorderStandardDofs(cluster.DofOrderer);
+            watch.Stop();
+            Logger.LogDuration(iteration, "ordering dofs", watch.ElapsedMilliseconds);
+
+            /// Build Standard matrices
+            watch.Restart();
+            stdAssembler.BuildStandardMatrices(model, cluster.DofOrderer);
             //if (!Kss.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to std-std dofs is not symmetric");
 
@@ -94,28 +115,55 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
              */
             Vector Fs = model.CalculateStandardForces(DofOrderer);
             this.Uc = model.CalculateConstrainedDisplacements(DofOrderer); 
-            Vector bs = Fs - globalKsc.MultiplyRight(Uc);
+            Vector bs = Fs - stdAssembler.Ksc.MultiplyRight(Uc);
+            stdAssembler.Ksc.Clear();
+            watch.Stop();
+            Logger.LogDuration(iteration, "linear system assembly", watch.ElapsedMilliseconds);
 
-            this.system = new MenkBordasSystem(globalKss, bs);
-
-            //watch.Stop();
-            //Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+            /// Preconditioner for Kss
+            watch.Restart();
+            system.ProcessStandardDofs(bs);
+            watch.Stop();
+            Logger.LogDuration(iteration, "standard preconditioner", watch.ElapsedMilliseconds);
         }
 
         public void Solve() //TODO: only update the subdomains with at least 1 modified element
         {
-            //var watch = new Stopwatch();
-            //watch.Start();
+            ++iteration;
+            var watch = new Stopwatch();
+
+            /// Possibly update the domain decomposition
+            watch.Start();
+            decomposer.UpdateSubdomains(cluster);
+            watch.Stop();
+            Logger.LogDuration(iteration, "domain decomposition", watch.ElapsedMilliseconds);
+            if (subdomainsDirectory != null) WriteDecomposition(subdomainsDirectory, cluster);
 
 
-            // TODO: track which subdomains have enriched dofs and which have modified elements
-            system.ClearSubdomains();
-
-            /// Order enriched dofs //TODO: only for modified subdomains
-            SortedSet<XSubdomain2D> enrichedSubdomains = cluster.FindEnrichedSubdomains();
-            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, crack);
-
+            /// Order the dofs of subdomains that are modified.
+            watch.Restart();
+            if (enrichedSubdomains == null) enrichedSubdomains = cluster.FindEnrichedSubdomains();
+            HashSet<XSubdomain2D> previousTipSubdomains = tipEnrichedSubdomains;
+            tipEnrichedSubdomains = FindTipEnrichedSubdomains();
+            var modifiedSubdomains = new SortedSet<XSubdomain2D>();
+            foreach (var subdomain in cluster.Subdomains)
+            {
+                if (tipEnrichedSubdomains.Contains(subdomain) || previousTipSubdomains.Contains(subdomain))
+                {
+                    modifiedSubdomains.Add(subdomain);
+                    enrichedSubdomains.Add(subdomain);
+                }
+            }
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubdomains, modifiedSubdomains, crack);
+            foreach (var subdomain in modifiedSubdomains) enrOrdering.ReorderEnrichedDofs(subdomain);
+            watch.Stop();
+            Logger.LogDuration(iteration, "ordering dofs", watch.ElapsedMilliseconds);
             #region debug
+            // These are inefficient, but useful for debugging
+            //system.ClearSubdomains();
+            //SortedSet<XSubdomain2D> modifiedSubdomains = cluster.FindEnrichedSubdomains();
+            //cluster.DofOrderer.OrderSubdomainDofs(modifiedSubdomains, modifiedSubdomains, crack);
+
             //Console.Write("Enriched subdomains: ");
             //foreach (var subdomain in enrichedSubdomains) Console.Write(subdomain.ID + " ");
             //Console.WriteLine();
@@ -125,10 +173,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //}
             #endregion
 
-
-            /// Subdomain enriched matrices and rhs
+            /// Assemble subdomain enriched matrices and rhs
+            watch.Restart();
             var assembler = new XClusterMatrixAssembler();
-            foreach (var subdomain in enrichedSubdomains)
+            foreach (var subdomain in modifiedSubdomains)
             {
                 (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
@@ -136,9 +184,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var be = Kec.MultiplyRight(Uc.Scale(-1.0), true); //Fe = 0 - Kec * Uc.
                 system.SetSubdomainMatrices(subdomain, Kee, KesCSR, KesCSR.TransposeToCSR(), be);
             }
-            //sys.CheckDimensions();
 
-            /// Signed boolean matrices and continuity equations
+            /// Build signed boolean matrices and continuity equations
             var booleanMatrices = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
             if (booleanMatrices.Count > 1) system.SetBooleanMatrices(booleanMatrices);
             #region debug
@@ -149,29 +196,55 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //    Console.WriteLine();
             //}
             #endregion
+            watch.Stop();
+            Logger.LogDuration(iteration, "linear system assembly", watch.ElapsedMilliseconds);
+
+            /// Enriched preconditioners 
+            watch.Restart();
+            (MenkBordasPrecondMatrix precMatrix, Vector rhs) = system.BuildPreconditionedSystem();
+            watch.Stop();
+            Logger.LogDuration(iteration, "enriched preconditioner", watch.ElapsedMilliseconds);
 
             /// Use an iterative algorithm to solve the symmetric indefinite system
+            watch.Restart();
             var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
-
-            /// With preconditioning
-            (MenkBordasPrecondMatrix precMatrix, Vector rhs) = system.BuildPreconditionedSystem();
             Vector precRhs = precMatrix.PreconditionerTimesVector(rhs, true);
             (Vector precSolution, MinresStatistics stats) = minres.Solve(precMatrix, precRhs);
             Solution = precMatrix.PreconditionerTimesVector(precSolution, false);
+            watch.Stop();
+            Logger.LogDuration(iteration, "iterative algorithm", watch.ElapsedMilliseconds);
             Console.WriteLine(stats);
 
+            Logger.LogDofs(iteration, DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs);
             #region Debug
             //CheckMultiplication(matrix, rhs);
             //CheckPrecondMultiplication(sys);
             //Vector xExpected = SolveLUandPrintMatrices(matrix, rhs);
             //CompareSolutionWithLU(sys, Solution);
             #endregion
+        }
 
-            /// Find the solution vector without multiple dofs
-            // TODO:Should I do that? Isn't the ClusterDofOrderer responsible for extracting the correct dofs, when needed?
+        private HashSet<XSubdomain2D> FindTipEnrichedSubdomains()
+        {
+            var tipSubdomains = new HashSet<XSubdomain2D>();
+            IEnumerable<ISet<XNode2D>> allTipNodes = crack.CrackTipNodesNew.Values;
+            foreach (var subdomain in cluster.Subdomains)
+            {
+                if (IsEnrichedSubdomain(subdomain, allTipNodes)) tipSubdomains.Add(subdomain);
+            }
+            return tipSubdomains;
+        }
 
-            //watch.Stop();
-            //Logger.SolutionTimes.Add(watch.ElapsedMilliseconds);
+        private bool IsEnrichedSubdomain(XSubdomain2D subdomain, IEnumerable<ISet<XNode2D>> allTipNodes)
+        {
+            foreach (var tipNodes in allTipNodes)
+            {
+                foreach (var node in tipNodes)
+                {
+                    if (subdomain.AllNodes.Contains(node)) return true;
+                }
+            }
+            return false;
         }
 
         private static void CheckMultiplication(MenkBordasMatrix K, Vector b)
@@ -251,13 +324,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return denseX;
         }
 
-        private static void WriteDecomposition(string subdomainsDirectory, XCluster2D cluster)
+        private void WriteDecomposition(string subdomainsDirectory, XCluster2D cluster)
         {
             var writer = new DomainDecompositionWriter();
 
             //writer.WriteRegions(directory + "regions.vtk", regions);
-            writer.WriteSubdomainElements(subdomainsDirectory + "\\subdomains.vtk", cluster.Subdomains);
-            writer.WriteBoundaryNodes(subdomainsDirectory + "\\boundaryNodes", cluster.Subdomains);
+            writer.WriteSubdomainElements(subdomainsDirectory + $"\\subdomains_{iteration-1}.vtk", cluster.Subdomains);
+            writer.WriteBoundaryNodes(subdomainsDirectory + $"\\boundaryNodes_{iteration-1}.vtk", cluster.Subdomains);
         }
     }
 }

@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 }
                 pattern.ConnectIndices(allDofs, false);
             }
-            (int[] permutationOldToNew, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
 
             #region DEBUG
             //var assembler = new GlobalDOKAssembler();
@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //Console.WriteLine($"Ordering {enumeratorName} + AMD, factor nnz predicted = {stats.FactorizedNumNonZeros}");
             #endregion
 
-            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutation, false);
         }
 
         private Vector CalcEffectiveRhs(DOKRowMajor globalUnconstrainedConstrained)

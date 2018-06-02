@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            SuiteSparse();
+            //SuiteSparse();
             //TestMarshaling();
             //TestBuilders();
             //TestInverse();
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            //TestReordering();
+            TestReordering();
             //TestReading();
             //TestSystemSolution();
             //TestTransposition();
@@ -74,8 +74,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SparsePositiveDefinite.CheckFactorization();
 
             // Orthogonalizations
-            RectangularFullColRank.CheckFactorizationQR();
-            RectangularFullColRank.CheckFactorizationLQ();
+            //RectangularFullColRank.CheckFactorizationQR();
+            //RectangularFullColRank.CheckFactorizationLQ();
+            RectangularFullColRank.CheckEqonomyQRFactors();
         }
 
         public static void TestIndexing()
@@ -104,11 +105,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestReordering()
         {
-            SparsePositiveDefinite.PrintPatternAsBoolean();
-            Console.WriteLine();
-            MatrixAssembly.BuildPattern();
-            Console.WriteLine();
-            SparsePositiveDefinite.CheckReordering();
+            //SparsePositiveDefinite.PrintPatternAsBoolean();
+            //Console.WriteLine();
+            //MatrixAssembly.BuildPattern();
+            //Console.WriteLine();
+            //SparsePositiveDefinite.CheckReorderingAMD();
+            //Console.WriteLine();
+            SparsePositiveDefinite.CheckReorderingCAMD();
             Console.WriteLine();
         }
 
@@ -175,6 +178,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //LowerInvertible.CheckSystemSolution();
             //LowerSingular.CheckSystemSolution();
             //UpperInvertible.CheckSystemSolution();
+            UpperInvertible.CheckSystemSolutions2();
             //UpperSingular.CheckSystemSolution();
             //SymmPositiveDefinite.CheckSystemSolution();
             //SymmSingular.CheckSystemSolution();
@@ -184,7 +188,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //CGTests.Run();
             //MinresTests.CheckSolutionDefinite();
             //MinresTests.CheckSolutionIndefinite();
-            MinresTests.AssessPreconditioning();
+            //MinresTests.AssessPreconditioning();
 
             /// Least squares systems
             //RectangularFullColRank.CheckSolutionLeastSquares();

@@ -11,7 +11,6 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
     interface IInteriorCrack: ISingleCrack
     {
-        CrackBodyEnrichment2D CrackBodyEnrichment { get; }
         CrackTipEnrichments2D StartTipEnrichments { get; }
         CrackTipEnrichments2D EndTipEnrichments { get; }
 

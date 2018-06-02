@@ -20,11 +20,13 @@ using ISAAR.MSolve.XFEM.Entities;
 //          a separate upper copy? I think SuiteSparse can ignore the lower/upper entries
 //TODO: Q and L are dense now. Try to take advantage of any sparsity. Perhaps create some by appropriate DD or permutations.
 //      Also try to take advantage of the fact that B are boolean matrices, with at most 2 entries per column
+// TODO: Delete this class after resolving the other TODOs or transfering the comments to the new OOP design.
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     //TODO: apply AMD before factorizing. Perhaps this should be done by the solver itself, so that the dofOrders are also updated.
     static class MenkBordasPreconditioner
     {
+        
         public static CholeskySuiteSparse CreateStandardPreconditioner(DOKSymmetricColMajor Kss)
         {
             // Standard preconditioner = cholesky factor U

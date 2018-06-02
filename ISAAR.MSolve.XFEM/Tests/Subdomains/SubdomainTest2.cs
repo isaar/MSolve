@@ -36,7 +36,8 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             (Model2D model, ISingleCrack crack) = CreateModel();
             XCluster2D cluster = DefinePartition(model).CreateSubdomains();
             cluster.OrderStandardDofs(model);
-            cluster.DofOrderer.OrderSubdomainDofs(cluster.FindEnrichedSubdomains(), crack);
+            var enrichedSubs = cluster.FindEnrichedSubdomains();
+            cluster.DofOrderer.OrderSubdomainDofs(enrichedSubs, enrichedSubs, crack);
             cluster.DofOrderer.WriteToConsole();
             PrintElementDofs(model, cluster);
             BuildSignedBooleanMatrices(cluster);
@@ -60,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
             }
         }
 
-        public static IDecomposer DefinePartition(Model2D model)
+        public static IDomainDecomposer DefinePartition(Model2D model)
         {
             double tol = 1e-6;
             var regions = new RectangularRegion[4];

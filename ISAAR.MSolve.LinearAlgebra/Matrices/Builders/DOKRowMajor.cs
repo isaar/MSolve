@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <summary>
         /// See the rant in <see cref="DOKSymmetricColMajor.columns"/> about performance.
         /// </summary>
-        private readonly Dictionary<int, double>[] rows;
+        private Dictionary<int, double>[] rows;
 
         private DOKRowMajor(int numRows, int numCols, Dictionary<int, double>[] rows)
         {
@@ -259,6 +259,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return CSRMatrix.CreateFromArrays(NumRows, NumColumns, values, colIndices, rowOffsets, false);
         }
 
+        /// <summary>
+        /// Afterwards, it cannot be reused.
+        /// </summary>
+        public void Clear()
+        {
+            rows = null;
+        }
+
         public int CountNonZeros()
         {
             int count = 0;
@@ -298,7 +306,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// -1 is returned as the index.
         /// </summary>
         /// <returns></returns>
-        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()
+        public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray() //TODO: the -1 sentinel value should be a constant somewhere
         {
             Preconditions.CheckSquare(this);
             double[] diag = new double[NumRows];

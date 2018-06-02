@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 {
     public class SparsePositiveDefinite
     {
-        public static readonly int order = 10;
+        public const int order = 10;
 
         public static readonly double[,] matrix = {
             { 21.0,  1.0,  0.0,  4.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 },
@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.CopyToArray());
         }
 
-        public static void CheckReordering()
+        public static void CheckReorderingAMD()
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingAMD();
@@ -119,6 +119,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             bool success = comparer.AreEqual(matlabPermutationAMD, permutation);
             if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
             else Console.WriteLine("SuiteSparse reordering returned, but the result is not as expected.");
+        }
+
+        public static void CheckReorderingCAMD()
+        {
+            var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
+            var orderingAlg = new OrderingCAMD();
+
+            // Enforce indices order:
+            // First group: 0, 1, 7. Second group: 3, 5, 6, 9. Third group: 2, 4, 8
+            // The new positions of these indices should be grouped, such as first group is before second before third
+            var constraints = new int[order] { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
+            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlg, constraints);
+
+            
+            var originalDiagonal = new double[order];
+            var permutedDiagonal = new double[order];
+            for (int i = 0; i < order; ++i) originalDiagonal[i] = matrix[i, i];
+            for (int i = 0; i < order; ++i) permutedDiagonal[i] = originalDiagonal[permutation[i]];
+
+            var printer = new Printer();
+            Console.Write("Permutation (new-to-old): ");
+            printer.Print(permutation);
+            Console.Write("Original diagonal: ");
+            printer.Print(originalDiagonal);
+            Console.Write("Permuted diagonal: ");
+            printer.Print(permutedDiagonal);
         }
 
         public static void CheckSystemSolution()

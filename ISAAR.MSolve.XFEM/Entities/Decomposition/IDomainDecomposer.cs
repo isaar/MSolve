@@ -4,8 +4,9 @@ using System.Text;
 
 namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 {
-    interface IDecomposer
+    interface IDomainDecomposer
     {
         XCluster2D CreateSubdomains();
+        void UpdateSubdomains(XCluster2D cluster);
     }
 }

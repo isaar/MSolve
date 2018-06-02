@@ -131,6 +131,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(qrFactorR, R.CopyToArray2D());
         }
 
+        public static void CheckEqonomyQRFactors()
+        {
+            var comparer = new Comparer(Comparer.PrintMode.Always);
+
+            var A = Matrix.CreateFromArray(matrix);
+            QRFactorization QR = A.FactorQR();
+            Matrix Q = QR.GetFactorQ();
+            Matrix R = QR.GetFactorR();
+
+            Matrix Q1expected = Q.Slice(0, numRows, 0, numCols);
+            Matrix R1expected = R.Slice(0, numCols, 0, numCols);
+
+            Matrix Q1 = QR.GetEconomyFactorQ();
+            TriangularUpper R1 = QR.GetEconomyFactorR();
+
+            Console.WriteLine("Check economy QR factors: ");
+            Console.WriteLine("Q1: ");
+            comparer.CheckMatrixEquality(Q1expected.CopyToArray2D(), Q1.CopyToArray2D());
+            Console.WriteLine("R1: ");
+            comparer.CheckMatrixEquality(R1expected.CopyToArray2D(), R1.CopyToArray2D());
+        }
+
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);

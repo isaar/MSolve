@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             builder.WritePropagation = writePropagationPath;
             builder.HeavisideEnrichmentTolerance = 0.01;
             builder.RigidBCs = true;
-            builder.NumSubdomains = 3;
+            builder.NumSubdomains = 5;
 
             builder.LsmPlotDirectory = plotLSM ? plotPath: null;
             builder.MaxIterations = 13;
@@ -163,7 +163,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// </summary>
         public ICrackDescription Crack { get { return crack; } }
 
-        public IDecomposer Decomposer { get; private set; }
+        public IDomainDecomposer Decomposer { get; private set; }
 
         public IReadOnlyList<double> GrowthAngles { get; private set; }
 
@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 using (var writer = new StreamWriter(propagationPath))
                 {
-                    PropagationLogger logger = crack.GetCrackTipPropagators()[0].Logger;
+                    PropagationLogger logger = crack.CrackTipPropagators[crack.CrackTips[0]].Logger;
                     int numIterations = logger.GrowthAngles.Count;
                     writer.WriteLine(numIterations);
                     for (int i = 0; i < numIterations; ++i)
@@ -340,9 +340,53 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 boundaries3.Add(new LineSegment2D(vertices3[3], vertices3[1]));
                 regions[2] = new PolygonalRegion(vertices3, boundaries3);
 
-                Decomposer = new GuideDecomposer(regions, mesh);
+                //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new TipAdaptiveDecomposer(mesh, regions, crack, new GuideDecomposer(regions, mesh));
+            }
+            else if (numSubdomains == 5)
+            {
+                double minX = 0, maxX = bottomWidth, minY = 0, maxY = totalHeight;
+                double boundary1X = 165.0, boundary2X = 180.0, boundary3X = 195.0, boundary4X = 210.0;
+
+
+                var regions = new PolygonalRegion[5];
+
+                // Left crack
+                regions[0] = DecomposeRectangle(minX, minY, boundary1X, maxY,
+                    new bool[] { false, true, true, false });
+                regions[1] = DecomposeRectangle(boundary1X, minY, boundary2X, maxY,
+                    new bool[] { false, true, true, true });
+                regions[2] = DecomposeRectangle(boundary2X, minY, boundary3X, maxY,
+                    new bool[] { false, true, true, true });
+                regions[3] = DecomposeRectangle(boundary3X, minY, boundary4X, maxY,
+                    new bool[] { false, false, true, true });
+                regions[4] = DecomposeRectangle(boundary4X, minY, maxX, maxY,
+                    new bool[] { false, false, true, true });
+
+                //Decomposer = new GuideDecomposer(regions, mesh);
+                Decomposer = new TipAdaptiveDecomposer(mesh, regions, crack, new GuideDecomposer(regions, mesh));
             }
             else throw new NotImplementedException();
+        }
+
+        private PolygonalRegion DecomposeRectangle(double x1, double y1, double x2, double y2, bool[] areBoundaries)
+        {
+            var vertices = new CartesianPoint2D[4];
+            vertices[0] = new CartesianPoint2D(x1, y1);
+            vertices[1] = new CartesianPoint2D(x2, y1);
+            vertices[2] = new CartesianPoint2D(x2, y2);
+            vertices[3] = new CartesianPoint2D(x1, y2);
+            var boundaries = new HashSet<LineSegment2D>();
+            for (int i = 0; i < areBoundaries.Length; ++i)
+            {
+                if (areBoundaries[i])
+                {
+                    CartesianPoint2D start = vertices[i];
+                    CartesianPoint2D end = vertices[(i + 1) % vertices.Length];
+                    boundaries.Add(new LineSegment2D(start, end));
+                }
+            }
+            return new PolygonalRegion(vertices, boundaries);
         }
 
         private void InitializeCrack()
