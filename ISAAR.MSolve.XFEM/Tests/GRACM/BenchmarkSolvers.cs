@@ -28,19 +28,19 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             IBenchmark benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
 
-            // Solvers
+            // Solvers used for debugging
             //var solver = CreateCholeskySuiteSparseSolver(benchmark);
+            //var solver = CreateReanalysisRebuildingSolver(benchmark);
+
+            // Actual solvers
+            //var solver = CreateCholeskyAMDSolver(benchmark);
+            //var solver = CreatePCGSolver(benchmark);
+            //var solver = CreateReanalysisSolver(benchmark);
             var solver = CreateMenkBordasSolverCholesky(benchmark);
             //var solver = CreateMenkBordasSolverJacobi(benchmark);
-            //var solver = CreatePCGSolver(benchmark);
-            //var solver = CreateCholeskyAMDSolver(benchmark);
-            benchmark.Analyze(solver);
 
-            //Reanalysis solvers
-            //var solver = CreateReanalysisRebuildingSolver(benchmark);
-            //var solver = CreateReanalysisSolver(benchmark);
-            //benchmark.Analyze(solver);
-            //solver.Dispose();
+            benchmark.Analyze(solver);
+            if (solver is IDisposable handle) handle.Dispose();
 
             // Timing output path
             string timingOutputPath = builder.TimingOutputDirectory + "\\" + solver.Logger.SolverName + "_results.txt";
@@ -56,10 +56,10 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             IBenchmarkBuilder builder = Holes.SetupBenchmark(false, false);
 
             /// Choose solver
-            CreateSolver solverFunc = CreateCholeskyAMDSolver;
+            //CreateSolver solverFunc = CreateCholeskyAMDSolver;
             //CreateSolver solverFunc = CreateReanalysisSolver;
             //CreateSolver solverFunc = CreatePCGSolver;
-            //CreateSolver solverFunc = CreateMenkBordasSolverCholesky;
+            CreateSolver solverFunc = CreateMenkBordasSolverCholesky;
             //CreateSolver solverFunc = CreateMenkBordasSolverJacobi;
 
             /// Call once to load all necessary DLLs

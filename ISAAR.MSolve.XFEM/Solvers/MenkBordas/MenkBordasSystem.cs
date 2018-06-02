@@ -20,7 +20,7 @@ using ISAAR.MSolve.XFEM.Entities;
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     //TODO: this class should manage all matrices and vectors while they update. 
-    class MenkBordasSystem //TODO: IDisposable. Also dispose of modified matrices and factorizations.
+    class MenkBordasSystem : IDisposable
     {
         public MenkBordasSystem(IStandardPreconditionerBuilder PsBuilder, IEnrichedPreconditioning enrichedPreconditioning)
         {
@@ -52,16 +52,28 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private readonly SortedDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
         // TODO: investigate if some submatrices of L, Q can be cached.
 
-        public void ClearSubdomains()
+        //public void ClearSubdomains() //TODO: also dispose factorizations
+        //{
+        //    subdomains.Clear();
+        //    modifiedSubdomains.Clear();
+        //    //Kee.Clear();
+        //    //Kes.Clear();
+        //    //Kse.Clear();
+        //    B = null;
+        //    //be.Clear();
+        //    Pe.Clear();
+        //}
+
+        public void Dispose()
         {
-            subdomains.Clear();
-            modifiedSubdomains.Clear();
-            //Kee.Clear();
-            //Kes.Clear();
-            //Kse.Clear();
-            B = null;
-            //be.Clear();
-            Pe.Clear();
+            if (Ps != null) Ps.Dispose();
+            if (Pe != null)
+            {
+                foreach (CholeskySuiteSparse factor in Pe.Values)
+                {
+                    if (factor != null) factor.Dispose();
+                }
+            }
         }
 
         public void ProcessStandardDofs(Vector bs)
@@ -197,15 +209,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             }
 
             // Create the preconditioned enriched matrices
-            Console.WriteLine("Modified subdomains: ");
+            //Console.WriteLine("Modified subdomains: ");
             foreach (var subdomain in subdomains)
             {
                 if (modifiedSubdomains[subdomain]) // Do not recreate the preconditioners of unmodified Kee
                 {
-                    Console.Write($"Subdomain {subdomain.ID}: ");
                     DOKSymmetricColMajor kee = Kee[subdomain];
 
                     #region debug
+                    //Console.Write($"Subdomain {subdomain.ID}: ");
                     //for (int i = 0; i < kee.NumColumns; ++i)
                     //{
                     //    if (kee[i, i] == 0.0)
@@ -218,7 +230,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     // New subdomain: there in no Pe. Modified subdomain: Pe was disposed & removed in the setter.
                     //TODO: if it is not discarded in the setter, then this doesn't throw a KeyExists excpetion. Why?
                     CholeskySuiteSparse subPe = enrichedPreconditioning.CreateEnrichedPreconditioner(kee);
-                    Console.WriteLine("Num non zeros in Kee after factorization = " + subPe.NumNonZeros);
+                    //Console.WriteLine("Num non zeros in Kee after factorization = " + subPe.NumNonZeros);
                     Pe.Add(subdomain, subPe);
 
                     // Dispose of each Kee, once it is no longer needed.
@@ -229,7 +241,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     modifiedSubdomains[subdomain] = false;
                 }
             }
-            Console.WriteLine();
+            //Console.WriteLine();
 
             // Handle L,Q matrices
             IFactorizationLQ LQ = null;

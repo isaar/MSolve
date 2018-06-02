@@ -39,6 +39,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Kss.Clear();  // No longer needed.
         }
 
+        public void Dispose()
+        {
+            // do nothing
+        }
+
         public Vector PreconditionedMatrixTimesVector(Vector x)
         {
             // y = Ps^T * Kss * Ps * x = D * Kss * D * x

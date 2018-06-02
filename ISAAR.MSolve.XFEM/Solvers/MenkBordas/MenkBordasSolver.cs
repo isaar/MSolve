@@ -28,7 +28,7 @@ using ISAAR.MSolve.XFEM.Output.VTK;
 //      submatrices in Q.
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasSolver: ISolver //TODO: dispose of MenkBordasSystem
+    class MenkBordasSolver: ISolver, IDisposable
     {
         private readonly ICrackDescription crack;
         private readonly IDomainDecomposer decomposer;
@@ -74,6 +74,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public SolverLogger Logger { get; }
 
         public Vector Solution { get; private set; }
+
+        public void Dispose()
+        {
+            system.Dispose();
+        }
 
         /// <summary>
         /// Create and store anything that pertains to the standard dofs and will not change as the crack propagates. 

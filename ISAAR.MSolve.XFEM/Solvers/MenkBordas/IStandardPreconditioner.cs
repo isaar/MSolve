@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    interface IStandardPreconditioner
+    interface IStandardPreconditioner: IDisposable
     {
         Vector PreconditionedMatrixTimesVector(Vector x);
         Vector PreconditionerTimesVector(Vector x, bool transposeThis);
