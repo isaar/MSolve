@@ -14,15 +14,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static void Run()
         {
-            SingleTest();
-            //BenchmarkSolver();
+            //SingleTest();
+            BenchmarkSolver();
         }
 
 
         private static void SingleTest()
         {
-            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
-            IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
+            IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
+            //IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         private static void BenchmarkSolver()
         {
-            int numRepetitions = 10;
+            int numRepetitions = 4;
 
             /// Define the benchmark problem once
             //IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, false);
@@ -63,10 +63,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //CreateSolver solverFunc = CreateMenkBordasSolverJacobi;
 
             /// Call once to load all necessary DLLs
+            int defaultIterations = builder.MaxIterations;
+            builder.MaxIterations = 3;
             IBenchmark firstTry = builder.BuildBenchmark();
             firstTry.InitializeModel();
             ISolver firstSolver = solverFunc(firstTry);
             firstTry.Analyze(firstSolver);
+            builder.MaxIterations = defaultIterations;
 
             /// Timing output path
             string timingOutputPath = builder.TimingOutputDirectory + "\\" + firstSolver.Logger.SolverName + "_results.txt";

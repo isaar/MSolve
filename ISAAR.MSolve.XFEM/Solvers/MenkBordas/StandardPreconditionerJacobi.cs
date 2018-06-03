@@ -79,6 +79,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 return new StandardPreconditionerJacobi(assembler.Kss);
             }
 
+            public string Name { get; } = "Jacobi";
+
             public IStandardOrdering Ordering { get; }
         }
     }

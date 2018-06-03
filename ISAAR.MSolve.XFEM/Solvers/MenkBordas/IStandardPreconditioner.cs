@@ -16,6 +16,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         IStandardMatrixAssembler Assembler { get; }
         IStandardPreconditioner Build();
+        string Name { get; }
         IStandardOrdering Ordering { get; }
     }
 }

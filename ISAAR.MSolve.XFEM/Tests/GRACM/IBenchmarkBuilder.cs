@@ -6,6 +6,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
     interface IBenchmarkBuilder
     {
+        int MaxIterations { get; set; }
         string TimingOutputDirectory { get; }
         IBenchmark BuildBenchmark();
     }

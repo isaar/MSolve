@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.enrOrdering = enrichedPreconditioning.Ordering;
 
             this.subdomainsDirectory = subdomainsDirectory;
-            Logger = new SolverLogger("MenkBordasSolver");
+            Logger = new SolverLogger($"MenkBordasSolver_{PsBuilder.Name}");
         }
 
         public IDofOrderer DofOrderer { get { return cluster.DofOrderer; } }

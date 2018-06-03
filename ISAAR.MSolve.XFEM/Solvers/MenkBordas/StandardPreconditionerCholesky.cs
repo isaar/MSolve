@@ -76,6 +76,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 return new StandardPreconditionerCholesky(assembler.Kss);
             }
 
+            public string Name { get; } = "Cholesky";
+
             public IStandardOrdering Ordering { get; }
         }
     }
