@@ -25,9 +25,9 @@ namespace ISAAR.MSolve.Tests
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
             double nodalLoad = 20000.0;
-            int nNodes = 12;
-            int nElems = 5;
-            int monitorNode = 12;
+            int nNodes = 8;
+            int nElems = 1;
+            int monitorNode = 8;
 
             // Create new 3D material
             ElasticMaterial3D_v2 material = new ElasticMaterial3D_v2
@@ -40,16 +40,12 @@ namespace ISAAR.MSolve.Tests
             IList<Node> nodes = new List<Node>();
             Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
             Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0, Z = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0, Z = 0.0 };
-            Node node4 = new Node { ID = 4, X = 300.0, Y = 0.0, Z = 0.0 };
-            Node node5 = new Node { ID = 5, X = 400.0, Y = 0.0, Z = 0.0 };
-            Node node6 = new Node { ID = 6, X = 500.0, Y = 0.0, Z = 0.0 };
-            Node node7 = new Node { ID = 7, X = 0.0, Y = 20.0, Z = 0.0 };
-            Node node8 = new Node { ID = 8, X = 100.0, Y = 20.0, Z = 0.0 };
-            Node node9 = new Node { ID = 9, X = 200.0, Y = 20.0, Z = 0.0 };
-            Node node10 = new Node { ID = 10, X = 300.0, Y = 20.0, Z = 0.0 };
-            Node node11 = new Node { ID = 11, X = 400.0, Y = 20.0, Z = 0.0 };
-            Node node12 = new Node { ID = 12, X = 500.0, Y = 20.0, Z = 0.0 };
+            Node node3 = new Node { ID = 3, X = 100.0, Y = 500.0, Z = 0.0 };
+            Node node4 = new Node { ID = 4, X = 0.0, Y = 500.0, Z = 0.0 };
+            Node node5 = new Node { ID = 5, X = 0.0, Y = 0.0, Z = 500.0 };
+            Node node6 = new Node { ID = 6, X = 100.0, Y = 0.0, Z = 200.0 };
+            Node node7 = new Node { ID = 7, X = 100.0, Y = 500.0, Z = 200.0 };
+            Node node8 = new Node { ID = 8, X = 0.0, Y = 500.0, Z = 200.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -59,10 +55,6 @@ namespace ISAAR.MSolve.Tests
             nodes.Add(node6);
             nodes.Add(node7);
             nodes.Add(node8);
-            nodes.Add(node9);
-            nodes.Add(node10);
-            nodes.Add(node11);
-            nodes.Add(node12);
 
             // Model creation
             Model model = new Model();
@@ -80,10 +72,19 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[1].Constraints.Add(DOFType.X);
             model.NodesDictionary[1].Constraints.Add(DOFType.Y);
             model.NodesDictionary[1].Constraints.Add(DOFType.Z);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotX);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
 
+            model.NodesDictionary[2].Constraints.Add(DOFType.X);
+            model.NodesDictionary[2].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[2].Constraints.Add(DOFType.Z);
+
+            model.NodesDictionary[5].Constraints.Add(DOFType.X);
+            model.NodesDictionary[5].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[5].Constraints.Add(DOFType.Z);
+
+            model.NodesDictionary[6].Constraints.Add(DOFType.X);
+            model.NodesDictionary[6].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[6].Constraints.Add(DOFType.Z);
+            
             // Generate elements of the structure
             int iNode = 0;
             for (int iElem = 0; iElem < nElems; iElem++)
@@ -97,7 +98,7 @@ namespace ISAAR.MSolve.Tests
                 //};
 
                 // Create new Beam3D section and element
-                var hexa = new Hexa8NL_v2(material, 1, 2, 2);
+                var hexa = new Hexa8NL_v2(material, 2, 2, 2);
 
                 // Create elements
                 var element = new Element()
@@ -106,8 +107,14 @@ namespace ISAAR.MSolve.Tests
                     ElementType = hexa
                 };
                 // Add nodes to the created element
-                element.AddNode(model.NodesDictionary[iNode]);
-                element.AddNode(model.NodesDictionary[iNode + 1]);
+                element.AddNode(model.NodesDictionary[1]);
+                element.AddNode(model.NodesDictionary[2]);
+                element.AddNode(model.NodesDictionary[3]);
+                element.AddNode(model.NodesDictionary[4]);
+                element.AddNode(model.NodesDictionary[5]);
+                element.AddNode(model.NodesDictionary[6]);
+                element.AddNode(model.NodesDictionary[7]);
+                element.AddNode(model.NodesDictionary[8]);
 
                 var a = hexa.StiffnessMatrix(element);
 
@@ -118,7 +125,10 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[3], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[4], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[7], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[8], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -137,8 +147,6 @@ namespace ISAAR.MSolve.Tests
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
             int increments = 10;
             int totalDOFs = model.TotalDOFs;
-            int maximumIteration = 120;
-            int iterationStepsForMatrixRebuild = 500;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs);
 

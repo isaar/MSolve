@@ -315,8 +315,8 @@ namespace ISAAR.MSolve.Tests
             double poissonRatio = 0.3;
             double nodalLoad = 30000.0;
             double area = 91.04;
-            double inertiaY = 2843.0;
-            double inertiaZ = 8091.0; //2843.0;
+            double inertiaY = 2843.0; //8091.0; //
+            double inertiaZ = 8091.0; //2843.0; //
             double torsionalInertia = 76.57;
             double effectiveAreaY = 91.04;
             double effectiveAreaZ = 91.04;
