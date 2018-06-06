@@ -332,7 +332,10 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public virtual IMatrix2D DampingMatrix(IElement element)
         {
-            throw new NotImplementedException();
+            var m = MassMatrix(element);
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
+            return m;
         }
 
         public IMatrix2D CalculateConsistentMass(IElement element)
