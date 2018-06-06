@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElement element)
 		{
 			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
-			for (int column = 0; column < element.ControlPoints.Count * 3; column++)
+			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				#region BI1
 
@@ -265,7 +265,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			}
 
 			Matrix2D Bmembrane = new Matrix2D(3, element.ControlPoints.Count * 3);
-			for (int column = 0; column < element.ControlPoints.Count * 3; column++)
+			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				Bmembrane[0, column] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[0];
 				Bmembrane[0, column + 1] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[1];
