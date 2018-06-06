@@ -335,12 +335,12 @@ namespace ISAAR.MSolve.Tests
             IList<Node> nodes = new List<Node>();
             Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
             Node node2 = new Node { ID = 2, X = 300.0, Y = 0.0, Z = 0.0 };
-            Node node3 = new Node { ID = 3, X = 300.0, Y = 0.0, Z = 300.0 };
-            Node node4 = new Node { ID = 4, X = 0.0, Y = 0.0, Z = 300.0 };
-            Node node5 = new Node { ID = 5, X = 0.0, Y = 300.0, Z = 0.0 };
-            Node node6 = new Node { ID = 6, X = 300.0, Y = 300.0, Z = 0.0 };
-            Node node7 = new Node { ID = 7, X = 300.0, Y = 300.0, Z = 300.0 };
-            Node node8 = new Node { ID = 8, X = 0.0, Y = 300.0, Z = 300.0 };
+            Node node3 = new Node { ID = 3, X = 0.0, Y = 300.0, Z = 0.0 };
+            Node node4 = new Node { ID = 4, X = 300.0, Y = 300.0, Z = 0.0 };
+            Node node5 = new Node { ID = 5, X = 0.0, Y = 0.0, Z = 300.0 };
+            Node node6 = new Node { ID = 6, X = 300.0, Y = 0.0, Z = 300.0 };
+            Node node7 = new Node { ID = 7, X = 0.0, Y = 300.0, Z = 300.0 };
+            Node node8 = new Node { ID = 8, X = 300.0, Y = 300.0, Z = 300.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -416,7 +416,7 @@ namespace ISAAR.MSolve.Tests
 
                 // Add nodes to the created element
                 element.AddNode(model.NodesDictionary[iNode]);
-                element.AddNode(model.NodesDictionary[iNode + 1]);
+                element.AddNode(model.NodesDictionary[iNode + 4]);
 
                 // Add beam element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
@@ -445,7 +445,7 @@ namespace ISAAR.MSolve.Tests
 
             // Add nodes to the created element
             element1.AddNode(model.NodesDictionary[5]);
-            element1.AddNode(model.NodesDictionary[8]);
+            element1.AddNode(model.NodesDictionary[6]);
 
             // Add beam element to the element and subdomains dictionary of the model
             model.ElementsDictionary.Add(element1.ID, element1);
@@ -454,8 +454,8 @@ namespace ISAAR.MSolve.Tests
             // ElementID = 6
             // element nodes
             IList<Node> elementNodes2 = new List<Node>();
-            elementNodes2.Add(model.NodesDictionary[8]);
             elementNodes2.Add(model.NodesDictionary[7]);
+            elementNodes2.Add(model.NodesDictionary[8]);
 
             // Create new Beam3D section and element
             var beamSection2 = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
@@ -471,8 +471,8 @@ namespace ISAAR.MSolve.Tests
             var a2 = beam2.StiffnessMatrix(element2);
 
             // Add nodes to the created element
-            element2.AddNode(model.NodesDictionary[6]);
             element2.AddNode(model.NodesDictionary[7]);
+            element2.AddNode(model.NodesDictionary[8]);
 
             // Add beam element to the element and subdomains dictionary of the model
             model.ElementsDictionary.Add(element2.ID, element2);
@@ -482,11 +482,11 @@ namespace ISAAR.MSolve.Tests
             // element nodes
             IList<Node> elementNodes3 = new List<Node>();
             elementNodes3.Add(model.NodesDictionary[5]);
-            elementNodes3.Add(model.NodesDictionary[8]);
+            elementNodes3.Add(model.NodesDictionary[7]);
 
             // Create new Beam3D section and element
             var beamSection3 = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
-            var beam3 = new Beam3DCorotationalQuaternion(elementNodes2, material, 7.85, beamSection3);
+            var beam3 = new Beam3DCorotationalQuaternion(elementNodes3, material, 7.85, beamSection3);
 
             // Create elements
             var element3 = new Element()
@@ -499,7 +499,7 @@ namespace ISAAR.MSolve.Tests
 
             // Add nodes to the created element
             element3.AddNode(model.NodesDictionary[5]);
-            element3.AddNode(model.NodesDictionary[6]);
+            element3.AddNode(model.NodesDictionary[7]);
 
             // Add beam element to the element and subdomains dictionary of the model
             model.ElementsDictionary.Add(element3.ID, element3);
@@ -509,11 +509,11 @@ namespace ISAAR.MSolve.Tests
             // element nodes
             IList<Node> elementNodes4 = new List<Node>();
             elementNodes4.Add(model.NodesDictionary[6]);
-            elementNodes4.Add(model.NodesDictionary[7]);
+            elementNodes4.Add(model.NodesDictionary[8]);
 
             // Create new Beam3D section and element
             var beamSection4 = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
-            var beam4 = new Beam3DCorotationalQuaternion(elementNodes2, material, 7.85, beamSection4);
+            var beam4 = new Beam3DCorotationalQuaternion(elementNodes4, material, 7.85, beamSection4);
 
             // Create elements
             var element4 = new Element()
@@ -525,16 +525,16 @@ namespace ISAAR.MSolve.Tests
             var a4 = beam4.StiffnessMatrix(element4);
 
             // Add nodes to the created element
+            element4.AddNode(model.NodesDictionary[6]);
             element4.AddNode(model.NodesDictionary[8]);
-            element4.AddNode(model.NodesDictionary[7]);
 
             // Add beam element to the element and subdomains dictionary of the model
             model.ElementsDictionary.Add(element4.ID, element4);
             model.SubdomainsDictionary[1].ElementsDictionary.Add(element4.ID, element4);
             
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[6], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[7], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[7], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[8], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -565,7 +565,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(299.59243616533104, linearSystems[1].Solution[12], 2);
+            Assert.Equal(235.1740724707, linearSystems[1].Solution[13], 2);
         }
     }
 }

@@ -88,6 +88,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
+        public void MultiplyTranspose2(IVector vIn, double[] vOut)
+        {
+            Matrix2D AA = new Matrix2D(data);
+            for (int i = 0; i < columns; i++)
+            {
+                vOut[i] = 0;
+                for (int j = 0; j < rows; j++)
+                    vOut[i] += AA.Data[j, i] * vIn[j];
+            }
+        }
+
         public void Scale(double scale)
         {
             double[,] mData = data;

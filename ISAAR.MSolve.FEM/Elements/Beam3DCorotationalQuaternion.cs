@@ -178,9 +178,11 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             double extension = this.currentLength - this.initialLength;
             var symmetricRotation = new Vector(AXIS_COUNT);
-            currentRotationMatrix.Multiply(vectorPartDifference, symmetricRotation.Data);
+            //currentRotationMatrix.Multiply(vectorPartDifference, symmetricRotation.Data);
+            currentRotationMatrix.MultiplyTranspose2(vectorPartDifference, symmetricRotation.Data);
             var antisymmetricRotation = new Vector(AXIS_COUNT);
-            currentRotationMatrix.Multiply(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
+            //currentRotationMatrix.Multiply(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
+            currentRotationMatrix.MultiplyTranspose2(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
             //final VectorView symmetricRotation = vectorPartDifference.leftMultiplyWithMatrix(this.currentRotationMatrix);
             //final VectorView antisymmetricRotation =
             //        GeometricUtils.crossProduct(this.beamAxisX, this.currentBeamAxis)
