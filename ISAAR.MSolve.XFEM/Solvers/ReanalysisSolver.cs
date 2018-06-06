@@ -227,28 +227,48 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var watch = new Stopwatch();
             long assemblyTime = 0, modifyTime = 0;
 
+            Console.WriteLine($"Iteration {iteration}: ");
+            Console.WriteLine($"Num standard dofs = " + DofOrderer.NumStandardDofs);
+
+
             // Group the new dofs
             watch.Start();
             var colsToAdd = new HashSet<int>();
+
+            int numTipDofsNew = 0;
             foreach (var tipNodes in crack.CrackTipNodesNew)
             {
                 IReadOnlyList<EnrichedDof> tipDofs = tipNodes.Key.Dofs;
                 foreach (var node in tipNodes.Value)
                 {
-                    foreach (var tipDof in tipDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
+                    foreach (var tipDof in tipDofs)
+                    {
+                        colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, tipDof));
+                        ++numTipDofsNew;
+                    }
                 }
             }
+            Console.WriteLine("Num tip dofs added = " + numTipDofsNew);
+
+            int numBodyDofsNew = 0;
             foreach (var bodyNodes in crack.CrackBodyNodesNew)
             {
                 IReadOnlyList<EnrichedDof> heavisideDofs = bodyNodes.Key.Dofs;
                 foreach (var node in bodyNodes.Value)
                 {
-                    foreach (var heavisideDof in heavisideDofs) colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
+                    foreach (var heavisideDof in heavisideDofs)
+                    {
+                        colsToAdd.Add(DofOrderer.GetEnrichedDofOf(node, heavisideDof));
+                        ++numBodyDofsNew;
+                    }
                 }
             }
             var tabooRows = new HashSet<int>(colsToAdd);
+            Console.WriteLine("Num Heaviside dofs added = " + numBodyDofsNew);
+
 
             // Delete old tip enriched Dofs. Should this be done before or after addition?
+            int numTipDofsOld = 0;
             foreach (var tipNodes in crack.CrackTipNodesOld)
             {
                 IReadOnlyList<EnrichedDof> tipDofs = tipNodes.Key.Dofs;
@@ -266,9 +286,12 @@ namespace ISAAR.MSolve.XFEM.Solvers
                         factorizedKff.DeleteRow(colIdx);
                         watch.Stop();
                         modifyTime += watch.ElapsedMilliseconds;
+
+                        ++numTipDofsOld;
                     }
                 }
             }
+            Console.WriteLine("Num tip dofs removed = " + numTipDofsOld);
 
             //WARNING: the next must happen after deleting old tip dofs and before adding new dofs
             TreatOtherModifiedDofs(colsToAdd, tabooRows, ref assemblyTime, ref modifyTime);

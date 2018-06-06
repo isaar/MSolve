@@ -14,15 +14,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public static void Run()
         {
-            //SingleTest();
-            BenchmarkSolver();
+            SingleTest();
+            //BenchmarkSolver();
         }
 
 
         private static void SingleTest()
         {
-            IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
-            //IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
+            //IBenchmarkBuilder builder = Fillet.SetupBenchmark(false, true);
+            IBenchmarkBuilder builder = Holes.SetupBenchmark(false, true);
 
 
             IBenchmark benchmark = builder.BuildBenchmark();
@@ -36,8 +36,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //var solver = CreateCholeskyAMDSolver(benchmark);
             //var solver = CreatePCGSolver(benchmark);
             //var solver = CreateReanalysisSolver(benchmark);
-            var solver = CreateMenkBordasSolverCholesky(benchmark);
-            //var solver = CreateMenkBordasSolverJacobi(benchmark);
+            //var solver = CreateMenkBordasSolverCholesky(benchmark);
+            var solver = CreateMenkBordasSolverJacobi(benchmark);
 
             benchmark.Analyze(solver);
             if (solver is IDisposable handle) handle.Dispose();
