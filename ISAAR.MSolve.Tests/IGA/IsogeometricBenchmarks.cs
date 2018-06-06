@@ -6,6 +6,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Problems.Structural.Constitutive;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
@@ -198,7 +199,7 @@ namespace ISAAR.MSolve.Tests.IGA
             ModelCreator modelCreator = new ModelCreator(model);
             string filename = "..\\..\\..\\IGA\\InputFiles\\Cantilever2D.txt";
             IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
-            modelReader.CreateModelFromFile();
+            modelReader.CreateModelFromFile();            
 
             // Forces and Boundary Conditions
             foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[1].ControlPointsDictionary.Values)
@@ -278,19 +279,41 @@ namespace ISAAR.MSolve.Tests.IGA
             string filename = "..\\..\\..\\IGA\\InputFiles\\tspline.iga";
             IGAFileReader modelReader = new IGAFileReader(model, filename);
             modelReader.CreateTSplineShellsModelFromFile();
-            model.Loads.Add(new Load() { Amount = -100, ControlPoint = model.ControlPointsDictionary[2], DOF = DOFType.Y });
+
+            model.PatchesDictionary[0].Material = new ElasticMaterial2D
+            {
+                PoissonRatio = 0.3,
+                YoungModulus = 10e6,
+                StressState = StressStates.PlaneStress
+            };
+            model.PatchesDictionary[0].Thickness = 0.1;
+
+            for (int i = 0; i < 100; i++)
+            {
+                model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
+                model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
+                model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
+            }
+
+            for (int i = 0; i < model.ControlPoints.Count-100; i++)
+            {
+                model.Loads.Add(new Load() { Amount = -1000, ControlPoint = model.ControlPointsDictionary[i], DOF = DOFType.Y });
+            }
+
+
+            //model.Loads.Add(new Load() { Amount = -10000, ControlPoint = model.ControlPointsDictionary[2], DOF = DOFType.Y });
             model.ConnectDataStructures();
 
-            //var linearSystems = new Dictionary<int, ILinearSystem>();
-            //linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-            //SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-            //ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            //LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-            //StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+            var linearSystems = new Dictionary<int, ILinearSystem>();
+            linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            ProblemStructural provider = new ProblemStructural(model, linearSystems);
+            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
 
-            //parentAnalyzer.BuildMatrices();
-            //parentAnalyzer.Initialize();
-            //parentAnalyzer.Solve();
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
         }
 
     }
