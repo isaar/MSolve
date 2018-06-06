@@ -327,12 +327,40 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public virtual IMatrix2D MassMatrix(IElement element)
         {
-            throw new NotImplementedException();
+            return CalculateConsistentMass(element);
         }
 
         public virtual IMatrix2D DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
+        }
+
+        public IMatrix2D CalculateConsistentMass(IElement element)
+        {
+            double[,] coordinates = this.GetCoordinates(element);
+            GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
+            SymmetricMatrix2D consistentMass = new SymmetricMatrix2D(8);
+            foreach (GaussLegendrePoint3D gaussPoint in integrationPoints)
+            {
+                double[] shapeFunctionValues = CalcQ4Shape(gaussPoint.Xi, gaussPoint.Eta);
+                double weightDensity = gaussPoint.WeightFactor * Density;
+                for (int iShapeFunction = 0; iShapeFunction < shapeFunctionValues.Length; iShapeFunction++)
+                {
+                    for (int jShapeFunction = iShapeFunction; jShapeFunction < shapeFunctionValues.Length; jShapeFunction++)
+                    {
+                        consistentMass[2 * iShapeFunction, 2 * jShapeFunction]
+                            += shapeFunctionValues[iShapeFunction] *
+                              shapeFunctionValues[jShapeFunction] *
+                              weightDensity;
+                    }
+                    for (int jShapeFunction = iShapeFunction; jShapeFunction < shapeFunctionValues.Length; jShapeFunction++)
+                    {
+                        consistentMass[(2 * iShapeFunction) + 1, (2 * jShapeFunction) + 1] =
+                            consistentMass[2 * iShapeFunction, 2 * jShapeFunction];
+                    }
+                }
+            }
+            return consistentMass;
         }
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
