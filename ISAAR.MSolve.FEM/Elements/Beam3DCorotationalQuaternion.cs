@@ -177,12 +177,19 @@ namespace ISAAR.MSolve.FEM.Elements
         private void UpdateNaturalDeformations(Vector vectorPartDifference)
         {
             double extension = this.currentLength - this.initialLength;
+            Matrix2D currentRotationMatrixTranspose = currentRotationMatrix.Transpose();   
             var symmetricRotation = new Vector(AXIS_COUNT);
+
+            //currentRotationMatrix.Transpose().Multiply(vectorPartDifference, symmetricRotation.Data);
             //currentRotationMatrix.Multiply(vectorPartDifference, symmetricRotation.Data);
-            currentRotationMatrix.MultiplyTranspose2(vectorPartDifference, symmetricRotation.Data);
+            currentRotationMatrixTranspose.Multiply(vectorPartDifference, symmetricRotation.Data);
+
             var antisymmetricRotation = new Vector(AXIS_COUNT);
+
             //currentRotationMatrix.Multiply(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
-            currentRotationMatrix.MultiplyTranspose2(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
+            //currentRotationMatrix.Transpose().Multiply(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
+            currentRotationMatrixTranspose.Multiply(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
+            //currentRotationMatrix.MultiplyTranspose2(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
             //final VectorView symmetricRotation = vectorPartDifference.leftMultiplyWithMatrix(this.currentRotationMatrix);
             //final VectorView antisymmetricRotation =
             //        GeometricUtils.crossProduct(this.beamAxisX, this.currentBeamAxis)
