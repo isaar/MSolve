@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.Analyzers
             foreach (ILinearSystem subdomain in subdomains.Values) 
                 provider.CalculateEffectiveMatrix(subdomain, coeffs);
 
-            var m = (SkylineMatrix2D)subdomains[1].Matrix;
+            var m = (SkylineMatrix2D)subdomains[0].Matrix;//TODO: Subdomain matrices should not be retrieved like that.
             var x = new HashSet<double>();
             int nonZeroCount = 0;
             for (int i = 0; i < m.Data.Length; i++)
