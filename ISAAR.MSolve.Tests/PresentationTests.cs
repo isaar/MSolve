@@ -27,7 +27,8 @@ namespace ISAAR.MSolve.Tests
             ElasticMaterial2D material = new ElasticMaterial2D()
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio
+                PoissonRatio = poissonRatio,
+                StressState="plstress"
             };
             Model model = new Model();
 
@@ -325,7 +326,7 @@ namespace ISAAR.MSolve.Tests
 
         }
 
-
+        [Fact]
         private static void SolveDynamicQuadRetainingWall()
         {
             #region Model
@@ -337,7 +338,8 @@ namespace ISAAR.MSolve.Tests
             ElasticMaterial2D material = new ElasticMaterial2D()
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio
+                PoissonRatio = poissonRatio,
+                StressState = "plstress"
             };
             Model model = new Model();
 
@@ -682,7 +684,7 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load() { Amount = -50390, Node = model.NodesDictionary[18], DOF = DOFType.X });
             model.Loads.Add(new Load() { Amount = -28460, Node = model.NodesDictionary[15], DOF = DOFType.X });
 
-            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("elcentro.dat",1));
+            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1));
             #endregion
 
             model.ConnectDataStructures();
@@ -699,7 +701,7 @@ namespace ISAAR.MSolve.Tests
 
             // Choose parent and child analyzers -> Parent: Static, Child: Linear
             LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
+            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.6, 1, 0.02, 53.74);
 
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
