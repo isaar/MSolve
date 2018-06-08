@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Tests
         {
             VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
 
             var n = new Node() { ID = 1 };
             var e = new Element() { ID = 1 };
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.Tests
             e.ElementType = m.Object;
             model.NodesDictionary.Add(1, n);
             model.ElementsDictionary.Add(1, e);
-            model.SubdomainsDictionary[1].ElementsDictionary.Add(1, e);
+            model.SubdomainsDictionary[0].ElementsDictionary.Add(1, e);
             model.Loads.Add(new Load() { Amount = 10, Node = n, DOF = DOFType.Y });
             var lX = new Mock<IMassAccelerationHistoryLoad>();
             lX.SetupGet(x => x.DOF).Returns(DOFType.X);
@@ -64,10 +64,10 @@ namespace ISAAR.MSolve.Tests
             );
 
             var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems.Add(1, new SkylineLinearSystem(1, new[] { 0, 10d }));
-            linearSystems[1].Matrix = new SkylineMatrix2D(new double[,] { { 6, -2 }, { -2, 4 } });
+            linearSystems.Add(0, new SkylineLinearSystem(0, new[] { 0, 10d }));
+            linearSystems[0].Matrix = new SkylineMatrix2D(new double[,] { { 6, -2 }, { -2, 4 } });
 
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
             LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
             NewmarkDynamicAnalyzer dynamicAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
@@ -75,8 +75,8 @@ namespace ISAAR.MSolve.Tests
             dynamicAnalyzer.BuildMatrices();
             dynamicAnalyzer.Initialize();
             dynamicAnalyzer.Solve();
-            Assert.Equal(2.2840249264795207, linearSystems[1].Solution[0], 8);
-            Assert.Equal(2.4351921891904156, linearSystems[1].Solution[1], 8);
+            Assert.Equal(2.2840249264795207, linearSystems[0].Solution[0], 8);
+            Assert.Equal(2.4351921891904156, linearSystems[0].Solution[1], 8);
         }
     }
 }
