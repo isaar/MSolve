@@ -35,6 +35,9 @@ namespace ISAAR.MSolve.FEM.Elements
         protected Vector beamAxisY;
         protected Vector beamAxisZ;
 
+        public double RayleighAlpha { get; set; }
+        public double RayleighBeta { get; set; }
+
         protected Beam3DCorotationalAbstract(IList<Node> nodes, IIsotropicFiniteElementMaterial3D material, double density, BeamSection3D beamSection)
         {
             this.nodes = nodes;
@@ -501,12 +504,79 @@ namespace ISAAR.MSolve.FEM.Elements
         
         public IMatrix2D MassMatrix(Element element)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            double area = beamSection.Area;
+            double inertiaY = beamSection.InertiaY;
+            double inertiaZ = beamSection.InertiaZ;
+            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
+            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
+            double z2 = Math.Pow(element.Nodes[1].Z - element.Nodes[0].Z, 2);
+            double L = Math.Sqrt(x2 + y2 + z2);
+            double fullMass = 0.5 * density * area * L;
+
+            var massMatrix = new SymmetricMatrix2D(FREEDOM_DEGREE_COUNT);
+            massMatrix[0, 0] = (1 / 3) * fullMass;
+            massMatrix[0, 6] = (1 / 6) * fullMass;
+
+            massMatrix[1, 1] = (13 / 35) * fullMass;
+            massMatrix[1, 5] = (11 * L / 210) * fullMass;
+            massMatrix[1, 7] = (9 / 70) * fullMass;
+            massMatrix[1, 11] = -(13 * L / 420) * fullMass;
+
+            massMatrix[2, 2] = (13 / 35) * fullMass;
+            massMatrix[2, 4] = -(11 * L / 210) * fullMass;
+            massMatrix[2, 8] = (9 / 70) * fullMass;
+            massMatrix[2, 10] = -(13 * L / 420) * fullMass;
+
+            massMatrix[3, 3] = ((inertiaY + inertiaZ) / (3 * area)) * fullMass;
+            massMatrix[3, 9] = ((inertiaY + inertiaZ) / (6 * area)) * fullMass;
+
+            massMatrix[4, 4] = ((L * L) / 105) * fullMass;
+            massMatrix[4, 8] = -(13 * L / 420) * fullMass;
+            massMatrix[4, 10] = -((L * L) / 105) * fullMass;
+
+            massMatrix[5, 5] = ((L * L) / 105) * fullMass;
+            massMatrix[5, 7] = (13 * L / 420) * fullMass;
+            massMatrix[5, 11] = -((L * L) / 105) * fullMass;
+
+            massMatrix[6, 6] = (1 / 3) * fullMass;
+
+            massMatrix[7, 7] = (13 / 35) * fullMass;
+            massMatrix[7, 11] = -(11 * L / 210) * fullMass;
+
+            massMatrix[8, 8] = (13 / 35) * fullMass;
+            massMatrix[8, 10] = (11 * L / 210) * fullMass;
+
+            massMatrix[9, 9] = ((inertiaY + inertiaZ) / (3 * area)) * fullMass;
+
+            massMatrix[10, 10] = ((L * L) / 105) * fullMass;
+
+            massMatrix[11, 11] = ((L * L) / 105) * fullMass;
+
+            //massMatrix[6, 0] = (1 / 6) * fullMass;
+            //massMatrix[5, 1] = (11 * L / 210) * fullMass;
+            //massMatrix[7, 1] = (9 / 70) * fullMass;
+            //massMatrix[11, 1] = -(13 * L / 420) * fullMass;
+            //massMatrix[4, 2] = -(11 * L / 210) * fullMass;
+            //massMatrix[8, 2] = (9 / 70) * fullMass;
+            //massMatrix[10, 2] = -(13 * L / 420) * fullMass;
+            //massMatrix[9, 3] = ((inertiaY + inertiaZ) / (6 * area)) * fullMass;
+            //massMatrix[8, 4] = -(13 * L / 420) * fullMass;
+            //massMatrix[10, 4] = -((L * L) / 105) * fullMass;
+            //massMatrix[7, 5] = (13 * L / 420) * fullMass;
+            //massMatrix[11, 5] = -((L * L) / 105) * fullMass;
+            //massMatrix[11, 7] = -(11 * L / 210) * fullMass;
+            //massMatrix[10, 8] = (11 * L / 210) * fullMass;
+            return massMatrix;
         }
 
         public IMatrix2D DampingMatrix(Element element)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            var m = MassMatrix(element);
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
+            return m;
         }
 
         public void ResetMaterialModified()

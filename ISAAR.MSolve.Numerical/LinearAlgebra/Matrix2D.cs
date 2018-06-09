@@ -80,11 +80,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         private void MultiplyTranspose(IVector vIn, double[] vOut)
         {
             Matrix2D AA = new Matrix2D(data);
-            for (int i = 0; i < columns; i++)
+            for (int j = 0; j < columns; j++)
             {
-                vOut[i] = 0;
-                for (int j = 0; j < rows; j++)
-                    vOut[i] += AA.Data[j, i] * vIn[j]; //vOut[i] += AA.Data[j, i] * vIn[i];
+                vOut[j] = 0;
+                for (int i = 0; i < rows; i++)
+                    vOut[j] += AA.Data[i, j] * vIn[i]; 
             }
         }
 

@@ -21,61 +21,88 @@ namespace ISAAR.MSolve.Tests
         [Fact]
         public void LinearElasticBeam2DNewmarkDynamicAnalysisTest()
         {
-            double youngModulus = 2.0e08;
-            double poissonRatio = 0.3;
             VectorExtensions.AssignTotalAffinityCount();
-            Model model = new Model();
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
-            int totalElements = 10;
-            int totalNodes = totalElements + 1;
+            double youngModulus = 21000;
+            double poissonRatio = 0.3;
+            double area = 91.04;
+            double inertiaY = 2843.0;
+            double inertiaZ = 8091.0;
+            double density = 7.85;
+            double nodalLoad = 1000.0;
+            int totalNodes = 2;
+
             ElasticMaterial material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
-            int iNodeID = 0;
-            for (int iNode = 0; iNode < totalNodes; iNode++)
+
+            // Node creation
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 300.0, Y = 0.0, Z = 0.0 };
+            nodes.Add(node1);
+            nodes.Add(node2);
+
+            // Model creation
+            Model model = new Model();
+
+            // Add a single subdomain to the model
+            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+
+            // Add nodes to the nodes dictonary of the model
+            for (int i = 0; i < nodes.Count; ++i)
             {
-                iNodeID++;
-                var n = new Node() { ID = iNodeID, X = iNodeID * 10, Y = 0, Z = 0 };
-                model.NodesDictionary.Add(iNodeID, n);
+                model.NodesDictionary.Add(i + 1, nodes[i]);
             }
-            iNodeID = 0;
-            int iElementID = 0;
-            for (int iElement = 0; iElement < totalElements; iElement++)
+
+            // Constrain bottom nodes of the model
+            model.NodesDictionary[1].Constraints.Add(DOFType.X);
+            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+
+            // Create a new Beam2D element
+            var beam = new EulerBeam2D(youngModulus)
             {
-                iElementID++;
-                iNodeID++;
-                double b = 0.30;
-                double h = 0.60;
-                var e = new Element()
-                {
-                    ID = iElementID,
-                    ElementType = new EulerBeam2D(youngModulus)
-                    {
-                        Density = 7.85,
-                        SectionArea = b * h,
-                        MomentOfInertia = (1/12) * b * h * h * h,
-                    }
-                };
-                e.NodesDictionary.Add(iNodeID, model.NodesDictionary[iNodeID]);
-                e.NodesDictionary.Add(iNodeID + 1, model.NodesDictionary[iNodeID + 1]);                
-                model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(e.ID, e);
-            }
-            model.Loads.Add(new Load() { Amount = -100, Node = model.NodesDictionary[totalNodes], DOF = DOFType.Y });
+                Density = density,
+                SectionArea = area,
+                MomentOfInertia = inertiaZ
+            };
+
+            var element = new Element()
+            {
+                ID = 1,
+                ElementType = beam
+            };
+
+            // Add nodes to the created element
+            element.AddNode(model.NodesDictionary[1]);
+            element.AddNode(model.NodesDictionary[2]);
+
+            // Element Stiffness Matrix
+            var a = beam.StiffnessMatrix(element);
+            var b = beam.MassMatrix(element);
+
+            // Add Hexa element to the element and subdomains dictionary of the model
+            model.ElementsDictionary.Add(element.ID, element);
+            model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+
+            // define loads
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[totalNodes], DOF = DOFType.Y });
             model.ConnectDataStructures();
             var linearSystems = new Dictionary<int, ILinearSystem>();
             linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
             SolverSkyline solver = new SolverSkyline(linearSystems[1]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-            NewmarkDynamicAnalyzer dynamicAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
-            dynamicAnalyzer.BuildMatrices();
-            dynamicAnalyzer.Initialize();
-            dynamicAnalyzer.Solve();
-            Assert.Equal(2.2840249264795207, linearSystems[1].Solution[0], 8);
-            Assert.Equal(2.4351921891904156, linearSystems[1].Solution[1], 8);
+            // Choose child analyzer -> Child: Linear or NewtonRaphsonNonLinearAnalyzer
+            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            // Choose parent analyzer -> Parent: Static or Dynamic
+            //StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+            Assert.Equal(2.2840249264795207, linearSystems[1].Solution[1], 8);
         }
     }
 }

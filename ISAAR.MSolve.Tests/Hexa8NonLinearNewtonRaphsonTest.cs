@@ -22,9 +22,9 @@ namespace ISAAR.MSolve.Tests
         public void TestHexa8NonLinearNewtonRaphsonExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
-            double youngModulus = 21000.0;
-            double poissonRatio = 0.3;
-            double nodalLoad = 20000.0;
+            double youngModulus = 3.76;
+            double poissonRatio = 0.3779;
+            double nodalLoad = 500.0;
             int nNodes = 8;
             int nElems = 1;
             int monitorNode = 8;
@@ -38,14 +38,14 @@ namespace ISAAR.MSolve.Tests
 
             // Node creation
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0, Z = 0.0 };
-            Node node3 = new Node { ID = 3, X = 100.0, Y = 500.0, Z = 0.0 };
-            Node node4 = new Node { ID = 4, X = 0.0, Y = 500.0, Z = 0.0 };
-            Node node5 = new Node { ID = 5, X = 0.0, Y = 0.0, Z = 500.0 };
-            Node node6 = new Node { ID = 6, X = 100.0, Y = 0.0, Z = 200.0 };
-            Node node7 = new Node { ID = 7, X = 100.0, Y = 500.0, Z = 200.0 };
-            Node node8 = new Node { ID = 8, X = 0.0, Y = 500.0, Z = 200.0 };
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 10.0, Z = 10.0 };
+            Node node2 = new Node { ID = 2, X = 0.0, Y = 0.0, Z = 10.0 };
+            Node node3 = new Node { ID = 3, X = 10.0, Y = 0.0, Z = 10.0 };
+            Node node4 = new Node { ID = 4, X = 10.0, Y = 10.0, Z = 10.0 };
+            Node node5 = new Node { ID = 5, X = 0.0, Y = 10.0, Z = 0.0 };
+            Node node6 = new Node { ID = 6, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node node7 = new Node { ID = 7, X = 10.0, Y = 0.0, Z = 0.0 };
+            Node node8 = new Node { ID = 8, X = 10.0, Y = 10.0, Z = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -125,10 +125,10 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[3], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[4], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[7], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[8], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[3], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[4], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[7], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[8], DOF = DOFType.X });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -157,7 +157,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(148.93590375922295, linearSystems[1].Solution[7], 12);
+            Assert.Equal(10.927956254399865, linearSystems[1].Solution[6], 12);
         }
     }
 }

@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 int index = 0;
                 for (int i = 0; i < rows; i++)
                     for (int j = i; j < rows; j++)
-                        newData[index++] += cs[i] * m[i,j];
+                        newData[index++] += cs[k] * m[i,j];
                 //for (int j = 0; j < data.Length; j++)
                 //    newData[j] += cs[i] * m.Data[j];
             }
