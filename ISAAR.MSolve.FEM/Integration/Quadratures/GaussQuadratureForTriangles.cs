@@ -5,6 +5,13 @@ using ISAAR.MSolve.FEM.Integration.Points;
 
 namespace ISAAR.MSolve.FEM.Integration.Quadratures
 {
+    /// <summary>
+    /// Enum class with the 2D Gauss-Legendre integration rules for triangles of varying orders. These are not tensor product of 
+    /// simple <see cref="GaussLegendre1D"/> rules. Instead the points are derived by symmetric Gaussian quadratures for
+    /// triangles which are more efficient: \iint_T f(xi, eta)*dxi*deta = \sum_{i=1}^N w_i * f(xi_i, eta_i). The factor 1/2,
+    /// which is commonly seen in front of the right hand side sum in some sources, is incorporated into the weight factor here.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public sealed class GaussQuadratureForTriangles : IQuadrature2D
     {
         public static readonly GaussQuadratureForTriangles Order1Point1 = new GaussQuadratureForTriangles(

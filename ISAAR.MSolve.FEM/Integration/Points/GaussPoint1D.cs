@@ -1,21 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.FEM.Integration.Points
 {
     /// <summary>
-    /// Integration point (coordinates + weight) defined in the natural coordinate system of a finite element. Immutable.
+    /// Integration point (coordinates & weight) defined in the 1D natural coordinate system of a finite element. Immutable.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class GaussPoint1D
+    public class GaussPoint1D: NaturalPoint1D
     {
-        public GaussPoint1D(double xi, double weight)
+        /// <summary>
+        /// Instantiates a <see cref="GaussPoint1D"/>.
+        /// </summary>
+        /// <param name="xi">The coordinate of the point along the single axis Xi.</param>
+        /// <param name="weight">The weight factor of this integration point.</param>
+        public GaussPoint1D(double xi, double weight): base(xi)
         {
-            this.Xi = xi;
             this.Weight = weight;
         }
 
-        public double Xi { get; }
+        /// <summary>
+        /// The weight factor of this integration point.
+        /// </summary>
         public double Weight { get; }
     }
 }

@@ -5,6 +5,11 @@ using ISAAR.MSolve.FEM.Integration.Points;
 
 namespace ISAAR.MSolve.FEM.Integration.Quadratures
 {
+    /// <summary>
+    /// Enum class with the 2D Gauss-Legendre integration rules of varying orders. Tensor product of 
+    /// <see cref="GaussLegendre1D"/> rules along each axis.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public sealed class GaussLegendre2D : IQuadrature2D
     {
         public static readonly GaussLegendre2D Order1x1 = new GaussLegendre2D(GaussLegendre1D.Order1, GaussLegendre1D.Order1);
@@ -32,6 +37,9 @@ namespace ISAAR.MSolve.FEM.Integration.Quadratures
             this.IntegrationPoints = points2D;
         }
 
+        /// <summary>
+        /// The integration points are sorted based on an order strictly defined for each quadrature.
+        /// </summary>
         public IReadOnlyList<GaussPoint2D> IntegrationPoints { get; }
     }
 }
