@@ -20,6 +20,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         //protected static final List<Set<FreedomDegreeType>> FREEDOM_DEGREE_TYPES =
         //        Collections.nCopies(NODE_COUNT, FreedomDegreeTypeSets.X_Y_Z_ROTX_ROTY_ROTZ);
         protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
@@ -512,61 +513,62 @@ namespace ISAAR.MSolve.FEM.Elements
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
             double z2 = Math.Pow(element.Nodes[1].Z - element.Nodes[0].Z, 2);
             double L = Math.Sqrt(x2 + y2 + z2);
-            double fullMass = 0.5 * density * area * L;
+            double fullMass = density * area * L;
 
-            var massMatrix = new SymmetricMatrix2D(FREEDOM_DEGREE_COUNT);
-            massMatrix[0, 0] = (1 / 3) * fullMass;
-            massMatrix[0, 6] = (1 / 6) * fullMass;
+            var massMatrix = new Matrix2D(FREEDOM_DEGREE_COUNT, FREEDOM_DEGREE_COUNT);
+            massMatrix[0, 0] = (1.0 / 3.0) * fullMass;
+            massMatrix[0, 6] = (1.0 / 6.0) * fullMass;
 
-            massMatrix[1, 1] = (13 / 35) * fullMass;
-            massMatrix[1, 5] = (11 * L / 210) * fullMass;
-            massMatrix[1, 7] = (9 / 70) * fullMass;
-            massMatrix[1, 11] = -(13 * L / 420) * fullMass;
+            massMatrix[1, 1] = (13.0 / 35.0) * fullMass;
+            massMatrix[1, 5] = (11.0 * L / 210.0) * fullMass;
+            massMatrix[1, 7] = (9.0 / 70.0) * fullMass;
+            massMatrix[1, 11] = -(13.0 * L / 420.0) * fullMass;
 
-            massMatrix[2, 2] = (13 / 35) * fullMass;
-            massMatrix[2, 4] = -(11 * L / 210) * fullMass;
-            massMatrix[2, 8] = (9 / 70) * fullMass;
-            massMatrix[2, 10] = -(13 * L / 420) * fullMass;
+            massMatrix[2, 2] = (13.0 / 35.0) * fullMass;
+            massMatrix[2, 4] = -(11.0 * L / 210.0) * fullMass;
+            massMatrix[2, 8] = (9.0 / 70.0) * fullMass;
+            massMatrix[2, 10] = -(13.0 * L / 420.0) * fullMass;
 
-            massMatrix[3, 3] = ((inertiaY + inertiaZ) / (3 * area)) * fullMass;
-            massMatrix[3, 9] = ((inertiaY + inertiaZ) / (6 * area)) * fullMass;
+            massMatrix[3, 3] = ((inertiaY + inertiaZ) / (3.0 * area)) * fullMass;
+            massMatrix[3, 9] = ((inertiaY + inertiaZ) / (6.0 * area)) * fullMass;
 
-            massMatrix[4, 4] = ((L * L) / 105) * fullMass;
-            massMatrix[4, 8] = -(13 * L / 420) * fullMass;
-            massMatrix[4, 10] = -((L * L) / 105) * fullMass;
+            massMatrix[4, 4] = ((L * L) / 105.0) * fullMass;
+            massMatrix[4, 8] = -(13.0 * L / 420.0) * fullMass;
+            massMatrix[4, 10] = -((L * L) / 105.0) * fullMass;
 
-            massMatrix[5, 5] = ((L * L) / 105) * fullMass;
-            massMatrix[5, 7] = (13 * L / 420) * fullMass;
-            massMatrix[5, 11] = -((L * L) / 105) * fullMass;
+            massMatrix[5, 5] = ((L * L) / 105.0) * fullMass;
+            massMatrix[5, 7] = (13.0 * L / 420.0) * fullMass;
+            massMatrix[5, 11] = -((L * L) / 105.0) * fullMass;
 
-            massMatrix[6, 6] = (1 / 3) * fullMass;
+            massMatrix[6, 6] = (1.0 / 3.0) * fullMass;
 
-            massMatrix[7, 7] = (13 / 35) * fullMass;
-            massMatrix[7, 11] = -(11 * L / 210) * fullMass;
+            massMatrix[7, 7] = (13.0 / 35.0) * fullMass;
+            massMatrix[7, 11] = -(11.0 * L / 210.0) * fullMass;
 
-            massMatrix[8, 8] = (13 / 35) * fullMass;
-            massMatrix[8, 10] = (11 * L / 210) * fullMass;
+            massMatrix[8, 8] = (13.0 / 35.0) * fullMass;
+            massMatrix[8, 10] = (11.0 * L / 210.0) * fullMass;
 
-            massMatrix[9, 9] = ((inertiaY + inertiaZ) / (3 * area)) * fullMass;
+            massMatrix[9, 9] = ((inertiaY + inertiaZ) / (3.0 * area)) * fullMass;
 
-            massMatrix[10, 10] = ((L * L) / 105) * fullMass;
+            massMatrix[10, 10] = ((L * L) / 105.0) * fullMass;
 
-            massMatrix[11, 11] = ((L * L) / 105) * fullMass;
+            massMatrix[11, 11] = ((L * L) / 105.0) * fullMass;
 
-            //massMatrix[6, 0] = (1 / 6) * fullMass;
-            //massMatrix[5, 1] = (11 * L / 210) * fullMass;
-            //massMatrix[7, 1] = (9 / 70) * fullMass;
-            //massMatrix[11, 1] = -(13 * L / 420) * fullMass;
-            //massMatrix[4, 2] = -(11 * L / 210) * fullMass;
-            //massMatrix[8, 2] = (9 / 70) * fullMass;
-            //massMatrix[10, 2] = -(13 * L / 420) * fullMass;
-            //massMatrix[9, 3] = ((inertiaY + inertiaZ) / (6 * area)) * fullMass;
-            //massMatrix[8, 4] = -(13 * L / 420) * fullMass;
-            //massMatrix[10, 4] = -((L * L) / 105) * fullMass;
-            //massMatrix[7, 5] = (13 * L / 420) * fullMass;
-            //massMatrix[11, 5] = -((L * L) / 105) * fullMass;
-            //massMatrix[11, 7] = -(11 * L / 210) * fullMass;
-            //massMatrix[10, 8] = (11 * L / 210) * fullMass;
+            massMatrix[6, 0] = (1.0 / 6.0) * fullMass;
+            massMatrix[5, 1] = (11.0 * L / 210.0) * fullMass;
+            massMatrix[7, 1] = (9.0 / 70.0) * fullMass;
+            massMatrix[11, 1] = -(13.0 * L / 420.0) * fullMass;
+            massMatrix[4, 2] = -(11.0 * L / 210.0) * fullMass;
+            massMatrix[8, 2] = (9.0 / 70.0) * fullMass;
+            massMatrix[10, 2] = -(13.0 * L / 420.0) * fullMass;
+            massMatrix[9, 3] = ((inertiaY + inertiaZ) / (6.0 * area)) * fullMass;
+            massMatrix[8, 4] = -(13.0 * L / 420.0) * fullMass;
+            massMatrix[10, 4] = -((L * L) / 105.0) * fullMass;
+            massMatrix[7, 5] = (13.0 * L / 420.0) * fullMass;
+            massMatrix[11, 5] = -((L * L) / 105.0) * fullMass;
+            massMatrix[11, 7] = -(11.0 * L / 210.0) * fullMass;
+            massMatrix[10, 8] = (11.0 * L / 210.0) * fullMass;
+
             return massMatrix;
         }
 
@@ -606,7 +608,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            Vector accelerations = new Vector(6);
+            IMatrix2D massMatrix = MassMatrix(element);
+
+            int index = 0;
+            foreach (MassAccelerationLoad load in loads)
+                foreach (DOFType[] nodalDOFTypes in dofs)
+                    foreach (DOFType dofType in nodalDOFTypes)
+                    {
+                        if (dofType == load.DOF) accelerations[index] += load.Amount;
+                        index++;
+                    }
+
+            double[] forces = new double[6];
+            massMatrix.Multiply(accelerations, forces);
+            return forces;
         }
 
         public void SaveMaterialState()

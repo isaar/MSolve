@@ -32,6 +32,7 @@ namespace ISAAR.MSolve.Tests
             double torsionalInertia = 76.57;
             double effectiveAreaY = 91.04;
             double effectiveAreaZ = 91.04;
+            double density = 7.85;
             int nNodes = 3;
             int nElems = 2;
             int monitorNode = 3;
@@ -46,8 +47,8 @@ namespace ISAAR.MSolve.Tests
             // Node creation
             IList<Node> nodes = new List<Node>();
             Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0, Z = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 300.0, Y = 0.0, Z = 0.0 };
+            Node node3 = new Node { ID = 3, X = 600.0, Y = 0.0, Z = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -83,7 +84,7 @@ namespace ISAAR.MSolve.Tests
 
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
-                var beam = new Beam3DCorotationalQuaternion(elementNodes, material, 7.85, beamSection);
+                var beam = new Beam3DCorotationalQuaternion(elementNodes, material, density, beamSection);
 
                 // Create elements
                 var element = new Element()
