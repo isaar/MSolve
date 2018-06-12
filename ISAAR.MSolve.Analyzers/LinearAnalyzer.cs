@@ -21,7 +21,6 @@ namespace ISAAR.MSolve.Analyzers
         {
             this.solver = solver;
             this.subdomains = subdomains;
-            //TODOMaria this is where the internal nodal forces should be initialized
         }
 
         private void InitializeLogs()
@@ -57,6 +56,8 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Initialize()
         {
+            //TODOMaria this is where the internal nodal forces should be initialized
+
             solver.Initialize();
         }
 
