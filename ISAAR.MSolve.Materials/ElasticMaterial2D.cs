@@ -8,7 +8,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class ElasticMaterial2D : IContinuumMaterial2D //TODO add interface IIsotropicContinuumMaterial2D
+    public class ElasticMaterial2D : IIsotropicContinuumMaterial2D
     {
         private readonly double[] strains = new double[3];
         private readonly double[] stresses = new double[3];
