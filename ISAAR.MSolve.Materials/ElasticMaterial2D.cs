@@ -8,11 +8,11 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class ElasticMaterial2D : IFiniteElementMaterial3D
+    public class ElasticMaterial2D : IIsotropicContinuumMaterial2D
     {
         private readonly double[] strains = new double[3];
         private readonly double[] stresses = new double[3];
-        private double [,] constitutiveMatrix = null;
+        private double[,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
         public String StressState { get; set; }
@@ -21,16 +21,16 @@ namespace ISAAR.MSolve.Materials
 
         #region IFiniteElementMaterial3D
 
-        public IMatrix2D ConstitutiveMatrix
+        public ElasticityTensorContinuum2D ConstitutiveMatrix
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(new double[3]);
-                return new Matrix2D(constitutiveMatrix);
+                if (constitutiveMatrix == null) UpdateMaterial(new StressStrainVectorContinuum2D(new double[3]));
+                return new ElasticityTensorContinuum2D(constitutiveMatrix);
             }
         }
 
-        public double[] Stresses { get { return stresses; } }
+        public StressStrainVectorContinuum2D Stresses { get { return new StressStrainVectorContinuum2D(stresses); } }
 
         public void ClearState()
         {
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.Materials
             throw new NotImplementedException();
         }
 
-        public void UpdateMaterial(double[] strains)
+        public void UpdateMaterial(StressStrainVectorContinuum2D strains)
         {
             strains.CopyTo(this.strains, 0);
             constitutiveMatrix = new double[3, 3];
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Materials
         #region ICloneable Members
         public object Clone()
         {
-            return new ElasticMaterial2D() {YoungModulus=this.YoungModulus, PoissonRatio =this.PoissonRatio, StressState=this.StressState };
+            return new ElasticMaterial2D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio, StressState = this.StressState };
         }
 
         #endregion
