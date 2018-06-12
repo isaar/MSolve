@@ -344,9 +344,9 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] faWeight = new double[iInt3];
             double[,] fadStrains = new double[iInt3, 6];
             double[,] faStrains = new double[iInt3, 6];
-            //	CalcQ4GaussMatrices(ref iInt, faXY, faWeight, faS, faDS, faJ, faDetJ, faB);
-            //	CalcQ4Strains(ref iInt, faB, localDisplacements, faStrains);
-            //	CalcQ4Strains(ref iInt, faB, localdDisplacements, fadStrains);
+            //CalcQ4GaussMatrices(ref iInt, faXY, faWeight, faS, faDS, faJ, faDetJ, faB);
+            //CalcQ4Strains(ref iInt, faB, localDisplacements, faStrains);
+            //CalcQ4Strains(ref iInt, faB, localdDisplacements, fadStrains);
 
             double[] dStrains = new double[6];
             double[] strains = new double[6];

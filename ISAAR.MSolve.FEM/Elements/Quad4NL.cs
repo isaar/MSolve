@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         //protected readonly IFiniteElementMaterial3D[] materialsAtGaussPoints; //Panos - What about 2D Material? Implemented
         protected readonly ElasticMaterial2D[] materialsAtGaussPoints;
-
+        protected readonly IIsotropicFiniteElementMaterial3D material;
         protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         protected Quad4NL()
         {
@@ -370,12 +370,12 @@ namespace ISAAR.MSolve.FEM.Elements
             //	CalcQ4Strains(ref iInt, faB, localDisplacements, faStrains);
             //	CalcQ4Strains(ref iInt, faB, localdDisplacements, fadStrains);
 
-            double[] dStrains = new double[6];
-            double[] strains = new double[6];
+            double[] dStrains = new double[3];
+            double[] strains = new double[3];
             for (int i = 0; i < materialsAtGaussPoints.Length; i++)
             {
-                for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
-                for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
+                for (int j = 0; j < 3; j++) dStrains[j] = fadStrains[i, j];
+                for (int j = 0; j < 3; j++) strains[j] = faStrains[i, j];
                 materialsAtGaussPoints[i].UpdateMaterial(dStrains);
             }
 
@@ -455,13 +455,13 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                throw new NotImplementedException();
+                return material.Modified; //throw new NotImplementedException();
             }
         }
 
         public void ResetMaterialModified()
         {
-            throw new NotImplementedException();
+            this.material.ResetModified(); //throw new NotImplementedException();
         }
 
         #endregion
