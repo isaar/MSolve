@@ -169,15 +169,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
             }
         }
 
-        private static bool IsZero(double value)
-        {
-            return Math.Abs(value) <= tolerance;
-        }
+        private static bool IsZero(double value) => Math.Abs(value) <= tolerance;
 
         private static bool IsWithinNaturalDomain(double naturalCoordinate)
-        {
-            return (naturalCoordinate >= lowerNaturalBound && naturalCoordinate <= upperNaturalBound);
-        }
+            => (naturalCoordinate >= lowerNaturalBound) && (naturalCoordinate <= upperNaturalBound);
 
         /// <summary>
         /// Solves a * x^2 + b * x + c = 0

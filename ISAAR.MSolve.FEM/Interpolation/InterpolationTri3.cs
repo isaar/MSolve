@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// Get the unique <see cref="InterpolationQuad4"/> object for the whole program. Thread safe.
         /// </summary>
-        public static InterpolationTri3 UniqueInstance { get { return uniqueInstance; } }
+        public static InterpolationTri3 UniqueInstance => uniqueInstance;
 
         /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
@@ -44,10 +44,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
         public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
-        {
-            return new InverseInterpolationTri3(nodes);
-        }
-
+            => new InverseInterpolationTri3(nodes);
+        
         protected override sealed double[] EvaluateAt(double xi, double eta)
         {
             var values = new double[3];

@@ -37,6 +37,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
         /// <returns></returns>
-        public IReadOnlyList<double> this[int nodeIdx] { get { return shapeGradientsCartesian[nodeIdx]; } }
+        public IReadOnlyList<double> this[int nodeIdx] => shapeGradientsCartesian[nodeIdx];
     }
 }

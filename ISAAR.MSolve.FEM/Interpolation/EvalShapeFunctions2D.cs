@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
         /// <returns></returns>
-        public double this[int nodeIdx] { get { return shapeFunctions[nodeIdx]; } }
+        public double this[int nodeIdx] => shapeFunctions[nodeIdx];
 
         public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes,
             NaturalPoint2D naturalCoordinates)

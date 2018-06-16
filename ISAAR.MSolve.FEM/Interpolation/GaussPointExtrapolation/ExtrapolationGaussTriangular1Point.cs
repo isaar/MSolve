@@ -38,9 +38,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
         public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint2D point)
-        {
-            return scalarsAtGaussPoints[0];
-        }
+            => scalarsAtGaussPoints[0];
 
         /// <summary>
         /// Calculates a scalar quantity at the nodes of a finite element by extrapolating its known values at the integration 
@@ -68,9 +66,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
         public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint2D point)
-        {
-            return tensorsAtGaussPoints[0];
-        }
+            => tensorsAtGaussPoints[0];
 
         /// <summary>
         /// Calculates a tensor quantity at the nodes of a finite element by extrapolating its known values at the integration 
@@ -98,9 +94,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
         public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint2D point)
-        {
-            return vectorsAtGaussPoints[0];
-        }
+            => vectorsAtGaussPoints[0];
 
         /// <summary>
         /// Calculates a vector quantity at the nodes of a finite element by extrapolating its known values at the integration 

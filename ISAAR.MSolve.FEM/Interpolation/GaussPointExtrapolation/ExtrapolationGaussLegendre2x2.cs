@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <summary>
         /// Get the unique <see cref="ExtrapolationGaussLegendre2x2"/> object for the whole program. Thread safe.
         /// </summary>
-        public static ExtrapolationGaussLegendre2x2 UniqueInstance { get { return uniqueInstance; } }
+        public static ExtrapolationGaussLegendre2x2 UniqueInstance => uniqueInstance;
 
         protected override double[] EvaluateExtrapolationFunctionsAt(NaturalPoint2D point)
         {

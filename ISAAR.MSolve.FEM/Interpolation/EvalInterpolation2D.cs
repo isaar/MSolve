@@ -44,10 +44,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
         /// <returns></returns>
-        public double GetShapeFunction(int nodeIdx)
-        {
-            return shapeFunctions[nodeIdx];
-        }
+        public double GetShapeFunction(int nodeIdx) => shapeFunctions[nodeIdx];
 
         /// <summary>
         /// The values of the stored shape function derivatives, with respect to the global cartesian coordinates, that 
@@ -55,10 +52,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
         /// <returns></returns>
-        public IReadOnlyList<double> GetShapeGradientCartesian(int nodeIdx)
-        {
-            return shapeGradientsCartesian[nodeIdx];
-        }
+        public IReadOnlyList<double> GetShapeGradientCartesian(int nodeIdx) => shapeGradientsCartesian[nodeIdx];
 
         public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes, 
             NaturalPoint2D naturalCoordinates)
