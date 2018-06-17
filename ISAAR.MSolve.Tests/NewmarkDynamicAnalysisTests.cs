@@ -25,9 +25,9 @@ namespace ISAAR.MSolve.Tests
             Model model = new Model();
             model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
 
-            var n = new Node() { ID = 1 };
-            var e = new Element() { ID = 1 };
-            e.NodesDictionary.Add(1, n);
+            var n = new Node() { ID = 0 };
+            var e = new Element() { ID = 0 };
+            e.NodesDictionary.Add(0, n);
             var m = new Mock<IFiniteElement>();
             m.Setup(x => x.StiffnessMatrix(e)).Returns(new SymmetricMatrix2D(new double[] { 6, -2, 4 }));
             m.Setup(x => x.MassMatrix(e)).Returns(new SymmetricMatrix2D(new double[] { 2, 0, 1 }));
@@ -35,9 +35,9 @@ namespace ISAAR.MSolve.Tests
             m.Setup(x => x.GetElementDOFTypes(e)).Returns(new[] { new[] { DOFType.X, DOFType.Y } });
             m.SetupGet(x => x.DOFEnumerator).Returns(new GenericDOFEnumerator());
             e.ElementType = m.Object;
-            model.NodesDictionary.Add(1, n);
-            model.ElementsDictionary.Add(1, e);
-            model.SubdomainsDictionary[0].ElementsDictionary.Add(1, e);
+            model.NodesDictionary.Add(0, n);
+            model.ElementsDictionary.Add(0, e);
+            model.SubdomainsDictionary[0].ElementsDictionary.Add(0, e);
             model.Loads.Add(new Load() { Amount = 10, Node = n, DOF = DOFType.Y });
             var lX = new Mock<IMassAccelerationHistoryLoad>();
             lX.SetupGet(x => x.DOF).Returns(DOFType.X);
