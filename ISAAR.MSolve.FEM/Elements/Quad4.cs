@@ -216,7 +216,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[,] CalculateDeformationMatrix(double[,] faXY, double[] faDS, double fXi, double fEta, double fDetJ) //Panos - Calculate Deformation matrix B
         {
 
-            
+
             double fDetInv = 1.0 / fDetJ; //Panos - SOS, edo einai mono to klasma 1/det[j] kai oxi o full antistrofos pinakas;
             double Aparameter;
             double Bparameter;
@@ -285,7 +285,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     //double[,] faJInv = this.CalcQ4JInv(fDetJ, faJ); //Panos - Uncommnent to check JInv
                     double[,] deformationMatrix = this.CalculateDeformationMatrix(nodeCoordinates, faDS, xi, eta, fDetJ);
                     double weightFactor = pointXi.WeightFactor * pointEta.WeightFactor * fDetJ; //Panos - we should also insert the thickness of the element t. Now it is assumed t=1;
-                    integrationPoints[counter] = new GaussLegendrePoint3D(xi, eta,0, deformationMatrix, weightFactor);
+                    integrationPoints[counter] = new GaussLegendrePoint3D(xi, eta, 0, deformationMatrix, weightFactor);
                 }
             }
             return integrationPoints;
@@ -321,7 +321,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             return stiffnessMatrix;
         }
-        
+
         #endregion
 
         public virtual IMatrix2D MassMatrix(IElement element)
@@ -386,10 +386,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
+                materialsAtGaussPoints[i].UpdateMaterial(new StressStrainVectorContinuum2D(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)

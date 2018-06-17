@@ -19,8 +19,8 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.Pore };
         private readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected IIsotropicFiniteElementMaterial3D[] materialsAtGaussPoints;
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IIsotropicContinuumMaterial3D[] materialsAtGaussPoints;
+        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         #region Fortran imports
         [DllImport("femelements.dll",
@@ -100,14 +100,14 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public Hexa8u8p(IIsotropicFiniteElementMaterial3D material)
+        public Hexa8u8p(IIsotropicContinuumMaterial3D material)
         {
-            materialsAtGaussPoints = new IIsotropicFiniteElementMaterial3D[Hexa8u8p.iInt3];
+            materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[Hexa8u8p.iInt3];
             for (int i = 0; i < Hexa8u8p.iInt3; i++)
-                materialsAtGaussPoints[i] = (IIsotropicFiniteElementMaterial3D)material.Clone();
+                materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
         }
 
-        public Hexa8u8p(IIsotropicFiniteElementMaterial3D material, IElementDOFEnumerator dofEnumerator) : this(material)
+        public Hexa8u8p(IIsotropicContinuumMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator) : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
@@ -326,10 +326,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
+                materialsAtGaussPoints[i].UpdateMaterial(new StressStrainVectorContinuum3D(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
@@ -475,7 +475,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get 
             {
-                foreach (IFiniteElementMaterial3D material in materialsAtGaussPoints)
+                foreach (IContinuumMaterial3D material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -483,22 +483,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IFiniteElementMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void ClearMaterialState()
         {
-            foreach (IFiniteElementMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
         {
-            foreach (IFiniteElementMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IFiniteElementMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         #endregion
