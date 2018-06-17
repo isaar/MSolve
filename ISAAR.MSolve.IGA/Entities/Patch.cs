@@ -773,7 +773,12 @@ namespace ISAAR.MSolve.IGA.Entities
                         }
 
                         int elementID = i * numberOfElementsHeta * numberOfElementsZeta + j * numberOfElementsZeta + k;
-                        Element element = new Element() { ID = elementID, Patch = this, ElementType = new NURBSElement3D() };
+                        Element element = new NURBSElement3D()
+                        {
+	                        ID = elementID,
+	                        Patch = this,
+	                        ElementType = new NURBSElement3D()
+                        };
                         element.AddKnots(knotsOfElement);
                         element.AddControlPoints(elementControlPoints);
                         this.elementsDictionary.Add(elementID, element);
