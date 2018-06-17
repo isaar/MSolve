@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA
 {
@@ -17,7 +18,7 @@ namespace ISAAR.MSolve.IGA
         public double Thickness { get; set; }
         public int NumberOfControlPoints { get; set; }
         public int NumberOfPatches { get; set; }
-        public IIsogeometricMaterial3D Material{get;set;}
+        public IFiniteElementMaterial Material {get;set;}
         public Dictionary<int, int> DegreeKsiDictionary=new Dictionary<int, int>();
         public Dictionary<int, int> DegreeHetaDictionary = new Dictionary<int, int>();
         public Dictionary<int, int> DegreeZetaDictionary = new Dictionary<int, int>();

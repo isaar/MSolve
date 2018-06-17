@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
@@ -26,7 +27,7 @@ namespace ISAAR.MSolve.IGA.Entities
         #region PatchData
         public int NumberOfDimensions { get; set; }
         public double Thickness { get; set; }
-        public IIsogeometricMaterial3D Material { get; set; }
+        public IFiniteElementMaterial Material { get; set; }
 
         public int NumberOfControlPointsKsi { get; set; }
         public int NumberOfControlPointsHeta { get; set; }
