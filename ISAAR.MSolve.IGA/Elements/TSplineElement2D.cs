@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
@@ -131,7 +132,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				var B2 = CalculateDeformationMatrix2(tsplineElement, tsplines, j);
 
 				Matrix2D B = B1 * B2;
-				Matrix2D ElasticityMatrix = tsplineElement.Patch.Material.ConstitutiveMatrix;
+				Matrix2D ElasticityMatrix = ((IContinuumMaterial2D)tsplineElement.Patch.Material).ConstitutiveMatrix;
 				Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ElasticityMatrix;
 				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint * B;
 				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint * (jacdet * gaussPoints[j].WeightFactor * tsplineElement.Patch.Thickness);
