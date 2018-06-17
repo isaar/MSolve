@@ -19,35 +19,35 @@ namespace ISAAR.MSolve.Tests.IGA
 {
     public class IsogeometricBenchmarks
     {
-		[Fact]
-		public void Qube64()
-		{
-			// Model
-			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
-			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "..\\..\\..\\IGA\\InputFiles\\Qube4096.txt";
-			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
-			modelReader.CreateModelFromFile();
+		//[Fact]
+		//public void Qube64()
+		//{
+		//	// Model
+		//	VectorExtensions.AssignTotalAffinityCount();
+		//	Model model = new Model();
+		//	ModelCreator modelCreator = new ModelCreator(model);
+		//	string filename = "..\\..\\..\\IGA\\InputFiles\\Qube4096.txt";
+		//	IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+		//	modelReader.CreateModelFromFile();
 
-			// Forces and Boundary Conditions
-			// Loading Conditions - Pressure
+		//	// Forces and Boundary Conditions
+		//	// Loading Conditions - Pressure
 
-			model.PatchesDictionary[0].FacesDictionary[3].LoadingConditions.Add(new PressureBoundaryCondition(100));
+		//	model.PatchesDictionary[0].FacesDictionary[3].LoadingConditions.Add(new PressureBoundaryCondition(100));
 
-			// Boundary Conditions - Dirichlet
-			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[2].ControlPointsDictionary.Values)
-			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
-			}
-			model.ConnectDataStructures();
+		//	// Boundary Conditions - Dirichlet
+		//	foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[2].ControlPointsDictionary.Values)
+		//	{
+		//		model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+		//		model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+		//		model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+		//	}
+		//	model.ConnectDataStructures();
 
-			System.IO.File.WriteAllLines("..\\..\\..\\IGA\\InputFiles\\Qube4096Forces.txt",
-				model.PatchesDictionary[0].Forces.Select(f=>f.ToString()));
+		//	System.IO.File.WriteAllLines("..\\..\\..\\IGA\\InputFiles\\Qube4096Forces.txt",
+		//		model.PatchesDictionary[0].Forces.Select(f=>f.ToString()));
 			
-		}
+		//}
 
 		[Fact]
         public void IsogeometricQuadraticCantilever2D()
