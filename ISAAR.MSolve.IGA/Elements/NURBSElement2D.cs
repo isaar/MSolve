@@ -218,11 +218,10 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
         public Dictionary<int, double> CalculateLoadingCondition(Element element, Face face, NeumannBoundaryCondition neumann)
         {
-            throw new NotSupportedException();
-            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(element);
+            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(element, face.Degrees[0], face.Degrees[1]);
             Dictionary<int, double> neumannLoad = new Dictionary<int, double>();
 
-            NURBS2D nurbs = new NURBS2D(element, element.ControlPoints);
+            NURBS2D nurbs = new NURBS2D(element, element.ControlPoints,face);
 
             for (int j = 0; j < gaussPoints.Count; j++)
             {
@@ -284,11 +283,12 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
         public Dictionary<int, double> CalculateLoadingCondition(Element element,Face face, PressureBoundaryCondition pressure)
         {
-            throw new NotSupportedException();
-            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(element);
+	        var dofs = new DOFType[] {DOFType.X, DOFType.Y, DOFType.Z};
+
+            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(element,face.Degrees[0], face.Degrees[1]);
             Dictionary<int, double> pressureLoad = new Dictionary<int, double>();
 
-            NURBS2D nurbs = new NURBS2D(element, element.ControlPoints);
+            NURBS2D nurbs = new NURBS2D(element, element.ControlPoints, face);
 
             for (int j = 0; j < gaussPoints.Count; j++)
             {
@@ -327,8 +327,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
                 {
                     for (int m = 0; m < 3; m++)
                     {
-                        int dofID = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID]
-                            [(DOFType)Enum.Parse(typeof(DOFType), m.ToString())];
+                        int dofID = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][dofs[m]]; ;
                         if (pressureLoad.ContainsKey(dofID))
                         {
                             pressureLoad[dofID] += nurbs.NurbsValues[k, j] * jacdet * gaussPoints[j].WeightFactor * pressure.Value * surfaceBasisVector3[m];
@@ -352,13 +351,19 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         }
 
 
-            private IList<GaussLegendrePoint3D> CreateElementGaussPoints(Element element)
+        private IList<GaussLegendrePoint3D> CreateElementGaussPoints(Element element)
         {
             GaussQuadrature gauss = new GaussQuadrature();
             return gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Knots);
         }
 
-        public void ResetMaterialModified()
+	    private IList<GaussLegendrePoint3D> CreateElementGaussPoints(Element element, int degreeKsi, int degreeHeta)
+	    {
+		    GaussQuadrature gauss = new GaussQuadrature();
+		    return gauss.CalculateElementGaussPoints(degreeKsi, degreeHeta, element.Knots);
+	    }
+
+		public void ResetMaterialModified()
         {
             throw new NotImplementedException();
         }
