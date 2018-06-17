@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ISAAR.MSolve.IGA.Entities
 {
     public class ControlPoint:INode
-    {
+	{
         private readonly List<DOFType> constrains = new List<DOFType>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
@@ -73,5 +73,21 @@ namespace ISAAR.MSolve.IGA.Entities
 
             return String.Format("{0} - Con({1})", header, constrainsDescription);
         }
+
+		public ControlPoint Clone()
+		{
+			return new ControlPoint()
+			{
+				ID=this.ID,
+				X = X,
+				Y=Y,
+				Z=Z,
+				Ksi = Ksi,
+				Heta = Heta,
+				Zeta=Zeta,
+				WeightFactor = WeightFactor
+			};
+		}
+
     }
 }
