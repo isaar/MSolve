@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public List<LoadingCondition> LoadingConditions
         {
-            get { return loadingConditions.ToList<LoadingCondition>(); }
+            get { return loadingConditions; }
         }
         #endregion
 
