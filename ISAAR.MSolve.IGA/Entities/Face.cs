@@ -118,8 +118,8 @@ namespace ISAAR.MSolve.IGA.Entities
             }
             return load;
         }
-        
-        private void CreateFaceElements()
+
+	    private void CreateFaceElements()
         {
             #region Knots
             Vector singleKnotValuesKsi = KnotValueVectors[0].RemoveDuplicatesFindMultiplicity()[0];
@@ -184,14 +184,16 @@ namespace ISAAR.MSolve.IGA.Entities
                         {
                             int controlPointID = (i + multiplicityElementKsi) * NumberOfControlPointsHeta +
                                 (j + multiplicityElementHeta) + k * NumberOfControlPointsHeta + l;
-                            elementControlPoints.Add(this.controlPointsDictionary[controlPointID]);
+
+							elementControlPoints.Add(this.controlPointsDictionary[controlPointID]);
                         }
                     }
                     int elementID = i * numberOfElementsHeta + j;
                     Element element = new NURBSElement2D()
                     {
                         ID = elementID,
-                        ElementType = new NURBSElement2D()
+                        ElementType = new NURBSElement2D(),
+						Patch = Patch
                     };
                     element.AddKnots(knotsOfElement);
                     element.AddControlPoints(elementControlPoints);
