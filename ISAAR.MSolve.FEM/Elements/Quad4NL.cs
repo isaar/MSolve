@@ -376,10 +376,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
+                materialsAtGaussPoints[i].UpdateMaterial(new StressStrainVectorContinuum2D(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)

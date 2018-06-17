@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly IContinuumMaterial3D[] materialsAtGaussPoints;
-        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         #region Fortran imports
         [DllImport("femelements.dll",
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
         }
 
-        public Hexa8(IContinuumMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator)
+        public Hexa8(IContinuumMaterial3D material, IElementDOFEnumerator dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
