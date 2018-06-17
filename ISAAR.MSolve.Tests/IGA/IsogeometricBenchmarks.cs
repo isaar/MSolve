@@ -130,50 +130,131 @@ namespace ISAAR.MSolve.Tests.IGA
 
         }
 
-        [Fact]
-        public void TSplinesShellsBenchmark()
-        {
-            VectorExtensions.AssignTotalAffinityCount();
-            Model model = new Model();
-            string filename = "..\\..\\..\\IGA\\InputFiles\\tspline.iga";
-            IGAFileReader modelReader = new IGAFileReader(model, filename);
-            modelReader.CreateTSplineShellsModelFromFile();
+	    [Fact]
+	    public void IsogeometricQuadraticCantilever2DWithDistributedLoad()
+	    {
+			// Model
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			ModelCreator modelCreator = new ModelCreator(model);
+			string filename = "..\\..\\..\\IGA\\InputFiles\\Cantilever2D.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			modelReader.CreateModelFromFile();
 
-            model.PatchesDictionary[0].Material = new ElasticMaterial2D
-            {
-                PoissonRatio = 0.3,
-                YoungModulus = 10e6,
-                StressState = StressStates.PlaneStress
-            };
-            model.PatchesDictionary[0].Thickness = 0.1;
+			// Forces and Boundary Conditions
+		    Value verticalDistributedLoad = delegate (double x, double y, double z)
+		    {
+			    return new double[] {0,-100,0};
+		    };
+			model.PatchesDictionary[0].EdgesDictionary[1].LoadingConditions.Add(new NeumannBoundaryCondition(verticalDistributedLoad));
 
-            for (int i = 0; i < 100; i++)
-            {
-                model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
-                model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
-                model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
-            }
+			// Boundary Conditions - Dirichlet
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+			}
+			model.ConnectDataStructures();
 
-            for (int i = 0; i < model.ControlPoints.Count-100; i++)
-            {
-                model.Loads.Add(new Load() { Amount = -1000, ControlPoint = model.ControlPointsDictionary[i], DOF = DOFType.Y });
-            }
+			// Solvers
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
 
 
-            //model.Loads.Add(new Load() { Amount = -10000, ControlPoint = model.ControlPointsDictionary[2], DOF = DOFType.Y });
-            model.ConnectDataStructures();
+			//Test for Load Vector
+		    double[] loadVectorExpected =
+		    {
+			    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -83.3333333333334, 0, -166.666666666667, 0,
+			    -250.000000000000, 0, -250.000000000000, 0, -166.666666666667, 0, -83.3333333333334
+		    };
 
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+		    for (int i = 0; i < loadVectorExpected.Length; i++)
+				Assert.Equal(loadVectorExpected[i], model.PatchesDictionary[0].Forces[i],6);
 
-            parentAnalyzer.BuildMatrices();
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
-        }
+			//Test fro Displacement Vector
+		    double[] displacementVectorExpected = new double[]
+		    {
+			    -0.0614562631781765, -0.0219170576325587, -0.0393637953297948, -0.00985891244520424, -0.0126687982396880,
+			    -0.000943275549340603, 0.0126687982396881, -0.000943275549340565, 0.0393637953297948, -0.00985891244520429,
+			    0.0614562631781765, -0.0219170576325587, -0.164630630046951, -0.143599796794095, -0.122284459518038,
+			    -0.137572020341543, -0.0396482606150141, -0.129909984638882, 0.0396482606150142, -0.129909984638882,
+			    0.122284459518038, -0.137572020341543, 0.164630630046951, -0.143599796794095, -0.255126649525807,
+			    -0.367249906501344, -0.188034807331162, -0.360563789448209, -0.0622102833016037, -0.354689958832955,
+			    0.0622102833016041, -0.354689958832955, 0.188034807331162, -0.360563789448210, 0.255126649525807,
+			    -0.367249906501344, -0.329973104647066, -0.672298362080536, -0.245006560671741, -0.667431304467007,
+			    -0.0808025488806688, -0.662174063778831, 0.0808025488806692, -0.662174063778831, 0.245006560671741,
+			    -0.667431304467006, 0.329973104647066, -0.672298362080536, -0.389985650923780, -1.04507710416196,
+			    -0.289753557243170, -1.04105642269944, -0.0959521766831420, -1.03721560192611, 0.0959521766831417,
+			    -1.03721560192610, 0.289753557243169, -1.04105642269944, 0.389985650923779, -1.04507710416196,
+			    -0.435055143301642, -1.47030303359559, -0.323516436156270, -1.46754420136883, -0.107046279714281,
+			    -1.46472910091973, 0.107046279714280, -1.46472910091973, 0.323516436156269, -1.46754420136883, 0.435055143301642,
+			    -1.47030303359559, -0.464895102729005, -1.93322992417900, -0.346196414935151, -1.93146777511281,
+			    -0.114797364187326, -1.92958905082341, 0.114797364187326, -1.92958905082341, 0.346196414935151,
+			    -1.93146777511282, 0.464895102729004, -1.93322992417900, -0.480254160241311, -2.41767489777727,
+			    -0.357018220686884, -2.41725889060713, -0.117854053323470, -2.41770706308454, 0.117854053323469,
+			    -2.41770706308454, 0.357018220686882, -2.41725889060713, 0.480254160241309, -2.41767489777726,
+			    -0.481234435380421, -2.66710696029277, -0.357129997781511, -2.66655837235305, -0.118099002572320,
+			    -2.66369484882849, 0.118099002572319, -2.66369484882849, 0.357129997781510, -2.66655837235305, 0.481234435380421,
+			    -2.66710696029277
+		    };
+			for (int i = 0; i < displacementVectorExpected.Length; i++)
+				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 6);
+		}
+
+        //[Fact]
+        //public void TSplinesShellsBenchmark()
+        //{
+        //    VectorExtensions.AssignTotalAffinityCount();
+        //    Model model = new Model();
+        //    string filename = "..\\..\\..\\IGA\\InputFiles\\tspline.iga";
+        //    IGAFileReader modelReader = new IGAFileReader(model, filename);
+        //    modelReader.CreateTSplineShellsModelFromFile();
+
+        //    model.PatchesDictionary[0].Material = new ElasticMaterial2D
+        //    {
+        //        PoissonRatio = 0.3,
+        //        YoungModulus = 10e6,
+        //        StressState = StressStates.PlaneStress
+        //    };
+        //    model.PatchesDictionary[0].Thickness = 0.1;
+
+        //    for (int i = 0; i < 100; i++)
+        //    {
+        //        model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
+        //        model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
+        //        model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
+        //    }
+
+        //    for (int i = 0; i < model.ControlPoints.Count-100; i++)
+        //    {
+        //        model.Loads.Add(new Load() { Amount = -1000, ControlPoint = model.ControlPointsDictionary[i], DOF = DOFType.Y });
+        //    }
+
+
+        //    //model.Loads.Add(new Load() { Amount = -10000, ControlPoint = model.ControlPointsDictionary[2], DOF = DOFType.Y });
+        //    model.ConnectDataStructures();
+
+        //    var linearSystems = new Dictionary<int, ILinearSystem>();
+        //    linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+        //    SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+        //    ProblemStructural provider = new ProblemStructural(model, linearSystems);
+        //    LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+        //    StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+        //    parentAnalyzer.BuildMatrices();
+        //    parentAnalyzer.Initialize();
+        //    parentAnalyzer.Solve();
+        //}
 
     }
 }
