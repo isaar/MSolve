@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Tests
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
-                StressState="plstress"
+                StressState=StressStates.PlaneStress
             };
             Model model = new Model();
 
@@ -339,7 +339,7 @@ namespace ISAAR.MSolve.Tests
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
-                StressState = "plstress"
+                StressState = StressStates.PlaneStress
             };
             Model model = new Model();
 
