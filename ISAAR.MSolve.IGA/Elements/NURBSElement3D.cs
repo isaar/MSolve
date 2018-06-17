@@ -11,6 +11,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 {
@@ -118,7 +119,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
                 Matrix2D B = B1 * B2;
 
-                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * nurbsElement.Patch.Material.ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
+                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ((IContinuumMaterial3D)nurbsElement.Patch.Material).ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
 
                 for (int m = 0; m < nurbsElement.ControlPoints.Count * 3; m++)
                 {
