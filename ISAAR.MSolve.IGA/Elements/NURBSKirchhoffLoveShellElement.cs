@@ -7,6 +7,7 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
@@ -125,20 +126,20 @@ namespace ISAAR.MSolve.IGA.Elements
 				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
 				var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
 
-				Matrix2D ElasticityMatrix = shellElement.Patch.Material.ConstitutiveMatrix;
+				Matrix2D ElasticityMatrix = ((IContinuumMaterial2D)shellElement.Patch.Material).ConstitutiveMatrix;
 
 				var Bmembrane = CalculateMembraneDeformationMatrix(nurbs, j, surfaceBasisVector1, surfaceBasisVector2);
 
 				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, nurbs, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12);
 
-				double membraneStiffness = shellElement.Patch.Material.YoungModulus * shellElement.Patch.Thickness /
-				                           (1 - Math.Pow(shellElement.Patch.Material.PoissonRatio, 2));
+				double membraneStiffness = ((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).YoungModulus * shellElement.Patch.Thickness /
+				                           (1 - Math.Pow(((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).PoissonRatio, 2));
 
 				var Kmembrane = Bmembrane.Transpose() * ElasticityMatrix * Bmembrane * membraneStiffness * J1 *
 				                gaussPoints[j].WeightFactor;
 
-				double bendingStiffness = shellElement.Patch.Material.YoungModulus * Math.Pow(shellElement.Patch.Thickness, 3) /
-				                          12 / (1 - Math.Pow(shellElement.Patch.Material.PoissonRatio, 2));
+				double bendingStiffness = ((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).YoungModulus * Math.Pow(shellElement.Patch.Thickness, 3) /
+				                          12 / (1 - Math.Pow(((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).PoissonRatio, 2));
 
 				var Kbending = Bbending.Transpose() * ElasticityMatrix * Bbending * bendingStiffness * J1 *
 				               gaussPoints[j].WeightFactor;
