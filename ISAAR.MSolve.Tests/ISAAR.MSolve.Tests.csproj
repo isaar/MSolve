@@ -27,7 +27,6 @@
 
   <ItemGroup>
     <Folder Include="Analyzers\" />
-    <Folder Include="FEM\" />
     <Folder Include="Logging\" />
     <Folder Include="MaterialsTest\" />
     <Folder Include="Solvers\" />

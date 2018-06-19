@@ -8,7 +8,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class ElasticMaterial2D : IFiniteElementMaterial3D
+    public class ElasticMaterial2D
     {
         private readonly double[] strains = new double[3];
         private readonly double[] stresses = new double[3];
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Materials
         public double PoissonRatio { get; set; }
         public String StressState { get; set; }
         public double[] Coordinates { get; set; }
-
+        public double Thickness { get; set; }
 
         #region IFiniteElementMaterial3D
 
@@ -92,9 +92,10 @@ namespace ISAAR.MSolve.Materials
         #endregion
 
         #region ICloneable Members
-        public object Clone()
+        public ElasticMaterial2D Clone()
         {
-            return new ElasticMaterial2D() {YoungModulus=this.YoungModulus, PoissonRatio =this.PoissonRatio, StressState=this.StressState };
+            return new ElasticMaterial2D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio,
+                StressState = this.StressState, Thickness = this.Thickness };
         }
 
         #endregion
