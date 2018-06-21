@@ -6,18 +6,19 @@ using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
+//TODO: Not sure that Rayleigh properties should be static. I am certain that the do not need to vary inside each element.
 namespace ISAAR.MSolve.Materials
 {
     public class ElasticMaterial2D
     {
         private readonly double[] strains = new double[3];
         private readonly double[] stresses = new double[3];
-        private double [,] constitutiveMatrix = null;
+        private double[,] constitutiveMatrix = null;
+
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
         public String StressState { get; set; }
         public double[] Coordinates { get; set; }
-        public double Thickness { get; set; }
 
         #region IFiniteElementMaterial3D
 
@@ -94,8 +95,12 @@ namespace ISAAR.MSolve.Materials
         #region ICloneable Members
         public ElasticMaterial2D Clone()
         {
-            return new ElasticMaterial2D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio,
-                StressState = this.StressState, Thickness = this.Thickness };
+            return new ElasticMaterial2D()
+            {
+                PoissonRatio = this.PoissonRatio,
+                StressState = this.StressState,
+                YoungModulus = this.YoungModulus
+            };
         }
 
         #endregion

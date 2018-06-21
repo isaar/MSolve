@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 //TODO: In XFEM I used dictionaries with nodes as keys, but it is less efficient and offers little extra safety, since the
 //      shape functions and derivatives will be used by classes that have direct access to the nodes.
@@ -38,6 +39,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The inverse Jacobian matrix of the interpolation and its determinant.
         /// </summary>
         public Jacobian2D Jacobian { get; }
+
+        /// <summary>
+        /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
+        /// row 1 to dof Y.
+        /// </summary>
+        /// <returns></returns>
+        public Matrix2D BuildShapeFunctionMatrix()
+        {
+            var array2D = new double[2, 2 * shapeFunctions.Length];
+            for (int i = 0; i < shapeFunctions.Length; ++i)
+            {
+                array2D[0, 2 * i] = shapeFunctions[i];
+                array2D[1, 2 * i + 1] = shapeFunctions[i];
+            }
+            return new Matrix2D(array2D);
+        }
 
         /// <summary>
         /// The value of the stored shape function that corresponds to the node with local index <paramref name="nodeIdx"/>.

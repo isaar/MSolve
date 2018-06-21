@@ -11,23 +11,37 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
+//TODO: Damping matrix calculation needs redesign for all of MSolve. For this class, see DampingMatrix().
+//TODO: Materials also need redesign. Some properties are the same for all instances of a material class, some are the same for
+//      all Gauss points of an element but differ across elements, some differ per Gauss point but are constant, and others
+//      differ per Gauss point and per analysis iteration.
+//TODO: Why does http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf Fig 31.9 take half the thickness when computing
+//      the consistent mass matrix of Quad4 elements? For Tri3, the full thickness is used, as seen in Fig 31.7
+//TODO: Simple Tri3 elements are more efficient than isoparamateric Tri3 elements. 
+//TODO: Thickness should be uniform
+//TODO: Different quadrature for mass
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class ContinuumElement2D: IStructuralFiniteElement
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
+        private DynamicMaterial dynamicProperties;
         private readonly Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints;
 
-        public ContinuumElement2D(IReadOnlyList<Node2D> nodes, IIsoparametricInterpolation2D interpolation,
-            IQuadrature2D quadrature, IGaussPointExtrapolation2D gaussPointExtrapolation, 
-            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints)
+        public ContinuumElement2D(double thickness, IReadOnlyList<Node2D> nodes, IIsoparametricInterpolation2D interpolation,
+            IQuadrature2D quadratureForStiffness, IQuadrature2D quadratureForConsistentMass, 
+            IGaussPointExtrapolation2D gaussPointExtrapolation, 
+            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
+            this.dynamicProperties = dynamicProperties;
             this.materialsAtGaussPoints = materialsAtGaussPoints;
             this.GaussPointExtrapolation = gaussPointExtrapolation;
             this.Nodes = nodes;
             this.Interpolation = interpolation;
-            this.Quadrature = quadrature;
+            this.QuadratureForConsistentMass = quadratureForConsistentMass;
+            this.QuadratureForStiffness = quadratureForStiffness;
+            this.Thickness = thickness;
 
             dofTypes = new DOFType[nodes.Count][];
             for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new DOFType[] { DOFType.X, DOFType.Y };
@@ -41,7 +55,74 @@ namespace ISAAR.MSolve.FEM.Elements
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation2D Interpolation { get; }
         public IReadOnlyList<Node2D> Nodes { get; }
-        public IQuadrature2D Quadrature { get; }
+        public IQuadrature2D QuadratureForConsistentMass { get; }
+        public IQuadrature2D QuadratureForStiffness { get; }
+        public double Thickness { get; }
+
+        public Matrix2D BuildConsistentMassMatrix()
+        {
+            int numDofs = 2 * Nodes.Count;
+            var mass = new Matrix2D(numDofs, numDofs);
+            Dictionary<GaussPoint2D, EvalInterpolation2D> evalInterpolations =
+                Interpolation.EvaluateAllAtGaussPoints(Nodes, QuadratureForConsistentMass);
+
+            foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
+            {
+                Matrix2D shapeFunctionMatrix = evalInterpolations[gaussPoint].BuildShapeFunctionMatrix();
+                Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
+                double dA = evalInterpolations[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
+                mass.AxpyIntoThis(partial, dA);
+            }
+
+            //WARNING: the following needs to change for non uniform density. Perhaps the integration order too.
+            mass.Scale(Thickness * dynamicProperties.Density); 
+            return mass;
+        }
+
+        public Matrix2D BuildLumpedMassMatrix()
+        {
+            int numDofs = 2 * Nodes.Count;
+            var lumpedMass = new Matrix2D(numDofs, numDofs);
+            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients =
+                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, QuadratureForConsistentMass);
+
+            // Contribution of each Gauss point to the element's area
+            //TODO: Perhaps I could calculate the volume of the element without going through each Gauss point. Probably the 
+            //      nodes are needed instead of the GPs. For linear elements I can find the area geometrically (as polygons).
+            double area = 0;
+            foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
+            {
+                area += shapeGradients[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
+            }
+
+            // Divide the total mass uniformly for each node
+            double nodalMass = Thickness * area * dynamicProperties.Density / Nodes.Count;
+            for (int i = 0; i < numDofs; ++i) lumpedMass[i, i] = nodalMass;
+
+            return lumpedMass;
+        }
+
+        public Matrix2D BuildStiffnessMatrix()
+        {
+            int numDofs = 2 * Nodes.Count;
+            var stiffness = new Matrix2D(numDofs, numDofs);
+            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients =
+                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, QuadratureForStiffness);
+
+            foreach (GaussPoint2D gaussPoint in QuadratureForStiffness.IntegrationPoints)
+            {
+                // Calculate the necessary quantities for the integration
+                Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
+                Matrix2D deformation = BuildDeformationMatrix(shapeGradients[gaussPoint]);
+
+                // Contribution of this gauss point to the element stiffness matrix
+                Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
+                double dA = shapeGradients[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
+                stiffness.AxpyIntoThis(partial, dA);
+            }
+            stiffness.Scale(Thickness);
+            return stiffness;
+        }
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
@@ -78,7 +159,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D DampingMatrix(Element element)
         {
-            throw new NotImplementedException();
+            //TODO: Stiffness and mass matrices have already been computed probably. Reuse them.
+            //TODO: Perhaps with Rayleigh damping, the global damping matrix should be created directly from global mass and stiffness matrices.
+            Matrix2D damping = BuildStiffnessMatrix();
+            damping.Scale(dynamicProperties.RayleighCoeffStiffness);
+            damping.AxpyIntoThis(MassMatrix(element), dynamicProperties.RayleighCoeffMass);
+            return damping;
         }
 
         public IFiniteElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
@@ -87,7 +173,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D MassMatrix(Element element)
         {
-            throw new NotImplementedException();
+            //return BuildConsistentMassMatrix();
+            return BuildLumpedMassMatrix();
         }
 
         public bool MaterialModified
@@ -113,27 +200,10 @@ namespace ISAAR.MSolve.FEM.Elements
         //TODO: why do I need the wrapping element?
         public IMatrix2D StiffnessMatrix(Element element)
         {
-            int numDofs = 2 * Nodes.Count;
-            var stiffness = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients = 
-                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, Quadrature);
-
-            foreach (GaussPoint2D gaussPoint in Quadrature.IntegrationPoints)
-            {
-                // Calculate the necessary quantities for the integration
-                double thickness = materialsAtGaussPoints[gaussPoint].Thickness;
-                Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
-                Matrix2D deformation = CalcDeformationMatrix(shapeGradients[gaussPoint]);
-
-                // Contribution of this gauss point to the element stiffness matrix
-                Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
-                double dV = thickness * shapeGradients[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
-                stiffness.AxpyIntoThis(partial, dV);
-            }
-            return stiffness;
+            return BuildStiffnessMatrix();
         }
 
-        private Matrix2D CalcDeformationMatrix(EvalShapeGradients2D shapeGradients)
+        private Matrix2D BuildDeformationMatrix(EvalShapeGradients2D shapeGradients)
         {
             var deformation = new Matrix2D(3, 2 * Nodes.Count);
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
