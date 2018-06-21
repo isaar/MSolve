@@ -15,7 +15,35 @@ namespace ISAAR.MSolve.FEM.Elements
 {
     public class ContinuumElement2DFactory
     {
-        public ContinuumElement2D CreateQuad4(double thickness, IReadOnlyList<Node2D> nodes, 
+        private double commonThickness;
+        private ElasticMaterial2D commonMaterial;
+        private DynamicMaterial commonDynamicProperties;
+
+        public ContinuumElement2DFactory(double commonThickness, ElasticMaterial2D commonMaterial, 
+            DynamicMaterial commonDynamicProperties)
+        {
+            this.commonThickness = commonThickness;
+            this.commonMaterial = commonMaterial;
+            this.commonDynamicProperties = commonDynamicProperties;
+        }
+
+        public ContinuumElement2D CreateQuad4(IReadOnlyList<Node2D> nodes)
+        {
+            return CreateQuad4(nodes, commonThickness, commonMaterial, commonDynamicProperties);
+        }
+
+        public ContinuumElement2D CreateQuad4(IReadOnlyList<Node2D> nodes, double thickness, ElasticMaterial2D material,
+            DynamicMaterial dynamicProperties)
+        {
+            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            foreach (GaussPoint2D gaussPoint in GaussLegendre2D.Order2x2.IntegrationPoints)
+            {
+                materialsAtGaussPoints[gaussPoint] = material.Clone();
+            }
+            return CreateQuad4(nodes, thickness, materialsAtGaussPoints, dynamicProperties);
+        }
+
+        public ContinuumElement2D CreateQuad4(IReadOnlyList<Node2D> nodes, double thickness,
             Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             //TODO: check if nodes - interpolation and Gauss points - materials match
@@ -24,27 +52,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicProperties);
         }
 
-        public ContinuumElement2D CreateQuad4(double thickness, IReadOnlyList<Node2D> nodes, ElasticMaterial2D material,
-            DynamicMaterial dynamicProperties)
+        public ContinuumElement2D CreateTri3(IReadOnlyList<Node2D> nodes)
         {
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in GaussLegendre2D.Order2x2.IntegrationPoints)
-            {
-                materialsAtGaussPoints[gaussPoint] = material.Clone();
-            }
-            return CreateQuad4(thickness, nodes, materialsAtGaussPoints, dynamicProperties);
+            return CreateTri3(nodes, commonThickness, commonMaterial, commonDynamicProperties);
         }
 
-        public ContinuumElement2D CreateTri3(double thickness, IReadOnlyList<Node2D> nodes, 
-            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
-        {
-            //TODO: check if nodes - interpolation and Gauss points - materials match
-            return new ContinuumElement2D(thickness, nodes, InterpolationTri3.UniqueInstance, 
-                GaussQuadratureForTriangles.Order1Point1, GaussQuadratureForTriangles.Order2Points3,
-                ExtrapolationGaussTriangular1Point.UniqueInstance, materialsAtGaussPoints, dynamicProperties);
-        }
-
-        public ContinuumElement2D CreateTri3(double thickness, IReadOnlyList<Node2D> nodes, ElasticMaterial2D material,
+        public ContinuumElement2D CreateTri3(IReadOnlyList<Node2D> nodes, double thickness, ElasticMaterial2D material,
             DynamicMaterial dynamicProperties)
         {
             var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
@@ -52,7 +65,16 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 materialsAtGaussPoints[gaussPoint] = material.Clone();
             }
-            return CreateTri3(thickness, nodes, materialsAtGaussPoints, dynamicProperties);
+            return CreateTri3(nodes, thickness, materialsAtGaussPoints, dynamicProperties);
+        }
+
+        public ContinuumElement2D CreateTri3(IReadOnlyList<Node2D> nodes, double thickness,
+            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+        {
+            //TODO: check if nodes - interpolation and Gauss points - materials match
+            return new ContinuumElement2D(thickness, nodes, InterpolationTri3.UniqueInstance, 
+                GaussQuadratureForTriangles.Order1Point1, GaussQuadratureForTriangles.Order2Points3,
+                ExtrapolationGaussTriangular1Point.UniqueInstance, materialsAtGaussPoints, dynamicProperties);
         }
     }
 }

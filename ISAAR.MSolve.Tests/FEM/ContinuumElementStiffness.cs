@@ -15,7 +15,6 @@ namespace ISAAR.MSolve.Tests.FEM
     /// </summary>
     public class ContinuumElementStiffness
     {
-        private static readonly ContinuumElement2DFactory factory = new ContinuumElement2DFactory();
         private static double thickness = 1.0;
 
         private static readonly IReadOnlyList<Node2D> quad4NodeSet1 = new Node2D[]
@@ -61,7 +60,8 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestQuad4Stiffness1()
         {
-            ContinuumElement2D quad4 = factory.CreateQuad4(thickness, quad4NodeSet1, material1, dynamicMaterial);
+            var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
+            ContinuumElement2D quad4 = factory.CreateQuad4(quad4NodeSet1);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -80,7 +80,8 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestQuad4Stiffness2()
         {
-            ContinuumElement2D quad4 = factory.CreateQuad4(thickness, quad4NodeSet2, material1, dynamicMaterial);
+            var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
+            ContinuumElement2D quad4 = factory.CreateQuad4(quad4NodeSet2);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -99,7 +100,8 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestQuad4Stiffness3()
         {
-            ContinuumElement2D quad4 = factory.CreateQuad4(thickness, quad4NodeSet3, material1, dynamicMaterial);
+            var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
+            ContinuumElement2D quad4 = factory.CreateQuad4(quad4NodeSet3);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -118,7 +120,8 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestQuad4Stiffness4()
         {
-            ContinuumElement2D quad4 = factory.CreateQuad4(thickness, quad4NodeSet3, material2, dynamicMaterial);
+            var factory = new ContinuumElement2DFactory(thickness, material2, dynamicMaterial);
+            ContinuumElement2D quad4 = factory.CreateQuad4(quad4NodeSet3);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {

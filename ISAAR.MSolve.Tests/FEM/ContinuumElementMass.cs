@@ -16,8 +16,20 @@ namespace ISAAR.MSolve.Tests.FEM
 {
     public class ContinuumElementMass
     {
-        private static readonly ContinuumElement2DFactory factory = new ContinuumElement2DFactory();
         private static double thickness = 1.0;
+
+        private static readonly ElasticMaterial2D material = new ElasticMaterial2D
+        {
+            YoungModulus = 2e6,
+            PoissonRatio = 0.3,
+            StressState = "plstress"
+        };
+
+        private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);
+
+        private static readonly ContinuumElement2DFactory factory = 
+            new ContinuumElement2DFactory(thickness, material, dynamicMaterial);
+
 
         public static readonly IReadOnlyList<Node2D> tri3NodeSet1 = new Node2D[]
         {
@@ -49,19 +61,10 @@ namespace ISAAR.MSolve.Tests.FEM
             new Node2D(3, 0.7, 2.0)
         };
 
-        private static readonly ElasticMaterial2D material1 = new ElasticMaterial2D
-        {
-            YoungModulus = 2e6,
-            PoissonRatio = 0.3,
-            StressState = "plstress"
-        };
-
-        private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);
-
         [Fact]
         private static void TestQuad4LumpedMass1()
         {
-            ContinuumElement2D quad4 = factory.CreateQuad4(thickness, quad4NodeSet2, material1, dynamicMaterial);
+            ContinuumElement2D quad4 = factory.CreateQuad4(quad4NodeSet2);
             IMatrix2D M = quad4.BuildLumpedMassMatrix();
             double[,] expectedM = new double[,]
             {
@@ -90,7 +93,7 @@ namespace ISAAR.MSolve.Tests.FEM
             var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material1.Clone();
+                materialsAtGaussPoints[gaussPoint] = material.Clone();
             }
             var tri3 = new ContinuumElement2D(thickness, nodeSet, InterpolationTri3.UniqueInstance, 
                 GaussQuadratureForTriangles.Order1Point1, quadratureForMass, 
@@ -125,7 +128,7 @@ namespace ISAAR.MSolve.Tests.FEM
             var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material1.Clone();
+                materialsAtGaussPoints[gaussPoint] = material.Clone();
             }
             var quad4 = new ContinuumElement2D(thickness, quad4NodeSet1, InterpolationQuad4.UniqueInstance, 
                 GaussLegendre2D.Order2x2, quadratureForMass,
@@ -162,7 +165,7 @@ namespace ISAAR.MSolve.Tests.FEM
             var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material1.Clone();
+                materialsAtGaussPoints[gaussPoint] = material.Clone();
             }
             var quad4 = new ContinuumElement2D(thickness, quad4NodeSet1, InterpolationQuad4.UniqueInstance,
                 GaussLegendre2D.Order2x2, quadratureForMass,
