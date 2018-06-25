@@ -203,6 +203,35 @@ namespace ISAAR.MSolve.FEM.Elements
             return BuildStiffnessMatrix();
         }
 
+        /// <summary>
+        /// Calculate strains (exx, eyy, 2exy) and stresses (sxx, syy, sxy) at integration points, store them in the materials 
+        /// and return them (e.g. for postprocessing). The order of the tensors is the same as the order of the integration 
+        /// points defined by <see cref="QuadratureForStiffness"/>.
+        /// </summary>
+        /// <param name="localDisplacements"></param>
+        /// <returns></returns>
+        public (IReadOnlyList<double[]> strains, IReadOnlyList<double[]> stresses) UpdateStrainsStressesAtGaussPoints(
+            double[] localDisplacements)
+        {
+            var localDisplVector = new Vector(localDisplacements);
+            int numGPs = QuadratureForStiffness.IntegrationPoints.Count;
+            var strains = new double[numGPs][];
+            var stresses = new double[numGPs][];
+            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients =
+                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, QuadratureForStiffness);
+            for (int i = 0; i < numGPs; ++i)
+            {
+                GaussPoint2D gaussPoint = QuadratureForStiffness.IntegrationPoints[i];
+                IMatrix2D constitutive = materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix;
+                Matrix2D deformation = BuildDeformationMatrix(shapeGradients[gaussPoint]);
+                strains[i] = new double[3];
+                deformation.Multiply(localDisplVector, strains[i]);
+                stresses[i] = new double[3];
+                constitutive.Multiply(new Vector(strains[i]), stresses[i]);
+            }
+            return (strains, stresses);
+        }
+
         private Matrix2D BuildDeformationMatrix(EvalShapeGradients2D shapeGradients)
         {
             var deformation = new Matrix2D(3, 2 * Nodes.Count);
