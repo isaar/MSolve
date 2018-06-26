@@ -23,7 +23,6 @@ namespace ISAAR.MSolve.FEM.Postprocessing
 
         public void FindNodalDisplacements(IVector solution)
         {
-            var field = new Dictionary<Node, double[]>();
             foreach (var idxNodePair in model.NodesDictionary)
             {
                 Dictionary<DOFType, int> nodalDofs = model.NodalDOFsDictionary[idxNodePair.Key];
@@ -32,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
                 double ux = (dofXIdx != Model.constrainedDofIdx) ? solution[dofXIdx] : 0.0;
                 int dofYIdx = nodalDofs[DOFType.Y];
                 double uy = (dofYIdx != Model.constrainedDofIdx) ? solution[dofYIdx] : 0.0;
-                field.Add(idxNodePair.Value, new double[] { ux, uy });
+                data.Add(idxNodePair.Value, new double[] { ux, uy });
             }
         }
 
