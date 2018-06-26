@@ -7,6 +7,7 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model
     {
+        public const int constrainedDofIdx = -1;
         private int totalDOFs = 0;
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
