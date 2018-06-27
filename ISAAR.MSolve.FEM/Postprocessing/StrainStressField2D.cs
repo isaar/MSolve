@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
                     for (int i = 0; i < elementType.Nodes.Count; ++i)
                     {
                         Node node = elementType.Nodes[i];
-                        AddToTensors(node, stressesAtNodes[i], stressesAtNodes[i]);
+                        AddToTensors(node, strainsAtNodes[i], stressesAtNodes[i]);
                         ++nodeMultiplicities[node];
                     }
                 }

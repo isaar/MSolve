@@ -13,6 +13,7 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Tests.Logging;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -148,7 +149,8 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            TrussExample.Run();
+            //TrussExample.Run();
+            CantileverQuad4.Run();
         }
     }
 }

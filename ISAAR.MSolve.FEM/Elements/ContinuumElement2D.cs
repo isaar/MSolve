@@ -22,6 +22,12 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 //TODO: Different quadrature for mass
 namespace ISAAR.MSolve.FEM.Elements
 {
+    /// <summary>
+    /// Represents a continuum finite element for 2D problems. Specific elements (e.g. Quad4, Tri6, ...) can be created using
+    /// the appropriate <see cref="IIsoparametricInterpolation2D"/>, <see cref="IQuadrature2D"/> etc. strategies. The thickness
+    /// of this element is uniform, therefore it is necessary to use finer meshes to simulate domains with variable thickness.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class ContinuumElement2D: IStructuralFiniteElement
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
