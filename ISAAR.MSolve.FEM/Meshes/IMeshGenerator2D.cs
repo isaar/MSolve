@@ -9,6 +9,7 @@ namespace ISAAR.MSolve.FEM.Meshes
 {
     /// <summary>
     /// Creates 2D meshes for use in FEM or similar methods.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TVertex"></typeparam>
     public interface IMeshGenerator2D<TVertex> //where TVertex:IPoint2D 

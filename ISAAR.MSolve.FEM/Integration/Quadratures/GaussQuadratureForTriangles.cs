@@ -17,13 +17,14 @@ namespace ISAAR.MSolve.FEM.Integration.Quadratures
         public static readonly GaussQuadratureForTriangles Order1Point1 = new GaussQuadratureForTriangles(
             new GaussPoint2D(1.0 / 3, 1.0 / 3, 1.0 / 2));
 
+        // WARNING: Do not change their order. ExtrapolationGaussTriangular3Points depends on it.
         public static readonly GaussQuadratureForTriangles Order2Points3 = new GaussQuadratureForTriangles(
             new GaussPoint2D(1.0 / 6, 1.0 / 6, 1.0 / 6),
             new GaussPoint2D(2.0 / 3, 1.0 / 6, 1.0 / 6),
             new GaussPoint2D(1.0 / 6, 2.0 / 3, 1.0 / 6));
 
         #region  Alternative quadrature(Order=2, Points=3)
-        public static readonly GaussQuadratureForTriangles Order2Points3sAlternative = new GaussQuadratureForTriangles(
+        public static readonly GaussQuadratureForTriangles Order2Points3Alternative = new GaussQuadratureForTriangles(
             new GaussPoint2D(0.0, 1.0 / 2, 1.0 / 6),
             new GaussPoint2D(1.0 / 2, 0.0, 1.0 / 6),
             new GaussPoint2D(1.0 / 2, 1.0 / 2, 1.0 / 6));

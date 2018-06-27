@@ -26,10 +26,12 @@ namespace ISAAR.MSolve.FEM.Integration.Quadratures
         private GaussLegendre2D(GaussLegendre1D ruleXi, GaussLegendre1D ruleEta)
         {
             // Combine the integration rules of each axis: 
+            // WARNING: Do not change their order (Xi major, Eta minor). Other classes, such as ExtrapolationGaussLegendre2x2 
+            //          depend on it.
             var points2D = new List<GaussPoint2D>();
-            foreach (var pointXi in ruleXi.IntegrationPoints)
+            foreach (var pointEta in ruleEta.IntegrationPoints)
             {
-                foreach (var pointEta in ruleEta.IntegrationPoints)
+                foreach (var pointXi in ruleXi.IntegrationPoints)
                 {
                     points2D.Add(new GaussPoint2D(pointXi.Xi, pointEta.Xi, pointXi.Weight * pointEta.Weight));
                 }
