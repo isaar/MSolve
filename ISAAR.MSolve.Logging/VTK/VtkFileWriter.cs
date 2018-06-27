@@ -84,19 +84,45 @@ namespace ISAAR.MSolve.Logging.VTK
         /// <param name="pointValues">They must be in the exact same order as the nodes.</param>
         public void WriteScalarField(string fieldName, double[] pointValues)
         {
-            if (!writeFieldsNext) // Fields header
-            {
-                writer.Write("\n\n");
-                writer.WriteLine("POINT_DATA " + pointValues.Length);
-                writeFieldsNext = true;
-            }
-
+            WriteFieldsHeader(pointValues.Length);
             writer.WriteLine($"SCALARS {fieldName} double 1");
             writer.WriteLine("LOOKUP_TABLE default");
             for (int i = 0; i < pointValues.Length; ++i)
             {
                 writer.WriteLine(pointValues[i]);
             }
+            writer.WriteLine();
+        }
+
+        /// <summary>
+        /// Tensor components are written as independent scalar fields, as I haven't found any advantage in using tensor datasets 
+        /// in Paraview. By exporting each one as a different scalar field, better naming can be enforces, instead of 0, 1, etc. 
+        /// indexing for each tensor component.
+        /// </summary>
+        /// <param name="fieldName">Each component will be prefixed by it. E.g. fieldName = "S": S_11, S_22, S_12.</param>
+        /// <param name="pointValues">Each row correspond to a different node. They must be in the exact same order as the nodes.
+        ///     Columns 0, 1 and 2 are the tensor entries T11, T22, T12 respectively.</param>
+        public void WriteTensor2DField(string fieldName, IReadOnlyList<double[]> pointTensors)
+        {
+            int numPoints = pointTensors.Count;
+            WriteFieldsHeader(numPoints);
+
+            // Component 11
+            writer.WriteLine($"SCALARS {fieldName}_11 double 1");
+            writer.WriteLine("LOOKUP_TABLE default");
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][0]);
+            writer.WriteLine();
+
+            // Component 22
+            writer.WriteLine($"SCALARS {fieldName}_22 double 1");
+            writer.WriteLine("LOOKUP_TABLE default");
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][1]);
+            writer.WriteLine();
+
+            // Component 12
+            writer.WriteLine($"SCALARS {fieldName}_12 double 1");
+            writer.WriteLine("LOOKUP_TABLE default");
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][2]);
             writer.WriteLine();
         }
 
@@ -108,13 +134,7 @@ namespace ISAAR.MSolve.Logging.VTK
         ///     Columns 0 and 1 are the vector entries.</param>
         public void WriteVector2DField(string fieldName, IReadOnlyList<double[]> pointVectors)
         {
-            if (!writeFieldsNext) // Fields header
-            {
-                writer.Write("\n\n");
-                writer.WriteLine("POINT_DATA " + pointVectors.Count);
-                writeFieldsNext = true;
-            }
-
+            WriteFieldsHeader(pointVectors.Count);
             writer.WriteLine($"VECTORS {fieldName} double");
             for (int i = 0; i < pointVectors.Count; ++i)
             {
@@ -123,27 +143,31 @@ namespace ISAAR.MSolve.Logging.VTK
             writer.WriteLine();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="pointValues">Each row correspond to a different node. They must be in the exact same order as the nodes.
-        ///     Columns 0, 1 and 2 are the tensor entries.</param>
-        public void WriteTensor2DField(string fieldName, IReadOnlyList<double[]> pointTensors)
+        //public void WriteTensor2DField2(string fieldName, IReadOnlyList<double[]> pointTensors)
+        //{
+        //    if (!writeFieldsNext) // Fields header
+        //    {
+        //        writer.Write("\n\n");
+        //        writer.WriteLine("POINT_DATA " + pointTensors.Count);
+        //        writeFieldsNext = true;
+        //    }
+
+        //    writer.WriteLine($"TENSORS {fieldName} double");
+        //    for (int i = 0; i < pointTensors.Count; ++i)
+        //    {
+        //        writer.WriteLine($"{pointTensors[i][0]} {pointTensors[i][1]} {pointTensors[i][2]} 0.0 0.0 0.0 0.0 0.0 0.0");
+        //    }
+        //    writer.WriteLine();
+        //}
+
+        private void WriteFieldsHeader(int numPoints)
         {
             if (!writeFieldsNext) // Fields header
             {
                 writer.Write("\n\n");
-                writer.WriteLine("POINT_DATA " + pointTensors.Count);
+                writer.WriteLine("POINT_DATA " + numPoints);
                 writeFieldsNext = true;
             }
-
-            writer.WriteLine($"TENSORS {fieldName} double");
-            for (int i = 0; i < pointTensors.Count; ++i)
-            {
-                writer.WriteLine($"{pointTensors[i][0]} {pointTensors[i][1]} {pointTensors[i][2]} 0.0 0.0 0.0 0.0 0.0 0.0");
-            }
-            writer.WriteLine();
         }
     }
 }
