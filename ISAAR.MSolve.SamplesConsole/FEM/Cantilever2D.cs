@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Meshes;
 using ISAAR.MSolve.FEM.Meshes.Custom;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
@@ -15,6 +16,10 @@ using ISAAR.MSolve.Solvers.Skyline;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {
+    /// <summary>
+    /// A 2D cantilever beam modeled with continuum finite elements.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class Cantilever2D
     {
         private const double length = 4.0;
@@ -26,13 +31,13 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
         public static void Run()
         {
-            //(Node2D[] nodes, Node2D[][] elementConnectivity) = GenerateMeshManually();
-            (Node2D[] nodes, Node2D[][] elementConnectivity) = GenerateUniformMesh();
-            Model model = CreateModel(nodes, elementConnectivity);
+            //(Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) = GenerateMeshManually();
+            (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) = GenerateUniformMesh();
+            Model model = CreateModel(nodes, cellTypes, elementConnectivities);
             SolveLinearStatic(model);
         }
 
-        private static Model CreateModel(Node2D[] nodes, Node2D[][] elementConnectivity)
+        private static Model CreateModel(Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivity)
         {
             // Initialize
             int numNodes = nodes.Length;
@@ -58,7 +63,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             var factory = new ContinuumElement2DFactory(thickness, material, null);
             for (int i = 0; i < numElements; ++i)
             {
-                ContinuumElement2D element = factory.CreateQuad4(elementConnectivity[i]);
+                ContinuumElement2D element = factory.CreateElement(cellTypes[i], elementConnectivity[i]);
                 var elementWrapper = new Element() { ID = i, ElementType = element };
                 foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(i, elementWrapper);
@@ -85,7 +90,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             return model;
         }
 
-        private static (Node2D[] nodes, Node2D[][] elementConnectivity) GenerateMeshManually()
+        private static (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) GenerateMeshManually()
         {
             Node2D[] nodes =
             {
@@ -101,7 +106,9 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
                 new Node2D(9, length, height)
             };
 
-            Node2D[][] elementConnectivity =
+            CellType2D[] cellTypes = { CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4 };
+
+            Node2D[][] elementConnectivities =
             {
                 new Node2D[] { nodes[0], nodes[1], nodes[3], nodes[2]},
                 new Node2D[] { nodes[2], nodes[3], nodes[5], nodes[4]},
@@ -109,19 +116,19 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
                 new Node2D[] { nodes[6], nodes[7], nodes[9], nodes[8]}
             };
 
-            return (nodes, elementConnectivity);
+            return (nodes, cellTypes, elementConnectivities);
         }
 
-        private static Model GenerateMeshFromGmsh()
+        private static (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) GenerateMeshFromGmsh()
         {
             throw new NotImplementedException();
         }
 
-        private static (Node2D[] nodes, Node2D[][] elementConnectivity) GenerateUniformMesh()
+        private static (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) GenerateUniformMesh()
         {
             var meshGen = new UniformMeshGenerator(0.0, 0.0, length, height, 4, 20);
-            (Node2D[] nodes, Node2D[][] cellConnectivity) = meshGen.CreateMesh();
-            return (nodes, cellConnectivity);
+            (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] cellConnectivities) = meshGen.CreateMesh();
+            return (nodes, cellTypes, cellConnectivities);
         }
 
         private static void SolveLinearStatic(Model model)

@@ -35,11 +35,13 @@ namespace ISAAR.MSolve.FEM.Meshes.Custom
             this.vertexColumns = cellColumns + 1;
         }
 
-        public (Node2D[] vertices, Node2D[][] cellConnectivity) CreateMesh()
+        public (Node2D[] vertices, CellType2D[] cellTypes, Node2D[][] cellConnectivities) CreateMesh()
         {
             Node2D[] vertices = CreateVertices();
-            Node2D[][] elementConnectivity = CreateCells(vertices);
-            return (vertices, elementConnectivity);
+            Node2D[][] elementConnectivities = CreateCellConnectivities(vertices);
+            var cellTypes = new CellType2D[elementConnectivities.Length];
+            for (int i = 0; i < cellTypes.Length; ++i) cellTypes[i] = CellType2D.Quad4;
+            return (vertices, cellTypes, elementConnectivities);
         }
 
         private Node2D[] CreateVertices()
@@ -57,7 +59,7 @@ namespace ISAAR.MSolve.FEM.Meshes.Custom
             return vertices;
         }
 
-        private Node2D[][] CreateCells(Node2D[] allVertices)
+        private Node2D[][] CreateCellConnectivities(Node2D[] allVertices)
         {
             var cellConnectivity = new Node2D[cellRows * cellColumns][];
             for (int row = 0; row < cellRows; ++row)
