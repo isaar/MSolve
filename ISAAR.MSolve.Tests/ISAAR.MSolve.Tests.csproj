@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <Folder Include="Analyzers\" />
+    <Folder Include="Logging\" />
     <Folder Include="MaterialsTest\" />
     <Folder Include="Solvers\" />
     <Folder Include="Problems\" />

@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.OptimizationTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Materials", "ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj", "{9C0A357F-0F2E-403B-A5E3-A127C383589F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Geometry", "ISAAR.MSolve.Geometry\ISAAR.MSolve.Geometry.csproj", "{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Geometry", "ISAAR.MSolve.Geometry\ISAAR.MSolve.Geometry.csproj", "{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
