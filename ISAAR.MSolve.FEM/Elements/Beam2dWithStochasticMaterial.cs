@@ -31,15 +31,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
     public class Beam2DWithStochasticMaterial : EulerBeam2D
     {
-        protected readonly new IStochasticFiniteElementMaterial Material;
+        protected readonly new IStochasticContinuumMaterial3D Material;
         protected readonly Beam2DMemoizer memoizer;
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material): base((material as StochasticElasticMaterial).YoungModulus)
+        public Beam2DWithStochasticMaterial(IStochasticContinuumMaterial3D material): base((material as StochasticElasticMaterial).YoungModulus)
         {
             this.Material = material;
         }
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material, Beam2DMemoizer memoizer) :
+        public Beam2DWithStochasticMaterial(IStochasticContinuumMaterial3D material, Beam2DMemoizer memoizer) :
             this(material)
         {
             this.memoizer = memoizer;
