@@ -6,7 +6,7 @@ using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class StochasticElasticMaterial3D : IStochasticFiniteElementMaterial, IIsotropicFiniteElementMaterial3D//why do we need both interfaces?? IIsotropicFiniteElementMaterial3D or IStochasticIsotropicFiniteElementMaterial will be fine. 
+    public class StochasticElasticMaterial3D : IStochasticIsotropicContinuumMaterial3D, IIsotropicContinuumMaterial3D//why do we need both interfaces?? IIsotropicFiniteElementMaterial3D or IStochasticIsotropicFiniteElementMaterial will be fine. 
     {
         private IStochasticMaterialCoefficientsProvider coefficientsProvider;
         private readonly double[] strains = new double[6];
@@ -70,9 +70,9 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region IFiniteElementMaterial3D Members
 
-        public double[] Stresses { get { return new double[6]; } }
-        
-        public IMatrix2D ConstitutiveMatrix
+        public StressStrainVectorContinuum3D Stresses { get { return new StressStrainVectorContinuum3D(new double[6]); } }
+
+        public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.FEM.Materials
             }
         }
 
-        public void UpdateMaterial(double[] strains)
+        public void UpdateMaterial(StressStrainVectorContinuum3D strains)
         {
             throw new NotImplementedException();
 
@@ -122,9 +122,9 @@ namespace ISAAR.MSolve.FEM.Materials
             set { coefficientsProvider = value; }
         }
 
-        public IMatrix2D GetConstitutiveMatrix(double[] coordinates)
+        public ElasticityTensorContinuum3D GetConstitutiveMatrix(double[] coordinates)
         {
-            return new Matrix2D(GetConstitutiveMatrixInternal(coordinates));
+            return new ElasticityTensorContinuum3D(GetConstitutiveMatrixInternal(coordinates));
         }
 
         #endregion
