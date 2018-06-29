@@ -40,7 +40,8 @@ namespace ISAAR.MSolve.Logging.VTK
             for (int i = 0; i < cells.Length; ++i)
             {
                 ContinuumElement2D element = (ContinuumElement2D)(elements[i].ElementType);
-                int code = VtkCell2D.cellTypeCodes[element.Interpolation];
+                bool exists = VtkCell2D.cellTypeCodes.TryGetValue(element.Interpolation, out int code);
+                if (!exists) throw new NotImplementedException("Cannot plot elements of type " + element.Interpolation);
                 var vertices = new VtkPoint2D[element.Nodes.Count];
                 for (int j = 0; j < vertices.Length; ++j) vertices[j] = nodes2Points[element.Nodes[j]];
                 cells[i] = new VtkCell2D(code, vertices);

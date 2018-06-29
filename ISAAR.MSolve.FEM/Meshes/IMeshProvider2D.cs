@@ -14,8 +14,8 @@ namespace ISAAR.MSolve.FEM.Meshes
     /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TVertex"></typeparam>
-    public interface IMeshGenerator2D<TVertex> //where TVertex:IPoint2D 
+    public interface IMeshProvider2D<TVertex> //where TVertex:IPoint2D 
     {
-        (TVertex[] vertices, CellType2D[] cellTypes, TVertex[][] cellConnectivities) CreateMesh();
+        (IReadOnlyList<TVertex> vertices, IReadOnlyList<CellConnectivity2D> cells) CreateMesh();
     }
 }

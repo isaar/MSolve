@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.FEM.Meshes.Custom
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator : IMeshGenerator2D<Node2D>
+    public class UniformMeshGenerator : IMeshProvider2D<Node2D>
     {
         private readonly double minX;
         private readonly double minY;
@@ -35,13 +35,15 @@ namespace ISAAR.MSolve.FEM.Meshes.Custom
             this.vertexColumns = cellColumns + 1;
         }
 
-        public (Node2D[] vertices, CellType2D[] cellTypes, Node2D[][] cellConnectivities) CreateMesh()
+        /// <summary>
+        /// Generates a uniform mesh with the dimensions and density defined in the constructor.
+        /// </summary>
+        /// <returns></returns>
+        public (IReadOnlyList<Node2D> vertices, IReadOnlyList<CellConnectivity2D> cells) CreateMesh()
         {
             Node2D[] vertices = CreateVertices();
-            Node2D[][] elementConnectivities = CreateCellConnectivities(vertices);
-            var cellTypes = new CellType2D[elementConnectivities.Length];
-            for (int i = 0; i < cellTypes.Length; ++i) cellTypes[i] = CellType2D.Quad4;
-            return (vertices, cellTypes, elementConnectivities);
+            CellConnectivity2D[] cells = CreateCells(vertices);
+            return (vertices, cells);
         }
 
         private Node2D[] CreateVertices()
@@ -59,9 +61,9 @@ namespace ISAAR.MSolve.FEM.Meshes.Custom
             return vertices;
         }
 
-        private Node2D[][] CreateCellConnectivities(Node2D[] allVertices)
+        private CellConnectivity2D[] CreateCells(Node2D[] allVertices)
         {
-            var cellConnectivity = new Node2D[cellRows * cellColumns][];
+            var cells = new CellConnectivity2D[cellRows * cellColumns];
             for (int row = 0; row < cellRows; ++row)
             {
                 for (int col = 0; col < cellColumns; ++col)
@@ -69,10 +71,10 @@ namespace ISAAR.MSolve.FEM.Meshes.Custom
                     int firstVertex = row * vertexColumns + col;
                     Node2D[] verticesOfCell = { allVertices[firstVertex], allVertices[firstVertex+1],
                         allVertices[firstVertex + vertexColumns + 1], allVertices[firstVertex + vertexColumns] };
-                    cellConnectivity[row * cellColumns + col] = verticesOfCell; // row major
+                    cells[row * cellColumns + col] = new CellConnectivity2D(CellType2D.Quad4, verticesOfCell); // row major
                 }
             }
-            return cellConnectivity;
+            return cells;
         }
     }
 }

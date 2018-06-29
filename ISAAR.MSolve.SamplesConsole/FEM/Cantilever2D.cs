@@ -7,6 +7,7 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Meshes;
 using ISAAR.MSolve.FEM.Meshes.Custom;
+using ISAAR.MSolve.FEM.Meshes.GMSH;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -29,19 +30,23 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         private const double poissonRatio = 0.3;
         private const double maxLoad = 1000.0; // TODO: this should be triangular
 
+        private const string workingDirectory = @"C:\Users\Serafeim\Desktop\Presentation";
+        private const string meshFileName = "cantilever.msh";
+
         public static void Run()
         {
-            //(Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) = GenerateMeshManually();
-            (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) = GenerateUniformMesh();
-            Model model = CreateModel(nodes, cellTypes, elementConnectivities);
+            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshManually();
+            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateUniformMesh();
+            (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh();
+            Model model = CreateModel(nodes, elements);
             SolveLinearStatic(model);
         }
 
-        private static Model CreateModel(Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivity)
+        private static Model CreateModel(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements)
         {
             // Initialize
-            int numNodes = nodes.Length;
-            int numElements = elementConnectivity.Length;
+            int numNodes = nodes.Count;
+            int numElements = elements.Count;
             VectorExtensions.AssignTotalAffinityCount();
 
             // Materials
@@ -63,7 +68,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             var factory = new ContinuumElement2DFactory(thickness, material, null);
             for (int i = 0; i < numElements; ++i)
             {
-                ContinuumElement2D element = factory.CreateElement(cellTypes[i], elementConnectivity[i]);
+                ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
                 var elementWrapper = new Element() { ID = i, ElementType = element };
                 foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(i, elementWrapper);
@@ -90,7 +95,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             return model;
         }
 
-        private static (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) GenerateMeshManually()
+        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshManually()
         {
             Node2D[] nodes =
             {
@@ -108,27 +113,29 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             CellType2D[] cellTypes = { CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4 };
 
-            Node2D[][] elementConnectivities =
+            CellConnectivity2D[] elements =
             {
-                new Node2D[] { nodes[0], nodes[1], nodes[3], nodes[2]},
-                new Node2D[] { nodes[2], nodes[3], nodes[5], nodes[4]},
-                new Node2D[] { nodes[4], nodes[5], nodes[7], nodes[6]},
-                new Node2D[] { nodes[6], nodes[7], nodes[9], nodes[8]}
+                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
+                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
+                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
+                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[6], nodes[7], nodes[9], nodes[8]})
             };
 
-            return (nodes, cellTypes, elementConnectivities);
+            return (nodes, elements);
         }
 
-        private static (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) GenerateMeshFromGmsh()
+        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshFromGmsh()
         {
-            throw new NotImplementedException();
+            using (var reader = new GmshReader2D(workingDirectory + "\\" + meshFileName))
+            {
+                return reader.CreateMesh();
+            }
         }
 
-        private static (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] elementConnectivities) GenerateUniformMesh()
+        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateUniformMesh()
         {
             var meshGen = new UniformMeshGenerator(0.0, 0.0, length, height, 4, 20);
-            (Node2D[] nodes, CellType2D[] cellTypes, Node2D[][] cellConnectivities) = meshGen.CreateMesh();
-            return (nodes, cellTypes, cellConnectivities);
+            return meshGen.CreateMesh();
         }
 
         private static void SolveLinearStatic(Model model)
@@ -146,7 +153,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
             // Logging displacement, strain, and stress fields.
-            string outputDirectory = @"C:\Users\Serafeim\Desktop\Presentation\Plots";
+            string outputDirectory = workingDirectory + "\\Plots";
             childAnalyzer.LogFactories[0] = new VtkLogFactory(model, outputDirectory)
             {
                 LogDisplacements = true,
