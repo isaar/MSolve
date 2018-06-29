@@ -18,7 +18,6 @@ namespace ISAAR.MSolve.Materials
         public String StressState { get; set; }
         public double[] Coordinates { get; set; }
 
-
         #region IFiniteElementMaterial3D
 
         public ElasticityTensorContinuum2D ConstitutiveMatrix
@@ -92,11 +91,20 @@ namespace ISAAR.MSolve.Materials
         #endregion
 
         #region ICloneable Members
-        public object Clone()
+        public ElasticMaterial2D Clone()
         {
-            return new ElasticMaterial2D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio, StressState = this.StressState };
+            return new ElasticMaterial2D()
+            {
+                PoissonRatio = this.PoissonRatio,
+                StressState = this.StressState,
+                YoungModulus = this.YoungModulus
+            };
         }
 
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
         #endregion
 
     }

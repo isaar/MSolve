@@ -19,11 +19,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.FEM", "ISAAR.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Tests", "ISAAR.MSolve.Tests\ISAAR.MSolve.Tests.csproj", "{A7723B13-7513-42AD-9C25-21CE27FF2582}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.Optimization", "ISAAR.MSolve.Optimization\ISAAR.MSolve.Optimization.csproj", "{FAB133D0-C1BB-49CC-8576-8DF48DFAC084}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Optimization", "ISAAR.MSolve.Optimization\ISAAR.MSolve.Optimization.csproj", "{FAB133D0-C1BB-49CC-8576-8DF48DFAC084}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.OptimizationTests", "ISAAR.MSolve.OptimizationTests\ISAAR.MSolve.OptimizationTests.csproj", "{1542AAEC-9D06-4599-9803-55BD63244540}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.OptimizationTests", "ISAAR.MSolve.OptimizationTests\ISAAR.MSolve.OptimizationTests.csproj", "{1542AAEC-9D06-4599-9803-55BD63244540}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Materials", "ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj", "{9C0A357F-0F2E-403B-A5E3-A127C383589F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Geometry", "ISAAR.MSolve.Geometry\ISAAR.MSolve.Geometry.csproj", "{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -167,6 +169,18 @@ Global
 		{9C0A357F-0F2E-403B-A5E3-A127C383589F}.Release|x64.Build.0 = Release|Any CPU
 		{9C0A357F-0F2E-403B-A5E3-A127C383589F}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C0A357F-0F2E-403B-A5E3-A127C383589F}.Release|x86.Build.0 = Release|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Debug|x64.Build.0 = Debug|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Debug|x86.Build.0 = Debug|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Release|x64.ActiveCfg = Release|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Release|x64.Build.0 = Release|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Release|x86.ActiveCfg = Release|Any CPU
+		{F1151C6B-C20E-4ED6-B2C3-7AA3D3EED508}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
