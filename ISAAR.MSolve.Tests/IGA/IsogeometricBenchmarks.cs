@@ -724,6 +724,60 @@ namespace ISAAR.MSolve.Tests.IGA
 			#endregion
 		}
 
+		[Fact]
+		public void IsogeometricPlateWithHole()
+		{
+			// Model
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			ModelCreator modelCreator = new ModelCreator(model);
+			string filename = "..\\..\\..\\IGA\\InputFiles\\PlateTension.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			modelReader.CreateModelFromFile();
+
+			// Forces and Boundary Conditions
+			Value horizontalDistributedLoad = delegate (double x, double y, double z) { return new double[] { 100, 0, 0 }; };
+			model.PatchesDictionary[0].EdgesDictionary[1].LoadingConditions.Add(new NeumannBoundaryCondition(horizontalDistributedLoad));
+
+			// Boundary Conditions - Dirichlet
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+			}
+			model.ControlPointsDictionary[0].Constrains.Add(DOFType.Y);
+
+			model.ConnectDataStructures();
+
+			// Solvers
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+			double[] forceVectorExpected =
+			{
+				
+			};
+			for (int i = 0; i < forceVectorExpected.Length; i++)
+				Assert.Equal(forceVectorExpected[i], model.PatchesDictionary[0].Forces[i], 8);
+
+			#region expectedDisplacement
+
+			double[] displacementVectorExpected =
+			{
+				
+			};
+			for (int i = 0; i < displacementVectorExpected.Length; i++)
+				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 4);
+
+			#endregion
+		}
 
 		[Fact]
 		public void IsogeometricBeam3D()
