@@ -50,11 +50,10 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             VectorExtensions.AssignTotalAffinityCount();
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-                StressState = "plstress"
+                PoissonRatio = poissonRatio
             };
 
             // Subdomains
