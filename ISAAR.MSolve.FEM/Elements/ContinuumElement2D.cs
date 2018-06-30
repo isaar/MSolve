@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Integration.Points;
 using ISAAR.MSolve.FEM.Integration.Quadratures;
@@ -163,7 +165,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (ElasticMaterial2D m in materialsAtGaussPoints.Values) m.ClearStresses();
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             //TODO: Stiffness and mass matrices have already been computed probably. Reuse them.
             //TODO: Perhaps with Rayleigh damping, the global damping matrix should be created directly from global mass and stiffness matrices.
@@ -173,11 +175,11 @@ namespace ISAAR.MSolve.FEM.Elements
             return damping;
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
+        public IElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             //return BuildConsistentMassMatrix();
             return BuildLumpedMassMatrix();
@@ -204,7 +206,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
         //TODO: why do I need the wrapping element?
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
             return BuildStiffnessMatrix();
         }

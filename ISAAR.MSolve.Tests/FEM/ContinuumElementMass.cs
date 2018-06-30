@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             YoungModulus = 2e6,
             PoissonRatio = 0.3,
-            StressState = "plstress"
+            StressState = StressStates.PlaneStress
         };
 
         private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);

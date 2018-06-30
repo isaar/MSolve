@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Meshes;
@@ -54,8 +55,8 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
-                StressState = "plstress"
-            };
+				StressState = StressStates.PlaneStress
+			};
 
             // Subdomains
             Model model = new Model();

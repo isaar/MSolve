@@ -33,8 +33,8 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             YoungModulus = 210000,
             PoissonRatio = 0.3,
-            StressState = "plstress"
-        };
+			StressState = StressStates.PlaneStress
+		};
 
         [Fact]
         public static void TestQuad4StrainsStresses()

@@ -45,15 +45,15 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             YoungModulus = 2e6,
             PoissonRatio = 0.3,
-            StressState = "plstress"
+            StressState = StressStates.PlaneStress
         };
 
         private static readonly ElasticMaterial2D material2 = new ElasticMaterial2D
         {
             YoungModulus = 1.0,
             PoissonRatio = 0.25,
-            StressState = "plstress"
-        };
+			StressState = StressStates.PlaneStress
+		};
 
         private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);
         
