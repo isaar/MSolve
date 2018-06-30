@@ -15,6 +15,6 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 		/// <summary>
 		/// The integration points are sorted based on an order strictly defined for each quadrature.
 		/// </summary>
-		IReadOnlyList<GaussPoint3D> Integrationpoints { get; }
+		IReadOnlyList<GaussPoint3D> IntegrationPoints { get; }
 	}
 }
