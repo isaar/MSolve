@@ -44,41 +44,6 @@ namespace ISAAR.MSolve.Tests.FEM
             new Node2D(2, 1.8, 12.0)
         };
 
-        private static readonly IReadOnlyList<Node2D> quad4NodeSet1 = new Node2D[]
-        {
-            new Node2D(0,  0.0,  0.0),
-            new Node2D(1, 20.0,  0.0),
-            new Node2D(2, 20.0, 10.0),
-            new Node2D(3,  0.0, 10.0)
-        };
-
-        private static readonly IReadOnlyList<Node2D> quad4NodeSet2 = new Node2D[]
-        {
-            new Node2D(0, 0.2, 0.3),
-            new Node2D(1, 2.2, 1.5),
-            new Node2D(2, 3.0, 2.7),
-            new Node2D(3, 0.7, 2.0)
-        };
-
-        [Fact]
-        private static void TestQuad4LumpedMass1()
-        {
-            ContinuumElement2D quad4 = factory.CreateQuad4(quad4NodeSet2);
-            IMatrix2D M = quad4.BuildLumpedMassMatrix();
-            double[,] expectedM = new double[,]
-            {
-                { 51.02500000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000 },
-                {  0.00000000, 51.02500000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000 },
-                {  0.00000000,  0.00000000, 42.12833333,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000 },
-                {  0.00000000,  0.00000000,  0.00000000, 42.12833333,  0.00000000,  0.00000000,  0.00000000,  0.00000000 },
-                {  0.00000000,  0.00000000,  0.00000000,  0.00000000, 47.10000000,  0.00000000,  0.00000000,  0.00000000 },
-                {  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000, 47.10000000,  0.00000000,  0.00000000 },
-                {  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000, 55.99666667,  0.00000000 },
-                {  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000,  0.00000000, 55.99666667 },
-            }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(M, new Matrix2D(expectedM), 1e-10));
-        }
-
         [Fact]
         private static void TestTri3ConsistentMass()
         {
@@ -117,80 +82,6 @@ namespace ISAAR.MSolve.Tests.FEM
             if (reducedQuadrature) Assert.False(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
             else Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
 
-        }
-
-        [Fact]
-        private static void TestQuad4ConsistentMass1()
-        {
-            // reduced integration rule - bad idea
-            IQuadrature2D quadratureForMass = GaussLegendre2D.Order1x1;
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
-            {
-                materialsAtGaussPoints[gaussPoint] = material.Clone();
-            }
-            var quad4 = new ContinuumElement2D(thickness, quad4NodeSet1, InterpolationQuad4.UniqueInstance, 
-                GaussLegendre2D.Order2x2, quadratureForMass,
-                ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicMaterial);
-            IMatrix2D M = quad4.BuildConsistentMassMatrix();
-
-            // Reference: http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf, (eq 31.29a) 
-            Matrix2D expectedM = new Matrix2D(new double[,]
-            {
-                { 1, 0, 1, 0, 1, 0, 1, 0 },
-                { 0, 1, 0, 1, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 0, 1, 0 },
-                { 0, 1, 0, 1, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 0, 1, 0 },
-                { 0, 1, 0, 1, 0, 1, 0, 1 },
-                { 1, 0, 1, 0, 1, 0, 1, 0 },
-                { 0, 1, 0, 1, 0, 1, 0, 1 }
-            });
-            double lengthX = quad4NodeSet1[1].X - quad4NodeSet1[0].X;
-            double lengthY = quad4NodeSet1[2].Y - quad4NodeSet1[1].Y;
-            // For some reason , only half the thickness is used for Quad4 elements, as shown in Fig. 31.9. Therefore the 
-            // coefficient 1/16 (full thickness) became 1/32 (half thickness). Here 1/16 is used.
-            double scalar = dynamicMaterial.Density * thickness * lengthX * lengthY / 16.0;
-            expectedM.Scale(scalar);
-
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
-        }
-
-        [Fact]
-        private static void TestQuad4ConsistentMass2()
-        {
-            // full integration rule
-            IQuadrature2D quadratureForMass = GaussLegendre2D.Order2x2;
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
-            {
-                materialsAtGaussPoints[gaussPoint] = material.Clone();
-            }
-            var quad4 = new ContinuumElement2D(thickness, quad4NodeSet1, InterpolationQuad4.UniqueInstance,
-                GaussLegendre2D.Order2x2, quadratureForMass,
-                ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicMaterial);
-            IMatrix2D M = quad4.BuildConsistentMassMatrix();
-
-            // Reference: http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf, (eq 31.29b).
-            Matrix2D expectedM = new Matrix2D(new double[,]
-            {
-                { 4, 0, 2, 0, 1, 0, 2, 0 },
-                { 0, 4, 0, 2, 0, 1, 0, 2 },
-                { 2, 0, 4, 0, 2, 0, 1, 0 },
-                { 0, 2, 0, 4, 0, 2, 0, 1 },
-                { 1, 0, 2, 0, 4, 0, 2, 0 },
-                { 0, 1, 0, 2, 0, 4, 0, 2 },
-                { 2, 0, 1, 0, 2, 0, 4, 0 },
-                { 0, 2, 0, 1, 0, 2, 0, 4 }
-            });
-            double lengthX = quad4NodeSet1[1].X - quad4NodeSet1[0].X;
-            double lengthY = quad4NodeSet1[2].Y - quad4NodeSet1[1].Y;
-            // For some reason , only half the thickness is used for Quad4 elements, as shown in Fig. 31.9. Therefore the 
-            // coefficient 1/36 (full thickness) became 1/72 (half thickness). Here 1/36 is used.
-            double scalar = dynamicMaterial.Density * thickness * lengthX * lengthY / 36.0;
-            expectedM.Scale(scalar);
-
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
         }
 
         private static double CalcTriangleArea(IReadOnlyList<Node2D> nodes)
