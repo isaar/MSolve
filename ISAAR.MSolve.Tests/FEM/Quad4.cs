@@ -16,7 +16,7 @@ using Xunit;
 namespace ISAAR.MSolve.Tests.FEM
 {
     /// <summary>
-    /// Tests 4-noded quadrilateral instances of <see cref="ContinuumElement2D"/> against Abaqus and the notes of excellent 
+    /// Tests 4-noded quadrilateral instances of <see cref="ContinuumElement2D"/> against Abaqus and the notes of the excellent 
     /// University of Colorado at Boulder FEM course.
     /// </summary>
     public class Quad4
@@ -53,30 +53,6 @@ namespace ISAAR.MSolve.Tests.FEM
             new Node2D(2, 20.0, 10.0),
             new Node2D(3,  0.0, 10.0)
         };
-
-        /// <summary>
-        /// To reproduce the reference solution, run the Abaqus job quad4_test0.inp and look at 
-        /// QUAD4_TEST0_STIFFNESS_MATRICES.mtx
-        /// </summary>
-        [Fact]
-        private static void TestStiffness0()
-        {
-            var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet0);
-            IMatrix2D K = quad4.BuildStiffnessMatrix();
-            double[,] expectedK = new double[,]
-            {
-                { 181603.19122884000, -89089.52288016200, -4991.10465483030, 7519.91442892909, -126789.16986973000, 70773.21914644800, -49822.91670427800, 10796.38930478500 },
-                { -89089.52288016200, 210532.99196037000, 13289.14519816000, -85869.32985046300, 70773.21914644800, -146868.68100448000, 5027.15853555400, 22205.01889457400 },
-                { -4991.10465483030, 13289.14519816000, 73155.65851293700, 4056.21872780570, -66433.22620703800, 10577.55360637600, -1731.32765106900, -27922.91753234200 },
-                { 7519.91442892909, -85869.32985046300, 4056.21872780570, 85360.61861633800, 16346.78437560700, 2912.80345339600, -27922.91753234200, -2404.09221927070 },
-                { -126789.16986973000, 70773.21914644800, -66433.22620703800, 16346.78437560700, 200705.04715702000, -95472.47721160800, -7482.65108024430, 8352.47368955240 },
-                { 70773.21914644800, -146868.68100448000, 10577.55360637600, 2912.80345339600, -95472.47721160800, 232719.03971773000, 14121.70445878300, -88763.16216664000 },
-                { -49822.91670427800, 5027.15853555400, -1731.32765106900, -27922.91753234200, -7482.65108024430, 14121.70445878300, 59036.89543559100, 8774.05453800470 },
-                { 10796.38930478500, 22205.01889457400, -27922.91753234200, -2404.09221927070, 8352.47368955240, -88763.16216664000, 8774.05453800470, 68962.23549133600 }
-            }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
-        }
 
         /// <summary>
         /// Consistent mass matrix with less integration points than nodes (just for testing, do not do that).
@@ -159,11 +135,38 @@ namespace ISAAR.MSolve.Tests.FEM
             Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
         }
 
+        /// <summary>
+        /// To reproduce the reference solution, run the Abaqus job quad4_test0.inp and look at 
+        /// QUAD4_TEST0_STIFFNESS_MATRICES.mtx
+        /// </summary>
+        [Fact]
+        private static void TestStiffness0()
+        {
+            var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet0);
+            IMatrix2D K = quad4.BuildStiffnessMatrix();
+            double[,] expectedK = new double[,]
+            {
+                { 181603.19122884000, -89089.52288016200, -4991.10465483030, 7519.91442892909, -126789.16986973000, 70773.21914644800, -49822.91670427800, 10796.38930478500 },
+                { -89089.52288016200, 210532.99196037000, 13289.14519816000, -85869.32985046300, 70773.21914644800, -146868.68100448000, 5027.15853555400, 22205.01889457400 },
+                { -4991.10465483030, 13289.14519816000, 73155.65851293700, 4056.21872780570, -66433.22620703800, 10577.55360637600, -1731.32765106900, -27922.91753234200 },
+                { 7519.91442892909, -85869.32985046300, 4056.21872780570, 85360.61861633800, 16346.78437560700, 2912.80345339600, -27922.91753234200, -2404.09221927070 },
+                { -126789.16986973000, 70773.21914644800, -66433.22620703800, 16346.78437560700, 200705.04715702000, -95472.47721160800, -7482.65108024430, 8352.47368955240 },
+                { 70773.21914644800, -146868.68100448000, 10577.55360637600, 2912.80345339600, -95472.47721160800, 232719.03971773000, 14121.70445878300, -88763.16216664000 },
+                { -49822.91670427800, 5027.15853555400, -1731.32765106900, -27922.91753234200, -7482.65108024430, 14121.70445878300, 59036.89543559100, 8774.05453800470 },
+                { 10796.38930478500, 22205.01889457400, -27922.91753234200, -2404.09221927070, 8352.47368955240, -88763.16216664000, 8774.05453800470, 68962.23549133600 }
+            }; // from Abaqus
+            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+        }
+
+        /// <summary>
+        /// To reproduce the reference solution, run the Abaqus job quad4_test0.inp and look at quad4_tes0.dat
+        /// </summary>
         [Fact]
         public static void TestStrainsStresses0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D quad4 = factory.CreateQuad4(nodeSet0);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet0);
 
             // Abaqus results
             double[] displacements =
@@ -254,7 +257,7 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void TestStiffness1()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateQuad4(nodeSet2);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet2);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -274,7 +277,7 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void TestStiffness2()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateQuad4(nodeSet1);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet1);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -294,7 +297,7 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void TestStiffness3()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateQuad4(nodeSet3);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet3);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -314,7 +317,7 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void TestStiffness4()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateQuad4(nodeSet3);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet3);
             IMatrix2D K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -334,7 +337,7 @@ namespace ISAAR.MSolve.Tests.FEM
         public static void TestStrainsStresses1()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D quad4 = factory.CreateQuad4(nodeSet2);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet2);
 
             // Abaqus results
             double[] displacements =
@@ -361,8 +364,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 new double[] { -5.05964E+03, -20.7023E+03,  -7.49722E+03 }  // Gauss point 4
             };
 
-            // However the order of nodes is different, since in that Abaqus job the preprocessor numbered them differently from   
-            // the counter-clockwise order of Quad4 nodes.
+            // The order of the nodes is also the same (at least in this job)
             double[][] expectedStrainsAtNodes =
             {
                 new double[] { 58.2077E-12,  500.000E-03,  493.050E-03 },  // Node 1
