@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Analyzers
         private IAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
         private readonly IDictionary<int, ILinearSystem> subdomains;
-        private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
+        private readonly Dictionary<int, ILogFactory> logFactories = new Dictionary<int, ILogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
         public LinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> subdomains)
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Analyzers
                     l.StoreResults(start, end, subdomains[id].Solution);
         }
 
-        public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
+        public Dictionary<int, ILogFactory> LogFactories { get { return logFactories; } }
         public ISolver Solver { get { return solver; } }
 
         #region IAnalyzer Members
@@ -56,12 +56,12 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Initialize()
         {
+            InitializeLogs();
             solver.Initialize();
         }
 
         public void Solve()
         {
-            InitializeLogs();
             DateTime start = DateTime.Now;
             solver.Solve();
             DateTime end = DateTime.Now;

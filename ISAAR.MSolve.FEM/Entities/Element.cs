@@ -5,6 +5,8 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 
+//TODO: Delete this ASAP. 1) Its purpose is element-node connectivity, which should be done through interfaces and inheritance,
+//      2) The order of the nodes should be defined by what is now called ElementType
 namespace ISAAR.MSolve.FEM.Entities
 {
     public enum AbsorptionType

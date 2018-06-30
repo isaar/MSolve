@@ -58,6 +58,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
+        /// <summary>
+        /// this = this + scalar * matrix
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="scalar"></param>
+        public void AxpyIntoThis(IMatrix2D matrix, double scalar)
+        {
+            if ((this.Rows != matrix.Rows) || (this.Columns != matrix.Columns))
+            {
+                throw new ArgumentException("The two matrices must have the same dimensions.");
+            }
+            for (int i = 0; i < Rows; ++i)
+            {
+                for (int j = 0; j < Columns; ++j)
+                {
+                    this[i, j] += scalar * matrix[i, j];
+                }
+            }
+        }
+
         public void Multiply(IVector vIn, double[] vOut)
         {
             if (isTransposed == false)
