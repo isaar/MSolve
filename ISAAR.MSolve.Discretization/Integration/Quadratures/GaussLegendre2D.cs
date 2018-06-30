@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization.Integration.Points;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.FEM.Integration.Points;
 
-namespace ISAAR.MSolve.FEM.Integration.Quadratures
+namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
     /// <summary>
     /// Enum class with the 2D Gauss-Legendre integration rules of varying orders. Tensor product of 

@@ -724,7 +724,7 @@ namespace ISAAR.MSolve.Tests.IGA
 			#endregion
 		}
 
-		[Fact]
+		//[Fact]
 		public void IsogeometricPlateWithHole()
 		{
 			// Model
@@ -779,7 +779,7 @@ namespace ISAAR.MSolve.Tests.IGA
 			#endregion
 		}
 
-		[Fact]
+		//[Fact]
 		public void IsogeometricBeam3D()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
@@ -2932,7 +2932,7 @@ namespace ISAAR.MSolve.Tests.IGA
 
 		}
 
-		[Fact]
+		//[Fact]
 		public void TSplinesShellsBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();

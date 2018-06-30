@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.FEM.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
-namespace ISAAR.MSolve.FEM.Integration.Quadratures
+namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
     /// <summary>
     /// Enum class with the 2D Gauss-Legendre integration rules for triangles of varying orders. These are not tensor product of 

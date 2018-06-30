@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.FEM.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Points;
 
-namespace ISAAR.MSolve.FEM.Integration.Quadratures
+namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
     /// <summary>
     /// Enum class with the 1D Gauss-Legendre integration rules of varying orders. 

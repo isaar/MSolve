@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Coordinates;
 
 //TODO: Perhaps I should use dictionaries for matching input and output at nodes or at least gauss points.

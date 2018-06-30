@@ -1,8 +1,8 @@
-﻿using ISAAR.MSolve.FEM.Integration.Quadratures;
-using ISAAR.MSolve.Geometry.Coordinates;
+﻿using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 //TODO: the order of the shape functions must be the same as the order of Gauss points in GaussLegendre2D.Order2x2 integration.  
 //      This is extremely error prone. Find a way to avoid this necessity (e.g. GaussLegendre2D provides the shape functions) or

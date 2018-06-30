@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ISAAR.MSolve.Geometry.Coordinates;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Geometry.Coordinates;
 
-namespace ISAAR.MSolve.FEM.Integration.Points
+namespace ISAAR.MSolve.Discretization.Integration.Points
 {
     /// <summary>
     /// Integration point (coordinates & weight) defined in the 1D natural coordinate system of a finite element. Immutable.
