@@ -10,6 +10,7 @@ using ISAAR.MSolve.FEM.Meshes.Custom;
 using ISAAR.MSolve.FEM.Meshes.GMSH;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.Materials.VonMisesStress;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
@@ -50,11 +51,10 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             VectorExtensions.AssignTotalAffinityCount();
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-                StressState = "plstress"
+                PoissonRatio = poissonRatio
             };
 
             // Subdomains
@@ -158,7 +158,8 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             {
                 LogDisplacements = true,
                 LogStrains = true,
-                LogStresses = true
+                LogStresses = true,
+                VonMisesStressCalculator = new PlaneStressVonMises()
             };
 
             // Run the analysis

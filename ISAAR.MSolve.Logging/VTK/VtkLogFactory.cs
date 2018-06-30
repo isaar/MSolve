@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging.Interfaces;
+using ISAAR.MSolve.Materials.VonMisesStress;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,12 +28,20 @@ namespace ISAAR.MSolve.Logging.VTK
         public bool LogStresses { get; set; } = true;
         public string Filename { get; set; } = "field_output";
 
+        /// <summary>
+        /// If nothing is assigned, there will not be any von Mises stress output.
+        /// </summary>
+        public IVonMisesStress2D VonMisesStressCalculator { get; set; } = null;
+
         public IAnalyzerLog[] CreateLogs()
         {
-            var logs = new List<IAnalyzerLog>(3);
+            var logs = new List<IAnalyzerLog>(1);
             var mesh = new VtkMesh2D(model);
-            logs.Add(new VtkLog2D(directory, Filename, model, mesh, LogDisplacements, LogStrains, LogStresses));
-            return logs.ToArray();
+            return new IAnalyzerLog[]
+            {
+                new VtkLog2D(directory, Filename, model, mesh, LogDisplacements, LogStrains, LogStresses, 
+                    VonMisesStressCalculator)
+            };
         }
     }
 }

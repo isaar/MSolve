@@ -18,11 +18,10 @@ namespace ISAAR.MSolve.Tests.FEM
     {
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D material = new ElasticMaterial2D
+        private static readonly ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
         {
             YoungModulus = 2e6,
-            PoissonRatio = 0.3,
-            StressState = "plstress"
+            PoissonRatio = 0.3
         };
 
         private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);
