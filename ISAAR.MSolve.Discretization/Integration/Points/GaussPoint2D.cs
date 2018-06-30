@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Discretization.Integration.Points
     public class GaussPoint2D : NaturalPoint2D
     {
         /// <summary>
-        /// Instantiates a <see cref="GaussPoint1D"/>.
+        /// Instantiates a <see cref="GaussPoint2D"/>.
         /// </summary>
         /// <param name="xi">The coordinate of the point along natural axis Xi.</param>
         /// <param name="eta">The coordinate of the point along natural axis Eta.</param>
