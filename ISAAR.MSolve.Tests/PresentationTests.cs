@@ -10,13 +10,17 @@ using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.FEM.Meshes;
+using ISAAR.MSolve.FEM.Meshes.GMSH;
 using Xunit;
+using System.Linq;
+using ISAAR.MSolve.Logging.VTK;
 
 namespace ISAAR.MSolve.Tests
 {
     public class PresentationTests
     {
-        [Fact]
+        //[Fact]
         private static void SolveStaticQuadRetainingWall()
         {
             #region Model
@@ -24,11 +28,10 @@ namespace ISAAR.MSolve.Tests
             double youngModulus = 2.1e09;
             double poissonRatio = 0.3;
 
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-                StressState=StressStates.PlaneStress
+                PoissonRatio = poissonRatio
             };
             Model model = new Model();
 
@@ -326,7 +329,7 @@ namespace ISAAR.MSolve.Tests
 
         }
 
-        [Fact]
+        //[Fact]
         private static void SolveDynamicQuadRetainingWall()
         {
             #region Model
@@ -335,11 +338,10 @@ namespace ISAAR.MSolve.Tests
             double poissonRatio = 0.3;
             double density = 20;
 
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-                StressState = StressStates.PlaneStress
+                PoissonRatio = poissonRatio
             };
             Model model = new Model();
 
@@ -684,7 +686,7 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load() { Amount = -50390, Node = model.NodesDictionary[18], DOF = DOFType.X });
             model.Loads.Add(new Load() { Amount = -28460, Node = model.NodesDictionary[15], DOF = DOFType.X });
 
-            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1));
+            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1){DOF = DOFType.X});
             #endregion
 
             model.ConnectDataStructures();
@@ -708,5 +710,313 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Solve();
 
         }
-    }
+
+		[Fact]
+	    private static void SolveStaticLinearWall()
+	    {
+			#region Read Data
+		    string workingDirectory = @"C:\Users\Dimitris\Desktop\Presentation";
+		    string meshFileName = "wall.msh";
+
+		    (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(workingDirectory,meshFileName);
+			#endregion
+
+			#region CreateModel
+
+		    const double height = 3.5;
+		    const double thickness = 0.1;
+		    const double youngModulus = 2E6;
+		    const double poissonRatio = 0.3;
+		    const double maxLoad = 1000.0;
+			// Initialize
+		    int numberOfNodes = nodes.Count;
+			int numberOfElements = elements.Count;
+			VectorExtensions.AssignTotalAffinityCount();
+
+			// Materials
+			ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			{
+				YoungModulus = youngModulus,
+				PoissonRatio = poissonRatio
+			};
+
+			// Subdomains
+			Model model = new Model();
+			model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+			// Nodes
+			for (int i = 0; i < numberOfNodes; ++i) model.NodesDictionary.Add(i, nodes[i]);
+
+			// Elements
+			var factory = new ContinuumElement2DFactory(thickness, material, null);
+			for (int i = 0; i < numberOfElements; ++i)
+			{
+				ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
+				var elementWrapper = new Element() { ID = i, ElementType = element };
+				foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
+				model.ElementsDictionary.Add(i, elementWrapper);
+				model.SubdomainsDictionary[0].ElementsDictionary.Add(i, elementWrapper);
+			}
+
+			// Constraints
+			double tol = 1E-10;
+			Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
+			for (int i = 0; i < constrainedNodes.Length; i++)
+			{
+				constrainedNodes[i].Constraints.Add(DOFType.X);
+				constrainedNodes[i].Constraints.Add(DOFType.Y);
+			}
+
+			// Loads
+			Node2D[] loadedNodes = nodes.Where(
+				node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
+			if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
+			model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+
+			// Finalize
+			model.ConnectDataStructures();
+
+
+			#endregion
+
+			#region Analysis
+		    // Choose linear equation system solver
+		    var linearSystems = new Dictionary<int, ILinearSystem>();
+		    linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
+		    SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+
+		    // Choose the provider of the problem -> here a structural problem
+		    ProblemStructural provider = new ProblemStructural(model, linearSystems);
+
+		    // Choose parent and child analyzers -> Parent: Static, Child: Linear
+		    LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+		    StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+
+		    // Logging displacement, strain, and stress fields.
+		    string outputDirectory = workingDirectory + "\\Plots";
+		    childAnalyzer.LogFactories[0] = new VtkLogFactory(model, outputDirectory)
+		    {
+			    LogDisplacements = true,
+			    LogStrains = true,
+			    LogStresses = true
+		    };
+
+		    // Run the analysis
+		    parentAnalyzer.BuildMatrices();
+		    parentAnalyzer.Initialize();
+		    parentAnalyzer.Solve();
+			#endregion
+		}
+
+	    //[Fact]
+		private static void SolveStaticNonLinearWall()
+		{
+			#region Read Data
+			string workingDirectory = @"C:\Users\Dimitris\Desktop\Presentation";
+			string meshFileName = "wall.msh";
+
+			(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(workingDirectory, meshFileName);
+			#endregion
+
+			#region CreateModel
+
+			const double height = 3.5;
+			const double thickness = 0.1;
+			const double youngModulus = 2E6;
+			const double poissonRatio = 0.3;
+			const double maxLoad = 1000.0;
+			// Initialize
+			int numberOfNodes = nodes.Count;
+			int numberOfElements = elements.Count;
+			VectorExtensions.AssignTotalAffinityCount();
+
+			// Materials
+			ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			{
+				YoungModulus = youngModulus,
+				PoissonRatio = poissonRatio
+			};
+
+			
+
+			// Subdomains
+			Model model = new Model();
+			model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+			// Nodes
+			for (int i = 0; i < numberOfNodes; ++i) model.NodesDictionary.Add(i, nodes[i]);
+
+			// Elements
+			var factory = new ContinuumElement2DFactory(thickness, material, null);
+			for (int i = 0; i < numberOfElements; ++i)
+			{
+				ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
+				var elementWrapper = new Element() { ID = i, ElementType = element };
+				foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
+				model.ElementsDictionary.Add(i, elementWrapper);
+				model.SubdomainsDictionary[0].ElementsDictionary.Add(i, elementWrapper);
+			}
+
+			// Constraints
+			double tol = 1E-10;
+			Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
+			for (int i = 0; i < constrainedNodes.Length; i++)
+			{
+				constrainedNodes[i].Constraints.Add(DOFType.X);
+				constrainedNodes[i].Constraints.Add(DOFType.Y);
+			}
+
+			// Loads
+			Node2D[] loadedNodes = nodes.Where(
+				node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
+			if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
+			model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+
+			// Finalize
+			model.ConnectDataStructures();
+
+
+			#endregion
+
+			#region Analysis
+			// Choose linear equation system solver
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+
+			// Choose the provider of the problem -> here a structural problem
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+
+			// Choose parent and child analyzers -> Parent: Static, Child: Linear
+			LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+
+			// Logging displacement, strain, and stress fields.
+			string outputDirectory = workingDirectory + "\\Plots";
+			childAnalyzer.LogFactories[0] = new VtkLogFactory(model, outputDirectory)
+			{
+				LogDisplacements = true,
+				LogStrains = true,
+				LogStresses = true
+			};
+
+			// Run the analysis
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+			#endregion
+		}
+
+	    [Fact]
+		private static void SolveDynamicWall()
+		{
+			#region Read Data
+			string workingDirectory = @"C:\Users\Dimitris\Desktop\Presentation";
+			string meshFileName = "wall.msh";
+
+			(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(workingDirectory, meshFileName);
+			#endregion
+
+			#region CreateModel
+
+			const double height = 3.5;
+			const double thickness = 0.1;
+			const double youngModulus = 2E6;
+			const double poissonRatio = 0.3;
+			const double maxLoad = 1000.0;
+			// Initialize
+			int numberOfNodes = nodes.Count;
+			int numberOfElements = elements.Count;
+			VectorExtensions.AssignTotalAffinityCount();
+
+			// Materials
+			ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			{
+				YoungModulus = youngModulus,
+				PoissonRatio = poissonRatio
+			};
+
+			DynamicMaterial dynamicMaterial = new DynamicMaterial(25, 0.05, 0.05);
+
+			// Subdomains
+			Model model = new Model();
+			model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
+			// Nodes
+			for (int i = 0; i < numberOfNodes; ++i) model.NodesDictionary.Add(i, nodes[i]);
+
+			// Elements
+			var factory = new ContinuumElement2DFactory(thickness, material, dynamicMaterial);
+			for (int i = 0; i < numberOfElements; ++i)
+			{
+				ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
+				var elementWrapper = new Element() { ID = i, ElementType = element };
+				foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
+				model.ElementsDictionary.Add(i, elementWrapper);
+				model.SubdomainsDictionary[0].ElementsDictionary.Add(i, elementWrapper);
+			}
+
+			// Constraints
+			double tol = 1E-10;
+			Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
+			for (int i = 0; i < constrainedNodes.Length; i++)
+			{
+				constrainedNodes[i].Constraints.Add(DOFType.X);
+				constrainedNodes[i].Constraints.Add(DOFType.Y);
+			}
+
+			// Loads
+			Node2D[] loadedNodes = nodes.Where(
+				node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
+			if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
+			model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+
+			model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1) { DOF = DOFType.X });
+
+
+			// Finalize
+			model.ConnectDataStructures();
+
+
+			#endregion
+
+			#region Analysis
+			// Choose linear equation system solver
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+
+			// Choose the provider of the problem -> here a structural problem
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+
+			// Choose parent and child analyzers -> Parent: Static, Child: Linear
+			LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+			NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.6, 1, 0.02, 53.74);
+
+
+			// Logging displacement, strain, and stress fields.
+			string outputDirectory = workingDirectory + "\\Plots";
+			childAnalyzer.LogFactories[0] = new VtkLogFactory(model, outputDirectory)
+			{
+				LogDisplacements = true,
+				LogStrains = true,
+				LogStresses = true
+			};
+
+			// Run the analysis
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+			#endregion
+		}
+
+		private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshFromGmsh(string workingDirectory, string meshFileName)
+	    {
+		    using (var reader = new GmshReader2D(workingDirectory + "\\" + meshFileName))
+		    {
+			    return reader.CreateMesh();
+		    }
+	    }
+
+	}
 }

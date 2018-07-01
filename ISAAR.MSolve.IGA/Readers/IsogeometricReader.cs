@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.IGA.Readers
                     case Attributes.material:
                         if (ModelCreator.NumberOfDimensions == 2)
                         {
-                            ModelCreator.Material = new ElasticMaterial2D { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture), StressState=(line[4]=="plstress")?StressStates.PlaneStress:StressStates.PlaneStrain };
+                            ModelCreator.Material = new ElasticMaterial2D((line[4] == "plstress") ? StressState2D.PlaneStress : StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture)};
                         }
                         else
                         {

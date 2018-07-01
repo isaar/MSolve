@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using Xunit;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Integration.Points;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Materials;

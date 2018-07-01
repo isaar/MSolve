@@ -181,7 +181,7 @@ namespace ISAAR.MSolve.Problems
                         {
                             foreach (var l in m)
                             {
-                                if (dofPair.Key == l.DOF)
+                                if (dofPair.Key == l.DOF&& dofPair.Value!=-1)
                                 {
                                     d[subdomain.ID][dofPair.Value] = l.Amount;
                                 }
