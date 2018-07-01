@@ -10,14 +10,14 @@ namespace ISAAR.MSolve.FEM
 {
     public static class EquivalentLoadsAssembler
     {
-        public static void AssignEquivalentNodalLoads(Subdomain subdomain, IElementMatrixProvider elementProvider, IVector solution, IVector dSolution) //TODOMaria this should also take as argument the nodal displacements of the constraints (after the refactoring)
+        public static IVector GetEquivalentNodalLoads(Subdomain subdomain, IElementMatrixProvider elementProvider, IVector solution, IVector dSolution) //TODOMaria this should also take as argument the nodal displacements of the constraints (after the refactoring)
         {
             var times = new Dictionary<string, TimeSpan>();
             var totalStart = DateTime.Now;
             times.Add("rowIndexCalculation", DateTime.Now - totalStart);
             times.Add("element", TimeSpan.Zero);
             times.Add("addition", TimeSpan.Zero);
-            var subdomainForces = new double[subdomain.Forces.Length];
+            var subdomainEquivalentNodalForces = new double[subdomain.Forces.Length];
             foreach (Element element in subdomain.ElementsDictionary.Values)
             {
                 var isEmbeddedElement = element.ElementType is IEmbeddedElement;
@@ -29,15 +29,14 @@ namespace ISAAR.MSolve.FEM
 
                 var equivalentNodalForces = new double[localSolution.Length];
                 ElementK.Multiply(new Vector(localSolution), equivalentNodalForces);
-                subdomain.AddLocalVectorToGlobal(element, equivalentNodalForces, subdomainForces);
+                subdomain.AddLocalVectorToGlobal(element, equivalentNodalForces, subdomainEquivalentNodalForces);
 
                 times["addition"] += DateTime.Now - elStart;
             }
 
-            for (int i = 0; i < subdomainForces.Length; i++)//TODOMaria is this right?? maybe we should keep a separate copy of subdomain forces in each subdomain
-                subdomain.Forces[i] += subdomainForces[i];
-
             var totalTime = DateTime.Now - totalStart;
+
+            return new Vector(subdomainEquivalentNodalForces);
         }
     }
 }
