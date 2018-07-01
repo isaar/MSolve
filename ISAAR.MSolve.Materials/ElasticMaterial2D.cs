@@ -13,10 +13,16 @@ namespace ISAAR.MSolve.Materials
         private readonly double[] strains = new double[3];
         private readonly double[] stresses = new double[3];
         private double[,] constitutiveMatrix = null;
-        public double YoungModulus { get; set; }
-        public double PoissonRatio { get; set; }
-        public StressStates StressState { get; set; }
+
         public double[] Coordinates { get; set; }
+        public double PoissonRatio { get; set; }
+        public StressState2D StressState { get; }
+        public double YoungModulus { get; set; }
+
+        public ElasticMaterial2D(StressState2D stressState)
+        {
+            this.StressState = stressState;
+        }
 
         #region IFiniteElementMaterial3D
 
@@ -50,7 +56,7 @@ namespace ISAAR.MSolve.Materials
         {
             strains.CopyTo(this.strains, 0);
             constitutiveMatrix = new double[3, 3];
-            if (StressState==StressStates.PlaneStress)
+            if (StressState == StressState2D.PlaneStress)
             {
                 double aux = YoungModulus / (1 - PoissonRatio * PoissonRatio);
                 constitutiveMatrix[0, 0] = aux;
@@ -93,10 +99,9 @@ namespace ISAAR.MSolve.Materials
         #region ICloneable Members
         public ElasticMaterial2D Clone()
         {
-            return new ElasticMaterial2D()
+            return new ElasticMaterial2D(StressState)
             {
                 PoissonRatio = this.PoissonRatio,
-                StressState = this.StressState,
                 YoungModulus = this.YoungModulus
             };
         }

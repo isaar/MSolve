@@ -132,9 +132,29 @@ namespace ISAAR.MSolve.FEM.Elements
             return stiffness;
         }
 
+        //TODO: I think this method must be removed from IFiniteElement altogether. This procedure shoud be done for the global 
+        //      mass matrix, once at the start of the dynamic analysis. The resulting vectors for each direction of the ground 
+        //      motion should be stored. Then at each timestep they only need to be scaled and added to the rhs vector. The mass 
+        //      matrix doesn't change, so there is not reason to recompute it at each time step.
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            throw new NotImplementedException();
+            int numDofs = 2 * Nodes.Count;
+            Vector accelerations = new Vector(numDofs);
+            IMatrix2D massMatrix = MassMatrix(element);
+
+            foreach (MassAccelerationLoad load in loads)
+            {
+                int index = 0;
+                foreach (DOFType[] nodalDOFTypes in dofTypes)
+                    foreach (DOFType dofType in nodalDOFTypes)
+                    {
+                        if (dofType == load.DOF) accelerations[index] += load.Amount;
+                        index++;
+                    }
+            }
+            double[] forces = new double[numDofs];
+            massMatrix.Multiply(accelerations, forces);
+            return forces;
         }
 
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)

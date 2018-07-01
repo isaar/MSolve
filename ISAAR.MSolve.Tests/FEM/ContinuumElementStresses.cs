@@ -29,12 +29,11 @@ namespace ISAAR.MSolve.Tests.FEM
             new Node2D(3, 0.7, 2.0)
         };
 
-        private static readonly ElasticMaterial2D material = new ElasticMaterial2D
+        private static readonly ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
         {
             YoungModulus = 210000,
-            PoissonRatio = 0.3,
-			StressState = StressStates.PlaneStress
-		};
+            PoissonRatio = 0.3
+        };
 
         [Fact]
         public static void TestQuad4StrainsStresses()
