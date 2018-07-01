@@ -243,6 +243,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-*.txt
 *.iga
 *.dat
+*.txt

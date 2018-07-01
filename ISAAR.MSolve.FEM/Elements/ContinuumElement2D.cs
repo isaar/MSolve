@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Integration.Points;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
@@ -130,9 +132,29 @@ namespace ISAAR.MSolve.FEM.Elements
             return stiffness;
         }
 
+        //TODO: I think this method must be removed from IFiniteElement altogether. This procedure shoud be done for the global 
+        //      mass matrix, once at the start of the dynamic analysis. The resulting vectors for each direction of the ground 
+        //      motion should be stored. Then at each timestep they only need to be scaled and added to the rhs vector. The mass 
+        //      matrix doesn't change, so there is not reason to recompute it at each time step.
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            throw new NotImplementedException();
+            int numDofs = 2 * Nodes.Count;
+            Vector accelerations = new Vector(numDofs);
+            IMatrix2D massMatrix = MassMatrix(element);
+
+            foreach (MassAccelerationLoad load in loads)
+            {
+                int index = 0;
+                foreach (DOFType[] nodalDOFTypes in dofTypes)
+                    foreach (DOFType dofType in nodalDOFTypes)
+                    {
+                        if (dofType == load.DOF) accelerations[index] += load.Amount;
+                        index++;
+                    }
+            }
+            double[] forces = new double[numDofs];
+            massMatrix.Multiply(accelerations, forces);
+            return forces;
         }
 
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
@@ -163,7 +185,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (ElasticMaterial2D m in materialsAtGaussPoints.Values) m.ClearStresses();
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             //TODO: Stiffness and mass matrices have already been computed probably. Reuse them.
             //TODO: Perhaps with Rayleigh damping, the global damping matrix should be created directly from global mass and stiffness matrices.
@@ -173,11 +195,11 @@ namespace ISAAR.MSolve.FEM.Elements
             return damping;
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
+        public IElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             //return BuildConsistentMassMatrix();
             return BuildLumpedMassMatrix();
@@ -204,7 +226,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
         //TODO: why do I need the wrapping element?
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
             return BuildStiffnessMatrix();
         }

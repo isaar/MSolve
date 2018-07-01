@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using Xunit;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Integration.Points;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Materials;
@@ -18,11 +18,10 @@ namespace ISAAR.MSolve.Tests.FEM
     {
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D material = new ElasticMaterial2D
+        private static readonly ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
         {
             YoungModulus = 2e6,
-            PoissonRatio = 0.3,
-            StressState = "plstress"
+            PoissonRatio = 0.3
         };
 
         private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);

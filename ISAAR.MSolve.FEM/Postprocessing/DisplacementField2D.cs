@@ -3,6 +3,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Postprocessing
 {

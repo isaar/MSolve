@@ -1,9 +1,9 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 //TODO: Vector2 and Tensor2D instead of double[]
 namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
