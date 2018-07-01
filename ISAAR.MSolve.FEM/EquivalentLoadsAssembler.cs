@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM
 {
-    public class EquivalentLoadsAssembler
+    public static class EquivalentLoadsAssembler
     {
         public static void AssignEquivalentNodalLoads(Subdomain subdomain, IElementMatrixProvider elementProvider, IVector solution, IVector dSolution) //TODOMaria this should also take as argument the nodal displacements of the constraints (after the refactoring)
         {
