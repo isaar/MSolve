@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -24,7 +26,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         private readonly double springCoefficient, dampingCoefficient;
         private readonly SpringDirections springDirections, dampingDirections;
-        private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        private IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public int ID
         {
@@ -36,18 +38,18 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.ThreeD; }
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             if (element == null) return dofs;
 
             var d = new List<IList<DOFType>>();
-            foreach (var node in element.Nodes)
+            foreach (var node in element.INodes)
             {
                 var nodeDofs = new List<DOFType>();
                 nodeDofs.AddRange(nodalDOFTypes);
@@ -69,13 +71,13 @@ namespace ISAAR.MSolve.FEM.Elements
             this.dampingDirections = dampingDirections;
         }
 
-        public SpringDamper3D(double springCoefficient, double dampingCoefficient, SpringDirections springDirections, SpringDirections dampingDirections, IFiniteElementDOFEnumerator dofEnumerator)
+        public SpringDamper3D(double springCoefficient, double dampingCoefficient, SpringDirections springDirections, SpringDirections dampingDirections, IElementDOFEnumerator dofEnumerator)
             : this(springCoefficient, dampingCoefficient, springDirections, dampingDirections)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
             double x = (springDirections == SpringDirections.X || springDirections == SpringDirections.XY || springDirections == SpringDirections.XZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
             double y = (springDirections == SpringDirections.Y || springDirections == SpringDirections.XY || springDirections == SpringDirections.YZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
@@ -89,7 +91,7 @@ namespace ISAAR.MSolve.FEM.Elements
             });
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             return new SymmetricMatrix2D(new double[] { 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 
@@ -100,7 +102,7 @@ namespace ISAAR.MSolve.FEM.Elements
             });
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             double x = (dampingDirections == SpringDirections.X || dampingDirections == SpringDirections.XY || dampingDirections == SpringDirections.XZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
             double y = (dampingDirections == SpringDirections.Y || dampingDirections == SpringDirections.XY || dampingDirections == SpringDirections.YZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;

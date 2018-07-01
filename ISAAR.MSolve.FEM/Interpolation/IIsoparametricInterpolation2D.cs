@@ -1,11 +1,11 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Integration.Points;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
