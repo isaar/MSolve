@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestConsistentMass0()
         {
-            IQuadrature2D quadratureForMass = GaussQuadratureForTrianglesSymmetric.Order4Points7;
+            IQuadrature2D quadratureForMass = TriangleQuadratureSymmetricGaussian.Order4Points6;
 
             var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 materialsAtGaussPoints[gaussPoint] = material0.Clone();
             }
             var tri6 = new ContinuumElement2D(thickness, nodeSet0, InterpolationTri6.UniqueInstance,
-                GaussQuadratureForTrianglesSymmetric.Order2Points3, quadratureForMass,
+                TriangleQuadratureSymmetricGaussian.Order2Points3, quadratureForMass,
                 ExtrapolationGaussTriangular3Points.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
 
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 { 0.623796095, 0, -7.392556104, 0, -0.141678539, 0, 29.25347375, 0, 28.6296356, 0, 58.49121809, 0,    },
                 { 0, 0.623796095, 0, -7.392556104, 0, -0.141678539, 0, 29.25347375, 0, 28.6296356, 0, 58.49121809,    }
             }); // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-5));
+            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-3));
         }
 
         /// <summary>

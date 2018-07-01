@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestConsistentMass0()
         {
-            TestConsistentMassParametric(nodeSet0, GaussQuadratureForTrianglesSymmetric.Order2Points3, false);
+            TestConsistentMassParametric(nodeSet0, TriangleQuadratureSymmetricGaussian.Order2Points3, false);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestConsistentMass1()
         {
-            TestConsistentMassParametric(nodeSet1, GaussQuadratureForTrianglesSymmetric.Order1Point1, true);
+            TestConsistentMassParametric(nodeSet1, TriangleQuadratureSymmetricGaussian.Order1Point1, true);
         }
 
         private static void TestConsistentMassParametric(IReadOnlyList<Node2D> nodeSet, IQuadrature2D quadratureForMass,
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 materialsAtGaussPoints[gaussPoint] = material0.Clone();
             }
             var tri3 = new ContinuumElement2D(thickness, nodeSet, InterpolationTri3.UniqueInstance,
-                GaussQuadratureForTrianglesSymmetric.Order1Point1, quadratureForMass,
+                TriangleQuadratureSymmetricGaussian.Order1Point1, quadratureForMass,
                 ExtrapolationGaussTriangular1Point.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
             IMatrix2D M = tri3.BuildConsistentMassMatrix();

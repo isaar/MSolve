@@ -53,15 +53,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
             // Tri3
             interpolations.Add(CellType2D.Tri3, InterpolationTri3.UniqueInstance);
-            integrationsForStiffness.Add(CellType2D.Tri3, GaussQuadratureForTrianglesSymmetric.Order1Point1);
-            integrationsForMass.Add(CellType2D.Tri3, GaussQuadratureForTrianglesSymmetric.Order2Points3);
+            integrationsForStiffness.Add(CellType2D.Tri3, TriangleQuadratureSymmetricGaussian.Order1Point1);
+            integrationsForMass.Add(CellType2D.Tri3, TriangleQuadratureSymmetricGaussian.Order2Points3);
             extrapolations.Add(CellType2D.Tri3, ExtrapolationGaussTriangular1Point.UniqueInstance);
 
             // Tri 6
             interpolations.Add(CellType2D.Tri6, InterpolationTri6.UniqueInstance);
             // see https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch24.d/IFEM.Ch24.pdf, p. 24-13, paragraph "options"
-            integrationsForStiffness.Add(CellType2D.Tri6, GaussQuadratureForTrianglesSymmetric.Order2Points3);
-            integrationsForMass.Add(CellType2D.Tri6, GaussQuadratureForTrianglesSymmetric.Order4Points7); 
+            integrationsForStiffness.Add(CellType2D.Tri6, TriangleQuadratureSymmetricGaussian.Order2Points3);
+            integrationsForMass.Add(CellType2D.Tri6, TriangleQuadratureSymmetricGaussian.Order4Points6); 
             extrapolations.Add(CellType2D.Tri6, ExtrapolationGaussTriangular3Points.UniqueInstance);
 
             // Static field assignments

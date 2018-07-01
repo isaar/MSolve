@@ -315,7 +315,6 @@ namespace ISAAR.MSolve.Tests.FEM
             Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
         }
 
-        [Fact]
         private static void TestStiffness4()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
