@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
                 LogDisplacements = true,
                 LogStrains = true,
                 LogStresses = true,
-                VonMisesStressCalculator = new PlaneStressVonMises()
+                //VonMisesStressCalculator = new PlaneStressVonMises()
             };
 
             // Run the analysis

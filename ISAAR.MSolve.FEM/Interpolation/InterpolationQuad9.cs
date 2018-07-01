@@ -5,7 +5,13 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 
-//TODO: cache the natural shape functions at gauss point sets
+// Quad9 nodes:
+// 3 -- 6 -- 2
+// |    |    |
+// 7 -- 8 -- 5
+// |    |    |
+// 0 -- 4 -- 1
+
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>
@@ -25,10 +31,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 new NaturalPoint2D(+1.0, -1.0),
                 new NaturalPoint2D(+1.0, +1.0),
                 new NaturalPoint2D(-1.0, +1.0),
+
                 new NaturalPoint2D(+0.0, -1.0),
                 new NaturalPoint2D(+1.0, +0.0),
                 new NaturalPoint2D(+0.0, +1.0),
                 new NaturalPoint2D(-1.0, +0.0),
+
                 new NaturalPoint2D(+0.0, +0.0)
             };
         }
@@ -63,10 +71,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
             values[1] = -xiEtaOver4 * (1 + xi) * (1 - eta);
             values[2] = xiEtaOver4 * (1 + xi) * (1 + eta);
             values[3] = -xiEtaOver4 * (1 - xi) * (1 + eta);
+
             values[4] = -0.5 * eta * (1 - xi_2) * (1 - eta);
             values[5] = 0.5 * xi * (1 + xi) * (1 - eta_2);
             values[6] = 0.5 * eta * (1 - xi_2) * (1 + eta);
             values[7] = -0.5 * xi * (1 - xi) * (1 - eta_2);
+
             values[8] = (1 - xi_2) * (1 - eta_2);
             return values;
         }
@@ -88,6 +98,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             derivatives[2, 1] = 0.25 * xi * (1 + xi) * (1 + eta2);
             derivatives[3, 0] = -0.25 * eta * (1 - xi2) * (1 + eta);
             derivatives[3, 1] = 0.25 * xi * (1 - xi) * (1 + eta2);
+
             derivatives[4, 1] = xiEta * (1 - eta);
             derivatives[4, 2] = -0.5 * (1 - xi_2) * (1 - eta2);
             derivatives[5, 1] = 0.5 * (1 + xi2) * (1 - eta_2);
@@ -96,6 +107,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             derivatives[6, 2] = 0.5 * (1 - xi_2) * (1 + eta2);
             derivatives[7, 1] = -0.5 * (1 - xi2) * (1 - eta_2);
             derivatives[7, 2] = xiEta * (1 - xi);
+
             derivatives[8, 1] = -2 * xi * (1 - eta_2);
             derivatives[8, 2] = -2 * eta * (1 - xi_2);
             return derivatives;

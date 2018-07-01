@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-// TODO: move the node orderings somewhere more central
+//TODO: move the node orderings somewhere more central
+//TODO: Use CellType2D instead of interpolations
 namespace ISAAR.MSolve.Logging.VTK
 {
     /// <summary>
@@ -29,17 +30,16 @@ namespace ISAAR.MSolve.Logging.VTK
                 //                                             // |         |
                 //{ InterpolationQuad8.UniqueInstance, 23 }    // 0 -- 4 -- 1
 
-                                                             // 2
-                                                             // | \
-                                                             // |   \
-                { InterpolationTri3.UniqueInstance, 5 }      // 0 --- 1
+                                                             //    2
+                                                             //   /  \
+                                                             //  /    \
+                { InterpolationTri3.UniqueInstance, 5 },     // 0 ---  1
 
-                //,
-                //                                             // 2
-                //                                             // | \
-                //                                             // 5   4
-                //                                             // |     \
-                //{ InterpolationTri6.UniqueInstance, 22 }     // 0 - 3 - 1
+                                                             //     2
+                                                             //    /  \
+                                                             //   5    4
+                                                             //  /       \
+                { InterpolationTri6.UniqueInstance, 22 }     // 0 -- 3 -- 1
             };
 
         public VtkCell2D(int code, IReadOnlyList<VtkPoint2D> vertices)

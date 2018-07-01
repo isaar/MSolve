@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// The integration rule which defines the integration points used for extrapolating values and defining an auxiliary 
         /// coordinate system.
         /// </summary>
-        public IQuadrature2D Quadrature { get { return GaussQuadratureForTriangles.Order1Point1; } }
+        public IQuadrature2D Quadrature { get { return GaussQuadratureForTrianglesSymmetric.Order1Point1; } }
 
         /// <summary>
         /// Get the unique <see cref="ExtrapolationGaussTriangular1Point"/> object for the whole program. Thread safe.

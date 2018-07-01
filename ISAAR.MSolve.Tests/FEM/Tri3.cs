@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
+//TODO: Add tests for wrong node orders, too distorted shapes, etc.
+//TODO: Add tests presented in https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch24.d/IFEM.Ch24.pdf
 namespace ISAAR.MSolve.Tests.FEM
 {
     /// <summary>
@@ -58,7 +60,7 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestConsistentMass0()
         {
-            TestConsistentMassParametric(nodeSet0, GaussQuadratureForTriangles.Order2Points3, false);
+            TestConsistentMassParametric(nodeSet0, GaussQuadratureForTrianglesSymmetric.Order2Points3, false);
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void TestConsistentMass1()
         {
-            TestConsistentMassParametric(nodeSet1, GaussQuadratureForTriangles.Order1Point1, true);
+            TestConsistentMassParametric(nodeSet1, GaussQuadratureForTrianglesSymmetric.Order1Point1, true);
         }
 
         private static void TestConsistentMassParametric(IReadOnlyList<Node2D> nodeSet, IQuadrature2D quadratureForMass,
@@ -80,7 +82,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 materialsAtGaussPoints[gaussPoint] = material0.Clone();
             }
             var tri3 = new ContinuumElement2D(thickness, nodeSet, InterpolationTri3.UniqueInstance,
-                GaussQuadratureForTriangles.Order1Point1, quadratureForMass,
+                GaussQuadratureForTrianglesSymmetric.Order1Point1, quadratureForMass,
                 ExtrapolationGaussTriangular1Point.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
             IMatrix2D M = tri3.BuildConsistentMassMatrix();
@@ -106,8 +108,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         /// <summary>
         /// To reproduce the reference solution, run the Abaqus job tri3_test0.inp and look at 
-        /// TRI3_TEST0_STIFFNESS_MATRICES.mtx. Tri3 is a constant strain element(CST), therefore the strains / stresses are 
-        /// constant throughout the element (integration points and nodes).
+        /// TRI3_TEST0_STIFFNESS_MATRICES.mtx. 
         /// </summary>
         [Fact]
         private static void TestStiffness0()
@@ -128,7 +129,9 @@ namespace ISAAR.MSolve.Tests.FEM
         }
 
         /// <summary>
-        /// To reproduce the reference solution, run the Abaqus job tri3_test0.inp and look at tri3_tes0.dat
+        /// To reproduce the reference solution, run the Abaqus job tri3_test0.inp and look at tri3_tes0.dat. Tri3 is a constant 
+        /// strain element(CST), therefore the strains / stresses are constant throughout the element (integration points and 
+        /// nodes).
         /// </summary>
         [Fact]
         public static void TestStrainsStresses0()
@@ -144,7 +147,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 -1.4632E-03, -1.2747E-02     // Node 3  
             };
 
-            // The is only 1 Gauss point.
+            // There is only 1 Gauss point.
             double[][] expectedStrainsAtGPs =
             {
                 new double[] { -4.8201E-04,  7.4983E-04, -4.1130E-03 }  // Gauss point 1

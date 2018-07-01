@@ -5,11 +5,15 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 
-//TODO: cache the natural shape functions at gauss point sets
+// Quad4 nodes:
+// 3 -- 2
+// |    |
+// 0 -- 1
+
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>
-    /// Isoparametric interpolation of a quadrilateral finite element with 4 nodes. Linear shape functions. 
+    /// Isoparametric interpolation of a quadrilateral finite element with 4 nodes. Linear shape functions.
     /// Implements Singleton pattern.
     /// Authors: Serafeim Bakalakos
     /// </summary>
