@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return result;
 		}
 
-		public double[] TransformDerivativesToCartesian(double derivatiXi, double derivativeEta, double derivativeZeta)
+		public double[] TransformNaturalDerivativesToCartesian(double derivatiXi, double derivativeEta, double derivativeZeta)
 		{
 			var result = new double[3];
 			result[0] = derivatiXi * inverseJ[0, 0] + derivativeEta * inverseJ[1, 0] +
