@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
@@ -33,14 +34,28 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         private const double maxLoad = 1000.0; // TODO: this should be triangular
 
         private const string workingDirectory = @"C:\Users\Serafeim\Desktop\Presentation";
-        private const string meshFileName = "cantilever.msh";
+        private static readonly string projectDirectory =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\Resources\GMSH";
 
         public static void Run()
         {
-            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshManually();
+            // Choose one of the mesh files bundled with the project
+            //string meshPath = projectDirectory + "\\cantilever_quad4.msh";
+            //string meshPath = projectDirectory + "\\cantilever_quad8.msh";
+            //string meshPath = projectDirectory + "\\cantilever_quad9.msh";
+            //string meshPath = projectDirectory + "\\cantilever_tri3.msh";
+            string meshPath = projectDirectory + "\\cantilever_tri6.msh";
+
+            // Or set a path on your machine
+            //string meshPath = @"C:\Users\Serafeim\Desktop\Presentation\cantilever.msh";
+
+
+            (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(meshPath);
             //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateUniformMesh();
-            (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh();
+            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshManually();
+
             Model model = CreateModel(nodes, elements);
+            //PrintMeshOnly(model);
             SolveLinearStatic(model);
         }
 
@@ -125,9 +140,9 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             return (nodes, elements);
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshFromGmsh()
+        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshFromGmsh(string path)
         {
-            using (var reader = new GmshReader2D(workingDirectory + "\\" + meshFileName))
+            using (var reader = new GmshReader2D(path))
             {
                 return reader.CreateMesh();
             }
@@ -137,6 +152,15 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         {
             var meshGen = new UniformMeshGenerator(0.0, 0.0, length, height, 4, 20);
             return meshGen.CreateMesh();
+        }
+
+        private static void PrintMeshOnly(Model model)
+        {
+            var mesh = new VtkMesh2D(model);
+            using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+            {
+                writer.WriteMesh(mesh.Points, mesh.Cells);
+            }
         }
 
         private static void SolveLinearStatic(Model model)

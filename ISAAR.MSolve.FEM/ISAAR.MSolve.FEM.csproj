@@ -14,4 +14,7 @@
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Integration\Quadratures\" />
+  </ItemGroup>
 </Project>
