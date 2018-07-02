@@ -21,13 +21,17 @@ namespace ISAAR.MSolve.FEM.Meshes.GMSH
             var codes = new Dictionary<int, CellType2D>();
             codes.Add(2, CellType2D.Tri3);
             codes.Add(3, CellType2D.Quad4);
+            codes.Add(9, CellType2D.Tri6);
             codes.Add(10, CellType2D.Quad9);
+            codes.Add(16, CellType2D.Quad8);
             gmshCellCodes = codes;
 
             var connectivity = new Dictionary<CellType2D, int[]>();
             connectivity.Add(CellType2D.Tri3, new int[] { 0, 1, 2 });
             connectivity.Add(CellType2D.Quad4, new int[] { 0, 1, 2, 3 });
+            connectivity.Add(CellType2D.Tri6, new int[] { 0, 1, 2, 3, 4, 5 });
             connectivity.Add(CellType2D.Quad9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 });
+            connectivity.Add(CellType2D.Quad8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             gmshCellConnectivity = connectivity;
         }
 

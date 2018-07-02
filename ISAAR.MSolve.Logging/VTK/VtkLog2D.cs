@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.Logging.VTK
                             vonMises[pointIDs[i]] = vonMisesStressCalculator.Calculate(tensorsField.GetStrainsOfNode(nodes[i]), 
                                 tensorsField.GetStressesOfNode(nodes[i]));
                         }
-                        writer.WriteScalarField("stress (von Mises)", vonMises);
+                        writer.WriteScalarField("stress_vonMises", vonMises);
                     }
                 }
             }
