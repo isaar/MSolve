@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-// TODO: This order of shape functions produces smooth plots and agrees with Abaqus. But why?
-// This extrapolation is used for Tri6 interpolation with 3 Gauss points, where the numbering is:
+
+// This extrapolation is used for Tri6 interpolation with 3 Gauss points, where the node and GP numbering is:
 //
 // eta
 // ^
@@ -21,13 +21,7 @@ using System.Text;
 // | 2      0  \    --> r
 // |             \
 // 2 ---- 5 ----- 0   --> xi
-//
-// Shouldn't the shape functions be N0 = r, N1 = s, N2 = 1 - r - s? When I tried it, the tensors at nodes where 
-// permuted with respect to Abaqus and the plots (after averaging) were not smooth (e.g. for a 2D cantilever under 
-// bending).
-// Note that the Gauss point order in Abaqus is identical to GaussQuadratureForTrianglesSymmetric.Order2Points3:
-// A0 = (2/3, 1/6), A1 = (1/6, 2/3), A2 = (1/6, 1/6).
-// Perhaps I should evaluate the shape functions at each Gauss point to see what is happening.
+
 namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {
     /// <summary>
@@ -62,9 +56,9 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
             // Therefore their order must be the same: point on Xi, point on Eta, point at right angle. This might differ from 
             // the node order in InterpolationTri3.
             var shapeFunctions = new double[3];
-            shapeFunctions[0] = 1 - r - s;
-            shapeFunctions[1] = r;
-            shapeFunctions[2] = s;
+            shapeFunctions[0] = r;
+            shapeFunctions[1] = s;
+            shapeFunctions[2] = 1 - r - s;
             return shapeFunctions;
         }
     }

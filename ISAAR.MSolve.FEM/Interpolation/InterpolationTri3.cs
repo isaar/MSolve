@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
-                new NaturalPoint2D(0.0, 0.0),
                 new NaturalPoint2D(1.0, 0.0),
-                new NaturalPoint2D(0.0, 1.0)
+                new NaturalPoint2D(0.0, 1.0),
+                new NaturalPoint2D(0.0, 0.0)
             };
         }
 
