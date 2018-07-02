@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
+using ISAAR.MSolve.FEM.Meshes;
 using ISAAR.MSolve.Geometry.Coordinates;
 
 // Quad8 nodes:
@@ -23,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationQuad8 uniqueInstance = new InterpolationQuad8();
 
-        private InterpolationQuad8() : base(8)
+        private InterpolationQuad8() : base(CellType2D.Quad8, 8)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {

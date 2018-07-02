@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
+using ISAAR.MSolve.FEM.Meshes;
 using ISAAR.MSolve.Geometry.Coordinates;
 
 // Tri6 nodes:
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationTri6 uniqueInstance = new InterpolationTri6();
 
-        private InterpolationTri6() : base(6)
+        private InterpolationTri6() : base(CellType2D.Tri6, 6)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {

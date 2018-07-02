@@ -2,6 +2,7 @@
 using ISAAR.MSolve.FEM.Integration.Points;
 using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
+using ISAAR.MSolve.FEM.Meshes;
 using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,11 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public interface IIsoparametricInterpolation2D
     {
+        /// <summary>
+        /// The shape of a cell. Useful for interacting with other modules and software.
+        /// </summary>
+        CellType2D CellType { get; }
+
         /// <summary>
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
