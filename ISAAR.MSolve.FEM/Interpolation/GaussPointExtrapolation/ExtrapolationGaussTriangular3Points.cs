@@ -32,8 +32,8 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {
     /// <summary>
     /// Calculates extrapolations of scalar, vector and tensor fields from the integration points of 
-    /// <see cref="TriangleSymmetricGaussianQuadrature.Order2Points3"/>. This can be done for any point, but utility methods for directly 
-    /// outputting the extrapolated fields at the nodes of finite elements are also provided.
+    /// <see cref="TriangleSymmetricGaussianQuadrature.Order2Points3"/>. This can be done at any point, but utility methods for  
+    /// directly outputting the extrapolated fields at the nodes of finite elements are also provided.
     /// Implements Singleton pattern.
     /// Authors: Serafeim Bakalakos
     /// </summary>

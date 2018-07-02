@@ -16,19 +16,22 @@ namespace ISAAR.MSolve.Logging.VTK
         public static readonly IReadOnlyDictionary<IIsoparametricInterpolation2D, int> cellTypeCodes = 
             new Dictionary<IIsoparametricInterpolation2D, int>
             {
-                //{ InterpolationLine2.UniqueInstance, 3 },  // 0 ---- 1
-                //{ InterpolationLine2.UniqueInstance, 21 }, // 0 -- 2 -- 1
-
                                                              // 3 ---- 2
                                                              // |      |
                                                              // |      |
                 { InterpolationQuad4.UniqueInstance, 9 },    // 0 ---- 1
 
-                //                                             // 3 -- 6 -- 2
-                //                                             // |         |
-                //                                             // 7         5
-                //                                             // |         |
-                //{ InterpolationQuad8.UniqueInstance, 23 }    // 0 -- 4 -- 1
+                                                             // 3 -- 6 -- 2
+                                                             // |         |
+                                                             // 7         5
+                                                             // |         |
+                { InterpolationQuad8.UniqueInstance, 23 },   // 0 -- 4 -- 1
+
+                                                             // 3 -- 6 -- 2
+                                                             // |         |
+                                                             // 7 -- 8 -- 5
+                                                             // |         |
+                { InterpolationQuad9.UniqueInstance, 28 },   // 0 -- 4 -- 1
 
                                                              //    2
                                                              //   /  \

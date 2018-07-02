@@ -51,6 +51,18 @@ namespace ISAAR.MSolve.FEM.Elements
             integrationsForMass.Add(CellType2D.Quad4, GaussLegendre2D.Order2x2);
             extrapolations.Add(CellType2D.Quad4, ExtrapolationGaussLegendre2x2.UniqueInstance);
 
+            // Quad8
+            interpolations.Add(CellType2D.Quad8, InterpolationQuad8.UniqueInstance);
+            integrationsForStiffness.Add(CellType2D.Quad8, GaussLegendre2D.Order3x3);
+            integrationsForMass.Add(CellType2D.Quad8, GaussLegendre2D.Order3x3);
+            extrapolations.Add(CellType2D.Quad8, ExtrapolationGaussLegendre3x3.UniqueInstance);
+
+            // Quad9
+            interpolations.Add(CellType2D.Quad9, InterpolationQuad9.UniqueInstance);
+            integrationsForStiffness.Add(CellType2D.Quad9, GaussLegendre2D.Order3x3);
+            integrationsForMass.Add(CellType2D.Quad9, GaussLegendre2D.Order3x3);
+            extrapolations.Add(CellType2D.Quad9, ExtrapolationGaussLegendre3x3.UniqueInstance);
+
             // Tri3
             interpolations.Add(CellType2D.Tri3, InterpolationTri3.UniqueInstance);
             integrationsForStiffness.Add(CellType2D.Tri3, TriangleQuadratureSymmetricGaussian.Order1Point1);

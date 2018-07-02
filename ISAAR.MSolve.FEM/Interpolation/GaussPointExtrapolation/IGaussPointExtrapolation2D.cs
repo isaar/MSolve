@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {
     /// <summary>
     /// Calculates extrapolations of scalar, vector and tensor fields from the integration points of a quadrature (integration 
-    /// rule). This can be done for any point, but utility methods for directly outputting the extrapolated fields at the nodes
+    /// rule). This can be done at any point, but utility methods for directly outputting the extrapolated fields at the nodes
     /// of finite elements are also provided.
     /// Authors: Serafeim Bakalakos
     /// </summary>

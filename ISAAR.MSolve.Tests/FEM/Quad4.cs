@@ -20,6 +20,7 @@ namespace ISAAR.MSolve.Tests.FEM
     /// <summary>
     /// Tests 4-noded quadrilateral instances of <see cref="ContinuumElement2D"/> against Abaqus and the notes of the excellent 
     /// University of Colorado at Boulder FEM course.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class Quad4
     {

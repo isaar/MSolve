@@ -40,6 +40,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateUniformMesh();
             (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh();
             Model model = CreateModel(nodes, elements);
+            //PrintMeshOnly(model);
             SolveLinearStatic(model);
         }
 
@@ -136,6 +137,15 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         {
             var meshGen = new UniformMeshGenerator(0.0, 0.0, length, height, 4, 20);
             return meshGen.CreateMesh();
+        }
+
+        private static void PrintMeshOnly(Model model)
+        {
+            var mesh = new VtkMesh2D(model);
+            using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+            {
+                writer.WriteMesh(mesh.Points, mesh.Cells);
+            }
         }
 
         private static void SolveLinearStatic(Model model)

@@ -20,6 +20,7 @@ namespace ISAAR.MSolve.Tests.FEM
     /// <summary>
     /// Tests 3-noded triangular instances of <see cref="ContinuumElement2D"/> against Abaqus and the notes of the excellent
     /// University of Colorado at Boulder FEM course.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class Tri3
     {

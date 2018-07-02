@@ -13,12 +13,13 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
+//TODO: Add tests for wrong node orders, too distorted shapes, etc.
 //TODO: Add tests presented in https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch24.d/IFEM.Ch24.pdf
-//TODO: Resolve why the Jacobian throws exceptions for integration rules with 7 or more Gauss points
 namespace ISAAR.MSolve.Tests.FEM
 {
     /// <summary>
-    /// Tests 3-noded triangular instances of <see cref="ContinuumElement2D"/> against Abaqus.
+    /// Tests 6-noded triangular instances of <see cref="ContinuumElement2D"/> against Abaqus.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class Tri6
     {
@@ -45,6 +46,10 @@ namespace ISAAR.MSolve.Tests.FEM
             new Node2D(5, 2.9,  2.6)
         };
 
+        /// <summary>
+        /// To reproduce the reference solution, run the Abaqus job tri6_test0.inp and look at 
+        /// TRI6_TEST0_MASS_MATRICES.mtx.
+        /// </summary>
         [Fact]
         private static void TestConsistentMass0()
         {
@@ -128,7 +133,6 @@ namespace ISAAR.MSolve.Tests.FEM
                 3.5728E-03, -1.2996E-02     // Node 6
             };
 
-            // The is only 1 Gauss point.
             double[][] expectedStrainsAtGPs =
             {
                 new double[] {  3.3735E-03,  8.8893E-04, -4.6302E-03 },  // Gauss point 1
