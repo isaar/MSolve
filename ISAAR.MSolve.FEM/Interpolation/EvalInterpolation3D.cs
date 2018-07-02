@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.FEM.Interpolation
@@ -38,7 +40,45 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 	    public Matrix2D BuildShapeFunctionMatrix()
 	    {
-			var array2D= new double();
+			var array2D= new double[3,3*shapeFunctions.Length];
+		    for (int i = 0; i < shapeFunctions.Length; i++)
+		    {
+			    array2D[0, 3 * i] = shapeFunctions[i];
+			    array2D[1, 2 * i + 1] = shapeFunctions[i];
+			    array2D[2, 3 * i + 2] = shapeFunctions[i];
+		    }
+			return new Matrix2D(array2D);
 	    }
+
+	    /// <summary>
+	    /// The value of the stored shape function that corresponds to the node with local index <paramref name="nodeIdx"/>.
+	    /// </summary>
+	    /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
+	    /// <returns></returns>
+		public double GetShapeFunction(int nodeIdx) => shapeFunctions[nodeIdx];
+
+	    /// <summary>
+	    /// The values of the stored shape function derivatives, with respect to the global cartesian coordinates, that 
+	    /// correspond to the node with local index <paramref name="nodeIdx"/>.
+	    /// </summary>
+	    /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
+	    /// <returns></returns>
+		public IReadOnlyList<double> GetShapeGradientCartesian(int nodeIdx) => shapeGradientCartesian[nodeIdx];
+
+	    public CartesianPoint3D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalCoordinates)
+	    {
+		    if (nodes.Count != shapeFunctions.Length) throw new ArgumentException(
+			    $"There are {shapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
+		    double x = 0, y = 0, z = 0;
+		    for (int i = 0; i < shapeFunctions.Length; i++)
+		    {
+			    Node3D node = nodes[i];
+			    x += shapeFunctions[i] * node.X;
+			    y += shapeFunctions[i] * node.Y;
+			    z += shapeFunctions[i] * node.Z;
+			}
+			return new CartesianPoint3D(x,y,z);
+	    }
+
 	}
 }
