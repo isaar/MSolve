@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
-namespace ISAAR.MSolve.Tests.FEM.Extrapolation
+namespace ISAAR.MSolve.FEM.Tests.Interpolation.Extrapolation
 {
     /// <summary>
     /// Unit testing for <see cref="ExtrapolationGaussLegendre3x3"/>.

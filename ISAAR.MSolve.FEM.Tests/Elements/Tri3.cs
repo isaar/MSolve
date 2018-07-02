@@ -15,7 +15,7 @@ using Xunit;
 
 //TODO: Add tests for wrong node orders, too distorted shapes, etc.
 //TODO: Add tests presented in https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch24.d/IFEM.Ch24.pdf
-namespace ISAAR.MSolve.Tests.FEM
+namespace ISAAR.MSolve.FEM.Tests.Elements
 {
     /// <summary>
     /// Tests 3-noded triangular instances of <see cref="ContinuumElement2D"/> against Abaqus and the notes of the excellent
