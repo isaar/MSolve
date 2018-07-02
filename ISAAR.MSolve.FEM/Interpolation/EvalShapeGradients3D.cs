@@ -10,11 +10,11 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	/// places, thus passing an instance of this class is less verbose and error prone.
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
-	public class EvalShapeGradient3D
+	public class EvalShapeGradients3D
     {
 		private readonly double[][] shapeGradientsCartesian;
 
-	    public EvalShapeGradient3D(double[,] shapeGradientNatural, Jacobian3D jacobian)
+	    public EvalShapeGradients3D(double[,] shapeGradientNatural, Jacobian3D jacobian)
 	    {
 		    int numberOfNodes = shapeGradientNatural.Length;
 			this.shapeGradientsCartesian=new double[numberOfNodes][];
