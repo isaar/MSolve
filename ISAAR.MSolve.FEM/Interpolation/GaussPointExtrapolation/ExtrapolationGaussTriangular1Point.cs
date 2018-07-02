@@ -1,8 +1,8 @@
-﻿using ISAAR.MSolve.FEM.Integration.Quadratures;
-using ISAAR.MSolve.Geometry.Coordinates;
+﻿using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {

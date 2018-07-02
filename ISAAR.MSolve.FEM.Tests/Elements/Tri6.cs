@@ -1,7 +1,7 @@
-﻿using ISAAR.MSolve.FEM.Elements;
+﻿using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Integration.Points;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Meshes;

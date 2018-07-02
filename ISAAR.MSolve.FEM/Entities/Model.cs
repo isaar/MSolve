@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
+using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Model
+    public class Model:IStructuralModel
     {
         public const int constrainedDofIdx = -1;
         private int totalDOFs = 0;
@@ -42,7 +44,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return subdomainsDictionary; }
         }
 
-        public Dictionary<int, Cluster> ClustersDictionary
+	    public Dictionary<int, ISubdomain> ISubdomainsDictionary
+	    {
+		    get
+		    {
+			    var a = new Dictionary<int, ISubdomain>();
+			    foreach (var subdomain in subdomainsDictionary.Values)
+				    a.Add(subdomain.ID,subdomain);
+				return a;
+		    }
+	    }
+
+		public Dictionary<int, Cluster> ClustersDictionary
         {
             get { return clustersDictionary; }
         }

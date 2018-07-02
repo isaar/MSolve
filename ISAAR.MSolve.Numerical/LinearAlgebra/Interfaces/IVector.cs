@@ -12,5 +12,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces
         void CopyTo(Array array, int index);
         void CopyFrom(int startIndex, int length, IVector fromVector, int fromStartIndex);
         void Clear();
+        Vector[] RemoveDuplicatesFindMultiplicity();
     }
 }

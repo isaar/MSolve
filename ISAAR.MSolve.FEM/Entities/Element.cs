@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 
 //TODO: Delete this ASAP. 1) Its purpose is element-node connectivity, which should be done through interfaces and inheritance,
@@ -15,8 +16,8 @@ namespace ISAAR.MSolve.FEM.Entities
         Shear = 2
     }
 
-    public class Element
-    {
+    public class Element: IElement
+	{
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         private readonly Dictionary<DOFType, AbsorptionType> absorptions = new Dictionary<DOFType, AbsorptionType>();
         private readonly IList<Node> embeddedNodes = new List<Node>();
@@ -36,13 +37,30 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return nodesDictionary.Values.ToList<Node>(); }
         }
 
-        public IList<Node> EmbeddedNodes
+		public IList<INode> INodes
+		{
+			get
+			{
+				IList<INode> a = new List<INode>();
+				foreach (var node in nodesDictionary.Values)
+					a.Add(node);
+				return a;
+			}
+		}
+
+		public IList<Node> EmbeddedNodes
         {
             get { return embeddedNodes; }
         }
 
         public int ID { get; set; }
         public IFiniteElement ElementType { get; set; }
+
+		public IElementType IElementType
+		{
+			get => ElementType;
+		}
+
         //public IFiniteElementMaterial MaterialType { get; set; }
         public Subdomain Subdomain { get; set; }
         public int[] DOFs { get; set; }

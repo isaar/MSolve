@@ -1,4 +1,4 @@
-﻿using ISAAR.MSolve.FEM.Integration.Quadratures;
+﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;

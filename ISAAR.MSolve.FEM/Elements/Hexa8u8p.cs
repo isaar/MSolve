@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -18,7 +20,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected IIsotropicContinuumMaterial3D[] materialsAtGaussPoints;
-        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         #region Fortran imports
         [DllImport("femelements.dll",
@@ -105,12 +107,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
         }
 
-        public Hexa8u8p(IIsotropicContinuumMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator) : this(material)
+        public Hexa8u8p(IIsotropicContinuumMaterial3D material, IElementDOFEnumerator dofEnumerator) : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -134,14 +136,14 @@ namespace ISAAR.MSolve.FEM.Elements
         public double QInv { get { return Cs + Porosity * Saturation / FluidBulkModulus + 
             (PoreA - Porosity) * Saturation / SolidBulkModulus; } }
 
-        protected double[,] GetCoordinates(Element element)
+        protected double[,] GetCoordinates(IElement element)
         {
             double[,] faXYZ = new double[dofTypes.Length, 3];
             for (int i = 0; i < dofTypes.Length; i++)
             {
-                faXYZ[i, 0] = element.Nodes[i].X;
-                faXYZ[i, 1] = element.Nodes[i].Y;
-                faXYZ[i, 2] = element.Nodes[i].Z;
+                faXYZ[i, 0] = element.INodes[i].X;
+                faXYZ[i, 1] = element.INodes[i].Y;
+                faXYZ[i, 2] = element.INodes[i].Z;
             }
             return faXYZ;
         }
@@ -158,7 +160,7 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.ThreeD; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofTypes;
         }
@@ -168,7 +170,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return element.Nodes;
         }
 
-        public virtual IMatrix2D StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
             double[, ,] afE = new double[iInt3, 6, 6];
             for (int i = 0; i < iInt3; i++)
@@ -188,7 +190,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(faK));
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -204,7 +206,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return new SymmetricMatrix2D(faM);
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             var m = MassMatrix(element);
             var lc = m as ILinearlyCombinable;
@@ -503,7 +505,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #region IPorousFiniteElement Members
 
-        public IMatrix2D PermeabilityMatrix(Element element)
+        public IMatrix2D PermeabilityMatrix(IElement element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -521,7 +523,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
         // Rows are fluid DOFs and columns are solid DOFs
-        public IMatrix2D CouplingMatrix(Element element)
+        public IMatrix2D CouplingMatrix(IElement element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -539,7 +541,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return new Matrix2D(faQ);
         }
 
-        public IMatrix2D SaturationMatrix(Element element)
+        public IMatrix2D SaturationMatrix(IElement element)
         {
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];

@@ -1,8 +1,8 @@
-﻿using ISAAR.MSolve.FEM.Integration.Quadratures;
-using ISAAR.MSolve.Geometry.Coordinates;
+﻿using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 
 // This extrapolation is used for Tri6 interpolation with 3 Gauss points, where the node and GP numbering is:

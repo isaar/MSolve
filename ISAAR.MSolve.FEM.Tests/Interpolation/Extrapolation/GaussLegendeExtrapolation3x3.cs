@@ -1,5 +1,5 @@
-﻿using ISAAR.MSolve.FEM.Integration.Points;
-using ISAAR.MSolve.FEM.Integration.Quadratures;
+﻿using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using System;
 using System.Collections.Generic;
