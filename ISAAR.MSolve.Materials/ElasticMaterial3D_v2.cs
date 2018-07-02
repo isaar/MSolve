@@ -8,10 +8,10 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class ElasticMaterial3D_v2 : IFiniteElementMaterial3D, IIsotropicFiniteElementMaterial3D
+    public class ElasticMaterial3D_v2 : IContinuumMaterial3D, IIsotropicContinuumMaterial3D
     {
         private readonly double[] strains = new double[6];
-        private readonly double[] stresses = new double[6];
+        private readonly StressStrainVectorContinuum3D stresses = new StressStrainVectorContinuum3D();
         private double[,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
@@ -63,14 +63,14 @@ namespace ISAAR.MSolve.Materials
 
         #region IFiniteElementMaterial3D Members
 
-        public double[] Stresses { get { return stresses; } }
+        public StressStrainVectorContinuum3D Stresses { get { return stresses; } }
 
-        public IMatrix2D ConstitutiveMatrix
+        public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
                 if (constitutiveMatrix == null) UpdateMaterial(new double[6]);
-                return new Matrix2D(constitutiveMatrix);
+                return new ElasticityTensorContinuum3D(constitutiveMatrix);
             }
         }
 
@@ -106,7 +106,12 @@ namespace ISAAR.MSolve.Materials
             return new ElasticMaterial3D_v2() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
         }
 
-        #endregion
+		public void UpdateMaterial(StressStrainVectorContinuum3D strains)
+		{
+			throw new NotImplementedException();
+		}
 
-    }
+		#endregion
+
+	}
 }

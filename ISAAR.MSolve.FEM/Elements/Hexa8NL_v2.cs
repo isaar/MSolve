@@ -11,6 +11,8 @@ using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -20,8 +22,8 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected readonly IFiniteElementMaterial3D[] materialsAtGaussPoints;
-        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected readonly IContinuumMaterial3D[] materialsAtGaussPoints;
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         // ews edw
 
         public int gp_d1_disp { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
@@ -33,15 +35,15 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public Hexa8NL_v2(IFiniteElementMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
+        public Hexa8NL_v2(IContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
         {
             this.gp_d1_disp = gp_d1c;
             this.gp_d2_disp = gp_d2c;
             this.gp_d3_disp = gp_d3c;
             this.nGaussPoints = this.gp_d1_disp * this.gp_d2_disp * this.gp_d3_disp;
-            materialsAtGaussPoints = new IFiniteElementMaterial3D[nGaussPoints];
+            materialsAtGaussPoints = new IContinuumMaterial3D[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++)
-                materialsAtGaussPoints[i] = (IFiniteElementMaterial3D)material.Clone();
+                materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
         }
 
         public int endeixiShapeFunctionAndGaussPointData = 1;
@@ -256,7 +258,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL13_hexa;
         }
 
-        private Tuple<double[][,], double[]> GetJ_0invHexaAndDetJ_0(double[][,] ll1_hexa, Element element)
+        private Tuple<double[][,], double[]> GetJ_0invHexaAndDetJ_0(double[][,] ll1_hexa, IElement element)
         {
             double[][,] J_0b_hexa; // exoume tosa [,] osa einai kai ta gpoints
             double[][,] J_0_hexa;
@@ -267,7 +269,7 @@ namespace ISAAR.MSolve.FEM.Elements
             ox_i = new double[8][];
             for (int j = 0; j < 8; j++)
             {
-                ox_i[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };
+                ox_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
             }
             J_0b_hexa = new double[nGaussPoints][,];
             J_0_hexa = new double[nGaussPoints][,];
@@ -452,7 +454,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        private void CalculateInitialConfigurationData(Element element)
+        private void CalculateInitialConfigurationData(IElement element)
         {
             double[] a_123g;
 
@@ -501,8 +503,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int j = 0; j < 8; j++)
             {
-                ox_i[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };
-                tx_i[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };
+                ox_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
+                tx_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
                 //tu_i[j] = new double[] { 0, 0, 0 }; den ananewnontai se afth th methodo ta mhtrwa pou periexoun tu_i
             }
 
@@ -645,7 +647,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        private void UpdateCoordinateData(double[] localdisplacements, Element element) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
+        private void UpdateCoordinateData(double[] localdisplacements, IElement element) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
             //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn 
             double[,] Ni_ksi;
@@ -1041,7 +1043,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
 
-        private double[,] UpdateKmatrices(Element element)
+        private double[,] UpdateKmatrices(IElement element)
         {
             double[,] k_stoixeiou = new double[24, 24];
 
@@ -1349,9 +1351,9 @@ namespace ISAAR.MSolve.FEM.Elements
             this.UpdateCoordinateData(localTotalDisplacements, element);
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
-                materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+                materialsAtGaussPoints[npoint].UpdateMaterial(new StressStrainVectorContinuum3D(GLvec[npoint]));
             }
-            return new Tuple<double[], double[]>(GLvec[materialsAtGaussPoints.Length - 1], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(GLvec[materialsAtGaussPoints.Length - 1], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
             //TODO mono to teleftaio dianusma tha epistrefei?
         }
 
@@ -1372,7 +1374,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
         }
 
-        public virtual IMatrix2D StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
             double[,] k_stoixeiou = new double[24, 24];
             if (Cons_disp == null)
@@ -1406,7 +1408,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (IFiniteElementMaterial3D material in materialsAtGaussPoints)
+                foreach (IContinuumMaterial3D material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -1414,22 +1416,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IFiniteElementMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void ClearMaterialState()
         {
-            foreach (IFiniteElementMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
         {
-            foreach (IFiniteElementMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IFiniteElementMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         // omoiws me hexa 8 shell8disp implemented
@@ -1442,13 +1444,13 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.ThreeD; }
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofTypes;
         }
@@ -1459,12 +1461,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return new double[24];
         }
 
-        public virtual IMatrix2D MassMatrix(Element element)
+        public virtual IMatrix2D MassMatrix(IElement element)
         {
             return new Matrix2D(24, 24);
         }
 
-        public virtual IMatrix2D DampingMatrix(Element element)
+        public virtual IMatrix2D DampingMatrix(IElement element)
         {
 
             return new Matrix2D(24, 24);
