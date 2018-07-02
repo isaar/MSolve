@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Tests
 {
     public class Quad4NLCantileverExample
     {
-        [Fact]
+        //[Fact]
         public void TestQuad4NLCantileverExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[4].Constraints.Add(DOFType.Y);
 
             // Create Quad4 element
-            var quad = new Quad4NL(material);
+            var quad = new Quad4NL(material) { Thickness = thickness };
             var element = new Element()
             {
                 ID = 1,

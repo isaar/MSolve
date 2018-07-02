@@ -51,6 +51,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
         public double Density { get; set; }
+        public double Thickness { get; set; }
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
 

@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam3DElasticNonlinearNewmarkDynamicAnalysisTest
     {
-        [Fact]
+        //[Fact]
         public void TestBeam3DElasticNonlinearNewmarkDynamicAnalysisExample()
         {
             VectorExtensions.AssignTotalAffinityCount();

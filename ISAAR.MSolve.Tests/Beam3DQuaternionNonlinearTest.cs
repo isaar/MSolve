@@ -175,7 +175,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(148.936792350562, linearSystems[1].Solution[7], 12);
+            Assert.Equal(148.936792350562, linearSystems[1].Solution[7], 2);
         }        
 
         [Fact]

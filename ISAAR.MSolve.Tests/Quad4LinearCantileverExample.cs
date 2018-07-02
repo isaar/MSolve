@@ -64,11 +64,11 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[4].Constraints.Add(DOFType.Y);
 
             // Create Quad4 element
-            var quad = new Quad4(material);
+            var quad = new Quad4(material) { Thickness = thickness };
             var element = new Element()
             {
                 ID = 1,
-                ElementType = quad
+                ElementType = quad,
             };
 
             // Add nodes to the created element
