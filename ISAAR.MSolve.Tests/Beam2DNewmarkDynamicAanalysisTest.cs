@@ -13,6 +13,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests

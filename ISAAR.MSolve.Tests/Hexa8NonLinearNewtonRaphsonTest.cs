@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 8;
 
             // Create new 3D material
-            ElasticMaterial3D_v2 material = new ElasticMaterial3D_v2
+            ElasticMaterial3D material = new ElasticMaterial3D
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

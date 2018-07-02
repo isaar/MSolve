@@ -12,6 +12,7 @@ using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
@@ -27,11 +28,10 @@ namespace ISAAR.MSolve.Tests
             double thickness = 1.0;
             double nodalLoad = 500.0;
 
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-                StressState = "plstress",
+                PoissonRatio = poissonRatio
             };
 
             // Node creation

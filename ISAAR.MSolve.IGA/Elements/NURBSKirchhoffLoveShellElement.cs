@@ -118,7 +118,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
 
-				var surfaceBasisVector3 = surfaceBasisVector1.CrossProduct(surfaceBasisVector2);
+				var surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
 				var J1 = surfaceBasisVector3.Norm;
 				surfaceBasisVector3.Multiply(1 / J1);
 
@@ -160,13 +160,13 @@ namespace ISAAR.MSolve.IGA.Elements
 			{
 				#region BI1
 
-				var BI1 = surfaceBasisVector3.CrossProduct(surfaceBasisVector3);
+				var BI1 = surfaceBasisVector3^surfaceBasisVector3;
 				BI1.Multiply(nurbs.NurbsDerivativeValuesHeta[column / 3, j]);
-				var auxVector = surfaceBasisVector2.CrossProduct(surfaceBasisVector3);
+				var auxVector = surfaceBasisVector2^surfaceBasisVector3;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesKsi[column / 3, j]);
 				BI1.Add(auxVector);
 				BI1.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative1));
-				auxVector = surfaceBasisVector1.CrossProduct(surfaceBasisVectorDerivative1);
+				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative1;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesHeta[column / 3, j]);
 				BI1.Add(auxVector);
 				BI1.Multiply(1 / J1);
@@ -180,16 +180,16 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				#region BI2
 
-				Vector BI2 = surfaceBasisVector3.CrossProduct(surfaceBasisVector3);
+				Vector BI2 = surfaceBasisVector3^surfaceBasisVector3;
 				BI2.Multiply(nurbs.NurbsDerivativeValuesHeta[column / 3, j]);
-				auxVector = surfaceBasisVector2.CrossProduct(surfaceBasisVector3);
+				auxVector = surfaceBasisVector2^surfaceBasisVector3;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesKsi[column / 3, j]);
 				BI2.Add(auxVector);
 				BI2.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative2));
-				auxVector = surfaceBasisVector1.CrossProduct(surfaceBasisVectorDerivative2);
+				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative2;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesHeta[column / 3, j]);
 				BI2.Add(auxVector);
-				auxVector = surfaceBasisVectorDerivative2.CrossProduct(surfaceBasisVector2);
+				auxVector = surfaceBasisVectorDerivative2^surfaceBasisVector2;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesKsi[column / 3, j]);
 				BI2.Add(auxVector);
 				BI2.Multiply(1 / J1);
@@ -203,16 +203,16 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				#region BI3
 
-				Vector BI3 = surfaceBasisVector3.CrossProduct(surfaceBasisVector3);
+				Vector BI3 = surfaceBasisVector3^surfaceBasisVector3;
 				BI3.Multiply(nurbs.NurbsDerivativeValuesHeta[column / 3, j]);
-				auxVector = surfaceBasisVector2.CrossProduct(surfaceBasisVector3);
+				auxVector = surfaceBasisVector2^surfaceBasisVector3;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesKsi[column / 3, j]);
 				BI3.Add(auxVector);
 				BI3.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative12));
-				auxVector = surfaceBasisVector1.CrossProduct(surfaceBasisVectorDerivative12);
+				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative12;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesHeta[column / 3, j]);
 				BI3.Add(auxVector);
-				auxVector = surfaceBasisVectorDerivative2.CrossProduct(surfaceBasisVector2);
+				auxVector = surfaceBasisVectorDerivative2^surfaceBasisVector2;
 				auxVector.Multiply(nurbs.NurbsDerivativeValuesKsi[column / 3, j]);
 				BI3.Add(auxVector);
 				BI3.Multiply(1 / J1);

@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.FEM.Elements
          * @param beamSection
          *            The beam section.
          */
-        public Beam3DCorotationalQuaternion(IList<Node> nodes, IIsotropicFiniteElementMaterial3D material, double density, BeamSection3D beamSection)
+        public Beam3DCorotationalQuaternion(IList<Node> nodes, IIsotropicContinuumMaterial3D material, double density, BeamSection3D beamSection)
             : base(nodes, material, density, beamSection)
         {
             this.displacementsOfCurrentIncrement = new Vector(FREEDOM_DEGREE_COUNT);

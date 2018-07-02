@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -23,8 +25,8 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         //protected static final List<Set<FreedomDegreeType>> FREEDOM_DEGREE_TYPES =
         //        Collections.nCopies(NODE_COUNT, FreedomDegreeTypeSets.X_Y_Z_ROTX_ROTY_ROTZ);
-        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
-        protected readonly  IIsotropicFiniteElementMaterial3D material;
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected readonly  IIsotropicContinuumMaterial3D material;
         protected readonly IList<Node> nodes;
         protected readonly double density;
         protected BeamSection3D beamSection;
@@ -39,7 +41,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
 
-        protected Beam3DCorotationalAbstract(IList<Node> nodes, IIsotropicFiniteElementMaterial3D material, double density, BeamSection3D beamSection)
+        protected Beam3DCorotationalAbstract(IList<Node> nodes, IIsotropicContinuumMaterial3D material, double density, BeamSection3D beamSection)
         {
             this.nodes = nodes;
             this.material = material;
@@ -57,7 +59,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public int ID { get { return 100; } }
         public ElementDimensions ElementDimensions { get { return ElementDimensions.ThreeD; } }
         public bool MaterialModified { get { return material.Modified; } }
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -482,36 +484,28 @@ namespace ISAAR.MSolve.FEM.Elements
             return transformMatrix;
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofTypes;
         }
 
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
             var rotationMatrixBlock = this.CalculateBlockRotationMatrix();
             var localStiffnessMatrix = this.CalculateLocalStiffnessMatrix();
             var s = rotationMatrixBlock * localStiffnessMatrix.ToMatrix2D() * rotationMatrixBlock.Transpose();
             return new SymmetricMatrix2D(s);
-
-            //var rotationMatrixTranspose = rotationMatrixBlock.Transpose();
-            //var intermediateMatrix = localStiffnessMatrix * rotationMatrixTranspose;
-            //var stiffnessGlobal = rotationMatrixBlock.multiplyWithMatrix(intermediateMatrix);
-            //var stiffnessInSymmetricForm = SymmetricDenseMatrix.create(FREEDOM_DEGREE_COUNT);
-            //var asSymmetricMatrixView = SymmetricMatrixView.asSymmetricUnchecked(stiffnessGlobal);
-            //stiffnessInSymmetricForm.copyFrom(asSymmetricMatrixView);
-            //return stiffnessInSymmetricForm;
         }      
         
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             //throw new NotImplementedException();
             double area = beamSection.Area;
             double inertiaY = beamSection.InertiaY;
             double inertiaZ = beamSection.InertiaZ;
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
-            double z2 = Math.Pow(element.Nodes[1].Z - element.Nodes[0].Z, 2);
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
+            double z2 = Math.Pow(element.INodes[1].Z - element.INodes[0].Z, 2);
             double L = Math.Sqrt(x2 + y2 + z2);
             double fullMass = density * area * L;
 
@@ -572,7 +566,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return massMatrix;
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             //throw new NotImplementedException();
             var m = MassMatrix(element);
