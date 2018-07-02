@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.FEM.Materials
     ///   Class for 3D Von Mises materials.
     /// </summary>
     /// <a href = "http://en.wikipedia.org/wiki/Von_Mises_yield_criterion">Wikipedia -Von Mises yield criterion</a>
-    public class VonMisesMaterial3D : IIsotropicFiniteElementMaterial3D
+    public class VonMisesMaterial3D : IIsotropicContinuumMaterial3D
     {
         /// <summary>
         ///   The Poisson ratio value of an incompressible solid.
@@ -41,18 +41,18 @@ namespace ISAAR.MSolve.FEM.Materials
         private static readonly double[,] SupportiveMatrixForConsistentConstitutiveMatrix = new[,]
             {
                 {
-                   0, -1, -1, 0, 0, 0 
+                   0, -1, -1, 0, 0, 0
                 }, {
-                      -1, 0, -1, 0, 0, 0, 
+                      -1, 0, -1, 0, 0, 0,
                    }, {
-                         -1, -1, 0, 0, 0, 0 
+                         -1, -1, 0, 0, 0, 0
                       }, {
-                            0, 0, 0, 0.5, 0, 0 
-                         }, 
+                            0, 0, 0, 0.5, 0, 0
+                         },
                 {
-                   0, 0, 0, 0, 0.5, 0 
+                   0, 0, 0, 0, 0.5, 0
                 }, {
-                      0, 0, 0, 0, 0, 0.5 
+                      0, 0, 0, 0, 0, 0.5
                    }
             };
 
@@ -195,16 +195,16 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <value>
         ///   The constitutive matrix.
         /// </value>
-        public IMatrix2D ConstitutiveMatrix
+        public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
                 if (this.constitutiveMatrix == null)
                 {
-                    this.UpdateMaterial(new double[6]);
+                    this.UpdateMaterial(new StressStrainVectorContinuum3D(new double[6]));
                 }
 
-                return new Matrix2D(this.constitutiveMatrix);
+                return new ElasticityTensorContinuum3D(this.constitutiveMatrix);
             }
         }
 
@@ -297,11 +297,11 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <remarks>
         ///   <a href = "http://en.wikipedia.org/wiki/Stress_%28mechanics%29">Stress (mechanics)</a>
         /// </remarks>
-        public double[] Stresses
+        public StressStrainVectorContinuum3D Stresses
         {
             get
             {
-                return this.stressesNew;
+                return new StressStrainVectorContinuum3D(this.stressesNew);
             }
         }
 
@@ -341,12 +341,12 @@ namespace ISAAR.MSolve.FEM.Materials
 
             VonMisesMaterial3D m = new VonMisesMaterial3D(
                 this.youngModulus, this.poissonRatio, this.yieldStress, this.hardeningRatio)
-                {
-                    modified = this.Modified,
-                    plasticStrain = this.plasticStrain,
-                    incrementalStrains = strainsCopy,
-                    stresses = stressesCopy
-                };
+            {
+                modified = this.Modified,
+                plasticStrain = this.plasticStrain,
+                incrementalStrains = strainsCopy,
+                stresses = stressesCopy
+            };
             return m;
         }
 
@@ -392,9 +392,9 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Updates the element's material with the provided incremental strains.
         /// </summary>
         /// <param name = "strainsIncrement">The incremental strains to use for the next step.</param>
-        public void UpdateMaterial(double[] strainsIncrement)
+        public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
         {
-            Array.Copy(strainsIncrement, this.incrementalStrains, 6);
+            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
             //this.incrementalStrains = strainsIncrement.DeepClone();
             this.CalculateNextStressStrainPoint();
         }
@@ -543,7 +543,7 @@ namespace ISAAR.MSolve.FEM.Materials
         public double[] GetStressDeviator(double[] stresses)
         {
             var hydrostaticStress = this.GetMeanStress(stresses);
-            var stressDeviator = new double[] 
+            var stressDeviator = new double[]
             {
                 stresses[0] - hydrostaticStress,
                 stresses[1] - hydrostaticStress,

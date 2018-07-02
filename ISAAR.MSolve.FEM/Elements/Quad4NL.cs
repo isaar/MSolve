@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using ISAAR.MSolve.Discretization;
-//using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
@@ -28,8 +28,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         //protected readonly IFiniteElementMaterial3D[] materialsAtGaussPoints; //Panos - What about 2D Material? Implemented
         protected readonly ElasticMaterial2D[] materialsAtGaussPoints;
-        protected readonly IIsotropicFiniteElementMaterial3D material;
-        protected IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+
+        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         protected Quad4NL()
         {
         }
@@ -39,30 +39,29 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < iInt2; i++)
                 materialsAtGaussPoints[i] = (ElasticMaterial2D)material.Clone();
         }
-        public Quad4NL(IFiniteElementMaterial material, IFiniteElementDOFEnumerator dofEnumerator)
+        public Quad4NL(IFiniteElementMaterial material, IElementDOFEnumerator dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
-
+        
         public double Density { get; set; }
-        public double Thickness { get; set; }
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
-
-        protected double[,] GetCoordinates(Element element)
+        
+        protected double[,] GetCoordinates(IElement element)
         {
             //double[,] faXYZ = new double[dofTypes.Length, 3];
             double[,] faXY = new double[dofTypes.Length, 2];
             for (int i = 0; i < dofTypes.Length; i++)
             {
-                faXY[i, 0] = element.Nodes[i].X;
-                faXY[i, 1] = element.Nodes[i].Y;
+                faXY[i, 0] = element.INodes[i].X;
+                faXY[i, 1] = element.INodes[i].Y;
             }
             return faXY;
         }
@@ -91,7 +90,7 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.TwoD; }
         }
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofTypes;
         }
@@ -121,33 +120,33 @@ namespace ISAAR.MSolve.FEM.Elements
             double shapeFunctionKsi2 = (1.0 + coordinateKsi);
             double shapeFunctionHeta1 = (1.0 - coordinateHeta);
             double shapeFunctionHeta2 = (1.0 + coordinateHeta);
-
+            
             var N1 = 0.25 * shapeFunctionKsi1 * shapeFunctionHeta1;
             var N2 = 0.25 * shapeFunctionKsi2 * shapeFunctionHeta1;
             var N3 = 0.25 * shapeFunctionKsi2 * shapeFunctionHeta2;
             var N4 = 0.25 * shapeFunctionKsi1 * shapeFunctionHeta2;
-            return new[] { N1, N2, N3, N4 };
+            return new[] {N1, N2, N3, N4};
 
         }
 
         private double[] CalculateShapeFunctionDerivatives(double coordinateKsi, double coordinateHeta)
         {
             double shapeFunctionKsi1 = (1.0 - coordinateKsi);
-            double shapeFunctionKsi2 = (1.0 + coordinateKsi);
+            double shapeFunctionKsi2 = (1.0 + coordinateKsi); 
             double shapeFunctionHeta1 = (1.0 - coordinateHeta);
             double shapeFunctionHeta2 = (1.0 + coordinateHeta);
 
             double[] shapeFunctionDerivatives = new double[8];
 
-            shapeFunctionDerivatives[0] = -0.25 * shapeFunctionHeta1;
-            shapeFunctionDerivatives[1] = 0.25 * shapeFunctionHeta1;
-            shapeFunctionDerivatives[2] = 0.25 * shapeFunctionHeta2;
-            shapeFunctionDerivatives[3] = -0.25 * shapeFunctionHeta2;
+            shapeFunctionDerivatives[0] = -0.25*shapeFunctionHeta1; 
+            shapeFunctionDerivatives[1] = 0.25* shapeFunctionHeta1; 
+            shapeFunctionDerivatives[2] = 0.25* shapeFunctionHeta2;  
+            shapeFunctionDerivatives[3] = -0.25* shapeFunctionHeta2; 
 
-            shapeFunctionDerivatives[4] = -0.25 * shapeFunctionKsi1;
-            shapeFunctionDerivatives[5] = -0.25 * shapeFunctionKsi2;
-            shapeFunctionDerivatives[6] = 0.25 * shapeFunctionKsi2;
-            shapeFunctionDerivatives[7] = 0.25 * shapeFunctionKsi1;
+            shapeFunctionDerivatives[4] = -0.25* shapeFunctionKsi1;
+            shapeFunctionDerivatives[5] = -0.25* shapeFunctionKsi2;
+            shapeFunctionDerivatives[6] = 0.25* shapeFunctionKsi2;
+            shapeFunctionDerivatives[7] = 0.25* shapeFunctionKsi1; 
 
             return shapeFunctionDerivatives;
         }
@@ -155,26 +154,26 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[,] CalculateJacobianMatrix(double[,] nodeCoordinates, double[] shapeFunctionDerivatives)
         {
             double[,] jacobianMatrix = new double[2, 2];
-            jacobianMatrix[0, 0] = shapeFunctionDerivatives[0] * nodeCoordinates[0, 0] +
-                                   shapeFunctionDerivatives[1] * nodeCoordinates[1, 0] +
-                                   shapeFunctionDerivatives[2] * nodeCoordinates[2, 0] +
+            jacobianMatrix[0, 0] = shapeFunctionDerivatives[0] * nodeCoordinates[0, 0] + 
+                                   shapeFunctionDerivatives[1] * nodeCoordinates[1, 0] + 
+                                   shapeFunctionDerivatives[2] * nodeCoordinates[2, 0] + 
                                    shapeFunctionDerivatives[3] * nodeCoordinates[3, 0];
-            jacobianMatrix[0, 1] = shapeFunctionDerivatives[0] * nodeCoordinates[0, 1] +
-                                   shapeFunctionDerivatives[1] * nodeCoordinates[1, 1] +
-                                   shapeFunctionDerivatives[2] * nodeCoordinates[2, 1] +
+            jacobianMatrix[0, 1] = shapeFunctionDerivatives[0] * nodeCoordinates[0, 1] + 
+                                   shapeFunctionDerivatives[1] * nodeCoordinates[1, 1] + 
+                                   shapeFunctionDerivatives[2] * nodeCoordinates[2, 1] + 
                                    shapeFunctionDerivatives[3] * nodeCoordinates[3, 1];
-            jacobianMatrix[1, 0] = shapeFunctionDerivatives[4] * nodeCoordinates[0, 0] +
+            jacobianMatrix[1, 0] = shapeFunctionDerivatives[4] * nodeCoordinates[0, 0] + 
                                    shapeFunctionDerivatives[5] * nodeCoordinates[1, 0] +
-                                   shapeFunctionDerivatives[6] * nodeCoordinates[2, 0] +
+                                   shapeFunctionDerivatives[6] * nodeCoordinates[2, 0] + 
                                    shapeFunctionDerivatives[7] * nodeCoordinates[3, 0];
-            jacobianMatrix[1, 1] = shapeFunctionDerivatives[4] * nodeCoordinates[0, 1] +
-                                   shapeFunctionDerivatives[5] * nodeCoordinates[1, 1] +
-                                   shapeFunctionDerivatives[6] * nodeCoordinates[2, 1] +
+            jacobianMatrix[1, 1] = shapeFunctionDerivatives[4] * nodeCoordinates[0, 1] + 
+                                   shapeFunctionDerivatives[5] * nodeCoordinates[1, 1] + 
+                                   shapeFunctionDerivatives[6] * nodeCoordinates[2, 1] + 
                                    shapeFunctionDerivatives[7] * nodeCoordinates[3, 1];
 
             return jacobianMatrix;
         }
-        private double CalculateJacobianDeterminant(double[,] nodeCoordinates, double coordinateKsi, double coordinateHeta)
+        private double CalculateJacobianDeterminant(double[,] nodeCoordinates, double coordinateKsi, double coordinateHeta) 
         {
             double jacobianDeterminant =
                 (nodeCoordinates[0, 0] * ((1 - coordinateHeta) * nodeCoordinates[1, 1] +
@@ -190,7 +189,7 @@ namespace ISAAR.MSolve.FEM.Elements
                                           (coordinateKsi + coordinateHeta) * nodeCoordinates[1, 1] +
                                           (-coordinateHeta - 1) * nodeCoordinates[2, 1]));
 
-            jacobianDeterminant = jacobianDeterminant * 1 / 8;
+            jacobianDeterminant = jacobianDeterminant*1/8;
 
             if (jacobianDeterminant < determinantTolerance)
                 throw new ArgumentException(String.Format("Jacobian determinant is negative or under tolerance ({0} < {1})." +
@@ -224,12 +223,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
             double[,] Bmatrix = new double[3, 8];
 
-            Bmatrix[0, 0] = (Aparameter * shapeFunctionDerivatives[0] - Bparameter * shapeFunctionDerivatives[4]) / jacobianDeterminant;
+            Bmatrix[0, 0] = (Aparameter * shapeFunctionDerivatives[0] - Bparameter * shapeFunctionDerivatives[4])/ jacobianDeterminant;
             Bmatrix[1, 0] = 0;
-            Bmatrix[2, 0] = (Cparameter * shapeFunctionDerivatives[4] - Dparameter * shapeFunctionDerivatives[0]) / jacobianDeterminant;
+            Bmatrix[2, 0] = (Cparameter * shapeFunctionDerivatives[4] - Dparameter * shapeFunctionDerivatives[0])/ jacobianDeterminant;
             Bmatrix[0, 1] = 0;
-            Bmatrix[1, 1] = (Cparameter * shapeFunctionDerivatives[4] - Dparameter * shapeFunctionDerivatives[0]) / jacobianDeterminant;
-            Bmatrix[2, 1] = (Aparameter * shapeFunctionDerivatives[0] - Bparameter * shapeFunctionDerivatives[4]) / jacobianDeterminant;
+            Bmatrix[1, 1] = (Cparameter * shapeFunctionDerivatives[4] - Dparameter * shapeFunctionDerivatives[0])/ jacobianDeterminant;
+            Bmatrix[2, 1] = (Aparameter * shapeFunctionDerivatives[0] - Bparameter * shapeFunctionDerivatives[4])/ jacobianDeterminant;
 
             Bmatrix[0, 2] = (Aparameter * shapeFunctionDerivatives[1] - Bparameter * shapeFunctionDerivatives[5]) / jacobianDeterminant;
             Bmatrix[1, 2] = 0;
@@ -274,14 +273,14 @@ namespace ISAAR.MSolve.FEM.Elements
                     double[] shapeFunctionDerivatives = this.CalculateShapeFunctionDerivatives(ksi, heta);
                     double fDetJ = this.CalculateJacobianDeterminant(nodeCoordinates, ksi, heta);
                     double[,] deformationMatrix = this.CalculateDeformationMatrix(nodeCoordinates, shapeFunctionDerivatives, ksi, heta, fDetJ);
-                    double weightFactor = pointXi.WeightFactor * pointEta.WeightFactor * fDetJ;
-                    integrationPoints[counter] = new GaussLegendrePoint3D(ksi, heta, 0, deformationMatrix, weightFactor);
+                    double weightFactor = pointXi.WeightFactor * pointEta.WeightFactor * fDetJ; 
+                    integrationPoints[counter] = new GaussLegendrePoint3D(ksi, heta,0, deformationMatrix, weightFactor);
                 }
             }
             return integrationPoints;
         }
 
-        public virtual IMatrix2D StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
@@ -312,15 +311,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
             return stiffnessMatrix;
         }
-
+        
         #endregion
 
-        public virtual IMatrix2D MassMatrix(Element element)
+        public virtual IMatrix2D MassMatrix(IElement element)
         {
             return CalculateConsistentMass(element);
         }
 
-        public virtual IMatrix2D DampingMatrix(Element element)
+        public virtual IMatrix2D DampingMatrix(IElement element)
         {
             var m = MassMatrix(element);
             var lc = m as ILinearlyCombinable;
@@ -328,7 +327,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return m;
         }
 
-        public IMatrix2D CalculateConsistentMass(Element element)
+        public IMatrix2D CalculateConsistentMass(IElement element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
@@ -371,16 +370,16 @@ namespace ISAAR.MSolve.FEM.Elements
             //	CalcQ4Strains(ref iInt, faB, localDisplacements, faStrains);
             //	CalcQ4Strains(ref iInt, faB, localdDisplacements, fadStrains);
 
-            double[] dStrains = new double[3];
-            double[] strains = new double[3];
+            double[] dStrains = new double[6];
+            double[] strains = new double[6];
             for (int i = 0; i < materialsAtGaussPoints.Length; i++)
             {
-                for (int j = 0; j < 3; j++) dStrains[j] = fadStrains[i, j];
-                for (int j = 0; j < 3; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
+                for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
+                for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
+                materialsAtGaussPoints[i].UpdateMaterial(new StressStrainVectorContinuum2D(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
@@ -456,13 +455,13 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                return material.Modified; //throw new NotImplementedException();
+                throw new NotImplementedException();
             }
         }
 
         public void ResetMaterialModified()
         {
-            this.material.ResetModified(); //throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         #endregion

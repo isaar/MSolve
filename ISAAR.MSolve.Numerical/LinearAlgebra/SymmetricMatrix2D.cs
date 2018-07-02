@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 if (matrices[i].Rows != rows)
                     throw new ArgumentException(String.Format("Matrix at pos {0} has {1} rows instead of {2}.", i, matrices[i].Rows, rows));
 
-            var cs = (IList<double>)coefficients;
+            var cs = coefficients.ToArray();
             double[] newData = new double[data.Length];
             for (int k = 0; k < matrices.Count; k++)
             {

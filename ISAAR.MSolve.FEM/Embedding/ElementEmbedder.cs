@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
@@ -46,7 +48,7 @@ namespace ISAAR.MSolve.FEM.Embedding
         }
     }
 
-    public class ElementEmbedder : IFiniteElementDOFEnumerator
+    public class ElementEmbedder : IElementDOFEnumerator
     {
         private readonly Model model;
         private readonly Element embeddedElement;
@@ -217,7 +219,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return (transformationMatrix * new Vector(vector)).Data;
         }
 
-        public IList<IList<DOFType>> GetDOFTypes(Element element)
+        public IList<IList<DOFType>> GetDOFTypes(IElement element)
         {
             //return element.ElementType.GetElementDOFTypes(element);
 
@@ -244,20 +246,20 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(Element element)
+        public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement element)
         {
             //if (embeddedElement != element) throw new ArgumentException();
 
-            var nodesDictionary = new Dictionary<Node, int>();
+            var nodesDictionary = new Dictionary<INode, int>();
             int index = 0;
-            foreach (var node in element.Nodes)
+            foreach (var node in element.INodes)
             {
                 nodesDictionary.Add(node, index);
                 index++;
             }
             
             var dofs = new List<IList<DOFType>>();
-            for (int i = 0; i < element.Nodes.Count; i++)
+            for (int i = 0; i < element.INodes.Count; i++)
                 dofs.Add(new List<DOFType>());
 
             Node currentNode = null;
@@ -285,13 +287,13 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<Node> GetNodesForMatrixAssembly(Element element)
+        public IList<INode> GetNodesForMatrixAssembly(IElement element)
         {
-            var nodes = new List<Node>();
-            Node currentNode = null;
+            var nodes = new List<INode>();
+            INode currentNode = null;
             foreach (var superElement in superElementMap)
             {
-                Node node = superElement.Key.HostNode == null ? superElement.Key.EmbeddedNode : superElement.Key.HostNode;
+                INode node = superElement.Key.HostNode == null ? superElement.Key.EmbeddedNode : superElement.Key.HostNode;
                 if (currentNode != node)
                 {
                     if (currentNode != null) 

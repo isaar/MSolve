@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Materials;
@@ -148,7 +149,8 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            TrussExample.Run();
+            //TrussExample.Run();
+            FEM.Cantilever2D.Run();
         }
     }
 }

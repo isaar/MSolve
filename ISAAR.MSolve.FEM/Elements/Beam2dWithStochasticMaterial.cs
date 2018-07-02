@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
@@ -31,15 +32,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
     public class Beam2DWithStochasticMaterial : EulerBeam2D
     {
-        protected readonly new IStochasticFiniteElementMaterial Material;
+        protected readonly new IStochasticContinuumMaterial3D Material;
         protected readonly Beam2DMemoizer memoizer;
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material): base((material as StochasticElasticMaterial).YoungModulus)
+        public Beam2DWithStochasticMaterial(IStochasticContinuumMaterial3D material): base((material as StochasticElasticMaterial).YoungModulus)
         {
             this.Material = material;
         }
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material, Beam2DMemoizer memoizer) :
+        public Beam2DWithStochasticMaterial(IStochasticContinuumMaterial3D material, Beam2DMemoizer memoizer) :
             this(material)
         {
             this.memoizer = memoizer;
@@ -51,14 +52,14 @@ namespace ISAAR.MSolve.FEM.Elements
         //    this.coefficientsProvider = coefficientsProvider;
         //}
 
-        public override IMatrix2D StiffnessMatrix(Element element)
+        public override IMatrix2D StiffnessMatrix(IElement element)
         {
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);
-            double c = (element.Nodes[1].X - element.Nodes[0].X) / L;
+            double c = (element.INodes[1].X - element.INodes[0].X) / L;
             double c2 = c * c;
-            double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
+            double s = (element.INodes[1].Y - element.INodes[0].Y) / L;
             double s2 = s * s;
             double[] coordinates = GetStochasticPoints(element);
             double EL = (Material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
@@ -79,25 +80,25 @@ namespace ISAAR.MSolve.FEM.Elements
             }));
         }
 
-        private double[] GetStochasticPoints(Element element)
+        private double[] GetStochasticPoints(IElement element)
         {
             // Calculate for element centroid
             double X = 0;
             double Y = 0;
-            double minX = element.Nodes[0].X;
-            double minY = element.Nodes[0].Y;
+            double minX = element.INodes[0].X;
+            double minY = element.INodes[0].Y;
 
             for (int i = 0; i < 2; i++)
             {
-                minX = minX > element.Nodes[i].X ? element.Nodes[i].X : minX;
-                minY = minY > element.Nodes[i].Y ? element.Nodes[i].Y : minY;
+                minX = minX > element.INodes[i].X ? element.INodes[i].X : minX;
+                minY = minY > element.INodes[i].Y ? element.INodes[i].Y : minY;
                 for (int j = i + 1; j < 2; j++)
                 {
-                    X = X < Math.Abs(element.Nodes[j].X - element.Nodes[i].X)
-                        ? Math.Abs(element.Nodes[j].X - element.Nodes[i].X)
+                    X = X < Math.Abs(element.INodes[j].X - element.INodes[i].X)
+                        ? Math.Abs(element.INodes[j].X - element.INodes[i].X)
                         : X;
-                    Y = Y < Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y)
-                        ? Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y)
+                    Y = Y < Math.Abs(element.INodes[j].Y - element.INodes[i].Y)
+                        ? Math.Abs(element.INodes[j].Y - element.INodes[i].Y)
                         : Y;
                 }
             }
