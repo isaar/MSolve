@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="nodes">The nodes used for the interpolation.</param>
 		/// <param name="naturalCoordinates">The shape function derivatives at a specific integration point.</param>
-		public Jacobian3D(IReadOnlyList<Node2D> nodes, double[,] naturalDerivatives)
+		public Jacobian3D(IReadOnlyList<Node3D> nodes, double[,] naturalDerivatives)
 		{
 			double[,] jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
 			(inverseJ, Determinant) = InvertAndDeterminant(jacobianMatrix);
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return result;
 		}
 
-		private static double[,] CalculateJacobianMatrix(IReadOnlyList<Node2D> nodes, double[,] naturalDerivatives)
+		private static double[,] CalculateJacobianMatrix(IReadOnlyList<Node3D> nodes, double[,] naturalDerivatives)
 		{
 			var jacobianMatrix = new double[3,3];
 
