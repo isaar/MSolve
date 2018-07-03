@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Geometry.Shapes;
 
-namespace ISAAR.MSolve.FEM.Meshes.GMSH
+namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
 {
     /// <summary>
     /// Converts cell types and the order of their vertices from GMSH to MSolve.

@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.FEM.Interpolation;
-using ISAAR.MSolve.FEM.Meshes;
+using ISAAR.MSolve.Geometry.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Text;
