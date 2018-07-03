@@ -44,8 +44,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return new Matrix2D(array2D);
         }
 
-        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes,
-            NaturalPoint2D naturalCoordinates)
+        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes)
         {
             if (nodes.Count != shapeFunctions.Length) throw new ArgumentException(
                 $"There are {shapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
