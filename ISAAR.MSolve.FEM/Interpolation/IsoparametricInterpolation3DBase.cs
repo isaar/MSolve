@@ -125,6 +125,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 				{
 					shapeFunctionsAtGPs[gaussPoint]=new EvalShapeFunctions3D(EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta));
 				}
+				cachedShapeFunctionsAtGPs.Add(quadrature,shapeFunctionsAtGPs);
 			}
 
 			return shapeFunctionsAtGPs;
@@ -227,6 +228,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 				{
 					naturalShapeDerivativesAtGPs[gaussPoint] = EvaluateGradientsAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta);
 				}
+				cachedNaturalShapederivativesAtGPs.Add(quadrature, naturalShapeDerivativesAtGPs);
 			}
 
 			return naturalShapeDerivativesAtGPs;
@@ -243,6 +245,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 				{
 					shapeFuctionsAtGPs[gaussPoint] = EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta);
 				}
+				cachedRawShapeFunctionsAtGPs.Add(quadrature,shapeFuctionsAtGPs);
 			}
 
 			return shapeFuctionsAtGPs;
