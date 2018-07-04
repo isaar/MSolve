@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Tensors;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -99,7 +101,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         /// <param name="fieldName">Each component will be prefixed by it. E.g. fieldName = "S": S_11, S_22, S_12.</param>
         /// <param name="pointValues">Each row correspond to a different node. They must be in the exact same order as the nodes.
         ///     Columns 0, 1 and 2 are the tensor entries T11, T22, T12 respectively.</param>
-        public void WriteTensor2DField(string fieldName, IReadOnlyList<double[]> pointTensors)
+        public void WriteTensor2DField(string fieldName, IReadOnlyList<Tensor2D> pointTensors)
         {
             int numPoints = pointTensors.Count;
             WriteFieldsHeader(numPoints);
@@ -107,19 +109,19 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             // Component 11
             writer.WriteLine($"SCALARS {fieldName}_11 double 1");
             writer.WriteLine("LOOKUP_TABLE default");
-            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][0]);
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i].XX);
             writer.WriteLine();
 
             // Component 22
             writer.WriteLine($"SCALARS {fieldName}_22 double 1");
             writer.WriteLine("LOOKUP_TABLE default");
-            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][1]);
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i].YY);
             writer.WriteLine();
 
             // Component 12
             writer.WriteLine($"SCALARS {fieldName}_12 double 1");
             writer.WriteLine("LOOKUP_TABLE default");
-            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][2]);
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i].XY);
             writer.WriteLine();
         }
 
@@ -129,7 +131,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         /// <param name="fieldName"></param>
         /// <param name="pointValues">Each row correspond to a different node. They must be in the exact same order as the nodes.
         ///     Columns 0 and 1 are the vector entries.</param>
-        public void WriteVector2DField(string fieldName, IReadOnlyList<double[]> pointVectors)
+        public void WriteVector2DField(string fieldName, IReadOnlyList<Vector2> pointVectors)
         {
             WriteFieldsHeader(pointVectors.Count);
             writer.WriteLine($"VECTORS {fieldName} double");

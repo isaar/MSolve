@@ -83,17 +83,17 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
                 // Gather the solution
                 //TODO: isn't this computed in the solver as well?
-                Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
-                Vector totalFreeDisplacements = solver.Solution;
+                Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
+                Vector freeDisplacements = solver.Solution;
 
                 // Output field data
                 if (fieldOutput != null)
                 {
-                    fieldOutput.WriteMeshData(iteration);
+                    fieldOutput.WriteOutputData(solver.DofOrderer, freeDisplacements, constrainedDisplacements, iteration);
                 }
 
                 // Let the crack propagate
-                crack.Propagate(solver.DofOrderer, totalFreeDisplacements, totalConstrainedDisplacements);
+                crack.Propagate(solver.DofOrderer, freeDisplacements, constrainedDisplacements);
                 
                 // Check convergence 
                 //TODO: Perhaps this should be done by the crack geometry or the Propagator itself and handled via exceptions 
