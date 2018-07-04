@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -9,6 +10,7 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
+using ISAAR.MSolve.XFEM.Tensors;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,6 +21,10 @@ using System.Text;
 //TODO: Can I cheat and assign H(x)= +-1 to points on the crack, depending on which side of the crack the triangle lies? That 
 //      way I could avoid the need to extrapolate the displacements form Gauss points. Would it also suffice for stresses or do
 //      I have to extrapolate?
+//TODO: refactor the huge method and break it down to smaller ones.
+//TODO: apply averaging at standard nodes
+//TODO: more than 1 cracks
+//TODO: blending elements are not decomposed
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class IntersectedMeshOutput
@@ -46,13 +52,18 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             var allPoints = new List<VtkPoint2D>();
             var allCells = new List<VtkCell2D>();
             var displacements = new List<Vector2>();
+            var strains = new List<Tensor2D>();
+            var stresses = new List<Tensor2D>();
             int pointCounter = 0;
 
             foreach (XContinuumElement2D element in model.Elements)
             {
-                Vector elementDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(element,
-                    freeDisplacements, constrainedDisplacements);
+                Vector standardDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(element,
+                        freeDisplacements, constrainedDisplacements);
+                Vector enrichedDisplacements =
+                    dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
                 bool isEnriched = IsEnriched(element);
+
                 if (!isEnriched)
                 {
                     // Mesh
@@ -67,19 +78,37 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                     // Displacements
                     for (int p = 0; p < cellPoints.Length; ++p)
                     {
-                        displacements.Add(Vector2.Create(elementDisplacements[2 * p], elementDisplacements[2 * p + 1]));
+                        displacements.Add(Vector2.Create(standardDisplacements[2 * p], standardDisplacements[2 * p + 1]));
+                    }
+
+                    // Strains and stresses at Gauss points of element
+                    // WARNING: do not use the quadrature object, since GPs are sorted differently.
+                    IReadOnlyList<GaussPoint2D> gaussPoints = element.ElementType.GaussPointSystem.GaussPoints;
+                    var strainsAtGPs = new Tensor2D[gaussPoints.Count];
+                    var stressesAtGPs = new Tensor2D[gaussPoints.Count];
+                    for (int gp = 0; gp < gaussPoints.Count; ++gp)
+                    {
+                        EvaluatedInterpolation2D evalInterpol =
+                                    element.Interpolation.EvaluateAt(element.Nodes, gaussPoints[gp]);
+                        (Tensor2D strain, Tensor2D stress) = ComputeStrainStress(element, gaussPoints[gp],
+                                evalInterpol, standardDisplacements, enrichedDisplacements);
+                        strainsAtGPs[gp] = strain;
+                        stressesAtGPs[gp] = stress;
+                    }
+
+                    // Extrapolate strains and stresses to element nodes. This is exact, since the element is not enriched
+                    IReadOnlyList<Tensor2D> strainsAtNodes =
+                        element.ElementType.GaussPointSystem.ExtrapolateTensorFromGaussPointsToNodes(strainsAtGPs);
+                    IReadOnlyList<Tensor2D> stressesAtNodes =
+                        element.ElementType.GaussPointSystem.ExtrapolateTensorFromGaussPointsToNodes(stressesAtGPs);
+                    for (int p = 0; p < cellPoints.Length; ++p)
+                    {
+                        strains.Add(strainsAtNodes[p]);
+                        stresses.Add(stressesAtNodes[p]);
                     }
                 }
                 else
                 {
-                    IInverseMapping2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
-                    Vector standardDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(element,
-                        freeDisplacements, constrainedDisplacements);
-                    Vector enrichedDisplacements =
-                        dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
-
-                    
-
                     // Triangulate and then operate on each triangle
                     SortedSet<ICartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
                     IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
@@ -87,9 +116,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                     foreach (TriangleCartesian2D triangle in triangles)
                     {
                         // Mesh
-                        int numCellPoints = 3;
-                        var cellPoints = new VtkPoint2D[numCellPoints];
-                        for (int p = 0; p < numCellPoints; ++p)
+                        int numTriangleNodes = 3;
+                        var cellPoints = new VtkPoint2D[numTriangleNodes];
+                        for (int p = 0; p < numTriangleNodes; ++p)
                         {
                             cellPoints[p] = 
                                 new VtkPoint2D(pointCounter++, new CartesianPoint2D(triangle.Vertices[p].Coordinates));
@@ -103,8 +132,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                         IGaussPointSystem extrapolation = new Tri3GPSystem();
 
                         // Find the Gauss points of the triangle in the natural system of the element
-                        var triangleNodesNatural = new INaturalPoint2D[numCellPoints];
-                        for (int p = 0; p < numCellPoints; ++p)
+                        IInverseMapping2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
+                        var triangleNodesNatural = new INaturalPoint2D[numTriangleNodes];
+                        for (int p = 0; p < numTriangleNodes; ++p)
                         {
                             triangleNodesNatural[p] = inverseMapping.TransformCartesianToNatural(cellPoints[p]);
                         }
@@ -114,12 +144,18 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                         // Find the field values at the Gauss points of the triangle (their coordinates are in the natural 
                         // system of the element)
                         var displacementsAtGPs = new Vector2[triangleGPsNatural.Length];
+                        var strainsAtGPs = new Tensor2D[triangleGPsNatural.Length];
+                        var stressesAtGPs = new Tensor2D[triangleGPsNatural.Length];
                         for (int gp = 0; gp < triangleGPsNatural.Length; ++gp)
                         {
                             EvaluatedInterpolation2D evalInterpol =
                                     element.Interpolation.EvaluateAt(element.Nodes, triangleGPsNatural[gp]);
                             displacementsAtGPs[gp] = element.CalculateDisplacementField(triangleGPsNatural[gp],
                                 evalInterpol, standardDisplacements, enrichedDisplacements);
+                            (Tensor2D strain, Tensor2D stress) = ComputeStrainStress(element, triangleGPsNatural[gp],
+                                evalInterpol, standardDisplacements, enrichedDisplacements);
+                            strainsAtGPs[gp] = strain;
+                            stressesAtGPs[gp] = stress;
                         }
 
                         // Extrapolate the field values to the triangle nodes. We need their coordinates in the auxiliary 
@@ -128,9 +164,15 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                         // can be accessed by the extrapolation object directly.
                         IReadOnlyList<Vector2> displacementsAtTriangleNodes = 
                             extrapolation.ExtrapolateVectorFromGaussPointsToNodes(displacementsAtGPs);
-                        for (int p = 0; p < numCellPoints; ++p)
+                        IReadOnlyList<Tensor2D> strainsAtTriangleNodes =
+                            extrapolation.ExtrapolateTensorFromGaussPointsToNodes(strainsAtGPs);
+                        IReadOnlyList<Tensor2D> stressesAtTriangleNodes =
+                            extrapolation.ExtrapolateTensorFromGaussPointsToNodes(stressesAtGPs);
+                        for (int p = 0; p < numTriangleNodes; ++p)
                         {
                             displacements.Add(displacementsAtTriangleNodes[p]);
+                            strains.Add(strainsAtTriangleNodes[p]);
+                            stresses.Add(stressesAtTriangleNodes[p]);
                         }
                     }
                 }
@@ -139,7 +181,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             using (var writer = new VtkFileWriter2D($"{pathNoExtension}_{step}.vtk"))
             {
                 writer.WriteMesh(allPoints, allCells);
-                writer.WriteVector2DField("displacements", displacements);
+                writer.WriteVector2DField("displacement", displacements);
+                writer.WriteTensor2DField("strain", strains);
+                writer.WriteTensor2DField("stress", stresses);
             }
         }
 
@@ -180,6 +224,26 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             }
 
             return triangleGPsNatural;
+        }
+
+        private (Tensor2D strain, Tensor2D stress) ComputeStrainStress(XContinuumElement2D element, INaturalPoint2D gaussPoint,
+            EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
+            Vector enrichedNodalDisplacements)
+        {
+            Matrix constitutive =
+                element.Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
+            Matrix2by2 displacementGradient = element.CalculateDisplacementFieldGradient(gaussPoint, evaluatedInterpolation,
+                standardNodalDisplacements, enrichedNodalDisplacements);
+
+            double strainXX = displacementGradient[0, 0];
+            double strainYY = displacementGradient[1, 1];
+            double strainXYtimes2 = displacementGradient[0, 1] + displacementGradient[1, 0];
+
+            double stressXX = constitutive[0, 0] * strainXX + constitutive[0, 1] * strainYY;
+            double stressYY = constitutive[1, 0] * strainXX + constitutive[1, 1] * strainYY;
+            double stressXY = constitutive[2, 2] * strainXYtimes2;
+
+            return (new Tensor2D(strainXX, strainYY, 0.5 * strainXYtimes2), new Tensor2D(stressXX, stressYY, stressXY));
         }
     }
 }

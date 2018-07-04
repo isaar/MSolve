@@ -22,17 +22,17 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
         private static readonly GaussPoint2D[] gaussPoints = new GaussPoint2D[]
         {
             new GaussPoint2D(-1/Math.Sqrt(3), -1/Math.Sqrt(3), 1.0),
+            new GaussPoint2D(1/Math.Sqrt(3), -1/Math.Sqrt(3), 1.0),
             new GaussPoint2D(-1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0),
-            new GaussPoint2D(1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0),
-            new GaussPoint2D(-1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0)
+            new GaussPoint2D(1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0)
         };
 
         private static readonly Func<double, double, double>[] shapeFunctions = new Func<double, double, double>[]
         {
             (r, s) => { return 0.25 * (1 - r) * (1 - s); },
             (r, s) => { return 0.25 * (1 + r) * (1 - s); },
-            (r, s) => { return 0.25 * (1 + r) * (1 + s); },
-            (r, s) => { return 0.25 * (1 - r) * (1 + s); }
+            (r, s) => { return 0.25 * (1 - r) * (1 + s); },
+            (r, s) => { return 0.25 * (1 + r) * (1 + s); }            
         };
 
         private static readonly double[,] shapeFunctionsAtNodes;
