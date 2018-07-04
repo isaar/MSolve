@@ -25,8 +25,6 @@ using System.Text;
 //      I have to extrapolate?
 //TODO: refactor the huge method and break it down to smaller ones.
 //TODO: apply averaging at standard nodes
-//TODO: more than 1 cracks
-//TODO: blending elements are not decomposed
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class IntersectedMeshOutput
@@ -61,12 +59,12 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             foreach (XContinuumElement2D element in model.Elements)
             {
                 Vector standardDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(element,
-                        freeDisplacements, constrainedDisplacements);
+                    freeDisplacements, constrainedDisplacements);
                 Vector enrichedDisplacements =
                     dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
-                bool isEnriched = TryFindIntersectingCrack(element, out ISingleCrack intersectingCrack);
+                bool mustTriangulate = MustBeTriangulated(element, out ISingleCrack intersectingCrack);
 
-                if (!isEnriched)
+                if (!mustTriangulate)
                 {
                     // Mesh
                     var cellPoints = new VtkPoint2D[element.Nodes.Count];
@@ -91,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                     for (int gp = 0; gp < gaussPoints.Count; ++gp)
                     {
                         EvaluatedInterpolation2D evalInterpol =
-                                    element.Interpolation.EvaluateAt(element.Nodes, gaussPoints[gp]);
+                                element.Interpolation.EvaluateAt(element.Nodes, gaussPoints[gp]);
                         (Tensor2D strain, Tensor2D stress) = ComputeStrainStress(element, gaussPoints[gp],
                                 evalInterpol, standardDisplacements, enrichedDisplacements);
                         strainsAtGPs[gp] = strain;
@@ -189,13 +187,19 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             }
         }
 
-        //TODO: this should be available to all XFEM classes.
-        private bool TryFindIntersectingCrack(XContinuumElement2D element, out ISingleCrack intersectingCrack)
+        private bool MustBeTriangulated(XContinuumElement2D element, out ISingleCrack intersectingCrack)
         {
+            bool isTipEnrichedOrBlending = false;
+
+
             var enrichments = new HashSet<IEnrichmentItem2D>();
             foreach (XNode2D node in element.Nodes)
             {
-                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys) enrichments.Add(enrichment);
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
+                {
+                    enrichments.Add(enrichment);
+                    if (enrichment is CrackTipEnrichments2D) isTipEnrichedOrBlending = true;
+                }
             }
 
             if (enrichments.Count == 0)
@@ -215,8 +219,37 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
             if (singleCracks.Count == 1)
             {
-                intersectingCrack = singleCracks[0];
-                return true;
+                if (isTipEnrichedOrBlending)
+                {
+                    intersectingCrack = singleCracks[0];
+                    return true;
+                }
+                else
+                {
+                    int positiveNodes = 0;
+                    int negativeNodes = 0;
+                    foreach (XNode2D node in element.Nodes)
+                    {
+                        if (singleCracks[0].SignedDistanceOf(node) > 0.0) ++positiveNodes;
+                        else if (singleCracks[0].SignedDistanceOf(node) < 0.0) ++negativeNodes;
+                        else
+                        {
+                            ++positiveNodes;
+                            ++negativeNodes;
+                        }
+                    }
+
+                    if ((positiveNodes > 0) && (negativeNodes > 0))
+                    {
+                        intersectingCrack = singleCracks[0];
+                        return true;
+                    }
+                    else
+                    {
+                        intersectingCrack = null; ;
+                        return false;
+                    }
+                }
             }
             else
             {

@@ -15,8 +15,8 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             //DCB3x1.Run();
             //DCBSolvers.Run();
-            BenchmarkSolvers.Run();
-            //IntersectedMeshCantilever.Run();
+            //BenchmarkSolvers.Run();
+            IntersectedMeshCantilever.Run();
 
             //ReanalysisDebugging.Run();
             //ReorderingTests.Run();
