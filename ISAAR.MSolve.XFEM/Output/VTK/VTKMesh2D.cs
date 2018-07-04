@@ -14,9 +14,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
     class VTKMesh2D
     {
         public IReadOnlyList<VTKCell> Cells { get; }
-        public IReadOnlyList<VTKPoint> Points { get; }
+        public IReadOnlyList<VtkPoint2D> Points { get; }
 
-        public VTKMesh2D(IReadOnlyList<VTKPoint> points, IReadOnlyList<VTKCell> cells)
+        public VTKMesh2D(IReadOnlyList<VtkPoint2D> points, IReadOnlyList<VTKCell> cells)
         {
             this.Points = points;
             this.Cells = cells;

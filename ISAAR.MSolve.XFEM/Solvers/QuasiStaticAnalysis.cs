@@ -15,6 +15,7 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.Output.VTK;
 
 namespace ISAAR.MSolve.XFEM.Solvers
 {
@@ -28,9 +29,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly ISolver solver;
         private readonly double fractureToughness;
         private readonly int maxIterations;
+        private readonly IntersectedMeshOutput fieldOutput;
 
         public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
-            ISolver solver, double fractureToughness, int maxIterations)
+            ISolver solver, double fractureToughness, int maxIterations, IntersectedMeshOutput fieldOutput = null)
         {
             this.model = model;
             this.mesh = mesh;
@@ -38,6 +40,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             this.solver = solver;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
+            this.fieldOutput = fieldOutput;
         }
 
         /// <summary>
@@ -78,10 +81,18 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 crack.UpdateEnrichments();
                 solver.Solve();
 
-                // Let the crack propagate
+                // Gather the solution
                 //TODO: isn't this computed in the solver as well?
                 Vector totalConstrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
                 Vector totalFreeDisplacements = solver.Solution;
+
+                // Output field data
+                if (fieldOutput != null)
+                {
+                    fieldOutput.WriteMeshData(iteration);
+                }
+
+                // Let the crack propagate
                 crack.Propagate(solver.DofOrderer, totalFreeDisplacements, totalConstrainedDisplacements);
                 
                 // Check convergence 
