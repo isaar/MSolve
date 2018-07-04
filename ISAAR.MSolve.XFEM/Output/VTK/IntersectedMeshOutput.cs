@@ -1,7 +1,9 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
@@ -30,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
     class IntersectedMeshOutput
     {
         private const int triangleVtkCode = 5;
-        private readonly TrackingExteriorCrackLSM crack;
+        private readonly ICrackDescription crackGeometry;
         private readonly Model2D model;
         private readonly string pathNoExtension;
         private readonly CartesianTriangulator triangulator;
@@ -38,9 +40,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         //private IReadOnlyList<VtkPoint2D> points;
         //private IReadOnlyList<VtkCell2D> cells;
 
-        public IntersectedMeshOutput(Model2D model, TrackingExteriorCrackLSM crack, string pathNoExtension)
+        public IntersectedMeshOutput(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
         {
-            this.crack = crack;
+            this.crackGeometry = crackGeometry;
             this.model = model;
             this.pathNoExtension = pathNoExtension;
             this.triangulator = new CartesianTriangulator();
@@ -62,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                         freeDisplacements, constrainedDisplacements);
                 Vector enrichedDisplacements =
                     dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
-                bool isEnriched = IsEnriched(element);
+                bool isEnriched = TryFindIntersectingCrack(element, out ISingleCrack intersectingCrack);
 
                 if (!isEnriched)
                 {
@@ -110,7 +112,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 else
                 {
                     // Triangulate and then operate on each triangle
-                    SortedSet<ICartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
+                    SortedSet<ICartesianPoint2D> triangleVertices = intersectingCrack.FindTriangleVertices(element);
                     IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
 
                     foreach (TriangleCartesian2D triangle in triangles)
@@ -188,16 +190,38 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         }
 
         //TODO: this should be available to all XFEM classes.
-        private bool IsEnriched(XContinuumElement2D element)
+        private bool TryFindIntersectingCrack(XContinuumElement2D element, out ISingleCrack intersectingCrack)
         {
+            var enrichments = new HashSet<IEnrichmentItem2D>();
             foreach (XNode2D node in element.Nodes)
             {
-                if (node.EnrichmentItems.Count != 0)
+                foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys) enrichments.Add(enrichment);
+            }
+
+            if (enrichments.Count == 0)
+            {
+                intersectingCrack = null;
+                return false;
+            }
+
+            var singleCracks = new List<ISingleCrack>();
+            foreach (ISingleCrack crack in crackGeometry.SingleCracks)
+            {
+                if (enrichments.Contains(crack.CrackBodyEnrichment) || enrichments.Contains(crack.CrackTipEnrichments))
                 {
-                    return true;
+                    singleCracks.Add(crack);
                 }
             }
-            return false;
+
+            if (singleCracks.Count == 1)
+            {
+                intersectingCrack = singleCracks[0];
+                return true;
+            }
+            else
+            {
+                throw new Exception($"This element must be intersected by exactly 1 crack, but {singleCracks.Count} were found");
+            }
         }
 
         private NaturalPoint2D[] FindTriangleGPsNatural(IReadOnlyList<INaturalPoint2D> triangleNodesNatural, 
