@@ -24,30 +24,46 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
 
         public InverseQuad4Mapping(IReadOnlyList<Node2D> nodes)
         {
-            double x0 = nodes[0].X, x1 = nodes[1].X, x2 = nodes[2].X, x3 = nodes[3].X;
-            double y0 = nodes[0].Y, y1 = nodes[1].Y, y2 = nodes[2].Y, y3 = nodes[3].Y;
+            //TODO: all these concern only the first configuration (nodes[0] is the bottom left)
 
-            // Calculate coefficients. TODO: cover all node ordering cases
-            sum1 = x0 + x1 + x2 + x3;
-            a1 = x0 - x1 + x2 - x3;
-            b1 = -x0 + x1 + x2 - x3;
-            c1 = -x0 - x1 + x2 + x3;
+            int numOrderings = 4;
+            for (int i = 0; i < numOrderings - 1; ++i)
+            {
+                double x0 = nodes[0].X, x1 = nodes[1].X, x2 = nodes[2].X, x3 = nodes[3].X;
+                double y0 = nodes[0].Y, y1 = nodes[1].Y, y2 = nodes[2].Y, y3 = nodes[3].Y;
 
-            sum2 = y0 + y1 + y2 + y3;
-            a2 = y0 - y1 + y2 - y3;
-            b2 = -y0 + y1 + y2 - y3;
-            c2 = -y0 - y1 + y2 + y3;
+                // Calculate coefficients. TODO: cover all node ordering cases
+                sum1 = x0 + x1 + x2 + x3;
+                a1 = x0 - x1 + x2 - x3;
+                b1 = -x0 + x1 + x2 - x3;
+                c1 = -x0 - x1 + x2 + x3;
 
-            // Calculate determinants
-            ab = a1 * b2 - a2 * b1;
-            ac = a1 * c2 - a2 * c1;
-            bc = b1 * c2 - b2 * c1;
+                sum2 = y0 + y1 + y2 + y3;
+                a2 = y0 - y1 + y2 - y3;
+                b2 = -y0 + y1 + y2 - y3;
+                c2 = -y0 - y1 + y2 + y3;
 
-            // Checks
-            CheckQuadrilateralShape(this); // DEBUG only check
+                // Calculate determinants
+                ab = a1 * b2 - a2 * b1;
+                ac = a1 * c2 - a2 * c1;
+                bc = b1 * c2 - b2 * c1;
 
-            // Find correct case and use the corresponding formula
-            formula = FindQuadDependentFormula();
+                if (IsZero(a1 - b1) || IsZero(a2 - c2))
+                {
+                    nodes = CycleCounterClockwise(nodes);
+                }
+                else
+                {
+                    // Checks
+                    CheckQuadrilateralShape(this); // DEBUG only check
+
+                    // Find correct case and use the corresponding formula
+                    formula = FindQuadDependentFormula();
+                    return;
+                }
+            }
+
+            throw new Exception("Cannot find a valid counter-clockwise node ordering. The original node order might be wrong");
         }
 
         public INaturalPoint2D TransformCartesianToNatural(ICartesianPoint2D point)
@@ -128,8 +144,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         private static void CheckQuadrilateralShape(InverseQuad4Mapping mapping)
         {
             string msg = "Incorrect quadrilateral (check node order). Coefficient violation: ";
-            if (IsZero(mapping.a1 - mapping.b1)) throw new Exception(msg + "a1 = b1");
-            if (IsZero(mapping.a2 - mapping.c2)) throw new Exception(msg + "a2 = c2");
+            //TODO: remove these 2. They are covered by the check in the constructor.
+            //if (IsZero(mapping.a1 - mapping.b1)) throw new Exception(msg + "a1 = b1");  
+            //if (IsZero(mapping.a2 - mapping.c2)) throw new Exception(msg + "a2 = c2");
             if ((!IsZero(mapping.a1)) && (!IsZero(mapping.a2)) && IsZero(mapping.ab) && IsZero(mapping.ac))
             {
                 throw new Exception(msg + 
@@ -161,6 +178,19 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
                 default:
                     throw new ArithmeticException(msg + "There are more than 2 solutions for the equation!!!");
             }
+        }
+
+        /// <summary>
+        /// Reorders the nodes such that the 1st one becomes the 2nd, the 2nd one becomes the 3rd, etc.
+        /// </summary>
+        /// <param name="nodes"></param>
+        /// <returns></returns>
+        private static IReadOnlyList<Node2D> CycleCounterClockwise(IReadOnlyList<Node2D> nodes)
+        {
+            var cycled = new Node2D[nodes.Count];
+            cycled[0] = nodes[nodes.Count - 1];
+            for (int i = 0; i < nodes.Count - 1; ++i) cycled[i + 1] = nodes[i];
+            return cycled;
         }
 
         private static bool IsZero(double value)
