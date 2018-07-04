@@ -25,10 +25,9 @@ using System.Text;
 //      I have to extrapolate?
 //TODO: refactor the huge method and break it down to smaller ones.
 //TODO: apply averaging at standard nodes
-//TODO: plot the principal stresses, not only S11, S12, S22
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
-    class IntersectedMeshOutput: IXfemOutput
+    class IntersectedMeshOutputAveraging: IXfemOutput
     {
         private const int triangleVtkCode = 5;
         private readonly ICrackDescription crackGeometry;
@@ -36,7 +35,8 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         private readonly string pathNoExtension;
         private readonly CartesianTriangulator triangulator;
 
-        public IntersectedMeshOutput(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
+
+        public IntersectedMeshOutputAveraging(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
         {
             this.crackGeometry = crackGeometry;
             this.model = model;

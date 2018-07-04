@@ -29,10 +29,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private readonly ISolver solver;
         private readonly double fractureToughness;
         private readonly int maxIterations;
-        private readonly IntersectedMeshOutput fieldOutput;
+        private readonly IXfemOutput fieldOutput;
 
         public QuasiStaticAnalysis(Model2D model, IMesh2D<XNode2D, XContinuumElement2D> mesh, ICrackDescription crack,
-            ISolver solver, double fractureToughness, int maxIterations, IntersectedMeshOutput fieldOutput = null)
+            ISolver solver, double fractureToughness, int maxIterations, IXfemOutput fieldOutput = null)
         {
             this.model = model;
             this.mesh = mesh;
