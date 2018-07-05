@@ -202,8 +202,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D MassMatrix(IElement element)
         {
-            //return BuildConsistentMassMatrix();
-            return BuildLumpedMassMatrix();
+            return BuildConsistentMassMatrix();
+            //return BuildLumpedMassMatrix();
         }
 
         public bool MaterialModified
