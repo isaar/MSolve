@@ -129,13 +129,13 @@ namespace ISAAR.MSolve.Preprocessor.UI
             SubdomainsPrimal            
         }
 
-        private readonly Model model;
+        private readonly PreprocessorModel model;
 
         /// <summary>
         /// Instantiates an new <see cref="Job"/>. Use its properties to set up the simulation.
         /// </summary>
         /// <param name="model">The mesh, supports, loads, etc. that will be simulated.</param>
-        public Job(Model model)
+        public Job(PreprocessorModel model)
         {
             this.model = model;
         }
@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             // Linear system solver
             VectorExtensions.AssignTotalAffinityCount();
             var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
+            linearSystems[0] = new SkylineLinearSystem(0, model.CoreModel.Subdomains[0].Forces);
             ISolver solver;
             if (Solver == SolverOptions.DirectSkyline)
             {
@@ -188,7 +188,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Provider of the problem
-            ProblemStructural provider = new ProblemStructural(model, linearSystems); //TODO: extend this
+            ProblemStructural provider = new ProblemStructural(model.CoreModel, linearSystems); //TODO: extend this
 
             // (Non) linear analyzer
             IAnalyzer childAnalyzer;
@@ -198,7 +198,10 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
                 // Field output requests 
                 //TODO: this should work for all analyzers
-                if (FieldOutputRequests != null) linearAnalyzer.LogFactories[0] = FieldOutputRequests.CreateLogFactory(model);
+                if (FieldOutputRequests != null)
+                {
+                    linearAnalyzer.LogFactories[0] = FieldOutputRequests.CreateLogFactory(model);
+                }
 
                 childAnalyzer = linearAnalyzer;
             }
@@ -238,7 +241,6 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Run the analysis
-            model.ConnectDataStructures();
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();

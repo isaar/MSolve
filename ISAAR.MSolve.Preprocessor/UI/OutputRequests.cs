@@ -3,13 +3,15 @@ using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.VonMisesStress;
+using System;
 
 //TODO: this should take as input the PreprocessorModel and get the problem type and materials from there.
 namespace ISAAR.MSolve.Preprocessor.UI
 {
     /// <summary>
-    /// Defines the field (displacements, stresses, etc) output requests. The requested fields will be gathered during the 
-    /// simulation and exported to appropriate formats. The user may process the results once the simulation ends.
+    /// Utility class to facilitate the definition the field (displacements, stresses, etc) output requests. The requested  
+    /// fields will be gathered during the simulation and exported to appropriate formats. The user may process the results 
+    /// once the simulation ends.
     /// </summary>
     public class OutputRequests
     {
@@ -43,20 +45,9 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// </summary>
         public bool StressesVonMises { get; set; } = false;
 
-        /// <summary>
-        /// Defines whether the problem is <see cref="StressState2D.PlaneStress"/> or <see cref="StressState2D.PlaneStrain"/>.
-        /// Not applicable to 3D problems.
-        /// </summary>
-        public StressState2D StressState { get; set; } = StressState2D.PlaneStress; //TODO: this should be taken by the model's representation
-
-        /// <summary>
-        /// The material properties. Only applicable to <see cref="StressState2D.PlaneStrain"/> problems.
-        /// </summary>
-        public ElasticMaterial2D PlaneStrainMaterial { get; set; } = null; //TODO: this should be taken by the model's representation
-
-        internal ILogFactory CreateLogFactory(Model model)
+        internal ILogFactory CreateLogFactory(PreprocessorModel model)
         {
-            var logFactory = new VtkLogFactory(model, outputDirectory)
+            var logFactory = new VtkLogFactory(model.CoreModel, outputDirectory)
             {
                 LogDisplacements = Displacements,
                 LogStrains = Strains,
@@ -65,13 +56,17 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
             if (StressesVonMises)
             {
-                if (StressState == StressState2D.PlaneStress)
+                if (model.Dimensions == PreprocessorModel.ProblemDimensions.TwoDimensionalPlaneStress)
                 {
                     logFactory.VonMisesStressCalculator = new PlaneStressVonMises();
                 }
-                else
+                else if (model.Dimensions == PreprocessorModel.ProblemDimensions.TwoDimensionalPlaneStrain)
                 {
-                    logFactory.VonMisesStressCalculator = new ElasticPlaneStrainVonMises(PlaneStrainMaterial);
+                    logFactory.VonMisesStressCalculator = new ElasticPlaneStrainVonMises(model.PlainStrainMaterial);
+                }
+                else if (model.Dimensions == PreprocessorModel.ProblemDimensions.ThreeDimensional)
+                {
+                    throw new NotImplementedException();
                 }
             }
 
