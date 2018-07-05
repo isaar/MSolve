@@ -9,6 +9,7 @@ using ISAAR.MSolve.Solvers.PCGSkyline;
 using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 //TODO: figure out how to set up different problem types. Only ProblemStructual is supported now.
@@ -29,8 +30,8 @@ namespace ISAAR.MSolve.Preprocessor.UI
     public class Job
     {
         /// <summary>
-        /// Defines how loads, boundary conditions and body forces will be incremented in case of nonlinear material or 
-        /// nonlinear geometry (or both).
+        /// Defines how loads, boundary conditions and body forces will be incremented in case of material nonlinearity or 
+        /// geometric nonlinearity (or both).
         /// </summary>
         public enum IntegratorOptions
         {
@@ -99,7 +100,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         }
 
         /// <summary>
-        /// Defines 
+        /// Defines the linear system solution algorithm.
         /// </summary>
         public enum SolverOptions
         {
@@ -128,16 +129,48 @@ namespace ISAAR.MSolve.Preprocessor.UI
             SubdomainsPrimal            
         }
 
+        private readonly Model model;
+
+        /// <summary>
+        /// Instantiates an new <see cref="Job"/>. Use its properties to set up the simulation.
+        /// </summary>
+        /// <param name="model">The mesh, supports, loads, etc. that will be simulated.</param>
+        public Job(Model model)
+        {
+            this.model = model;
+        }
+
+        /// <summary>
+        /// Defines how loads, boundary conditions and body forces will be incremented in case of material nonlinearity or 
+        /// geometric nonlinearity (or both).
+        /// </summary>
         public IntegratorOptions Integrator { get; set; } = IntegratorOptions.Linear;
+
+        /// <summary>
+        /// Field output requests. It can be left null, in which case, nothing will be output.
+        /// </summary>
+        public OutputRequests FieldOutputRequests { get; set; } = null;
+
+        /// <summary>
+        /// Defines what analysis will be carried out.
+        /// </summary>
         public ProcedureOptions Procedure { get; set; } = ProcedureOptions.Static;
+
+        /// <summary>
+        /// Defines the linear system solution algorithm.
+        /// </summary>
         public SolverOptions Solver { get; set; } = SolverOptions.DirectSkyline;
 
         public int TimeStep { get; set; } = 0;
         public int TotalTime { get; set; } = 0;
 
-        public void Submit(Model model, OutputRequests output)
+        /// <summary>
+        /// Sets up the necessary MSolve objects, checks user input and finally runs the simulation. 
+        /// </summary>
+        public void Submit()
         {
             // Linear system solver
+            VectorExtensions.AssignTotalAffinityCount();
             var linearSystems = new Dictionary<int, ILinearSystem>();
             linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
             ISolver solver;
@@ -161,15 +194,28 @@ namespace ISAAR.MSolve.Preprocessor.UI
             IAnalyzer childAnalyzer;
             if (Integrator == IntegratorOptions.Linear)
             {
-                // Field output requests
                 var linearAnalyzer = new LinearAnalyzer(solver, linearSystems);
-                linearAnalyzer.LogFactories[0] = output.CreateLogFactory(model);
+
+                // Field output requests 
+                //TODO: this should work for all analyzers
+                if (FieldOutputRequests != null) linearAnalyzer.LogFactories[0] = FieldOutputRequests.CreateLogFactory(model);
+
                 childAnalyzer = linearAnalyzer;
             }
             else if (Integrator == IntegratorOptions.LoadControl)
             {
-                throw new NotImplementedException();
-                //childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems, )
+                throw new NotImplementedException("The next code doesn't compile since the classes NonLinearSubdomainUpdater"
+                    + " and SubdomainGlobalMapping do not exist");
+                //INonLinearSubdomainUpdater[] subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+                //ISubdomainGlobalMapping[] subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+                //int increments = 1;
+                //int maxIterations = 100;
+                //int iterationsForMatrixRebuild = 1;
+                //var nonLinearAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems.Values.ToArray(), 
+                //    subdomainUpdaters, subdomainMappers, provider, increments, model.TotalDOFs, maxIterations, 
+                //    iterationsForMatrixRebuild);
+
+                //childAnalyzer = nonLinearAnalyzer;
             }
             else
             {
@@ -190,8 +236,6 @@ namespace ISAAR.MSolve.Preprocessor.UI
             {
                 throw new NotImplementedException();
             }
-
-            // Field output requests
 
             // Run the analysis
             model.ConnectDataStructures();
