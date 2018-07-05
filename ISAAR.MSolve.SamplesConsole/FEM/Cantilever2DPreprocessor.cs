@@ -1,23 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Materials.VonMisesStress;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.Preprocessor.UI;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {
@@ -25,14 +21,15 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
     /// A 2D cantilever beam modeled with continuum finite elements.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Cantilever2D
+    public class Cantilever2DPreprocessor
     {
         private const double length = 4.0;
         private const double height = 20.0;
         private const double thickness = 0.1;
         private const double youngModulus = 2E6;
         private const double poissonRatio = 0.3;
-        private const double maxLoad = 1000.0; // TODO: this should be triangular
+        private const double density = 78.5;
+        private const double horizontalLoad = 1000.0; // TODO: this should be triangular
 
         private const string workingDirectory = @"C:\Users\Serafeim\Desktop\Presentation";
         private static readonly string projectDirectory =
@@ -40,76 +37,83 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
         public static void Run()
         {
-            // Choose one of the mesh files bundled with the project
+            bool dynamic = true;
+
+            /// Choose one of the mesh files bundled with the project
             //string meshPath = projectDirectory + "\\cantilever_quad4.msh";
             //string meshPath = projectDirectory + "\\cantilever_quad8.msh";
             //string meshPath = projectDirectory + "\\cantilever_quad9.msh";
             //string meshPath = projectDirectory + "\\cantilever_tri3.msh";
             string meshPath = projectDirectory + "\\cantilever_tri6.msh";
 
-            // Or set a path on your machine
+            /// Or set a path on your machine
             //string meshPath = @"C:\Users\Serafeim\Desktop\Presentation\cantilever.msh";
-
 
             (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(meshPath);
             //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateUniformMesh();
             //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshManually();
 
-            Model model = CreateModel(nodes, elements);
-            //PrintMeshOnly(model);
-            SolveLinearStatic(model);
+            PreprocessorModel model = CreateModel(nodes, elements);
+            if (dynamic) ApplyLoadsDynamic(model);
+            else ApplyLoadsStatic(model);
+            OutputRequests output = DefineOutput();
+            Solve(model, output, dynamic);
         }
 
-        private static Model CreateModel(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements)
+        private static void ApplyLoadsStatic(PreprocessorModel model)
         {
-            // Initialize
-            int numNodes = nodes.Count;
-            int numElements = elements.Count;
-            VectorExtensions.AssignTotalAffinityCount();
+            // Only upper left corner
+            double tol = 1E-10;
+            model.ApplyNodalLoads(
+                node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol)), 
+                DOFType.X, horizontalLoad);
+        }
 
-            // Materials
+        private static void ApplyLoadsDynamic(PreprocessorModel model)
+        {
+            string accelerogramPath = workingDirectory + "\\elcentro_NS.dat";
+            Dictionary<DOFType, double> magnifications = new Dictionary<DOFType, double>
+            {
+                { DOFType.X, 1.0 }
+            };
+            model.SetGroundMotion(accelerogramPath, magnifications, 0.02, 53.74);
+        }
+
+        private static PreprocessorModel CreateModel(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements)
+        {
+            PreprocessorModel model = PreprocessorModel.Create2DPlaneStress(thickness);
+
+            // Materials properties
             ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
+            DynamicMaterial dynamicProperties = new DynamicMaterial(density, 0.05, 0.05);
 
-            // Subdomains
-            Model model = new Model();
-            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+            // Mesh
+            model.AddMesh2D(nodes, elements, material, dynamicProperties);
 
-            // Nodes
-            for (int i = 0; i < numNodes; ++i) model.NodesDictionary.Add(i, nodes[i]);
-
-            // Elements
-            var factory = new ContinuumElement2DFactory(thickness, material, null);
-            for (int i = 0; i < numElements; ++i)
-            {
-                ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
-                var elementWrapper = new Element() { ID = i, ElementType = element };
-                foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
-                model.ElementsDictionary.Add(i, elementWrapper);
-                model.SubdomainsDictionary[0].ElementsDictionary.Add(i, elementWrapper);
-            }
-
-            // Constraints
+            // Prescribed displacements: all nodes at the bottom
             double tol = 1E-10;
-            Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
-            for (int i = 0; i < constrainedNodes.Length; i++)
-            {
-                constrainedNodes[i].Constraints.Add(DOFType.X);
-                constrainedNodes[i].Constraints.Add(DOFType.Y);
-            }
+            IEnumerable<Node2D> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
+            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
 
-            // Loads
-            Node2D[] loadedNodes = nodes.Where(
-                node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
-            if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
 
-            // Finalize
-            model.ConnectDataStructures();
+
             return model;
+        }
+
+        private static OutputRequests DefineOutput()
+        {
+            OutputRequests output = new OutputRequests(workingDirectory + "\\Plots");
+            output.Displacements = true;
+            output.Strains = true;
+            output.Stresses = true;
+            output.StressesVonMises = true;
+
+            return output;
         }
 
         private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshManually()
@@ -164,34 +168,18 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             }
         }
 
-        private static void SolveLinearStatic(Model model)
+        private static void Solve(PreprocessorModel model, OutputRequests output, bool dynamic)
         {
-            // Choose linear equation system solver
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            // Set up the simulation procedure
+            Job job = new Job(model);
+            if (dynamic) job.Procedure = Job.ProcedureOptions.DynamicImplicit;
+            else job.Procedure = Job.ProcedureOptions.Static;
+            job.Integrator = Job.IntegratorOptions.Linear;
+            job.Solver = Job.SolverOptions.DirectSkyline;
+            job.FieldOutputRequests = output;
 
-            // Choose the provider of the problem -> here a structural problem
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-
-            // Choose parent and child analyzers -> Parent: Static, Child: Linear
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-
-            // Logging displacement, strain, and stress fields.
-            string outputDirectory = workingDirectory + "\\Plots";
-            childAnalyzer.LogFactories[0] = new VtkLogFactory(model, outputDirectory)
-            {
-                LogDisplacements = true,
-                LogStrains = true,
-                LogStresses = true,
-                VonMisesStressCalculator = new PlaneStressVonMises()
-            };
-
-            // Run the analysis
-            parentAnalyzer.BuildMatrices();
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
+            // Run the simulation
+            job.Submit();
         }
     }
 }

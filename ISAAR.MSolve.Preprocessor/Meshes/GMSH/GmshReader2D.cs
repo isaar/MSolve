@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 
-namespace ISAAR.MSolve.FEM.Meshes.GMSH
+namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
 {
     /// <summary>
     /// Creates meshes by reading GMSH output files (.msh). Unrecognized GMSH cell types will be ignored along with any 1D cells
