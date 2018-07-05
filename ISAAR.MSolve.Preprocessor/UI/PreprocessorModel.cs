@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
         internal double TimeStep { get; private set; }
 
-        internal double TotalTime { get; private set; }
+        internal double TotalDuration { get; private set; }
 
         /// <summary>
         /// Adds a new node to the model.
@@ -272,7 +272,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             double TotalDuration)
         {
             this.TimeStep = timeStep;
-            this.TotalTime = TotalDuration;
+            this.TotalDuration = TotalDuration;
 
             model.MassAccelerationHistoryLoads.Clear();
             foreach (var dofMagnificationPair in magnificationFactors)

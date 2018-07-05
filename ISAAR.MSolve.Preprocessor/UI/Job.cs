@@ -161,9 +161,6 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// </summary>
         public SolverOptions Solver { get; set; } = SolverOptions.DirectSkyline;
 
-        public int TimeStep { get; set; } = 0;
-        public int TotalTime { get; set; } = 0;
-
         /// <summary>
         /// Sets up the necessary MSolve objects, checks user input and finally runs the simulation. 
         /// </summary>
@@ -233,7 +230,8 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
             else if (Procedure == ProcedureOptions.DynamicImplicit)
             {
-                parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.6, 1, TimeStep, TotalTime);
+                parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.6, 1, 
+                    model.TimeStep, model.TotalDuration);
             }
             else
             {
