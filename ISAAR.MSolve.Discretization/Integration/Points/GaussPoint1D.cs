@@ -25,5 +25,10 @@ namespace ISAAR.MSolve.Discretization.Integration.Points
         /// The weight factor of this integration point.
         /// </summary>
         public double Weight { get; }
+
+        public override string ToString()
+        {
+            return $"xi = {xi} - weight = {Weight}";
+        }
     }
 }

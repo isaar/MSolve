@@ -19,9 +19,10 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 //      differ per Gauss point and per analysis iteration.
 //TODO: Why does http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf Fig 31.9 take half the thickness when computing
 //      the consistent mass matrix of Quad4 elements? For Tri3, the full thickness is used, as seen in Fig 31.7
-//TODO: Simple Tri3 elements are more efficient than isoparamateric Tri3 elements. 
-//TODO: Thickness should be uniform
-//TODO: Different quadrature for mass
+//TODO: Simple Tri3 elements are more efficient than isoparamateric Tri3 elements. Many optimizations could be made. See
+//      https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch24.d/IFEM.Ch24.pdf for more.
+//TODO: The shape of finite elements needs to be checked before the analysis: wrong node order, clockwise node order, the  
+//      element's shape is too distorted, midpoints are too close to corners in quadratic elements, etc.
 namespace ISAAR.MSolve.FEM.Elements
 {
     /// <summary>
@@ -201,8 +202,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D MassMatrix(IElement element)
         {
-            //return BuildConsistentMassMatrix();
-            return BuildLumpedMassMatrix();
+            return BuildConsistentMassMatrix();
+            //return BuildLumpedMassMatrix();
         }
 
         public bool MaterialModified

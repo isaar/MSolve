@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.Tests
+namespace ISAAR.MSolve.FEM.Tests
 {
     internal static class Utilities
     {
