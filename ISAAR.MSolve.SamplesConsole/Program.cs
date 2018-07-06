@@ -150,7 +150,9 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
-            FEM.Cantilever2D.Run();
+            //FEM.Cantilever2D.Run();
+            //FEM.Cantilever2DPreprocessor.Run();
+            FEM.WallWithOpenings.Run();
         }
     }
 }

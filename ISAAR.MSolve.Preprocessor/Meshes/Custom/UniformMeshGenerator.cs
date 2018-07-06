@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Shapes;
 
 //TODO: abstract this in order to be used with points in various coordinate systems
 //TODO: perhaps the origin should be (0.0, 0.0) and the meshes could then be transformed. Abaqus does something similar with its
 //      meshed parts during assembly
-namespace ISAAR.MSolve.FEM.Meshes.Custom
+namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
 {
     /// <summary>
     /// Creates meshes based on uniform rectilinear grids: the distance between two consecutive vertices for the same axis is 

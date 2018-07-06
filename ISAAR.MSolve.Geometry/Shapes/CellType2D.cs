@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.FEM.Meshes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
     /// <summary>
     /// Defines the shape of a cell only. Since there are no dependencies, it can also be used to map corresponding cell/element 

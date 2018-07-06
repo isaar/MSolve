@@ -10,12 +10,11 @@ using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.FEM.Meshes;
-using ISAAR.MSolve.FEM.Meshes.GMSH;
 using Xunit;
 using System.Linq;
 using ISAAR.MSolve.Logging.VTK;
-using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Preprocessor.Meshes;
+using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 
 namespace ISAAR.MSolve.Tests
 {

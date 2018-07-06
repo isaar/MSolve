@@ -71,8 +71,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <returns></returns>
         public IReadOnlyList<double> GetShapeGradientCartesian(int nodeIdx) => shapeGradientsCartesian[nodeIdx];
 
-        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes, 
-            NaturalPoint2D naturalCoordinates)
+        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes)
         {
             if (nodes.Count != shapeFunctions.Length) throw new ArgumentException(
                 $"There are {shapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");

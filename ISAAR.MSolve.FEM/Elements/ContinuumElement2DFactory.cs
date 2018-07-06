@@ -6,7 +6,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
-using ISAAR.MSolve.FEM.Meshes;
+using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Materials;
 
 //TODO: Materials should be passed in the constructor, not each method

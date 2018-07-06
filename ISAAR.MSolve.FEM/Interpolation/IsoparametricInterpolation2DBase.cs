@@ -5,8 +5,8 @@ using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
-using ISAAR.MSolve.FEM.Meshes;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Shapes;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
