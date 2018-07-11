@@ -112,6 +112,7 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[1].Constraints.Add(DOFType.RotX);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
             model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);  
+
             // Generate elements of the structure
             int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)

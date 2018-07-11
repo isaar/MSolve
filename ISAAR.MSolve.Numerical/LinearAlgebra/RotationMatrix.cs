@@ -72,6 +72,18 @@ namespace ISAAR.MSolve.Numerical.Matrices
             return rotationMatrix;
         }
 
+        public static Matrix2D CalculateRotationMatrixBeam2D(double phi)
+        {
+            var rotationMatrix = new Matrix2D(3, 3);
+            rotationMatrix[0, 0] = Math.Cos(phi);
+            rotationMatrix[0, 1] = -Math.Sin(phi);
+            rotationMatrix[1, 0] = Math.Sin(phi);
+            rotationMatrix[1, 1] = Math.Cos(phi);
+            rotationMatrix[2, 2] = 1d;
+
+            return rotationMatrix;
+        }
+
         private RotationMatrix()
         {
             // DO Nothing

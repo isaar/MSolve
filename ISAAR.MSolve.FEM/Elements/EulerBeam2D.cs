@@ -205,10 +205,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
+            // Method intentionally left empty.
         }
-		
+
         public void ClearMaterialState()
         {
+            // Method intentionally left empty.
         }
 
         public void ClearMaterialStresses()
