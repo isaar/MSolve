@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Entities;
@@ -28,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
     public class Hexa8WithStochasticMaterial : Hexa8
     {
-        protected readonly new IStochasticFiniteElementMaterial[] materialsAtGaussPoints;
+        protected readonly new IStochasticContinuumMaterial3D[] materialsAtGaussPoints;
         protected readonly Hexa8Memoizer memoizer;
 
         private static double[][] integrationPoints = new double[][] 
@@ -40,14 +41,14 @@ namespace ISAAR.MSolve.FEM.Elements
             new double[] { -0.8611363115941, -0.3399810435849, 0.3399810435849, 0.8611363115941 } 
         };
 
-        public Hexa8WithStochasticMaterial(IStochasticFiniteElementMaterial material)
+        public Hexa8WithStochasticMaterial(IStochasticContinuumMaterial3D material)
         {
-            materialsAtGaussPoints = new IStochasticFiniteElementMaterial[iInt3];
+            materialsAtGaussPoints = new IStochasticContinuumMaterial3D[iInt3];
             for (int i = 0; i < iInt3; i++)
-                materialsAtGaussPoints[i] = (IStochasticFiniteElementMaterial)material.Clone();
+                materialsAtGaussPoints[i] = (IStochasticContinuumMaterial3D)material.Clone();
         }
 
-        public Hexa8WithStochasticMaterial(IStochasticFiniteElementMaterial material, Hexa8Memoizer memoizer) : this(material)
+        public Hexa8WithStochasticMaterial(IStochasticContinuumMaterial3D material, Hexa8Memoizer memoizer) : this(material)
         {
             this.memoizer = memoizer;
         }
@@ -58,7 +59,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //    this.coefficientsProvider = coefficientsProvider;
         //}
 
-        public override IMatrix2D StiffnessMatrix(Element element)
+        public override IMatrix2D StiffnessMatrix(IElement element)
         {
             double[, ,] afE = new double[iInt3, 6, 6];
             int iPos = 0;
@@ -109,26 +110,26 @@ namespace ISAAR.MSolve.FEM.Elements
             return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(faK));
         }
 
-        private double[] GetStochasticPoints(Element element, int iX, int iY, int iZ)
+        private double[] GetStochasticPoints(IElement element, int iX, int iY, int iZ)
         {
             // Calculate for element centroid
             double X = 0;
             double Y = 0;
             double Z = 0;
-            double minX = element.Nodes[0].X;
-            double minY = element.Nodes[0].Y;
-            double minZ = element.Nodes[0].Z;
+            double minX = element.INodes[0].X;
+            double minY = element.INodes[0].Y;
+            double minZ = element.INodes[0].Z;
 
             for (int i = 0; i < 8; i++)
             {
-                minX = minX > element.Nodes[i].X ? element.Nodes[i].X : minX;
-                minY = minY > element.Nodes[i].Y ? element.Nodes[i].Y : minY;
-                minZ = minZ > element.Nodes[i].Z ? element.Nodes[i].Z : minZ;
+                minX = minX > element.INodes[i].X ? element.INodes[i].X : minX;
+                minY = minY > element.INodes[i].Y ? element.INodes[i].Y : minY;
+                minZ = minZ > element.INodes[i].Z ? element.INodes[i].Z : minZ;
                 for (int j = i + 1; j < 8; j++)
                 {
-                    X = X < Math.Abs(element.Nodes[j].X - element.Nodes[i].X) ? Math.Abs(element.Nodes[j].X - element.Nodes[i].X) : X;
-                    Y = Y < Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) ? Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) : Y;
-                    Z = Z < Math.Abs(element.Nodes[j].Z - element.Nodes[i].Z) ? Math.Abs(element.Nodes[j].Z - element.Nodes[i].Z) : Z;
+                    X = X < Math.Abs(element.INodes[j].X - element.INodes[i].X) ? Math.Abs(element.INodes[j].X - element.INodes[i].X) : X;
+                    Y = Y < Math.Abs(element.INodes[j].Y - element.INodes[i].Y) ? Math.Abs(element.INodes[j].Y - element.INodes[i].Y) : Y;
+                    Z = Z < Math.Abs(element.INodes[j].Z - element.INodes[i].Z) ? Math.Abs(element.INodes[j].Z - element.INodes[i].Z) : Z;
                 }
             }
 

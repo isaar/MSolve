@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -11,7 +12,6 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.SamplesConsole;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
@@ -247,7 +247,7 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -340,7 +340,7 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -438,7 +438,7 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            ElasticMaterial2D material = new ElasticMaterial2D()
+            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -522,79 +522,79 @@ namespace ISAAR.MSolve.Tests
         }
 
 
-	    [Fact]
-	    private static void SolveLinearTrussExample()
-	    {
-			VectorExtensions.AssignTotalAffinityCount();
+        [Fact]
+        private static void SolveLinearTrussExample()
+        {
+            VectorExtensions.AssignTotalAffinityCount();
 
-			#region CreateGeometry
+            #region CreateGeometry
 
-			IList<Node> nodes = new List<Node>();
-		    Node node1 = new Node { ID = 1, X = 0, Y = 0 };
-		    Node node2 = new Node { ID = 2, X = 0, Y = 40 };
-		    Node node3 = new Node { ID = 3, X = 40, Y = 40 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0, Y = 0 };
+            Node node2 = new Node { ID = 2, X = 0, Y = 40 };
+            Node node3 = new Node { ID = 3, X = 40, Y = 40 };
 
-		    nodes.Add(node1);
-		    nodes.Add(node2);
-		    nodes.Add(node3);
+            nodes.Add(node1);
+            nodes.Add(node2);
+            nodes.Add(node3);
 
-			double youngMod = 10e6;
-			double poisson = 0.3;
-			double loadX = 500;
-			double loadY = 300;
-			double sectionArea = 1.5;
-			
-			Model trussModel = new Model();
+            double youngMod = 10e6;
+            double poisson = 0.3;
+            double loadX = 500;
+            double loadY = 300;
+            double sectionArea = 1.5;
+            
+            Model trussModel = new Model();
 
-			trussModel.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+            trussModel.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
 
-			for (int i = 0; i < nodes.Count; i++)
-			{
-				trussModel.NodesDictionary.Add(i + 1, nodes[i]);
-			}
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                trussModel.NodesDictionary.Add(i + 1, nodes[i]);
+            }
 
-			trussModel.NodesDictionary[1].Constraints.Add(DOFType.X);
-			trussModel.NodesDictionary[1].Constraints.Add(DOFType.Y);
-			trussModel.NodesDictionary[2].Constraints.Add(DOFType.X);
-			trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
+            trussModel.NodesDictionary[1].Constraints.Add(DOFType.X);
+            trussModel.NodesDictionary[1].Constraints.Add(DOFType.Y);
+            trussModel.NodesDictionary[2].Constraints.Add(DOFType.X);
+            trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
 
 
-			var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
-			var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
+            var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
+            var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
 
-			element1.AddNode(trussModel.NodesDictionary[1]);
-			element1.AddNode(trussModel.NodesDictionary[3]);
+            element1.AddNode(trussModel.NodesDictionary[1]);
+            element1.AddNode(trussModel.NodesDictionary[3]);
 
-			element2.AddNode(trussModel.NodesDictionary[2]);
-			element2.AddNode(trussModel.NodesDictionary[3]);
+            element2.AddNode(trussModel.NodesDictionary[2]);
+            element2.AddNode(trussModel.NodesDictionary[3]);
 
-			trussModel.ElementsDictionary.Add(element1.ID, element1);
-			trussModel.ElementsDictionary.Add(element2.ID, element2);
+            trussModel.ElementsDictionary.Add(element1.ID, element1);
+            trussModel.ElementsDictionary.Add(element2.ID, element2);
 
-			trussModel.SubdomainsDictionary[0].ElementsDictionary.Add(element1.ID, element1);
-			trussModel.SubdomainsDictionary[0].ElementsDictionary.Add(element2.ID, element2);
+            trussModel.SubdomainsDictionary[0].ElementsDictionary.Add(element1.ID, element1);
+            trussModel.SubdomainsDictionary[0].ElementsDictionary.Add(element2.ID, element2);
 
-			trussModel.Loads.Add(new Load() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = DOFType.X });
-			trussModel.Loads.Add(new Load() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = DOFType.Y });
+            trussModel.Loads.Add(new Load() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = DOFType.X });
+            trussModel.Loads.Add(new Load() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = DOFType.Y });
 
-			trussModel.ConnectDataStructures();
-		    #endregion
+            trussModel.ConnectDataStructures();
+            #endregion
 
-			var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-			linearSystems[0] = new SkylineLinearSystem(0, trussModel.SubdomainsDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
+            linearSystems[0] = new SkylineLinearSystem(0, trussModel.SubdomainsDictionary[0].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
 
-			ProblemStructural provider = new ProblemStructural(trussModel, linearSystems);
+            ProblemStructural provider = new ProblemStructural(trussModel, linearSystems);
 
-			LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-			
-			parentAnalyzer.BuildMatrices();
-			parentAnalyzer.Initialize();
-			parentAnalyzer.Solve();
+            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
 
-		    Assert.Equal(0.00053333333333333336, linearSystems[0].Solution[0], 10);
-		    Assert.Equal(0.0017294083664636196, linearSystems[0].Solution[1], 10);
-		}
+            Assert.Equal(0.00053333333333333336, linearSystems[0].Solution[0], 10);
+            Assert.Equal(0.0017294083664636196, linearSystems[0].Solution[1], 10);
+        }
     }
 }

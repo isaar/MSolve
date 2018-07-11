@@ -7,6 +7,7 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 using System.IO;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;

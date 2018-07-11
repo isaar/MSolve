@@ -58,6 +58,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             }
         }
 
+        /// <summary>
+        /// this = this + scalar * matrix
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="scalar"></param>
+        public void AxpyIntoThis(IMatrix2D matrix, double scalar)
+        {
+            if ((this.Rows != matrix.Rows) || (this.Columns != matrix.Columns))
+            {
+                throw new ArgumentException("The two matrices must have the same dimensions.");
+            }
+            for (int i = 0; i < Rows; ++i)
+            {
+                for (int j = 0; j < Columns; ++j)
+                {
+                    this[i, j] += scalar * matrix[i, j];
+                }
+            }
+        }
+
         public void Multiply(IVector vIn, double[] vOut)
         {
             if (isTransposed == false)
@@ -135,7 +155,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Matrix2D(c);
         }
 
-        public static Vector operator *(Matrix2D A, Vector b)
+		public void Add(Matrix2D B)
+		{
+			
+			double[,] mData = data;
+			if (mData.GetLength(0) != B.rows&& mData.GetLength(1) != B.Columns) throw new ArgumentException("Matrix sizes mismatch.");
+			for (int i = 0; i < mData.GetLength(0); i++)
+			for (int j = 0; j < mData.GetLength(1); j++)
+				mData[i, j] += B[i,j];
+		}
+
+		public static Vector operator *(Matrix2D A, Vector b)
         {
             if (A.Columns != b.Length) throw new ArgumentException("Matrix sizes mismatch.");
 
