@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Tests
             double poissonRatio = 0.3;
             double nodalLoad = 20000.0;
             double area = 91.04;
-            double inertia = 2843.0;
+            double inertia = 8091.0;
             int nNodes = 3;
             int nElems = 2;
             int monitorNode = 3;
@@ -118,8 +118,6 @@ namespace ISAAR.MSolve.Tests
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
             int increments = 10;
             int totalDOFs = model.TotalDOFs;
-            int maximumIteration = 120;
-            int iterationStepsForMatrixRebuild = 500;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs);
 
@@ -130,7 +128,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(148.936792350562, linearSystems[1].Solution[7], 2);
+            Assert.Equal(146.5587362562, linearSystems[1].Solution[4], 3);
         }
     }
 }

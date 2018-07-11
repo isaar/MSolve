@@ -16,41 +16,13 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly Vector lastDisplacements;
         private readonly Vector currentDisplacements;
         private readonly Vector displacementsOfCurrentIncrement;
-        private readonly Vector initialAxisY;
-        private readonly Vector initialAxisZ;
-        private readonly Vector initialAxisX;
-        private Quaternion quaternionCurrentNodeA;
-        private Quaternion quaternionCurrentNodeB;
-        private readonly Vector currentBeamAxis;
-        private Quaternion quaternionLastNodeA;
-        private Quaternion quaternionLastNodeB;
 
-        /**
-         * Creates a new instance of {@link Beam3DCorotationalIncremental} class.
-         *
-         * @param nodes
-         *            The element nodes
-         * @param material
-         *            The element material
-         * @param density
-         *            The element density
-         * @param beamSection
-         *            The beam section.
-         */
         public Beam2DCorotational(IList<Node> nodes, IFiniteElementMaterial material, double density, BeamSection2D beamSection)
             : base(nodes, material, density, beamSection)
         {
             this.displacementsOfCurrentIncrement = new Vector(FREEDOM_DEGREE_COUNT);
             this.lastDisplacements = new Vector(FREEDOM_DEGREE_COUNT);
             this.currentDisplacements = new Vector(FREEDOM_DEGREE_COUNT);
-            this.quaternionLastNodeA = Quaternion.OfZeroAngle();
-            this.quaternionLastNodeB = Quaternion.OfZeroAngle();
-            this.quaternionCurrentNodeA = Quaternion.OfZeroAngle();
-            this.quaternionCurrentNodeB = Quaternion.OfZeroAngle();
-            this.initialAxisX = new Vector(AXIS_COUNT);
-            this.initialAxisY = new Vector(AXIS_COUNT);
-            this.initialAxisZ = new Vector(AXIS_COUNT);
-            this.currentBeamAxis = new Vector(AXIS_COUNT);
             this.InitializeElementAxes();
         }
 
@@ -58,13 +30,6 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             displacementsOfCurrentIncrement.Scale(0d);
             currentDisplacements.CopyTo(lastDisplacements.Data, 0);
-
-            var qA = new double[quaternionCurrentNodeA.VectorPart.Length];
-            quaternionCurrentNodeA.VectorPart.CopyTo(qA, 0);
-            var qB = new double[quaternionCurrentNodeB.VectorPart.Length];
-            quaternionCurrentNodeB.VectorPart.CopyTo(qB, 0);
-            this.quaternionLastNodeA = new Quaternion(quaternionCurrentNodeA.ScalarPart, new Vector(qA));
-            this.quaternionLastNodeB = new Quaternion(quaternionCurrentNodeB.ScalarPart, new Vector(qB));
         }
 
         public override void UpdateState(double[] incrementalNodeDisplacements)
@@ -80,8 +45,8 @@ namespace ISAAR.MSolve.FEM.Elements
             double currentDisplacementY_B = currentDisplacements[4];
             double currentRotationZ_Β = currentDisplacements[5];
 
-            double dX = ((nodes[1].X - nodes[0].X) + this.currentDisplacements[0]) - this.currentDisplacements[3];
-            double dY = ((nodes[1].Y - nodes[0].Y) + this.currentDisplacements[1]) - this.currentDisplacements[4];
+            double dX = ((nodes[1].X - nodes[0].X) + currentDisplacementX_B) - currentDisplacementX_A;
+            double dY = ((nodes[1].Y - nodes[0].Y) + currentDisplacementY_B) - currentlDisplacementY_A;
             this.currentLength = Math.Sqrt((dX * dX) + (dY * dY));
             double axisAngle = 0d;
             if ((dY == 0) && (dX == currentLength)) { axisAngle = 0d; }
@@ -108,23 +73,6 @@ namespace ISAAR.MSolve.FEM.Elements
             this.naturalDeformations[2] = antiSymmetricAngle;
         }
 
-        private void CalculateUpdatedBeamAxis()
-        {
-            //currentRotationMatrix.Multiply(initialAxisX, beamAxisX.Data);
-            //currentRotationMatrix.Multiply(initialAxisY, beamAxisY.Data);
-            //currentRotationMatrix.Multiply(initialAxisZ, beamAxisZ.Data);
-
-            //double dX = ((nodes[1].X - nodes[0].X) + this.currentDisplacements[6]) - this.currentDisplacements[0];
-            //double dY = ((nodes[1].Y - nodes[0].Y) + this.currentDisplacements[7]) - this.currentDisplacements[1];
-            //double dZ = ((nodes[1].Z - nodes[0].Z) + this.currentDisplacements[8]) - this.currentDisplacements[2];
-            //this.currentLength = Math.Sqrt((dX * dX) + (dY * dY) + (dZ * dZ));
-            //var delta = new Vector(new[] { dX, dY, dZ });
-            //this.currentBeamAxis[0] = dX / currentLength + beamAxisX[0];
-            //this.currentBeamAxis[1] = dY / currentLength + beamAxisX[1];
-            //this.currentBeamAxis[2] = dZ / currentLength + beamAxisX[2];
-            //this.currentBeamAxis.Scale(1d / this.currentBeamAxis.Norm);
-        }
-
         private void InitializeElementAxes()
         {
             double deltaX = nodes[1].X - nodes[0].X;
@@ -137,30 +85,6 @@ namespace ISAAR.MSolve.FEM.Elements
             else { axisAngle = 2.0 * Math.Atan((currentLength - deltaX) / deltaY); }
             
             currentRotationMatrix = RotationMatrix.CalculateRotationMatrixBeam2D(axisAngle);
-        }
-
-        private void UpdateNaturalDeformations(Vector vectorPartDifference)
-        {
-            double extension = this.currentLength - this.initialLength;
-            Matrix2D currentRotationMatrixTranspose = currentRotationMatrix.Transpose();
-            var symmetricRotation = new Vector(AXIS_COUNT);
-
-            currentRotationMatrixTranspose.Multiply(vectorPartDifference, symmetricRotation.Data);
-
-            var antisymmetricRotation = new Vector(AXIS_COUNT);
-
-            currentRotationMatrixTranspose.Multiply(this.beamAxisX ^ this.currentBeamAxis, antisymmetricRotation.Data);
-            this.naturalDeformations[0] = symmetricRotation[0] * 4.0;
-            this.naturalDeformations[1] = symmetricRotation[1] * 4.0;
-            this.naturalDeformations[2] = symmetricRotation[2] * 4.0;
-            this.naturalDeformations[3] = extension;
-            this.naturalDeformations[4] = antisymmetricRotation[1] * 4.0;
-            this.naturalDeformations[5] = antisymmetricRotation[2] * 4.0;
-        }
-
-        private void UpdateRotationMatrix()
-        {
-            //currentRotationMatrix = RotationMatrix.CalculateRotationMatrixBeam2D(this.axisAngle);
         }
     }
 }

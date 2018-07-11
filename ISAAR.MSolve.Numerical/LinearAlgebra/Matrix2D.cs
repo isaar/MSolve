@@ -86,6 +86,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 MultiplyTranspose(vIn, vOut);
         }
 
+        public void Multiply(double[] vIn, double[] vOut)
+        {
+            Matrix2D AA = new Matrix2D(data);
+            for (int i = 0; i < rows; i++)
+            {
+                vOut[i] = 0;
+                for (int j = 0; j < columns; j++)
+                    vOut[i] += AA.Data[i, j] * vIn[j];
+            }
+        }
+
         private void MultiplyNormal(IVector vIn, double[] vOut)
         {
             Matrix2D AA = new Matrix2D(data);
@@ -186,7 +197,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 for (int j = 0; j < A.Columns; j++)
                     AA[i, j] = AA[i, j] * b;
             return AA;
-
         }
 
         public void SVD(double[] w, double[,] v)
@@ -565,7 +575,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //    for (i = 0; i < rows; i++) delete u[i];
             //    delete u;
             //  } 
-        }
+        }        
 
         public void LinearCombinationGOAT(IList<double> coefficients, IList<IMatrix2D> matrices)
         {

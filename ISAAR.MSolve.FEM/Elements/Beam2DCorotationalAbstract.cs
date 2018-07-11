@@ -101,11 +101,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return blockRotationMatrix;
         }
 
-        /**
-	     * Calculates the constitutive stiffness of the element.
-	     *
-	     * @return The constitutive stiffness
-	     */
         private SymmetricMatrix2D CalculateConstitutiveStiffness()
         {
             var constitutiveStiffness = new SymmetricMatrix2D(FREEDOM_DEGREE_COUNT);
@@ -130,8 +125,8 @@ namespace ISAAR.MSolve.FEM.Elements
             constitutiveStiffness[1, 5] = 6.0 * psi * E * I / LSqruared;
 
             constitutiveStiffness[2, 2] = (3.0 * psi + 1.0) * EIOverL;
-            constitutiveStiffness[2, 4] = -6.0 * psi * E * I / L;
-            constitutiveStiffness[2, 5] = (3.0 * psi + 1.0) * EIOverL;
+            constitutiveStiffness[2, 4] = -6.0 * psi * E * I / LSqruared;
+            constitutiveStiffness[2, 5] = (3.0 * psi - 1.0) * EIOverL;
 
             constitutiveStiffness[3, 3] = EAOverL;
 
@@ -143,39 +138,18 @@ namespace ISAAR.MSolve.FEM.Elements
             return constitutiveStiffness;
         }
 
-        /**
-	     * Calculates the forces in the global coordinate system.
-	     *
-	     * @return The forces in the global coordinate system
-	     */
         private Vector CalculateForcesInGlobalSystem()
         {
             var forcesNatural = this.CalculateForcesInNaturalSystem();
-            var transformationMatrix = this.CalculateNaturalToGlobalTransormMatrix();
+            var transformationMatrix = this.CalculateNaturalToLocalTranformMatrix();
+            double[] forcesLocal = new double[FREEDOM_DEGREE_COUNT];            
+            transformationMatrix.Multiply(forcesNatural, forcesLocal);
             double[] forcesGlobal = new double[FREEDOM_DEGREE_COUNT];
-            transformationMatrix.Multiply(forcesNatural, forcesGlobal);
+            var blockRotationMatrix = this.CalculateBlockRotationMatrix();
+            blockRotationMatrix.Multiply(forcesLocal, forcesGlobal);
             return new Vector(forcesGlobal);
         }
 
-        /**
-	     * Calculates the forces in the local coordinate system.
-	     *
-	     * @return The forces in the local coordinate system
-	     */
-        private Vector CalculateForcesInLocalSystem()
-        {
-            var naturalToLocal = this.CalculateNaturalToLocalTranformMatrix();
-            var naturalForces = this.CalculateForcesInNaturalSystem();
-            double[] forcesLocal = new double[FREEDOM_DEGREE_COUNT];
-            naturalToLocal.Multiply(naturalForces, forcesLocal);
-            return new Vector(forcesLocal);
-        }
-
-        /**
-	     * Calculates forces in the natural coordinate system.
-	     *
-	     * @return The forces in the natural coordinate system
-	     */
         private Vector CalculateForcesInNaturalSystem()
         {
             var forcesNatural = new Vector(NATURAL_DEFORMATION_COUNT);
@@ -183,34 +157,27 @@ namespace ISAAR.MSolve.FEM.Elements
             double G = E / (2d * (1d + this.material.PoissonRatio));
             double I = this.beamSection.Inertia;
             double A = this.beamSection.Area;
-            double l = this.currentLength;
-            double phi = (12.0 * E * I) / (l * l * G * A);
+            double L = this.currentLength;
+            double phi = (12.0 * E * I) / (L * L * G * A);
             double psi = 1.0 / (1.0 + phi);
+            double axialForceNatural = 0d;
 
             forcesNatural[NaturalDeformationMode2D.EXTENSION] =
-                (E * A * this.naturalDeformations[NaturalDeformationMode2D.EXTENSION]) / l;
+                (E * A * this.naturalDeformations[NaturalDeformationMode2D.EXTENSION]) / L;
+
+            axialForceNatural = forcesNatural[NaturalDeformationMode2D.EXTENSION];
 
             forcesNatural[NaturalDeformationMode2D.SYMMETRIC_BENDING] =
-                (E * I * this.naturalDeformations[NaturalDeformationMode2D.SYMMETRIC_BENDING]) / l;
-            
+                ((E * I / L) + (L * axialForceNatural / 12.0)) * this.naturalDeformations[NaturalDeformationMode2D.SYMMETRIC_BENDING];
+           
             forcesNatural[NaturalDeformationMode2D.ANTISYMMETRIC_BENDING] =
-                (3.0 * psi * E * I * this.naturalDeformations[NaturalDeformationMode2D.ANTISYMMETRIC_BENDING]) / l;
+                ((3.0 * psi * E * I/L) + (L*axialForceNatural/20.0)) * this.naturalDeformations[NaturalDeformationMode2D.ANTISYMMETRIC_BENDING];
 
             return forcesNatural;
         }
 
-        /**
-	     * Calculates the geometric stiffness of the element.
-	     *
-	     * @return The geometric stiffness
-	     */
         private SymmetricMatrix2D CalculateGeometricStiffness()
         {
-            var forcesNatural = new Vector(NATURAL_DEFORMATION_COUNT);
-            double E = this.material.YoungModulus;
-            double G = E / (2d * (1d + this.material.PoissonRatio));
-            double I = this.beamSection.Inertia;
-            double A = this.beamSection.Area;
             double L = this.currentLength;
             var geometricStiffness = new SymmetricMatrix2D(FREEDOM_DEGREE_COUNT);
             var forcesInNaturalSystem = this.CalculateForcesInNaturalSystem();
@@ -238,11 +205,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return geometricStiffness;
         }
 
-        /**
-	     * Calculates the stiffness matrix in the local coordinate system.
-	     *
-	     * @return The stiffness matrix in the local coordinate system.
-	     */
         private SymmetricMatrix2D CalculateLocalStiffnessMatrix()
         {
             var constitutivePart = this.CalculateConstitutiveStiffness();
@@ -251,33 +213,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return constitutivePart;
         }
 
-        /**
-	     * Calculates the transformation matrix from natural to local coordinate system.
-	     *
-	     * @return The natural to local transformation matrix
-	     */
-        private Matrix2D CalculateNaturalToGlobalTransormMatrix()
-        {
-            var transformMatrix = new Matrix2D(FREEDOM_DEGREE_COUNT, NATURAL_DEFORMATION_COUNT);
-            double L = this.currentLength;
-
-            transformMatrix[0, 0] = -1.0;
-            transformMatrix[1, 2] = +2.0 / L;
-            transformMatrix[2, 1] = -1.0;
-            transformMatrix[2, 2] = +1.0;
-            transformMatrix[3, 0] = +1.0;
-            transformMatrix[4, 2] = -2.0 / L;
-            transformMatrix[5, 1] = +1.0;
-            transformMatrix[5, 2] = +1.0;
-            
-            return transformMatrix;
-        }
-
-        /**
-	     * Calculates the transformation matrix from natural to local coordinate system.
-	     *
-	     * @return The natural to local transformation matrix
-	     */
         private Matrix2D CalculateNaturalToLocalTranformMatrix()
         {
             var transformMatrix = new Matrix2D(FREEDOM_DEGREE_COUNT, NATURAL_DEFORMATION_COUNT);
@@ -311,70 +246,6 @@ namespace ISAAR.MSolve.FEM.Elements
         public IMatrix2D MassMatrix(IElement element)
         {
             throw new NotImplementedException();
-            //double area = beamSection.Area;
-            //double inertiaY = beamSection.InertiaY;
-            //double inertiaZ = beamSection.InertiaZ;
-            //double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
-            //double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
-            //double z2 = Math.Pow(element.INodes[1].Z - element.INodes[0].Z, 2);
-            //double L = Math.Sqrt(x2 + y2 + z2);
-            //double fullMass = density * area * L;
-
-            //var massMatrix = new Matrix2D(FREEDOM_DEGREE_COUNT, FREEDOM_DEGREE_COUNT);
-            //massMatrix[0, 0] = (1.0 / 3.0) * fullMass;
-            //massMatrix[0, 6] = (1.0 / 6.0) * fullMass;
-
-            //massMatrix[1, 1] = (13.0 / 35.0) * fullMass;
-            //massMatrix[1, 5] = (11.0 * L / 210.0) * fullMass;
-            //massMatrix[1, 7] = (9.0 / 70.0) * fullMass;
-            //massMatrix[1, 11] = -(13.0 * L / 420.0) * fullMass;
-
-            //massMatrix[2, 2] = (13.0 / 35.0) * fullMass;
-            //massMatrix[2, 4] = -(11.0 * L / 210.0) * fullMass;
-            //massMatrix[2, 8] = (9.0 / 70.0) * fullMass;
-            //massMatrix[2, 10] = -(13.0 * L / 420.0) * fullMass;
-
-            //massMatrix[3, 3] = ((inertiaY + inertiaZ) / (3.0 * area)) * fullMass;
-            //massMatrix[3, 9] = ((inertiaY + inertiaZ) / (6.0 * area)) * fullMass;
-
-            //massMatrix[4, 4] = ((L * L) / 105.0) * fullMass;
-            //massMatrix[4, 8] = -(13.0 * L / 420.0) * fullMass;
-            //massMatrix[4, 10] = -((L * L) / 105.0) * fullMass;
-
-            //massMatrix[5, 5] = ((L * L) / 105.0) * fullMass;
-            //massMatrix[5, 7] = (13.0 * L / 420.0) * fullMass;
-            //massMatrix[5, 11] = -((L * L) / 105.0) * fullMass;
-
-            //massMatrix[6, 6] = (1.0 / 3.0) * fullMass;
-
-            //massMatrix[7, 7] = (13.0 / 35.0) * fullMass;
-            //massMatrix[7, 11] = -(11.0 * L / 210.0) * fullMass;
-
-            //massMatrix[8, 8] = (13.0 / 35.0) * fullMass;
-            //massMatrix[8, 10] = (11.0 * L / 210.0) * fullMass;
-
-            //massMatrix[9, 9] = ((inertiaY + inertiaZ) / (3.0 * area)) * fullMass;
-
-            //massMatrix[10, 10] = ((L * L) / 105.0) * fullMass;
-
-            //massMatrix[11, 11] = ((L * L) / 105.0) * fullMass;
-
-            //massMatrix[6, 0] = (1.0 / 6.0) * fullMass;
-            //massMatrix[5, 1] = (11.0 * L / 210.0) * fullMass;
-            //massMatrix[7, 1] = (9.0 / 70.0) * fullMass;
-            //massMatrix[11, 1] = -(13.0 * L / 420.0) * fullMass;
-            //massMatrix[4, 2] = -(11.0 * L / 210.0) * fullMass;
-            //massMatrix[8, 2] = (9.0 / 70.0) * fullMass;
-            //massMatrix[10, 2] = -(13.0 * L / 420.0) * fullMass;
-            //massMatrix[9, 3] = ((inertiaY + inertiaZ) / (6.0 * area)) * fullMass;
-            //massMatrix[8, 4] = -(13.0 * L / 420.0) * fullMass;
-            //massMatrix[10, 4] = -((L * L) / 105.0) * fullMass;
-            //massMatrix[7, 5] = (13.0 * L / 420.0) * fullMass;
-            //massMatrix[11, 5] = -((L * L) / 105.0) * fullMass;
-            //massMatrix[11, 7] = -(11.0 * L / 210.0) * fullMass;
-            //massMatrix[10, 8] = (11.0 * L / 210.0) * fullMass;
-
-            //return massMatrix;
         }
 
         public IMatrix2D DampingMatrix(IElement element)
@@ -394,9 +265,6 @@ namespace ISAAR.MSolve.FEM.Elements
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             UpdateState(localdDisplacements);
-            //TODO: Should calculate strains and update material as well
-            //material.UpdateMaterial(strains);
-            //TODO: Should calculate stresses as well
             return new Tuple<double[], double[]>(new double[FREEDOM_DEGREE_COUNT], new double[FREEDOM_DEGREE_COUNT]);
         }
 

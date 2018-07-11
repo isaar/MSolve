@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public void SaveState()
         {
-            throw new NotImplementedException();
+            Array.Copy(this.stressesNew, this.stresses, 3);
         }
 
         public void ClearState()
