@@ -17,9 +17,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public XContinuumElement2D OriginalElement { get; }
         public int TypeCode { get; }
-        public IReadOnlyList<VTKPoint> Vertices { get; }
+        public IReadOnlyList<VtkPoint2D> Vertices { get; }
 
-        public VTKCell(XContinuumElement2D originalElement, int cellType, IReadOnlyList<VTKPoint> vertices)
+        public VTKCell(XContinuumElement2D originalElement, int cellType, IReadOnlyList<VtkPoint2D> vertices)
         {
             this.OriginalElement = originalElement;
             this.TypeCode = cellType;

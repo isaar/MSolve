@@ -30,15 +30,15 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         private static VTKMesh2D CreateAuxiliaryMesh(Model2D originalModel)
         {
             var allCells = new List<VTKCell>();
-            var allPoints = new List<VTKPoint>();
+            var allPoints = new List<VtkPoint2D>();
             int pointID = 0;
 
             foreach (var element in originalModel.Elements)
             {
-                var cellVertices = new VTKPoint[element.Nodes.Count];
+                var cellVertices = new VtkPoint2D[element.Nodes.Count];
                 for (int i = 0; i < element.Nodes.Count; ++i)
                 {
-                    var point = new VTKPoint(pointID++, element.Nodes[i]);
+                    var point = new VtkPoint2D(pointID++, element.Nodes[i]);
                     cellVertices[i] = point;
                     allPoints.Add(point);
                 }
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.WriteLine(String.Format("POINTS {0} double", auxiliaryMesh.Points.Count));
             for (int i = 0; i < auxiliaryMesh.Points.Count; ++i) // Their indices in Model.Nodes are equal to their IDs
             {
-                VTKPoint point = auxiliaryMesh.Points[i];
+                VtkPoint2D point = auxiliaryMesh.Points[i];
                 writer.Write(String.Format("{0} {1} 0.0\n", point.X, point.Y));
             }
 

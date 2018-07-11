@@ -5,6 +5,7 @@ using ISAAR.MSolve.XFEM.Tests.DofOrdering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
 using ISAAR.MSolve.XFEM.Tests.Khoei;
 using ISAAR.MSolve.XFEM.Tests.Subdomains;
+using ISAAR.MSolve.XFEM.Tests.Visualization;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -14,7 +15,8 @@ namespace ISAAR.MSolve.XFEM.Tests
         {
             //DCB3x1.Run();
             //DCBSolvers.Run();
-            BenchmarkSolvers.Run();
+            //BenchmarkSolvers.Run();
+            IntersectedMeshCantilever.Run();
 
             //ReanalysisDebugging.Run();
             //ReorderingTests.Run();

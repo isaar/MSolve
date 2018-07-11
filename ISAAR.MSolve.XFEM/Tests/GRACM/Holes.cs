@@ -30,6 +30,7 @@ using ISAAR.MSolve.XFEM.Tests.Tools;
 using ISAAR.MSolve.XFEM.Utilities;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using System.IO;
+using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: limit enriched nodes in the areas around the cracks
 namespace ISAAR.MSolve.XFEM.Tests.GRACM
@@ -65,11 +66,11 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             // If you modify the following two parameters significantly, then you will need to redefine which nodes are expected 
             // to be enriched.
-            builder.TipEnrichmentRadius = 0.5;
+            builder.TipEnrichmentRadius = 0.0;
             builder.BC = BoundaryConditions.BottomConstrainXDisplacementY_TopConstrainXDisplacementY;
             builder.NumSubdomains = 8;
 
-            builder.MaxIterations = 10;
+            builder.MaxIterations = 12;
             builder.LeftLsmPlotDirectory = plotLSM ? plotPathLeft : null;
             builder.RightLsmPlotDirectory = plotLSM ? plotPathRight : null;
 
@@ -209,7 +210,9 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
         public void Analyze(ISolver solver)
         {
-            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations);
+            var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations,
+                new IntersectedMeshOutput(Model, Crack, leftLsmPlotDirectory + "\\field_output"));
+            //var analysis = new QuasiStaticAnalysis(Model, mesh, Crack, solver, fractureToughness, maxIterations);
             analysis.Analyze();
 
             // Write crack path
