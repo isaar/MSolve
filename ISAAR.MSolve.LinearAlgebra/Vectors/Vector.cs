@@ -237,15 +237,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             else return other.DotProduct(this); // Let the more complex/efficient object operate.
         }
 
-        public bool Equals(Vector other, ValueComparer comparer = null)
+        public bool Equals(IIndexable1D other, double tolerance = 1e-13)
         {
-            if (this.Length != other.Length) return false;
-            if (comparer == null) comparer = new ValueComparer(1e-13);
-            for (int i = 0; i < Length; ++i)
+            if (other is Vector casted)
             {
-                if (!comparer.AreEqual(this.data[i], other.data[i])) return false;
+                if (this.Length != other.Length) return false;
+                var comparer = new ValueComparer(tolerance);
+                for (int i = 0; i < Length; ++i)
+                {
+                    if (!comparer.AreEqual(this.data[i], casted.data[i])) return false;
+                }
+                return true;
             }
-            return true;
+            else return other.Equals(this, tolerance); // To avoid accessing zero entries
         }
 
         /// <summary>

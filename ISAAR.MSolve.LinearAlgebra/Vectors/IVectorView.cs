@@ -13,11 +13,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// It supports common operations that do not mutate the underlying vector. If you need to store a vector and then pass it
     /// around or allow acceess to it, consider using this interface instead of <see cref="Vector"/> for extra safety.
     /// </summary>
-    public interface IVectorView: IReducible
+    public interface IVectorView: IIndexable1D, IReducible
     {
-        double this[int index] { get; }
-        int Length { get; }
-      
         double[] CopyToArray();
         IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation);
         IVectorView DoToAllEntries(Func<double, double> unaryOperation);

@@ -190,9 +190,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             }
         }
 
-        public bool Equals(Vector3 other, ValueComparer comparer = null)
+        bool IIndexable1D.Equals(IIndexable1D other, double tolerance)
         {
-            if (comparer == null) comparer = new ValueComparer(1e-13);
+            if (other.Length != 3) return false;
+            else
+            {
+                var comparer = new ValueComparer(tolerance);
+                return comparer.AreEqual(this.data[0], other[0]) && comparer.AreEqual(this.data[1], other[1])
+                    && comparer.AreEqual(this.data[2], other[2]);
+            }
+        }
+
+        public bool Equals(Vector3 other, double tolerance = 1e-13)
+        {
+            var comparer = new ValueComparer(tolerance);
             return comparer.AreEqual(this.data[0], other.data[0]) && comparer.AreEqual(this.data[1], other.data[1])
                 && comparer.AreEqual(this.data[2], other.data[2]);
         }

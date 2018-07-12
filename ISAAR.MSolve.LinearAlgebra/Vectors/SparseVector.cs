@@ -221,6 +221,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return sum;
         }
 
+        public bool Equals(IIndexable1D other, double tolerance = 1e-13)
+        {
+            if (this.Length != other.Length) return false;
+            var comparer = new ValueComparer(tolerance);
+            int previousIndex = 0;
+            for (int i = 0; i < indices.Length; ++i)
+            {
+                int index = indices[i];
+                for (int j = previousIndex; j < index; ++j) // zero entries between the stored ones
+                {
+                    if (!comparer.AreEqual(0.0, other[j])) return false; 
+                }
+                if (!comparer.AreEqual(values[i], other[index])) return false; // Non zero entry
+                previousIndex = index + 1;
+            }
+            return true;
+        }
+
         public IEnumerable<(int idx, double value)> EnumerateNonZeros()
         {
             for (int i = 0; i < values.Length; ++i)
