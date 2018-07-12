@@ -90,14 +90,6 @@ namespace ISAAR.MSolve.Tests
             int iNode = 0;
             for (int iElem = 0; iElem < nElems; iElem++)
             {
-                // Create new Beam2D section and element
-                //var beam = new EulerBeam2D(youngModulus)
-                //{
-                //    Density = 7.85,
-                //    SectionArea = 91.04,
-                //    MomentOfInertia = 8091.00,
-                //};
-
                 // Create new Beam3D section and element
                 var hexa = new Hexa8NL_v2(material, 2, 2, 2);
 

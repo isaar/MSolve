@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.Tests.FEM
             YoungModulus = 1.0,
             PoissonRatio = 0.25
         };
-
+        
         private static readonly DynamicMaterial dynamicMaterial = new DynamicMaterial(78.5, 0, 0);
         
         [Fact]
