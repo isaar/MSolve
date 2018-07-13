@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
     /// Can return subvectors and submatices containing select entries.
     /// Authors: Serafeim Bakalakos
-    /// </summary>/// <summary>
+    /// </summary>
     public interface ISliceable2D: IIndexable2D
     {
         /// <summary>
@@ -23,7 +18,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     0 &lt;= <paramref name="rowIndices"/>[i] &lt; <see cref="IIndexable2D.NumRows"/>, for all i.</param>
         /// <param name="colIndices">The indices of the columns that will be returned in the submatrix.Constraints:
         ///     0 &lt;= <paramref name="colIndices"/>[j] &lt; <see cref="IIndexable2D.NumColumns"/>, for all j.</param>
-        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if the entries of <paramref name="rowIndices"/> or 
+        ///     <paramref name="colIndices"/> violate the described constraints.</exception>
         Matrix Slice(int[] rowIndices, int[] colIndices);
 
         /// <summary>
@@ -41,23 +37,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="colEndExclusive">The index immediately after the last column that will be returned in the submatrix.
         ///     Constraints: <paramref name="colStartInclusive"/> &lt;= <paramref name="colEndExclusive"/> &lt; 
         ///     <see cref="IIndexable2D.NumColumns"/>.</param>
-        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowStartInclusive"/>, 
+        ///     <paramref name="rowEndExclusive"/>, <paramref name="colStartInclusive"/> or <paramref name="colEndExclusive"/> 
+        ///     violate the described constraints.</exception>
         Matrix Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
 
         /// <summary>
-        /// Returns the column of the original matrix with index = <paramref name="colIndex"/>.
+        /// Returns a vector with the entries of the original matrix's column at index = <paramref name="colIndex"/>.
         /// </summary>
         /// <param name="colIndex">The index of the column to return. Constraints: 
         ///     0 &lt;= <paramref name="colIndex"/> &lt; <see cref="IIndexable2D.NumColumns"/>.</param>
-        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="colIndex"/> violates the described 
+        ///     constraints.</exception>
         Vector SliceColumn(int colIndex);
 
         /// <summary>
-        /// Returns the row of the original matrix with index = <paramref name="rowIndex"/>.
+        /// Returns a vector with the entries of the original matrix's row at index = <paramref name="rowIndex"/>.
         /// </summary>
         /// <param name="rowIndex">The index of the row to return. Constraints: 
         ///     0 &lt;= <paramref name="rowIndex"/> &lt; <see cref="IIndexable2D.NumRows"/>.</param>
-        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIndex"/> violates the described 
+        ///     constraints.</exception>
         Vector SliceRow(int rowIndex);
     }
 }

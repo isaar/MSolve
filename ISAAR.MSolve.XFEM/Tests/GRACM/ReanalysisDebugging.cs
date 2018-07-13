@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// Build the previous K
             int order = expectedK.NumColumns;
             var previousK = DOKSymmetricColMajor.CreateIdentity(order);
-            foreach (var (row, col, val) in expectedK.EnumerateNonZerosSuperDiagonal()) previousK[row, col] = val;
+            foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int row in addedRows) previousK.SetColumnToIdentity(row);
             //foreach (int row in removedRows) previousK.SetColumnToIdentity(row); // not sure
 
@@ -187,7 +187,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Recreate the new K and check it
             var currentK = DOKSymmetricColMajor.CreateIdentity(order);
-            foreach (var (row, col, val) in expectedK.EnumerateNonZerosSuperDiagonal()) currentK[row, col] = val;
+            foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) currentK[row, col] = val;
             //Console.WriteLine("Checking the copied matrix with the expected one.");
             //checker.Check(expectedK, currentK);
             foreach (int row in addedRows) currentK.SetColumnToIdentity(row);
@@ -211,7 +211,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Copy the matrix. TODO: add DOK.Copy()
             var matrix = DOKSymmetricColMajor.CreateIdentity(order);
-            foreach (var (row, col, val) in expectedPreviousK.EnumerateNonZerosSuperDiagonal()) matrix[row, col] = val;
+            foreach (var (row, col, val) in expectedPreviousK.EnumerateNonZerosUpper()) matrix[row, col] = val;
 
             /// Delete rows the matrix in C#
             foreach (int col in removedCols) matrix.SetColumnToIdentity(col);
@@ -292,7 +292,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// Build the previous K
             int order = expectedK.NumColumns;
             var previousK = DOKSymmetricColMajor.CreateIdentity(order);
-            foreach (var (row, col, val) in expectedK.EnumerateNonZerosSuperDiagonal()) previousK[row, col] = val;
+            foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int col in addedCols) previousK.SetColumnToIdentity(col);
 
             /// Factorize previous K, update it and check the solution
@@ -328,7 +328,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// Build the previous K
             int order = expectedK.NumColumns;
             var previousK = DOKSymmetricColMajor.CreateIdentity(order);
-            foreach (var (row, col, val) in expectedK.EnumerateNonZerosSuperDiagonal()) previousK[row, col] = val;
+            foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int col in addedCols) previousK.SetColumnToIdentity(col);
             foreach (int col in removedCols) previousK.SetColumnToIdentity(col); // not sure
 
@@ -370,7 +370,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             /// Build the previous K
             int order = expectedK.NumColumns;
             var previousK = DOKSymmetricColMajor.CreateIdentity(order);
-            foreach (var (row, col, val) in expectedK.EnumerateNonZerosSuperDiagonal()) previousK[row, col] = val;
+            foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int col in addedCols) previousK.SetColumnToIdentity(col);
 
             /// Calculate expected solution from previous K

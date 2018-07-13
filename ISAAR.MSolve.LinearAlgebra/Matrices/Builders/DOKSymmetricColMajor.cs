@@ -449,7 +449,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             }
         }
 
-        public IEnumerable<(int row, int col, double value)> EnumerateNonZerosSuperDiagonal()
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZerosUpper()
         {
             for (int j = 0; j < order; ++j)
             {

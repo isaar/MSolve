@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         {
             string numberFormat = NumericFormat.GetRealNumberFormat();
             writer.Write($"{matrix.NumRows} {matrix.NumColumns} {matrix.CountNonZerosUpper()}");
-            foreach (var (row, col, val) in matrix.EnumerateNonZerosSuperDiagonal())
+            foreach (var (row, col, val) in matrix.EnumerateNonZerosUpper())
             {
                 writer.WriteLine();
                 writer.Write($"{row} {col} ");

@@ -189,10 +189,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
         }
 
-        public IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation)
+        public IVectorView DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
-            if (other is Vector casted) return DoEntrywise(other, binaryOperation);
-            else return other.DoEntrywise(this, binaryOperation);
+            if (vector is Vector casted) return DoEntrywise(vector, binaryOperation);
+            else return vector.DoEntrywise(this, binaryOperation);
         }
 
         public Vector DoEntrywise(Vector other, Func<double, double, double> binaryOperation)

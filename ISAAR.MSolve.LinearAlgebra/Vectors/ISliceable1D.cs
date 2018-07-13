@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-//TODO: perhaps the setters should be moved here too. Name them GetSubvector(), SetSubvector()
+﻿//TODO: perhaps the setters should be moved here too. Name them GetSubvector(), SetSubvector()
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -20,7 +14,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="indices">Which entries to return in the subvector. Constraints: 
         ///     0 &lt;= <paramref name="indices"/>[i] &lt; <see cref="IIndexable1D.Length"/>, for all i.</param>
-        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if the entries of <paramref name="indices"/> violate the described 
+        ///     constraints.</exception>
         Vector Slice(int[] indices);
 
         /// <summary>
@@ -32,7 +27,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="endExclusive">The index immediately after the last entry that will be returned in the subvector.
         ///      Constraints: <paramref name="startInclusive"/> &lt;= <paramref name="endExclusive"/> &lt; 
         ///      <see cref="IIndexable1D.Length"/>.</param>
-        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="startInclusive"/> or 
+        ///     <paramref name="endExclusive"/> violate the described constraints.</exception>
         Vector Slice(int startInclusive, int endExclusive);
     }
 }

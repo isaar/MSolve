@@ -134,14 +134,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             });
         }
 
-        public IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation)
+        public IVectorView DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
-            if (other is Vector3 casted) return DoEntrywise(other, binaryOperation);
+            if (vector is Vector3 casted) return DoEntrywise(vector, binaryOperation);
             else
             {
-                Preconditions.CheckVectorDimensions(this, other);
-                return new Vector3(new double[] { binaryOperation(this.data[0], other[0]),
-                    binaryOperation(this.data[1], other[1]), binaryOperation(this.data[2], other[2]) });
+                Preconditions.CheckVectorDimensions(this, vector);
+                return new Vector3(new double[] { binaryOperation(this.data[0], vector[0]),
+                    binaryOperation(this.data[1], vector[1]), binaryOperation(this.data[2], vector[2]) });
             }
         }
 

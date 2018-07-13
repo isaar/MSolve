@@ -54,11 +54,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         internal double[] InternalData { get { return data; } }
 
         /// <summary>
-        /// The entry with row index = i and column index = j. 
+        /// See <see cref="IIndexable2D.this[int, int]"/> and <see cref="IMatrix.this[int, int]"/>.
+        /// Also note that it may be possible to pass in <paramref name="rowIdx"/> &gt;= <see cref="IIndexable2D.NumRows"/> or
+        /// <paramref name="rowIdx"/> &lt; 0, without throwing <see cref="IndexOutOfRangeException"/>, since the indices are not  
+        /// checked explicitly. The constraints on <paramref name="colIdx"/> described in the interfaces will correctly throw
+        /// <see cref="IndexOutOfRangeException"/> if violated.
         /// </summary>
-        /// <param name="rowIdx">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
-        /// <param name="colIdx">The column index: 0 &lt;= j &lt; <see cref="NumColumns"/></param>
-        /// <returns>The entry with indices i, j</returns>
         public double this[int rowIdx, int colIdx] //TODO: Should I add bound checking?
         {
             get { return data[colIdx * NumRows + rowIdx]; }
@@ -151,20 +152,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
-        public Matrix AppendBottom(Matrix other)
+        public Matrix AppendBottom(Matrix matrix)
         {
-            Preconditions.CheckSameColDimension(this, other);
+            Preconditions.CheckSameColDimension(this, matrix);
             double[] result = ArrayColMajor.JoinVertically(this.NumRows, this.NumColumns, this.data,
-                other.NumRows, other.NumColumns, other.data);
-            return new Matrix(result, this.NumRows + other.NumColumns, NumColumns);
+                matrix.NumRows, matrix.NumColumns, matrix.data);
+            return new Matrix(result, this.NumRows + matrix.NumColumns, NumColumns);
         }
 
-        public Matrix AppendRight(Matrix other)
+        public Matrix AppendRight(Matrix matrix)
         {
-            Preconditions.CheckSameRowDimension(this, other);
+            Preconditions.CheckSameRowDimension(this, matrix);
             double[] result = ArrayColMajor.JoinHorizontally(this.NumRows, this.NumColumns, this.data,
-                other.NumRows, other.NumColumns, other.data);
-            return new Matrix(result, NumRows, this.NumColumns + other.NumColumns);
+                matrix.NumRows, matrix.NumColumns, matrix.data);
+            return new Matrix(result, NumRows, this.NumColumns + matrix.NumColumns);
         }
 
         public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
@@ -237,41 +238,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
 
-        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
+        public IMatrixView DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix casted) return DoEntrywise(casted, binaryOperation);
-            else return other.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
+            if (matrix is Matrix casted) return DoEntrywise(casted, binaryOperation);
+            else return matrix.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
         }
 
-        public Matrix DoEntrywise(Matrix other, Func<double, double, double> binaryOperation)
+        public Matrix DoEntrywise(Matrix matrix, Func<double, double, double> binaryOperation)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
+            Preconditions.CheckSameMatrixDimensions(this, matrix);
             var result = new double[data.Length];
-            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], other.data[i]);
+            for (int i = 0; i < data.Length; ++i) result[i] = binaryOperation(this.data[i], matrix.data[i]);
             return new Matrix(result, NumRows, NumColumns);
         }
 
-        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (matrix is Matrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
             else
             {
-                Preconditions.CheckSameMatrixDimensions(this, other);
+                Preconditions.CheckSameMatrixDimensions(this, matrix);
                 for (int j = 0; j < NumColumns; ++j)
                 {
                     for (int i = 0; i < NumRows; ++i)
                     {
                         int index1D = j * NumRows + i;
-                        this.data[index1D] = binaryOperation(this.data[index1D], other[i, j]);
+                        this.data[index1D] = binaryOperation(this.data[index1D], matrix[i, j]);
                     }
                 }
             }
         }
 
-        public void DoEntrywiseIntoThis(Matrix other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(Matrix matrix, Func<double, double, double> binaryOperation)
         {
-            Preconditions.CheckSameMatrixDimensions(this, other);
-            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], other.data[i]);
+            Preconditions.CheckSameMatrixDimensions(this, matrix);
+            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], matrix.data[i]);
         }
 
         IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
