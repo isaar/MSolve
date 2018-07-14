@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Tests.FEM
             const string workingDirectory = @"C:\Users\George\Desktop";
             double youngModulus = 3.76;
             double poissonRatio = 0.3779;
-            double thickness = 1.0;
+            double thickness = 10.0;
             double nodalLoad = 10.0;
             int nNodes = 8;
             int nElems = 3;
@@ -82,10 +82,10 @@ namespace ISAAR.MSolve.Tests.FEM
             }
 
             // Constraints
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[5].Constraints.Add(DOFType.X);
-            model.NodesDictionary[5].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[0].Constraints.Add(DOFType.X);
+            model.NodesDictionary[0].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[4].Constraints.Add(DOFType.X);
+            model.NodesDictionary[4].Constraints.Add(DOFType.Y);
 
             // Loads
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = nodes[3], DOF = DOFType.X });
@@ -105,22 +105,12 @@ namespace ISAAR.MSolve.Tests.FEM
             LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
-            // Logging displacement, strain, and stress fields.
-            //string outputDirectory = workingDirectory + "\\Plots";
-            //childAnalyzer.LogFactories[0] = new VtkLogFactory(model, outputDirectory)
-            //{
-            //    LogDisplacements = true,
-            //    LogStrains = true,
-            //    LogStresses = true,
-            //    VonMisesStressCalculator = new PlaneStressVonMises()
-            //};
-
             // Run the analysis
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
             
-            Assert.Equal(10.927956254399865, linearSystems[1].Solution[6], 2);
+            Assert.Equal(10.927956254399865, linearSystems[0].Solution[5], 2);
         }
     }
 }

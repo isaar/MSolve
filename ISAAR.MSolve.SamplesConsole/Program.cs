@@ -143,14 +143,13 @@ namespace ISAAR.MSolve.SamplesConsole
 
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
-
-
-
+        
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
-            FEM.Cantilever2D.Run();
+            //FEM.Cantilever2D.Run();
+            CNTExample.Run();
         }
     }
 }
