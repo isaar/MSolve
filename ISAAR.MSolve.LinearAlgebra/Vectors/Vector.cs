@@ -17,7 +17,7 @@ using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 //TODO: rename all slice operations to GetSubvector, SetSubvector, etc.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
-    public class Vector: IVectorView, ISliceable1D
+    public class Vector: IVector, ISliceable1D
     {
         private readonly double[] data;
 
@@ -144,12 +144,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
+        public void AxpyIntoThis(IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector casted) AxpyIntoThis(casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                for (int i = 0; i < Length; ++i)
+                {
+                    this.data[i] += otherCoefficient * otherVector[i];
+                }
+            }
+        }
+
         /// <summary>
         /// this = this + scalar * other
         /// </summary>
         /// <param name="other"></param>
         /// <param name="scalar"></param>
-        public void AxpyIntoThis(double scalar, Vector other)
+        public void AxpyIntoThis(Vector other, double scalar)
         {
             Preconditions.CheckVectorDimensions(this, other);
             CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
@@ -203,6 +216,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
+        public void DoEntrywiseIntoThis(IVectorView other, Func<double, double, double> binaryOperation)
+        {
+            if (other is Vector casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, other);
+                for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
+            }
+        }
+
         public void DoEntrywiseIntoThis(Vector other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, other);
@@ -219,6 +242,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             double[] result = new double[data.Length];
             for (int i = 0; i < data.Length; ++i) result[i] = unaryOperation(data[i]);
             return new Vector(result);
+        }
+
+        void IVector.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        {
+            DoToAllEntriesIntoThis(unaryOperation);
         }
 
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
@@ -276,14 +304,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
+        public void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                for (int i = 0; i < Length; ++i)
+                {
+                    this.data[i] = thisCoefficient * this.data[i] + otherCoefficient * otherVector[i];
+                }
+            }
+        }
+
         /// <summary>
         /// this = this + scalar * other
         /// </summary>
         /// <returns></returns>
-        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, Vector otherVector)
+        public void LinearCombinationIntoThis(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref this.data[0], 1);
+            CBlas.Daxpby(Length, otherCoefficient, ref otherVector.data[0], 1, thisCoefficient, ref this.data[0], 1);
         }
 
         public Vector MultiplyEntrywise(Vector other) //TODO: use MKL's vector math
@@ -414,6 +455,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void SetAll(double value)
         {
             for (int i = 0; i < Length; ++i) data[i] = value;
+        }
+
+        public void SetEntryRespectingPattern(int index, double value)
+        {
+            data[index] = value;
         }
 
         public void SetSubvector(Vector subvector, int destinationIndex)

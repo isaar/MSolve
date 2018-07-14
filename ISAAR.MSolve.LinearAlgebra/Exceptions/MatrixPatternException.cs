@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: Rename to PatternModified or something else that also works for vectors.
 namespace ISAAR.MSolve.LinearAlgebra.Exceptions
 {
     public class MatrixPatternException: Exception

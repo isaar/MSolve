@@ -59,8 +59,8 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             {
                 Vector matrixTimesDir = matrix.MultiplyRight(dir);
                 double step = resDotCurrent / (dir * matrixTimesDir);
-                sol.AxpyIntoThis(step, dir);
-                res.AxpyIntoThis(-step, matrixTimesDir);
+                sol.AxpyIntoThis(dir, step);
+                res.AxpyIntoThis(matrixTimesDir , -step);
                 double resDotNext = res * res;
 
                 resNormRatio = Math.Sqrt(resDotNext) / resNormInit;

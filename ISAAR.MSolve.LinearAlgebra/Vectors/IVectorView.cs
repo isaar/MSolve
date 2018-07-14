@@ -16,9 +16,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         double[] CopyToArray();
 
+        //IVectorView Axpy(IVectorView otherVector, double otherCoefficient);
+
         /// <summary>
         /// Performs a binary operation on each pair of entries: 
-        /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]) for all i. 
+        /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
         /// The resulting vector is written in a new object and then returned.
         /// </summary>
         /// <param name="vector">A vector with the same <see cref="IIndexable1D.Length"/> as this.</param>
@@ -28,11 +30,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         IVectorView DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation);
 
         /// <summary>
-        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]) for all i.
+        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]).
         /// The resulting vector is written in a new object and then returned.
         /// </summary>
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         IVectorView DoToAllEntries(Func<double, double> unaryOperation);
+
+        //void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
         /// Calculates the dot (or inner/scalar) product of this vector with <paramref name="vector"/>:

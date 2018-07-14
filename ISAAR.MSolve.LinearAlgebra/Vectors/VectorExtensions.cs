@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="vector2"></param>
         public static void AddIntoThis(this Vector vector1, Vector vector2)
         {
-            vector1.AxpyIntoThis(1.0, vector2);
+            vector1.AxpyIntoThis(vector2, 1.0);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="vector2"></param>
         public static void SubtractIntoThis(this Vector vector1, Vector vector2)
         {
-            vector1.AxpyIntoThis(-1.0, vector2);
+            vector1.AxpyIntoThis(vector2, - 1.0);
         }
     }
 }

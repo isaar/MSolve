@@ -51,9 +51,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void AxpyIntoThis(double scalar, MenkBordasVector other)
         {
-            this.Vs.AxpyIntoThis(scalar, other.Vs);
-            for (int i = 0; i < numSubdomains; ++i) this.Ve[i].AxpyIntoThis(scalar, other.Ve[i]);
-            this.Vc.AxpyIntoThis(scalar, other.Vc); // TODO: avoid this if one or both are 0
+            this.Vs.AxpyIntoThis(other.Vs, scalar);
+            for (int i = 0; i < numSubdomains; ++i) this.Ve[i].AxpyIntoThis(other.Ve[i], scalar);
+            this.Vc.AxpyIntoThis(other.Vc, scalar); // TODO: avoid this if one or both are 0
         }
 
         public MenkBordasVector Copy()

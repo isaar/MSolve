@@ -168,10 +168,10 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 y = ShiftedMatrixVectorMult(A, v, shift); // shift is 0 otherwise solving A - shift*I
 
                 //WARNING: the following works if itn is initialized and updated as in the matlab script
-                if (itn >= 2) y.AxpyIntoThis(-beta / oldb, r1); // normalization is the division r1 by oldb 
+                if (itn >= 2) y.AxpyIntoThis(r1, - beta / oldb); // normalization is the division r1 by oldb 
 
                 double alfa = v * y;              // alphak
-                y.AxpyIntoThis(-alfa / beta, r2); // normalization of r2/beta = v
+                y.AxpyIntoThis(r2, - alfa / beta); // normalization of r2/beta = v
 
                 // v will be normalized through y later. 
                 // This is explicit orthogonalizing it versus the previous localSize lanczos vectors.
@@ -231,9 +231,9 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 w2 = w;
                 // Do efficiently: w = (v - oldeps * w1 - delta * w2) * denom 
                 w = v.Axpy(-oldeps, w1);
-                w.AxpyIntoThis(-delta, w2);
+                w.AxpyIntoThis(w2 , - delta);
                 w.ScaleIntoThis(denom);
-                x.AxpyIntoThis(phi, w);
+                x.AxpyIntoThis(w, phi);
 
                 /// Go round again.
 
@@ -350,7 +350,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             else
             {
                 Vector result = matrix.Multiply(vector);
-                result.AxpyIntoThis(shift, vector);
+                result.AxpyIntoThis(vector, shift);
                 return result;
             }
         }
@@ -422,7 +422,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 foreach (var p in store)
                 {
                     // we don't have to normalize since it is explicitly done in the code and so we don't need to redo it
-                    v.AxpyIntoThis(-(v * p), p); // orthogonalize to each stored vector
+                    v.AxpyIntoThis(p , - (v * p)); // orthogonalize to each stored vector
                 }
             }
         }
