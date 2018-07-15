@@ -230,7 +230,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 Vector w1 = w2.Copy();
                 w2 = w;
                 // Do efficiently: w = (v - oldeps * w1 - delta * w2) * denom 
-                w = v.Axpy(-oldeps, w1);
+                w = v.Axpy(w1, - oldeps);
                 w.AxpyIntoThis(w2 , - delta);
                 w.ScaleIntoThis(denom);
                 x.AxpyIntoThis(w, phi);

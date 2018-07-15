@@ -77,35 +77,54 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
         #endregion
 
-        public void AddIntoThis(double scalar, Vector3 other)
+        public void AddIntoThis(Vector3 other)
         {
             this.data[0] += other.data[0];
             this.data[1] += other.data[1];
             this.data[2] += other.data[2];
         }
 
+        public IVectorView Axpy(IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector3 casted) return Axpy(casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                return new Vector3(new double[]
+                {
+                    data[0] + otherCoefficient * otherVector[0],
+                    data[1] + otherCoefficient * otherVector[1],
+                    data[2] + otherCoefficient * otherVector[2]
+                });
+            }
+        }
+
         /// <summary>
         /// result = this + scalar * other
         /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
+        /// <param name="otherVector"></param>
+        /// <param name="otherCoefficient"></param>
         /// <returns></returns>
-        public Vector3 Axpy(double scalar, Vector3 other)
+        public Vector3 Axpy(Vector3 otherVector, double otherCoefficient)
         {
-            return new Vector3(new double[] { this.data[0] + scalar * other.data[0], this.data[1] + scalar * other.data[1],
-                this.data[2] + scalar * other.data[2]});
+            return new Vector3(new double[] 
+            {
+                this.data[0] + otherCoefficient * otherVector.data[0],
+                this.data[1] + otherCoefficient * otherVector.data[1],
+                this.data[2] + otherCoefficient * otherVector.data[2]
+            });
         }
 
         /// <summary>
         /// this = this + scalar * other
         /// </summary>
         /// <param name="other"></param>
-        /// <param name="scalar"></param>
-        public void AxpyIntoThis(double scalar, Vector3 other)
+        /// <param name="otherCoefficient"></param>
+        public void AxpyIntoThis(Vector3 otherVector, double otherCoefficient)
         {
-            this.data[0] += scalar * other.data[0];
-            this.data[1] += scalar * other.data[1];
-            this.data[2] += scalar * other.data[2];
+            this.data[0] += otherCoefficient * otherVector.data[0];
+            this.data[1] += otherCoefficient * otherVector.data[1];
+            this.data[2] += otherCoefficient * otherVector.data[2];
         }
 
         public Vector3 Copy()
@@ -122,15 +141,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Defined as: cross = { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]}
         /// Also: other.Cross(this) = - this.Cross(other)
         /// </summary>
-        /// <param name="other"></param>
+        /// <param name="vector"></param>
         /// <returns></returns>
-        public Vector3 CrossProduct(Vector3 other)
+        public Vector3 CrossProduct(Vector3 vector)
         {
             return new Vector3(new double[]
             {
-                this.data[1] * other.data[2] - this.data[2] * other.data[1],
-                this.data[2] * other.data[0] - this.data[0] * other.data[2],
-                this.data[0] * other.data[1] - this.data[1] * other.data[0]
+                this.data[1] * vector.data[2] - this.data[2] * vector.data[1],
+                this.data[2] * vector.data[0] - this.data[0] * vector.data[2],
+                this.data[0] * vector.data[1] - this.data[1] * vector.data[0]
             });
         }
 
@@ -145,17 +164,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             }
         }
 
-        public Vector3 DoEntrywise(Vector3 other, Func<double, double, double> binaryOperation)
+        public Vector3 DoEntrywise(Vector3 vector, Func<double, double, double> binaryOperation)
         {
-            return new Vector3(new double[] { binaryOperation(this.data[0], other.data[0]),
-                binaryOperation(this.data[1], other.data[1]), binaryOperation(this.data[2], other.data[2]) });
+            return new Vector3(new double[] { binaryOperation(this.data[0], vector.data[0]),
+                binaryOperation(this.data[1], vector.data[1]), binaryOperation(this.data[2], vector.data[2]) });
         }
 
-        public void DoEntrywiseIntoThis(Vector3 other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(Vector3 vector, Func<double, double, double> binaryOperation)
         {
-            this.data[0] = binaryOperation(this.data[0], other.data[0]);
-            this.data[1] = binaryOperation(this.data[1], other.data[1]);
-            this.data[2] = binaryOperation(this.data[2], other.data[2]);
+            this.data[0] = binaryOperation(this.data[0], vector.data[0]);
+            this.data[1] = binaryOperation(this.data[1], vector.data[1]);
+            this.data[2] = binaryOperation(this.data[2], vector.data[2]);
         }
 
         IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
@@ -175,19 +194,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             this.data[2] = unaryOperation(this.data[2]);
         }
 
-        public double DotProduct(IVectorView other)
+        public double DotProduct(IVectorView vector)
         {
-            if (other is Vector3 casted)
-            {
-                return this.data[0] * casted.data[0] + this.data[1] * casted.data[1] + this.data[2] * casted.data[2];
-            }
+            if (vector is Vector3 casted) return DotProduct(casted);
             else
             {
-                {
-                    Preconditions.CheckVectorDimensions(this, other);
-                    return data[0] * other[0] + data[1] * other[1] + data[2] * other[2];
-                }
+                Preconditions.CheckVectorDimensions(this, vector);
+                return data[0] * vector[0] + data[1] * vector[1] + data[2] * vector[2];
             }
+        }
+
+        public double DotProduct(Vector3 vector)
+        {
+            return this.data[0] * vector.data[0] + this.data[1] * vector.data[1] + this.data[2] * vector.data[2];
         }
 
         bool IIndexable1D.Equals(IIndexable1D other, double tolerance)
@@ -208,26 +227,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 && comparer.AreEqual(this.data[2], other.data[2]);
         }
 
+        public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector3 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                return new Vector3(new double[]
+                {
+                    thisCoefficient * data[0] + otherCoefficient * otherVector[0],
+                    thisCoefficient * data[1] + otherCoefficient * otherVector[1],
+                    thisCoefficient * data[2] + otherCoefficient * otherVector[2]
+                });
+            }
+        }
+
         /// <summary>
         /// result = thisScalar * this + otherScalar * otherVector3
         /// </summary>
         /// <returns></returns>
-        public Vector3 LinearCombination(double thisScalar, double otherScalar, Vector3 otherVector3)
+        public Vector3 LinearCombination(double thisCoefficient, Vector3 otherVector, double otherCoefficient)
         {
-            return new Vector3(new double[] { thisScalar * this.data[0] + otherScalar * otherVector3.data[0],
-                thisScalar * this.data[1] + otherScalar * otherVector3.data[1],
-                thisScalar * this.data[2] + otherScalar * otherVector3.data[2] });
+            return new Vector3(new double[] { thisCoefficient * this.data[0] + otherCoefficient * otherVector.data[0],
+                thisCoefficient * this.data[1] + otherCoefficient * otherVector.data[1],
+                thisCoefficient * this.data[2] + otherCoefficient * otherVector.data[2] });
         }
 
         /// <summary>
         /// this = this + scalar * other
         /// </summary>
         /// <returns></returns>
-        public void LinearCombinationIntoThis(double thisScalar, double otherScalar, Vector3 otherVector3)
+        public void LinearCombinationIntoThis(double thisCoefficient, Vector3 otherVector, double otherCoefficient)
         {
-            this.data[0] = thisScalar * data[0] * otherScalar * otherVector3.data[0];
-            this.data[1] = thisScalar * data[1] * otherScalar * otherVector3.data[1];
-            this.data[2] = thisScalar * data[2] * otherScalar * otherVector3.data[2];
+            this.data[0] = thisCoefficient * data[0] * otherCoefficient * otherVector.data[0];
+            this.data[1] = thisCoefficient * data[1] * otherCoefficient * otherVector.data[1];
+            this.data[2] = thisCoefficient * data[2] * otherCoefficient * otherVector.data[2];
         }
 
         public double Norm2()

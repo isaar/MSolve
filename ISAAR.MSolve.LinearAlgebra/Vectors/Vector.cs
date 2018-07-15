@@ -79,12 +79,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         #region operators 
         public static Vector operator +(Vector vector1, Vector vector2)
         {
-            return vector1.Axpy(1.0, vector2);
+            return vector1.Axpy(vector2, 1.0);
         }
 
         public static Vector operator -(Vector vector1, Vector vector2)
         {
-            return vector1.Axpy(-1.0, vector2); //The order is important
+            return vector1.Axpy(vector2, -1.0); //The order is important
         }
 
         public static Vector operator *(double scalar, Vector vector)
@@ -102,12 +102,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return vector1.DotProduct(vector2); //Perhaps call BLAS directly
         }
         #endregion
-
-        public void AddIntoThis(Vector other)
-        {
-            Preconditions.CheckVectorDimensions(this, other);
-            CBlas.Daxpy(Length, 1.0, ref other.data[0], 1, ref this.data[0], 1);
-        }
 
         // TODO: have an AxpyToSubvector.
         // TODO: this is like GetSubvector, SetSubvector, etc. Group them together and have a common naming/param convention.
@@ -128,19 +122,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
+        public IVectorView Axpy(IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector casted) return Axpy(casted, otherCoefficient);
+            else return otherVector.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
+        }
+
         /// <summary>
         /// result = this + scalar * other
         /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
+        /// <param name="otherVector"></param>
+        /// <param name="otherCoefficient"></param>
         /// <returns></returns>
-        public Vector Axpy(double scalar, Vector other)
+        public Vector Axpy(Vector otherVector, double otherCoefficient)
         {
-            Preconditions.CheckVectorDimensions(this, other);
+            Preconditions.CheckVectorDimensions(this, otherVector);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref result[0], 1);
+            CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref result[0], 1);
             return new Vector(result);
         }
 
@@ -160,12 +160,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// this = this + scalar * other
         /// </summary>
-        /// <param name="other"></param>
-        /// <param name="scalar"></param>
-        public void AxpyIntoThis(Vector other, double scalar)
+        /// <param name="otherVector"></param>
+        /// <param name="otherCoefficient"></param>
+        public void AxpyIntoThis(Vector otherVector, double otherCoefficient)
         {
-            Preconditions.CheckVectorDimensions(this, other);
-            CBlas.Daxpy(Length, scalar, ref other.data[0], 1, ref this.data[0], 1);
+            Preconditions.CheckVectorDimensions(this, otherVector);
+            CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref this.data[0], 1);
         }
 
         public Vector Copy()
@@ -216,20 +216,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
-        public void DoEntrywiseIntoThis(IVectorView other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(IVectorView vector, Func<double, double, double> binaryOperation)
         {
-            if (other is Vector casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (vector is Vector casted) DoEntrywiseIntoThis(casted, binaryOperation);
             else
             {
-                Preconditions.CheckVectorDimensions(this, other);
-                for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other[i]);
+                Preconditions.CheckVectorDimensions(this, vector);
+                for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], vector[i]);
             }
         }
 
-        public void DoEntrywiseIntoThis(Vector other, Func<double, double, double> binaryOperation)
+        public void DoEntrywiseIntoThis(Vector vector, Func<double, double, double> binaryOperation)
         {
-            Preconditions.CheckVectorDimensions(this, other);
-            for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], other.data[i]);
+            Preconditions.CheckVectorDimensions(this, vector);
+            for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], vector.data[i]);
         }
 
         IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
@@ -254,15 +254,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);
         }
 
-        public double DotProduct(IVectorView other)
+        public double DotProduct(IVectorView vector)
         {
-            if (other is Vector)
+            if (vector is Vector)
             {
-                Preconditions.CheckVectorDimensions(this, other);
-                double[] rawDataOther = ((Vector)other).InternalData;
+                Preconditions.CheckVectorDimensions(this, vector);
+                double[] rawDataOther = ((Vector)vector).InternalData;
                 return CBlas.Ddot(Length, ref this.data[0], 1, ref rawDataOther[0], 1);
             }
-            else return other.DotProduct(this); // Let the more complex/efficient object operate.
+            else return vector.DotProduct(this); // Let the more complex/efficient object operate.
         }
 
         public bool Equals(IIndexable1D other, double tolerance = 1e-13)
@@ -290,17 +290,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return DenseArrays.IsZero(data, tolerance);
         }
 
+        public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else return otherVector.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
+        }
+
         /// <summary>
         /// result = thisScalar * this + otherScalar * otherVector
         /// </summary>
         /// <returns></returns>
-        public Vector LinearCombination(double thisScalar, double otherScalar, Vector otherVector)
+        public Vector LinearCombination(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Daxpby(Length, otherScalar, ref otherVector.data[0], 1, thisScalar, ref result[0], 1);
+            CBlas.Daxpby(Length, otherCoefficient, ref otherVector.data[0], 1, thisCoefficient, ref result[0], 1);
             return new Vector(result);
         }
 
@@ -498,12 +504,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             double[] subvector = new double[subvectorLength];
             Array.Copy(this.data, startInclusive, subvector, 0, subvectorLength);
             return new Vector(subvector);
-        }
-
-        public void SubtractIntoThis(Vector other)
-        {
-            Preconditions.CheckVectorDimensions(this, other);
-            CBlas.Daxpy(Length, -1.0, ref other.data[0], 1, ref this.data[0], 1);
         }
 
         /// <summary>

@@ -42,10 +42,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public MenkBordasVector Axpy(double scalar, MenkBordasVector other)
         {
-            Vector resultVs = this.Vs.Axpy(scalar, other.Vs);
+            Vector resultVs = this.Vs.Axpy(other.Vs, scalar);
             var resultVe = new Vector[numSubdomains];
-            for (int i = 0; i < numSubdomains; ++i) resultVe[i] = this.Ve[i].Axpy(scalar, other.Ve[i]);
-            Vector resultVc =  this.Vc.Axpy(scalar, other.Vc); // TODO: avoid this if one or both are 0
+            for (int i = 0; i < numSubdomains; ++i) resultVe[i] = this.Ve[i].Axpy(other.Ve[i], scalar);
+            Vector resultVc =  this.Vc.Axpy(other.Vc, scalar); // TODO: avoid this if one or both are 0
             return new MenkBordasVector(numSubdomains, numEquations, resultVs, resultVe, resultVc);
         }
 

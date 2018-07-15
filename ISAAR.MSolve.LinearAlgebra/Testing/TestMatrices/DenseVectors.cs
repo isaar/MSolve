@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check Axpy(): ");
-            comparer.CheckVectorEquality(expected, v1.Axpy(scalar2, v2));
+            comparer.CheckVectorEquality(expected, v1.Axpy(v2, scalar2));
 
             Console.Write("Check AxpyIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check LinearCombination(): ");
-            comparer.CheckVectorEquality(expected, v1.LinearCombination(2.5, -3.5, v2));
+            comparer.CheckVectorEquality(expected, v1.LinearCombination(2.5, v2, -3.5));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
@@ -141,7 +141,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
             Console.Write("Check MultiplyPointwiseIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.MultiplyPointwiseInPlace(v2);
+            temp.MultiplyPointwiseIntoThis(v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 

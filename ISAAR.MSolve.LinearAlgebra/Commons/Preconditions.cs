@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        public static void CheckVectorDimensions(IVectorView vector1, IVectorView vector2)
+        public static void CheckVectorDimensions(IIndexable1D vector1, IIndexable1D vector2)
         {
             if (vector1.Length != vector2.Length)
             {

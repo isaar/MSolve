@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 z = preconditioner.SolveLinearSystem(res); 
                 double zrDotNext = z * res; //Fletcher-Reeves formula. TODO: For variable preconditioning use Polak-Ribiere
                 double beta = zrDotNext / zrDotCurrent;
-                dir = z.Axpy(beta, dir);
+                dir = z.Axpy(dir, beta);
                 zrDotCurrent = zrDotNext;
             }
 

@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 }
 
                 double beta = resDotNext / resDotCurrent;
-                dir = res.Axpy(beta, dir);
+                dir = res.Axpy(dir, beta);
                 resDotCurrent = resDotNext;
             }
 

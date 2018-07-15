@@ -11,12 +11,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     public interface IVectorView: IIndexable1D, IReducible
     {
         /// <summary>
+        /// Performs the following operation for all i:
+        /// result[i] = <paramref name="otherCoefficient"/> * <paramref name="otherVector"/>[i] + this[i]. 
+        /// Optimized version of <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/> and 
+        /// <see cref="IVectorView.LinearCombination(double, IVectorView, double)"/>. Named after BLAS axpy (y = a*x plus y).
+        /// The resulting vector is written in a new object and then returned.
+        /// </summary>
+        /// <param name="otherVector">A vector with the same <see cref="IIndexable1D.Length"/> as this.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherVector"/> has different 
+        ///     <see cref="IIndexable1D.Length"/> than this.</exception>
+        IVectorView Axpy(IVectorView otherVector, double otherCoefficient);
+
+        /// <summary>
         /// Returns an array with the entries of the vector. This is a deep copy operation. For vectors that do not explicitly 
         /// store zeros, the copy may be much larger than the original vector. 
         /// </summary>
         double[] CopyToArray();
-
-        //IVectorView Axpy(IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
         /// Performs a binary operation on each pair of entries: 
@@ -36,7 +47,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         IVectorView DoToAllEntries(Func<double, double> unaryOperation);
 
-        //void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
+        /// <summary>
+        /// Performs the following operation for all i:
+        /// result[i] = <paramref name="thisCoefficient"/> * this[i] + <paramref name="otherCoefficient"/> * 
+        /// <paramref name="otherMatrix"/>[i].
+        /// Optimized version of <see cref="DoEntrywiseIntoThis(IVectorView, Func{double, double, double})"/>.
+        /// The resulting vector is written in a new object and then returned.
+        /// </summary>
+        /// <param name="thisCoefficient">A scalar that multiplies each entry of this vector.</param>
+        /// <param name="otherVector">A vector with the same <see cref="IIndexable1D.Length"/> as this.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherVector"/> has different 
+        ///     <see cref="IIndexable1D.Length"/> than this.</exception>
+        IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
         /// Calculates the dot (or inner/scalar) product of this vector with <paramref name="vector"/>:

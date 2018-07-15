@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
@@ -147,6 +148,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new SparseVector(length, values, indices);
         }
 
+        public IVectorView Axpy(IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is SparseVector otherSparse) // In case both matrices have the exact same index arrays
+            {
+                if (HasSameIndexer(otherSparse))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] result = new double[this.values.Length];
+                    Array.Copy(this.values, result, this.values.Length);
+                    CBlas.Daxpy(values.Length, otherCoefficient, ref otherSparse.values[0], 1, ref result[0], 1);
+                    return new SparseVector(Length, result, indices);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this vector)
+            return DenseStrategies.LinearCombination(this, 1.0, otherVector, otherCoefficient);
+        }
+
         public SparseVector Copy()
         {
             int n = values.Length;
@@ -174,9 +193,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return values.Length;
         }
 
-        public IVectorView DoEntrywise(IVectorView other, Func<double, double, double> binaryOperation)
+        public IVectorView DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
-            if (other is SparseVector otherSparse) // In case both matrices have the exact same index arrays
+            if (vector is SparseVector otherSparse) // In case both matrices have the exact same index arrays
             {
                 if (HasSameIndexer(otherSparse))
                 {
@@ -190,8 +209,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 }
             }
 
-            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this matrix)
-            return DenseStrategies.DoEntrywise(this, other, binaryOperation);
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this vector)
+            return DenseStrategies.DoEntrywise(this, vector, binaryOperation);
         }
 
         public IVectorView DoToAllEntries(Func<double, double> unaryOperation)
@@ -207,17 +226,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 Array.Copy(indices, indicesCopy, indices.Length);
                 return new SparseVector(Length, newValues, indicesCopy);
             }
-            else // The sparsity is destroyed. Revert to a full matrix.
+            else // The sparsity is destroyed. Revert to a full vector.
             {
                 return new SparseVector(Length, newValues, indices).CopyToFullVector();
             }
         }
 
-        public double DotProduct(IVectorView other)
+        public double DotProduct(IVectorView vector)
         {
-            Preconditions.CheckVectorDimensions(this, other);
+            Preconditions.CheckVectorDimensions(this, vector);
             double sum = 0;
-            for (int i = 0; i < values.Length; ++i) sum += values[i] * other[indices[i]];
+            for (int i = 0; i < values.Length; ++i) sum += values[i] * vector[indices[i]];
             return sum;
         }
 
@@ -245,6 +264,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             {
                 yield return (indices[i], values[i]);
             }
+        }
+
+        public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is SparseVector otherSparse) // In case both matrices have the exact same index arrays
+            {
+                if (HasSameIndexer(otherSparse))
+                {
+                    // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
+                    double[] result = new double[this.values.Length];
+                    Array.Copy(this.values, result, this.values.Length);
+                    CBlas.Daxpby(values.Length, otherCoefficient, ref otherSparse.values[0], 1, 
+                        thisCoefficient, ref result[0], 1);
+                    return new SparseVector(Length, result, indices);
+                }
+            }
+
+            // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this vector)
+            return DenseStrategies.LinearCombination(this, thisCoefficient, otherVector, otherCoefficient);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

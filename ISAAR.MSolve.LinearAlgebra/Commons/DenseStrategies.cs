@@ -64,6 +64,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
+        internal static Vector LinearCombination(IIndexable1D vector1, double coefficient1, IIndexable1D vector2,
+            double coefficient2)
+        {
+            Preconditions.CheckVectorDimensions(vector1, vector2);
+            var result = Vector.CreateZero(vector1.Length);
+            for (int i = 0; i < vector1.Length; ++i) result[i] = coefficient1 * vector1[i] + coefficient2 * vector2[i];
+            return result;
+        }
+
         internal static Matrix LinearCombination(IIndexable2D matrix1, double coefficient1, IIndexable2D matrix2, 
             double coefficient2)
         {
