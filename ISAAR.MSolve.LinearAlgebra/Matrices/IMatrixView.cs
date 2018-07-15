@@ -101,6 +101,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         Vector MultiplyRight(IVectorView vector, bool transposeThis = false);
 
         /// <summary>
+        /// Performs the following operation for all (i, j): result[i, j] = <paramref name="scalar"/> * this[i, j].
+        /// The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
+        /// <returns></returns>
+        IMatrixView Scale(double scalar);
+
+        /// <summary>
         /// Returns a matrix that is transpose to this: result[i, j] = this[j, i]. The entries will be explicitly copied. Some
         /// implementations of <see cref="IMatrixView"/> may offer more efficient transpositions, that do not copy the entries.
         /// If the transposed matrix will be used only for multiplications, <see cref="MultiplyLeft(IMatrixView, bool, bool)"/>,

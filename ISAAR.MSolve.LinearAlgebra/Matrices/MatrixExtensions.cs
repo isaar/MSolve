@@ -98,16 +98,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return reordered;
         }
 
-        public static IMatrixView Scale(this IMatrixView matrix, double scalar)
-        {
-            return matrix.DoToAllEntries(x => scalar * x);
-        }
-
-        public static void ScaleIntoThis(this IMatrix matrix, double scalar)
-        {
-            matrix.DoToAllEntriesIntoThis(x => scalar * x);
-        }
-
         /// <summary>
         /// result[i, j] = matrix1[i, j] - matrix2[i, j]
         /// </summary>

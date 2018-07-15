@@ -315,6 +315,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
+        /// <summary>
+        /// result = scalar * this
+        /// </summary>
+        /// <param name="scalar"></param>
+        public TriangularUpper Scale(double scalar)
+        {
+            int nnz = this.data.Length;
+            double[] result = new double[nnz];
+            Array.Copy(this.data, result, nnz);
+            CBlas.Dscal(nnz, scalar, ref result[0], 1);
+            return new TriangularUpper(result, this.Order);
+        }
+
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
+
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
             this[rowIdx, colIdx] = value;

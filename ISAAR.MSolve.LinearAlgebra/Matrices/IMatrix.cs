@@ -66,6 +66,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient);
 
         /// <summary>
+        /// Performs the following operation for all (i, j): this[i, j] = <paramref name="scalar"/> * this[i, j].
+        /// The resulting matrix overwrites the entries of this.
+        /// </summary>
+        /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
+        /// <returns></returns>
+        void ScaleIntoThis(double scalar);
+
+        /// <summary>
         /// Setter that will work as expected for general dense matrices. For sparse matrices it will throw a 
         /// <see cref="Exceptions.SparsityPatternModifiedException"/> if a structural zero entry is written to.
         /// For symmetric matrices, this will set both (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) and 

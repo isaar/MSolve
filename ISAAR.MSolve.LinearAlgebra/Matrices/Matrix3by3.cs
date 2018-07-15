@@ -648,6 +648,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(accumulator);
         }
 
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
         /// <summary>
         /// result = scalar * this
         /// </summary>

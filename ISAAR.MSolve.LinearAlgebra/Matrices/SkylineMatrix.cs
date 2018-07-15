@@ -561,6 +561,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
+        /// <summary>
+        /// result = scalar * this
+        /// </summary>
+        /// <param name="scalar"></param>
+        public SkylineMatrix Scale(double scalar)
+        {
+            int nnz = this.values.Length;
+            double[] resultValues = new double[nnz];
+            Array.Copy(this.values, resultValues, nnz); //TODO: perhaps I should also copy the indexers
+            CBlas.Dscal(nnz, scalar, ref resultValues[0], 1);
+            return new SkylineMatrix(this.NumColumns, resultValues, this.diagOffsets);
+        }
+
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, ref values[0], 1);
+
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
             this[rowIdx, colIdx] = value;

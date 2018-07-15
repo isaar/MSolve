@@ -478,6 +478,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
+        /// <summary>
+        /// result = scalar * this
+        /// </summary>
+        /// <param name="scalar"></param>
+        public SymmetricMatrix Scale(double scalar)
+        {
+            int numStoredEntries = this.data.Length;
+            double[] result = new double[numStoredEntries];
+            Array.Copy(this.data, result, numStoredEntries);
+            CBlas.Dscal(numStoredEntries, scalar, ref result[0], 1);
+            return new SymmetricMatrix(result, this.Order, this.Definiteness);
+        }
+
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
+
         // Not very efficient
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {

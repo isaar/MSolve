@@ -575,6 +575,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else return new Matrix(ArrayColMajor.ReorderNewToOld(NumRows, data, permutation), NumRows, NumRows);
         }
 
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
         /// <summary>
         /// result = scalar * this
         /// </summary>
@@ -588,14 +590,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new Matrix(result, NumRows, NumColumns);
         }
 
-        /// <summary>
-        /// this = scalar * this
-        /// </summary>
-        /// <param name="scalar"></param>
-        public void ScaleIntoThis(double scalar)
-        {
-            CBlas.Dscal(data.Length, scalar, ref data[0], 1);
-        }
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
 
         public void SetAll(double value)
         {
