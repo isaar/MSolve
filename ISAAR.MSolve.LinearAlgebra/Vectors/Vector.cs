@@ -71,36 +71,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(data);
         }
 
-        public static Vector CreateZero(int length)
-        {
-            return new Vector(new double[length]);
-        }
+        public static Vector CreateZero(int length) => new Vector(new double[length]);
 
         #region operators 
-        public static Vector operator +(Vector vector1, Vector vector2)
-        {
-            return vector1.Axpy(vector2, 1.0);
-        }
-
-        public static Vector operator -(Vector vector1, Vector vector2)
-        {
-            return vector1.Axpy(vector2, -1.0); //The order is important
-        }
-
-        public static Vector operator *(double scalar, Vector vector)
-        {
-            return vector.Scale(scalar);
-        }
-
-        public static Vector operator *(Vector vector, double scalar)
-        {
-            return vector.Scale(scalar);
-        }
-
-        public static double operator *(Vector vector1, Vector vector2)
-        {
-            return vector1.DotProduct(vector2); //Perhaps call BLAS directly
-        }
+        public static Vector operator +(Vector vector1, Vector vector2) => vector1.Axpy(vector2, 1.0);
+        public static Vector operator -(Vector vector1, Vector vector2) => vector1.Axpy(vector2, -1.0); //The order is important
+        public static Vector operator *(double scalar, Vector vector) => vector.Scale(scalar);
+        public static Vector operator *(Vector vector, double scalar) => vector.Scale(scalar);
+        public static double operator *(Vector vector1, Vector vector2) => vector1.DotProduct(vector2); //Perhaps call BLAS directly
         #endregion
 
         // TODO: have an AxpyToSubvector.
@@ -232,10 +210,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             for (int i = 0; i < data.Length; ++i) data[i] = binaryOperation(data[i], vector.data[i]);
         }
 
-        IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
-        {
-            return DoToAllEntries(unaryOperation);
-        }
+        IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
 
         public Vector DoToAllEntries(Func<double, double> unaryOperation)
         {
@@ -244,10 +219,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
-        void IVector.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
-        {
-            DoToAllEntriesIntoThis(unaryOperation);
-        }
+        void IVector.DoToAllEntriesIntoThis(Func<double, double> unaryOperation) => DoToAllEntriesIntoThis(unaryOperation);
 
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
@@ -285,10 +257,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="tolerance">Can be 0</param>
         /// <returns></returns>
-        public bool IsZero(double tolerance)
-        {
-            return DenseArrays.IsZero(data, tolerance);
-        }
+        public bool IsZero(double tolerance) => DenseArrays.IsZero(data, tolerance);
 
         public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {
@@ -341,10 +310,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
-        public double Norm2()
-        {
-            return CBlas.Dnrm2(Length, ref data[0], 1);
-        }
+        public double Norm2() => CBlas.Dnrm2(Length, ref data[0], 1);
 
         /// <summary>
         /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
@@ -436,6 +402,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(reordered);
         }
 
+        IVectorView IVectorView.Scale(double scalar) => Scale(scalar);
+
         /// <summary>
         /// result = scalar * this
         /// </summary>
@@ -449,14 +417,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return new Vector(result);
         }
 
-        /// <summary>
-        /// this = scalar * this
-        /// </summary>
-        /// <param name="scalar"></param>
-        public void ScaleIntoThis(double scalar)
-        {
-            CBlas.Dscal(Length, scalar, ref data[0], 1);
-        }
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(Length, scalar, ref data[0], 1);
 
         public void SetAll(double value)
         {
@@ -510,9 +471,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Doesn't copy anything. Remove this once the design is cleaned. 
         /// </summary>
         /// <returns></returns>
-        public Numerical.LinearAlgebra.Interfaces.IVector ToLegacyVector()
-        {
-            return new Numerical.LinearAlgebra.Vector(data);
-        }
+        public Numerical.LinearAlgebra.Interfaces.IVector ToLegacyVector() => new Numerical.LinearAlgebra.Vector(data);
     }
 }

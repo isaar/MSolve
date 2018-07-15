@@ -264,6 +264,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return finalize(accumulator);
         }
 
+        IVectorView IVectorView.Scale(double scalar) => Scale(scalar);
+
         /// <summary>
         /// result = scalar * this
         /// </summary>

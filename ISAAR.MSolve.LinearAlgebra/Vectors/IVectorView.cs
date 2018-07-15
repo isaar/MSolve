@@ -46,11 +46,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         IVectorView DoToAllEntries(Func<double, double> unaryOperation);
+        
+        /// <summary>
+        /// Calculates the dot (or inner/scalar) product of this vector with <paramref name="vector"/>:
+        /// result = sum over all i of this[i] * <paramref name="vector"/>[i]).
+        /// </summary>
+        /// <param name="vector">A vector with the same <see cref="IIndexable1D.Length"/> as this.</param>
+        double DotProduct(IVectorView vector);
 
         /// <summary>
         /// Performs the following operation for all i:
         /// result[i] = <paramref name="thisCoefficient"/> * this[i] + <paramref name="otherCoefficient"/> * 
-        /// <paramref name="otherMatrix"/>[i].
+        /// <paramref name="otherVector"/>[i].
         /// Optimized version of <see cref="DoEntrywiseIntoThis(IVectorView, Func{double, double, double})"/>.
         /// The resulting vector is written in a new object and then returned.
         /// </summary>
@@ -62,10 +69,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
-        /// Calculates the dot (or inner/scalar) product of this vector with <paramref name="vector"/>:
-        /// result = sum over all i of this[i] * <paramref name="vector"/>[i]).
+        /// Performs the following operation for all i: result[i] = <paramref name="scalar"/> * this[i].
+        /// The resulting vector is written in a new object and then returned.
         /// </summary>
-        /// <param name="vector">A vector with the same <see cref="IIndexable1D.Length"/> as this.</param>
-        double DotProduct(IVectorView vector);
+        /// <param name="scalar">A scalar that multiplies each entry of this vector.</param>
+        /// <returns></returns>
+        IVectorView Scale(double scalar);
     }
 }

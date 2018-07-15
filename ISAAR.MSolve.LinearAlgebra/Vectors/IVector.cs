@@ -63,6 +63,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
+        /// Performs the following operation for all i: this[i] = <paramref name="scalar"/> * this[i].
+        /// The resulting vector overwrites the entries of this.
+        /// </summary>
+        /// <param name="scalar">A scalar that multiplies each entry of this vector.</param>
+        /// <returns></returns>
+        void ScaleIntoThis(double scalar);
+
+        /// <summary>
         /// Setter that will work as expected for general dense vectors. For sparse vectors it will throw a 
         /// <see cref="Exceptions.SparsityPatternModifiedException"/> if a structural zero entry is written to.
         /// </summary>

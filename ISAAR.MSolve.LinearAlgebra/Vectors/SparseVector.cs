@@ -294,6 +294,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             return finalize(aggregator);
         }
 
+        IVectorView IVectorView.Scale(double scalar) => Scale(scalar);
+
+        public SparseVector Scale(double scalar)
+        {
+            int nnz = this.values.Length;
+            double[] resultValues = new double[nnz];
+            Array.Copy(this.values, resultValues, nnz);
+            CBlas.Dscal(nnz, scalar, ref resultValues[0], 1);
+            return new SparseVector(Length, resultValues, this.indices); //TODO: perhaps I should also copy the indices
+        }
+
         private int FindSparseIndexOf(int denseIdx)
         {
             Preconditions.CheckIndex1D(this, denseIdx);
