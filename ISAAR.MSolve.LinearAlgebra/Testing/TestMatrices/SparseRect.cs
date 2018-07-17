@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckMatrixMatrixMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var matrix5x5 = Matrix.CreateFromArray(SquareInvertible.matrix).Slice(0, 5, 0, 5); //TODO: add a 5x5 matrix and its products
+            var matrix5x5 = Matrix.CreateFromArray(SquareInvertible.matrix).GetSubmatrix(0, 5, 0, 5); //TODO: add a 5x5 matrix and its products
             var matrix10x10 = Matrix.CreateFromArray(SquareInvertible.matrix);
             var thisTimesMatrix5x5 = 
                 MatrixOperations.MatrixTimesMatrix(matrix, matrix5x5.CopyToArray2D());

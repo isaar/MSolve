@@ -85,15 +85,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public Vector Multiply(Vector x)
         {
             var y = Vector.CreateZero(dim.NumDofsAll);
-            var xs = x.Slice(0, dim.NumDofsStd);
-            var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
+            var xs = x.GetSubvector(0, dim.NumDofsStd);
+            var xc = x.GetSubvector(dim.EquationsStart, dim.NumDofsAll);
             Vector ys = Kss.MultiplyRight(xs); // Rows correspond to global standard dofs
             var yc = Vector.CreateZero(dim.NumEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
 
             foreach (var sub in dim.Subdomains)
             {
                 int i = sub.ID;
-                var xe = x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
+                var xe = x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
                 ys.AddIntoThis(Kse[i].MultiplyRight(xe)); 
                 Vector ye = Kes[i].MultiplyRight(xs);
                 ye.AddIntoThis(Kee[i].MultiplyRight(xe));

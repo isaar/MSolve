@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     Vector contribution = allPe[sub].ForwardSubstitution(rowVector); //TODO: only apply forward substitution for the last dofs
                     //BPeTransp.SetColumn(rowIdx, offsetQoriginal[sub],
                     BPeTransp.SetColumn(rowIdx, offsetQpermuted[sub],
-                        contribution.Slice(offsetB[sub], numSubdomainDofs[sub])); //TODO: directly copy them. No need to create a temporary Vector first
+                        contribution.GetSubvector(offsetB[sub], numSubdomainDofs[sub])); //TODO: directly copy them. No need to create a temporary Vector first
                     //Debug.Assert(contribution.Equals(contribution2, new LinearAlgebra.Testing.Utilities.ValueComparer(double.Epsilon)));
                 }
 
@@ -160,10 +160,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 if (nonZerosRows.Contains(i)) 
                 {
                     // Check that only the last columns, which correspond to boundary dofs are non zero.
-                    Vector internalColsB = row.Slice(0, boundaryDofsStart);
-                    Vector boundaryColsB = row.Slice(boundaryDofsStart, numDofsSubdomain);
-                    Vector internalRowsSolution = solution.Slice(0, boundaryDofsStart);
-                    Vector boundaryRowsSolution = solution.Slice(boundaryDofsStart, numDofsSubdomain);
+                    Vector internalColsB = row.GetSubvector(0, boundaryDofsStart);
+                    Vector boundaryColsB = row.GetSubvector(boundaryDofsStart, numDofsSubdomain);
+                    Vector internalRowsSolution = solution.GetSubvector(0, boundaryDofsStart);
+                    Vector boundaryRowsSolution = solution.GetSubvector(boundaryDofsStart, numDofsSubdomain);
 
                     Debug.Assert(internalColsB.IsZero(0.0), 
                         $"In row {i} of Be the columns corresponding to internal dofs are not 0 as they must be");
@@ -233,7 +233,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     Vector Px = permutation.MultiplyRight(x, false);
 
                     // (P^T * Q1)^T = Q1^T * P*x = Q1^T * block(Px) = dense vector
-                    Vector blockPx = Px.Slice(0, blockQ1.NumRows);
+                    Vector blockPx = Px.GetSubvector(0, blockQ1.NumRows);
                     return blockQ1.MultiplyRight(blockPx, true);
                 }
             }

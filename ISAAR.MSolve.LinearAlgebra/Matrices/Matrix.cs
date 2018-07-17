@@ -362,6 +362,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
+        public Vector GetColumn(int colIndex)
+        {
+            double[] result = new double[NumRows];
+            Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
+            return Vector.CreateFromArray(result, false);
+        }
+
         public Vector GetDiagonal()
         {
             return Vector.CreateFromArray(GetDiagonalAsArray(), false);
@@ -373,6 +380,62 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             double[] diag = new double[NumRows];
             for (int i = 0; i < NumRows; ++i) diag[i] = data[i * NumRows + i];
             return diag;
+        }
+
+        public Vector GetRow(int rowIndex)
+        {
+            double[] result = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                result[j] = data[j * NumRows + rowIndex];
+            }
+            return Vector.CreateFromArray(result, false);
+        }
+
+        /// <summary>
+        /// Returns a subvector containing only the entries at the provided row and column indices
+        /// </summary>
+        /// <param name="rowIndices">Rows of the entries to be returned. They must be 0 &lt; = i &lt; 
+        ///     <see cref="NumRows"/>.</param>
+        /// <param name="colIndices">Columns of the entries to be returned. They must be 0 &lt; = i &lt; 
+        ///     <see cref="NumRows"/>.</param>
+        /// <returns></returns>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+        {
+            double[] submatrix = new double[colIndices.Length * rowIndices.Length];
+            int idxCounter = -1;
+            foreach (var j in colIndices)
+            {
+                foreach (var i in rowIndices)
+                {
+                    submatrix[++idxCounter] = data[j * NumRows + i];
+                }
+            }
+            return new Matrix(submatrix, rowIndices.Length, colIndices.Length);
+        }
+
+        /// <summary>
+        /// Returns a subvector containing the entries at the indices between the provided start (inclusive) and end (exclusive).
+        /// </summary>
+        /// <param name="rowStartInclusive">The first row from which to copy entries.</param>
+        /// <param name="rowEndExclusive">The row after the last one until which to copy entries.</param>
+        /// <param name="colStartInclusive">The first column from which to copy entries.</param>
+        /// <param name="colEndExclusive">The column after the last one until which to copy entries.</param>
+        /// <returns></returns>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        {
+            int newNumRows = rowEndExclusive - rowStartInclusive;
+            int newNumCols = colEndExclusive - colStartInclusive;
+            double[] submatrix = new double[newNumCols * newNumRows];
+            int idxCounter = -1;
+            for (int j = colStartInclusive; j < colEndExclusive; ++j)
+            {
+                for (int i = rowStartInclusive; i < rowEndExclusive; ++i)
+                {
+                    submatrix[++idxCounter] = data[j * NumRows + i];
+                }
+            }
+            return new Matrix(submatrix, newNumRows, newNumCols);
         }
 
         public Matrix Invert()
@@ -633,69 +696,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             ArrayColMajor.SetSubmatrix(this.NumRows, this.NumColumns, this.data, rowStart, colStart, 
                 submatrix.NumRows, submatrix.NumColumns, submatrix.data);
-        }
-
-        /// <summary>
-        /// Returns a subvector containing only the entries at the provided row and column indices
-        /// </summary>
-        /// <param name="rowIndices">Rows of the entries to be returned. They must be 0 &lt; = i &lt; 
-        ///     <see cref="NumRows"/>.</param>
-        /// <param name="colIndices">Columns of the entries to be returned. They must be 0 &lt; = i &lt; 
-        ///     <see cref="NumRows"/>.</param>
-        /// <returns></returns>
-        public Matrix Slice(int[] rowIndices, int[] colIndices)
-        {
-            double[] submatrix = new double[colIndices.Length * rowIndices.Length];
-            int idxCounter = -1;
-            foreach (var j in colIndices)
-            {
-                foreach (var i in rowIndices)
-                {
-                    submatrix[++idxCounter] = data[j * NumRows + i];
-                }
-            }
-            return new Matrix(submatrix, rowIndices.Length, colIndices.Length);
-        }
-
-        /// <summary>
-        /// Returns a subvector containing the entries at the indices between the provided start (inclusive) and end (exclusive).
-        /// </summary>
-        /// <param name="rowStartInclusive">The first row from which to copy entries.</param>
-        /// <param name="rowEndExclusive">The row after the last one until which to copy entries.</param>
-        /// <param name="colStartInclusive">The first column from which to copy entries.</param>
-        /// <param name="colEndExclusive">The column after the last one until which to copy entries.</param>
-        /// <returns></returns>
-        public Matrix Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-        {
-            int newNumRows = rowEndExclusive - rowStartInclusive;
-            int newNumCols = colEndExclusive - colStartInclusive;
-            double[] submatrix = new double[newNumCols * newNumRows];
-            int idxCounter = -1;
-            for (int j = colStartInclusive; j < colEndExclusive; ++j)
-            {
-                for (int i = rowStartInclusive; i < rowEndExclusive; ++i)
-                {
-                    submatrix[++idxCounter] = data[j * NumRows + i];
-                }
-            }
-            return new Matrix(submatrix, newNumRows, newNumCols);
-        }
-
-        public Vector SliceColumn(int colIndex)
-        {
-            double[] result = new double[NumRows];
-            Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
-            return Vector.CreateFromArray(result, false);
-        }
-
-        public Vector SliceRow(int rowIndex)
-        {
-            double[] result = new double[NumColumns];
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                result[j] = data[j * NumRows + rowIndex];
-            }
-            return Vector.CreateFromArray(result, false);
         }
 
         public void SVD(double[] w, double[,] v)

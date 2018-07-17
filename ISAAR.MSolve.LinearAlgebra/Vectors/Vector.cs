@@ -252,6 +252,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             else return other.Equals(this, tolerance); // To avoid accessing zero entries
         }
 
+        public Vector GetSubvector(int[] indices)
+        {
+            double[] subvector = new double[indices.Length];
+            for (int i = 0; i < indices.Length; ++i) subvector[i] = data[indices[i]];
+            return new Vector(subvector);
+        }
+
+        public Vector GetSubvector(int startInclusive, int endExclusive)
+        {
+            Preconditions.CheckIndex1D(this, startInclusive);
+            Preconditions.CheckIndex1D(this, endExclusive - 1);
+            if (endExclusive < startInclusive) throw new ArgumentException(
+                $"Exclusive end = {endExclusive} must be >= inclusive start = {startInclusive}");
+
+            int subvectorLength = endExclusive - startInclusive;
+            double[] subvector = new double[subvectorLength];
+            Array.Copy(this.data, startInclusive, subvector, 0, subvectorLength);
+            return new Vector(subvector);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -434,37 +454,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this vector's length");
             Array.Copy(subvector.data, 0, this.data, destinationIndex, subvector.Length);
-        }
-
-        /// <summary>
-        /// Returns a subvector containing only the entries at the provided indices
-        /// </summary>
-        /// <param name="indices">Indices of the entries to be returned. They must be 0 &lt; = i &lt; <see cref="Length"/>.</param>
-        /// <returns></returns>
-        public Vector Slice(int[] indices)
-        {
-            double[] subvector = new double[indices.Length];
-            for (int i = 0; i < indices.Length; ++i) subvector[i] = data[indices[i]];
-            return new Vector(subvector);
-        }
-
-        /// <summary>
-        /// Returns a subvector containing the entries at the indices between the provided start (inclusive) and end (exclusive).
-        /// </summary>
-        /// <param name="startInclusive">The first index from which to copy entries.</param>
-        /// <param name="endExclusive">The index after the last one until which to copy entries.</param>
-        /// <returns></returns>
-        public Vector Slice(int startInclusive, int endExclusive)
-        {
-            Preconditions.CheckIndex1D(this, startInclusive);
-            Preconditions.CheckIndex1D(this, endExclusive - 1);
-            if (endExclusive < startInclusive) throw new ArgumentException(
-                $"Exclusive end = {endExclusive} must be >= inclusive start = {startInclusive}");
-
-            int subvectorLength = endExclusive - startInclusive;
-            double[] subvector = new double[subvectorLength];
-            Array.Copy(this.data, startInclusive, subvector, 0, subvectorLength);
-            return new Vector(subvector);
         }
 
         /// <summary>

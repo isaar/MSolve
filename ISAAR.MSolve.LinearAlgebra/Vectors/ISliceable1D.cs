@@ -1,4 +1,4 @@
-﻿//TODO: perhaps the setters should be moved here too. Name them GetSubvector(), SetSubvector()
+﻿//TODO: perhaps the setters should be moved here too.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     0 &lt;= <paramref name="indices"/>[i] &lt; <see cref="IIndexable1D.Length"/>, for all i.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if the entries of <paramref name="indices"/> violate the described 
         ///     constraints.</exception>
-        Vector Slice(int[] indices);
+        Vector GetSubvector(int[] indices);
 
         /// <summary>
         /// Returns a subvector with entries i of the original vector, such that 
@@ -29,6 +29,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///      <see cref="IIndexable1D.Length"/>.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="startInclusive"/> or 
         ///     <paramref name="endExclusive"/> violate the described constraints.</exception>
-        Vector Slice(int startInclusive, int endExclusive);
+        Vector GetSubvector(int startInclusive, int endExclusive);
     }
 }

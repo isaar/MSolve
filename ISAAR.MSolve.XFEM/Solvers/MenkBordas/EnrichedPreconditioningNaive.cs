@@ -40,8 +40,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // LQ factorization 
             //TODO: various optimizations might be possible here
             var qr = BPeTransp.FactorQR();
-            Matrix L = qr.GetFactorR().Slice(0, dimensions.NumEquations, 0, dimensions.NumEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
-            Matrix Q = qr.GetFactorQ().Slice(0, dimensions.NumDofsEnr, 0, dimensions.NumEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
+            Matrix L = qr.GetFactorR().GetSubmatrix(0, dimensions.NumEquations, 0, dimensions.NumEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
+            Matrix Q = qr.GetFactorQ().GetSubmatrix(0, dimensions.NumDofsEnr, 0, dimensions.NumEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
 
             #region Debug
             //FullMatrixWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 4 };

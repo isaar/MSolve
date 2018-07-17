@@ -140,8 +140,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Matrix Q = QR.GetFactorQ();
             Matrix R = QR.GetFactorR();
 
-            Matrix Q1expected = Q.Slice(0, numRows, 0, numCols);
-            Matrix R1expected = R.Slice(0, numCols, 0, numCols);
+            Matrix Q1expected = Q.GetSubmatrix(0, numRows, 0, numCols);
+            Matrix R1expected = R.GetSubmatrix(0, numCols, 0, numCols);
 
             Matrix Q1 = QR.GetEconomyFactorQ();
             TriangularUpper R1 = QR.GetEconomyFactorR();

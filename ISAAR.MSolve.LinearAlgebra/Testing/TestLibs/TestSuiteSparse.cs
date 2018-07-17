@@ -120,12 +120,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
                 // Update matrix
-                Vector newRowVector = original.SliceRow(i);
+                Vector newRowVector = original.GetRow(i);
                 #region minors are not positive definite this way
                 //matrixExpected.SetRow(i, newRowVector);
                 //matrixExpected.SetColumn(i, newRowVector);
                 #endregion
-                matrixExpected.SetSubmatrix(0, 0, original.Slice(0, i + 1, 0, i + 1)); //this way they are
+                matrixExpected.SetSubmatrix(0, 0, original.GetSubmatrix(0, i + 1, 0, i + 1)); //this way they are
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
                 (new FullMatrixWriter(matrixExpected)).WriteToConsole();
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
                 // Update matrix
-                Vector newRowVector = original.SliceRow(i);
+                Vector newRowVector = original.GetRow(i);
                 matrixExpected.SetRow(i, newRowVector);
                 matrixExpected.SetColumn(i, newRowVector);
                 Console.WriteLine($"\nOnly dofs [0, {i}]");

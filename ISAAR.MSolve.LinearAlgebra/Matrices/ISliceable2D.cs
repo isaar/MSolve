@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     0 &lt;= <paramref name="colIndices"/>[j] &lt; <see cref="IIndexable2D.NumColumns"/>, for all j.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if the entries of <paramref name="rowIndices"/> or 
         ///     <paramref name="colIndices"/> violate the described constraints.</exception>
-        Matrix Slice(int[] rowIndices, int[] colIndices);
+        Matrix GetSubmatrix(int[] rowIndices, int[] colIndices);
 
         /// <summary>
         /// Returns a submatrix with entries (i, j) of the original matrix, such that 
@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowStartInclusive"/>, 
         ///     <paramref name="rowEndExclusive"/>, <paramref name="colStartInclusive"/> or <paramref name="colEndExclusive"/> 
         ///     violate the described constraints.</exception>
-        Matrix Slice(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
+        Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
 
         /// <summary>
         /// Returns a vector with the entries of the original matrix's column at index = <paramref name="colIndex"/>.
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     0 &lt;= <paramref name="colIndex"/> &lt; <see cref="IIndexable2D.NumColumns"/>.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="colIndex"/> violates the described 
         ///     constraints.</exception>
-        Vector SliceColumn(int colIndex);
+        Vector GetColumn(int colIndex);
 
         /// <summary>
         /// Returns a vector with the entries of the original matrix's row at index = <paramref name="rowIndex"/>.
@@ -58,6 +58,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     0 &lt;= <paramref name="rowIndex"/> &lt; <see cref="IIndexable2D.NumRows"/>.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIndex"/> violates the described 
         ///     constraints.</exception>
-        Vector SliceRow(int rowIndex);
+        Vector GetRow(int rowIndex);
     }
 }
