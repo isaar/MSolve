@@ -21,13 +21,13 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
         /// will not be checked to make sure it is negative.
         /// </summary>
         /// <param name="info"></param>
-        internal static MKLException ProcessNegativeInfo(int info)
+        internal static MklException ProcessNegativeInfo(int info)
         {
             if (info == MKLUtilities.DefaultInfo)
             {
                 // first check the default info value, since it is negative.
                 // info == default => the MKL call did not succeed. 
-                return new MKLException("Something went wrong with the MKL call."
+                return new MklException("Something went wrong with the MKL call."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
             else
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
                 else if (info == -2) suffix = "nd";
                 else if (info == -3) suffix = "rd";
                 else suffix = "th";
-                return new MKLException($"The {-info}{suffix} parameter has an illegal value."
+                return new MklException($"The {-info}{suffix} parameter has an illegal value."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
         }

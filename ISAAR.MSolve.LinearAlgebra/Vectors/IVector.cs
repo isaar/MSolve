@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherVector"/> has different 
         ///     <see cref="IIndexable1D.Length"/> than this.</exception>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
         ///     is not permitted by the vector storage format.</exception> 
         void AxpyIntoThis(IVectorView otherVector, double otherCoefficient);
 
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="vector"/> has different 
         ///     <see cref="IIndexable1D.Length"/> than this.</exception>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
         ///     is not permitted by the vector storage format.</exception> 
         void DoEntrywiseIntoThis(IVectorView other, Func<double, double, double> binaryOperation);
 
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// The resulting vector overwrites the entries of this.
         /// </summary>
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
         ///     is not permitted by the vector storage format.</exception> 
         void DoToAllEntriesIntoThis(Func<double, double> unaryOperation);
 
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherVector"/> has different 
         ///     <see cref="IIndexable1D.Length"/> than this.</exception>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
         ///     is not permitted by the vector storage format.</exception> 
         void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
 

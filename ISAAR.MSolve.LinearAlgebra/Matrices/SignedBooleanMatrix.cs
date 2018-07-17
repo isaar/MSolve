@@ -73,9 +73,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             foreach (var wholeRow in data)
             {
                 int[] signs = wholeRow.Value.Values.ToArray();
-                if (signs.Length > 2) throw new MatrixPatternException(
+                if (signs.Length > 2) throw new Exception(
                     $"Each row may have at most 2 entries, but row {wholeRow.Key} has {signs.Length}");
-                else if ((signs.Length == 2) && (signs[0] != -signs[1])) throw new MatrixPatternException(
+                else if ((signs.Length == 2) && (signs[0] != -signs[1])) throw new Exception(
                     $"Row {wholeRow.Key} must have two opposite signs, but they were {signs[0]} and {signs[1]}");
             }
         }

@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherMatrix"/> has different 
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i, j] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i, j] needs to be overwritten, but that 
         ///     is not permitted by the matrix storage format.</exception>
         void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient);
 
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="matrix"/> has different 
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i, j] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i, j] needs to be overwritten, but that 
         ///     is not permitted by the matrix storage format.</exception>
         void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation);
 
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// he resulting matrix overwrites the entries of this.
         /// </summary>
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i, j] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i, j] needs to be overwritten, but that 
         ///     is not permitted by the matrix storage format.</exception>
         void DoToAllEntriesIntoThis(Func<double, double> unaryOperation);
 
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherMatrix"/> has different 
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        /// <exception cref="Exceptions.MatrixPatternException">Thrown if an entry this[i, j] needs to be overwritten, but that 
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i, j] needs to be overwritten, but that 
         ///     is not permitted by the matrix storage format.</exception>
         void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient);
 
