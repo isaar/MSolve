@@ -128,32 +128,32 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Pe.Remove(subdomain);
         }
 
-        public void CheckDimensions() //TODO: update this
-        {
-            // Standard dofs
-            Preconditions.CheckSystemSolutionDimensions(numDofsStd, numDofsStd, bs.Length);
+        //public void CheckDimensions() //TODO: update this
+        //{
+        //    // Standard dofs
+        //    Preconditions.CheckSystemSolutionDimensions(numDofsStd, numDofsStd, bs.Length);
 
-            // Number of subdomains
-            int numSubdomains = subdomains.Count;
-            if ((Kee.Count != numSubdomains) || (Kes.Count != numSubdomains) || (Kse.Count != numSubdomains) 
-                || (B.Count != numSubdomains) || (be.Count != numSubdomains))
-            {
-                throw new ArgumentException($"Mismatch: {numSubdomains} subdomains were declared, but there are"
-                    + $" {Kee.Count} enriched-enriched stiffness matrices, {Kes.Count} enriched-standard stiffness matrices,"
-                    + $" {Kse.Count} standard-enriched stiffness matrices, {B.Count} signed boolean matrices and"
-                    + $" {be.Count} right hand side vectors.");
-            }
+        //    // Number of subdomains
+        //    int numSubdomains = subdomains.Count;
+        //    if ((Kee.Count != numSubdomains) || (Kes.Count != numSubdomains) || (Kse.Count != numSubdomains) 
+        //        || (B.Count != numSubdomains) || (be.Count != numSubdomains))
+        //    {
+        //        throw new ArgumentException($"Mismatch: {numSubdomains} subdomains were declared, but there are"
+        //            + $" {Kee.Count} enriched-enriched stiffness matrices, {Kes.Count} enriched-standard stiffness matrices,"
+        //            + $" {Kse.Count} standard-enriched stiffness matrices, {B.Count} signed boolean matrices and"
+        //            + $" {be.Count} right hand side vectors.");
+        //    }
 
-            // Enriched dofs
-            foreach (var sub in modifiedSubdomains.Keys)
-            {
-                //TODO: All dimensions could be checked.
-                Preconditions.CheckSystemSolutionDimensions(Kee[sub], be[sub]);
-                Preconditions.CheckSystemSolutionDimensions(Kes[sub], be[sub]);
-                Preconditions.CheckSystemSolutionDimensions(Kse[sub], bs);
-                Preconditions.CheckMultiplicationDimensions(B[sub].NumColumns, be[sub].Length); //rhs.Length = lhs.Length
-            }
-        }
+        //    // Enriched dofs
+        //    foreach (var sub in modifiedSubdomains.Keys)
+        //    {
+        //        //TODO: All dimensions could be checked.
+        //        Preconditions.CheckSystemSolutionDimensions(Kee[sub], be[sub]);
+        //        Preconditions.CheckSystemSolutionDimensions(Kes[sub], be[sub]);
+        //        Preconditions.CheckSystemSolutionDimensions(Kse[sub], bs);
+        //        Preconditions.CheckMultiplicationDimensions(B[sub].NumColumns, be[sub].Length); //rhs.Length = lhs.Length
+        //    }
+        //}
 
         //public (MenkBordasMatrix matrix, Vector rhs) BuildSystem(DOKSymmetricColMajor Kss)
         //{

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
+    /// <summary>
+    /// Implementations of analytic linear algebra formulas for small matrices and vectors.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal static class AnalyticFormulas
     {
         internal const double determinantTolerance = 1e-10;

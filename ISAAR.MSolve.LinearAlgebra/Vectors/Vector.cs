@@ -10,7 +10,6 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
-using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
@@ -277,7 +276,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         /// <param name="tolerance">Can be 0</param>
         /// <returns></returns>
-        public bool IsZero(double tolerance) => DenseArrays.IsZero(data, tolerance);
+        public bool IsZero(double tolerance) => DenseStrategies.IsZero(data, tolerance);
 
         public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {

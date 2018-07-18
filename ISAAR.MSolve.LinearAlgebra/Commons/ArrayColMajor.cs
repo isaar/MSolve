@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
+//TODO: These should be delegated to C .dlls or to MKL if possible.
+namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
     /// Low level array operations for matrices stored in full column major layout.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     internal static class ArrayColMajor
     {

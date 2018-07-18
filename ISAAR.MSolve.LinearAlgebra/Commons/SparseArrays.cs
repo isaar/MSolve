@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
+﻿//TODO: These should be delegated to C .dlls or to MKL if possible.
+namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
-    class SparseArrays
+    /// <summary>
+    /// Low level array operations for sparse matrix formats.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    internal class SparseArrays
     {
         /// <summary>
         /// Copied from 
@@ -24,7 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// <param name="Bp">Preallocated ouput argument. Column pointers. Size = n_col+1</param>
         /// <param name="Bi">Preallocated ouput argument. Row indices. Size = nnz(A). They will be in sorted order.</param>
         /// <param name="Bx">Preallocated ouput argument. Non-zero values. Size = nnz(A).</param>
-        public static void CsrToCsc(int n_row, int n_col, int[] Ap, int[] Aj, double[] Ax, int[] Bp, int[] Bi, double[] Bx)
+        internal static void CsrToCsc(int n_row, int n_col, int[] Ap, int[] Aj, double[] Ax, int[] Bp, int[] Bi, double[] Bx)
         {
             int nnz = Ap[n_row];
 

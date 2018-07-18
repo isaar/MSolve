@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
@@ -479,7 +478,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <returns></returns>
         public bool IsZero(double tolerance)
         {
-            return DenseArrays.IsZero(data, tolerance);
+            return DenseStrategies.IsZero(data, tolerance);
         }
 
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)

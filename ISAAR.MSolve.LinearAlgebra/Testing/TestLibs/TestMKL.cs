@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 {
