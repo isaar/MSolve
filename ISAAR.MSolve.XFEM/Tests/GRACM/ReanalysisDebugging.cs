@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             matrixReader = new CoordinateTextFileReader();
             matrixReader.ReadFromFile(previousMatrixPath);
             DOKSymmetricColMajor expectedPreviousK = matrixReader.ToSymmetricDOK();
-            Vector rhs = (new FullVectorReader(true)).ReadFromFile(rhsPath);
+            var rhs = Vector.CreateFromArray((new Array1DReader(true)).ReadFile(rhsPath));
             int[] removedCols = ReadDofs(removedColsPath);
             int[] addedCols = ReadDofs(addedColsPath);
 

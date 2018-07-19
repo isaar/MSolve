@@ -8,6 +8,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
     /// Utility methods for parallel vector operations.
+    /// Authors: George Stavroulakis
     /// </summary>
     public static class ParallelExtensions
     {

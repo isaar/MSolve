@@ -24,8 +24,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            TestReordering();
-            //TestReading();
+            //TestReordering();
+            TestReading();
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
@@ -100,7 +100,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestReading()
         {
-            TestInput.CheckIO();
+            //TestInput.CheckArray1DReader();
+            TestInput.CheckArray2DReader();
+            //TestInput.CheckMatrixCoo();
         }
 
         public static void TestReordering()
