@@ -12,6 +12,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
     public interface IMatrixBuilder: IIndexable2D
     {
+        new double this[int rowIdx, int colIdx] { set; }
+
         /// <summary>
         /// Maps <paramref name="subMatrix"/> to "global" rows and columns of the underlying skyline matrix and then adds 
         /// the entries of <paramref name="subMatrix"/> to these global indices. The caller is respondible for the global 

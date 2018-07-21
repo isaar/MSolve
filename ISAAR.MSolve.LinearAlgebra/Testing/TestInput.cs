@@ -62,8 +62,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
             // Read
             var reader = new CoordinateTextFileReader();
-            reader.ReadFromFile(matrixCooPath);
-            DOKSymmetricColMajor readDOK = reader.ToSymmetricDOK();
+            DOKSymmetricColMajor readDOK = reader.ReadFileAsDokSymmetricColMajor(matrixCooPath);
 
             if (originalDOK.Equals(readDOK, 1e-8)) Console.WriteLine("I/O succeeded.");
             else

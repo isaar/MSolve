@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// and use them instead for matrix operations. Only the non zero entries of the upper triangle are stored. This class is 
     /// optimized for building global positive definite matrices, where there is at least 1 entry per column (like in FEM).
     /// </summary>
-    public class DOKSymmetricColMajor : ISparseSymmetricMatrix, ISymmetricMatrixBuilder
+    public class DOKSymmetricColMajor : IMatrixBuilder, ISparseSymmetricMatrix, ISymmetricMatrixBuilder
     {
         /// <summary>
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 

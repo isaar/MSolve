@@ -36,11 +36,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             string addedColsPath = folderPath + "reanalysis_added_rows_" + step + ".txt";
 
             var matrixReader = new CoordinateTextFileReader();
-            matrixReader.ReadFromFile(matrixPath);
-            DOKSymmetricColMajor expectedK = matrixReader.ToSymmetricDOK();
-            matrixReader = new CoordinateTextFileReader();
-            matrixReader.ReadFromFile(previousMatrixPath);
-            DOKSymmetricColMajor expectedPreviousK = matrixReader.ToSymmetricDOK();
+            DOKSymmetricColMajor expectedK = matrixReader.ReadFileAsDokSymmetricColMajor(matrixPath);
+            DOKSymmetricColMajor expectedPreviousK = matrixReader.ReadFileAsDokSymmetricColMajor(previousMatrixPath);
             var rhs = Vector.CreateFromArray((new Array1DReader(true)).ReadFile(rhsPath));
             int[] removedCols = ReadDofs(removedColsPath);
             int[] addedCols = ReadDofs(addedColsPath);
