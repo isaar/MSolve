@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace ISAAR.MSolve.LinearAlgebra.Input
 {
+    /// <summary>
+    /// Reads 1D arrays from files.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class Array1DReader
     {
         private readonly bool firstLineIsLength;
@@ -15,7 +18,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         /// </summary>
         /// <param name="firstLineIsLength">If true, the first line will be treated as the length of the array to be read. 
         ///     This allows optimizations, but will fail if there is no such line.</param>
-        /// <param name="separators">The file is read as one string which is then split whenever one of the characters in 
+        /// <param name="separators">The file is read as one string, which is then split whenever one of the characters in 
         ///     <paramref name="separators"/> is met. If none is provided, then the string will be split at each whitespace
         ///     character.</param>
         public Array1DReader(bool firstLineIsLength, params char[] separators)
@@ -41,22 +44,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         {
             using (var reader = new StreamReader(path))
             {
-                // Read the vector length
+                // Read the array length
                 string firstLine = reader.ReadLine();
                 if (firstLine == null) throw new IOException("Empty file");
                 int length = Int32.Parse(firstLine);
-                var vector = new double[length];
+                var array = new double[length];
 
-                // Read the vector entries.
+                // Read the array entries.
                 string line = reader.ReadToEnd();
                 string[] subStrings = line.Split(separators, StringSplitOptions.RemoveEmptyEntries);
                 if (subStrings.Length != length) throw new IOException("Mismatch in provided entries and their declared count.");
                 for (int i = 0; i < length; ++i)
                 {
-                    vector[i] = Double.Parse(subStrings[i]);
+                    array[i] = Double.Parse(subStrings[i]);
                 }
 
-                return vector;
+                return array;
             }
         }
 
@@ -64,14 +67,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         {
             using (var reader = new StreamReader(path))
             {
-                var vector = new List<double>();
+                var array = new List<double>();
                 string line = reader.ReadToEnd();
                 string[] subStrings = line.Split(separators, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < subStrings.Length; ++i)
                 {
-                    vector.Add(Double.Parse(subStrings[i]));
+                    array.Add(Double.Parse(subStrings[i]));
                 }
-                return vector.ToArray();
+                return array.ToArray();
             }
         }
     }
