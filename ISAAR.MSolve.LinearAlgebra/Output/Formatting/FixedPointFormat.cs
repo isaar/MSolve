@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.Output
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
     /// For each number a fixed number of decimal points are displayed, e.g -1234.56. Also controls alignment by reserving enough

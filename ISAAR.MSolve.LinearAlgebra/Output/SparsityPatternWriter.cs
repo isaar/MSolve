@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
@@ -9,16 +6,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
     /// <summary>
     /// Writes the a boolean matrix with 1 corresponding to non zero entries.
     /// </summary>
-    class SparsityPatternWriter: MatrixWriter
+    public class SparsityPatternWriter
     {
-        private readonly ISparsityPattern pattern;
-
-        public SparsityPatternWriter(ISparsityPattern pattern)
+        public SparsityPatternWriter()
         {
-            this.pattern = pattern;
         }
 
-        protected override void WriteToStream(StreamWriter writer)
+        public void WriteToConsole(ISparsityPattern matrix)
+        {
+            Utilities.WriteToConsole((writer) => WriteToStream(matrix, writer));
+        }
+
+        public void WriteToFile(ISparsityPattern matrix, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteToStream(matrix, writer), path, append);
+        }
+
+        private void WriteToStream(ISparsityPattern pattern, StreamWriter writer)
         {
             for (int i = 0; i < pattern.NumRows; ++i)
             {

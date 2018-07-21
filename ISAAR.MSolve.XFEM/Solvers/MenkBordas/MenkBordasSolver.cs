@@ -319,9 +319,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Export the global system to Matlab
             var writer = new MatlabWriter();
             string directory = @"C:\Users\Serafeim\Desktop\GRACM\MenkBordas_debugging\";
-            writer.WriteSparseMatrix(sparseK, directory + "global_matrix.txt");
-            writer.WriteFullVector(f, directory + "global_rhs.txt");
-            writer.WriteFullVector(denseX, directory + "solution.txt");
+            writer.WriteToFile(sparseK, directory + "global_matrix.txt");
+            writer.WriteToFile(f, directory + "global_rhs.txt");
+            writer.WriteToFile(denseX, directory + "solution.txt");
 
             // Export the submatrices to Matlab
             K.WriteToFiles(directory);

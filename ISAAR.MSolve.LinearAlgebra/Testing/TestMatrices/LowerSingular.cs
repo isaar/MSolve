@@ -70,8 +70,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var A = TriangularLower.CreateFromArray(matrix);
             Console.WriteLine("Lower singular matrix = ");
-            var writer = new FullMatrixWriter(A); // TODO: implement triangular printer
-            writer.WriteToConsole();
+            var writer = new FullMatrixWriter(); // TODO: implement triangular printer
+            writer.WriteToConsole(A);
         }
     }
 }

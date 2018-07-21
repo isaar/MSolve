@@ -195,7 +195,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //foreach (var sub_be in be)
             //{
             //    Console.WriteLine("Subdomain = " + sub_be.Key.ID);
-            //    (new FullVectorWriter(sub_be.Value, false, Array1DFormatting.PlainVertical)).WriteToConsole();
+            //    (new FullVectorWriter(sub_be.Value, false, Array1DFormat.PlainVertical)).WriteToConsole();
             //    Console.WriteLine();
             //}
             #endregion

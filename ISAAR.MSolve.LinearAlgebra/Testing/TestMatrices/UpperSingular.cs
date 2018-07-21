@@ -75,8 +75,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var A = TriangularUpper.CreateFromArray(matrix);
             Console.WriteLine("Upper singular matrix = ");
-            var writer = new FullMatrixWriter(A); // TODO: implement triangular printer
-            writer.WriteToConsole();
+            var writer = new FullMatrixWriter(); // TODO: implement triangular printer
+            writer.WriteToConsole(A);
         }
     }
 }

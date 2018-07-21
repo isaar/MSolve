@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
@@ -125,17 +126,19 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void WriteToConsole()
         {
-            var formatting = Array1DFormatting.PlainVertical;
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+            var writer = new FullVectorWriter(false);
+            writer.ArrayFormat = Array1DFormat.PlainVertical;
+            writer.NumericFormat = new GeneralNumericFormat();
+
             Console.WriteLine("\nStandard: ");
-            (new FullVectorWriter(Vs, false, formatting)).WriteToConsole();
+            writer.WriteToConsole(Vs);
             for (int i = 0; i < numSubdomains; ++i)
             {
                 Console.WriteLine($"\nEnriched subdomain {i}: ");
-                (new FullVectorWriter(Ve[i], false, formatting)).WriteToConsole();
+                writer.WriteToConsole(Ve[i]);
             }
             Console.WriteLine("\nContinuity equations: ");
-            (new FullVectorWriter(Vc, false, formatting)).WriteToConsole();
+            writer.WriteToConsole(Vc);
         }
     }
 }

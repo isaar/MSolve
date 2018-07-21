@@ -292,24 +292,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
             var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
 
+            var fullWriter = new FullMatrixWriter();
+            var coordinateWriter = new CoordinateTextFileWriter();
+            var rawWriter = new RawArraysWriter(false);
+
             Console.WriteLine("CSR (full) = ");
-            (new FullMatrixWriter(csr)).WriteToConsole();
+            fullWriter.WriteToConsole(csr);
             Console.WriteLine();
             Console.WriteLine("CSR (arrays) = ");
-            (new RawArraysWriter(csr, false)).WriteToConsole();
+            rawWriter.WriteToConsole(csr);
             Console.WriteLine();
             Console.WriteLine("CSR (sparse entries) = ");
-            (new CoordinateTextFileWriter(csr)).WriteToConsole();
+            coordinateWriter.WriteToConsole(csr);
             Console.WriteLine();
 
             Console.WriteLine("CSC (full) = ");
-            (new FullMatrixWriter(csc)).WriteToConsole();
+            fullWriter.WriteToConsole(csc);
             Console.WriteLine();
             Console.WriteLine("CSC (arrays) = ");
-            (new RawArraysWriter(csc, false)).WriteToConsole();
+            rawWriter.WriteToConsole(csc);
             Console.WriteLine();
             Console.WriteLine("CSC (sparse entries) = ");
-            (new CoordinateTextFileWriter(csc)).WriteToConsole();
+            coordinateWriter.WriteToConsole(csc);
             Console.WriteLine();
         }
     }

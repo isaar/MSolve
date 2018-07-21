@@ -1,52 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
-    public class FullMatrixWriter: MatrixWriter
+    public class FullMatrixWriter
     {
-        private readonly Array2DFormatting arrayFormat;
-        private readonly IIndexable2D matrix;
-
-        public FullMatrixWriter(IIndexable2D matrix, Array2DFormatting format = null)
+        public FullMatrixWriter()
         {
-            this.arrayFormat = (format == null) ? Array2DFormatting.Plain : format;
-            this.matrix = matrix;
         }
 
-        public static INumericFormat NumericFormat { get; set; } = new ExponentialFormat { NumDecimalDigits = 6 };
+        public Array2DFormat ArrayFormat { get; set; } = Array2DFormat.Plain;
+        public INumericFormat NumericFormat { get; set; } = new ExponentialFormat { NumDecimalDigits = 6 };
 
-        protected override void WriteToStream(StreamWriter writer)
+        public void WriteToConsole(IIndexable2D matrix)
+        {
+            Utilities.WriteToConsole((writer) => WriteToStream(matrix, writer));
+        }
+
+        public void WriteToFile(IIndexable2D matrix, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteToStream(matrix, writer), path, append);
+        }
+
+        private void WriteToStream(IIndexable2D matrix, StreamWriter writer)
         {
             string numberFormat = NumericFormat.GetRealNumberFormat();
-            writer.Write(arrayFormat.ArrayStart);
+            writer.Write(ArrayFormat.ArrayStart);
 
             // First row
-            writer.Write(arrayFormat.RowSeparator + arrayFormat.RowStart);
+            writer.Write(ArrayFormat.RowSeparator + ArrayFormat.RowStart);
             writer.Write(string.Format(numberFormat, matrix[0, 0]));
             for (int j = 1; j < matrix.NumColumns; ++j)
             {
-                writer.Write(arrayFormat.ColSeparator + string.Format(numberFormat, matrix[0, j]));
+                writer.Write(ArrayFormat.ColSeparator + string.Format(numberFormat, matrix[0, j]));
             }
-            writer.Write(arrayFormat.RowEnd);
+            writer.Write(ArrayFormat.RowEnd);
 
             // Subsequent rows
             for (int i = 1; i < matrix.NumRows; ++i)
             {
-                writer.Write(arrayFormat.RowSeparator + arrayFormat.RowStart);
+                writer.Write(ArrayFormat.RowSeparator + ArrayFormat.RowStart);
                 writer.Write(string.Format(numberFormat, matrix[i, 0]));
                 for (int j = 1; j < matrix.NumColumns; ++j)
                 {
-                    writer.Write(arrayFormat.ColSeparator + string.Format(numberFormat, matrix[i, j]));
+                    writer.Write(ArrayFormat.ColSeparator + string.Format(numberFormat, matrix[i, j]));
                 }
-                writer.Write(arrayFormat.RowEnd);
+                writer.Write(ArrayFormat.RowEnd);
             }
-            writer.Write(arrayFormat.RowSeparator + arrayFormat.ArrayEnd);
+            writer.Write(ArrayFormat.RowSeparator + ArrayFormat.ArrayEnd);
         }
     }
 }

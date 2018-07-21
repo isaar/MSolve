@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
             (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofOrderer);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath), dofOrderer);
-            (new FullMatrixWriter(Kff.Reorder(permutation, true))).WriteToConsole();
+            (new FullMatrixWriter()).WriteToConsole(Kff.Reorder(permutation, true));
         }
 
         public void CheckGlobalMatrix(Model2D model, IDofOrderer dofOrderer)

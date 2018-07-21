@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.Output
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     // TODO: While this works for matrices that use arrays, it doesn't work for DOKs. Ideally the sparse format object should 
     // know how to print itself

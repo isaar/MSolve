@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.Output
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
     /// Numbers will be displayed in scientific (exponential) format. E.g -1.05E+003 

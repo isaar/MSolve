@@ -11,11 +11,27 @@ using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 {
     class TestSuiteSparse
     {
+        private static readonly FullMatrixWriter matrixWriter = new FullMatrixWriter()
+        {
+            NumericFormat = new FixedPointFormat { NumDecimalDigits = 1, MaxIntegerDigits = 2 }
+        };
+
+        private static readonly FullVectorWriter vectorWriter = new FullVectorWriter()
+        {
+            NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 }
+        };
+
+        private static readonly Array1DWriter arrayWriter = new Array1DWriter()
+        {
+            NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 }
+        };
+
         public static void ExampleRawArrays()
         {
             // Define linear system
@@ -66,10 +82,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             //double[] values = new double[nnz] { 4.0, 10.0, 2.0, 1.0, 8.0, 3.0, 9.0 };
             //SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
 
+            var writer = new FullMatrixWriter();
             Console.WriteLine("Matrix DOK: ");
-            (new FullMatrixWriter(matrixDOK)).WriteToConsole();
+            writer.WriteToConsole(matrixDOK);
             Console.WriteLine("Matrix CSC: ");
-            (new FullMatrixWriter(matrixCSC)).WriteToConsole();
+            writer.WriteToConsole(matrixCSC);
 
             //Solve it using SuiteSparse
             using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky(SuiteSparseOrdering.Natural))
@@ -102,15 +119,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
         public static void CheckRowAddition()
         {
-            FullMatrixWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 1, MaxIntegerDigits = 2 };
-            FullVectorWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
-            Array1DWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
             Comparer comparer = new Comparer(Comparer.PrintMode.Always);
 
             Matrix original = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
             Vector rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
             Console.WriteLine("Full matrix: ");
-            (new FullMatrixWriter(original)).WriteToConsole();
+            matrixWriter.WriteToConsole(original);
 
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
@@ -127,7 +141,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 #endregion
                 matrixExpected.SetSubmatrix(0, 0, original.GetSubmatrix(0, i + 1, 0, i + 1)); //this way they are
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
-                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
+                matrixWriter.WriteToConsole(matrixExpected);
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
 
                 // Solve new linear system
@@ -141,15 +155,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
         // will probably not work since the matrix will not always be positive definite
         public static void CheckRowAdditionReverse()
         {
-            FullMatrixWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 1, MaxIntegerDigits = 2 };
-            FullVectorWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
-            Array1DWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
             Comparer comparer = new Comparer(Comparer.PrintMode.Always);
 
             Matrix original = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
             Vector rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
             Console.WriteLine("Full matrix: ");
-            (new FullMatrixWriter(original)).WriteToConsole();
+            matrixWriter.WriteToConsole(original);
 
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
@@ -163,7 +174,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 matrixExpected.SetRow(i, newRowVector);
                 matrixExpected.SetColumn(i, newRowVector);
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
-                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
+                matrixWriter.WriteToConsole(matrixExpected);
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
 
                 // Solve new linear system
@@ -176,15 +187,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
         public static void CheckRowDeletion()
         {
-            FullMatrixWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 1, MaxIntegerDigits = 2 };
-            FullVectorWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
-            Array1DWriter.NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 };
             Comparer comparer = new Comparer(Comparer.PrintMode.Always);
 
             Matrix original = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
             Vector rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs);
             Console.WriteLine("Full matrix: ");
-            (new FullMatrixWriter(original)).WriteToConsole();
+            matrixWriter.WriteToConsole(original);
 
             // Start the matrix from the original
             var matrixExpected = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
@@ -206,7 +214,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 matrixExpected.SetRow(i, identityRow);
                 matrixExpected.SetColumn(i, identityRow);
                 Console.WriteLine($"\nOnly dofs [{i + 1}, 10)");
-                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
+                matrixWriter.WriteToConsole(matrixExpected);
                 factor.DeleteRow(i);
 
                 // Solve new linear system
@@ -262,7 +270,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             Vector xSolveComput2 = factor.BackSubstitution(factor.ForwardSubstitution(b));
 
             // Check results
-            FullMatrixWriter.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 10 };
             comparer.CheckVectorEquality(xSolveExpect, xSolveComput);
             comparer.CheckMatrixEquality(XSolveExpect.CopyToArray2D(), XSolveComput.CopyToArray2D());
             comparer.CheckVectorEquality(xBackExpect, xBackComput);
@@ -278,9 +285,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             if (comparer.AreEqual(expected, solution)) Console.WriteLine("The linear system has been solved correctly.");
             else Console.WriteLine("ERROR in solving the linear system.");
             Console.Write("expected solution = ");
-            (new Array1DWriter(expected)).WriteToConsole();
+            arrayWriter.WriteToConsole(expected);
             Console.Write("computed solution = ");
-            (new Array1DWriter(solution)).WriteToConsole();
+            arrayWriter.WriteToConsole(solution);
         }
     }
 }

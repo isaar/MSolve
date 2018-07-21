@@ -1,33 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
-    public class RawArraysWriter: MatrixWriter
+    public class RawArraysWriter
     {
-        private readonly ISparseMatrix matrix;
         private readonly bool spaceBetweenArrays;
         private readonly bool titlesOnOtherLines;
 
-        public RawArraysWriter(ISparseMatrix matrix, bool spaceBetweenArrays = true, bool titlesOnOtherLines = true)
+        public RawArraysWriter(bool spaceBetweenArrays = true, bool titlesOnOtherLines = true)
         {
-            this.matrix = matrix;
             this.spaceBetweenArrays = spaceBetweenArrays;
             this.titlesOnOtherLines = titlesOnOtherLines;
         }
 
-        public static INumericFormat NumericFormat { get; set; } = new GeneralNumericFormat();
+        public INumericFormat NumericFormat { get; set; } = new GeneralNumericFormat();
+
+        public void WriteToConsole(ISparseMatrix matrix)
+        {
+            Utilities.WriteToConsole((writer) => WriteToStream(matrix, writer));
+        }
+
+        public void WriteToFile(ISparseMatrix matrix, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteToStream(matrix, writer), path, append);
+        }
 
         /// <summary>
         /// Each internal array is written to a different file. All these files have a common prefix, chosen by the user, and 
         /// a suffix corresponding to the purpose of each array.
         /// </summary>
-        public void WriteToMultipleFiles(string pathBase, bool writeArrayLengthFirst = true)
+        public void WriteToMultipleFiles(ISparseMatrix matrix, string pathBase, bool writeArrayLengthFirst = true)
         {
             string path = Path.GetDirectoryName(pathBase);
             string nameOnly = Path.GetFileNameWithoutExtension(pathBase);
@@ -60,7 +65,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             }
         }
 
-        protected override void WriteToStream(StreamWriter writer)
+        private void WriteToStream(ISparseMatrix matrix, StreamWriter writer)
         {
             SparseFormat sparseFormat = matrix.GetSparseFormat();
             writer.Write(sparseFormat.RawValuesTitle + ": ");
@@ -77,7 +82,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             }
         }
 
-        private static void WriteArray(IReadOnlyList<int> array, StreamWriter writer, bool writeArrayLengthFirst) //TODO: perhaps move it to abstract class
+        private void WriteArray(IReadOnlyList<int> array, StreamWriter writer, bool writeArrayLengthFirst)
         {
             if (writeArrayLengthFirst) writer.Write(array.Count + " ");
             int last = array.Count - 1;
@@ -88,7 +93,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             writer.Write(array[last]);
         }
 
-        private static void WriteArray(IReadOnlyList<double> array, StreamWriter writer, bool writeArrayLengthFirst) //TODO: perhaps move it to abstract class
+        private void WriteArray(IReadOnlyList<double> array, StreamWriter writer, bool writeArrayLengthFirst)
         {
             if (writeArrayLengthFirst) writer.Write(array.Count + " ");
             string numberFormat = NumericFormat.GetRealNumberFormat();

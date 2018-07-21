@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.Output
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
     /// Most compact numeric format. However the matrix/vector rows will not be aligned.

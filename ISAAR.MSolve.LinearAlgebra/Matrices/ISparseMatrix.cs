@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 //TODO: Perhaps the matrix itself should be the target of foreach. 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices

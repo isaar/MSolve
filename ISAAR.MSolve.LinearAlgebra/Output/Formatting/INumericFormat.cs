@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.Output
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
     /// Specifies formatting and alignment for <see cref="double"/> matrix or vector entries.

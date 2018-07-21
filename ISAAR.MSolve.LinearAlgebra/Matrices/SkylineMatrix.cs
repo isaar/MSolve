@@ -13,6 +13,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {

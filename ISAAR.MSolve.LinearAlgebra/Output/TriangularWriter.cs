@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
-    public class TriangularWriter : MatrixWriter
+    public class TriangularWriter
     {
-        protected override void WriteToStream(StreamWriter writer)
-        {
-            throw new NotImplementedException();
-        }
+       
     }
 }

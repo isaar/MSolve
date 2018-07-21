@@ -1,36 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
-    public class Array1DWriter: MatrixWriter
+    public class Array1DWriter
     {
-        private readonly Array1DFormatting format;
-        private readonly double[] vector;
-
-        public Array1DWriter(double[] vector, Array1DFormatting format = null)
+        public Array1DWriter()
         {
-            this.format = (format == null) ? Array1DFormatting.PlainHorizontal : format;
-            this.vector = vector;
         }
 
-        public static INumericFormat NumericFormat { get; set; } = new ExponentialFormat { NumDecimalDigits = 6 };
+        public Array1DFormat ArrayFormat { get; set; } = Array1DFormat.PlainHorizontal;
+        public INumericFormat NumericFormat { get; set; } = new ExponentialFormat { NumDecimalDigits = 6 };
 
-        protected override void WriteToStream(StreamWriter writer)
+        public void WriteToConsole(double[] array)
+        {
+            Utilities.WriteToConsole((writer) => WriteToStream(array, writer));
+        }
+
+        public void WriteToFile(double[] array, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteToStream(array, writer), path, append);
+        }
+
+        private void WriteToStream(double[] array, StreamWriter writer)
         {
             string numberFormat = NumericFormat.GetRealNumberFormat();
-            string separator = format.Separator;
-            writer.Write(format.Start);
-            writer.Write(string.Format(numberFormat, vector[0]));
-            for (int i = 1; i < vector.Length; ++i)
+            string separator = ArrayFormat.Separator;
+            writer.Write(ArrayFormat.Start);
+            writer.Write(string.Format(numberFormat, array[0]));
+            for (int i = 1; i < array.Length; ++i)
             {
-                writer.Write(separator + string.Format(numberFormat, vector[i]));
+                writer.Write(separator + string.Format(numberFormat, array[i]));
             }
-            writer.WriteLine(format.End);
+            writer.WriteLine(ArrayFormat.End);
         }
     }
 }

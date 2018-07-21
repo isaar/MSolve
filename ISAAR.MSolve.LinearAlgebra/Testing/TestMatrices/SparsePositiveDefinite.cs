@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -168,18 +169,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void Print()
         {
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            INumericFormat storedDefault = FullMatrixWriter.NumericFormat;
-            FullMatrixWriter.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
+            var fullWriter = new FullMatrixWriter { NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 } };
             Console.WriteLine("Skyline (full) = ");
-            (new FullMatrixWriter(skyline)).WriteToConsole();
+            fullWriter.WriteToConsole(skyline);
             Console.WriteLine();
+
             Console.WriteLine("Skyline (arrays) = ");
-            (new RawArraysWriter(skyline, false)).WriteToConsole();
+            (new RawArraysWriter(false)).WriteToConsole(skyline);
             Console.WriteLine();
+
             Console.WriteLine("Skyline (sparse entries) = ");
-            (new CoordinateTextFileWriter(skyline)).WriteToConsole();
+            (new CoordinateTextFileWriter()).WriteToConsole(skyline);
             Console.WriteLine();
-            FullMatrixWriter.NumericFormat = storedDefault;
         }
 
         public static void PrintDOKSparseColumns()
@@ -188,15 +189,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var dok = DOKSymmetricColMajor.CreateEmpty(order);
             foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
 
-            INumericFormat storedDefault = FullVectorWriter.NumericFormat;
-            FullVectorWriter.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
+            var writer = new FullVectorWriter();
+            writer.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
             for (int j = 0; j < order; ++j) 
             {
                 // Since the matrix is symmetric the result should look like the whole matrix being printed
                 Console.Write($"Column {j}: ");
-                (new FullVectorWriter(dok.SliceColumn(j))).WriteToConsole();
+                writer.WriteToConsole(dok.SliceColumn(j));
             }
-            FullVectorWriter.NumericFormat = storedDefault;
         }
 
         public static void PrintPatternAsBoolean()
@@ -210,7 +210,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
                 }
             }
             Console.WriteLine("Sparsity pattern of the matrix:");
-            (new SparsityPatternWriter(pattern)).WriteToConsole();
+            (new SparsityPatternWriter()).WriteToConsole(pattern);
         }
     }
 }

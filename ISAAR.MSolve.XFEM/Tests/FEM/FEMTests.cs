@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Tests.FEM
                 new SimpleIntegration2D(), material);
             Matrix k = element.BuildStiffnessMatrix();
             Console.WriteLine("Isoparametric Quad4 stiffness matrix = ");
-            (new FullMatrixWriter(k)).WriteToConsole();
+            (new FullMatrixWriter()).WriteToConsole(k);
         }
 
         public static void Main()

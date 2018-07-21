@@ -201,8 +201,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var A = Matrix.CreateFromArray(matrix);
             Console.WriteLine("Rectangular matrix = ");
-            var writer = new FullMatrixWriter(A);
-            writer.WriteToConsole();
+            var writer = new FullMatrixWriter();
+            writer.WriteToConsole(A);
         }
     }
 }

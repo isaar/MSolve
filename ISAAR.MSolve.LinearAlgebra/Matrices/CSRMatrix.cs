@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
 
 // TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 

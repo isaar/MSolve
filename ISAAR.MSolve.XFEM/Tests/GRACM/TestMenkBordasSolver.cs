@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -19,6 +20,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {
     class TestMenkBordasSolver
     {
+        private static readonly FullVectorWriter writer = new FullVectorWriter(false)
+        {
+            ArrayFormat = Array1DFormat.PlainVertical,
+            NumericFormat = new GeneralNumericFormat()
+        };
+
         public static void Run()
         {
             // Build the model
@@ -114,7 +121,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         //    (MenkBordasMatrix K, Vector denseF) = sys.BuildSystem();
 
         //    Console.WriteLine("************************* Global RHS Vector *************************");
-        //    var formatting = Array1DFormatting.PlainVertical;
+        //    var formatting = Array1DFormat.PlainVertical;
         //    FullVectorWriter.NumericFormat = new GeneralNumericFormat();
         //    (new FullVectorWriter(denseF, false, formatting)).WriteToConsole();
         //    Console.WriteLine();
@@ -151,7 +158,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         //    Vector denseUExpected = uExpected.CopyToDense();
         //    Vector denseU = denseK.FactorLU().SolveLinearSystem(denseF);
 
-        //    var formatting = Array1DFormatting.PlainVertical;
+        //    var formatting = Array1DFormat.PlainVertical;
         //    FullVectorWriter.NumericFormat = new GeneralNumericFormat();
         //    Console.WriteLine("U expected (all dofs): ");
         //    (new FullVectorWriter(denseUExpected, false, formatting)).WriteToConsole();
@@ -169,8 +176,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             solver.Initialize();
             solver.Solve();
 
-            var formatting = Array1DFormatting.PlainVertical;
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
             //Console.WriteLine("U computed (all dofs): ");
             //(new FullVectorWriter(solver.Solution, false, formatting)).WriteToConsole();
 
@@ -184,14 +189,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 Vector stdU = solver.DofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
                     element, solver.Solution, constrainedDisplacements);
                 Console.WriteLine("Standard displacements: ");
-                (new FullVectorWriter(stdU, false, formatting)).WriteToConsole();
+                writer.WriteToConsole(stdU);
                 Console.WriteLine();
 
                 if (element.CountEnrichedDofs() > 0)
                 {
                     Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, solver.Solution);
                     Console.WriteLine("Enriched displacements: ");
-                    (new FullVectorWriter(enrU, false, formatting)).WriteToConsole();
+                    writer.WriteToConsole(enrU);
                     Console.WriteLine();
                 }
             }
@@ -203,8 +208,6 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             solver.Initialize();
             solver.Solve();
 
-            var formatting = Array1DFormatting.PlainVertical;
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
             //Console.WriteLine("U computed (all dofs): ");
             //(new FullVectorWriter(solver.Solution, false, formatting)).WriteToConsole();
 
@@ -218,14 +221,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 Vector stdU = solver.DofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
                     element, solver.Solution, constrainedDisplacements);
                 Console.WriteLine("Standard displacements: ");
-                (new FullVectorWriter(stdU, false, formatting)).WriteToConsole();
+                writer.WriteToConsole(stdU);
                 Console.WriteLine();
 
                 if (element.CountEnrichedDofs() > 0)
                 {
                     Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, solver.Solution);
                     Console.WriteLine("Enriched displacements: ");
-                    (new FullVectorWriter(enrU, false, formatting)).WriteToConsole();
+                    writer.WriteToConsole(enrU);
                     Console.WriteLine();
                 }
             }

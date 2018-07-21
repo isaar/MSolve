@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.LinearAlgebra.Output
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     //TODO: add precision, justification
-    public class Array2DFormatting
+    public class Array2DFormat
     {
-        public static readonly Array2DFormatting Brackets = new Array2DFormatting("\n[", "]\n", "[ ", " ]");
-        public static readonly Array2DFormatting Plain = new Array2DFormatting("", "", "", "");
+        public static readonly Array2DFormat Brackets = new Array2DFormat("\n[", "]\n", "[ ", " ]");
+        public static readonly Array2DFormat Plain = new Array2DFormat("", "", "", "");
 
-        public Array2DFormatting(string arrayStart, string arrayEnd, string rowStart, string rowEnd, 
+        public Array2DFormat(string arrayStart, string arrayEnd, string rowStart, string rowEnd, 
             string rowSeparator = "\n", string colSeparator = " ")
         {
             this.ArrayStart = arrayStart;

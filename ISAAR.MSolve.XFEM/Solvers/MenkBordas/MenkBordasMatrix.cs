@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: remove MenkBordasVector, MenkBordasCG, MenkBordasMINRES
@@ -124,27 +125,28 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void WriteToConsole()
         {
-            FullMatrixWriter.NumericFormat = new GeneralNumericFormat();
+            var writer = new FullMatrixWriter();
+            writer.NumericFormat = new GeneralNumericFormat();
 
             Console.WriteLine("Kss: ");
-            (new FullMatrixWriter(Kss)).WriteToConsole();
+            writer.WriteToConsole(Kss);
             Console.WriteLine();
             for (int i = 0; i < dim.NumSubdomains; ++i)
             {
                 Console.WriteLine($"Subdomain {i} - Kee: ");
-                (new FullMatrixWriter(Kee[i])).WriteToConsole();
+                writer.WriteToConsole(Kee[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - Kes: ");
-                (new FullMatrixWriter(Kes[i])).WriteToConsole();
+                writer.WriteToConsole(Kes[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - Kse: ");
-                (new FullMatrixWriter(Kse[i])).WriteToConsole();
+                writer.WriteToConsole(Kse[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - B: ");
-                (new FullMatrixWriter(B[i])).WriteToConsole();
+                writer.WriteToConsole(B[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - transpose B: ");
-                (new FullMatrixWriter(B[i].Transpose())).WriteToConsole();
+                writer.WriteToConsole(B[i].Transpose());
                 Console.WriteLine();
             }
         }
@@ -152,12 +154,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public void WriteToFiles(string directoryPath)
         {
             var writer = new MatlabWriter();
-            writer.WriteSparseMatrix(Kss, directoryPath + "Kss.txt");
+            writer.WriteToFile(Kss, directoryPath + "Kss.txt");
             for (int i = 0; i < dim.NumSubdomains; ++i)
             {
-                writer.WriteSparseMatrix(Kee[i], directoryPath + $"Kee{i + 1}.txt");
-                writer.WriteSparseMatrix(Kes[i], directoryPath + $"Kes{i + 1}.txt");
-                writer.WriteSparseMatrix(B[i], directoryPath + $"B{i + 1}.txt");
+                writer.WriteToFile(Kee[i], directoryPath + $"Kee{i + 1}.txt");
+                writer.WriteToFile(Kes[i], directoryPath + $"Kes{i + 1}.txt");
+                writer.WriteToFile(B[i], directoryPath + $"B{i + 1}.txt");
             }
         }
     }

@@ -1,45 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
     public class MatlabWriter
     {
-        private readonly INumericFormat format;
-
-        public MatlabWriter(INumericFormat format = null)
+        public MatlabWriter()
         {
-            if (format != null) this.format = format;
-            else this.format = new ExponentialFormat { NumDecimalDigits = 12 };
         }
 
-        public void WriteFullVector(IVectorView vector, string path)
+        public INumericFormat NumericFormat { get; set; } = new ExponentialFormat { NumDecimalDigits = 12 };
+
+        public void WriteToConsole(IIndexable1D vector)
         {
-            string numberFormat = format.GetRealNumberFormat();
-            using (var writer = new StreamWriter(path))
-            {
-                for (int i = 0; i < vector.Length-1; ++i) writer.WriteLine(string.Format(numberFormat, vector[i]));
-                writer.Write(string.Format(numberFormat, vector[vector.Length - 1]));
-            }
+            Utilities.WriteToConsole((writer) => WriteFullVector(vector, writer));
         }
 
-        public void WriteSparseMatrix(ISparseMatrix matrix, string path)
+        public void WriteToConsole(ISparseMatrix matrix)
         {
-            string numberFormat = format.GetRealNumberFormat();
-            using (var writer = new StreamWriter(path))
+            Utilities.WriteToConsole((writer) => WriteSparseMatrix(matrix, writer));
+        }
+
+        public void WriteToFile(IIndexable1D vector, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteFullVector(vector, writer), path, append);
+        }
+
+        public void WriteToFile(ISparseMatrix matrix, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteSparseMatrix(matrix, writer), path, append);
+        }
+
+        private void WriteFullVector(IIndexable1D vector, StreamWriter writer)
+        {
+            string numberFormat = NumericFormat.GetRealNumberFormat();
+            for (int i = 0; i < vector.Length - 1; ++i) writer.WriteLine(string.Format(numberFormat, vector[i]));
+            writer.Write(string.Format(numberFormat, vector[vector.Length - 1]));
+        }
+
+        private void WriteSparseMatrix(ISparseMatrix matrix, StreamWriter writer)
+        {
+            string numberFormat = NumericFormat.GetRealNumberFormat();
+            foreach (var (row, col, val) in matrix.EnumerateNonZeros())
             {
-                foreach (var (row, col, val) in matrix.EnumerateNonZeros())
-                {
-                    writer.Write($"{row+1} {col+1} ");
-                    writer.WriteLine(string.Format(numberFormat, val));
-                    
-                }
-                writer.Write($"{matrix.NumRows} {matrix.NumColumns} 0.0");
+                writer.Write($"{row + 1} {col + 1} ");
+                writer.WriteLine(string.Format(numberFormat, val));
             }
+            writer.Write($"{matrix.NumRows} {matrix.NumColumns} 0.0");
         }
     }
 }

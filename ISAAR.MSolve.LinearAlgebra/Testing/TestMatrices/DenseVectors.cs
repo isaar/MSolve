@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -171,8 +172,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var vector = Vector.CreateFromArray(vector1);
             Console.WriteLine("Vector = ");
-            var writer = new FullVectorWriter(vector, false, Array1DFormatting.Brackets);
-            writer.WriteToConsole();
+            var writer = new FullVectorWriter(false) { ArrayFormat = Array1DFormat.Brackets };
+            writer.WriteToConsole(vector);
         }
     }
 }

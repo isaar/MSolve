@@ -8,6 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Input;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -40,7 +41,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             comparer.CheckVectorEquality(expected,
                 Vector.CreateFromArray((new Array1DReader(true, '\n')).ReadFile(array1DPathLength)));
         }
-
         
         public static void CheckArray2DReader()
         {
@@ -57,8 +57,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         {
             // Write
             DOKSymmetricColMajor originalDOK = CreateRandomMatrix(1000, 0.2);
-            CoordinateTextFileSymmetricWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 10 };
-            (new CoordinateTextFileSymmetricWriter(originalDOK)).WriteToFile(matrixCooPath);
+            var coordinateWriter = new CoordinateTextFileWriter();
+            coordinateWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 10 };
+            coordinateWriter.WriteToFile(originalDOK, matrixCooPath);
 
             // Read
             var reader = new CoordinateTextFileReader();
@@ -67,11 +68,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             if (originalDOK.Equals(readDOK, 1e-8)) Console.WriteLine("I/O succeeded.");
             else
             {
+                var fullWriter = new FullMatrixWriter();
                 Console.WriteLine("I/O failed.");
                 Console.WriteLine("Expected:");
-                (new FullMatrixWriter(originalDOK)).WriteToConsole();
+                fullWriter.WriteToConsole(originalDOK);
                 Console.WriteLine("\nRead:");
-                (new FullMatrixWriter(readDOK)).WriteToConsole();
+                fullWriter.WriteToConsole(readDOK);
             }
         }
 

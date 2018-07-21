@@ -25,12 +25,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
 
         public void Print(double[] vector)
         {
-            (new Array1DWriter(vector)).WriteToConsole();
+            (new Array1DWriter()).WriteToConsole(vector);
         }
 
         public void Print(double[,] matrix)
         {
-            (new Array2DWriter(matrix)).WriteToConsole();
+            (new Array2DWriter()).WriteToConsole(matrix);
         }
 
         public void PrintFactorizationCholesky(bool isCorrect, double[,] matrix, double[,] uExpected, double[,] uComputed)
