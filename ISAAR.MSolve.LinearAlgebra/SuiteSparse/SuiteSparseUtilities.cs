@@ -1,18 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 //TODO: Use enums as return values or at least named constants.
 namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
 {
+    /// <summary>
+    /// How to proceed after factorizing (triangulation) the linear system matrix: A=L*U.
+    /// </summary>
     internal enum SystemType
     {
-        Regular = 0, ForwardSubstitution = 4, BackSubstitution = 5
+        /// <summary>
+        /// Solve the original system A*x = b
+        /// </summary>
+        Regular = 0,
+
+        /// <summary>
+        /// Solve L*x = b
+        /// </summary>
+        ForwardSubstitution = 4,
+
+        /// <summary>
+        /// Solve U*x = b
+        /// </summary>
+        BackSubstitution = 5
     }
 
+    /// <summary>
+    /// Platform Invoke methods for calling the SuiteSparse library via my custom C interface.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal static class SuiteSparseUtilities
     {
         /// <summary>

@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
+﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
+// TODO: Perhaps I should have various info classes and wrap the MKL calls directly
 namespace ISAAR.MSolve.LinearAlgebra.MKL
 {
-    // TODO: Perhaps I should have various info classes and wrap the MKL calls directly
+    /// <summary>
+    /// Utility methods to use when calling Intel MKL functions.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal static class MKLUtilities
     {
         /// <summary>

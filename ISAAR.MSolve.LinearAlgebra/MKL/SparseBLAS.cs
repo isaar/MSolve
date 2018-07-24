@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Runtime.InteropServices;
 
 namespace ISAAR.MSolve.LinearAlgebra.MKL
 {
-    class SparseBLAS
+    /// <summary>
+    /// Platform invoke methods for Intel MKL's Sparse BLAS. These are not covered by any nuget packages. Also see MKL's C user 
+    /// guide. 
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    internal class SparseBLAS
     {
         //TODO: this has been deprecated. Does this hurt performance much? Should I use the inspector-executor functions instead?
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "mkl_dcsrcsc")]
