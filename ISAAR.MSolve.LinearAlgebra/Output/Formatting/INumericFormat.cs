@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿//TODO: Perhaps I should also specify culture
 namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
-    /// Specifies formatting and alignment for <see cref="double"/> matrix or vector entries.
+    /// Specifies formatting and alignment for <see cref="double"/> entries of a matrix or vector.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface INumericFormat //TODO: Perhaps I should also specify culture
+    public interface INumericFormat
     {
+        /// <summary>
+        /// Returns a tring that will be used as a template for formatting numbers during output.
+        /// </summary>
         string GetRealNumberFormat();
     }
 }

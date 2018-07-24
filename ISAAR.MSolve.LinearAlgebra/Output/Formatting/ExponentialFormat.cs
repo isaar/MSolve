@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
+﻿namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
-    /// Numbers will be displayed in scientific (exponential) format. E.g -1.05E+003 
+    /// Numbers will be displayed in scientific (exponential) format: e.g. -1.05E+003. The caller can choose how many decimal 
+    /// will be displayed and the resulting output will be aligned.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class ExponentialFormat: INumericFormat
     {
@@ -16,6 +12,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
         /// </summary>
         public int NumDecimalDigits { get; set; } = 6;
 
+        /// <summary>
+        /// Returns a tring that will be used as a template for formatting numbers during output.
+        /// </summary>
         public string GetRealNumberFormat()
         {
             // -1.05E+003 => sign + integer + decimal separator + E + exponent sign + exponent digits + decimal digits.

@@ -3,8 +3,17 @@ using System.IO;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
+    /// <summary>
+    /// Write data to a stream using the provided <see cref="StreamWriter"/>.
+    /// </summary>
+    /// <param name="writer">The writer with which to write data to the stream.</param>
     internal delegate void WriteToStream(StreamWriter writer);
 
+    /// <summary>
+    /// Provides utility methods that handle writing data to various streams. The caller only needs to specify the data that will
+    /// be written.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal static class Utilities
     {
         internal static void WriteToConsole(WriteToStream callback)

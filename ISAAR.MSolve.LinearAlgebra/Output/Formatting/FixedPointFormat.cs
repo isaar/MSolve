@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
+﻿namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
-    /// For each number a fixed number of decimal points are displayed, e.g -1234.56. Also controls alignment by reserving enough
-    /// space for the max number of integer digits expected.
+    /// For each number, a fixed number of decimal points are displayed, e.g -1234.56. Also controls alignment by reserving 
+    /// enough space for the max number of integer digits expected.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class FixedPointFormat: INumericFormat
     {
@@ -26,6 +21,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
         /// </summary>
         public int MaxIntegerDigits { get; set; } = 4;
 
+        /// <summary>
+        /// Returns a tring that will be used as a template for formatting numbers during output.
+        /// </summary>
         public string GetRealNumberFormat()
         {
             int totalWidth = NumDecimalDigits + MaxIntegerDigits + 2; // +1 for sign, + 1 for comma/period
