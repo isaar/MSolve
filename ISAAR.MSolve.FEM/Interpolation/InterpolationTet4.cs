@@ -8,7 +8,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 namespace ISAAR.MSolve.FEM.Interpolation
 {
 	/// <summary>
-	/// Isoparametric interpolation of a tetrahedron finite element with 4 nodes. Linear shape functions.
+	/// Isoparametric interpolation of a tetrahedral finite element with 4 nodes. Linear shape functions.
 	/// Implements sigleton pattern.
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
