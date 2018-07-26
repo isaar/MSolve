@@ -20,15 +20,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    {
 		    NodalNaturalCoordinates = new NaturalPoint3D[]
 		    {
-				new NaturalPoint3D(-1,-1,-1),
-			    new NaturalPoint3D(1,-1,-1),
-			    new NaturalPoint3D(1,1,-1),
-			    new NaturalPoint3D(-1,1,1),
-			    new NaturalPoint3D(-1,-1,1),
-			    new NaturalPoint3D(1,-1,1),
-			    new NaturalPoint3D(1,1,1),
-			    new NaturalPoint3D(-1,1,1),
-			};
+			    new NaturalPoint3D(-1, -1, -1),
+			    new NaturalPoint3D(1, -1, -1),
+			    new NaturalPoint3D(1, 1, -1),
+			    new NaturalPoint3D(-1, 1, -1),
+			    new NaturalPoint3D(-1, -1, 1),
+			    new NaturalPoint3D(1, -1, 1),
+			    new NaturalPoint3D(1, 1, 1),
+			    new NaturalPoint3D(-1, 1, 1),
+		    };
 	    }
 
 		/// <summary>
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes) =>
 		    new InverseInterpolationHexa8(nodes);
 
-	    protected override  sealed double[] EvaluateAt(double xi, double eta, double zeta)
+	    protected sealed  override double[] EvaluateAt(double xi, double eta, double zeta)
 	    {
 		    var values = new double[8];
 		    values[0] = 0.125 * (1 - xi) * (1 - eta) * (1 - zeta);
