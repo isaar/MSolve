@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
 
 		/// <summary>
-		/// Get the unique instance <exception cref="InterpolationTet10"/> object for the whole program. Thread safe.
+		/// Get the unique instance <see cref="InterpolationTet10"/> object for the whole program. Thread safe.
 		/// </summary>
 	    public static InterpolationTet10 UniqueInstance => uniqueInstance;
 
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// <param name="eta"></param>
 		/// <param name="zeta"></param>
 		/// <returns></returns>
-		protected override double[] EvaluateAt(double xi, double eta, double zeta)
+		protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)
 		{
 			var z1 = xi;
 			var z2 = eta;
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		}
 
 
-	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var derivatives = new double[10, 3];
 
