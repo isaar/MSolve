@@ -65,35 +65,35 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    return values;
 	    }
 
-	    protected override sealed double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var derivatives = new double[8, 3];
-		    derivatives[0, 0] = -1 / 8 * (1 - eta) * (1 - zeta);
-		    derivatives[1, 0] = 1 / 8 * (1 - eta) * (1 - zeta);
-		    derivatives[2, 0] = 1 / 8 * (1 + eta) * (1 - zeta);
-		    derivatives[3, 0] = -1 / 8 * (1 + eta) * (1 - zeta);
-		    derivatives[4, 0] = -1 / 8 * (1 - eta) * (1 + zeta);
-		    derivatives[5, 0] = 1 / 8 * (1 - eta) * (1 + zeta);
-		    derivatives[6, 0] = 1 / 8 * (1 + eta) * (1 + zeta);
-		    derivatives[7, 0] = -1 / 8 * (1 + eta) * (1 + zeta);
+		    derivatives[0, 0] = -1 / 8.0 * (1 - eta) * (1 - zeta);
+		    derivatives[1, 0] = 1 / 8.0 * (1 - eta) * (1 - zeta);
+		    derivatives[2, 0] = 1 / 8.0 * (1 + eta) * (1 - zeta);
+		    derivatives[3, 0] = -1 / 8.0 * (1 + eta) * (1 - zeta);
+		    derivatives[4, 0] = -1 / 8.0 * (1 - eta) * (1 + zeta);
+		    derivatives[5, 0] = 1 / 8.0 * (1 - eta) * (1 + zeta);
+		    derivatives[6, 0] = 1 / 8.0 * (1 + eta) * (1 + zeta);
+		    derivatives[7, 0] = -1 / 8.0 * (1 + eta) * (1 + zeta);
 
-		    derivatives[0, 1] = -1 / 8 * (1 - xi) * (1 - zeta);
-		    derivatives[1, 1] = -1 / 8 * (1 + xi) * (1 - zeta);
-		    derivatives[2, 1] = 1 / 8 * (1 + xi) * (1 - zeta);
-		    derivatives[3, 1] = 1 / 8 * (1 - xi) * (1 - zeta);
-		    derivatives[4, 1] = -1 / 8 * (1 - xi) * (1 + zeta);
-		    derivatives[5, 1] = -1 / 8 * (1 + xi) * (1 + zeta);
-		    derivatives[6, 1] = 1 / 8 * (1 + xi) * (1 + zeta);
-		    derivatives[6, 1] = 1 / 8 * (1 - xi) * (1 + zeta);
+		    derivatives[0, 1] = -1 / 8.0 * (1 - xi) * (1 - zeta);
+		    derivatives[1, 1] = -1 / 8.0 * (1 + xi) * (1 - zeta);
+		    derivatives[2, 1] = 1 / 8.0 * (1 + xi) * (1 - zeta);
+		    derivatives[3, 1] = 1 / 8.0 * (1 - xi) * (1 - zeta);
+		    derivatives[4, 1] = -1 / 8.0 * (1 - xi) * (1 + zeta);
+		    derivatives[5, 1] = -1 / 8.0 * (1 + xi) * (1 + zeta);
+		    derivatives[6, 1] = 1 / 8.0 * (1 + xi) * (1 + zeta);
+		    derivatives[6, 1] = 1 / 8.0 * (1 - xi) * (1 + zeta);
 
-		    derivatives[0, 2] = -1 / 8 * (1 - xi) * (1 - eta);
-		    derivatives[1, 2] = -1 / 8 * (1 + xi) * (1 - eta);
-		    derivatives[2, 2] = -1 / 8 * (1 + xi) * (1 + eta);
-		    derivatives[3, 2] = -1 / 8 * (1 - xi) * (1 + eta);
-		    derivatives[4, 2] = 1 / 8 * (1 - xi) * (1 - eta);
-		    derivatives[5, 2] = 1 / 8 * (1 + xi) * (1 - eta);
-		    derivatives[6, 2] = 1 / 8 * (1 + xi) * (1 + eta);
-		    derivatives[7, 2] = 1 / 8 * (1 - xi) * (1 + eta);
+		    derivatives[0, 2] = -1 / 8.0 * (1 - xi) * (1 - eta);
+		    derivatives[1, 2] = -1 / 8.0 * (1 + xi) * (1 - eta);
+		    derivatives[2, 2] = -1 / 8.0 * (1 + xi) * (1 + eta);
+		    derivatives[3, 2] = -1 / 8.0 * (1 - xi) * (1 + eta);
+		    derivatives[4, 2] = 1 / 8.0 * (1 - xi) * (1 - eta);
+		    derivatives[5, 2] = 1 / 8.0 * (1 + xi) * (1 - eta);
+		    derivatives[6, 2] = 1 / 8.0 * (1 + xi) * (1 + eta);
+		    derivatives[7, 2] = 1 / 8.0 * (1 - xi) * (1 + eta);
 		    return derivatives;
 	    }
     }
