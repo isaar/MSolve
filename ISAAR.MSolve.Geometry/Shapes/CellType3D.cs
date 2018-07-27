@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
 		//  |  ,/     `\  |         
 		//  |,/         `\|       
 		//  1-------------2    
-		Wegde6,
+		Wedge6,
 
 		//         3            
 		//       ,/|`\             
