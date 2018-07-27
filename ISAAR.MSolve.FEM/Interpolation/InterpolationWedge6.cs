@@ -18,15 +18,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 	    private InterpolationWedge6() : base(6)
 	    {
-			NodalNaturalCoordinates= new NaturalPoint3D[]
-			{
-				new NaturalPoint3D(0,0,0), 
-				new NaturalPoint3D(1,0,0),
-				new NaturalPoint3D(0,1,0),
-				new NaturalPoint3D(0,0,1),
-				new NaturalPoint3D(1,0,1),
-				new NaturalPoint3D(0,1,1),
-			};
+		    NodalNaturalCoordinates = new NaturalPoint3D[]
+		    {
+			    new NaturalPoint3D(-1, 1, 0),
+			    new NaturalPoint3D(-1, 0, 1),
+			    new NaturalPoint3D(-1, 0, 0),
+			    new NaturalPoint3D(1, 1, 0),
+			    new NaturalPoint3D(1, 0, 1),
+			    new NaturalPoint3D(1, 0, 0),
+		    };
 	    }
 
 		/// <summary>
@@ -47,22 +47,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// <returns></returns>
 		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node)=> throw new NotImplementedException("Implementation pending");
 
-	    protected override double[] EvaluateAt(double xi, double eta, double zeta)
+	    protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)
 	    {
 		    var values = new double[6];
 
-		    values[0] = 1 / 6.0 * (1 + 2 * xi) * (1 - zeta);
-		    values[1] = 1 / 6.0 * (1 - xi - Math.Sqrt(3) * eta) * (1 - zeta);
-		    values[2] = 1 / 6.0 * (1 - xi + Math.Sqrt(3) * eta) * (1 - zeta);
-			values[3] = 1 / 6.0 * (1 + 2 * xi) * (1 + zeta); 
-		    values[4] = 1 / 6.0 * (1 - xi - Math.Sqrt(3) * eta) * (1 + zeta);
-		    values[5] = 1 / 6.0 * (1 - xi + Math.Sqrt(3) * eta) * (1 + zeta); 
+		    values[0] = 0.5 * eta * (1 - xi);
+		    values[1] = 0.5 * zeta * (1 - xi);
+		    values[2] = 0.5 * (1 - eta - zeta) * (1 - xi);
+		    values[3] = 0.5 * eta * (xi + 1);
+		    values[4] = 0.5 * zeta * (xi + 1);
+		    values[5] = 0.5*(1-eta-zeta)*(xi+1); 
 
 		    return values;
 	    }
 
-		// Evaluation based on: http://www.softeng.rl.ac.uk/st/projects/felib4/Docs/html/Level-0/wdg6/doc-wdg6.pdf
-	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+		// Evaluation based on: https://www.code-aster.org/V2/doc/v11/en/man_r/r3/r3.01.01.pdf
+	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
 		    var y = eta;
@@ -70,27 +70,26 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 		    var derivatives = new double[6, 3];
 
-		    derivatives[0, 0] = 1 / 3.0 - z / 3;
-		    derivatives[1, 0] = z / 6 - 1 / 6.0;
-		    derivatives[2, 0] = z / 6 - 1 / 6.0;
-		    derivatives[3, 0] = z / 3 + 1 / 3.0;
-		    derivatives[4, 0] = -z / 6 - 1 / 6.0;
-		    derivatives[5, 0] = -z / 6 - 1 / 6.0;
+		    derivatives[0, 0] = -y / 2;
+		    derivatives[1, 0] = -z / 2;
+		    derivatives[2, 0] = y / 2 + z / 2 - 1 / 2.0;
+		    derivatives[3, 0] = y / 2;
+		    derivatives[4, 0] = z / 2;
+		    derivatives[5, 0] = 1 / 2.0 - z / 2 - y / 2;
 
-		    derivatives[0, 1] = 0.0;
-		    derivatives[1, 1] = Math.Sqrt(3) * (z - 1) / 6;
-		    derivatives[2, 1] = -Math.Sqrt(3) * (z - 1) / 6;
-		    derivatives[3, 1] = 0.0;
-		    derivatives[4, 1] = -Math.Sqrt(3) * (z + 1) / 6;
-		    derivatives[5, 1] = Math.Sqrt(3) * (z + 1) / 6;
+		    derivatives[0, 1] = 1 / 2.0 - x / 2;
+		    derivatives[1, 1] = 0.0;
+		    derivatives[2, 1] = x / 2 - 1 / 2.0;
+		    derivatives[3, 1] = x / 2 + 1 / 2.0;
+		    derivatives[4, 1] = 0.0;
+		    derivatives[5, 1] = -x / 2 - 1 / 2.0;
 
-		    derivatives[0, 2] = -x / 3 - 1 / 6.0;
-		    derivatives[1, 2] = x / 6 + Math.Sqrt(3) * y / 6 - 1 / 6.0;
-		    derivatives[2, 2] = x / 6 - Math.Sqrt(3) * y / 6 - 1 / 6.0;
-		    derivatives[3, 2] = x / 3 + 1 / 6.0;
-		    derivatives[4, 2] = 1 / 6.0 - Math.Sqrt(3) * y / 6 - x / 6;
-		    derivatives[5, 2] = Math.Sqrt(3) * y / 6 - x / 6 + 1 / 6.0;
-
+		    derivatives[0, 2] = 0.0;
+		    derivatives[1, 2] = 1 / 2.0 - x / 2;
+		    derivatives[2, 2] = x / 2 - 1 / 2.0;
+		    derivatives[3, 2] = 0.0;
+		    derivatives[4, 2] = x / 2 + 1 / 2.0;
+		    derivatives[5, 2] = -x / 2 - 1 / 2.0;
 
 		    return derivatives;
 	    }
