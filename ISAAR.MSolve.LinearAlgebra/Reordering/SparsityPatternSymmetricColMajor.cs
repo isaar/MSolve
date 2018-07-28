@@ -11,10 +11,10 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 namespace ISAAR.MSolve.LinearAlgebra.Reordering
 {
     /// <summary>
-    /// Sparsity pattern for symmetric matrices. Provides methods for building the sparsity pattern efficiently and easily. If 
-    /// the whole matrix is needed and the sparsity pattern will not change, use a DOK matrix instead. 
-    /// Only the super-diagonal part is stored (including the diagonal). 
+    /// Builder for the sparsity pattern of a symmetric matrix. If the values of the matrix entries are needed and the sparsity 
+    /// pattern will not change, use a DOK matrix instead. Only the super-diagonal part is stored (including the diagonal). 
     /// Efficient for outputting the pattern to column major data structures (e.g. CSC arrays).
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SparsityPatternSymmetricColMajor: ISparsityPatternSymmetric
     {
@@ -27,10 +27,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             this.columns = columns;
         }
 
+        /// <summary>
+        /// See <see cref="ISparsityPattern.NumColumns"/>.
+        /// </summary>
         public int NumColumns { get { return order; } }
+
+        /// <summary>
+        /// See <see cref="ISparsityPattern.NumRows"/>.
+        /// </summary>
         public int NumRows { get { return order; } }
+
+        /// <summary>
+        /// The number of rows/columns of the square matrix.
+        /// </summary>
         public int Order { get { return order; } }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="SparsityPatternSymmetricColMajor"/> for a 
+        /// <paramref name="order"/>-by-<paramref name="order"/> symmetric matrix. Initially all entries are assumed to be 0.
+        /// </summary>
+        /// <param name="order">The number of rows/columns of the matrix.</param>
         public static SparsityPatternSymmetricColMajor CreateEmpty(int order)
         {
             var columns = new HashSet<int>[order];
@@ -39,12 +55,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of <see cref="SparsityPatternSymmetricColMajor"/> for an existing matrix
+        /// provided as <paramref name="dense"/>.
+        /// Initialy, only the entries of <paramref name="dense"/> that satisfy: Math.Abs(<paramref name="dense"/>[i, j]) &gt;
+        /// <paramref name="tolerance"/> will be considered as non-zero. 
         /// </summary>
-        /// <param name="dense">Must be square and symmetric. The upper triangle will be processed without checking the 
-        ///     symmetricity.</param>
-        /// <param name="tolerance"></param>
-        /// <returns></returns>
+        /// <param name="dense">A matrix whose sparsity pattern will be extracted. It must be square and symmetric. Only its
+        ///     upper triangle entries will be processed, thus its symmetry will not be checked explicitly.</param>
+        /// <param name="tolerance">The tolerance under which an entry of <paramref name="dense"/> is considered as 0.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="dense"/> is not 
+        ///     square.</exception>
         public static SparsityPatternSymmetricColMajor CreateFromDense(Matrix dense, double tolerance = 0.0)
         {
             Preconditions.CheckSquare(dense);
@@ -73,10 +93,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// Adds a new matrix entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>). If it already existed, nothing happens.
+        /// Marks the matrix entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) as non-zero. If it was already marked,
+        /// nothing happens.
         /// </summary>
-        /// <param name="rowIdx">The row index of the new entry.</param>
-        /// <param name="colIdx">The column index of the new entry.</param>
+        /// <param name="rowIdx">The row index of the new non-zero entry.</param>
+        /// <param name="colIdx">The column index of the new non-zero entry.</param>
         public void AddEntry(int rowIdx, int colIdx)
         {
             if (rowIdx > colIdx)
@@ -89,11 +110,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// Adds all possible matrix entries (i, j), such that i, j belong to <paramref name="indices"/>.
+        /// Marks all possible matrix entries (i, j), such that i, j belong to <paramref name="indices"/>, as non-zero.
         /// </summary>
-        /// <param name="indices">The row/col indices of the entries to be added. The array will be sorted, if it isn't 
+        /// <param name="indices">The row/col indices of the new non-zero entries. This array will be sorted, if it isn't 
         ///     already.</param>
-        /// <param name="sorted">True if <paramref name="indices"/> are sorted. False otherwise.</param>
+        /// <param name="sorted">The new indices must be sorted before processing them. If the array <paramref name="indices"/> 
+        ///     is sorted, set <paramref name="sorted"/> to true, in order to avoid resorting it. Otherwise set
+        ///     <paramref name="sorted"/> to false.</param>
         public void ConnectIndices(int[] indices, bool sorted)
         {
             // Sorting the indices and processing n*(n+1)/2 entries is much faster than accessing n*n entries, transposing half
@@ -106,12 +129,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// Adds all possible matrix entries (i, j), such that i, j belong to <paramref name="indices"/>.
+        /// Marks all possible matrix entries (i, j), such that i, j belong to <paramref name="indices"/>, as non-zero.
         /// </summary>
-        /// <param name="indices">The row/col indices of the entries to be added. The array will be sorted, if it isn't 
+        /// <param name="indices">The row/col indices of the new non-zero entries. This list will be sorted, if it isn't 
         ///     already.</param>
-        /// <param name="sorted">True if <paramref name="indices"/> are sorted. False otherwise.</param>
-        public void ConnectIndices(List<int> indices, bool sorted) //TODO: could I get aeay with OrderBy()
+        /// <param name="sorted">The new indices must be sorted before processing them. If the list <paramref name="indices"/> 
+        ///     is sorted, set <paramref name="sorted"/> to true, in order to avoid resorting it. Otherwise set
+        ///     <paramref name="sorted"/> to false.</param>
+        public void ConnectIndices(List<int> indices, bool sorted) //TODO: could I get away with OrderBy()
         {
             // Sorting the indices and processing n*(n+1)/2 entries is much faster than accessing n*n entries, transposing half
             if (!sorted) indices.Sort();
@@ -122,6 +147,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             }
         }
 
+        /// <summary>
+        /// See <see cref="ISparsityPattern.CountNonZeros"/>.
+        /// </summary>
         public int CountNonZeros()
         {
             int count = 0;
@@ -137,6 +165,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             return count;
         }
 
+        /// <summary>
+        /// See <see cref="ISparsityPatternSymmetric.CountNonZeros"/>.
+        /// </summary>
         public int CountNonZerosUpper()
         {
             int count = 0;
@@ -144,6 +175,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             return count;
         }
 
+        /// <summary>
+        /// See <see cref="ISparsityPattern.EnumerateNonZeros"/>.
+        /// </summary>
         public IEnumerable<(int row, int col)> EnumerateNonZeros()
         {
             for (int j = 0; j < order; ++j)
@@ -160,6 +194,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             }
         }
 
+        /// <summary>
+        /// See <see cref="ISparsityPatternSymmetric.EnumerateNonZerosUpper"/>.
+        /// </summary>
         public IEnumerable<(int row, int col)> EnumerateNonZerosUpper()
         {
             for (int j = 0; j < order; ++j)
@@ -168,6 +205,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             }
         }
 
+        /// <summary>
+        /// See <see cref="ISparsityPattern.IsNonZero(int, int)"/>.
+        /// </summary>
         public bool IsNonZero(int rowIdx, int colIdx)
         {
             if (rowIdx > colIdx)
@@ -180,36 +220,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// Returns a permutation vector using the provided ordering algorithm.
+        /// Assembles the indexing arrays according to the Compressed Sparse Columns format.
         /// </summary>
-        /// <param name="orderingAlgorithm"></param>
-        /// <returns></returns>
-        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingAMD orderingAlgorithm)
-        {
-            (int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
-            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);
-        }
-
-        /// <summary>
-        /// Returns a permutation vector using the provided ordering algorithm and constraints.
-        /// </summary>
-        /// <param name="orderingAlgorithm"></param>
-        /// <param name="constraints">Array of length = order with ordering constraints. Its values must be 
-        ///     0 &lt;= <paramref name="constraints"/>[i] &lt; order. If <paramref name="constraints"/> = NULL, no constraints 
-        ///     will be enforced.
-        ///		Example: <paramref name="constraints"/> = { 2, 0, 0, 0, 1 }. This means that indices 1, 2, 3 that have 
-        ///		<paramref name="constraints"/>[i] = 0, will be ordered before index 4 with <paramref name="constraints"/>[4] = 1,
-        ///		which will be ordered before index 0 with <paramref name="constraints"/>[0] = 2. Indeed for a certain pattern, 
-        ///		permutation = { 3, 2, 1, 4, 0 } (remember permutation is a new-to-old 
-        ///		mapping).</param>
-        /// <returns></returns>
-        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingCAMD orderingAlgorithm, int[] constraints)
-        {
-            (int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
-            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets, constraints);
-        }
-
-        private (int[] rowIndices, int[] colOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
+        /// <param name="sortRowsOfEachCol">If true, the row indices of the same column will be in ascending order. If false, 
+        ///     their order will be indefinite. Sorting these indices adds an overhead, but will increase performance of the 
+        ///     resulting CSC matrix's operations. It may also be required for some operations.</param>
+        /// <returns>For a description of the CSC indexing arrays see <see cref="CSCMatrix"/>.</returns>
+        internal (int[] rowIndices, int[] colOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
         {
             int[] colOffsets = new int[order + 1];
             int nnz = 0;

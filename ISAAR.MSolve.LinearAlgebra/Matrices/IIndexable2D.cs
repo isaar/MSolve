@@ -21,8 +21,8 @@
         /// <summary>
         /// The entry with row index = rowIdx and column index = colIdx. 
         /// </summary>
-        /// <param name="rowIdx">The row index: 0 &lt;= rowIdx &lt; <see cref="NumRows"/></param>
-        /// <param name="colIdx">The column index: 0 &lt;= colIdx &lt; <see cref="NumColumns"/></param>
+        /// <param name="rowIdx">The row index: 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
+        /// <param name="colIdx">The column index: 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIdx"/> or <paramref name="colIdx"/> violate 
         ///     the described constraints.</exception>
         double this[int rowIdx, int colIdx] { get; }

@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             }
 
             var orderingAlgorithm = new OrderingAMD();
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
             permutationOldToNew = permutation;
             DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
 

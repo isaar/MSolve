@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 }
                 pattern.ConnectIndices(allDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
 
             #region DEBUG
             //var assembler = new GlobalDOKAssembler();

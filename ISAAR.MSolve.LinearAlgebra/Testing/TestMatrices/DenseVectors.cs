@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check Add(): ");
-            comparer.CheckVectorEquality(expected, v1.Add(v2));
+            comparer.CheckVectorEquality(expected, v1 + v2);
 
             Console.Write("Check AddIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check Subtract(): ");
-            comparer.CheckVectorEquality(expected, v1.Subtract(v2));
+            comparer.CheckVectorEquality(expected, v1 - v2);
 
             Console.Write("Check SubtractIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
@@ -138,11 +138,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check MultiplyPointwise(): ");
-            comparer.CheckVectorEquality(expected, v1.MultiplyPointwise(v2));
+            comparer.CheckVectorEquality(expected, v1.MultiplyEntrywise(v2));
 
             Console.Write("Check MultiplyPointwiseIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.MultiplyPointwiseIntoThis(v2);
+            temp.MultiplyEntrywise(v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 

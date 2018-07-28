@@ -512,12 +512,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             return format;
         }
 
-        public (int[] permutation, ReorderingStatistics stats) Reorder(OrderingAMD orderingAlgorithm)
-        {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(true);
-            return orderingAlgorithm.FindPermutation(order, rowIndices.Length, rowIndices, colOffsets);
-        }
-
         public void SetColumn(int colIdx, SparseVector wholeColumn)
         {
             SetColumnToZero(colIdx); // First remove everything

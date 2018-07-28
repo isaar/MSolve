@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var standardDofs = stdDofOrderer.GetStandardDofsOf(element);
                 pattern.ConnectIndices(standardDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
 
             stdDofOrderer.ReorderStandardDofs(permutation, false);
         }

@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             if (boundaryDofs.Length == 0)
             {
                 var amd = new OrderingAMD();
-                (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(amd);
+                (int[] permutation, ReorderingStatistics stats) = amd.FindPermutation(pattern);
                 subdomain.DofOrderer.ReorderSubdomainDofs(permutation, false);
             }
             else // Constraints: move boundary dofs to the end
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var constraints = new int[order]; // internal dofs have ordinal = 0, to end up first
                 foreach (var dof in boundaryDofs) constraints[dof] = 1; // boundary dofs have ordinal = 1
 
-                (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(camd, constraints);
+                (int[] permutation, ReorderingStatistics stats) = camd.FindPermutation(pattern, constraints);
                 if (stats.NumMovedDenseRows != 0) //TODO: create a custom exception class
                 {
                     //throw new Exception("In order for enriched boundary dofs to be moved to the end, no dense rows must not be"

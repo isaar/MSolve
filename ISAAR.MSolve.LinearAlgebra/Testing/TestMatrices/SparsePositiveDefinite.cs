@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingAMD();
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlg);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
             Comparer comparer = new Comparer();
             bool success = comparer.AreEqual(matlabPermutationAMD, permutation);
             if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
@@ -131,7 +131,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             // First group: 0, 1, 7. Second group: 3, 5, 6, 9. Third group: 2, 4, 8
             // The new positions of these indices should be grouped, such as first group is before second before third
             var constraints = new int[order] { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlg, constraints);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern, constraints);
 
             
             var originalDiagonal = new double[order];

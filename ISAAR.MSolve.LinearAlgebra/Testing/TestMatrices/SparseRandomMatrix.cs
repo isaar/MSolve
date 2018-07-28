@@ -52,10 +52,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Console.WriteLine($"Sorted CSR * vector (MKL): time = {csrSortedMklTime} ms");
 
             var comparer = new ValueComparer(1e-12);
-            double errorUnsorted = csrUnsortedTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
-            double errorSorted = csrSortedTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
-            double errorUnsortedMkl = csrUnsortedMklTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
-            double errorSortedMkl = csrSortedMklTimesLhs.Subtract(dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
+            double errorUnsorted = (csrUnsortedTimesLhs - dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
+            double errorSorted = (csrSortedTimesLhs - dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
+            double errorUnsortedMkl = (csrUnsortedMklTimesLhs - dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
+            double errorSortedMkl = (csrSortedMklTimesLhs - dokTimesLhs).Norm2() / dokTimesLhs.Norm2();
             Console.WriteLine("Multiplication DOK - unsorted CSR (C#): normalized error = " + errorUnsorted);
             Console.WriteLine("Multiplication DOK - sorted CSR (C#): normalized error = " + errorSorted);
             Console.WriteLine("Multiplication DOK - unsorted CSR (MKL): normalized error = " + errorUnsortedMkl);

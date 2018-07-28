@@ -146,8 +146,8 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///		mapping).</param>
         ///	<param name="denseThreshold">A dense row/column in A + A^T can cause CAMD to spend significant time in ordering    
         /// 	the matrix. If <paramref name="denseThreshold"/> &gt;= 0, rows/columns with more than 
-        /// 	<paramref name="denseThreshold"/> * sqrt(order) entries are ignored during the ordering, and placed last in the 
-        /// 	output order. The default value of <paramref name="denseThreshold"/> is 10. If negative, no rows/columns are 
+        /// 	<paramref name="denseThreshold"/> * sqrt(order(A)) entries are ignored during the ordering, and placed last in  
+        /// 	the output order. The default value of <paramref name="denseThreshold"/> is 10. If negative, no rows/columns are 
         /// 	treated as dense. Rows/columns with 16 or fewer off-diagonal entries are never considered dense. WARNING: 
         /// 	allowing dense rows/columns may violate the constraints.</param>
         /// <param name="aggressiveAbsorption">If non zero, aggressive absorption will be performed, which means that a  

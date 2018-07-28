@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var enrichedDofs = subdomain.DofOrderer.GetSubdomainEnrichedDofsOf(element);
                 pattern.ConnectIndices(enrichedDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
 
             subdomain.DofOrderer.ReorderSubdomainDofs(permutation, false);
         }
