@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Materials;
@@ -23,7 +26,7 @@ namespace ISAAR.MSolve.FEM.Elements
 		private static readonly IReadOnlyDictionary<CellType3D, IQuadrature3D> integrationsForMass;
 		private static readonly IReadOnlyDictionary<CellType3D, IIsoparametricInterpolation3D> interpolations;
 
-		private ElasticMaterial commonMaterial;
+		private ElasticMaterial3D commonMaterial;
 		private DynamicMaterial commonDynamicProperties;
 
 		static ContinuumElement3DFactory()
@@ -36,10 +39,14 @@ namespace ISAAR.MSolve.FEM.Elements
 			// Tet4
 			// TODO: implementations for Tet4
 			interpolations.Add(CellType3D.Tet4, InterpolationTet4.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Tet4, TetrahedronQuadrature.Order1Point1);
+			integrationsForMass.Add(CellType3D.Tet4, TetrahedronQuadrature.Order2Points4);
 
 			// Tet10
 			// TODO: implementations for Tet10
 			interpolations.Add(CellType3D.Tet10, InterpolationTet10.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Tet10, TetrahedronQuadrature.Order2Points4);
+			integrationsForStiffness.Add(CellType3D.Tet10, TetrahedronQuadrature.Order5Points15);
 
 			// Hexa8
 			interpolations.Add(CellType3D.Hexa8, InterpolationHexa8.UniqueInstance);
@@ -48,36 +55,87 @@ namespace ISAAR.MSolve.FEM.Elements
 			extrapolations.Add(CellType3D.Hexa8, ExtrapolationGaussLegendre2x2x2.UniqueInstance);
 
 			// Hexa20
-			// TODO: implementations for Hexa20
+			// TODO: extrapolations for Hexa20
 			interpolations.Add(CellType3D.Hexa20, InterpolationHexa20.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Hexa20, GaussLegendre3D.Order3x3x3);
+			integrationsForMass.Add(CellType3D.Hexa20, GaussLegendre3D.Order3x3x3);
 
 			// Hexa27
-			// TODO: implementations for Hexa27
+			// TODO: extrapolations for Hexa27
 			interpolations.Add(CellType3D.Hexa27, InterpolationHexa27.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Hexa27, GaussLegendre3D.Order3x3x3);
+			integrationsForMass.Add(CellType3D.Hexa27, GaussLegendre3D.Order3x3x3);
 
 			// Wedge6
 			// TODO: implementations for Wedge6
 			interpolations.Add(CellType3D.Wedge6, InterpolationWedge6.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Wedge6, WedgeQuadrature.Points6);
+			integrationsForMass.Add(CellType3D.Wedge6, WedgeQuadrature.Points8);
 
 			// Wedge15
 			// TODO: implementations for Wedge15
 			interpolations.Add(CellType3D.Wedge15, InterpolationWedge15.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Wedge15, WedgeQuadrature.Points8);
+			integrationsForMass.Add(CellType3D.Wedge15, WedgeQuadrature.Points21);
 
 			// Wedge18
 			// TODO: implementations for Wedge18
 			interpolations.Add(CellType3D.Wedge18, InterpolationWedge18.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Wedge18, WedgeQuadrature.Points8);
+			integrationsForMass.Add(CellType3D.Wedge18, WedgeQuadrature.Points21);
 
 			// Pyra5
 			// TODO: implementations for Pyra5
 			interpolations.Add(CellType3D.Pyra5, InterpolationPyra5.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Pyra5, PyramidQuadrature.Points5);
+			integrationsForMass.Add(CellType3D.Pyra5, PyramidQuadrature.Points5);
 
 			// Pyra13
 			// TODO: implementations for Pyra13
 			interpolations.Add(CellType3D.Pyra13, InterpolationPyra13.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Pyra13, PyramidQuadrature.Points6);
+			integrationsForMass.Add(CellType3D.Pyra13, PyramidQuadrature.Points6);
 
 			// Pyra14
 			// TODO: implementations for Pyra14
 			interpolations.Add(CellType3D.Pyra14, InterpolationPyra14.UniqueInstance);
+			integrationsForStiffness.Add(CellType3D.Pyra14, PyramidQuadrature.Points6);
+			integrationsForMass.Add(CellType3D.Pyra14, PyramidQuadrature.Points6);
+
+			ContinuumElement3DFactory.interpolations = interpolations;
+			ContinuumElement3DFactory.integrationsForStiffness = integrationsForStiffness;
+			ContinuumElement3DFactory.integrationsForMass = integrationsForMass;
+			ContinuumElement3DFactory.extrapolations = extrapolations;
+		}
+
+		public ContinuumElement3DFactory(ElasticMaterial3D commonMaterial, DynamicMaterial commonDynamicProperties)
+		{
+			this.commonDynamicProperties = commonDynamicProperties;
+			this.commonMaterial = commonMaterial;
+		}
+
+		public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node3D> nodes)
+		{
+			return CreateElement(cellType, nodes, commonMaterial, commonDynamicProperties);
+		}
+
+		public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node3D> nodes,
+			ElasticMaterial3D commonMaterial, DynamicMaterial commonDynamicProperties)
+		{
+			var materialsAtGaussPoints= new Dictionary<GaussPoint3D, ElasticMaterial3D>();
+			foreach (var gaussPoint in integrationsForStiffness[cellType].IntegrationPoints)
+			{
+				materialsAtGaussPoints[gaussPoint] = commonMaterial.Clone();
+			}
+
+			return CreateElement(cellType, nodes, materialsAtGaussPoints, commonDynamicProperties);
+		}
+
+		public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node3D> nodes,
+			Dictionary<GaussPoint3D, ElasticMaterial3D> materialsAtGaussPoints, DynamicMaterial commonDynamicProperties)
+		{
+			return new ContinuumElement3D(nodes,interpolations[cellType],integrationsForStiffness[cellType],integrationsForMass[cellType],extrapolations[cellType],
+				materialsAtGaussPoints, commonDynamicProperties);
 		}
 	}
 }
