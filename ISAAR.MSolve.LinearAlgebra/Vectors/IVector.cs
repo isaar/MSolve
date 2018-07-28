@@ -67,7 +67,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// The resulting vector overwrites the entries of this.
         /// </summary>
         /// <param name="scalar">A scalar that multiplies each entry of this vector.</param>
-        /// <returns></returns>
         void ScaleIntoThis(double scalar);
 
         /// <summary>

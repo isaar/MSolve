@@ -73,7 +73,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// The resulting vector is written in a new object and then returned.
         /// </summary>
         /// <param name="scalar">A scalar that multiplies each entry of this vector.</param>
-        /// <returns></returns>
         IVectorView Scale(double scalar);
     }
 }

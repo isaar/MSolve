@@ -1,4 +1,4 @@
-﻿//TODO: perhaps the setters should be moved here too.
+﻿//TODO: perhaps the setters, adders, etc should be moved here too.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
