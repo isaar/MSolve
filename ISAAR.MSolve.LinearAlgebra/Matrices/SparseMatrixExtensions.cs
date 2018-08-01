@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-//TODO: this and matrix extensions whould not be in the same folder with the actual matrices and their interfaces
+//TODO: this and matrix extensions should not be in the same folder with the actual matrices and their interfaces
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     public static class SparseMatrixExtensions

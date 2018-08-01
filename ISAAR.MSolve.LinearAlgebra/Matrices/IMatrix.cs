@@ -70,7 +70,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// The resulting matrix overwrites the entries of this.
         /// </summary>
         /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
-        /// <returns></returns>
         void ScaleIntoThis(double scalar);
 
         /// <summary>

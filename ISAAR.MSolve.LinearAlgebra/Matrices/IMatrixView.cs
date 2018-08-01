@@ -67,9 +67,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="other">A matrix such that the <see cref="IIndexable2D.NumColumns"/> of oper(<paramref name="other"/>) 
         ///     are equal to the <see cref="IIndexable2D.NumRows"/> of oper(this).</param>
-        /// <param name="transposeThis">If true oper(this) = transpose(this), otherwise oper(this) = this.</param>
-        /// <param name="transposeOther">If true oper(<paramref name="other"/>) = transpose(<paramref name="other"/>), otherwise
-        ///     oper(<paramref name="other"/>) = <paramref name="other"/>.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <param name="transposeOther">If true, oper(<paramref name="other"/>) = transpose(<paramref name="other"/>). 
+        ///     Otherwise oper(<paramref name="other"/>) = <paramref name="other"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if oper(<paramref name="otherMatrix"/>) has 
         ///     different <see cref="IIndexable2D.NumColumns"/> than the <see cref="IIndexable2D.NumRows"/> of 
         ///     oper(this).</exception>
@@ -80,9 +80,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="other">A matrix such that the <see cref="IIndexable2D.NumRows"/> of oper(<paramref name="other"/>) 
         ///     are equal to the <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
-        /// <param name="transposeThis">If true oper(this) = transpose(this), otherwise oper(this) = this.</param>
-        /// <param name="transposeOther">If true oper(<paramref name="other"/>) = transpose(<paramref name="other"/>), otherwise
-        ///     oper(<paramref name="other"/>) = <paramref name="other"/>.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <param name="transposeOther">If true, oper(<paramref name="other"/>) = transpose(<paramref name="other"/>). 
+        ///     Otherwise oper(<paramref name="other"/>) = <paramref name="other"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if oper(<paramref name="otherMatrix"/>) has 
         ///     different <see cref="IIndexable2D.NumRows"/> than the <see cref="IIndexable2D.NumColumns"/> of 
         ///     oper(this).</exception>
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="other">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
         ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
-        /// <param name="transposeThis">If true oper(this) = transpose(this), otherwise oper(this) = this.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="IIndexable2D.NumColumns"/> of oper(this).</exception>
         Vector MultiplyRight(IVectorView vector, bool transposeThis = false);
@@ -105,7 +105,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// The resulting matrix is written in a new object and then returned.
         /// </summary>
         /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
-        /// <returns></returns>
         IMatrixView Scale(double scalar);
 
         /// <summary>

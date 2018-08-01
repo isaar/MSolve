@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public TriangularUpper GetFactorU()
         {
             CheckOverwritten();
-            return TriangularUpper.CreateFromArray(data, true);
+            return TriangularUpper.CreateFromArray(Order, data, true);
         }
 
         /// <summary>

@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// Compressed Sparse Columns format.
+    /// Symmetric sparse matrix in Compressed Sparse Columns format, with only the non-zero entries of the upper triangle being 
+    /// explicitly stored. Do not use this, since it is an experimantal class, which will probably be removed.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SymmetricCSC: IIndexable2D
     {

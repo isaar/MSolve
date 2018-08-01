@@ -96,8 +96,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     Vector rowVector = row.Value;
                     Vector contribution = allPe[sub].ForwardSubstitution(rowVector); //TODO: only apply forward substitution for the last dofs
                     //BPeTransp.SetColumn(rowIdx, offsetQoriginal[sub],
-                    BPeTransp.SetColumn(rowIdx, offsetQpermuted[sub],
-                        contribution.GetSubvector(offsetB[sub], numSubdomainDofs[sub])); //TODO: directly copy them. No need to create a temporary Vector first
+                    BPeTransp.SetSubcolumn(rowIdx, contribution.GetSubvector(offsetB[sub], numSubdomainDofs[sub]), 
+                        offsetQpermuted[sub]); //TODO: directly copy them. No need to create a temporary Vector first
                     //Debug.Assert(contribution.Equals(contribution2, new LinearAlgebra.Testing.Utilities.ValueComparer(double.Epsilon)));
                 }
 

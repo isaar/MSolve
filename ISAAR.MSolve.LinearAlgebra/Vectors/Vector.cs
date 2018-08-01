@@ -10,10 +10,11 @@ using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 //TODO: tensor product, vector2D, vector3D
 //TODO: have an AxpyToSubvector.
 //TODO: GetSubvector, SetSubvector, AddSubvector, etc. Group them together and have a common naming/param convention.
+//TODO: remove legacy vector conversions
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
-    /// Main vector class with more functionality than other vectors. No sparsity is assumed.
+    /// General purpose vector class with more functionality than other vectors. No sparsity is assumed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class Vector : IVector, ISliceable1D
@@ -175,7 +176,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Creates a new <see cref="Vector"/> that contains all entries of this followed by all entries of 
         /// <paramref name="last"/>.
         /// </summary>
-        /// <param name="last">The vector whose entries will be appended after all entries of this vectr.</param>
+        /// <param name="last">The vector whose entries will be appended after all entries of this vector.</param>
         public Vector Append(Vector last)
         {
             //TODO: Move this to an ArrayManipulations utility class.
@@ -247,7 +248,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Vector"/> by deep copying the entries of this instance.
+        /// Initializes a new instance of <see cref="Vector"/> by copying the entries of this instance.
         /// </summary>
         public Vector Copy() => Vector.CreateFromArray(data, true); //TODO: Perhaps this should use BLAS
 
@@ -699,8 +700,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Creates a new instance of the leagcy vector class <see cref="Numerical.LinearAlgebra.Vector"/> with the same internal
-        /// array as this <see cref="Vector"/> instance. Doesn't copy anything. Remove this once the design is cleaned. 
+        /// Creates a new instance of the legacy vector class <see cref="Numerical.LinearAlgebra.Vector"/> with the same internal
+        /// array as this <see cref="Vector"/> instance. Doesn't copy anything.
         /// </summary>
         public Numerical.LinearAlgebra.Interfaces.IVector ToLegacyVector() => new Numerical.LinearAlgebra.Vector(data);
     }

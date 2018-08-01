@@ -156,7 +156,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         ///     0 &lt;= <paramref name="colIdx"/> &lt; <paramref name="numCols"/></param>
         /// <param name="rowStart">The (inclusive) index of the row of column <paramref name="colIdx"/> after which 
         ///     <paramref name="newCol"/> will be copied.</param>
-        /// <param name="newCol">The new entries of column <paramref name="colIdx"/>. Its length must be equal to 
+        /// <param name="newCol">The new entries of column <paramref name="colIdx"/>. Its length must be &lt;= 
         ///     <paramref name="numRows"/></param>
         internal static void SetCol(int numRows, int numCols, double[] matrix, int colIdx, int rowStart, double[] newCol)
         {
@@ -173,12 +173,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         /// <param name="matrix">The matrix entries in column major layout. This array will be modified.</param>
         /// <param name="rowIdx">The index of the row to alter: 
         ///     0 &lt;= <paramref name="rowIdx"/> &lt; <paramref name="numRows"/></param>
-        /// <param name="newRow">The new entries of row <paramref name="rowIdx"/>. Its length must be equal to 
+        /// <param name="colStart">The (inclusive) index of the column of row <paramref name="rowIdx"/> after which 
+        ///     <paramref name="newRow"/> will be copied.</param>
+        /// <param name="newRow">The new entries of row <paramref name="rowIdx"/>. Its length must be &lt;=  
         ///     <paramref name="numCols"/></param>
-        internal static void SetRow(int numRows, int numCols, double[] matrix, int rowIdx, double[] newRow)
+        internal static void SetRow(int numRows, int numCols, double[] matrix, int rowIdx, int colStart, double[] newRow)
         {
             // Row entries are not contiguous
-            for (int j = 0; j < numCols; ++j) matrix[j * numRows + rowIdx] = newRow[j];
+            for (int j = colStart; j < colStart + newRow.Length; ++j) matrix[j * numRows + rowIdx] = newRow[j];
         }
 
         /// <summary>

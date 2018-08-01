@@ -171,8 +171,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             {
                 // Update matrix
                 Vector newRowVector = original.GetRow(i);
-                matrixExpected.SetRow(i, newRowVector);
-                matrixExpected.SetColumn(i, newRowVector);
+                matrixExpected.SetSubrow(i, newRowVector);
+                matrixExpected.SetSubcolumn(i, newRowVector);
                 Console.WriteLine($"\nOnly dofs [0, {i}]");
                 matrixWriter.WriteToConsole(matrixExpected);
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
@@ -211,8 +211,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 // Update matrix
                 Vector identityRow = Vector.CreateZero(matrixExpected.NumColumns);
                 identityRow[i] = 1.0;
-                matrixExpected.SetRow(i, identityRow);
-                matrixExpected.SetColumn(i, identityRow);
+                matrixExpected.SetSubrow(i, identityRow);
+                matrixExpected.SetSubcolumn(i, identityRow);
                 Console.WriteLine($"\nOnly dofs [{i + 1}, 10)");
                 matrixWriter.WriteToConsole(matrixExpected);
                 factor.DeleteRow(i);
