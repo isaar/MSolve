@@ -46,14 +46,15 @@ namespace ISAAR.MSolve.XFEM.Tests.Subdomains
 
             SignedBooleanMatrix globalB = assembler.BuildGlobalSignedBooleanMatrix(cluster);
             Console.WriteLine("Global signed boolean matrix (all dofs):");
-            globalB.WriteToConsole();
+            var writer = new BooleanMatrixWriter(true);
+            writer.WriteToConsole(globalB);
             Console.WriteLine();
 
             Dictionary<XSubdomain2D, SignedBooleanMatrix> subdomainBs = assembler.BuildSubdomainSignedBooleanMatrices(cluster);
             foreach (var subdomainB in subdomainBs)
             {
                 Console.WriteLine($"Signed boolean matrix of subdomain {subdomainB.Key.ID}:");
-                subdomainB.Value.WriteToConsole();
+                writer.WriteToConsole(subdomainB.Value);
                 Console.WriteLine();
             }
         }

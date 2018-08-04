@@ -155,7 +155,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             for (int i = 0; i < Be.NumRows; ++i)
             {
-                Vector row = Be.CopyRowToVector(i);
+                Vector row = Be.GetRow(i);
                 Vector solution = Pe.ForwardSubstitution(row);
                 if (nonZerosRows.Contains(i)) 
                 {

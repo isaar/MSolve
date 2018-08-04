@@ -64,10 +64,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void WriteToConsole()
         {
+            var writer = new BooleanMatrixWriter(true);
             SignedBooleanMatrix B1 = CreateMatrix1();
             SignedBooleanMatrix B2 = CreateMatrix2();
-            B1.WriteToConsole();
-            B2.WriteToConsole();
+            writer.WriteToConsole(B1);
+            writer.WriteToConsole(B2);
         }
 
         private static SignedBooleanMatrix CreateMatrix1()

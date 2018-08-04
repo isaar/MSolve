@@ -339,17 +339,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.MultiplyLeft(IMatrixView, bool, bool)"/>.
         /// </summary>
-        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyLeft(IMatrixView matrix, bool transposeThis = false, bool transposeOther = false)
         {
-            return DenseStrategies.Multiply(other, this, transposeOther, transposeThis);
+            return DenseStrategies.Multiply(matrix, this, transposeOther, transposeThis);
         }
 
         /// <summary>
         /// See <see cref="IMatrixView.MultiplyRight(IMatrixView, bool, bool)"/>.
         /// </summary>
-        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        public Matrix MultiplyRight(IMatrixView matrix, bool transposeThis = false, bool transposeOther = false)
         {
-            return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
+            return DenseStrategies.Multiply(this, matrix, transposeThis, transposeOther);
         }
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// </summary>
-        /// <param name="other">A vector with <see cref="IIndexable1D.Length"/> being equal to <see cref="Order"/> of this 
+        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to <see cref="Order"/> of this 
         ///     matrix.</param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
@@ -451,9 +451,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Creates a new <see cref="TriangularUpper"/> matrix, that is transpose to this: result[i, j] = this[j, i]. The 
         /// internal array can be copied or shared with this <see cref="TriangularLower"/> matrix.
         /// </summary>
-        /// <param name="copyInternalArray">If true, the intranl array that stores the entries of this 
+        /// <param name="copyInternalArray">If true, the internal array that stores the entries of this 
         ///     <see cref="TriangularLower"/> instance will be copied and the new <see cref="TriangularUpper"/> instance 
-        ///     instance will have a reference to the copy, which is safer. If false, both the new matrix and this one will have  
+        ///     will have a reference to the copy, which is safer. If false, both the new matrix and this one will have  
         ///     a reference to the same internal array, which is faster.</param>
         public TriangularUpper Transpose(bool copyInternalArray)
             => TriangularUpper.CreateFromArray(Order, data, copyInternalArray); // trans(lower row major) = upper col major

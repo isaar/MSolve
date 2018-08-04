@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 
+//TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
+//      that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
-    // TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
-    // that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
+    /// <summary>
+    /// Symmetric sparse matrix stored in Skyline format (3-array version). Only the non-zero entries of the upper triangle are 
+    /// stored. The Skyline format is optimized for Cholesky factorizations. To build a <see cref="SkylineMatrix"/> conveniently, 
+    /// use <see cref="Builders.SkylineBuilder"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class SkylineMatrix: IMatrix, ISparseMatrix, ISymmetricMatrix
     {
         /// <summary>
@@ -50,8 +52,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public int NumRows { get { return NumColumns; } }
 
-        // TODO: should I add index bound checking?
-        public double this[int rowIdx, int colIdx]
+        /// <summary>
+        /// See <see cref="IIndexable2D.this[int, int]"/>.
+        /// </summary>
+        public double this[int rowIdx, int colIdx] // TODO: should I add index bound checking?
         {
             get
             {
@@ -75,6 +79,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SkylineMatrix"/> with the specified dimensions and the provided arrays 
+        /// (<paramref name="values"/> and <paramref name="diagOffsets"/>) as its internal data.
+        /// </summary>
+        /// <param name="order">The number of rows/columns of the new matrix.</param>
+        /// <param name="values">Contains the non zero superdiagonal entries of the matrix in column major order, starting from 
+        ///     the diagonal and going upwards.</param>
+        /// <param name="diagOffsets">Contains the indices into <paramref name="values"/> of the diagonal entries of the matrix. 
+        ///     Its length is <paramref name="order"/> + 1, with the last entry being equal to nnz.</param>
+        /// <param name="checkInput">If true, the provided arrays will be checked to make sure they are valid Skyline arrays, 
+        ///     which is safer. If false, no such check will take place, which is faster.</param>
+        /// <param name="copyArrays">If true, the provides arrays will be copied and the new <see cref="SkylineMatrix"/> instance 
+        ///     will have references to the copies, which is safer. If false, the new matrix will have references to the 
+        ///     provided arrays themselves, which is faster.</param>
         public static SkylineMatrix CreateFromArrays(int order, double[] values, int[] diagOffsets, 
             bool checkInput, bool copyArrays = false)
         {
@@ -102,6 +120,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else return new SkylineMatrix(order, values, diagOffsets);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SkylineMatrix"/> with the specified dimensions and the sparsity pattern defined by 
+        /// <paramref name="diagOffsets"/>. The stored entries will initially be 0.
+        /// </summary>
+        /// <param name="order">The number of rows/columns of the new matrix.</param>
+        /// <param name="diagOffsets">Contains the indices into <paramref name="values"/> of the diagonal entries of the matrix. 
+        ///     Its length is <paramref name="order"/> + 1, with the last entry being equal to nnz.</param>
+        /// <param name="checkInput">If true, <paramref name="diagOffsets"/> will be checked to make sure it is a valid Skyline  
+        ///     array, which is safer. If false, no such check will take place, which is faster.</param>
         public static SkylineMatrix CreateZeroWithPattern(int order, int[] diagOffsets, bool checkInput)
         {
             if (checkInput)
@@ -116,6 +143,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SkylineMatrix(order, new double[nnz], diagOffsets);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.Axpy(IMatrixView, double)"/>.
+        /// </summary>
         public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
@@ -134,6 +164,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.LinearCombination(this, 1.0, otherMatrix, otherCoefficient);
         }
 
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= j &lt; <see cref="NumColumns"/>, 0 &lt;= i &lt;= j:
+        /// result[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
+        /// The resulting matrix is written to a new <see cref="SkylineMatrix"/> and then returned.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix with the same indexing array as this <see cref="SkylineMatrix"/> instance.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has different 
+        ///     indexing array than this instance.</exception>
         public SkylineMatrix Axpy(SkylineMatrix otherMatrix, double otherCoefficient)
         {
             // Conceptually it is not wrong to so this, even if the indexers are different, but how would I implement it.
@@ -149,6 +188,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.AxpyIntoThis(IMatrixView, double)"/>.
+        /// </summary>
         public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is SkylineMatrix casted) AxpyIntoThis(casted, otherCoefficient);
@@ -156,6 +198,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                  "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
+        /// <summary>
+        /// Performs the following operation for th non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/> 
+        /// 0 &lt;= i &lt;= j:
+        /// this[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
+        /// The resulting matrix overwrites the entries of this <see cref="CSCMatrix"/> instance.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix for whose active columns (non-zero part of the column) are shorter or equal to the
+        ///     active columns of this <see cref="SkylineMatrix"/> instance.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has taller active columns 
+        ///     than this <see cref="SkylineMatrix"/> instance.</exception>
         public void AxpyIntoThis(SkylineMatrix otherMatrix, double otherCoefficient)
         {
             if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
@@ -185,11 +238,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        public SkylineMatrix Copy()
-        {
-            return CreateFromArrays(NumColumns, values, diagOffsets, false, true);
-        }
+        /// <summary>
+        /// Initializes a new <see cref="SkylineMatrix"/> instance by copying the entries of this <see cref="SkylineMatrix"/>. 
+        /// </summary>
+        public SkylineMatrix Copy() => CreateFromArrays(NumColumns, values, diagOffsets, false, true);
 
+        /// <summary>
+        /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
+        /// and length(1) = <see cref="NumColumns"/>. 
+        /// </summary>
         public double[,] CopyToArray2D()
         {
             double[,] array2D = new double[NumColumns, NumColumns];
@@ -208,6 +265,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return array2D;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SkylineMatrix"/>. 
+        /// </summary>
         public Matrix CopyToFullMatrix()
         {
             Matrix fullMatrix = Matrix.CreateZero(this.NumColumns, this.NumColumns);
@@ -226,11 +286,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return fullMatrix;
         }
 
-        public int CountNonZeros()
-        {
-            return values.Length;
-        }
+        /// <summary>
+        /// See <see cref="ISparseMatrix.CountNonZeros"/>
+        /// </summary>
+        public int CountNonZeros() => values.Length;
 
+        /// <summary>
+        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// </summary>
         public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
@@ -251,6 +314,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.DoEntrywise(this, other, binaryOperation);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SkylineMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
@@ -258,6 +324,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
+        /// <summary>
+        /// Performs the following operation for th non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/> 
+        /// 0 &lt;= i &lt;= j:
+        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
+        /// The resulting matrix overwrites the entries of this <see cref="CSCMatrix"/> instance.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix for whose active columns (non-zero part of the column) are shorter or equal to the
+        ///     active columns of this <see cref="SkylineMatrix"/> instance.</param>
+        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has taller active columns 
+        ///     than this <see cref="SkylineMatrix"/> instance.</exception>
         public void DoEntrywiseIntoThis(SkylineMatrix other, Func<double, double, double> binaryOperation)
         {
             if (HasSameIndexer(other)) // no need to check dimensions if the indexing arrays are the same
@@ -292,7 +369,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        /// <summary>
+        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
+        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
         {
             // Only apply the operation on non zero entries
             double[] newValues = new double[values.Length];
@@ -311,11 +391,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
-        {
-            DoToAllEntriesIntoThis(unaryOperation);
-        }
-
+        /// <summary>
+        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0))
@@ -328,6 +406,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="ISparseMatrix.EnumerateNonZeros"/>.
+        /// </summary>
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
         {
             for (int j = 0; j < NumColumns; ++j)
@@ -344,6 +425,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
+        /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1E-13)
         {
             if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
@@ -376,7 +460,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     call any other members afterwards.</param>
         /// <param name="tolerance">If a diagonal entry is closer to zero than this tolerance, an 
         ///     <see cref="IndefiniteMatrixException"/> exception will be thrown.</param>
-        /// <returns></returns>
+        /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not positive definite.</exception>
+        /// <exception cref="NullReferenceException">Thrown if a member of his instance is accessed after this method is 
+        ///     called.</exception>"
         public CholeskySkyline FactorCholesky(bool inPlace, double tolerance = CholeskySkyline.PivotTolerance)
         {
             if (inPlace)
@@ -396,11 +482,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        public Vector GetDiagonal()
-        {
-            return Vector.CreateFromArray(GetDiagonalAsArray(), false);
-        }
+        /// <summary>
+        /// Returns a <see cref="Vector"/> with the entries of the matrix's main diagonal.
+        /// </summary>
+        public Vector GetDiagonal() => Vector.CreateFromArray(GetDiagonalAsArray(), false);
 
+        /// <summary>
+        /// Returns an array with the entries of the matrix's main diagonal.
+        /// </summary>
         public double[] GetDiagonalAsArray()
         {
             Preconditions.CheckSquare(this);
@@ -409,6 +498,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return diag;
         }
 
+        /// <summary>
+        /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
+        /// </summary>
         public SparseFormat GetSparseFormat()
         {
             var format = new SparseFormat();
@@ -418,6 +510,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return format;
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
+        /// </summary>
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is SkylineMatrix otherSKY) // In case both matrices have the exact same index arrays
@@ -436,6 +531,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.LinearCombination(this, thisCoefficient, otherMatrix, otherCoefficient);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.LinearCombinationIntoThis(double, IMatrixView, double)"/>.
+        /// </summary>
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is SkylineMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
@@ -443,6 +541,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
+        /// <summary>
+        /// Performs the following operation for th non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/> 
+        /// 0 &lt;= i &lt;= j: this[i, j] = <paramref name="thisCoefficient"/> * this[i, j] 
+        ///     + <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j].  
+        /// The resulting matrix overwrites the entries of this <see cref="CSCMatrix"/> instance.
+        /// </summary>
+        /// <param name="thisCoefficient">A scalar that multiplies each entry of this <see cref="Matrix"/>.</param>
+        /// <param name="otherMatrix">A matrix for whose active columns (non-zero part of the column) are shorter or equal to the
+        ///     active columns of this <see cref="SkylineMatrix"/> instance.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has taller active columns 
+        ///     than this <see cref="SkylineMatrix"/> instance.</exception>
         public void LinearCombinationIntoThis(double thisCoefficient, SkylineMatrix otherMatrix, double otherCoefficient)
         {
             if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
@@ -479,43 +589,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Not optimized yet.
+        /// See <see cref="IMatrixView.MultiplyLeft(IMatrixView, bool, bool)"/>.
         /// </summary>
-        /// <param name="other"></param>
-        /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
-        /// <param name="transposeOther"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// <paramref name="transposeThis"/> does not affect the result, as a <see cref="SkylineMatrix"/> is symmetric.
+        /// </remarks>
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             return DenseStrategies.Multiply(other, this, transposeOther, transposeThis);
         }
 
         /// <summary>
-        /// Not optimized yet.
+        /// See <see cref="IMatrixView.MultiplyRight(IMatrixView, bool, bool)"/>.
         /// </summary>
-        /// <param name="other"></param>
-        /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
-        /// <param name="transposeOther"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// <paramref name="transposeThis"/> does not affect the result, as a <see cref="SkylineMatrix"/> is symmetric.
+        /// </remarks>
         public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// </summary>
+        /// <remarks>
+        /// <paramref name="transposeThis"/> does not affect the result, as a <see cref="SkylineMatrix"/> is symmetric.
+        /// </remarks>
         public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
+            if (vector is Vector casted) return MultiplyRight(casted);
             else throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Performance considerations: Only accesses the matrix entries once, but the result vector entries will be accessed 
-        /// multiple times. 
+        /// Performs the matrix-vector multiplication: this * <paramref name="vector"/> = <paramref name="vector"/> * this.
         /// </summary>
-        /// <param name="vector"></param>
-        /// <param name="transposeThis">Does not matter since <see cref="SkylineMatrix"/> is symmetric.</param>
-        /// <returns></returns>
-        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
+        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to 
+        ///     this.<see cref="NumColumns"/>.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
+        ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of this.</exception>
+        public Vector MultiplyRight(Vector vector)
         {
             int n = vector.Length;
             Preconditions.CheckMultiplicationDimensions(NumColumns, n);
@@ -553,6 +667,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Vector.CreateFromArray(result, false);
         }
 
+        /// <summary>
+        /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.
+        /// </summary>
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
             double aggregator = identityValue;
@@ -562,12 +679,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.Scale(double)"/>.
+        /// </summary>
         IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
-        /// result = scalar * this
+        /// Performs the following operation for the non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/>,
+        /// 0 &lt;= i &lt;= j: result[i, j] = <paramref name="scalar"/> * this[i, j].
+        /// The resulting matrix is written to a new <see cref="SkylineMatrix"/> and then returned.
         /// </summary>
-        /// <param name="scalar"></param>
+        /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
         public SkylineMatrix Scale(double scalar)
         {
             int nnz = this.values.Length;
@@ -577,22 +699,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SkylineMatrix(this.NumColumns, resultValues, this.diagOffsets);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
+        /// </summary>
         public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, ref values[0], 1);
 
-        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
-        {
-            this[rowIdx, colIdx] = value;
-        }
+        /// <summary>
+        /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
+        /// </summary>
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value) => this[rowIdx, colIdx] = value;
 
-        public IMatrixView Transpose()
-        {
-            return Transpose(true);
-        }
-
-        public SkylineMatrix Transpose(bool copyInternalArrays)
-        {
-            return CreateFromArrays(NumColumns, values, diagOffsets, false, copyInternalArrays);
-        }
+        /// <summary>
+        /// See <see cref="IMatrixView.Transpose"/>.
+        /// </summary>
+        public IMatrixView Transpose() => Copy();
 
         /// <summary>
         /// Perhaps this should be manually inlined. Testing needed.
@@ -610,9 +730,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        private bool HasSameIndexer(SkylineMatrix other)
-        {
-            return this.diagOffsets == other.diagOffsets;
-        }
+        private bool HasSameIndexer(SkylineMatrix other) => this.diagOffsets == other.diagOffsets;
     }
 }

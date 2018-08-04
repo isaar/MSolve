@@ -25,11 +25,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestReordering();
-            TestReading();
+            //TestReading();
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
-            //TestWriting();
+            TestWriting();
         }
 
         public static void SuiteSparse()

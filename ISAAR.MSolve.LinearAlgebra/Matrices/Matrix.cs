@@ -82,7 +82,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new Matrix(Conversions.Array2DToFullColMajor(array2D), numRows, numCols);
         }
 
-
         /// <summary>
         /// Initializes a new instance of <see cref="Matrix"/> with <paramref name="array1D"/> or a clone as its internal array.
         /// </summary>
@@ -159,8 +158,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         #region operators (use extension operators when they become available)
         /// <summary>
-        /// Performs the operation: result[i, j] = <paramref name="matrix1"/>[i, j] + <paramref name="matrix2"/>[i], 
-        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= ij &lt; <see cref="NumColumns"/>.
+        /// Performs the operation: result[i, j] = <paramref name="matrix1"/>[i, j] + <paramref name="matrix2"/>[i, j], 
+        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>.
         /// The resulting entries are written to a new <see cref="Matrix"/> instance.
         /// </summary>
         /// <param name="matrix1">The first <see cref="Matrix"/> operand. It must have as many rows and columns as 
@@ -172,8 +171,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static Matrix operator +(Matrix matrix1, Matrix matrix2) => matrix1.Axpy(matrix2, 1.0);
 
         /// <summary>
-        /// Performs the operation: result[i, j] = <paramref name="matrix1"/>[i, j] - <paramref name="matrix2"/>[i], 
-        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= ij &lt; <see cref="NumColumns"/>.
+        /// Performs the operation: result[i, j] = <paramref name="matrix1"/>[i, j] - <paramref name="matrix2"/>[i, j], 
+        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>.
         /// The resulting entries are written to a new <see cref="Matrix"/> instance.
         /// </summary>
         /// <param name="matrix1">The first <see cref="Matrix"/> operand. It must have as many rows and columns as 
@@ -186,7 +185,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Performs the operation: result[i, j] = <paramref name="scalar"/> * <paramref name="matrix1"/>[i, j],
-        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= ij &lt; <see cref="NumColumns"/>.
+        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>.
         /// The resulting entries are written to a new <see cref="Matrix"/> instance.
         /// </summary>
         /// <param name="scalar">The scalar value that will be multiplied with all vector entries.</param>
@@ -195,7 +194,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Performs the operation: result[i, j] = <paramref name="scalar"/> * <paramref name="matrix1"/>[i, j],
-        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= ij &lt; <see cref="NumColumns"/>.
+        /// for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>.
         /// The resulting entries are written to a new <see cref="Matrix"/> instance.
         /// </summary>
         /// <param name="matrix">The matrix to multiply.</param>
@@ -817,7 +816,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// </summary>
-        /// <param name="other">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
+        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
         ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
@@ -863,8 +862,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Creates a new <see cref="Matrix"/> that contains the entries of this <see cref="Matrix"/> with a different order,
         /// which is specified by the provided <paramref name="permutation"/> and <paramref name="oldToNew"/>.
         /// </summary>
-        /// <param name="permutation">An array that contains the indices of this <see cref="Matrix"/> in a different 
-        ///     order.</param>
+        /// <param name="permutation">An array that contains the row/column indices of this <see cref="Matrix"/> in a 
+        ///     different order.</param>
         /// <param name="oldToNew">If true, 
         ///     reordered[<paramref name="permutation"/>[i], <paramref name="permutation"/>[j]] =  original[i, j]. If false, 
         ///     reordered[i, j] = original[<paramref name="permutation"/>[i], <paramref name="permutation"/>[j]].</param>
