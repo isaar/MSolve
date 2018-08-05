@@ -5,7 +5,8 @@
 //      classes, in order to group them and simplify the naming. Naming the functions in C code should be done used abbreviations
 //      e.g. c=colMajor, p=packed, l=lower, 2=to etc. Optionally I could use OpenMP (CUDA is meaningless here) for some of these. 
 //      This also serves as OpenMP practice.
-// TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
+//TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
+//TODO: See https://software.intel.com/en-us/mkl-developer-reference-c-lapack-auxiliary-routines "?tfttp" and beyond.
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>

@@ -352,7 +352,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     that are not positive definite. Therefore set it to false if you are sure that the matrix is not positive
         ///     definite.</param>
         /// <returns></returns>
-        public IFactorization Factorize(bool tryCholesky = true)
+        public ITriangulation Factorize(bool tryCholesky = true)
         {
             // This should throw an exception if the posdef assumption is wrong.
             if (Definiteness == DefiniteProperty.PositiveDefinite) return FactorCholesky();  

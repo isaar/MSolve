@@ -8,8 +8,8 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
     public enum SuiteSparseOrdering
     {
         /// <summary>
-        /// No reordering. This allows the most control, as you can first find a fill reducing ordering for the sparsity pattern 
-        /// and then factorize using <see cref="SuiteSparseOrdering.Natural"/>.
+        /// No reordering. This allows the most control, as you can first find a fill-reducing ordering for the sparsity pattern,
+        /// apply it and finally factorize using <see cref="SuiteSparseOrdering.Natural"/>.
         /// </summary>
         Natural = 0,
 

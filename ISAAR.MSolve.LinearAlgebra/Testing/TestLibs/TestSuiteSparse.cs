@@ -262,11 +262,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             CholeskySuiteSparse factor = CholeskySuiteSparse.Factorize(order, values.Length, values, rowIndices, colOffsets,
                 true, SuiteSparseOrdering.Natural);
             Vector xSolveComput = factor.SolveLinearSystem(b);
-            Matrix XSolveComput = factor.SolveLinearSystem(B);
+            Matrix XSolveComput = factor.SolveLinearSystems(B);
             Vector xBackComput = factor.BackSubstitution(b);
-            Matrix XBackComput = factor.BackSubstitution(B);
+            Matrix XBackComput = factor.BackSubstitutions(B);
             Vector xForwardComput = factor.ForwardSubstitution(b);
-            Matrix XForwardComput = factor.ForwardSubstitution(B);
+            Matrix XForwardComput = factor.ForwardSubstitutions(B);
             Vector xSolveComput2 = factor.BackSubstitution(factor.ForwardSubstitution(b));
 
             // Check results

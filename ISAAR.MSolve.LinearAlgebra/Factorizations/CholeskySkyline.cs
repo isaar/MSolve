@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//also implement ISymmetricSparseMatrix.
+//TODO: the heavy operations should be ported to a C dll. and called from there..
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
-    public class CholeskySkyline : IIndexable2D, ISparseMatrix
+    /// <summary>
+    /// Cholesky factorization of a symmetric positive definite matrix, stored in skyline format. Only the active columns of the
+    /// upper triangle part of the matrix is stored and factorized.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class CholeskySkyline : IIndexable2D, ISparseMatrix, ITriangulation
     {
+        /// <summary>
+        /// The default value under which a diagonal entry (pivot) is considered to be 0 during Cholesky factorization.
+        /// </summary>
         public const double PivotTolerance = 1e-15;
 
         private readonly double[] values;
@@ -36,7 +42,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         public int NumRows { get { return NumColumns; } }
 
-        // TODO: should I add index bound checking?
+        /// <summary>
+        /// See <see cref="IIndexable2D.this[int, int]"/>.
+        /// </summary>
         public double this[int rowIdx, int colIdx]
         {
             get
@@ -50,19 +58,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// Cholesky factorization algorithm in skyline format. Does not need any extra memory. The non zero values array will be 
-        /// overwritten, while the indexing array will be used as is. Throws a <see cref="IndefiniteMatrixException"/> if the 
-        /// unfactorized skyline matrix is not positive definite.
+        /// Calculates the cholesky factorization of a symmetric positive definite matrix, such that A = transpose(U) * U. 
+        /// Does not need any extra memory.
         /// </summary>
-        /// <param name="order">The number of rows = number of columns of the matrix</param>
-        /// <param name="skyValues">The non zero entries of the original <see cref="SkylineMatrix"/>. They will  be
-        ///     overwritten.</param>
-        /// <param name="skyDiagOffsets">The indexes of the diagonal entries into skyValues. They will be stored as is inside
-        ///     the new <see cref="CholeskySkyline"/> object. However they do not need copying, since they will not be altered
-        ///     during or after the factorization.</param>
-        /// <param name="tolerance">If a diagonal entry is closer to zero than this tolerance, an 
-        ///     <see cref="IndefiniteMatrixException"/> exception will be thrown.</param>
-        /// <returns></returns>
+        /// <param name="order">The number of rows/ columns of the square matrix.</param>
+        /// <param name="skyValues">The non-zero entries of the original <see cref="SkylineMatrix"/>. Ths array will be
+        ///     overwritten during the factorization.</param>
+        /// <param name="skyDiagOffsets">The indexes of the diagonal entries into <paramref name="skyValues"/>. The new 
+        ///     <see cref="CholeskySkyline"/> instance will hold a reference to <paramref name="skyDiagOffsets"/>. However they 
+        ///     do not need copying, since they will not be altered during or after the factorization.</param>
+        /// <param name="tolerance">If a diagonal entry is &lt;= <paramref name="tolerance"/> it means that the original matrix  
+        ///     is not psymmetric positive definite and an <see cref="IndefiniteMatrixException"/> will be thrown.</param>
+        ///<exception cref="IndefiniteMatrixException">Thrown if the original skyline matrix turns out to not be symmetric 
+        ///     positive definite. </exception>
         public static CholeskySkyline Factorize(int order, double[] skyValues, int[] skyDiagOffsets, 
             double tolerance = CholeskySkyline.PivotTolerance)
         {
@@ -170,25 +178,37 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             return new CholeskySkyline(order, skyValues, skyDiagOffsets);
         }
 
-        public int CountNonZeros()
+        /// <summary>
+        /// See <see cref="ITriangulation.CalcDeterminant"/>.
+        /// </summary>
+        public double CalcDeterminant()
         {
-            return values.Length;
-        }
-
-        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
-        {
-            return SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false,  false).EnumerateNonZeros();
-        }
-
-        public bool Equals(IIndexable2D other, double tolerance = 1E-13)
-        {
-            return SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).Equals(other, tolerance);
+            throw new NotImplementedException();
         }
 
         /// <summary>
-        /// A = transpose(U) * U
+        /// See <see cref="ISparseMatrix.CountNonZeros"/>.
         /// </summary>
-        /// <returns></returns>
+        public int CountNonZeros() => values.Length;
+
+        /// <summary>
+        /// See <see cref="ISparseMatrix.EnumerateNonZeros"/>.
+        /// </summary>
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).EnumerateNonZeros();
+
+        /// <summary>
+        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
+        /// </summary>
+        public bool Equals(IIndexable2D other, double tolerance = 1E-13)
+            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).Equals(other, tolerance);
+
+        /// <summary>
+        /// Explicitly creates the upper triangular matrix U that resulted from the Cholesky factorization: A = transpose(U) * U,
+        /// where A and U are n-by-n. 
+        /// This method is safe to use as the factorization data are copied (if necessary). However, it is inefficient if the 
+        /// generated matrix is only used once.
+        /// </summary>
         public TriangularUpper GetFactorU()
         {
             // The factorization A = transpose(u) * D * u, u = unit upper triangular is stored. Thus U = sqrt(D) * u.
@@ -212,10 +232,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// A = transpose(U) * D * U, U being unit upper triangular.
+        /// Copies the upper triangular matrix U and diagonal matrix D that resulted from the Cholesky factorization: 
+        /// A = transpose(U) * D * U to a new <see cref="TriangularUpper"/> matrix.
         /// </summary>
-        /// <returns></returns>
-        public (Vector diagonal, TriangularUpper upper) GetFactorsDU()
+        public (Vector diagonal, TriangularUpper upper) GetFactorsDU() //TODO: not sure if this is ever needed.
         {
             double[] diag = new double[NumColumns];
             var upper = TriangularUpper.CreateZero(NumColumns);
@@ -235,11 +255,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             return (Vector.CreateFromArray(diag, false), upper); 
         }
 
+        /// <summary>
+        /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
+        /// </summary>
         public SparseFormat GetSparseFormat()
-        {
-            return SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
-        }
+            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
 
+        /// <summary>
+        /// See <see cref="ITriangulation.SolveLinearSystem(Vector)"/>.
+        /// </summary>
+        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
         public Vector SolveLinearSystem(Vector rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);

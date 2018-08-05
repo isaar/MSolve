@@ -12,6 +12,9 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: add inplace option for factorizations and leave all subsequent operations (determinant, system solution, etc.) to them
 //TODO: remove legacy matrix conversions
 //TODO: SetSubrow, SetSubcolumn, SetSubmatrix only need to check the stricter upper bounds.
+//TODO: Se https://software.intel.com/en-us/mkl-developer-reference-c-lapmr, 
+//      https://software.intel.com/en-us/mkl-developer-reference-c-laswp, 
+//      https://software.intel.com/en-us/mkl-developer-reference-c-syswapr for reordering
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>

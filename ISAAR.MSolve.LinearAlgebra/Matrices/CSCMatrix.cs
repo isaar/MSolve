@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="numRows">The number of rows of the new matrix.</param>
         /// <param name="numCols">The number of columns of the new matrix.</param>
         /// <param name="values">Array that contains the non-zero entries. It must have the same length 
-        ///     as <paramref name="rowIndices"/>. The non-zero entries of each row must appear consecutively in 
+        ///     as <paramref name="rowIndices"/>. The non-zero entries of each column must appear consecutively in 
         ///     <paramref name="values"/>. They can also be sorted in increasing order of their row indices, which speeds up
         ///     subsequent operations.</param>
         /// <param name="rowIndices">Array that contains the row indices of the non-zero entries. It must have the same 

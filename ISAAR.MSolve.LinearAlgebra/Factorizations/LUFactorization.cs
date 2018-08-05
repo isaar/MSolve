@@ -1,27 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using IntelMKL.LP64;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.MKL;
-using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-// TODO: When returning L & U, use Triangular matrices. Also return P.
+//TODO: When returning L & U, use Triangular matrices. Also return P. Also L, U should be TriangularLower and TriangularUpper
+//TODO: Is the determinant affected by the permutation P? I think P changes the sign, depending on how many row exhanges there 
+//      are. I did not take it into account in the implementation or the documentation.
+//TODO: Computing the determinant may overflow the double variable. It should be done in a C .dll and the overflow should be 
+//      handled there by having a naive (fast) and a safe version.
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>
-    /// The LU factorization of a matrix A consists of a lower triangular matrix L (with 1 in its diagonal entries), an upper 
-    /// triangular matrix U and a permutation matrix P, such that A = P*L*U. This class stores L,U,P in an efficient manner and
-    /// provides common methods to use them. 
+    /// The LU factorization of a matrix A with partial pivoting (row exchanges) consists of a lower triangular matrix L 
+    /// (with 1 in its diagonal entries), an upper triangular matrix U and a permutation matrix P, such that A = P*L*U. This 
+    /// class stores L,U,P in an efficient manner and provides common methods to use them. A must be square. Uses Intel MKL.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class LUFactorization: IFactorization
+    public class LUFactorization: ITriangulation
     {
-        // Perhaps a smaller tolerance is appropriate, since the "almost zero" will propagate during back & forward substitution.
-        private const double PivotTolerance = 1e-13;
+        /// <summary>
+        /// The default value under which a diagonal entry (pivot) is considered to be 0 during Cholesky factorization.
+        /// </summary>
+        private const double PivotTolerance = 1e-13;  //TODO: Perhaps a smaller tolerance is appropriate, since the "almost zero" will propagate during back & forward substitution.
 
         private readonly double[] lowerUpper;
         private readonly int[] permutation;
@@ -37,24 +40,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             this.IsOverwritten = false;
         }
 
+        /// <summary>
+        /// If true, the internal data of this object are overwritten and used by another object. No property or method of
+        /// this object must be called as it would throw exceptions or lead to data corruption. If false, this object can be 
+        /// used normally.
+        /// </summary>
         public bool IsOverwritten { get; private set; }
 
+        /// <summary>
+        /// If true, the original matrix before the factorization is not invertible. In this case, 
+        /// <see cref="SolveLinearSystem(Vector)"/> and <see cref="Invert(bool)"/> will throw an exception. If false, the 
+        /// original matrix is invertible and those methods are safe to call.
+        /// </summary>
         public bool IsSingular { get; }
 
         /// <summary>
-        /// The number of rows or columns of the matrix. 
+        /// The number of rows/columns of the original square matrix. 
         /// </summary>
         public int Order { get; }
 
         /// <summary>
-        /// Calculates the LUP factorization of a square matrix, such that A = P * L * U. Requires an extra O(n^2 + n) 
-        /// available memory.
+        /// Calculates the LUP factorization of a square matrix, such that A = P * L * U. Requires an extra O(n) available 
+        /// memory, where n is the <paramref name="order"/>.
         /// </summary>
         /// <param name="order">The number of rows/columns of the square matrix.</param>
         /// <param name="matrix">The internal buffer stroring the matrix entries in column major order. It will 
         ///     be overwritten.</param>
-        /// <param name="pivotTolerance"></param>
-        /// <returns></returns>
+        /// <param name="pivotTolerance">If a diagonal entry (called pivot) is &lt;= <paramref name="pivotTolerance"/> it will be  
+        ///     considered as zero and a permutation will be used to find a non-zero pivot (the process is called pivoting).
+        ///     </param>
         public static LUFactorization Factorize(int order, double[] matrix,
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
@@ -83,11 +97,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// Calculates the determinant of the original matrix. det(A) = det(L*U) = det(L)*det(U). 
-        /// Since all these are triangular matrices their determinants is the product of their diagonal entries:
-        /// det(L) = 1*1*...*1 = 1. Thus det(A) = det(U) = U1*U2*...*Un
+        /// See <see cref="ITriangulation.CalcDeterminant"/>. WARNING: the sign might be wrong!
         /// </summary>
-        /// <returns>The determinant of the original matrix.</returns>
+        /// <remarks>
+        /// det(A) = det(L*U) = det(L)*det(U). Since all these are triangular matrices their determinants is the product of their 
+        /// diagonal entries: det(L) = 1*1*...*1 = 1. Thus det(A) = det(U) = U1*U2*...*Un
+        /// </remarks>
         public double CalcDeterminant()
         {
             CheckOverwritten();
@@ -95,18 +110,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             else
             {
                 double det = 1.0;
-                for (int i = 0; i < Order; ++i)
-                {
-                    det *= lowerUpper[i * Order + i];
-                }
-                return det;
+                for (int i = 0; i < Order; ++i) det *= lowerUpper[i * Order + i];
+                return det; //TODO: the sign depends on P.
             }
         }
 
         /// <summary>
-        /// Explicitly composes and returns the lower triangular matrix L. 
+        /// Explicitly creates the lower triangular matrix L that resulted from the LU factorization: A = P * L * U,
+        /// where A, L, U and P are n-by-n. 
+        /// This method is safe to use as the factorization data are copied (if necessary). However, it is inefficient if the 
+        /// generated matrix is only used once.
         /// </summary>
-        /// <returns></returns>
         public Matrix GetFactorL()
         {
             CheckOverwritten();
@@ -115,9 +129,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// Explicitly composes and returns the upper triangular matrix U. 
+        /// Explicitly creates the upper triangular matrix U that resulted from the LU factorization: A = P * L * U,
+        /// where A, L, U and P are n-by-n. 
+        /// This method is safe to use as the factorization data are copied (if necessary). However, it is inefficient if the 
+        /// generated matrix is only used once.
         /// </summary>
-        /// <returns></returns>
         public Matrix GetFactorU()
         {
             CheckOverwritten();
@@ -126,14 +142,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// Inverts the original square matrix. The matrix must be non singular, otherwise an
-        /// <see cref="SingularMatrixException"/> will be thrown. If <paramref name="inPlace"/> is set to true, this object must 
-        /// not be used again, otherwise a <see cref="InvalidOperationException"/> will be thrown.
+        /// Calculates the inverse of the original square matrix and returns it in a new <see cref="Matrix"/> instance. This
+        /// only works if the original matrix is not singular, which can be checked through <see cref="IsSingular"/>.
+        /// WARNING: If <paramref name="inPlace"/> is set to true, this object must not be used again, otherwise a 
+        /// <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
         /// <param name="inPlace">False, to copy the internal factorization data before inversion. True, to overwrite it with
         ///     the inverse matrix, thus saving memory and time. However, that will make this object unusable, so you MUST NOT 
         ///     call any other members afterwards.</param>
-        /// <returns></returns>
+        /// <exception cref="SingularMatrixException">Thrown if the original matrix is not invertible.</exception>
         public Matrix Invert(bool inPlace)
         {
             // Check if the matrix is suitable for inversion
@@ -166,6 +183,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
+        /// <summary>
+        /// See <see cref="ITriangulation.SolveLinearSystem(Vector)"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method is not garanteed to succeed. A singular matrix can be factorized as A=P*L*U, but not all linear systems
+        /// with a singular matrix can be solved.
+        /// </remarks>
+        /// <exception cref="SingularMatrixException">Thrown if the original matrix is not invertible.</exception>
+        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
         public Vector SolveLinearSystem(Vector rhs)
         {
             CheckOverwritten();
