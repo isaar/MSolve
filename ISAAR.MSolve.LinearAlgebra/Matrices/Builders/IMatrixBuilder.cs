@@ -1,28 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-//TODO: IMatrixBuilder.AddSubmatrix() appears to be the same as ISymmetricMatrixBuilder.AddSubmatrix(). However, its sematics 
-// are different. ISymmetricMatrixBuilder.AddSubmatrix() cannot be used for adding symmetric matrices, as it will add the off
-// diagonal entries twice. This is due to the implementations of ISymmetricMatrixBuilder. On the other hand the implementations
-// of IMatrixBuilder make it safe to pass in symmetric matrices to AddSubmatrix(), although there are more efficient methods.
+﻿//WARNING: IGeneralMatrixBuilder.AddSubmatrix() appears to be the same as ISymmetricMatrixBuilder.AddSubmatrix(). However,  
+// their semantics are different. ISymmetricMatrixBuilder.AddSubmatrix() cannot be used for adding symmetric matrices, as it 
+// will add the off-diagonal entries twice. This is due to the implementations of ISymmetricMatrixBuilder. On the other hand 
+// the implementations of IGeneralMatrixBuilder make it safe to pass in symmetric matrices to AddSubmatrix(), although  
+// there are more efficient methods.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
+    /// <summary>
+    /// Facilitates the construction of large sparse matrices, usually by adding smaller submatrices.  
+    /// The large matrices and their properties will be characterized as "global" in this namespace.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public interface IMatrixBuilder: IIndexable2D
     {
+        /// <summary>
+        /// Sets the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) to the provided value.
+        /// </summary>
+        /// <param name="rowIdx">The row index of the entry to set. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="colIdx">The column index of the entry to set. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumColumns"/>.</param>
+        /// <returns></returns>
         new double this[int rowIdx, int colIdx] { set; }
 
         /// <summary>
-        /// Maps <paramref name="subMatrix"/> to "global" rows and columns of the underlying skyline matrix and then adds 
-        /// the entries of <paramref name="subMatrix"/> to these global indices. The caller is respondible for the global 
-        /// indices falling inside the sparsity pattern. WARNING: this method adds the whole <paramref name="subMatrix"/>. 
+        /// Adds the provided <paramref name="value"/> to the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>). 
         /// </summary>
-        /// <param name="subMatrix"></param>
-        /// <param name="subRowsToGlobalRows"></param>
-        /// <param name="subColsToGlobalCols"></param>
-        void AddSubmatrix(IIndexable2D subMatrix,
-            IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols);
+        /// <param name="rowIdx">The row index of the entry to modify. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="colIdx">The column index of the entry to modify. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumColumns"/>.</param>
+        /// <param name="value">The value that will be added to the entry (<paramref name="colIdx"/>, <paramref name="colIdx"/>).
+        ///     </param>
+        void AddToEntry(int rowIdx, int colIdx, double value);
     }
 }

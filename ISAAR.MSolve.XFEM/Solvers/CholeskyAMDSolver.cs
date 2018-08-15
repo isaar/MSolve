@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Linear system assembly (part 2)
             watch.Restart();
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             watch.Stop();
             assemblyTime += watch.ElapsedMilliseconds;
@@ -151,7 +151,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveWithoutReordering(IDofOrderer unordered)
         {
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
+            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);

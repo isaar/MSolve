@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// <returns>permutation: An array containing the new-to-old fill reducing permutation. 
         ///     stats: Measuments taken by SuiteSparse during the execution of AMD.</returns>
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded or if AMD fails.</exception>
-        public (int[] permutation, ReorderingStatistics stats) FindPermutation(DOKSymmetricColMajor dok)
+        public (int[] permutation, ReorderingStatistics stats) FindPermutation(DOKSymmetric dok)
         {
             (double[] values, int[] rowIndices, int[] colOffsets) = dok.BuildSymmetricCSCArrays(true);
             return FindPermutation(dok.NumColumns, rowIndices.Length, rowIndices, colOffsets);

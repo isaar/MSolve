@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             this.subdomains = new SortedSet<XSubdomain2D>();
             this.modifiedSubdomains = new SortedDictionary<XSubdomain2D, bool>();
-            this.Kee = new SortedDictionary<XSubdomain2D, DOKSymmetricColMajor>();
+            this.Kee = new SortedDictionary<XSubdomain2D, DOKSymmetric>();
             this.Kes = new SortedDictionary<XSubdomain2D, CSRMatrix>();
             this.Kse = new SortedDictionary<XSubdomain2D, CSRMatrix>();
             this.be = new SortedDictionary<XSubdomain2D, Vector>();
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private Vector bs;
         private readonly SortedSet<XSubdomain2D> subdomains;
         private readonly SortedDictionary<XSubdomain2D, bool> modifiedSubdomains;
-        private readonly SortedDictionary<XSubdomain2D, DOKSymmetricColMajor> Kee; //TODO: only save the factorizations
+        private readonly SortedDictionary<XSubdomain2D, DOKSymmetric> Kee; //TODO: only save the factorizations
         private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kes;
         private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kse;
         private SortedDictionary<XSubdomain2D, SignedBooleanMatrix> B;
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.B = new SortedDictionary<XSubdomain2D, SignedBooleanMatrix>(B);
         }
 
-        public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetricColMajor Kee, CSRMatrix Kes, CSRMatrix Kse,
+        public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetric Kee, CSRMatrix Kes, CSRMatrix Kse,
             Vector be) 
         {
             // Update tracked subdomains
@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 if (modifiedSubdomains[subdomain]) // Do not recreate the preconditioners of unmodified Kee
                 {
-                    DOKSymmetricColMajor kee = Kee[subdomain];
+                    DOKSymmetric kee = Kee[subdomain];
 
                     #region debug
                     //Console.Write($"Subdomain {subdomain.ID}: ");

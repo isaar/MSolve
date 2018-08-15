@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             //if (!Kuu.IsSymmetric(double.Epsilon)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to free-free dofs is not symmetric");
             Vector rhs = CalcEffectiveRhs(Kuc);

@@ -11,14 +11,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
     class StandardMatrixAssemblerCsc : IStandardMatrixAssembler
     {
-        public DOKSymmetricColMajor Kss { get; set; }
+        public DOKSymmetric Kss { get; set; }
         public DOKRowMajor Ksc { get; set; }
 
         public void BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            Kss = DOKSymmetricColMajor.CreateEmpty(numDofsStandard);
+            Kss = DOKSymmetric.CreateEmpty(numDofsStandard);
             Ksc = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)

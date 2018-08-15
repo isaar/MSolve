@@ -1,32 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
+    /// <summary>
+    /// Facilitates the construction of a square matrix when only some of its columns are needed explicitly.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class PartialMatrixColumns
     {
-        private readonly int order;
         private readonly Dictionary<int, Dictionary<int, double>> columns;
-
+        
+        /// <summary>
+        /// Initializes a new <see cref="PartialMatrixColumns"/> instance to reperesent the relevant columns of a matrix 
+        /// with the specified dimensions.
+        /// </summary>
+        /// <param name="order">The number of rows/columns of the whole square matrix.</param>
         public PartialMatrixColumns(int order)
         {
-            this.order = order;
+            this.NumRows = order; ;
+            this.NumColumns = order;
             this.columns = new Dictionary<int, Dictionary<int, double>>();
         }
 
         /// <summary>
-        /// If the entry already exists: the new value is added to the existing one: this[rowIdx, colIdx] += value. 
-        /// Otherwise the entry is inserted with the new value: this[rowIdx, colIdx] = value.
-        /// Use this method instead of this[rowIdx, colIdx] += value, as it is an optimized version.
-        /// Since both sub-diagonal and super-diagonal entries of the symmetric matrix are stored separately, it is safe to
-        /// process both (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) and 
-        /// (<paramref name="colIdx"/>, <paramref name="rowIdx"/>).
+        /// The number of columns of the whole matrix.
         /// </summary>
-        /// <param name="rowIdx"></param>
-        /// <param name="colIdx"></param>
-        /// <param name="value"></param>
+        public int NumColumns { get; }
+
+        /// <summary>
+        /// The number of rows of the whole matrix.
+        /// </summary>
+        public int NumRows { get; }
+
+        /// <summary>
+        /// Adds the provided <paramref name="value"/> to the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>). 
+        /// </summary>
+        /// <param name="rowIdx">The row index of the entry to modify. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="colIdx">The column index of the entry to modify. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumColumns"/>.</param>
+        /// <param name="value">The value that will be added to the entry (<paramref name="colIdx"/>, <paramref name="colIdx"/>).
+        ///     </param>
         public void AddToEntry(int rowIdx, int colIdx, double value)
         {
             if (columns.TryGetValue(colIdx, out Dictionary<int, double> wholeColumn)) // The column exists. Mutate it.
@@ -45,15 +61,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Returns the whole column with index = <paramref name="colIdx"/>. However, the entries with row index that belongs in
-        /// <paramref name="tabooRows"/> will be set to 0. Actually they will not be included in the sparsity pattern of the
-        /// returned <see cref="SparseVector"/>. Note that the length of the returned vector is equal to <see cref="NumRows"/>. 
-        /// Since the matrix is symmetric, row = column. 
+        /// Returns the column with index = <paramref name="colIdx"/> as a vector. However, the entries with row index that 
+        /// belongs in <paramref name="tabooRows"/> will be set to 0. More accurately, they will not be included in the 
+        /// sparsity pattern of the returned <see cref="SparseVector"/>. Note that the length of the returned vector is 
+        /// equal to this.<see cref="NumRows"/>.
         /// </summary>
-        /// <param name="colIdx">The index of the column to return.</param>
-        /// <param name="tabooRows">The entries of the returned column vector at the indices <paramref name="tabooRows"/> will 
-        ///     be equal to 0.</param>
-        /// <returns></returns>
+        /// <param name="colIdx">The index of the column to return. Constraints: Column <paramref name="colIdx"/> must be stored
+        ///     and 0 &lt;= <paramref name="colIdx"/> &lt; this.<see cref="NumColumns"/>.</param>
+        /// <param name="tabooRows">The entries of the returned column vector at the indices specified by 
+        ///     <paramref name="tabooRows"/> will be equal to 0. Constraints: foreach rowIdx in <paramref name="tabooRows"/>:
+        ///     0 &lt;= rowIdx &lt; this.<see cref="NumRows"/>.</param>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="colIdx"/> or <paramref name="tabooRows"/> 
+        ///     violate the described constraints.</exception>
         public SparseVector GetColumnWithoutRows(int colIdx, HashSet<int> tabooRows)
         {
             bool exists = columns.TryGetValue(colIdx, out Dictionary<int, double> wholeColumn); //TODO: Should I just let the Dictionary indexer throw?
@@ -63,9 +82,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             {
                 if (!tabooRows.Contains(rowVal.Key)) result.Add(rowVal.Key, rowVal.Value);
             }
-            return SparseVector.CreateFromDictionary(order, result);
+            return SparseVector.CreateFromDictionary(NumRows, result);
         }
 
+        /// <summary>
+        /// Returns the column with index = <paramref name="colIdx"/> as a vector. However, only the entries with row index that 
+        /// belongs in <paramref name="wantedRows"/> will be copied. The rest will be 0 and not stored explicitly. Note that 
+        /// the length of the returned vector is equal to this.<see cref="NumRows"/>.
+        /// </summary>
+        /// <param name="colIdx">The index of the column to return. Constraints: Column <paramref name="colIdx"/> must be stored
+        ///     and 0 &lt;= <paramref name="colIdx"/> &lt; this.<see cref="NumColumns"/>.</param>
+        /// <param name="wantedRows">The entries of the column <paramref name="colIdx"/> that will be copied to the returned 
+        ///     vector. Constraints: foreach rowIdx in <paramref name="wantedRows"/>:
+        ///     0 &lt;= rowIdx &lt; this.<see cref="NumRows"/>.</param>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="colIdx"/> or <paramref name="wantedRows"/> 
+        ///     violate the described constraints.</exception>
         public SparseVector GetColumnWithSelectedRows(int colIdx, HashSet<int> wantedRows)
         {
             //TODO: perhaps I should pass a sorted set, iterate it and create the raw arrays directly. Or sort the passed set.
@@ -76,12 +107,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             {
                 if (wantedRows.Contains(rowVal.Key)) result.Add(rowVal.Key, rowVal.Value);
             }
-            return SparseVector.CreateFromDictionary(order, result);
+            return SparseVector.CreateFromDictionary(NumRows, result);
         }
 
-        //TODO: this is probably not needed as the caller could approach identity columns more efficiently
+        /// <summary>
+        /// Sets the column with index <paramref name="colIdx"/> to have 1.0 at the main diagonal entry and 0.0 everywhere else.
+        /// </summary>
+        /// <param name="colIdx">The index of the column to modify. Constraints:
+        ///     and 0 &lt;= <paramref name="colIdx"/> &lt; this.<see cref="NumColumns"/>.</param>
         public void SetColumnToIdentity(int colIdx)
-        {
+        { //TODO: this is probably not needed as the caller could approach identity columns more efficiently
             var identityCol = new Dictionary<int, double>();
             identityCol[colIdx] = 1.0;
             columns[colIdx] = identityCol;

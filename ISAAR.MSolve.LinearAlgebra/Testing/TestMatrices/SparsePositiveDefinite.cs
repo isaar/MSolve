@@ -186,7 +186,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void PrintDOKSparseColumns()
         {
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var dok = DOKSymmetricColMajor.CreateEmpty(order);
+            var dok = DOKSymmetric.CreateEmpty(order);
             foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
 
             var writer = new FullVectorWriter();
@@ -195,7 +195,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             {
                 // Since the matrix is symmetric the result should look like the whole matrix being printed
                 Console.Write($"Column {j}: ");
-                writer.WriteToConsole(dok.SliceColumn(j));
+                writer.WriteToConsole(dok.GetColumn(j));
             }
         }
 

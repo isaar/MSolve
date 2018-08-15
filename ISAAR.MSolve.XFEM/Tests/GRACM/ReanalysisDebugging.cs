@@ -36,8 +36,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             string addedColsPath = folderPath + "reanalysis_added_rows_" + step + ".txt";
 
             var matrixReader = new CoordinateTextFileReader();
-            DOKSymmetricColMajor expectedK = matrixReader.ReadFileAsDokSymmetricColMajor(matrixPath);
-            DOKSymmetricColMajor expectedPreviousK = matrixReader.ReadFileAsDokSymmetricColMajor(previousMatrixPath);
+            DOKSymmetric expectedK = matrixReader.ReadFileAsDokSymmetricColMajor(matrixPath);
+            DOKSymmetric expectedPreviousK = matrixReader.ReadFileAsDokSymmetricColMajor(previousMatrixPath);
             var rhs = Vector.CreateFromArray((new Array1DReader(true)).ReadFile(rhsPath));
             int[] removedCols = ReadDofs(removedColsPath);
             int[] addedCols = ReadDofs(addedColsPath);
@@ -57,14 +57,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         /// <summary>
         /// Delete all updated columns from both the new and previous matrix, in order to check the other entries.
         /// </summary>
-        private static void CheckManagedDelete(DOKSymmetricColMajor expectedNewK, DOKSymmetricColMajor expectedPreviousK,
+        private static void CheckManagedDelete(DOKSymmetric expectedNewK, DOKSymmetric expectedPreviousK,
             Vector rhs, int[] colsToRemove, int[] colsToAdd)
         {
             var checker = new SubmatrixChecker(1e-10, true);
 
             /// Delete all updated dofs from both matrices
-            var previousK = DOKSymmetricColMajor.CreateFromSparseMatrix(expectedPreviousK);
-            var newK = DOKSymmetricColMajor.CreateFromSparseMatrix(expectedNewK);
+            var previousK = DOKSymmetric.CreateFromSparseMatrix(expectedPreviousK);
+            var newK = DOKSymmetric.CreateFromSparseMatrix(expectedNewK);
             var updatedCols = new HashSet<int>(colsToAdd);
             updatedCols.UnionWith(colsToRemove);
             foreach (int col in updatedCols)
@@ -113,13 +113,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             }
         }
 
-        private static void CheckManagedUpdates(DOKSymmetricColMajor expectedK, DOKSymmetricColMajor previousK, Vector rhs,
+        private static void CheckManagedUpdates(DOKSymmetric expectedK, DOKSymmetric previousK, Vector rhs,
             int[] colsToRemove, int[] colsToAdd)
         {
             var checker = new SubmatrixChecker(1e-10, true);
 
             /// Rebuild the new K from the previous one, by using the managed row add/delete methods:
-            var newK = DOKSymmetricColMajor.CreateFromSparseMatrix(previousK);
+            var newK = DOKSymmetric.CreateFromSparseMatrix(previousK);
             var tabooRows = new HashSet<int>(colsToAdd);
             tabooRows.UnionWith(colsToRemove);
             foreach (int col in colsToRemove)
@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             foreach (int col in colsToAdd)
             {
                 tabooRows.Remove(col);
-                newK.SetColumn(col, expectedK.SliceColumnWithoutRows(col, tabooRows));
+                newK.SetColumn(col, expectedK.GetColumnWithoutRows(col, tabooRows));
             }
 
             /// Check the solution vectors
@@ -162,13 +162,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             }
         }
 
-        private static void CheckManagedUpdatesOLD(DOKSymmetricColMajor expectedK, int[] removedRows, int[] addedRows)
+        private static void CheckManagedUpdatesOLD(DOKSymmetric expectedK, int[] removedRows, int[] addedRows)
         {
             var checker = new SubmatrixChecker(1e-10, true);
 
             /// Build the previous K
             int order = expectedK.NumColumns;
-            var previousK = DOKSymmetricColMajor.CreateIdentity(order);
+            var previousK = DOKSymmetric.CreateIdentity(order);
             foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int row in addedRows) previousK.SetColumnToIdentity(row);
             //foreach (int row in removedRows) previousK.SetColumnToIdentity(row); // not sure
@@ -183,12 +183,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine();
 
             /// Recreate the new K and check it
-            var currentK = DOKSymmetricColMajor.CreateIdentity(order);
+            var currentK = DOKSymmetric.CreateIdentity(order);
             foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) currentK[row, col] = val;
             //Console.WriteLine("Checking the copied matrix with the expected one.");
             //checker.Check(expectedK, currentK);
             foreach (int row in addedRows) currentK.SetColumnToIdentity(row);
-            foreach (int row in addedRows) currentK.SetColumn(row, expectedK.SliceColumn(row));
+            foreach (int row in addedRows) currentK.SetColumn(row, expectedK.GetColumn(row));
             Console.WriteLine("Checking the recreated matrix with the expected one.");
             checker.Check(expectedK, currentK);
             //if (currentK.Equals(expectedK, 1e-5)) Console.WriteLine("Getting/setting rows in C# seems to work fine. Recreated matrix is the same.");
@@ -200,14 +200,14 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //}
         }
 
-        private static void CheckReanalysisMatrixUpdate(DOKSymmetricColMajor expectedK, DOKSymmetricColMajor expectedPreviousK,
+        private static void CheckReanalysisMatrixUpdate(DOKSymmetric expectedK, DOKSymmetric expectedPreviousK,
             int[] removedCols, int[] addedCols)
         {
             var checker = new SubmatrixChecker(1e-10, true);
             int order = expectedK.NumColumns;
 
             /// Copy the matrix. TODO: add DOK.Copy()
-            var matrix = DOKSymmetricColMajor.CreateIdentity(order);
+            var matrix = DOKSymmetric.CreateIdentity(order);
             foreach (var (row, col, val) in expectedPreviousK.EnumerateNonZerosUpper()) matrix[row, col] = val;
 
             /// Delete rows the matrix in C#
@@ -223,7 +223,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             {
                 tabooRows.Remove(col);
                 //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
-                SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
+                SparseVector newColVector = expectedK.GetColumnWithoutRows(col, tabooRows);
                 matrix.SetColumn(col, newColVector);
             }
 
@@ -240,7 +240,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             //}
         }
 
-        private static void CheckReanalysisUpdate(DOKSymmetricColMajor expectedK, DOKSymmetricColMajor expectedPreviousK,
+        private static void CheckReanalysisUpdate(DOKSymmetric expectedK, DOKSymmetric expectedPreviousK,
             Vector rhs, int[] removedCols, int[] addedCols)
         {
             /// Calculate expected solution
@@ -264,7 +264,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 {
                     tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
                     //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
-                    SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
+                    SparseVector newColVector = expectedK.GetColumnWithoutRows(col, tabooRows);
                     factorization.AddRow(col, newColVector);
                 }
                 cholmodSolution = factorization.SolveLinearSystem(rhs);
@@ -276,7 +276,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine();
         }
 
-        private static void CheckSuiteSparseColAddition(DOKSymmetricColMajor expectedK, Vector rhs,
+        private static void CheckSuiteSparseColAddition(DOKSymmetric expectedK, Vector rhs,
             int[] removedCols, int[] addedCols)
         {
             /// Calculate expected solution
@@ -288,7 +288,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Build the previous K
             int order = expectedK.NumColumns;
-            var previousK = DOKSymmetricColMajor.CreateIdentity(order);
+            var previousK = DOKSymmetric.CreateIdentity(order);
             foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int col in addedCols) previousK.SetColumnToIdentity(col);
 
@@ -302,7 +302,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 {
                     tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
                     //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, tabooRows);
-                    SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
+                    SparseVector newColVector = expectedK.GetColumnWithoutRows(col, tabooRows);
                     factorization.AddRow(col, newColVector);
                 }
                 cholmodSolution = factorization.SolveLinearSystem(rhs);
@@ -312,7 +312,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine();
         }
 
-        private static void CheckSuiteSparseColAdditionAndDeletion(DOKSymmetricColMajor expectedK, Vector rhs,
+        private static void CheckSuiteSparseColAdditionAndDeletion(DOKSymmetric expectedK, Vector rhs,
             int[] removedCols, int[] addedCols)
         {
             /// Calculate expected solution
@@ -324,7 +324,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Build the previous K
             int order = expectedK.NumColumns;
-            var previousK = DOKSymmetricColMajor.CreateIdentity(order);
+            var previousK = DOKSymmetric.CreateIdentity(order);
             foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int col in addedCols) previousK.SetColumnToIdentity(col);
             foreach (int col in removedCols) previousK.SetColumnToIdentity(col); // not sure
@@ -346,7 +346,7 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 {
                     tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
                     //SparseVector newColVector = ReanalysisSolver.BuildNewCol(expectedK, col, remainingCols);
-                    SparseVector newColVector = expectedK.SliceColumnWithoutRows(col, tabooRows);
+                    SparseVector newColVector = expectedK.GetColumnWithoutRows(col, tabooRows);
                     factorization.AddRow(col, newColVector);
                 }
                 //foreach (int row in removedRows)
@@ -361,12 +361,12 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
             Console.WriteLine();
         }
 
-        private static void CheckSuiteSparseColDeletion(DOKSymmetricColMajor expectedK, Vector rhs,
+        private static void CheckSuiteSparseColDeletion(DOKSymmetric expectedK, Vector rhs,
             int[] removedCols, int[] addedCols)
         {
             /// Build the previous K
             int order = expectedK.NumColumns;
-            var previousK = DOKSymmetricColMajor.CreateIdentity(order);
+            var previousK = DOKSymmetric.CreateIdentity(order);
             foreach (var (row, col, val) in expectedK.EnumerateNonZerosUpper()) previousK[row, col] = val;
             foreach (int col in addedCols) previousK.SetColumnToIdentity(col);
 

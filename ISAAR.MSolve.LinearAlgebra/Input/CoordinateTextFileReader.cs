@@ -68,12 +68,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         /// <param name="path">The absolute path of the array.</param>
         /// <exception cref="IOException">Thrown if there is no such file or if the dimensions of the matrix specified in the
         ///     first line are invalid.</exception>
-        public DOKSymmetricColMajor ReadFileAsDokSymmetricColMajor(string path)
+        public DOKSymmetric ReadFileAsDokSymmetricColMajor(string path)
         {
             using (var reader = new StreamReader(path))
             {
                 (int numRows, int numCols, int nnz) = ReadMatrixDimensions(reader);
-                var builder = DOKSymmetricColMajor.CreateEmpty(numCols);
+                var builder = DOKSymmetric.CreateEmpty(numCols);
                 ReadMatrixEntries(reader, nnz, builder);
                 return builder;
             }

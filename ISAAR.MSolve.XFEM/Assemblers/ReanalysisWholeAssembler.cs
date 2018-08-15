@@ -19,12 +19,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
     /// </summary>
     class ReanalysisWholeAssembler
     {
-        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements, 
+        public (DOKSymmetric Kff, DOKRowMajor Kfc) BuildGlobalMatrix(IEnumerable<XContinuumElement2D> allElements, 
             IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-            var Kff = DOKSymmetricColMajor.CreateEmpty(numDofsFree);
+            var Kff = DOKSymmetric.CreateEmpty(numDofsFree);
             var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
             foreach (XContinuumElement2D element in allElements)

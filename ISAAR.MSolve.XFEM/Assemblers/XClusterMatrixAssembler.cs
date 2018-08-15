@@ -14,11 +14,11 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class XClusterMatrixAssembler
     {
-        public (DOKSymmetricColMajor Kss, DOKRowMajor Ksc) BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
+        public (DOKSymmetric Kss, DOKRowMajor Ksc) BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            var Kss = DOKSymmetricColMajor.CreateEmpty(numDofsStandard);
+            var Kss = DOKSymmetric.CreateEmpty(numDofsStandard);
             var Ksc = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
@@ -35,13 +35,13 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return (Kss, Ksc);
         }
 
-        public (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) BuildSubdomainMatrices(XSubdomain2D subdomain, 
+        public (DOKSymmetric Kee, DOKRowMajor Kes, DOKRowMajor Kec) BuildSubdomainMatrices(XSubdomain2D subdomain, 
             XClusterDofOrderer globalDofOrderer)
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsEnriched = subdomain.DofOrderer.NumEnrichedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            var Kee = DOKSymmetricColMajor.CreateEmpty(numDofsEnriched);
+            var Kee = DOKSymmetric.CreateEmpty(numDofsEnriched);
             var Kes = DOKRowMajor.CreateEmpty(numDofsEnriched, numDofsStandard);
             var Kec = DOKRowMajor.CreateEmpty(numDofsEnriched, numDofsConstrained);
 

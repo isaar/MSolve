@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             counter = 0;
             // TODO: the matrices must not be built and factorized in each iteration
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             factorizedKff = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             ++counter;
             // TODO: the matrices and vectors must not be built in each iteration
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetric Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kfc);
 
             // Group the new dofs
@@ -217,7 +217,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             foreach (int col in colsToAdd)
             {
                 tabooRows.Remove(col); //It must be called before passing the remaining cols as taboo rows.
-                SparseVector newColVector = Kff.SliceColumnWithoutRows(col, tabooRows);
+                SparseVector newColVector = Kff.GetColumnWithoutRows(col, tabooRows);
                 factorizedKff.AddRow(col, newColVector);
             }
 
@@ -279,7 +279,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);

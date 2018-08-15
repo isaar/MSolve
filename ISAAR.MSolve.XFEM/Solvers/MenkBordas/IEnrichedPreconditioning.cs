@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
              IReadOnlyDictionary<XSubdomain2D, SignedBooleanMatrix> B,
              IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe);
 
-        CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetricColMajor Kee);
+        CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetric Kee);
     }
 
     interface IFactorizationLQ

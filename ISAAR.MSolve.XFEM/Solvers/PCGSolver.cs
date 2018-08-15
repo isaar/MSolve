@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private static void CheckPCG(Model2D model, IDofOrderer dofOrderer, DOKRowMajor Kuu, Vector solution)
         {
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor KuuChol, DOKRowMajor KucChol) = assembler.BuildGlobalMatrix(model, dofOrderer);
+            (DOKSymmetric KuuChol, DOKRowMajor KucChol) = assembler.BuildGlobalMatrix(model, dofOrderer);
             if (!KuuChol.Equals(Kuu.BuildCSRMatrix(true), 1e-10)) throw new Exception("Incorrect stiffness matrix assembly");
         }
     }

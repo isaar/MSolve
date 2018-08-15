@@ -183,7 +183,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var assembler = new XClusterMatrixAssembler();
             foreach (var subdomain in modifiedSubdomains)
             {
-                (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
+                (DOKSymmetric Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
                 var KesCSR = Kes.BuildCSRMatrix(true);
                 var be = Kec.MultiplyRight(Uc.Scale(-1.0), true); //Fe = 0 - Kec * Uc.
