@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// ii) uu = Kuu \ Feff 
         /// </summary>
         /// <returns></returns>
-        protected Vector CalcEffectiveRhs(DOKRowMajor globalUnconstrainedConstrained)
+        protected Vector CalcEffectiveRhs(DokRowMajor globalUnconstrainedConstrained)
         {
             Vector Fu = model.CalculateFreeForces(DofOrderer);
             Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);

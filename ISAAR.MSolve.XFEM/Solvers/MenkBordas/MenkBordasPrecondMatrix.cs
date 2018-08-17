@@ -17,14 +17,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasPrecondMatrix : ILinearTransformation<Vector>
     {
         private readonly MenkBordasSystem.Dimensions dim;
-        private readonly IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kes;
-        private readonly IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kse;
+        private readonly IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kes;
+        private readonly IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kse;
         private readonly IStandardPreconditioner Ps;
         private readonly IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
         private readonly IFactorizationLQ LQ;
 
         public MenkBordasPrecondMatrix(MenkBordasSystem.Dimensions dimensions,
-            IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kes, IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kse,
+            IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kes, IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kse,
             IStandardPreconditioner Ps, IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe, IFactorizationLQ LQ)
         {
             this.dim = dimensions;
@@ -38,14 +38,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public Vector Multiply(Vector x)
         {
             var y = Vector.CreateZero(dim.NumDofsAll);
-            var xs = x.Slice(0, dim.NumDofsStd);
+            var xs = x.GetSubvector(0, dim.NumDofsStd);
 
             // ys = Ps^T * Kss * Ps * xs
             Vector ys = Ps.PreconditionedMatrixTimesVector(xs);
 
             if (LQ != null) //TODO: something more explicit is needed
             {
-                var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
+                var xc = x.GetSubvector(dim.EquationsStart, dim.NumDofsAll);
 
                 // ye_all = Q^T * xc
                 Vector yeAll = LQ.QTimesVector(xc, true);
@@ -53,13 +53,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
                 // yc = Q * xe_all. Rows correspond to the continuity equations. 
                 //TODO: these entries are sliced twice.
-                Vector yc = LQ.QTimesVector(x.Slice(dim.NumDofsStd, dim.EquationsStart), false); 
+                Vector yc = LQ.QTimesVector(x.GetSubvector(dim.NumDofsStd, dim.EquationsStart), false); 
                 y.SetSubvector(yc, dim.EquationsStart);
             }
 
             foreach (var sub in dim.Subdomains)
             {
-                var xe = x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
+                var xe = x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
 
                 // ys += Ps^T * Kse * inv(Ue) * xe
                 ys.AddIntoThis(Ps.PreconditionerTimesVector(Kse[sub].MultiplyRight(Pe[sub].BackSubstitution(xe)), true));
@@ -78,13 +78,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var y = Vector.CreateZero(dim.NumDofsAll);
 
             // ys = Ps^T * xs
-            Vector ys = Ps.PreconditionerTimesVector(x.Slice(0, dim.NumDofsStd), transposePreconditioner);
+            Vector ys = Ps.PreconditionerTimesVector(x.GetSubvector(0, dim.NumDofsStd), transposePreconditioner);
             y.SetSubvector(ys, 0);
 
             if (LQ != null) //TODO: something more explicit is needed
             {
                 // yc = inv(L) * xc
-                Vector yc = LQ.InverseLTimesVector(x.Slice(dim.EquationsStart, dim.NumDofsAll), transposePreconditioner);
+                Vector yc = LQ.InverseLTimesVector(x.GetSubvector(dim.EquationsStart, dim.NumDofsAll), transposePreconditioner);
                 y.SetSubvector(yc, dim.EquationsStart);
             }
 
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 foreach (var sub in dim.Subdomains)
                 {
                     // ye = Pe^T * xe = inv(Ue^T) * xe
-                    Vector ye = Pe[sub].ForwardSubstitution(x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
+                    Vector ye = Pe[sub].ForwardSubstitution(x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
             }
@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 foreach (var sub in dim.Subdomains)
                 {
                     // ye = Pe * xe = inv(Ue) * xe
-                    Vector ye = Pe[sub].BackSubstitution(x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
+                    Vector ye = Pe[sub].BackSubstitution(x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
                     y.SetSubvector(ye, dim.SubdomainStarts[sub]);
                 }
             }

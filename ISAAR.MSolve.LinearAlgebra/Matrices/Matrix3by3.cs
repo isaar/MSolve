@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
@@ -11,6 +7,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
+    /// <summary>
+    /// A matrix with 3 rows and 3 columns. Optimized version of <see cref="Matrix"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class Matrix3by3 : IMatrix
     {
         private readonly double[,] data;
@@ -20,6 +20,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             this.data = data;
         }
 
+        /// <summary>
+        /// Returns true if <see cref="NumRows"/> == <see cref="NumColumns"/>.
+        /// </summary>
         public bool IsSquare { get { return true; } }
 
         /// <summary>
@@ -33,33 +36,39 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int NumRows { get { return 3; } }
 
         /// <summary>
-        /// It should only be used for passing raw arrays to linear algebra libraries.
+        /// The internal array that stores the entries of the matrix. It should only be used for passing the raw array to linear 
+        /// algebra libraries.
         /// </summary>
         internal double[,] InternalData { get { return data; } }
 
         /// <summary>
-        /// The entry with row index = i and column index = j. 
+        /// See <see cref="IIndexable2D.this[int, int]"/>.
         /// </summary>
-        /// <param name="rowIdx">The row index: 0 &lt;= i &lt; <see cref="NumRows"/></param>
-        /// <param name="colIdx">The column index: 0 &lt;= j &lt; <see cref="NumColumns"/></param>
-        /// <returns>The entry with indices i, j</returns>
         public double this[int rowIdx, int colIdx] //TODO: Should I add bound checking?
         {
             get { return data[rowIdx, colIdx]; }
             set { data[rowIdx, colIdx] = value; }
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Matrix3by3"/> that contains the provided entries: 
+        /// {{<paramref name="x00"/>, <paramref name="x01"/>, <paramref name="x02"/>}, 
+        ///  {<paramref name="x10"/>, <paramref name="x11"/>, <paramref name="x12"/>}, 
+        ///  {<paramref name="x20"/>, <paramref name="x21"/>, <paramref name="entry22"/>}} 
+        /// </summary>
         public static Matrix3by3 Create(double x00, double x01, double x02, double x10, double x11, double x12, 
-            double x20, double x21, double x22)
-        {
-            return new Matrix3by3(new double[,] { { x00, x01, x02 }, { x10, x11, x12 }, { x20, x21, x22 } });
-        }
+            double x20, double x21, double x22) 
+            => new Matrix3by3(new double[,] { { x00, x01, x02 }, { x10, x11, x12 }, { x20, x21, x22 } });
 
         /// <summary>
-        /// Create a new <see cref="Matrix3by3"/> from a provided array. The array will be copied.
+        /// Initializes a new instance of <see cref="Matrix3by3"/> with <paramref name="array2D"/> or a clone as its internal 
+        /// array.
         /// </summary>
-        /// <param name="array2D">A 2-dimensional array containing the elements of the matrix</param>
-        /// <returns></returns>
+        /// <param name="array2D">A 2-dimensional array containing the entries of the matrix. Constraints 
+        ///     <paramref name="array2D"/>.GetLength(0) ==  <paramref name="array2D"/>.GetLength(0) == 3.</param>
+        /// <param name="copyArray">If true, <paramref name="array2D"/> will be copied and the new <see cref="Matrix3by3"/> 
+        ///     instance will have a reference to the copy, which is safer. If false, the new matrix will have a reference to 
+        ///     <paramref name="array2D"/> itself, which is faster.</param>
         public static Matrix3by3 CreateFromArray(double[,] array2D, bool copyArray)
         {
             // TODO: more efficient checking
@@ -78,28 +87,31 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else return new Matrix3by3(array2D);
         }
 
-        public static Matrix3by3 CreateIdentity()
-        {
-            return new Matrix3by3(new double[,] { { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 } });
-        }
-
-        public static Matrix3by3 CreateWithValue(double value)
-        {
-            return new Matrix3by3(new double[,] { { value, value, value }, { value, value, value }, { value, value, value } });
-        }
+        /// <summary>
+        /// Initializes a new instance of <see cref="Matrix3by3"/> that is equal to the identity matrix, namely a square matrix 
+        /// with non-diagonal entries being equal to 0 and diagonal entries being equal to 1.
+        /// </summary>
+        public static Matrix3by3 CreateIdentity() 
+            => new Matrix3by3(new double[,] { { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 } });
 
         /// <summary>
-        /// Create a new <see cref="Matrix3by3"/> with all entries equal to 0.
+        /// Initializes a new instance of <see cref="Matrix3by3"/> with all entries being equal to <paramref name="value"/>.
+        /// </summary>
+        public static Matrix3by3 CreateWithValue(double value)
+            => new Matrix3by3(new double[,] { { value, value, value }, { value, value, value }, { value, value, value } });
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="Matrix3by3"/> with all entries being equal to 0.
         /// </summary> 
-        /// <param name="numRows">The number of rows of the matrix.</param>
-        /// <param name="numColumns">The number of rows of the matrix.</param>
-        /// <returns></returns>
-        public static Matrix3by3 CreateZero()
-        {
-            return new Matrix3by3(new double[3, 3]);
-        }
+        public static Matrix3by3 CreateZero() => new Matrix3by3(new double[3, 3]);
 
         #region operators (use extension operators when they become available)
+        /// <summary>
+        /// Performs the operation: result[i, j] = <paramref name="m1"/>[i, j] + <paramref name="m2"/>[i, j], 
+        /// for 0 &lt;= i, j &lt; 3. The resulting entries are written to a new <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="m1">The first <see cref="Matrix3by3"/> operand.</param>
+        /// <param name="m2">The second <see cref="Matrix3by3"/> operand.</param>
         public static Matrix3by3 operator +(Matrix3by3 m1, Matrix3by3 m2)
         {
             return new Matrix3by3(new double[,]
@@ -110,6 +122,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             });
         }
 
+        /// <summary>
+        /// Performs the operation: result[i, j] = <paramref name="m1"/>[i, j] - <paramref name="m2"/>[i, j], 
+        /// for 0 &lt;= i, j &lt; 3. The resulting entries are written to a new <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="m1">The first <see cref="Matrix3by3"/> operand.</param>
+        /// <param name="m2">The second <see cref="Matrix3by3"/> operand.</param>
         public static Matrix3by3 operator -(Matrix3by3 m1, Matrix3by3 m2)
         {
             return new Matrix3by3(new double[,]
@@ -120,20 +138,51 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             });
         }
 
+        /// <summary>
+        /// Performs the operation: result[i, j] = <paramref name="scalar"/> * <paramref name="matrix"/>[i, j], 
+        /// for 0 &lt;= i, j &lt; 3. The resulting entries are written to a new <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="scalar">The scalar value that will be multiplied with all vector entries.</param>
+        /// <param name="matrix">The matrix to multiply.</param>
         public static Matrix3by3 operator *(double scalar, Matrix3by3 matrix) => matrix.Scale(scalar);
 
+        /// <summary>
+        /// Performs the operation: result[i, j] = <paramref name="scalar"/> * <paramref name="matrix"/>[i, j], 
+        /// for 0 &lt;= i, j &lt; 3. The resulting entries are written to a new <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="matrix">The matrix to multiply.</param>
+        /// <param name="scalar">The scalar value that will be multiplied with all vector entries.</param>
         public static Matrix3by3 operator *(Matrix3by3 matrix, double scalar) => matrix.Scale(scalar);
 
+        /// <summary>
+        /// Performs the matrix-matrix multiplication: result = <paramref name="matrixLeft"/> * <paramref name="matrixRight"/>.
+        /// </summary>
+        /// <param name="matrixLeft">The <see cref="Matrix3by3"/> operand on the left.</param>
+        /// <param name="matrixRight">The <see cref="Matrix3by3"/> operand on the right.</param>
         public static Matrix3by3 operator *(Matrix3by3 matrixLeft, Matrix3by3 matrixRight)
             => matrixLeft.MultiplyRight(matrixRight, false, false);
 
+        /// <summary>
+        /// Performs the matrix-vector multiplication: result = <paramref name="matrixLeft"/> * <paramref name="vectorRight"/>.
+        /// </summary>
+        /// <param name="matrixLeft">The <see cref="Matrix3by3"/> operand on the left.</param>
+        /// <param name="vectorRight">The <see cref="Vector3"/> operand on the right. It can be considered as a column 
+        ///     vector.</param>
         public static Vector3 operator *(Matrix3by3 matrixLeft, Vector3 vectorRight)
             => matrixLeft.MultiplyRight(vectorRight, false);
 
+        /// <summary>
+        /// Performs the matrix-vector multiplication: result = <paramref name="vectorLeft"/> * <paramref name="matrixRight"/>.
+        /// </summary>
+        /// <param name="vectorLeft">The <see cref="Vector3"/> operand on the left. It can be considered as a row vector.</param>
+        /// <param name="matrixRight">The <see cref="Matrix3by3"/> operand on the right.</param>
         public static Vector3 operator *(Vector3 vectorLeft, Matrix3by3 matrixRight)
             => matrixRight.MultiplyRight(vectorLeft, true);
         #endregion
 
+        /// <summary>
+        /// See <see cref="IMatrixView.Axpy(IMatrixView, double)"/>.
+        /// </summary>
         public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix3by3 casted) return Axpy(casted, otherCoefficient);
@@ -161,6 +210,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// result[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
+        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public Matrix3by3 Axpy(Matrix3by3 otherMatrix, double otherCoefficient)
         {
             return new Matrix3by3(new double[,]
@@ -183,6 +239,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             });
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.AxpyIntoThis(IMatrixView, double)"/>.
+        /// </summary>
         public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix3by3 casted) AxpyIntoThis(casted, otherCoefficient);
@@ -201,6 +260,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// this[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
+        /// The resulting matrix overwrites the entries of this <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public void AxpyIntoThis(Matrix3by3 other, double otherCoefficient)
         {
             this.data[0, 0] += otherCoefficient * other.data[0, 0];
@@ -214,6 +280,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             this.data[2, 2] += otherCoefficient * other.data[2, 2];
         }
 
+        /// <summary>
+        /// Calculates the determinant of this matrix, which must be square. If the inverse matrix is also needed, use
+        /// <see cref="InvertAndDetermninant"/> instead.
+        /// </summary>
         public double CalcDeterminant()
         {
             // Laplace formula: 
@@ -223,6 +293,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 + data[0, 2] * (data[1, 0] * data[2, 1] - data[1, 1] * data[2, 0]);
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Matrix3by3"/> by copying the entries of this instance.
+        /// </summary>
         public Matrix3by3 Copy()
         {
             return new Matrix3by3(new double[,] 
@@ -234,11 +307,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Copy the entries of the matrix into a 2-dimensional array. The returned array has length(0) = 3
-        /// and length(1) = 3. 
+        /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = length(1) = 3. 
         /// </summary>
-        /// <returns>A new <see cref="double"/>[<see cref="NumRows"/>, <see cref="NumRows"/>] array 
-        /// with the entries of the matrix</returns>
         public double[,] CopyToArray2D()
         {
             return new double[,]
@@ -249,91 +319,117 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             };
         }
 
-        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// result[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
+        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// </summary>
+        /// <param name="matrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
+        public IMatrixView DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix3by3 casted) return DoEntrywise(casted, binaryOperation);
+            if (matrix is Matrix3by3 casted) return DoEntrywise(casted, binaryOperation);
             else
             {
-                Preconditions.CheckSameMatrixDimensions(this, other);
+                Preconditions.CheckSameMatrixDimensions(this, matrix);
                 return new Matrix3by3(new double[,]
                 {
                     {
-                        binaryOperation(data[0, 0], other[0, 0]),
-                        binaryOperation(data[0, 1], other[0, 1]),
-                        binaryOperation(data[0, 2], other[0, 2])
+                        binaryOperation(data[0, 0], matrix[0, 0]),
+                        binaryOperation(data[0, 1], matrix[0, 1]),
+                        binaryOperation(data[0, 2], matrix[0, 2])
                     },
                     {
-                        binaryOperation(data[1, 0], other[1, 0]),
-                        binaryOperation(data[1, 1], other[1, 1]),
-                        binaryOperation(data[1, 2], other[1, 2])
+                        binaryOperation(data[1, 0], matrix[1, 0]),
+                        binaryOperation(data[1, 1], matrix[1, 1]),
+                        binaryOperation(data[1, 2], matrix[1, 2])
                     },
                     {
-                        binaryOperation(data[2, 0], other[2, 0]),
-                        binaryOperation(data[2, 1], other[2, 1]),
-                        binaryOperation(data[2, 2], other[2, 2])
+                        binaryOperation(data[2, 0], matrix[2, 0]),
+                        binaryOperation(data[2, 1], matrix[2, 1]),
+                        binaryOperation(data[2, 2], matrix[2, 2])
                     }
                 });
             }
         }
 
-        public Matrix3by3 DoEntrywise(Matrix3by3 other, Func<double, double, double> binaryOperation)
+        /// <summary>
+        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// </summary>
+        public Matrix3by3 DoEntrywise(Matrix3by3 matrix, Func<double, double, double> binaryOperation)
         {
             return new Matrix3by3(new double[,]
             {
                 {
-                    binaryOperation(this.data[0, 0], other.data[0, 0]),
-                    binaryOperation(this.data[0, 1], other.data[0, 1]),
-                    binaryOperation(this.data[0, 2], other.data[0, 2])
+                    binaryOperation(this.data[0, 0], matrix.data[0, 0]),
+                    binaryOperation(this.data[0, 1], matrix.data[0, 1]),
+                    binaryOperation(this.data[0, 2], matrix.data[0, 2])
                 },
                 {
-                    binaryOperation(this.data[1, 0], other.data[1, 0]),
-                    binaryOperation(this.data[1, 1], other.data[1, 1]),
-                    binaryOperation(this.data[1, 2], other.data[1, 2])
+                    binaryOperation(this.data[1, 0], matrix.data[1, 0]),
+                    binaryOperation(this.data[1, 1], matrix.data[1, 1]),
+                    binaryOperation(this.data[1, 2], matrix.data[1, 2])
                 },
                 {
-                    binaryOperation(this.data[2, 0], other.data[2, 0]),
-                    binaryOperation(this.data[2, 1], other.data[2, 1]),
-                    binaryOperation(this.data[2, 2], other.data[2, 2])
+                    binaryOperation(this.data[2, 0], matrix.data[2, 0]),
+                    binaryOperation(this.data[2, 1], matrix.data[2, 1]),
+                    binaryOperation(this.data[2, 2], matrix.data[2, 2])
                 }
             });
         }
 
-        public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
+        /// The resulting matrix overwrites the entries of this <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="matrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
+        public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (other is Matrix3by3 casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (matrix is Matrix3by3 casted) DoEntrywiseIntoThis(casted, binaryOperation);
             else
             {
-                Preconditions.CheckSameMatrixDimensions(this, other);
-                data[0, 0] = binaryOperation(data[0, 0], other[0, 0]);
-                data[0, 1] = binaryOperation(data[0, 1], other[0, 1]);
-                data[0, 2] = binaryOperation(data[0, 2], other[0, 2]);
-                data[1, 0] = binaryOperation(data[1, 0], other[1, 0]);
-                data[1, 1] = binaryOperation(data[1, 1], other[1, 1]);
-                data[1, 2] = binaryOperation(data[1, 2], other[1, 2]);
-                data[2, 0] = binaryOperation(data[2, 0], other[2, 0]);
-                data[2, 1] = binaryOperation(data[2, 1], other[2, 1]);
-                data[2, 2] = binaryOperation(data[2, 2], other[2, 2]);
+                Preconditions.CheckSameMatrixDimensions(this, matrix);
+                data[0, 0] = binaryOperation(data[0, 0], matrix[0, 0]);
+                data[0, 1] = binaryOperation(data[0, 1], matrix[0, 1]);
+                data[0, 2] = binaryOperation(data[0, 2], matrix[0, 2]);
+                data[1, 0] = binaryOperation(data[1, 0], matrix[1, 0]);
+                data[1, 1] = binaryOperation(data[1, 1], matrix[1, 1]);
+                data[1, 2] = binaryOperation(data[1, 2], matrix[1, 2]);
+                data[2, 0] = binaryOperation(data[2, 0], matrix[2, 0]);
+                data[2, 1] = binaryOperation(data[2, 1], matrix[2, 1]);
+                data[2, 2] = binaryOperation(data[2, 2], matrix[2, 2]);
             }
         }
 
-        public void DoEntrywiseIntoThis(Matrix3by3 other, Func<double, double, double> binaryOperation)
+        /// <summary>
+        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
+        public void DoEntrywiseIntoThis(Matrix3by3 matrix, Func<double, double, double> binaryOperation)
         {
-            this.data[0, 0] = binaryOperation(this.data[0, 0], other.data[0, 0]);
-            this.data[0, 1] = binaryOperation(this.data[0, 1], other.data[0, 1]);
-            this.data[0, 2] = binaryOperation(this.data[0, 2], other.data[0, 2]);
-            this.data[1, 0] = binaryOperation(this.data[1, 0], other.data[1, 0]);
-            this.data[1, 1] = binaryOperation(this.data[1, 1], other.data[1, 1]);
-            this.data[1, 2] = binaryOperation(this.data[1, 2], other.data[1, 2]);
-            this.data[2, 0] = binaryOperation(this.data[2, 0], other.data[2, 0]);
-            this.data[2, 1] = binaryOperation(this.data[2, 1], other.data[2, 1]);
-            this.data[2, 2] = binaryOperation(this.data[2, 2], other.data[2, 2]);
+            this.data[0, 0] = binaryOperation(this.data[0, 0], matrix.data[0, 0]);
+            this.data[0, 1] = binaryOperation(this.data[0, 1], matrix.data[0, 1]);
+            this.data[0, 2] = binaryOperation(this.data[0, 2], matrix.data[0, 2]);
+            this.data[1, 0] = binaryOperation(this.data[1, 0], matrix.data[1, 0]);
+            this.data[1, 1] = binaryOperation(this.data[1, 1], matrix.data[1, 1]);
+            this.data[1, 2] = binaryOperation(this.data[1, 2], matrix.data[1, 2]);
+            this.data[2, 0] = binaryOperation(this.data[2, 0], matrix.data[2, 0]);
+            this.data[2, 1] = binaryOperation(this.data[2, 1], matrix.data[2, 1]);
+            this.data[2, 2] = binaryOperation(this.data[2, 2], matrix.data[2, 2]);
         }
 
-        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
-        {
-            return DoToAllEntries(unaryOperation);
-        }
+        /// <summary>
+        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
+        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
 
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// result[i, j] = <paramref name="unaryOperation"/>(this[i,j])
+        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// </summary>
+        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public Matrix3by3 DoToAllEntries(Func<double, double> unaryOperation)
         {
             return new Matrix3by3(new double[,]
@@ -344,13 +440,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             });
         }
 
-        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
-        {
-            DoToAllEntriesIntoThis(unaryOperation);
-        }
-
-        // Ok for a DenseMatrix, but for sparse formats some operation (e.g scale) maintain the sparsity pattern,
-        // while others don't
+        /// <summary>
+        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             data[0, 0] = unaryOperation(data[0, 0]);
@@ -364,6 +456,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             data[2, 2] = unaryOperation(data[2, 2]);
         }
 
+        /// <summary>
+        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
+        /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             var comparer = new ValueComparer(1e-13);
@@ -393,12 +488,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// Calculates the inverse matrix and returns it in a new <see cref="Matrix3by3"/> instance. This only works if this 
+        /// <see cref="Matrix3by3"/> is invertible. If the determinant matrix is also needed, use 
+        /// <see cref="InvertAndDetermninant"/> instead.
+        /// </summary>
+        /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
         public Matrix3by3 Invert()
         {
             (Matrix3by3 inverse, double det) = InvertAndDetermninant();
             return inverse;
         }
 
+        /// <summary>
+        /// Calculates the determinant and the inverse matrix and returns the latter in a new <see cref="Matrix"/> instance. 
+        /// This only works if this <see cref="Matrix3by3"/> is invertible.
+        /// </summary>
+        /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
         public (Matrix3by3 inverse, double determinant) InvertAndDetermninant()
         {
             // Minors of the first row (with signs)
@@ -426,6 +532,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return (new Matrix3by3(inverse), det);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
+        /// </summary>
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix3by3 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
@@ -454,6 +563,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// result[i, j] = <paramref name="thisCoefficient"/> * this[i, j] 
+        ///     + <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j]. 
+        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// </summary>
+        /// <param name="thisCoefficient">A scalar that multiplies each entry of this <see cref="Matrix3by3"/>.</param>
+        /// <param name="otherMatrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public Matrix3by3 LinearCombination(double thisCoefficient, Matrix3by3 otherMatrix, double otherCoefficient)
         {
             return new Matrix3by3(new double[,]
@@ -476,6 +594,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             });
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.LinearCombinationIntoThis(double, IMatrixView, double)"/>.
+        /// </summary>
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix3by3 casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
@@ -494,6 +615,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
+        /// result[i, j] = <paramref name="thisCoefficient"/> * this[i, j] 
+        ///     + <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j]. 
+        /// The resulting matrix overwrites the entries of this <see cref="Matrix3by3"/> instance.
+        /// </summary>
+        /// <param name="thisCoefficient">A scalar that multiplies each entry of this <see cref="Matrix3by3"/>.</param>
+        /// <param name="otherMatrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix3by3 otherMatrix, double otherCoefficient)
         {
             this.data[0, 0] = thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0];
@@ -507,89 +637,95 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             this.data[2, 2] = thisCoefficient * this.data[2, 2] + otherCoefficient * otherMatrix.data[2, 2];
         }
 
-        public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyLeft(IMatrixView, bool, bool)"/>.
+        /// </summary>
+        public Matrix MultiplyLeft(IMatrixView matrix, bool transposeThis = false, bool transposeOther = false)
         {
-            return other.MultiplyRight(this, transposeOther, transposeThis); //TODO: optimize this
+            return matrix.MultiplyRight(this, transposeOther, transposeThis); //TODO: optimize this
         }
 
-        public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyRight(IMatrixView, bool, bool)"/>.
+        /// </summary>
+        public Matrix MultiplyRight(IMatrixView matrix, bool transposeThis = false, bool transposeOther = false)
         {
             // For now piggy back on Matrix. TODO: Optimize this
             double[] colMajor = new double[] {
                 data[0, 0], data[1, 0], data[2, 0], data[0, 1], data[1, 1], data[2, 1], data[0, 2], data[1, 2], data[2, 2] };
-            return Matrix.CreateFromArray(colMajor, 3, 3, false).MultiplyRight(other, transposeThis, transposeOther);
+            return Matrix.CreateFromArray(colMajor, 3, 3, false).MultiplyRight(matrix, transposeThis, transposeOther);
         }
 
         /// <summary>
-        /// Matrix-matrix multiplication, with the other matrix on the right: this [2-by-2] * other [2-by-2] 
-        /// or transpose(this [2-by-2]) * other [2-by-2].
+        /// Performs the matrix-matrix multiplication: oper(this) * oper(<paramref name="matrix"/>).
         /// </summary>
-        /// <param name="other">A matrix with as many rows as the column of this matrix.</param>
-        /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
-        ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
-        /// <param name="transposeOther">Set to true to transpose other (the right matrix). Unless the transpose matrix is used in 
-        ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
-        /// <returns>A matrix with dimensions (m x n)</returns>
-        public Matrix3by3 MultiplyRight(Matrix3by3 other, bool transposeThis = false, bool transposeOther = false)
+        /// <param name="matrix">A matrix with 3 rows and 3 columns.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <param name="transposeOther">If true, oper(<paramref name="matrix"/>) = transpose(<paramref name="matrix"/>). 
+        ///     Otherwise oper(<paramref name="matrix"/>) = <paramref name="matrix"/>.</param>
+        public Matrix3by3 MultiplyRight(Matrix3by3 matrix, bool transposeThis = false, bool transposeOther = false)
         {
             double[,] result = new double[3, 3];
             if (transposeThis)
             {
                 if (transposeOther)
                 {
-                    result[0, 0] = this.data[0, 0] * other.data[0, 0] + this.data[1, 0] * other.data[0, 1] + this.data[2, 0] * other.data[0, 2];
-                    result[0, 1] = this.data[0, 0] * other.data[1, 0] + this.data[1, 0] * other.data[1, 1] + this.data[2, 0] * other.data[1, 2];
-                    result[0, 2] = this.data[0, 0] * other.data[2, 0] + this.data[1, 0] * other.data[2, 1] + this.data[2, 0] * other.data[2, 2];
-                    result[1, 0] = this.data[0, 1] * other.data[0, 0] + this.data[1, 1] * other.data[0, 1] + this.data[2, 1] * other.data[0, 2];
-                    result[1, 1] = this.data[0, 1] * other.data[1, 0] + this.data[1, 1] * other.data[1, 1] + this.data[2, 1] * other.data[1, 2];
-                    result[1, 2] = this.data[0, 1] * other.data[2, 0] + this.data[1, 1] * other.data[2, 1] + this.data[2, 1] * other.data[2, 2];
-                    result[2, 0] = this.data[0, 2] * other.data[0, 0] + this.data[1, 2] * other.data[0, 1] + this.data[2, 2] * other.data[0, 2];
-                    result[2, 1] = this.data[0, 2] * other.data[1, 0] + this.data[1, 2] * other.data[1, 1] + this.data[2, 2] * other.data[1, 2];
-                    result[2, 2] = this.data[0, 2] * other.data[2, 0] + this.data[1, 2] * other.data[2, 1] + this.data[2, 2] * other.data[2, 2];
+                    result[0, 0] = this.data[0, 0] * matrix.data[0, 0] + this.data[1, 0] * matrix.data[0, 1] + this.data[2, 0] * matrix.data[0, 2];
+                    result[0, 1] = this.data[0, 0] * matrix.data[1, 0] + this.data[1, 0] * matrix.data[1, 1] + this.data[2, 0] * matrix.data[1, 2];
+                    result[0, 2] = this.data[0, 0] * matrix.data[2, 0] + this.data[1, 0] * matrix.data[2, 1] + this.data[2, 0] * matrix.data[2, 2];
+                    result[1, 0] = this.data[0, 1] * matrix.data[0, 0] + this.data[1, 1] * matrix.data[0, 1] + this.data[2, 1] * matrix.data[0, 2];
+                    result[1, 1] = this.data[0, 1] * matrix.data[1, 0] + this.data[1, 1] * matrix.data[1, 1] + this.data[2, 1] * matrix.data[1, 2];
+                    result[1, 2] = this.data[0, 1] * matrix.data[2, 0] + this.data[1, 1] * matrix.data[2, 1] + this.data[2, 1] * matrix.data[2, 2];
+                    result[2, 0] = this.data[0, 2] * matrix.data[0, 0] + this.data[1, 2] * matrix.data[0, 1] + this.data[2, 2] * matrix.data[0, 2];
+                    result[2, 1] = this.data[0, 2] * matrix.data[1, 0] + this.data[1, 2] * matrix.data[1, 1] + this.data[2, 2] * matrix.data[1, 2];
+                    result[2, 2] = this.data[0, 2] * matrix.data[2, 0] + this.data[1, 2] * matrix.data[2, 1] + this.data[2, 2] * matrix.data[2, 2];
                 }
                 else
                 {
-                    result[0, 0] = this.data[0, 0] * other.data[0, 0] + this.data[1, 0] * other.data[1, 0] + this.data[2, 0] * other.data[2, 0];
-                    result[0, 1] = this.data[0, 0] * other.data[0, 1] + this.data[1, 0] * other.data[1, 1] + this.data[2, 0] * other.data[2, 1];
-                    result[0, 2] = this.data[0, 0] * other.data[0, 2] + this.data[1, 0] * other.data[1, 2] + this.data[2, 0] * other.data[2, 2];
-                    result[1, 0] = this.data[0, 1] * other.data[0, 0] + this.data[1, 1] * other.data[1, 0] + this.data[2, 1] * other.data[2, 0];
-                    result[1, 1] = this.data[0, 1] * other.data[0, 1] + this.data[1, 1] * other.data[1, 1] + this.data[2, 1] * other.data[2, 1];
-                    result[1, 2] = this.data[0, 1] * other.data[0, 2] + this.data[1, 1] * other.data[1, 2] + this.data[2, 1] * other.data[2, 2];
-                    result[2, 0] = this.data[0, 2] * other.data[0, 0] + this.data[2, 2] * other.data[1, 0] + this.data[2, 2] * other.data[2, 0];
-                    result[2, 1] = this.data[0, 2] * other.data[0, 1] + this.data[2, 2] * other.data[1, 1] + this.data[2, 2] * other.data[2, 1];
-                    result[2, 2] = this.data[0, 2] * other.data[0, 2] + this.data[2, 2] * other.data[1, 2] + this.data[2, 2] * other.data[2, 2];
+                    result[0, 0] = this.data[0, 0] * matrix.data[0, 0] + this.data[1, 0] * matrix.data[1, 0] + this.data[2, 0] * matrix.data[2, 0];
+                    result[0, 1] = this.data[0, 0] * matrix.data[0, 1] + this.data[1, 0] * matrix.data[1, 1] + this.data[2, 0] * matrix.data[2, 1];
+                    result[0, 2] = this.data[0, 0] * matrix.data[0, 2] + this.data[1, 0] * matrix.data[1, 2] + this.data[2, 0] * matrix.data[2, 2];
+                    result[1, 0] = this.data[0, 1] * matrix.data[0, 0] + this.data[1, 1] * matrix.data[1, 0] + this.data[2, 1] * matrix.data[2, 0];
+                    result[1, 1] = this.data[0, 1] * matrix.data[0, 1] + this.data[1, 1] * matrix.data[1, 1] + this.data[2, 1] * matrix.data[2, 1];
+                    result[1, 2] = this.data[0, 1] * matrix.data[0, 2] + this.data[1, 1] * matrix.data[1, 2] + this.data[2, 1] * matrix.data[2, 2];
+                    result[2, 0] = this.data[0, 2] * matrix.data[0, 0] + this.data[2, 2] * matrix.data[1, 0] + this.data[2, 2] * matrix.data[2, 0];
+                    result[2, 1] = this.data[0, 2] * matrix.data[0, 1] + this.data[2, 2] * matrix.data[1, 1] + this.data[2, 2] * matrix.data[2, 1];
+                    result[2, 2] = this.data[0, 2] * matrix.data[0, 2] + this.data[2, 2] * matrix.data[1, 2] + this.data[2, 2] * matrix.data[2, 2];
                 }
             }
             else
             {
                 if (transposeOther)
                 {
-                    result[0, 0] = this.data[0, 0] * other.data[0, 0] + this.data[0, 1] * other.data[0, 1] + this.data[0, 2] * other.data[0, 2];
-                    result[0, 1] = this.data[0, 0] * other.data[1, 0] + this.data[0, 1] * other.data[1, 1] + this.data[0, 2] * other.data[1, 2];
-                    result[0, 2] = this.data[0, 0] * other.data[2, 0] + this.data[0, 1] * other.data[2, 1] + this.data[0, 2] * other.data[2, 2];
-                    result[1, 0] = this.data[1, 0] * other.data[0, 0] + this.data[1, 1] * other.data[0, 1] + this.data[1, 2] * other.data[0, 2];
-                    result[1, 1] = this.data[1, 0] * other.data[1, 0] + this.data[1, 1] * other.data[1, 1] + this.data[1, 2] * other.data[1, 2];
-                    result[1, 2] = this.data[1, 0] * other.data[2, 0] + this.data[1, 1] * other.data[2, 1] + this.data[1, 2] * other.data[2, 2];
-                    result[2, 0] = this.data[2, 0] * other.data[0, 0] + this.data[2, 1] * other.data[0, 1] + this.data[2, 2] * other.data[0, 2];
-                    result[2, 1] = this.data[2, 0] * other.data[1, 0] + this.data[2, 1] * other.data[1, 1] + this.data[2, 2] * other.data[1, 2];
-                    result[2, 2] = this.data[2, 0] * other.data[2, 0] + this.data[2, 1] * other.data[2, 1] + this.data[2, 2] * other.data[2, 2];
+                    result[0, 0] = this.data[0, 0] * matrix.data[0, 0] + this.data[0, 1] * matrix.data[0, 1] + this.data[0, 2] * matrix.data[0, 2];
+                    result[0, 1] = this.data[0, 0] * matrix.data[1, 0] + this.data[0, 1] * matrix.data[1, 1] + this.data[0, 2] * matrix.data[1, 2];
+                    result[0, 2] = this.data[0, 0] * matrix.data[2, 0] + this.data[0, 1] * matrix.data[2, 1] + this.data[0, 2] * matrix.data[2, 2];
+                    result[1, 0] = this.data[1, 0] * matrix.data[0, 0] + this.data[1, 1] * matrix.data[0, 1] + this.data[1, 2] * matrix.data[0, 2];
+                    result[1, 1] = this.data[1, 0] * matrix.data[1, 0] + this.data[1, 1] * matrix.data[1, 1] + this.data[1, 2] * matrix.data[1, 2];
+                    result[1, 2] = this.data[1, 0] * matrix.data[2, 0] + this.data[1, 1] * matrix.data[2, 1] + this.data[1, 2] * matrix.data[2, 2];
+                    result[2, 0] = this.data[2, 0] * matrix.data[0, 0] + this.data[2, 1] * matrix.data[0, 1] + this.data[2, 2] * matrix.data[0, 2];
+                    result[2, 1] = this.data[2, 0] * matrix.data[1, 0] + this.data[2, 1] * matrix.data[1, 1] + this.data[2, 2] * matrix.data[1, 2];
+                    result[2, 2] = this.data[2, 0] * matrix.data[2, 0] + this.data[2, 1] * matrix.data[2, 1] + this.data[2, 2] * matrix.data[2, 2];
                 }
                 else
                 {
-                    result[0, 0] = this.data[0, 0] * other.data[0, 0] + this.data[0, 1] * other.data[1, 0] + this.data[0, 2] * other.data[2, 0];
-                    result[0, 1] = this.data[0, 0] * other.data[0, 1] + this.data[0, 1] * other.data[1, 1] + this.data[0, 2] * other.data[2, 1];
-                    result[0, 2] = this.data[0, 0] * other.data[0, 2] + this.data[0, 1] * other.data[1, 2] + this.data[0, 2] * other.data[2, 2];
-                    result[1, 0] = this.data[1, 0] * other.data[0, 0] + this.data[1, 1] * other.data[1, 0] + this.data[1, 2] * other.data[2, 0];
-                    result[1, 1] = this.data[1, 0] * other.data[0, 1] + this.data[1, 1] * other.data[1, 1] + this.data[1, 2] * other.data[2, 1];
-                    result[1, 2] = this.data[1, 0] * other.data[0, 2] + this.data[1, 1] * other.data[1, 2] + this.data[1, 2] * other.data[2, 2];
-                    result[2, 0] = this.data[2, 0] * other.data[0, 0] + this.data[2, 1] * other.data[1, 0] + this.data[2, 2] * other.data[2, 0];
-                    result[2, 1] = this.data[2, 0] * other.data[0, 1] + this.data[2, 1] * other.data[1, 1] + this.data[2, 2] * other.data[2, 1];
-                    result[2, 2] = this.data[2, 0] * other.data[0, 2] + this.data[2, 1] * other.data[1, 2] + this.data[2, 2] * other.data[2, 2];
+                    result[0, 0] = this.data[0, 0] * matrix.data[0, 0] + this.data[0, 1] * matrix.data[1, 0] + this.data[0, 2] * matrix.data[2, 0];
+                    result[0, 1] = this.data[0, 0] * matrix.data[0, 1] + this.data[0, 1] * matrix.data[1, 1] + this.data[0, 2] * matrix.data[2, 1];
+                    result[0, 2] = this.data[0, 0] * matrix.data[0, 2] + this.data[0, 1] * matrix.data[1, 2] + this.data[0, 2] * matrix.data[2, 2];
+                    result[1, 0] = this.data[1, 0] * matrix.data[0, 0] + this.data[1, 1] * matrix.data[1, 0] + this.data[1, 2] * matrix.data[2, 0];
+                    result[1, 1] = this.data[1, 0] * matrix.data[0, 1] + this.data[1, 1] * matrix.data[1, 1] + this.data[1, 2] * matrix.data[2, 1];
+                    result[1, 2] = this.data[1, 0] * matrix.data[0, 2] + this.data[1, 1] * matrix.data[1, 2] + this.data[1, 2] * matrix.data[2, 2];
+                    result[2, 0] = this.data[2, 0] * matrix.data[0, 0] + this.data[2, 1] * matrix.data[1, 0] + this.data[2, 2] * matrix.data[2, 0];
+                    result[2, 1] = this.data[2, 0] * matrix.data[0, 1] + this.data[2, 1] * matrix.data[1, 1] + this.data[2, 2] * matrix.data[2, 1];
+                    result[2, 2] = this.data[2, 0] * matrix.data[0, 2] + this.data[2, 1] * matrix.data[1, 2] + this.data[2, 2] * matrix.data[2, 2];
                 }
             }
             return new Matrix3by3(result);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// </summary>
         public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             Preconditions.CheckMultiplicationDimensions(2, vector.Length);
@@ -614,12 +750,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Matrix-vector multiplication, with the vector on the right: matrix * vector or transpose(matrix) * vector.
+        /// Performs the matrix-vector multiplication: oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// </summary>
-        /// <param name="vector">A vector with length equal to 2.</param>
-        /// <param name="transposeThis">Set to true to transpose this (the left matrix). Unless the transpose matrix is used in 
-        ///     more than one multiplications, setting this flag to true is usually preferable to creating the transpose.</param>
-        /// <returns></returns>
+        /// <param name="vector">A vector with 3 entries.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         public Vector3 MultiplyRight(Vector3 vector, bool transposeThis = false)
         {
             if (transposeThis)
@@ -638,6 +774,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.
+        /// </summary>
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
             double aggregator = identityValue;
@@ -649,9 +788,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// result = scalar * this
+        /// See <see cref="IMatrixView.Scale(double)"/>.
         /// </summary>
-        /// <param name="scalar"></param>
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i, j &lt; 2:
+        /// result[i, j] = <paramref name="scalar"/> * <paramref name="this"/>[i, j].
+        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// </summary>
+        /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
         public Matrix3by3 Scale(double scalar)
         {
             return new Matrix3by3(new double[,]
@@ -663,9 +809,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// this = scalar * this
+        /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        /// <param name="scalar"></param>
         public void ScaleIntoThis(double scalar)
         {
             data[0, 0] *= scalar; data[0, 1] *= scalar; data[0, 2] *= scalar;
@@ -673,6 +818,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             data[2, 0] *= scalar; data[2, 1] *= scalar; data[2, 2] *= scalar;
         }
 
+        /// <summary>
+        /// Sets all entries of this matrix to be equal to <paramref name="value"/>.
+        /// </summary>
+        /// <param name="value">The value that all entries of the this matrix will be equal to.</param>
         public void SetAll(double value)
         {
             data[0, 0] = value; data[0, 1] = value; data[0, 2] = value;
@@ -680,25 +829,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             data[2, 0] = value; data[2, 1] = value; data[2, 2] = value;
         }
 
-        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
-        {
-            data[rowIdx, colIdx] = value;
-        }
+        /// <summary>
+        /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
+        /// </summary>
+        public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value) => data[rowIdx, colIdx] = value;
 
         /// <summary>
-        /// Doesn't copy anything. Remove this once the design is cleaned. 
+        /// Creates a new instance of the legacy matrix class <see cref="Numerical.LinearAlgebra.Matrix"/>, by copying the 
+        /// entries of this <see cref="Matrix3by3"/> instance. 
         /// </summary>
-        /// <returns></returns>
         public Numerical.LinearAlgebra.Interfaces.IMatrix2D ToLegacyMatrix()
-        {
-            return new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
-        }
+            => new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
 
-        IMatrixView IMatrixView.Transpose()
-        {
-            return Transpose();
-        }
+        /// <summary>
+        /// See <see cref="IMatrixView.Transpose"/>.
+        /// </summary>
+        IMatrixView IMatrixView.Transpose() => Transpose();
 
+        /// <summary>
+        /// Initializes a new <see cref="Matrix3by3"/> instance, that is transpose to this: result[i, j] = this[j, i].  
+        /// The entries will be explicitly copied.
+        /// </summary>
         public Matrix3by3 Transpose()
         {
             return new Matrix3by3(new double[,] 

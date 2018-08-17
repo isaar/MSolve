@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Linear system assembly (part 2)
             watch.Restart();
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             watch.Stop();
             assemblyTime += watch.ElapsedMilliseconds;
@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void Reorder()
         {
-            var orderingAlgorithm = new OrderingAMD();
+            var orderingAlgorithm = new OrderingAmd();
 
             int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 }
                 pattern.ConnectIndices(allDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
 
             #region DEBUG
             //var assembler = new GlobalDOKAssembler();
@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer.ReorderUnconstrainedDofs(permutation, false);
         }
 
-        private Vector CalcEffectiveRhs(DOKRowMajor globalUnconstrainedConstrained)
+        private Vector CalcEffectiveRhs(DokRowMajor globalUnconstrainedConstrained)
         {
             Vector Fu = model.CalculateFreeForces(DofOrderer);
             Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
@@ -151,7 +151,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void SolveWithoutReordering(IDofOrderer unordered)
         {
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
+            (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);

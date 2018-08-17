@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Input
 {
-    // Copied from Stavroulakis code.
+    /// <summary>
+    /// Reads the index and value arrays of a skyline matrix from separate files.
+    /// Authors: George Stavroulakis
+    /// </summary>
     public class SkylineMatrixReader
     {
         public static SkylineMatrix ReadFromFiles(string valuesPath, string diagonalOffsetsPath)

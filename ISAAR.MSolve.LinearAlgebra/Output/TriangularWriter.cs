@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
-    public class TriangularWriter : MatrixWriter
+    /// <summary>
+    /// Write the only the upper or lower triangle of a matrix to console or a file.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class TriangularWriter
     {
-        protected override void WriteToStream(StreamWriter writer)
-        {
-            throw new NotImplementedException();
-        }
+       
     }
 }

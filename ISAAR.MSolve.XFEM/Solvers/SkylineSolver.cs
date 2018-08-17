@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalSkylineAssembler();
-            (SkylineMatrix Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (SkylineMatrix Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             Solution = Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
         }

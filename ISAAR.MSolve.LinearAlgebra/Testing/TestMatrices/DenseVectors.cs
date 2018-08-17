@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -49,7 +50,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check Add(): ");
-            comparer.CheckVectorEquality(expected, v1.Add(v2));
+            comparer.CheckVectorEquality(expected, v1 + v2);
 
             Console.Write("Check AddIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
@@ -68,7 +69,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check Subtract(): ");
-            comparer.CheckVectorEquality(expected, v1.Subtract(v2));
+            comparer.CheckVectorEquality(expected, v1 - v2);
 
             Console.Write("Check SubtractIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
@@ -105,11 +106,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check Axpy(): ");
-            comparer.CheckVectorEquality(expected, v1.Axpy(scalar2, v2));
+            comparer.CheckVectorEquality(expected, v1.Axpy(v2, scalar2));
 
             Console.Write("Check AxpyIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.AxpyIntoThis(scalar2, v2);
+            temp.AxpyIntoThis(v2, scalar2);
             comparer.CheckVectorEquality(expected, temp);
         }
 
@@ -121,11 +122,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check LinearCombination(): ");
-            comparer.CheckVectorEquality(expected, v1.LinearCombination(2.5, -3.5, v2));
+            comparer.CheckVectorEquality(expected, v1.LinearCombination(2.5, v2, -3.5));
 
             Console.Write("Check LinearCombinationIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.LinearCombinationIntoThis(2.5, -3.5, v2);
+            temp.LinearCombinationIntoThis(2.5, v2, - 3.5);
             comparer.CheckVectorEquality(expected, temp);
         }
 
@@ -137,11 +138,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var comparer = new Comparer();
 
             Console.Write("Check MultiplyPointwise(): ");
-            comparer.CheckVectorEquality(expected, v1.MultiplyPointwise(v2));
+            comparer.CheckVectorEquality(expected, v1.MultiplyEntrywise(v2));
 
             Console.Write("Check MultiplyPointwiseIntoThis(): ");
             var temp = Vector.CreateFromVector(v1);
-            temp.MultiplyPointwiseInPlace(v2);
+            temp.MultiplyEntrywise(v2);
             comparer.CheckVectorEquality(expected, temp);
         }
 
@@ -171,8 +172,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var vector = Vector.CreateFromArray(vector1);
             Console.WriteLine("Vector = ");
-            var writer = new FullVectorWriter(vector, false, Array1DFormatting.Brackets);
-            writer.WriteToConsole();
+            var writer = new FullVectorWriter(false) { ArrayFormat = Array1DFormat.Brackets };
+            writer.WriteToConsole(vector);
         }
     }
 }

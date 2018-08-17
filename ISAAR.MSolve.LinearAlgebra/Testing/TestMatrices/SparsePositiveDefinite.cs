@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -113,8 +114,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckReorderingAMD()
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
-            var orderingAlg = new OrderingAMD();
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlg);
+            var orderingAlg = new OrderingAmd();
+            (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
             Comparer comparer = new Comparer();
             bool success = comparer.AreEqual(matlabPermutationAMD, permutation);
             if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
@@ -124,13 +125,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckReorderingCAMD()
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
-            var orderingAlg = new OrderingCAMD();
+            var orderingAlg = new OrderingCamd();
 
             // Enforce indices order:
             // First group: 0, 1, 7. Second group: 3, 5, 6, 9. Third group: 2, 4, 8
             // The new positions of these indices should be grouped, such as first group is before second before third
             var constraints = new int[order] { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlg, constraints);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern, constraints);
 
             
             var originalDiagonal = new double[order];
@@ -168,35 +169,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void Print()
         {
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            INumericFormat storedDefault = FullMatrixWriter.NumericFormat;
-            FullMatrixWriter.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
+            var fullWriter = new FullMatrixWriter { NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 } };
             Console.WriteLine("Skyline (full) = ");
-            (new FullMatrixWriter(skyline)).WriteToConsole();
+            fullWriter.WriteToConsole(skyline);
             Console.WriteLine();
+
             Console.WriteLine("Skyline (arrays) = ");
-            (new RawArraysWriter(skyline, false)).WriteToConsole();
+            (new RawArraysWriter(false)).WriteToConsole(skyline);
             Console.WriteLine();
+
             Console.WriteLine("Skyline (sparse entries) = ");
-            (new CoordinateTextFileWriter(skyline)).WriteToConsole();
+            (new CoordinateTextFileWriter()).WriteToConsole(skyline);
             Console.WriteLine();
-            FullMatrixWriter.NumericFormat = storedDefault;
         }
 
         public static void PrintDOKSparseColumns()
         {
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var dok = DOKSymmetricColMajor.CreateEmpty(order);
+            var dok = DokSymmetric.CreateEmpty(order);
             foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
 
-            INumericFormat storedDefault = FullVectorWriter.NumericFormat;
-            FullVectorWriter.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
+            var writer = new FullVectorWriter();
+            writer.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
             for (int j = 0; j < order; ++j) 
             {
                 // Since the matrix is symmetric the result should look like the whole matrix being printed
                 Console.Write($"Column {j}: ");
-                (new FullVectorWriter(dok.SliceColumn(j))).WriteToConsole();
+                writer.WriteToConsole(dok.GetColumn(j));
             }
-            FullVectorWriter.NumericFormat = storedDefault;
         }
 
         public static void PrintPatternAsBoolean()
@@ -210,7 +210,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
                 }
             }
             Console.WriteLine("Sparsity pattern of the matrix:");
-            (new SparsityPatternWriter(pattern)).WriteToConsole();
+            (new SparsityPatternWriter()).WriteToConsole(pattern);
         }
     }
 }

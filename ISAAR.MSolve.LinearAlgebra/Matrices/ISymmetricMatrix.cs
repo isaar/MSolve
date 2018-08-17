@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ISAAR.MSolve.LinearAlgebra.Matrices
+﻿namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// Tagging interface
+    /// Tagging interface for symmetric matrices.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public interface ISymmetricMatrix
     {

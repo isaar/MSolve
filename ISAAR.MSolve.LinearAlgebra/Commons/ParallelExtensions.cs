@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
+    /// <summary>
+    /// Utility methods for parallel vector operations.
+    /// Authors: George Stavroulakis
+    /// </summary>
     public static class ParallelExtensions
     {
         public static int AffinityCount = 0;

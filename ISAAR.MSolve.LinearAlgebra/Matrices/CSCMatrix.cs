@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 
 // TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
 // caller, depending on if it is a matrix, a transposed matrix, a vector, etc. Compare its performance with the verbose code and 
@@ -24,19 +19,19 @@ using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// This class is optimized for matrix-vector and matrix-matrix multiplications, where the CSC matrix is on the right 
-    /// untransposed or on the left transposed. The other combinations are more efficient using <see cref="CSRMatrix"/>. To build
-    /// a <see cref="CSCMatrix"/> conveniently, use <see cref="Builders.DOKColMajor"/>. 
+    /// Sparse matrix stored in Compressed Sparse Columns format (3-array version). The CSR format is optimized for matrix-vector 
+    /// and matrix-matrix multiplications, where the CSC matrix is on the left transposed or on the right untransposed. The other
+    /// multiplicationss are more efficient using <see cref="CsrMatrix"/>. To build a <see cref="CscMatrix"/> conveniently, 
+    /// use <see cref="Builders.DokColMajor"/>.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CSCMatrix: IMatrix, ISparseMatrix //TODO: Use MKL with descriptors
+    public class CscMatrix: IMatrix, ISparseMatrix //TODO: Use MKL with descriptors
     {
-        public static bool WriteRawArrays { get; set; } = true;
-
         private readonly double[] values;
         private readonly int[] rowIndices;
         private readonly int[] colOffsets;
 
-        private CSCMatrix(int numRows, int numCols, double[] values, int[] rowIndices, int[] colOffsets)
+        private CscMatrix(int numRows, int numCols, double[] values, int[] rowIndices, int[] colOffsets)
         {
             this.values = values;
             this.rowIndices = rowIndices;
@@ -55,6 +50,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public int NumRows { get; }
 
+        /// <summary>
+        /// See <see cref="IIndexable2D.this[int, int]"/>.
+        /// </summary>
         public double this[int rowIdx, int colIdx]
         {
             get
@@ -65,7 +63,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
-        public static CSCMatrix CreateFromArrays(int numRows, int numCols, double[] values, int[] rowIndices, int[] colOffsets,
+        /// <summary>
+        /// Initializes a new <see cref="CscMatrix"/> with the specified dimensions and the provided arrays 
+        /// (<paramref name="values"/>, <paramref name="rowIndices"/> and <paramref name="colOffsets"/>) as its internal data.
+        /// </summary>
+        /// <param name="numRows">The number of rows of the new matrix.</param>
+        /// <param name="numCols">The number of columns of the new matrix.</param>
+        /// <param name="values">Array that contains the non-zero entries. It must have the same length 
+        ///     as <paramref name="rowIndices"/>. The non-zero entries of each column must appear consecutively in 
+        ///     <paramref name="values"/>. They can also be sorted in increasing order of their row indices, which speeds up
+        ///     subsequent operations.</param>
+        /// <param name="rowIndices">Array that contains the row indices of the non-zero entries. It must have the same 
+        ///     length as <paramref name="values"/>. There is an 1 to 1 matching between these two arrays: 
+        ///     <paramref name="rowIndices"/>[i] is the row index of the entry <paramref name="values"/>[i]. Also:
+        ///     0 &lt;= <paramref name="rowIndices"/>[i] &lt; <paramref name="numRows"/>.</param>
+        /// <param name="colOffsets">Array that contains the index of the first entry of each column into the arrays 
+        ///     <paramref name="values"/> and <paramref name="rowIndices"/>. Its length is <paramref name="numRows"/> + 1. The 
+        ///     last entry is the number of non-zero entries, which must be equal to the length of <paramref name="values"/> 
+        ///     and <paramref name="rowIndices"/>.</param>
+        /// <param name="checkInput">If true, the provided arrays will be checked to make sure they are valid CSC arrays, which 
+        ///     is safer. If false, no such check will take place, which is faster.</param>
+        public static CscMatrix CreateFromArrays(int numRows, int numCols, double[] values, int[] rowIndices, int[] colOffsets,
             bool checkInput)
         {
             if (checkInput)
@@ -91,12 +109,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                         + " non zero entries, but was " + colOffsets[colOffsets.Length - 1]);
                 }
             }
-            return new CSCMatrix(numRows, numCols, values, rowIndices, colOffsets);
+            return new CscMatrix(numRows, numCols, values, rowIndices, colOffsets);
         }
 
+        #region operators (use extension operators when they become available)
+        /// <summary>
+        /// Performs the matrix-vector multiplication: result = <paramref name="vectorLeft"/> * <paramref name="matrixRight"/>.
+        /// If <paramref name="matrixRight"/> is m1-by-n1 and <paramref name="vectorLeft"/> has length = n2, then m1 must be 
+        /// equal to n2. The result will be a vector with length = n1, written to a new <see cref="Vector"/> instance.
+        /// </summary>
+        /// <param name="vectorLeft">The <see cref="Vector"/> operand on the left. It can be considered as a row vector.</param>
+        /// <param name="matrixRight">The <see cref="CscMatrix"/> operand on the right.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrixRight"/>.<see cref="NumRows"/> is 
+        ///     different than <paramref name="vectorLeft"/>.<see cref="Vector.Length"/>.</exception>
+        public static Vector operator *(Vector vectorLeft, CscMatrix matrixRight)
+            => matrixRight.MultiplyRight(vectorLeft, true);
+        #endregion
+
+        /// <summary>
+        /// See <see cref="IMatrixView.Axpy(IMatrixView, double)"/>.
+        /// </summary>
         public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is CSCMatrix otherCSC) // In case both matrices have the exact same index arrays
+            if (otherMatrix is CscMatrix otherCSC) // In case both matrices have the exact same index arrays
             {
                 if (HasSameIndexer(otherCSC))
                 {
@@ -104,7 +139,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     double[] resultValues = new double[values.Length];
                     Array.Copy(this.values, resultValues, values.Length);
                     CBlas.Daxpy(values.Length, otherCoefficient, ref otherCSC.values[0], 1, ref resultValues[0], 1);
-                    return new CSCMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
+                    return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
                 }
             }
 
@@ -112,7 +147,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.LinearCombination(this, 1.0, otherMatrix, otherCoefficient);
         }
 
-        public CSCMatrix Axpy(CSCMatrix otherMatrix, double otherCoefficient)
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
+        /// result[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
+        /// The resulting matrix is written to a new <see cref="CscMatrix"/> and then returned.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix with the same <see cref="NumRows"/> and <see cref="NumColumns"/> as this 
+        ///     <see cref="CscMatrix"/> instance.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="otherMatrix"/> has different 
+        ///     <see cref="NumRows"/> or <see cref="NumColumns"/> than this instance.</exception>
+        public CscMatrix Axpy(CscMatrix otherMatrix, double otherCoefficient)
         {
             // Conceptually it is not wrong to so this, even if the indexers are different, but how would I implement it.
             if (!HasSameIndexer(otherMatrix))
@@ -124,17 +169,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Array.Copy(this.values, resultValues, values.Length);
             CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref resultValues[0], 1);
             // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
-            return new CSCMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
+            return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.AxpyIntoThis(IMatrixView, double)"/>.
+        /// </summary>
         public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is CSCMatrix casted) AxpyIntoThis(casted, otherCoefficient);
+            if (otherMatrix is CscMatrix casted) AxpyIntoThis(casted, otherCoefficient);
             else throw new SparsityPatternModifiedException(
                  "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
-        public void AxpyIntoThis(CSCMatrix otherMatrix, double otherCoefficient)
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
+        /// this[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
+        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
+        /// </summary>
+        /// <param name="otherMatrix">A matrix with the same indexing arrays as this <see cref="CscMatrix"/> instance.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has different 
+        ///     indexing arrays than this instance.</exception>
+        public void AxpyIntoThis(CscMatrix otherMatrix, double otherCoefficient)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
             if (!HasSameIndexer(otherMatrix))
@@ -144,6 +201,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref this.values[0], 1);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CsrMatrix"/>. 
+        /// </summary>
         public Matrix CopyToFullMatrix()
         {
             Matrix fullMatrix = Matrix.CreateZero(this.NumRows, this.NumColumns);
@@ -159,14 +219,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return fullMatrix;
         }
 
-        public int CountNonZeros()
-        {
-            return values.Length;
-        }
+        /// <summary>
+        /// See <see cref="ISparseMatrix.CountNonZeros"/>
+        /// </summary>
+        public int CountNonZeros() => values.Length;
 
+        /// <summary>
+        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// </summary>
         public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is CSCMatrix otherCSC) // In case both matrices have the exact same index arrays
+            if (other is CscMatrix otherCSC) // In case both matrices have the exact same index arrays
             {
                 if (HasSameIndexer(otherCSC))
                 {
@@ -176,7 +239,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     {
                         resultValues[i] = binaryOperation(this.values[i], otherCSC.values[i]);
                     }
-                    return new CSCMatrix(NumRows, NumColumns, resultValues, rowIndices, colOffsets);
+                    return new CscMatrix(NumRows, NumColumns, resultValues, rowIndices, colOffsets);
                 }
             }
 
@@ -184,14 +247,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.DoEntrywise(this, other, binaryOperation);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is CSCMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (other is CscMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
             else throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
-        public void DoEntrywiseIntoThis(CSCMatrix other, Func<double, double, double> binaryOperation)
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
+        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
+        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
+        /// </summary>
+        /// <param name="matrix">A matrix with the same indexing arrays as this <see cref="CscMatrix"/> instance.</param>
+        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has different 
+        ///     indexing arrays than this instance.</exception>
+        public void DoEntrywiseIntoThis(CscMatrix other, Func<double, double, double> binaryOperation)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
             if (!HasSameIndexer(other))
@@ -201,6 +276,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
         IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
         {
             // Only apply the operation on non zero entries
@@ -214,19 +292,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Array.Copy(rowIndices, rowIndicesCopy, rowIndices.Length);
                 int[] colOffsetsCopy = new int[colOffsets.Length];
                 Array.Copy(colOffsets, colOffsetsCopy, colOffsets.Length);
-                return new CSCMatrix(NumRows, NumColumns, newValues, rowIndicesCopy, colOffsetsCopy);
+                return new CscMatrix(NumRows, NumColumns, newValues, rowIndicesCopy, colOffsetsCopy);
             }
             else // The sparsity is destroyed. Revert to a full matrix.
             {
-                return new CSCMatrix(NumRows, NumColumns, newValues, rowIndices, colOffsets).CopyToFullMatrix();
+                return new CscMatrix(NumRows, NumColumns, newValues, rowIndices, colOffsets).CopyToFullMatrix();
             }
         }
 
-        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
-        {
-            DoToAllEntriesIntoThis(unaryOperation);
-        }
-
+        /// <summary>
+        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0))
@@ -239,6 +315,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="ISparseMatrix.EnumerateNonZeros"/>.
+        /// </summary>
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
         {
             for (int j = 0; j < NumColumns; ++j)
@@ -252,6 +331,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
+        /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
             if ((this.NumRows != other.NumRows) || (this.NumColumns != other.NumColumns)) return false;
@@ -275,6 +357,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return true; // At this point all entries have been checked and are equal
         }
 
+        /// <summary>
+        /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
+        /// </summary>
         public SparseFormat GetSparseFormat()
         {
             var format = new SparseFormat();
@@ -285,9 +370,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return format;
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
+        /// </summary>
         public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is CSCMatrix otherCSC) // In case both matrices have the exact same index arrays
+            if (otherMatrix is CscMatrix otherCSC) // In case both matrices have the exact same index arrays
             {
                 if (HasSameIndexer(otherCSC))
                 {
@@ -295,7 +383,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     double[] resultValues = new double[values.Length];
                     Array.Copy(this.values, resultValues, values.Length);
                     CBlas.Daxpby(values.Length, otherCoefficient, ref otherCSC.values[0], 1, thisCoefficient, ref this.values[0], 1);
-                    return new CSCMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
+                    return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
                 }
             }
 
@@ -303,14 +391,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.LinearCombination(this, thisCoefficient, otherMatrix, otherCoefficient);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.LinearCombinationIntoThis(double, IMatrixView, double)"/>.
+        /// </summary>
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is CSCMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            if (otherMatrix is CscMatrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
             else throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
-        public void LinearCombinationIntoThis(double thisCoefficient, CSCMatrix otherMatrix, double otherCoefficient)
+        /// <summary>
+        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
+        /// this[i, j] = <paramref name="thisCoefficient"/> * this[i, j] 
+        ///     + <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j]. 
+        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
+        /// </summary>
+        /// <param name="thisCoefficient">A scalar that multiplies each entry of this <see cref="Matrix"/>.</param>
+        /// <param name="otherMatrix">A matrix with the same indexing arrays as this <see cref="CscMatrix"/> instance.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
+        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has different 
+        ///     indexing arrays than this instance.</exception>
+        public void LinearCombinationIntoThis(double thisCoefficient, CscMatrix otherMatrix, double otherCoefficient)
         {
             //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
             if (!HasSameIndexer(otherMatrix))
@@ -320,6 +422,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             CBlas.Daxpby(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, thisCoefficient, ref this.values[0], 1);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyLeft(IMatrixView, bool, bool)"/>.
+        /// </summary>
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             
@@ -413,6 +518,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyRight(IMatrixView, bool, bool)"/>.
+        /// </summary>
         public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
             // TODO: Throwing exceptions when csc is on the left seems attractive.
@@ -506,12 +614,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// </summary>
         public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Performs the matrix-vector multiplication: oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// </summary>
+        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
+        ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
+        ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
         public Vector MultiplyRight(Vector vector, bool transposeThis = false)
         {
             if (transposeThis)
@@ -551,6 +672,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.
+        /// </summary>
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)
         {
             double aggregator = identityValue;
@@ -560,6 +684,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.Scale(double)"/>.
+        /// </summary>
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
+        /// <summary>
+        /// Performs the following operation for the non-zero entries (i, j), such that 0 &lt;= i &lt; <see cref="NumRows"/>, 
+        /// 0 &lt;= j &lt; <see cref="NumColumns"/>: result[i, j] = <paramref name="scalar"/> * this[i, j].
+        /// The resulting matrix is written to a new <see cref="CscMatrix"/> and then returned.
+        /// </summary>
+        /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
+        public CscMatrix Scale(double scalar)
+        {
+            int nnz = this.values.Length;
+            double[] resultValues = new double[nnz]; 
+            Array.Copy(this.values, resultValues, nnz); //TODO: perhaps I should also copy the indexers
+            CBlas.Dscal(nnz, scalar, ref resultValues[0], 1);
+            return new CscMatrix(this.NumRows, this.NumColumns, resultValues, this.rowIndices, this.colOffsets);
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
+        /// </summary>
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, ref values[0], 1);
+
+        /// <summary>
+        /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
+        /// </summary>
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
             int index = FindIndexOf(rowIdx, colIdx);
@@ -567,12 +719,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else values[index] = value;
         }
 
-        public IMatrixView Transpose()
-        {
-            return TransposeToCSR(true);
-        }
+        /// <summary>
+        /// See <see cref="IMatrixView.Transpose"/>.
+        /// </summary>
+        public IMatrixView Transpose() => TransposeToCSR(true);
 
-        public CSCMatrix TransposeToCSC()
+        /// <summary>
+        /// Creates a new <see cref="CscMatrix"/> instance, that is transpose to this: result[i, j] = this[j, i].
+        /// </summary>
+        public CscMatrix TransposeToCSC()
         {
             // Use C# port of the scipy method.
             // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use MKL
@@ -584,10 +739,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             SparseArrays.CsrToCsc(NumColumns, NumRows, this.colOffsets, this.rowIndices, this.values,
                 csrRowOffsets, csrColIndices, csrValues);
 
-            return new CSCMatrix(NumColumns, NumRows, csrValues, csrColIndices, csrRowOffsets);
+            return new CscMatrix(NumColumns, NumRows, csrValues, csrColIndices, csrRowOffsets);
         }
 
-        public CSRMatrix TransposeToCSR(bool copyInternalArrays)
+        /// <summary>
+        /// Creates a new <see cref="CsrMatrix"/> instance, that is transpose to this: result[i, j] = this[j, i]. The 
+        /// internal arrays can be copied or shared with this <see cref="CscMatrix"/> instance.
+        /// </summary>
+        /// <param name="copyInternalArray">If true, the internal arrays that store the entries of this 
+        ///     <see cref="CscMatrix"/> instance will be copied and the new <see cref="CsrMatrix"/> instance 
+        ///     instance will have references to the copies, which is safer. If false, both the new matrix and this one will have  
+        ///     references to the same internal arrays, which is faster.</param>
+        public CsrMatrix TransposeToCSR(bool copyInternalArrays)
         {
             if (copyInternalArrays)
             {
@@ -597,9 +760,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Array.Copy(rowIndices, rowIndicesCopy, rowIndices.Length);
                 int[] colOffsetsCopy = new int[colOffsets.Length];
                 Array.Copy(colOffsets, colOffsetsCopy, colOffsets.Length);
-                return CSRMatrix.CreateFromArrays(NumColumns, NumRows, valuesCopy, rowIndicesCopy, colOffsetsCopy, false);
+                return CsrMatrix.CreateFromArrays(NumColumns, NumRows, valuesCopy, rowIndicesCopy, colOffsetsCopy, false);
             }
-            else return CSRMatrix.CreateFromArrays(NumColumns, NumRows, values, rowIndices, colOffsets, false);
+            else return CsrMatrix.CreateFromArrays(NumColumns, NumRows, values, rowIndices, colOffsets, false);
         }
 
         /// <summary>
@@ -621,7 +784,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return -1;
         }
 
-        private bool HasSameIndexer(CSCMatrix other)
+        private bool HasSameIndexer(CscMatrix other)
         {
             return (this.rowIndices == other.rowIndices) && (this.colOffsets == other.colOffsets);
         }

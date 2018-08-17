@@ -24,12 +24,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            TestReordering();
+            //TestReordering();
             //TestReading();
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
-            //TestWriting();
+            TestWriting();
         }
 
         public static void SuiteSparse()
@@ -45,8 +45,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestMarshaling()
         {
-            TestMKL.TestDgemv();
-            TestMKL.TestDgetrf_Dgetrs();
+            TestMkl.TestDgemv();
+            TestMkl.TestDgetrf_Dgetrs();
         }
 
         public static void TestBuilders()
@@ -100,7 +100,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestReading()
         {
-            TestInput.CheckIO();
+            //TestInput.CheckArray1DReader();
+            //TestInput.CheckArray2DReader();
+            TestInput.CheckMatrixCoo();
         }
 
         public static void TestReordering()

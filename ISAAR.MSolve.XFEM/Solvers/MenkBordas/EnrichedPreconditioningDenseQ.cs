@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             foreach (var sub in B.Keys)
             {
                 // Contribution to the matrix that will undergo QR
-                Matrix contribution = Pe[sub].ForwardSubstitution(B[sub].CopyToFullMatrix(true));
+                Matrix contribution = Pe[sub].ForwardSubstitutions(B[sub].CopyToFullMatrix(true));
                 BPeTransp.SetSubmatrix(dimensions.SubdomainStarts[sub] - dimensions.NumDofsStd, 0, contribution);
             }
 
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return new QR(Q, R);
         }
 
-        public CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetricColMajor Kee)
+        public CholeskySuiteSparse CreateEnrichedPreconditioner(DokSymmetric Kee)
         {
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCSCArrays(true);

@@ -29,9 +29,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             this.subdomains = new SortedSet<XSubdomain2D>();
             this.modifiedSubdomains = new SortedDictionary<XSubdomain2D, bool>();
-            this.Kee = new SortedDictionary<XSubdomain2D, DOKSymmetricColMajor>();
-            this.Kes = new SortedDictionary<XSubdomain2D, CSRMatrix>();
-            this.Kse = new SortedDictionary<XSubdomain2D, CSRMatrix>();
+            this.Kee = new SortedDictionary<XSubdomain2D, DokSymmetric>();
+            this.Kes = new SortedDictionary<XSubdomain2D, CsrMatrix>();
+            this.Kse = new SortedDictionary<XSubdomain2D, CsrMatrix>();
             this.be = new SortedDictionary<XSubdomain2D, Vector>();
             this.Pe = new SortedDictionary<XSubdomain2D, CholeskySuiteSparse>();
         }
@@ -44,9 +44,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private Vector bs;
         private readonly SortedSet<XSubdomain2D> subdomains;
         private readonly SortedDictionary<XSubdomain2D, bool> modifiedSubdomains;
-        private readonly SortedDictionary<XSubdomain2D, DOKSymmetricColMajor> Kee; //TODO: only save the factorizations
-        private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kes;
-        private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kse;
+        private readonly SortedDictionary<XSubdomain2D, DokSymmetric> Kee; //TODO: only save the factorizations
+        private readonly SortedDictionary<XSubdomain2D, CsrMatrix> Kes;
+        private readonly SortedDictionary<XSubdomain2D, CsrMatrix> Kse;
         private SortedDictionary<XSubdomain2D, SignedBooleanMatrix> B;
         private readonly SortedDictionary<XSubdomain2D, Vector> be;
         private readonly SortedDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.B = new SortedDictionary<XSubdomain2D, SignedBooleanMatrix>(B);
         }
 
-        public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetricColMajor Kee, CSRMatrix Kes, CSRMatrix Kse,
+        public void SetSubdomainMatrices(XSubdomain2D subdomain, DokSymmetric Kee, CsrMatrix Kes, CsrMatrix Kse,
             Vector be) 
         {
             // Update tracked subdomains
@@ -128,32 +128,32 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Pe.Remove(subdomain);
         }
 
-        public void CheckDimensions() //TODO: update this
-        {
-            // Standard dofs
-            Preconditions.CheckSystemSolutionDimensions(numDofsStd, numDofsStd, bs.Length);
+        //public void CheckDimensions() //TODO: update this
+        //{
+        //    // Standard dofs
+        //    Preconditions.CheckSystemSolutionDimensions(numDofsStd, numDofsStd, bs.Length);
 
-            // Number of subdomains
-            int numSubdomains = subdomains.Count;
-            if ((Kee.Count != numSubdomains) || (Kes.Count != numSubdomains) || (Kse.Count != numSubdomains) 
-                || (B.Count != numSubdomains) || (be.Count != numSubdomains))
-            {
-                throw new ArgumentException($"Mismatch: {numSubdomains} subdomains were declared, but there are"
-                    + $" {Kee.Count} enriched-enriched stiffness matrices, {Kes.Count} enriched-standard stiffness matrices,"
-                    + $" {Kse.Count} standard-enriched stiffness matrices, {B.Count} signed boolean matrices and"
-                    + $" {be.Count} right hand side vectors.");
-            }
+        //    // Number of subdomains
+        //    int numSubdomains = subdomains.Count;
+        //    if ((Kee.Count != numSubdomains) || (Kes.Count != numSubdomains) || (Kse.Count != numSubdomains) 
+        //        || (B.Count != numSubdomains) || (be.Count != numSubdomains))
+        //    {
+        //        throw new ArgumentException($"Mismatch: {numSubdomains} subdomains were declared, but there are"
+        //            + $" {Kee.Count} enriched-enriched stiffness matrices, {Kes.Count} enriched-standard stiffness matrices,"
+        //            + $" {Kse.Count} standard-enriched stiffness matrices, {B.Count} signed boolean matrices and"
+        //            + $" {be.Count} right hand side vectors.");
+        //    }
 
-            // Enriched dofs
-            foreach (var sub in modifiedSubdomains.Keys)
-            {
-                //TODO: All dimensions could be checked.
-                Preconditions.CheckSystemSolutionDimensions(Kee[sub], be[sub]);
-                Preconditions.CheckSystemSolutionDimensions(Kes[sub], be[sub]);
-                Preconditions.CheckSystemSolutionDimensions(Kse[sub], bs);
-                Preconditions.CheckMultiplicationDimensions(B[sub].NumColumns, be[sub].Length); //rhs.Length = lhs.Length
-            }
-        }
+        //    // Enriched dofs
+        //    foreach (var sub in modifiedSubdomains.Keys)
+        //    {
+        //        //TODO: All dimensions could be checked.
+        //        Preconditions.CheckSystemSolutionDimensions(Kee[sub], be[sub]);
+        //        Preconditions.CheckSystemSolutionDimensions(Kes[sub], be[sub]);
+        //        Preconditions.CheckSystemSolutionDimensions(Kse[sub], bs);
+        //        Preconditions.CheckMultiplicationDimensions(B[sub].NumColumns, be[sub].Length); //rhs.Length = lhs.Length
+        //    }
+        //}
 
         //public (MenkBordasMatrix matrix, Vector rhs) BuildSystem(DOKSymmetricColMajor Kss)
         //{
@@ -195,7 +195,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             //foreach (var sub_be in be)
             //{
             //    Console.WriteLine("Subdomain = " + sub_be.Key.ID);
-            //    (new FullVectorWriter(sub_be.Value, false, Array1DFormatting.PlainVertical)).WriteToConsole();
+            //    (new FullVectorWriter(sub_be.Value, false, Array1DFormat.PlainVertical)).WriteToConsole();
             //    Console.WriteLine();
             //}
             #endregion
@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 if (modifiedSubdomains[subdomain]) // Do not recreate the preconditioners of unmodified Kee
                 {
-                    DOKSymmetricColMajor kee = Kee[subdomain];
+                    DokSymmetric kee = Kee[subdomain];
 
                     #region debug
                     //Console.Write($"Subdomain {subdomain.ID}: ");

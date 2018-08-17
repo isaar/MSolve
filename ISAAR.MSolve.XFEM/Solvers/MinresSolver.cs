@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
@@ -37,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //DofOrderer = DofOrdererSeparate.Create(model);
 
             var assembler = new GlobalCSRAssembler();
-            (DOKRowMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DokRowMajor Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             //if (!Kuu.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to free-free dofs is not symmetric");

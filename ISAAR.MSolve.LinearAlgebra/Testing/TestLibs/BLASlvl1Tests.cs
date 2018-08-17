@@ -7,7 +7,7 @@ using IntelMKL.LP64;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 {
-    public static class BLASlvl1Tests
+    public static class BlasLvl1Tests
     {
         /// <summary>
         /// BLAS level 1 to test if the installation works correctly.

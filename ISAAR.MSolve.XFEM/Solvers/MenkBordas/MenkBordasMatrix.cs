@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: remove MenkBordasVector, MenkBordasCG, MenkBordasMINRES
@@ -13,14 +14,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasMatrix: ILinearTransformation<Vector>
     {
         public readonly MenkBordasSystem.Dimensions dim;
-        public readonly CSRMatrix Kss;
-        public readonly CSRMatrix[] Kee;
-        public readonly CSRMatrix[] Kes;
-        public readonly CSRMatrix[] Kse;
+        public readonly CsrMatrix Kss;
+        public readonly CsrMatrix[] Kee;
+        public readonly CsrMatrix[] Kes;
+        public readonly CsrMatrix[] Kse;
         public readonly SignedBooleanMatrix[] B;
 
         public MenkBordasMatrix(MenkBordasSystem.Dimensions dim,
-            CSRMatrix Kss, CSRMatrix[] Kee, CSRMatrix[] Kes, CSRMatrix[] Kse, SignedBooleanMatrix[] B)
+            CsrMatrix Kss, CsrMatrix[] Kee, CsrMatrix[] Kes, CsrMatrix[] Kse, SignedBooleanMatrix[] B)
         {
             this.dim = dim;
             this.Kss = Kss;
@@ -85,15 +86,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public Vector Multiply(Vector x)
         {
             var y = Vector.CreateZero(dim.NumDofsAll);
-            var xs = x.Slice(0, dim.NumDofsStd);
-            var xc = x.Slice(dim.EquationsStart, dim.NumDofsAll);
+            var xs = x.GetSubvector(0, dim.NumDofsStd);
+            var xc = x.GetSubvector(dim.EquationsStart, dim.NumDofsAll);
             Vector ys = Kss.MultiplyRight(xs); // Rows correspond to global standard dofs
             var yc = Vector.CreateZero(dim.NumEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
 
             foreach (var sub in dim.Subdomains)
             {
                 int i = sub.ID;
-                var xe = x.Slice(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
+                var xe = x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
                 ys.AddIntoThis(Kse[i].MultiplyRight(xe)); 
                 Vector ye = Kes[i].MultiplyRight(xs);
                 ye.AddIntoThis(Kee[i].MultiplyRight(xe));
@@ -124,27 +125,28 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void WriteToConsole()
         {
-            FullMatrixWriter.NumericFormat = new GeneralNumericFormat();
+            var writer = new FullMatrixWriter();
+            writer.NumericFormat = new GeneralNumericFormat();
 
             Console.WriteLine("Kss: ");
-            (new FullMatrixWriter(Kss)).WriteToConsole();
+            writer.WriteToConsole(Kss);
             Console.WriteLine();
             for (int i = 0; i < dim.NumSubdomains; ++i)
             {
                 Console.WriteLine($"Subdomain {i} - Kee: ");
-                (new FullMatrixWriter(Kee[i])).WriteToConsole();
+                writer.WriteToConsole(Kee[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - Kes: ");
-                (new FullMatrixWriter(Kes[i])).WriteToConsole();
+                writer.WriteToConsole(Kes[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - Kse: ");
-                (new FullMatrixWriter(Kse[i])).WriteToConsole();
+                writer.WriteToConsole(Kse[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - B: ");
-                (new FullMatrixWriter(B[i])).WriteToConsole();
+                writer.WriteToConsole(B[i]);
                 Console.WriteLine();
                 Console.WriteLine($"Subdomain {i} - transpose B: ");
-                (new FullMatrixWriter(B[i].Transpose())).WriteToConsole();
+                writer.WriteToConsole(B[i].Transpose());
                 Console.WriteLine();
             }
         }
@@ -152,12 +154,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public void WriteToFiles(string directoryPath)
         {
             var writer = new MatlabWriter();
-            writer.WriteSparseMatrix(Kss, directoryPath + "Kss.txt");
+            writer.WriteToFile(Kss, directoryPath + "Kss.txt");
             for (int i = 0; i < dim.NumSubdomains; ++i)
             {
-                writer.WriteSparseMatrix(Kee[i], directoryPath + $"Kee{i + 1}.txt");
-                writer.WriteSparseMatrix(Kes[i], directoryPath + $"Kes{i + 1}.txt");
-                writer.WriteSparseMatrix(B[i], directoryPath + $"B{i + 1}.txt");
+                writer.WriteToFile(Kee[i], directoryPath + $"Kee{i + 1}.txt");
+                writer.WriteToFile(Kes[i], directoryPath + $"Kes{i + 1}.txt");
+                writer.WriteToFile(B[i], directoryPath + $"B{i + 1}.txt");
             }
         }
     }

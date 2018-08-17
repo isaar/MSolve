@@ -14,12 +14,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class XClusterMatrixAssembler
     {
-        public (DOKSymmetricColMajor Kss, DOKRowMajor Ksc) BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
+        public (DokSymmetric Kss, DokRowMajor Ksc) BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer)
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            var Kss = DOKSymmetricColMajor.CreateEmpty(numDofsStandard);
-            var Ksc = DOKRowMajor.CreateEmpty(numDofsStandard, numDofsConstrained);
+            var Kss = DokSymmetric.CreateEmpty(numDofsStandard);
+            var Ksc = DokRowMajor.CreateEmpty(numDofsStandard, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
@@ -35,15 +35,15 @@ namespace ISAAR.MSolve.XFEM.Assemblers
             return (Kss, Ksc);
         }
 
-        public (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) BuildSubdomainMatrices(XSubdomain2D subdomain, 
+        public (DokSymmetric Kee, DokRowMajor Kes, DokRowMajor Kec) BuildSubdomainMatrices(XSubdomain2D subdomain, 
             XClusterDofOrderer globalDofOrderer)
         {
             int numDofsConstrained = globalDofOrderer.NumConstrainedDofs;
             int numDofsEnriched = subdomain.DofOrderer.NumEnrichedDofs;
             int numDofsStandard = globalDofOrderer.NumStandardDofs;
-            var Kee = DOKSymmetricColMajor.CreateEmpty(numDofsEnriched);
-            var Kes = DOKRowMajor.CreateEmpty(numDofsEnriched, numDofsStandard);
-            var Kec = DOKRowMajor.CreateEmpty(numDofsEnriched, numDofsConstrained);
+            var Kee = DokSymmetric.CreateEmpty(numDofsEnriched);
+            var Kes = DokRowMajor.CreateEmpty(numDofsEnriched, numDofsStandard);
+            var Kec = DokRowMajor.CreateEmpty(numDofsEnriched, numDofsConstrained);
 
             foreach (XContinuumElement2D element in subdomain.Elements)
             {

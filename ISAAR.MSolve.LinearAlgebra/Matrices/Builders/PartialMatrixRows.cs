@@ -1,35 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
+    /// <summary>
+    /// Facilitates the construction of a matrix when only some of its rows are needed explicitly.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class PartialMatrixRows
     {
-        private readonly int numColumns;
-        private readonly int numRows;
         private Dictionary<int, Dictionary<int, double>> rows;
 
+        /// <summary>
+        /// Initializes a new <see cref="PartialMatrixRows"/> instance to reperesent the relevant rows of a matrix 
+        /// with the specified dimensions.
+        /// </summary>
+        /// <param name="numRows">The number of rows of the whole matrix.</param>
+        /// <param name="numColumns">The number of columns of the whole matrix.</param>
         public PartialMatrixRows(int numRows, int numColumns)
         {
-            this.numRows = numRows;
-            this.numColumns = numColumns;
+            this.NumRows = numRows;
+            this.NumColumns = numColumns;
             this.rows = new Dictionary<int, Dictionary<int, double>>();
         }
 
         /// <summary>
-        /// If the entry already exists: the new value is added to the existing one: this[rowIdx, colIdx] += value. 
-        /// Otherwise the entry is inserted with the new value: this[rowIdx, colIdx] = value.
-        /// Use this method instead of this[rowIdx, colIdx] += value, as it is an optimized version.
-        /// Since both sub-diagonal and super-diagonal entries of the symmetric matrix are stored separately, it is safe to
-        /// process both (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) and 
-        /// (<paramref name="colIdx"/>, <paramref name="rowIdx"/>).
+        /// The number of columns of the whole matrix.
         /// </summary>
-        /// <param name="rowIdx"></param>
-        /// <param name="colIdx"></param>
-        /// <param name="value"></param>
+        public int NumColumns { get; }
+
+        /// <summary>
+        /// The number of rows of the whole matrix.
+        /// </summary>
+        public int NumRows { get; }
+
+        /// <summary>
+        /// Adds the provided <paramref name="value"/> to the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>). 
+        /// </summary>
+        /// <param name="rowIdx">The row index of the entry to modify. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="colIdx">The column index of the entry to modify. Constraints: 
+        ///     0 &lt;= <paramref name="rowIdx"/> &lt; this.<see cref="IIndexable2D.NumColumns"/>.</param>
+        /// <param name="value">The value that will be added to the entry (<paramref name="colIdx"/>, <paramref name="colIdx"/>).
+        ///     </param>
         public void AddToEntry(int rowIdx, int colIdx, double value)
         {
             if (rows.TryGetValue(rowIdx, out Dictionary<int, double> wholeRow)) // The row exists. Mutate it.
@@ -47,9 +61,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             }
         }
 
+        /// <summary>
+        /// Performs the matrix-vector multiplication: this * <paramref name="vector"/>.
+        /// </summary>
+        /// <param name="other">A vector with <see cref="IIndexable1D.Length"/> being equal to 
+        ///     this.<see cref="NumColumns"/>.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
+        ///     <paramref name="vector"/> is different than the this.<see cref="NumColumns"/>.</exception>
         public SparseVector MultiplyRight(Vector vector)
         {
-            Preconditions.CheckMultiplicationDimensions(numColumns, vector.Length);
+            Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
             var result = new SortedDictionary<int, double>();
             foreach (var wholeRow in rows)
             {
@@ -60,7 +81,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 }
                 result[wholeRow.Key] = dot;
             }
-            return SparseVector.CreateFromDictionary(numRows, result);
+            return SparseVector.CreateFromDictionary(NumRows, result);
         }
     }
 }

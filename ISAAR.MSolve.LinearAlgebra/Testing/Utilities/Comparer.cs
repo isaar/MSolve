@@ -96,12 +96,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
             if (matrixExpected.Equals(matrixComputed, tolerance)) Console.WriteLine("Correct");
             else
             {
+                var writer = new FullMatrixWriter();
                 Console.WriteLine("Incorrect.");
                 Console.Write("Expected matrix: ");
-                (new FullMatrixWriter(matrixExpected)).WriteToConsole();
+                writer.WriteToConsole(matrixExpected);
                 Console.WriteLine();
                 Console.Write("Computed matrix: ");
-                (new FullMatrixWriter(matrixComputed)).WriteToConsole();
+                writer.WriteToConsole(matrixComputed);
                 Console.WriteLine();
             }
         }
@@ -130,7 +131,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.Utilities
 
         public void CheckVectorEquality(Vector expected, Vector computed)
         {
-            bool isCorrect = expected.Equals(computed, valueComparer);
+            bool isCorrect = expected.Equals(computed, tolerance);
             if (DecidePrint(isCorrect)) printer.PrintVectorEquality(isCorrect, expected.InternalData, computed.InternalData);
         }
 

@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -55,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //DofOrderer = DofOrdererSeparate.Create(model);
 
             var assembler = new GlobalCSRAssembler();
-            (DOKRowMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DokRowMajor Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             //if (!Kuu.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to free-free dofs is not symmetric");
             Vector rhs = CalcEffectiveRhs(Kuc);
@@ -75,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Restart();
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
             var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
-            (Vector x, IterativeStatistics statistics) = pcg.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
+            (Vector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
             //var cg = new ConjugateGradient(maxIterations, tolerance);
             //(Vector x, IterativeStatistics statistics) = cg.Solve(Kuu.BuildCSRMatrix(true), rhs);
             watch.Stop();
@@ -100,7 +92,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         /// ii) uu = Kuu \ Feff 
         /// </summary>
         /// <returns></returns>
-        private Vector CalcEffectiveRhs(DOKRowMajor globalUnconstrainedConstrained)
+        private Vector CalcEffectiveRhs(DokRowMajor globalUnconstrainedConstrained)
         {
             Vector Fu = model.CalculateFreeForces(DofOrderer);
             Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
@@ -108,10 +100,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             return Feff;
         }
 
-        private static void CheckPCG(Model2D model, IDofOrderer dofOrderer, DOKRowMajor Kuu, Vector solution)
+        private static void CheckPCG(Model2D model, IDofOrderer dofOrderer, DokRowMajor Kuu, Vector solution)
         {
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor KuuChol, DOKRowMajor KucChol) = assembler.BuildGlobalMatrix(model, dofOrderer);
+            (DokSymmetric KuuChol, DokRowMajor KucChol) = assembler.BuildGlobalMatrix(model, dofOrderer);
             if (!KuuChol.Equals(Kuu.BuildCSRMatrix(true), 1e-10)) throw new Exception("Incorrect stiffness matrix assembly");
         }
     }

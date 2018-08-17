@@ -1,75 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-//TODO: Move the operators here when C# supports extension operators
+﻿//TODO: Move the operators here when C# supports extension operators
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
+    /// <summary>
+    /// Defines common vector operation shortcuts that can be used as extensions for <see cref="Vector"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public static class VectorExtensions
     {
         /// <summary>
-        /// result = vector1 + vector2
+        /// Performs the operation: result[i] = <paramref name="vector1"/>[i] + <paramref name="vector2"/>[i], 
+        /// for 0 &lt;= i &lt; <paramref name="vector1"/>.<see cref="Length"/> = <paramref name="vector2"/>.<see cref="Length"/>.
+        /// The resulting vector overwrites the entries of this <see cref="Vector"/> instance.
         /// </summary>
-        /// <param name="vector1"></param>
-        /// <param name="vector2"></param>
-        /// <returns></returns>
-        public static Vector Add(this Vector vector1, Vector vector2)
-        {
-            return vector1.Axpy(1.0, vector2);
-        }
+        /// <param name="vector1">The first <see cref="Vector"/> operand. It must have the same <see cref="Length"/> as 
+        ///     <paramref name="vector2"/>.</param>
+        /// <param name="vector2">The second <see cref="Vector"/> operand. It must have the same <see cref="Length"/> as 
+        ///     <paramref name="vector1"/>.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="vector1"/> and <paramref name="vector2"/>
+        ///     have different <see cref="Length"/>.</exception>
+        public static void AddIntoThis(this Vector vector1, Vector vector2) => vector1.AxpyIntoThis(vector2, 1.0);
 
         /// <summary>
-        /// vector1 = vector1 + vector2
+        /// Performs the operation: result[i] = <paramref name="vector1"/>[i] - <paramref name="vector2"/>[i], 
+        /// for 0 &lt;= i &lt; <paramref name="vector1"/>.<see cref="Length"/> = <paramref name="vector2"/>.<see cref="Length"/>.
+        /// The resulting vector overwrites the entries of this <see cref="Vector"/> instance.
         /// </summary>
-        /// <param name="vector1"></param>
-        /// <param name="vector2"></param>
-        public static void AddIntoThis(this Vector vector1, Vector vector2)
-        {
-            vector1.AxpyIntoThis(1.0, vector2);
-        }
-
-        /// <summary>
-        /// Computes the Hadamard product of two vectors: result[i] = this[i] * other[i]. This is not the dot product.
-        /// </summary>
-        /// <param name="vector1"></param>
-        /// <param name="vector2"></param>
-        /// <returns></returns>
-        public static Vector MultiplyPointwise(this Vector vector1, Vector vector2)
-        {
-            return vector1.DoEntrywise(vector2, (x1, x2) => x1 * x2);
-        }
-
-        /// <summary>
-        /// Computes the Hadamard product of two vectors: this[i] = this[i] * other[i]. This is not the dot product.
-        /// </summary>
-        /// <param name="vector1"></param>
-        /// <param name="vector2"></param>
-        public static void MultiplyPointwiseInPlace(this Vector vector1, Vector vector2)
-        {
-            vector1.DoEntrywiseIntoThis(vector2, (x1, x2) => x1 * x2);
-        }
-
-        /// <summary>
-        /// result = vector1 - vector1
-        /// </summary>
-        /// <param name="vector1"></param>
-        /// <param name="vector2"></param>
-        /// <returns></returns>
-        public static Vector Subtract(this Vector vector1, Vector vector2)
-        {
-            return vector1.Axpy(-1.0, vector2);
-        }
-
-        /// <summary>
-        /// vector1 = vector1 - vector2
-        /// </summary>
-        /// <param name="vector1"></param>
-        /// <param name="vector2"></param>
-        public static void SubtractIntoThis(this Vector vector1, Vector vector2)
-        {
-            vector1.AxpyIntoThis(-1.0, vector2);
-        }
+        /// <param name="vector1">The first <see cref="Vector"/> operand. It must have the same <see cref="Length"/> as 
+        ///     <paramref name="vector2"/>.</param>
+        /// <param name="vector2">The second <see cref="Vector"/> operand. It must have the same <see cref="Length"/> as 
+        ///     <paramref name="vector1"/>.</param>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="vector1"/> and <paramref name="vector2"/>
+        ///     have different <see cref="Length"/>.</exception>
+        public static void SubtractIntoThis(this Vector vector1, Vector vector2) => vector1.AxpyIntoThis(vector2, -1.0);
     }
 }

@@ -12,13 +12,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class StandardPreconditionerJacobi: IStandardPreconditioner
     {
         private readonly int order;
-        private readonly CSRMatrix Kss;
+        private readonly CsrMatrix Kss;
         //private readonly Vector invDiagonal;
         private readonly Vector invDiagonalRoot;
 
-        private StandardPreconditionerJacobi(DOKRowMajor Kss)
+        private StandardPreconditionerJacobi(DokRowMajor Kss)
         {
-            CSRMatrix.UseMKL = true; //TODO: this should be done elsewhere
+            CsrMatrix.UseMKL = true; //TODO: this should be done elsewhere
             this.Kss = Kss.BuildCSRMatrix(true);
             this.order = Kss.NumColumns;
 
