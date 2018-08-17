@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -75,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Restart();
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
             var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
-            (Vector x, IterativeStatistics statistics) = pcg.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
+            (Vector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
             //var cg = new ConjugateGradient(maxIterations, tolerance);
             //(Vector x, IterativeStatistics statistics) = cg.Solve(Kuu.BuildCSRMatrix(true), rhs);
             watch.Stop();

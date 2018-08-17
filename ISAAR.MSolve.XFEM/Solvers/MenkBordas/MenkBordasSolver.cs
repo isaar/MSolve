@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -16,7 +11,6 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: remove checks and prints

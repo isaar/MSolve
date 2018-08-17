@@ -1,16 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 //TODO: not too thrilled by this style of reporting. Design it in an OOP way with excpetions, etc.
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
 {
+    /// <summary>
+    /// Data Transfer Object that collects information about the execution and convergence when solving a linear system with 
+    /// the Minimum Redidual algorithm.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class MinresStatistics
     {
+        /// <summary>
+        /// The number of iterations that were run before the algorithm terminated. 
+        /// </summary>
         public int IterationsRequired { get; set; } = int.MinValue;
 
+        /// <summary>
+        /// A code that describes why the algorithm has terminated. For a more readable form, use
+        /// <see cref="TerminationMessage"/> instead.
+        /// </summary>
         public int TerminationCause { get; set; } = int.MinValue; // TODO: make an enum for this, that will also be used in the algorithm
 
+        /// <summary>
+        /// A message that describes why the algorithm has terminated.
+        /// </summary>
         public string TerminationMessage
         {
             get
@@ -42,27 +56,36 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics
         }
 
         /// <summary>
-        /// Estimate cond(A). In this version we look at the diagonals of R in the factorization of the lower Hessenberg matrix, 
-        /// Q* H = R, where H is the tridiagonal matrix from Lanczos with one extra row, beta(k + 1) e_k^T.
+        /// Estimate for cond(A). In the current version of MINRES, it is computed from the diagonals of R in the factorization
+        ///  of the lower Hessenberg matrix, Q* H = R, where H is the tridiagonal matrix from Lanczos with one extra row, 
+        /// beta(k + 1) e_k^T.
         /// </summary>
         public double MatrixCondition { get; set; } = double.MinValue;
 
+        /// <summary>
+        /// Estimate for the induced norm2 of the matrix A.
+        /// </summary>
         public double MatrixNorm { get; set; } = double.MinValue;
 
         /// <summary>
-        /// Estimates the norm2 of A*r at iteration <see cref="IterationsRequired"/> - 2. Note that it lags one iteration behind 
-        /// <see cref="ResidualNorm"/>.
+        /// Estimate for norm2(A * (b-A*x) ) at the previous to last iteration. Note that it lags one iteration 
+        /// behind <see cref="ResidualNorm"/>.
         /// </summary>
         public double MatrixTimesResidualNorm { get; set; } = double.MinValue;
 
         /// <summary>
-        /// Estimates the norm2 of r at iteration <see cref="IterationsRequired"/> - 1.
+        /// Estimate for norm2(b-A*x) at the last iteration.
         /// </summary>
         public double ResidualNorm { get; set; } = double.MinValue;
 
-        //TODO: not sure what this is. However it is computed as the norm2 of the solution vector.
+        /// <summary>
+        /// Value of norm2(x) at the last iteration.
+        /// </summary>
         public double YNorm { get; set; } = double.MinValue;
 
+        /// <summary>
+        /// Reports the accumulated data of this <see cref="MinresStatistics"/> instance. 
+        /// </summary>
         public override string ToString()
         {
             var sb = new StringBuilder();

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
@@ -53,7 +51,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
             if (xMinres != null) comparer.CheckVectorEquality(xExpected, xMinres);
 
             var cg = new ConjugateGradient(A.NumRows, residualTolerance);
-            (Vector xCG, IterativeStatistics statsCG) = cg.Solve(A, b);
+            (Vector xCG, CGStatistics statsCG) = cg.Solve(A, b);
             Console.WriteLine(statsCG);
             comparer.CheckVectorEquality(xExpected, xCG);
         }

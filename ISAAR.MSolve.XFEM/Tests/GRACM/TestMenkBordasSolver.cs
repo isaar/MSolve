@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
