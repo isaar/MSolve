@@ -67,12 +67,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int ldA = m;
             int minDim = Math.Min(m, n); //TODO: this is known to be numCols (though it may change in the future)
             double[] tau = new double[minDim];
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             info = LAPACKE.Dgeqrf(LAPACKE.LAPACK_COL_MAJOR, m, n, matrix, ldA, tau);
 
             // Check MKL execution
             if (info == 0) return new QRFactorization(numRows, numCols, matrix, tau);
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         /// <summary>
@@ -96,12 +96,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             var q = new double[NumRows * NumColumns];
             Array.Copy(reflectorsAndR, q, q.Length);
 
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
 
             // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumColumns, false);
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         /// <summary>
@@ -139,12 +139,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int ldA = m;
             // We need a larger buffer for Q (m-by-m) > reflectorsAndR (m-by-p)
             double[] q = ArrayColMajor.ResizeCols(NumRows, NumColumns, NumRows, reflectorsAndR);
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
 
             // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumRows, false);
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         /// <summary>
@@ -187,12 +187,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int k = tau.Length;
             int ldA = m;
             int ldC = m;
-            int infoMult = MKLUtilities.DefaultInfo;
+            int infoMult = MklUtilities.DefaultInfo;
             infoMult = LAPACKE.Dormqr(LAPACKE.LAPACK_COL_MAJOR, LAPACKE.LAPACK_SIDE_LEFT, LAPACKE.LAPACK_TRANSPOSE,
                 m, nRhs, k, reflectorsAndR, ldA, tau, c, ldC);
 
             // Check MKL execution
-            if (infoMult != 0) throw MKLUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
+            if (infoMult != 0) throw MklUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
             
             // Step 2: R * x = c, with R being m-by-n and upper trapezoidal (because m >= n).
             // Decomposing R: [R1; 0] * x = [c1 ; c2 ] => R1 * x = c1 => R1 * x = c1, with R1 being n-by-n, upper triangular

@@ -29,9 +29,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             this.subdomains = new SortedSet<XSubdomain2D>();
             this.modifiedSubdomains = new SortedDictionary<XSubdomain2D, bool>();
-            this.Kee = new SortedDictionary<XSubdomain2D, DOKSymmetric>();
-            this.Kes = new SortedDictionary<XSubdomain2D, CSRMatrix>();
-            this.Kse = new SortedDictionary<XSubdomain2D, CSRMatrix>();
+            this.Kee = new SortedDictionary<XSubdomain2D, DokSymmetric>();
+            this.Kes = new SortedDictionary<XSubdomain2D, CsrMatrix>();
+            this.Kse = new SortedDictionary<XSubdomain2D, CsrMatrix>();
             this.be = new SortedDictionary<XSubdomain2D, Vector>();
             this.Pe = new SortedDictionary<XSubdomain2D, CholeskySuiteSparse>();
         }
@@ -44,9 +44,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private Vector bs;
         private readonly SortedSet<XSubdomain2D> subdomains;
         private readonly SortedDictionary<XSubdomain2D, bool> modifiedSubdomains;
-        private readonly SortedDictionary<XSubdomain2D, DOKSymmetric> Kee; //TODO: only save the factorizations
-        private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kes;
-        private readonly SortedDictionary<XSubdomain2D, CSRMatrix> Kse;
+        private readonly SortedDictionary<XSubdomain2D, DokSymmetric> Kee; //TODO: only save the factorizations
+        private readonly SortedDictionary<XSubdomain2D, CsrMatrix> Kes;
+        private readonly SortedDictionary<XSubdomain2D, CsrMatrix> Kse;
         private SortedDictionary<XSubdomain2D, SignedBooleanMatrix> B;
         private readonly SortedDictionary<XSubdomain2D, Vector> be;
         private readonly SortedDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.B = new SortedDictionary<XSubdomain2D, SignedBooleanMatrix>(B);
         }
 
-        public void SetSubdomainMatrices(XSubdomain2D subdomain, DOKSymmetric Kee, CSRMatrix Kes, CSRMatrix Kse,
+        public void SetSubdomainMatrices(XSubdomain2D subdomain, DokSymmetric Kee, CsrMatrix Kes, CsrMatrix Kse,
             Vector be) 
         {
             // Update tracked subdomains
@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 if (modifiedSubdomains[subdomain]) // Do not recreate the preconditioners of unmodified Kee
                 {
-                    DOKSymmetric kee = Kee[subdomain];
+                    DokSymmetric kee = Kee[subdomain];
 
                     #region debug
                     //Console.Write($"Subdomain {subdomain.ID}: ");

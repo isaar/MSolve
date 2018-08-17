@@ -67,12 +67,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int ldA = m;
             int minDim = Math.Min(m, n); //TODO: this is known to be numRows (though it may change in the future)
             double[] tau = new double[minDim];
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             info = LAPACKE.Dgelqf(LAPACKE.LAPACK_COL_MAJOR, m, n, matrix, ldA, tau);
 
             // Check MKL execution
             if (info == 0) return new LQFactorization(numRows, numCols, matrix, tau);
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         /// <summary>
@@ -110,12 +110,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 
             // We need a larger buffer for Q (n-by-n) > reflectorsAndL (p-by-n)
             double[] q = ArrayColMajor.IncreaseRows(NumRows, NumColumns, NumColumns, reflectorsAndL);
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             info = LAPACKE.Dorglq(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
 
             // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(q, NumColumns, NumColumns, false);
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         /// <summary>
@@ -157,13 +157,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int nRhs = 1; // rhs = m-by-1
             int k = tau.Length;
             int ldC = m;
-            int infoMult = MKLUtilities.DefaultInfo;
+            int infoMult = MklUtilities.DefaultInfo;
             infoMult = LAPACKE.Dormlq(LAPACKE.LAPACK_COL_MAJOR, LAPACKE.LAPACK_SIDE_LEFT, LAPACKE.LAPACK_TRANSPOSE,
                 m, nRhs, k, reflectorsAndL, ldA, tau, c, ldC);
 
             // Check MKL execution
             if (infoMult == 0) return Vector.CreateFromArray(c, false);
-            else throw MKLUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
         }
     }
 }

@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var assembler = new XClusterMatrixAssembler();
             foreach (var subdomain in modifiedSubdomains)
             {
-                (DOKSymmetric Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
+                (DokSymmetric Kee, DokRowMajor Kes, DokRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
                 var KesCSR = Kes.BuildCSRMatrix(true);
                 var be = Kec.MultiplyRight(Uc.Scale(-1.0), true); //Fe = 0 - Kec * Uc.
@@ -300,7 +300,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Sparse global matrix
             int order = denseK.NumRows;
-            var sparseK = DOKColMajor.CreateEmpty(order, order);
+            var sparseK = DokColMajor.CreateEmpty(order, order);
             for (int j = 0; j < order; ++j)
             {
                 for (int i = 0; i < order; ++i)

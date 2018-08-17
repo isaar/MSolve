@@ -136,7 +136,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of 
         ///     oper(<paramref name="matrix"/>).</exception>
-        public static double[] MultiplyRight(this CSCMatrix matrix, double[] vector, bool transposeThis)
+        public static double[] MultiplyRight(this CscMatrix matrix, double[] vector, bool transposeThis)
         { //TODO: delete this once legacy vectors, matrices are no longer used.
             var asVector = Vector.CreateFromArray(vector, false);
             return matrix.MultiplyRight(asVector, transposeThis).InternalData;
@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="other">The second matrix.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="NumRows"/> or <see cref="NumColumns"/> of
         ///     <paramref name="csc"/> or <paramref name="other"/> are not compatible.</exception>
-        public static Numerical.LinearAlgebra.Matrix2D MultiplyTransposeThisTimesOtherTimesThis(this CSCMatrix csc,
+        public static Numerical.LinearAlgebra.Matrix2D MultiplyTransposeThisTimesOtherTimesThis(this CscMatrix csc,
             Numerical.LinearAlgebra.Matrix2D other)
         { //TODO: delete this once legacy vectors, matrices are no longer used.
             var otherCopy = Matrix.CreateFromLegacyMatrix(other);

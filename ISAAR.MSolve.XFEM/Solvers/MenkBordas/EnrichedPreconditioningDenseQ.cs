@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return new QR(Q, R);
         }
 
-        public CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetric Kee)
+        public CholeskySuiteSparse CreateEnrichedPreconditioner(DokSymmetric Kee)
         {
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCSCArrays(true);

@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
         {
             // Define linear system
             var rhs = Vector.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
-            var matrixDOK = DOKSymmetric.CreateEmpty(4);
+            var matrixDOK = DokSymmetric.CreateEmpty(4);
             matrixDOK[0, 0] = 4.0; matrixDOK[0, 2] = 2.0;
             matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
             matrixDOK[2, 2] = 8.0;
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
-            var dok = DOKSymmetric.CreateIdentity(SparsePositiveDefinite.order);
+            var dok = DokSymmetric.CreateIdentity(SparsePositiveDefinite.order);
             CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
@@ -164,7 +164,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
-            var dok = DOKSymmetric.CreateIdentity(SparsePositiveDefinite.order);
+            var dok = DokSymmetric.CreateIdentity(SparsePositiveDefinite.order);
             CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 
             // Start the matrix from the original
             var matrixExpected = Matrix.CreateFromArray(SparsePositiveDefinite.matrix);
-            var dok = DOKSymmetric.CreateEmpty(SparsePositiveDefinite.order);
+            var dok = DokSymmetric.CreateEmpty(SparsePositiveDefinite.order);
             for (int j = 0; j < matrixExpected.NumColumns; ++j)
             {
                 for (int i = 0; i <= j; ++i)
@@ -235,7 +235,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             //var skyline = SkylineMatrix.CreateFromArrays(order, SparsePositiveDefinite.skylineValues, 
             //    SparsePositiveDefinite.skylineDiagOffsets, false);
             //var dok = DOKSymmetricColMajor.CreateFromSparseMatrix(skyline);
-            var dok = DOKSymmetric.CreateEmpty(order);
+            var dok = DokSymmetric.CreateEmpty(order);
             for (int j = 0; j < order; ++j)
             {
                 for (int i = 0; i <= j; ++i)

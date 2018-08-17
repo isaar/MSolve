@@ -225,7 +225,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// <param name="sortRowsOfEachCol">If true, the row indices of the same column will be in ascending order. If false, 
         ///     their order will be indefinite. Sorting these indices adds an overhead, but will increase performance of the 
         ///     resulting CSC matrix's operations. It may also be required for some operations.</param>
-        /// <returns>For a description of the CSC indexing arrays see <see cref="CSCMatrix"/>.</returns>
+        /// <returns>For a description of the CSC indexing arrays see <see cref="CscMatrix"/>.</returns>
         internal (int[] rowIndices, int[] colOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
         {
             int[] colOffsets = new int[order + 1];

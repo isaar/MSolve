@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 pattern.ConnectIndices(allDofs, false);
             }
 
-            var orderingAlgorithm = new OrderingAMD();
+            var orderingAlgorithm = new OrderingAmd();
             (int[] permutationOldToNew, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
             DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
         }
@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Build the whole stiffness matrix for the first and last time.
             watch.Start();
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetric Kff, DOKRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DokSymmetric Kff, DokRowMajor Kfc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
 
             /// The extended linear system is:
             /// [Kcc Kcf; Kuc Kff] * [uc; uf] = [Fc; Ff]
@@ -420,7 +420,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Console.WriteLine();
             Console.WriteLine("------------- DEBUG: reanalysis solver/ -------------");
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
+            (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer) 
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);

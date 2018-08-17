@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
     /// guide. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal class SparseBLAS
+    internal class SparseBlas
     {
         //TODO: this has been deprecated. Does this hurt performance much? Should I use the inspector-executor functions instead?
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "mkl_dcsrcsc")]

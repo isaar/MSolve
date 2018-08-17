@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     static class MenkBordasPreconditioner
     {
         
-        public static CholeskySuiteSparse CreateStandardPreconditioner(DOKSymmetric Kss)
+        public static CholeskySuiteSparse CreateStandardPreconditioner(DokSymmetric Kss)
         {
             // Standard preconditioner = cholesky factor U
             var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         }
 
         public static CholeskySuiteSparse[] CreateEnrichedPreconditioners(MenkBordasSystem.Dimensions dimensions,
-             IReadOnlyList<DOKSymmetric> Kee)
+             IReadOnlyList<DokSymmetric> Kee)
         {
             var Pe = new CholeskySuiteSparse[dimensions.NumSubdomains];
             for (int i = 0; i < dimensions.NumSubdomains; ++i)
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return Pe;
         }
 
-        public static CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetric Kee)
+        public static CholeskySuiteSparse CreateEnrichedPreconditioner(DokSymmetric Kee)
         {
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCSCArrays(true);

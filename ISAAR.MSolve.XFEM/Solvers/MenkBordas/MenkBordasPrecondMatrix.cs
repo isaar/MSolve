@@ -17,14 +17,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasPrecondMatrix : ILinearTransformation<Vector>
     {
         private readonly MenkBordasSystem.Dimensions dim;
-        private readonly IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kes;
-        private readonly IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kse;
+        private readonly IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kes;
+        private readonly IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kse;
         private readonly IStandardPreconditioner Ps;
         private readonly IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe;
         private readonly IFactorizationLQ LQ;
 
         public MenkBordasPrecondMatrix(MenkBordasSystem.Dimensions dimensions,
-            IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kes, IReadOnlyDictionary<XSubdomain2D, CSRMatrix> Kse,
+            IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kes, IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kse,
             IStandardPreconditioner Ps, IReadOnlyDictionary<XSubdomain2D, CholeskySuiteSparse> Pe, IFactorizationLQ LQ)
         {
             this.dim = dimensions;

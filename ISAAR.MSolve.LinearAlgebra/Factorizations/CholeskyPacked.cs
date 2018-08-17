@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public static CholeskyPacked Factorize(int order, double[] matrix)
         {
             // Call MKL
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             Lapack.Dpptrf("U", ref order, ref matrix[0], ref info);
 
             // Check MKL execution
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 + " positive-definite, and the factorization could not be completed.";
                 throw new IndefiniteMatrixException(msg);
             }
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             CheckOverwritten();
 
             // Call MKL
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             double[] inverse; // if A is posdef, so is inv(A)
             if (inPlace)
             {
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 throw new IndefiniteMatrixException($"The leading minor of order {info - 1} (and therefore the matrix itself)"
                 + "is not positive-definite, and the factorization could not be completed.");
             }
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -137,14 +137,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             // Call MKL
             int n = Order;
             double[] b = rhs.CopyToArray();
-            int info = MKLUtilities.DefaultInfo;
+            int info = MklUtilities.DefaultInfo;
             int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int ldb = n; // column major ordering: leading dimension of b is n 
             Lapack.Dpptrs("U", ref n, ref nRhs, ref data[0], ref b[0], ref ldb, ref info);
 
             // Check MKL execution
             if (info == 0) return Vector.CreateFromArray(b, false);
-            else throw MKLUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         private void CheckOverwritten()

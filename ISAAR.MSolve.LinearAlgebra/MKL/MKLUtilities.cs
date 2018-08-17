@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
     /// Utility methods to use when calling Intel MKL functions.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class MKLUtilities
+    internal static class MklUtilities
     {
         /// <summary>
         /// Use this value to initialize the output arguments named info. So far, negative values of the info are parameter 
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
         /// <param name="info"></param>
         internal static MklException ProcessNegativeInfo(int info)
         {
-            if (info == MKLUtilities.DefaultInfo)
+            if (info == MklUtilities.DefaultInfo)
             {
                 // first check the default info value, since it is negative.
                 // info == default => the MKL call did not succeed. 

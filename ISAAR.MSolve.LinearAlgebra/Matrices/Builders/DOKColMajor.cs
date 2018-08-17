@@ -8,20 +8,20 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
     /// <summary>
-    /// Use this class for building large sparse matrices, e.g. <see cref="CSCMatrix"/>, not for operations. Convert to other 
+    /// Use this class for building large sparse matrices, e.g. <see cref="CscMatrix"/>, not for operations. Convert to other 
     /// matrix formats once finished and use them instead for matrix operations. The large matrices and their properties will be 
     /// characterized as "global" in this namespace. This class is optimized for building global matrices with at least 1 entry 
     /// per column and column major storage formats.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class DOKColMajor: ISparseMatrix, IGeneralMatrixBuilder
+    public class DokColMajor: ISparseMatrix, IGeneralMatrixBuilder
     {
         /// <summary>
-        /// See the rant in <see cref="DOKSymmetric.columns"/> about performance.
+        /// See the rant in <see cref="DokSymmetric.columns"/> about performance.
         /// </summary>
         private Dictionary<int, double>[] columns;
 
-        private DOKColMajor(int numRows, int numCols, Dictionary<int, double>[] columns)
+        private DokColMajor(int numRows, int numCols, Dictionary<int, double>[] columns)
         {
             this.columns = columns;
             this.NumRows = numRows;
@@ -55,24 +55,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKColMajor"/> with the specified matrix dimensions and all entries being
+        /// Initializes a new instance of <see cref="DokColMajor"/> with the specified matrix dimensions and all entries being
         /// equal to 0.
         /// </summary>
         /// <param name="numRows">The number of rows of the matrix to build.</param>
         /// <param name="numCols">The number of columns of the matrix to build.</param>
-        public static DOKColMajor CreateEmpty(int numRows, int numCols)
+        public static DokColMajor CreateEmpty(int numRows, int numCols)
         {
             var columns = new Dictionary<int, double>[numCols];
             for (int j = 0; j < numCols; ++j) columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
-            return new DOKColMajor(numRows, numCols, columns);
+            return new DokColMajor(numRows, numCols, columns);
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKColMajor"/> with the specified matrix dimensions and entries being 
+        /// Initializes a new instance of <see cref="DokColMajor"/> with the specified matrix dimensions and entries being 
         /// the same as the identity matrix.
         /// </summary>
         /// <param name="order">The number of rows/columns of the square matrix to build.</param>
-        public static DOKColMajor CreateIdentity(int order)
+        public static DokColMajor CreateIdentity(int order)
         {
             var columns = new Dictionary<int, double>[order];
             for (int j = 0; j < order; ++j)
@@ -81,29 +81,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 idenityCol[j] = 1.0;
                 columns[j] = idenityCol;
             }
-            return new DOKColMajor(order, order, columns);
+            return new DokColMajor(order, order, columns);
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKColMajor"/> with the specified matrix dimensions and the non-zero 
+        /// Initializes a new instance of <see cref="DokColMajor"/> with the specified matrix dimensions and the non-zero 
         /// entries of the provided sparse matrix.
         /// </summary>
         /// <param name="matrix">A sparse matrix whose dimensions and non-zero entries will be used to intialize the new
-        ///     <see cref="DOKColMajor"/>.</param>
-        public static DOKColMajor CreateFromSparseMatrix(ISparseMatrix matrix)
+        ///     <see cref="DokColMajor"/>.</param>
+        public static DokColMajor CreateFromSparseMatrix(ISparseMatrix matrix)
             => CreateFromSparsePattern(matrix.NumRows, matrix.NumColumns, matrix.EnumerateNonZeros());
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKColMajor"/> with the specified matrix dimensions and the non-zero 
+        /// Initializes a new instance of <see cref="DokColMajor"/> with the specified matrix dimensions and the non-zero 
         /// entries defined by the provided pattern.
         /// </summary>
         /// <param name="numRows">The number of rows of the matrix to build.</param>
         /// <param name="numCols">The number of columns of the matrix to build.</param>
         /// <param name="nonZeroEntries">The non-zero entries of the matrix to build.</param>
-        public static DOKColMajor CreateFromSparsePattern(int numRows, int numColumns, 
+        public static DokColMajor CreateFromSparsePattern(int numRows, int numColumns, 
             IEnumerable<(int row, int col, double value)> nonZeroEntries)
         {
-            DOKColMajor dok = CreateEmpty(numRows, numColumns);
+            DokColMajor dok = CreateEmpty(numRows, numColumns);
             foreach (var (row, col, val) in nonZeroEntries) dok.columns[col].Add(row, val);
             return dok;
         }
@@ -180,7 +180,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         /// <summary>
         /// Creates the values and indexing arrays in CSC storage format of the current matrix. This method should be 
-        /// called after fully defining the matrix in <see cref="DOKColMajor"/> format.
+        /// called after fully defining the matrix in <see cref="DokColMajor"/> format.
         /// </summary>
         /// <param name="sortColsOfEachCol">True to sort the column indices of the CSC matrix between colOffsets[j] and 
         ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
@@ -228,22 +228,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Initializes a <see cref="CSCMatrix"/> representation of the current matrix. This method should be 
-        /// called after fully defining the matrix in <see cref="DOKColMajor"/> format.
+        /// Initializes a <see cref="CscMatrix"/> representation of the current matrix. This method should be 
+        /// called after fully defining the matrix in <see cref="DokColMajor"/> format.
         /// </summary>
         /// <param name="sortColsOfEachCol">True to sort the column indices of the CSC matrix between colOffsets[j] and 
         ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSC matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public CSCMatrix BuildCSCMatrix(bool sortRowsOfEachCol)
+        public CscMatrix BuildCSCMatrix(bool sortRowsOfEachCol)
         {
             (double[] values, int[] rowIndices, int[] colOffsets) = BuildCSCArrays(sortRowsOfEachCol);
-            return CSCMatrix.CreateFromArrays(NumRows, NumColumns, values, rowIndices, colOffsets, false);
+            return CscMatrix.CreateFromArrays(NumRows, NumColumns, values, rowIndices, colOffsets, false);
         }
 
         /// <summary>
-        /// Frees all memory held by this <see cref="DOKColMajor"/> instance. Afterwards this object cannot be reused. Therefore 
+        /// Frees all memory held by this <see cref="DokColMajor"/> instance. Afterwards this object cannot be reused. Therefore 
         /// this method should be called to save up space after building the matrix or its internal arrays.
         /// </summary>
         public void Clear() => columns = null;
@@ -282,7 +282,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         /// <summary>
         /// Returns a <see cref="Vector"/> with the entries of the matrix's main diagonal and the index of the first zero entry.
-        /// If there are no zero entries, -1 is returned as the index. The <see cref="DOKColMajor"/> matrix must be square.
+        /// If there are no zero entries, -1 is returned as the index. The <see cref="DokColMajor"/> matrix must be square.
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         public (Vector diagonal, int firstZeroIdx) GetDiagonal()
@@ -293,7 +293,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         /// <summary>
         /// Returns an array with the entries of the matrix's main diagonal and the index of the first zero entry.
-        /// If there are no zero entries, -1 is returned as the index. The <see cref="DOKColMajor"/> matrix must be square.
+        /// If there are no zero entries, -1 is returned as the index. The <see cref="DokColMajor"/> matrix must be square.
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         public (double[] diagonal, int firstZeroIdx) GetDiagonalAsArray()

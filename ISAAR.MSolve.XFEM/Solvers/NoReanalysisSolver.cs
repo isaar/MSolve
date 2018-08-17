@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var assembler = new ReanalysisWholeAssembler();
             //This is not posdef. Debugger showed empty columns. Also there are no enriched dofs!!!
-            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer); 
+            (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer); 
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             int nnzOrderedFactor;
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 pattern.ConnectIndices(allDofs, false);
             }
 
-            var orderingAlgorithm = new OrderingAMD();
+            var orderingAlgorithm = new OrderingAmd();
             (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
             permutationOldToNew = permutation;
             DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private int CheckSolutionWithUnordered()
         {
             var assembler = new ReanalysisWholeAssembler();
-            (DOKSymmetric Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, unorderedDofs);
+            (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, unorderedDofs);
             Vector Fu = model.CalculateFreeForces(unorderedDofs);
             Vector uc = model.CalculateConstrainedDisplacements(unorderedDofs);
             Vector rhs = Fu - Kuc.MultiplyRight(uc);

@@ -14,14 +14,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     class MenkBordasMatrix: ILinearTransformation<Vector>
     {
         public readonly MenkBordasSystem.Dimensions dim;
-        public readonly CSRMatrix Kss;
-        public readonly CSRMatrix[] Kee;
-        public readonly CSRMatrix[] Kes;
-        public readonly CSRMatrix[] Kse;
+        public readonly CsrMatrix Kss;
+        public readonly CsrMatrix[] Kee;
+        public readonly CsrMatrix[] Kes;
+        public readonly CsrMatrix[] Kse;
         public readonly SignedBooleanMatrix[] B;
 
         public MenkBordasMatrix(MenkBordasSystem.Dimensions dim,
-            CSRMatrix Kss, CSRMatrix[] Kee, CSRMatrix[] Kes, CSRMatrix[] Kse, SignedBooleanMatrix[] B)
+            CsrMatrix Kss, CsrMatrix[] Kee, CsrMatrix[] Kes, CsrMatrix[] Kse, SignedBooleanMatrix[] B)
         {
             this.dim = dim;
             this.Kss = Kss;

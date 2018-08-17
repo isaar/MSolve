@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
         {
             Console.WriteLine("Global stiffness matrix:");
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
-            (DOKSymmetric Kff, DOKRowMajor Kfc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofOrderer);
+            (DokSymmetric Kff, DokRowMajor Kfc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofOrderer);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath), dofOrderer);
             (new FullMatrixWriter()).WriteToConsole(Kff.Reorder(permutation, true));
         }
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Tools
             // Retrieve the matrices
             IMatrixView expectedMatrix = OutputReaders.ReadGlobalStiffnessMatrix(expectedMatrixPath);
             //SingleGlobalSkylineAssembler.BuildGlobalMatrix(model, out Kff, out Kfc);
-            (DOKSymmetric Kff, DOKRowMajor Kfc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofOrderer);
+            (DokSymmetric Kff, DokRowMajor Kfc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, dofOrderer);
             int[] permutation = DofReorder.OldToNewDofs(model, OutputReaders.ReadNodalDofs(expectedDofEnumerationPath), dofOrderer);
             IMatrixView actualMatrix = Kff.Reorder(permutation, true);
 

@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckReorderingAMD()
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
-            var orderingAlg = new OrderingAMD();
+            var orderingAlg = new OrderingAmd();
             (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
             Comparer comparer = new Comparer();
             bool success = comparer.AreEqual(matlabPermutationAMD, permutation);
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckReorderingCAMD()
         {
             var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
-            var orderingAlg = new OrderingCAMD();
+            var orderingAlg = new OrderingCamd();
 
             // Enforce indices order:
             // First group: 0, 1, 7. Second group: 3, 5, 6, 9. Third group: 2, 4, 8
@@ -186,7 +186,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void PrintDOKSparseColumns()
         {
             var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var dok = DOKSymmetric.CreateEmpty(order);
+            var dok = DokSymmetric.CreateEmpty(order);
             foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
 
             var writer = new FullVectorWriter();

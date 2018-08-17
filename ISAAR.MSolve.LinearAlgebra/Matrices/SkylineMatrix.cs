@@ -202,7 +202,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Performs the following operation for th non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/> 
         /// 0 &lt;= i &lt;= j:
         /// this[i, j] = <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j] + this[i, j]. 
-        /// The resulting matrix overwrites the entries of this <see cref="CSCMatrix"/> instance.
+        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
         /// </summary>
         /// <param name="otherMatrix">A matrix for whose active columns (non-zero part of the column) are shorter or equal to the
         ///     active columns of this <see cref="SkylineMatrix"/> instance.</param>
@@ -328,7 +328,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Performs the following operation for th non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/> 
         /// 0 &lt;= i &lt;= j:
         /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
-        /// The resulting matrix overwrites the entries of this <see cref="CSCMatrix"/> instance.
+        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
         /// </summary>
         /// <param name="otherMatrix">A matrix for whose active columns (non-zero part of the column) are shorter or equal to the
         ///     active columns of this <see cref="SkylineMatrix"/> instance.</param>
@@ -545,7 +545,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Performs the following operation for th non-zero entries (i, j), such that 0 &lt;= j &lt; <see cref="NumColumns"/> 
         /// 0 &lt;= i &lt;= j: this[i, j] = <paramref name="thisCoefficient"/> * this[i, j] 
         ///     + <paramref name="otherCoefficient"/> * <paramref name="otherMatrix"/>[i, j].  
-        /// The resulting matrix overwrites the entries of this <see cref="CSCMatrix"/> instance.
+        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
         /// </summary>
         /// <param name="thisCoefficient">A scalar that multiplies each entry of this <see cref="Matrix"/>.</param>
         /// <param name="otherMatrix">A matrix for whose active columns (non-zero part of the column) are shorter or equal to the

@@ -81,8 +81,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckBuilders()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var dokRowMajor = DOKRowMajor.CreateEmpty(numRows, numCols);
-            var dokColMajor = DOKColMajor.CreateEmpty(numRows, numCols);
+            var dokRowMajor = DokRowMajor.CreateEmpty(numRows, numCols);
+            var dokColMajor = DokColMajor.CreateEmpty(numRows, numCols);
             for (int i = 0; i < numRows; ++i)
             {
                 for (int j = 0; j < numCols; ++j)
@@ -131,8 +131,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             var transposeMatrix5x5TimesTransposeThis =
                 MatrixOperations.MatrixTimesMatrix(matrix5x5.Transpose().CopyToArray2D(), MatrixOperations.Transpose(matrix));
 
-            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
-            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            var csr = CsrMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CscMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
 
             // CSR: Right multiplications
             Console.WriteLine();
@@ -222,8 +222,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckMatrixVectorMult()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
-            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            var csr = CsrMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CscMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
             var x5 = Vector.CreateFromArray(lhs5);
             var x10 = Vector.CreateFromArray(lhs10);
 
@@ -248,8 +248,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckIndexing()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
-            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            var csr = CsrMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CscMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
             comparer.CheckMatrixEquality(matrix, csr.CopyToFullMatrix().CopyToArray2D());
             comparer.CheckMatrixEquality(matrix, csc.CopyToFullMatrix().CopyToArray2D());
         }
@@ -258,8 +258,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
             var full = Matrix.CreateFromArray(matrix);
-            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
-            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            var csr = CsrMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CscMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
             if (csr.Equals(full)) Console.WriteLine("CSR.Equals() works fine.");
             else Console.WriteLine("Error in CSR.Equals().");
             if (csc.Equals(full)) Console.WriteLine("CSC.Equals() works fine.");
@@ -271,12 +271,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static void CheckTransposition()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
-            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
-            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
-            CSCMatrix csrTransAsCSC = csr.TransposeToCSC(false);
-            CSRMatrix cscTransAsCSR = csc.TransposeToCSR(false);
-            CSRMatrix csrTransAsCSR = csr.TransposeToCSR();
-            CSCMatrix cscTransAsCSC = csc.TransposeToCSC();
+            var csr = CsrMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CscMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            CscMatrix csrTransAsCSC = csr.TransposeToCSC(false);
+            CsrMatrix cscTransAsCSR = csc.TransposeToCSR(false);
+            CsrMatrix csrTransAsCSR = csr.TransposeToCSR();
+            CscMatrix cscTransAsCSC = csc.TransposeToCSC();
             Console.WriteLine("\nTranspose CSR as CSC: ");
             comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), csrTransAsCSC.CopyToFullMatrix().CopyToArray2D());
             Console.WriteLine("\nTranspose CSC as CSR: ");
@@ -289,8 +289,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void Print()
         {
-            var csr = CSRMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
-            var csc = CSCMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
+            var csr = CsrMatrix.CreateFromArrays(numRows, numCols, csrValues, csrColIndices, csrRowOffsets, true);
+            var csc = CscMatrix.CreateFromArrays(numRows, numCols, cscValues, cscRowIndices, cscColOffsets, true);
 
             var fullWriter = new FullMatrixWriter();
             var coordinateWriter = new CoordinateTextFileWriter();

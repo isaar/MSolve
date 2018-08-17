@@ -56,14 +56,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         public static void CheckMatrixCoo()
         {
             // Write
-            DOKSymmetric originalDOK = CreateRandomMatrix(1000, 0.2);
+            DokSymmetric originalDOK = CreateRandomMatrix(1000, 0.2);
             var coordinateWriter = new CoordinateTextFileWriter();
             coordinateWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 10 };
             coordinateWriter.WriteToFile(originalDOK, matrixCooPath);
 
             // Read
             var reader = new CoordinateTextFileReader();
-            DOKSymmetric readDOK = reader.ReadFileAsDokSymmetricColMajor(matrixCooPath);
+            DokSymmetric readDOK = reader.ReadFileAsDokSymmetricColMajor(matrixCooPath);
 
             if (originalDOK.Equals(readDOK, 1e-8)) Console.WriteLine("I/O succeeded.");
             else
@@ -77,10 +77,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             }
         }
 
-        public static DOKSymmetric CreateRandomMatrix(int order, double nonZeroChance)
+        public static DokSymmetric CreateRandomMatrix(int order, double nonZeroChance)
         {
             var rand = new Random();
-            var dok = DOKSymmetric.CreateEmpty(order);
+            var dok = DokSymmetric.CreateEmpty(order);
             for (int j = 0; j < order; ++j)
             {
                 for (int i = 0; i <= j; ++i)

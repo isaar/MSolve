@@ -32,12 +32,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         /// <param name="path">The absolute path of the array.</param>
         /// <exception cref="IOException">Thrown if there is no such file or if the dimensions of the matrix specified in the
         ///     first line are invalid.</exception>
-        public DOKColMajor ReadFileAsDokColMajor(string path)
+        public DokColMajor ReadFileAsDokColMajor(string path)
         {
             using (var reader = new StreamReader(path))
             {
                 (int numRows, int numCols, int nnz) = ReadMatrixDimensions(reader);
-                var builder = DOKColMajor.CreateEmpty(numRows, numCols);
+                var builder = DokColMajor.CreateEmpty(numRows, numCols);
                 ReadMatrixEntries(reader, nnz, builder);
                 return builder;
             }
@@ -50,12 +50,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         /// <param name="path">The absolute path of the array.</param>
         /// <exception cref="IOException">Thrown if there is no such file or if the dimensions of the matrix specified in the
         ///     first line are invalid.</exception>
-        public DOKRowMajor ReadFileAsDokRowMajor(string path)
+        public DokRowMajor ReadFileAsDokRowMajor(string path)
         {
             using (var reader = new StreamReader(path))
             {
                 (int numRows, int numCols, int nnz) = ReadMatrixDimensions(reader);
-                var builder = DOKRowMajor.CreateEmpty(numRows, numCols);
+                var builder = DokRowMajor.CreateEmpty(numRows, numCols);
                 ReadMatrixEntries(reader, nnz, builder);
                 return builder;
             }
@@ -68,12 +68,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         /// <param name="path">The absolute path of the array.</param>
         /// <exception cref="IOException">Thrown if there is no such file or if the dimensions of the matrix specified in the
         ///     first line are invalid.</exception>
-        public DOKSymmetric ReadFileAsDokSymmetricColMajor(string path)
+        public DokSymmetric ReadFileAsDokSymmetricColMajor(string path)
         {
             using (var reader = new StreamReader(path))
             {
                 (int numRows, int numCols, int nnz) = ReadMatrixDimensions(reader);
-                var builder = DOKSymmetric.CreateEmpty(numCols);
+                var builder = DokSymmetric.CreateEmpty(numCols);
                 ReadMatrixEntries(reader, nnz, builder);
                 return builder;
             }

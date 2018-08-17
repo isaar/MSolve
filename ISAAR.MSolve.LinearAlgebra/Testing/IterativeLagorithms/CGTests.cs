@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
         {
             // TODO: Add a DOK (extension) method that takes a whole matrix and only stores the matrix[i,j] != 0 entries.
             double[,] denseMatrix = SparsePositiveDefinite.matrix;
-            var dok = DOKRowMajor.CreateEmpty(SparsePositiveDefinite.order, SparsePositiveDefinite.order);
+            var dok = DokRowMajor.CreateEmpty(SparsePositiveDefinite.order, SparsePositiveDefinite.order);
             for (int j = 0; j < SparsePositiveDefinite.order; ++j)
             {
                 for (int i = 0; i < SparsePositiveDefinite.order; ++i)

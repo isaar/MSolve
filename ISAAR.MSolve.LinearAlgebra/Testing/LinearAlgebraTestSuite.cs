@@ -45,8 +45,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
 
         public static void TestMarshaling()
         {
-            TestMKL.TestDgemv();
-            TestMKL.TestDgetrf_Dgetrs();
+            TestMkl.TestDgemv();
+            TestMkl.TestDgetrf_Dgetrs();
         }
 
         public static void TestBuilders()

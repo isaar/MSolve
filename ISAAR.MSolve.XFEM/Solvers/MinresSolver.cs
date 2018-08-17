@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //DofOrderer = DofOrdererSeparate.Create(model);
 
             var assembler = new GlobalCSRAssembler();
-            (DOKRowMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DokRowMajor Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             //if (!Kuu.IsSymmetric(1e-10)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to free-free dofs is not symmetric");

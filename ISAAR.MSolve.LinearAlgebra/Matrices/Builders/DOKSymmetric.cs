@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     /// upper triangle are explicitly stored, the storage format is column major and there is at least 1 entry per column.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class DOKSymmetric: ISparseSymmetricMatrix, ISymmetricMatrixBuilder
+    public class DokSymmetric: ISparseSymmetricMatrix, ISymmetricMatrixBuilder
     {
         /// <summary>
         /// An array of dictionaries is more efficent and perhaps easier to work with than a dictionary of dictionaries. There 
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         private Dictionary<int, double>[] columns;
         private readonly int order;
 
-        private DOKSymmetric(int order, Dictionary<int, double>[] columns)
+        private DokSymmetric(int order, Dictionary<int, double>[] columns)
         {
             this.columns = columns;
             this.order = order;
@@ -70,19 +70,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKColMajor"/> with the specified matrix dimensions and all entries being
+        /// Initializes a new instance of <see cref="DokColMajor"/> with the specified matrix dimensions and all entries being
         /// equal to 0.
         /// </summary>
         /// <param name="order">The number of rows/columns of the symmetric matrix to build.</param>
-        public static DOKSymmetric CreateEmpty(int order)
+        public static DokSymmetric CreateEmpty(int order)
         {
             var columns = new Dictionary<int, double>[order];
             for (int j = 0; j < order; ++j) columns[j] = new Dictionary<int, double>(); //Initial capacity may be optimized.
-            return new DOKSymmetric(order, columns);
+            return new DokSymmetric(order, columns);
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKSymmetric"/> with the specified matrix dimensions and entries 
+        /// Initializes a new instance of <see cref="DokSymmetric"/> with the specified matrix dimensions and entries 
         /// being the same as the identity matrix.
         /// WARNING: if you initilize the DOK to identity, then you need to overwrite the diagonal entries with the new values 
         /// (in FEM you only write to each diagonal entry once), instead of adding to them. This precludes the use of the methods 
@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// and after all submatrices have been added, call <see cref="SetStructuralZeroDiagonalEntriesToUnity"/>.
         /// </summary>
         /// <param name="order">The number of rows/columns of the symmetric matrix to build.</param>
-        public static DOKSymmetric CreateIdentity(int order)
+        public static DokSymmetric CreateIdentity(int order)
         {
             var columns = new Dictionary<int, double>[order];
             for (int j = 0; j < order; ++j) 
@@ -99,32 +99,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 idenityCol[j] = 1.0;
                 columns[j] = idenityCol; 
             }
-            return new DOKSymmetric(order, columns);
+            return new DokSymmetric(order, columns);
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKSymmetric"/> with the specified matrix dimensions and the 
+        /// Initializes a new instance of <see cref="DokSymmetric"/> with the specified matrix dimensions and the 
         /// non-zero entries of the provided sparse matrix.
         /// </summary>
         /// <param name="matrix">A symmetric sparse matrix whose dimensions and non-zero entries will be used to intialize the 
-        ///     new <see cref="DOKSymmetric"/>. Its symmetry will not be checked explicitly.</param>
-        public static DOKSymmetric CreateFromSparseMatrix(ISparseMatrix matrix)
+        ///     new <see cref="DokSymmetric"/>. Its symmetry will not be checked explicitly.</param>
+        public static DokSymmetric CreateFromSparseMatrix(ISparseMatrix matrix)
         {
             Preconditions.CheckSquare(matrix);
             return CreateFromSparsePattern(matrix.NumColumns, matrix.EnumerateNonZeros());
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKSymmetric"/> with the specified matrix dimensions and the 
+        /// Initializes a new instance of <see cref="DokSymmetric"/> with the specified matrix dimensions and the 
         /// non-zero entries defined by the provided pattern.
         /// </summary>
         /// <param name="numRows">The number of rows/columns of the symmetric matrix to build.</param>
         /// <param name="nonZeroEntries">The non-zero entries of the symmetric matrix to build. Its symmetry will not be 
         ///     checked explicitly.</param>
-        public static DOKSymmetric CreateFromSparsePattern(int order, 
+        public static DokSymmetric CreateFromSparsePattern(int order, 
             IEnumerable<(int row, int col, double value)> nonZeroEntries)
         {
-            DOKSymmetric dok = CreateEmpty(order);
+            DokSymmetric dok = CreateEmpty(order);
             foreach (var (row, col, val) in nonZeroEntries)
             {
                 if ( row <= col) dok.columns[col][row] = val;
@@ -133,27 +133,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKSymmetric"/> with the specified matrix dimensions and the 
+        /// Initializes a new instance of <see cref="DokSymmetric"/> with the specified matrix dimensions and the 
         /// non-zero entries of the provided symmetric sparse matrix.
         /// </summary>
         /// <param name="matrix">A symmetric sparse matrix whose dimensions and non-zero entries will be used to intialize the 
-        ///     new <see cref="DOKSymmetric"/>.</param>
-        public static DOKSymmetric CreateFromSparseSymmetricMatrix(ISparseSymmetricMatrix matrix)
+        ///     new <see cref="DokSymmetric"/>.</param>
+        public static DokSymmetric CreateFromSparseSymmetricMatrix(ISparseSymmetricMatrix matrix)
         {
             Preconditions.CheckSquare(matrix); //This should not be needed
             return CreateFromSparseSymmetricPattern(matrix.NumColumns, matrix.EnumerateNonZeros());
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DOKSymmetric"/> with the specified matrix dimensions and the 
+        /// Initializes a new instance of <see cref="DokSymmetric"/> with the specified matrix dimensions and the 
         /// non-zero entries defined by the provided symmetric pattern.
         /// </summary>
         /// <param name="numRows">The number of rows/columns of the symmetric matrix to build.</param>
         /// <param name="nonZeroEntries">The non-zero entries of the symmetric matrix to build.</param>
-        public static DOKSymmetric CreateFromSparseSymmetricPattern(int order,
+        public static DokSymmetric CreateFromSparseSymmetricPattern(int order,
             IEnumerable<(int row, int col, double value)> nonZeroEntries)
         {
-            DOKSymmetric dok = CreateEmpty(order);
+            DokSymmetric dok = CreateEmpty(order);
             foreach (var (row, col, val) in nonZeroEntries) dok.columns[col].Add(row, val);
             return dok;
         }
@@ -288,7 +288,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         /// <summary>
         /// Creates the values and indexing arrays in CSC storage format of the upper triangle of the current symmetric matrix. 
-        /// This method should be called after fully defining the matrix in <see cref="DOKSymmetric"/> format.
+        /// This method should be called after fully defining the matrix in <see cref="DokSymmetric"/> format.
         /// </summary>
         /// <param name="sortColsOfEachCol">True to sort the column indices of the CSC matrix between colOffsets[j] and 
         ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
@@ -340,7 +340,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 
         /// <summary>
         /// Initializes a <see cref="SymmetricCSC"/> representation of the current matrix. This method should be 
-        /// called after fully defining the matrix in <see cref="DOKSymmetric"/> format.
+        /// called after fully defining the matrix in <see cref="DokSymmetric"/> format.
         /// </summary>
         /// <param name="sortColsOfEachCol">True to sort the column indices of the CSC matrix between colOffsets[j] and 
         ///     colOffsets[j+1] in ascending order. False to leave them unordered. Ordered rows might result in better  
@@ -354,7 +354,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Frees all memory held by this <see cref="DOKSymmetric"/> instance. Afterwards this object cannot be reused. 
+        /// Frees all memory held by this <see cref="DokSymmetric"/> instance. Afterwards this object cannot be reused. 
         /// Therefore this method should be called to save up space after building the matrix or its internal arrays.
         /// </summary>
         public void Clear() => columns = null;

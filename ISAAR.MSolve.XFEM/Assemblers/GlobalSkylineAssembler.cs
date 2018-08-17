@@ -14,12 +14,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalSkylineAssembler
     {
-        public (SkylineMatrix Kff, DOKRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (SkylineMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
             SkylineBuilder Kff = FindSkylineColumnHeights(model, dofOrderer);
-            var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
+            var Kfc = DokRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {

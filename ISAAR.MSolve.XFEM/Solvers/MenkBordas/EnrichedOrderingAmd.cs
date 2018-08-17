@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         public void ReorderEnrichedDofs(XSubdomain2D subdomain)
         {
-            var orderingAlgorithm = new OrderingAMD();
+            var orderingAlgorithm = new OrderingAmd();
 
             int order = subdomain.DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);

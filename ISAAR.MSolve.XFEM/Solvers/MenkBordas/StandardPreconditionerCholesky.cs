@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         private readonly CholeskySuiteSparse factorU;
 
-        private StandardPreconditionerCholesky(DOKSymmetric Kss)
+        private StandardPreconditionerCholesky(DokSymmetric Kss)
         {
             int order = Kss.NumColumns;
             var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
