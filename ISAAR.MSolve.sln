@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.FEM.Tests", "I
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ISAAR.MSolve.Preprocessor", "ISAAR.MSolve.Preprocessor\ISAAR.MSolve.Preprocessor.csproj", "{EFFD8A96-E04B-44E2-92B4-F5134C8F8667}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISAAR.MSolve.LinearAlgebra.Tests", "ISAAR.MSolve.LinearAlgebra.Tests\ISAAR.MSolve.LinearAlgebra.Tests.csproj", "{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -265,6 +267,18 @@ Global
 		{EFFD8A96-E04B-44E2-92B4-F5134C8F8667}.Release|x64.Build.0 = Release|Any CPU
 		{EFFD8A96-E04B-44E2-92B4-F5134C8F8667}.Release|x86.ActiveCfg = Release|Any CPU
 		{EFFD8A96-E04B-44E2-92B4-F5134C8F8667}.Release|x86.Build.0 = Release|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Debug|x64.Build.0 = Debug|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Debug|x86.Build.0 = Debug|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Release|x64.ActiveCfg = Release|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Release|x64.Build.0 = Release|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Release|x86.ActiveCfg = Release|Any CPU
+		{B0F8E571-21C3-46EC-9B26-3C6C4A34E34C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
