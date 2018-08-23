@@ -209,18 +209,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             SparseRect.CheckTransposition();
         }
 
-        public static void TestVectorOperations()
-        {
-            DenseVectors.CheckAddition();
-            DenseVectors.CheckAxpy();
-            DenseVectors.CheckDotProduct();
-            DenseVectors.CheckHadamardProduct();
-            DenseVectors.CheckLinearCombination();
-            DenseVectors.CheckNorm2();
-            DenseVectors.CheckScaling();
-            DenseVectors.CheckSubtraction();
-        }
-
         public static void TestMatrixOperations()
         {
             DenseMatrices.CheckScaling();
