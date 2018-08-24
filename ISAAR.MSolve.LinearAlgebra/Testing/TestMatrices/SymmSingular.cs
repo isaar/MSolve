@@ -50,22 +50,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             }
         }
 
-        public static void CheckIndexing()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrix.CreateFromArray(matrix);
-            comparer.CheckMatrixEquality(matrix, A.CopyToArray2D());
-        }
-
-        public static void CheckMatrixVectorMult()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrix.CreateFromArray(matrix);
-            var x = Vector.CreateFromArray(lhs);
-            Vector b = A.MultiplyRight(x);
-            comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
-        }
-
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
@@ -82,14 +66,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
                 var printer = new Printer();
                 printer.PrintIndefiniteMatrix(matrix);
             }
-        }
-
-        public static void CheckTransposition()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = SymmetricMatrix.CreateFromArray(matrix);
-            var transA = A.Transpose(false);
-            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
         }
 
         public static void Print()

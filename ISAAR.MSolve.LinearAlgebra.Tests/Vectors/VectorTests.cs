@@ -1,12 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
+﻿using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
 
-namespace ISAAR.MSolve.LinearAlgebra.Tests
+namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
 {
+    /// <summary>
+    /// Tests for <see cref="Vector"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public static class VectorTests
     {
         public static readonly double[] vector1 = {

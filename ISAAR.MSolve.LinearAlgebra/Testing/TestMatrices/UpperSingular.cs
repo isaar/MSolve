@@ -27,50 +27,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             { 0,         0,        0,        0,         0,         0,         0,         0,         6.0730,    2.5644},
             { 0,         0,        0,        0,         0,         0,         0,         0,         0,         6.1346}};
 
-        public static readonly double[] lhs = { 0.5822, 0.5407, 0.8699, 0.2648, 0.3181, 0.1192, 0.9398, 0.6456, 0.4795, 0.6393 };
-        public static readonly double[] rhs = Utilities.MatrixOperations.MatrixTimesVector(matrix, lhs);
-
-        public static void CheckIndexing()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularUpper.CreateFromArray(matrix);
-            var reconstructed = new double[order, order];
-            for (int i = 0; i < order; ++i)
-            {
-                for (int j = 0; j < order; ++j) reconstructed[i, j] = A[i, j];
-            }
-            comparer.CheckMatrixEquality(matrix, reconstructed);
-        }
-
-        public static void CheckMatrixVectorMult()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularUpper.CreateFromArray(matrix);
-            var x = Vector.CreateFromArray(lhs);
-            Vector b = A.MultiplyRight(x);
-            comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
-        }
-
-        /// <summary>
-        /// This is expected to fail
-        /// </summary>
-        public static void CheckSystemSolution()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var b = Vector.CreateFromArray(rhs);
-            var A = TriangularUpper.CreateFromArray(matrix);
-            Vector x = A.SolveLinearSystem(b);
-            comparer.CheckSystemSolution(matrix, rhs, lhs, x.InternalData);
-        }
-
-        public static void CheckTransposition()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = TriangularUpper.CreateFromArray(matrix);
-            var transA = A.Transpose(false);
-            comparer.CheckMatrixEquality(MatrixOperations.Transpose(matrix), transA.CopyToArray2D());
-        }
-
         public static void Print()
         {
             var A = TriangularUpper.CreateFromArray(matrix);

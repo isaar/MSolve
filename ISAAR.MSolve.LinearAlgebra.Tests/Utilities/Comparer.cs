@@ -5,6 +5,10 @@ using Xunit;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Utilities
 {
+    /// <summary>
+    /// Compares scalars, vectors and matrices.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal class Comparer
     {
         private readonly ValueComparer valueComparer;

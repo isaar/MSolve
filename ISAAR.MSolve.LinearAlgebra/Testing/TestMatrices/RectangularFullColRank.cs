@@ -31,9 +31,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         public static readonly double[] lhs5 = { 3.4484, 1.9563, 2.7385, 4.2828, 5.3064 };
         public static readonly double[] rhs5 = MatrixOperations.MatrixTimesVector(matrix, lhs5);
 
-        public static readonly double[] lhs10 = { 3.4484, 1.9563, 2.7385, 4.2828, 5.3064, 4.3251, 0.1117, 4.0487, 2.6311, 2.6269 };
-        public static readonly double[] rhs10 = MatrixOperations.MatrixTimesVector(MatrixOperations.Transpose(matrix), lhs10);
-
         public static readonly double[,] qrFactorQ = {
             { -0.23075142099349710,  0.14858764284193901,  0.31792868485316900,  0.52033887561493763,  0.25119640190154863, -0.31609052075075511, -0.14778642143763676, -0.20713121727488037,  0.38894313590494700, -0.41690588846886784 },
             { -0.43969785029491520, -0.10772975041878161,  0.07417564455815109, -0.25365561595287567,  0.00742163793160727,  0.50045187775446243,  0.46428134845573432, -0.34723518223729494,  0.05832008220679226, -0.36766705946723366 },
@@ -151,19 +148,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(Q1expected.CopyToArray2D(), Q1.CopyToArray2D());
             Console.WriteLine("R1: ");
             comparer.CheckMatrixEquality(R1expected.CopyToArray2D(), R1.CopyToArray2D());
-        }
-
-        public static void CheckMatrixVectorMult()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = Matrix.CreateFromArray(matrix);
-            var x5 = Vector.CreateFromArray(lhs5);
-            var x10 = Vector.CreateFromArray(lhs10);
-
-            Vector b5 = A.MultiplyRight(x5, false);
-            Vector b10 = A.MultiplyRight(x10, true);
-            comparer.CheckMatrixVectorMult(matrix, lhs5, rhs5, b5.InternalData);
-            comparer.CheckMatrixVectorMult(matrix, lhs10, rhs10, b10.InternalData);
         }
 
         public static void CheckSolutionLeastSquares()

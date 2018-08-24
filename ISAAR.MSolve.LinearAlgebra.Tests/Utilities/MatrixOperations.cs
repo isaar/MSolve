@@ -3,6 +3,11 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Utilities
 {
+    /// <summary>
+    /// Linear algebra operations to be tested against. These are naive implementations for dense matrices and vectors, 
+    /// thus they are much more reliable. Still getting the result from another software (e.g. matlab) would be preferable.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public static class MatrixOperations
     {
         public static double[] LinearCombination(double scalar1, double[] vector1, double scalar2, double[] vector2)

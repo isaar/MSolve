@@ -97,15 +97,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             comparer.CheckMatrixEquality(inverse, Ainv.CopyToArray2D());
         }
 
-        public static void CheckMatrixVectorMult()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var A = Matrix.CreateFromArray(matrix);
-            var x = Vector.CreateFromArray(lhs);
-            Vector b = A.MultiplyRight(x, false);
-            comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.InternalData);
-        }
-
         public static void CheckSystemSolution()
         {
             var comparer = new Comparer(Comparer.PrintMode.Always);
