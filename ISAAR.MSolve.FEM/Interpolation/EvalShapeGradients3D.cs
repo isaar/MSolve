@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 	    public EvalShapeGradients3D(double[,] shapeGradientNatural, Jacobian3D jacobian)
 	    {
-		    int numberOfNodes = shapeGradientNatural.Length;
+		    int numberOfNodes = shapeGradientNatural.GetLength(0);
 			this.shapeGradientsCartesian=new double[numberOfNodes][];
 		    for (int i = 0; i < numberOfNodes; i++)
 		    {
