@@ -17,13 +17,15 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 
 		public static readonly IEnumerable<object[]> interpolations = new List<object[]>()
 		{
-			new object[]{InterpolationTet4.UniqueInstance}
+			new object[]{InterpolationTet4.UniqueInstance},
+			new object[]{InterpolationTet10.UniqueInstance}
 		};
 
 		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators= 
 			new Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints>()
 			{
-				{InterpolationTet4.UniqueInstance,GenerateRandomPointsInTetrahedron} 
+				{InterpolationTet4.UniqueInstance,GenerateRandomPointsInTetrahedron},
+				{InterpolationTet10.UniqueInstance, GenerateRandomPointsInTetrahedron}
 			};
 
 
