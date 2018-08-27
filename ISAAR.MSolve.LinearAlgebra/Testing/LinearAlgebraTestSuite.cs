@@ -75,7 +75,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             // Orthogonalizations
             //RectangularFullColRank.CheckFactorizationQR();
             //RectangularFullColRank.CheckFactorizationLQ();
-            RectangularFullColRank.CheckEqonomyQRFactors();
         }
 
         public static void TestIndexing()
@@ -85,12 +84,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SparseRect.CheckIndexing();
             //SparsePositiveDefinite.CheckIndexing();
             SignedBoolean.CheckIndexer();
-        }
-
-        public static void TestInverse()
-        {
-            SquareInvertible.CheckInverse();
-            SymmPositiveDefinite.CheckInverse();
         }
 
         public static void TestReading()
