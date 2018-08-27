@@ -71,16 +71,17 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			var z4 = 1 - z1 - z2 - z3;
 
 			var values = new double[10];
-			values[0] = z1 * (2 * z1 - 1);
-			values[1] = z2 * (2 * z2 - 1);
-			values[2] = z3 * (2 * z3 - 1);
-			values[3] = z4 * (2 * z4 - 1);
-			values[4] = 4 * z1 * z2;
-			values[5] = 4 * z2 * z3;
-			values[6] = 4 * z3 * z1;
-			values[7] = 4 * z1 * z4;
-			values[8] = 4 * z2 * z4;
-			values[9] = 4 * z3 * z4;
+			values[0] = z4 * (2 * z4 - 1);
+			values[1] = z1 * (2 * z1 - 1);
+			values[2] = z2 * (2 * z2 - 1);
+			values[3] = z3 * (2 * z3 - 1);
+			values[4] = 4 * z1 * z4;
+			values[5] = 4 * z1 * z2;
+			values[6] = 4 * z2 * z4;
+			values[7] = 4 * z3 * z4;
+			values[8] = 4 * z2 * z3;
+			values[9] = 4 * z3 * z1;
+			
 			return values;
 		}
 
@@ -89,38 +90,39 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    {
 		    var derivatives = new double[10, 3];
 
-		    derivatives[0, 0] = 4 * xi - 1;
-		    derivatives[1, 0] = 0.0;
+		    derivatives[0, 0] = -3 + 4 * eta + 4 * zeta + 4 * xi;
+			derivatives[1, 0] = 4 * xi - 1;
 		    derivatives[2, 0] = 0.0;
-		    derivatives[3, 0] = -3 + 4 * eta + 4 * zeta + 4 * xi;
-		    derivatives[4, 0] = 4 * eta;
-		    derivatives[5, 0] = 0.0;
-		    derivatives[6, 0] = 4 * zeta;
-		    derivatives[7, 0] = 4 - 8 * xi - 4 * eta - 4 * zeta;
-		    derivatives[8, 0] = -4 * eta;
-		    derivatives[9, 0] = -4 * zeta;
+		    derivatives[3, 0] = 0.0;
+			derivatives[4, 0] = 4 - 8 * xi - 4 * eta - 4 * zeta;
+			derivatives[5, 0] = 4 * eta;
+		    derivatives[6, 0] = -4 * eta;
+		    derivatives[7, 0] = -4 * zeta;
+			derivatives[8, 0] = 0.0;
+		    derivatives[9, 0] = 4 * zeta;
 
-			derivatives[0, 1] = 0.0;
-		    derivatives[1, 1] = 4*eta-1;
-		    derivatives[2, 1] = 0.0;
-		    derivatives[3, 1] = -3 + 4 * xi + 4 * zeta + 4 * eta;
-		    derivatives[4, 1] = 4 * xi;
-		    derivatives[5, 1] = 4 * zeta;
-		    derivatives[6, 1] = 0.0;
-		    derivatives[7, 1] = -4 * xi;
-		    derivatives[8, 1] = 4 - 4 * xi - 8 * eta - 4 * zeta;
-		    derivatives[9, 1] = -4 * zeta;
+		    derivatives[0, 1] = -3 + 4 * xi + 4 * zeta + 4 * eta;
+			derivatives[1, 1] = 0.0;
+		    derivatives[2, 1] = 4*eta-1;
+		    derivatives[3, 1] = 0.0;
+			derivatives[4, 1] = -4 * xi;
+			derivatives[5, 1] = 4 * xi;
+		    derivatives[6, 1] = 4 - 4 * xi - 8 * eta - 4 * zeta;
+		    derivatives[7, 1] = -4 * zeta;
+			derivatives[8, 1] = 4 * zeta;
+		    derivatives[9, 1] = 0.0;
 
-		    derivatives[0, 2] = 0.0;
-		    derivatives[1, 2] = 0.0;
-		    derivatives[2, 2] = 4 * zeta - 1;
-		    derivatives[3, 2] = -3+4*eta+4*xi+4*zeta;
-		    derivatives[4, 2] = 0.0;
-		    derivatives[5, 2] = 4 * eta;
-		    derivatives[6, 2] = 4 * xi;
-		    derivatives[7, 2] = -4 * xi;
-		    derivatives[8, 2] = -4 * eta;
-		    derivatives[9, 2] = 4 - 4 * xi - 4 * eta - 8 * zeta;
+			derivatives[0, 2] = -3 + 4 * eta + 4 * xi + 4 * zeta;
+			derivatives[1, 2] = 0.0;
+		    derivatives[2, 2] = 0.0;
+		    derivatives[3, 2] = 4 * zeta - 1;
+		    derivatives[4, 2] = -4 * xi;
+			derivatives[5, 2] = 0.0;
+		    derivatives[6, 2] = -4 * eta;
+		    derivatives[7, 2] = 4 - 4 * xi - 4 * eta - 8 * zeta;
+			derivatives[8, 2] = 4 * eta;
+		    derivatives[9, 2] = 4 * xi;
+		    
 		    return derivatives;
 	    }
     }
