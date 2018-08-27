@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.FEM.Entities;
+﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using System;
+using System.Collections.Generic;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -12,7 +11,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	/// Implements sigleton pattern.
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
-    public class InterpolationTet4:IsoparametricInterpolation3DBase
+	public class InterpolationTet4:IsoparametricInterpolation3DBase
     {
 		private static readonly  InterpolationTet4 uniqueInstance= new InterpolationTet4();
 
@@ -54,33 +53,35 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// <param name="eta"></param>
 		/// <param name="zeta"></param>
 		/// <returns></returns>
-		protected override sealed double[] EvaluateAt(double xi, double eta, double zeta)
+		protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)
 	    {
 		    var values = new double[4];
-		    values[0] = xi;
-		    values[1] = eta;
-		    values[2] = zeta;
-		    values[3] = 1 - xi - eta - zeta;
+		    values[0] = 1 - xi - eta - zeta;
+			values[1] = xi;
+		    values[2] = eta;
+		    values[3] = zeta;
+		    
 		    return values;
 	    }
 
-	    protected override sealed double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var derivatives = new double[4, 3];
-		    derivatives[0, 0] = 1.0;
-		    derivatives[1, 0] = 0.0;
+		    derivatives[0, 0] = -1.0;
+			derivatives[1, 0] = 1.0;
 		    derivatives[2, 0] = 0.0;
-		    derivatives[3, 0] = -1.0;
+		    derivatives[3, 0] = 0.0;
 
-		    derivatives[0, 1] = 0.0;
-		    derivatives[1, 1] = 1.0;
-		    derivatives[2, 1] = 0.0;
-		    derivatives[3, 1] = -1.0;
+			derivatives[0, 1] = -1.0;
+			derivatives[1, 1] = 0.0;
+		    derivatives[2, 1] = 1.0;
+		    derivatives[3, 1] = 0.0;
 
-		    derivatives[0, 2] = 0.0;
-		    derivatives[1, 2] = 0.0;
-		    derivatives[2, 2] = 1.0;
-		    derivatives[3, 2] = -1.0;
+			derivatives[0, 2] = -1.0;
+			derivatives[1, 2] = 0.0;
+		    derivatives[2, 2] = 0.0;
+		    derivatives[3, 2] = 1.0;
+		    
 		    return derivatives;
 	    }
     }
