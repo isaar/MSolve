@@ -18,14 +18,17 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		public static readonly IEnumerable<object[]> interpolations = new List<object[]>()
 		{
 			new object[]{InterpolationTet4.UniqueInstance},
-			new object[]{InterpolationTet10.UniqueInstance}
+			new object[]{InterpolationTet10.UniqueInstance},
+			new object[]{InterpolationHexa8.UniqueInstance}
+
 		};
 
 		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators= 
 			new Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints>()
 			{
 				{InterpolationTet4.UniqueInstance,GenerateRandomPointsInTetrahedron},
-				{InterpolationTet10.UniqueInstance, GenerateRandomPointsInTetrahedron}
+				{InterpolationTet10.UniqueInstance, GenerateRandomPointsInTetrahedron},
+				{InterpolationHexa8.UniqueInstance, GenerateRandomPointsInCube }
 			};
 
 
@@ -75,6 +78,25 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				double eta = rand.NextDouble() * xi;
 				double zeta = rand.NextDouble() * eta;
 				randomPoints[i]= new NaturalPoint3D(xi,eta,zeta);
+			}
+
+			return randomPoints;
+		}
+
+		/// <summary>
+		/// Generates ranom points in the parent cube.
+		/// </summary>
+		/// <returns></returns>
+		private static NaturalPoint3D[] GenerateRandomPointsInCube()
+		{
+			var rand = new Random();
+			var randomPoints= new NaturalPoint3D[numRandomPoints];
+			for (int i = 0; i < numRandomPoints; i++)
+			{
+				double xi = -1 + rand.NextDouble() * 2.0;
+				double eta = -1 + rand.NextDouble() * 2.0;
+				double zeta = -1 + rand.NextDouble() * 2.0;
+				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
 			}
 
 			return randomPoints;
