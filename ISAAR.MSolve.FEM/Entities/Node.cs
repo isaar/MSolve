@@ -1,24 +1,13 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public enum DOFType
-    {
-        Unknown = 0,
-        X = 1,
-        Y = 2,
-        Z = 3,
-        RotX = 4,
-        RotY = 5,
-        RotZ = 6,
-        Pore = 7
-    }
-
-    public class Node
-    {
+    public class Node: INode
+	{
         private readonly List<DOFType> constraints = new List<DOFType>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Materials;
@@ -15,7 +17,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
         private static readonly DOFType[] nodalDOFTypes = new DOFType[2] { DOFType.X, DOFType.Y };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         private readonly double youngModulus;
-        private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        private IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
         public double SectionArea { get; set; }
@@ -25,13 +27,13 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             this.youngModulus = youngModulus;
         }
 
-        public Rod2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
+        public Rod2D(double youngModulus, IElementDOFEnumerator dofEnumerator)
             : this(youngModulus)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -80,7 +82,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             get { return ElementDimensions.TwoD; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofs;
         }
@@ -90,14 +92,14 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             return element.Nodes;
         }
 
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);
-            double c = (element.Nodes[1].X - element.Nodes[0].X) / L;
+            double c = (element.INodes[1].X - element.INodes[0].X) / L;
             double c2 = c * c;
-            double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
+            double s = (element.INodes[1].Y - element.INodes[0].Y) / L;
             double s2 = s * s;
             double cs = c * s;
             double E = this.youngModulus;
@@ -113,10 +115,10 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
                 }));
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);
 
             double totalMass = Density * SectionArea * L;
@@ -130,7 +132,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             });
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }

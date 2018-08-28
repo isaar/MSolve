@@ -12,6 +12,7 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.Optimization.Benchmarks.Structural

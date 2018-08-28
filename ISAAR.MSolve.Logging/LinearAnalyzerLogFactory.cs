@@ -7,7 +7,7 @@ using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.Logging
 {
-    public class LinearAnalyzerLogFactory
+    public class LinearAnalyzerLogFactory: ILogFactory
     {
         private readonly int[] dofs;
         private readonly Element[] stressElements, forceElements;
