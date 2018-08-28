@@ -36,12 +36,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			    new NaturalPoint3D(1, 0, -1),
 
 			    new NaturalPoint3D(1, -1, 0),
-			    new NaturalPoint3D(-1, 0, -1),
-			    new NaturalPoint3D(-1, -1, 0),
-			    new NaturalPoint3D(1, 0, -1),
-
-			    new NaturalPoint3D(1, -1, 0),
 			    new NaturalPoint3D(0, 1, -1),
+			    new NaturalPoint3D(1, 1, 0),
+			    new NaturalPoint3D(-1, 1, 0),
+
+			    new NaturalPoint3D(0, -1, 1),
+			    new NaturalPoint3D(-1, 0, 1),
 			    new NaturalPoint3D(1, 0, 1),
 			    new NaturalPoint3D(0, 1, 1),
 			};
@@ -73,23 +73,27 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    values[1] = 1 / 8.0 * (1 + xi) * (1 - eta) * (1 - zeta) * (-2 + xi - eta - zeta);
 		    values[2] = 1 / 8.0 * (1 + xi) * (1 + eta) * (1 - zeta) * (-2 + xi + eta - zeta);
 		    values[3] = 1 / 8.0 * (1 - xi) * (1 + eta) * (1 - zeta) * (-2 - xi + eta - zeta);
+
 		    values[4] = 1 / 8.0 * (1 - xi) * (1 - eta) * (1 + zeta) * (-2 - xi - eta + zeta);
 		    values[5] = 1 / 8.0 * (1 + xi) * (1 - eta) * (1 + zeta) * (-2 + xi - eta + zeta); 
 		    values[6] = 1 / 8.0 * (1 + xi) * (1 + eta) * (1 + zeta) * (-2 + xi + eta + zeta); 
 		    values[7] = 1 / 8.0 * (1 - xi) * (1 + eta) * (1 + zeta) * (-2 - xi + eta + zeta);
+
 		    values[8] = 1 / 4.0 * (1 - xi * xi) * (1 - eta) * (1 - zeta);
 		    values[9] = 1 / 4.0 * (1 - eta * eta) * (1 - xi) * (1 - zeta);
 		    values[10] = 1 / 4.0 * (1 - zeta * zeta) * (1 - xi) * (1 - eta);
 		    values[11] = 1 / 4.0 * (1 - eta * eta) * (1 + xi) * (1 - zeta);
+
 		    values[12] = 1 / 4.0 * (1 - zeta * zeta) * (1 + xi) * (1 - eta);
 		    values[13] = 1 / 4.0 * (1 - xi * xi) * (1 + eta) * (1 - zeta);
 		    values[14] = 1 / 4.0 * (1 - zeta * zeta) * (1 + xi) * (1 + eta);
 		    values[15] = 1 / 4.0 * (1 - zeta * zeta) * (1 - xi) * (1 + eta);
+
 		    values[16] = 1 / 4.0 * (1 - xi * xi) * (1 - eta) * (1 + zeta);
 		    values[17] = 1 / 4.0 * (1 - eta * eta) * (1 - xi) * (1 + zeta);
 		    values[18] = 1 / 4.0 * (1 - eta * eta) * (1 + xi) * (1 + zeta);
 		    values[19] = 1 / 4.0 * (1 - xi * xi) * (1 + eta) * (1 + zeta);
-		    return values;
+			return values;
 	    }
 
 	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
