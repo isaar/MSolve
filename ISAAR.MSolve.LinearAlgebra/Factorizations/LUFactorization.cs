@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public Matrix GetFactorL()
         {
             CheckOverwritten();
-            double[] l = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, true);
+            double[] l = Conversions.FullColMajorToFullLowerColMajor(lowerUpper, true);
             return Matrix.CreateFromArray(l, Order, Order, false);
         }
 

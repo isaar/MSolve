@@ -15,42 +15,54 @@
 	<ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\libamd.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libbtf.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libcamd.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libccolamd.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libcholmod.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libcolamd.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libcxsparse.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libklu.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libldl.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libspqr.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\libumfpack.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\suitesparse_utilities.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+	<ContentWithTargetPath Include="lib\libamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libamd.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libbtf.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libbtf.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libcamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcamd.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libccolamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libccolamd.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libcholmod.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcholmod.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libcolamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcolamd.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libcxsparse.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcxsparse.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libklu.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libklu.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libldl.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libldl.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libspqr.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libspqr.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libumfpack.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libumfpack.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\suitesparse_utilities.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>suitesparse_utilities.dll</TargetPath>
+	</ContentWithTargetPath>
     <Content Include="MKL\lapacke.h" />
   </ItemGroup>
   <ItemGroup>

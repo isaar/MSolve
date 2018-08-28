@@ -14,14 +14,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            //SuiteSparse();
+            SuiteSparse();
             //TestMarshaling();
             //TestBuilders();
             //TestInverse();
             //TestIndexing();
             //TestEquality();
             //TestFactorization();
-            //TestMatrixOperations();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestReordering();
@@ -29,18 +28,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
-            TestWriting();
+            //TestWriting();
         }
 
         public static void SuiteSparse()
         {
-            //TestSuiteSparse.ExampleRawArrays();
+            TestSuiteSparse.ExampleRawArrays();
             //TestSuiteSparse.ExampleMatrixClasses();
             //TestSuiteSparse.CheckRowAddition();
             //TestSuiteSparse.CheckRowAdditionReverse();
             //TestSuiteSparse.CheckRowDeletion();
             //TestSuiteSparse.CheckReordering1();
-            TestSuiteSparse.CheckSystemSolutions();
+            //TestSuiteSparse.CheckSystemSolutions();
         }
 
         public static void TestMarshaling()
@@ -76,26 +75,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             // Orthogonalizations
             //RectangularFullColRank.CheckFactorizationQR();
             //RectangularFullColRank.CheckFactorizationLQ();
-            RectangularFullColRank.CheckEqonomyQRFactors();
         }
 
         public static void TestIndexing()
         {
-            //LowerInvertible.CheckIndexing();
-            //LowerSingular.CheckIndexing();
-            //UpperInvertible.CheckIndexing();
-            //UpperSingular.CheckIndexing();
             //SymmPositiveDefinite.CheckIndexing();
             //SymmSingular.CheckIndexing();
             //SparseRect.CheckIndexing();
             //SparsePositiveDefinite.CheckIndexing();
             SignedBoolean.CheckIndexer();
-        }
-
-        public static void TestInverse()
-        {
-            SquareInvertible.CheckInverse();
-            SymmPositiveDefinite.CheckInverse();
         }
 
         public static void TestReading()
@@ -154,10 +142,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SquareInvertible.CheckMatrixVectorMult();
             //SquareSingular.CheckMatrixVectorMult();
             //SquareSingular1Deficiency.CheckMatrixVectorMult();
-            //LowerInvertible.CheckMatrixVectorMult();
-            //LowerSingular.CheckMatrixVectorMult();
-            //UpperInvertible.CheckMatrixVectorMult();
-            //UpperSingular.CheckMatrixVectorMult();
             //SymmPositiveDefinite.CheckMatrixVectorMult();
             //SymmSingular.CheckMatrixVectorMult();
             //SparseRect.CheckMatrixVectorMult();
@@ -177,11 +161,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SquareInvertible.CheckSystemSolution();
             //SquareSingular.CheckSystemSolution();
             //SquareSingular1Deficiency.CheckSystemSolution();
-            //LowerInvertible.CheckSystemSolution();
-            //LowerSingular.CheckSystemSolution();
-            //UpperInvertible.CheckSystemSolution();
-            UpperInvertible.CheckSystemSolutions2();
-            //UpperSingular.CheckSystemSolution();
             //SymmPositiveDefinite.CheckSystemSolution();
             //SymmSingular.CheckSystemSolution();
             //SparsePositiveDefinite.CheckSystemSolution();
@@ -200,35 +179,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         public static void TestTransposition()
         {
             //DenseMatrices.CheckTransposition();
-            //LowerInvertible.CheckTransposition();
-            //LowerSingular.CheckTransposition();
-            //UpperInvertible.CheckTransposition();
-            //UpperSingular.CheckTransposition();
             //SymmPositiveDefinite.CheckTransposition();
             //SymmSingular.CheckTransposition();
             SparseRect.CheckTransposition();
         }
-
-        public static void TestVectorOperations()
-        {
-            DenseVectors.CheckAddition();
-            DenseVectors.CheckAxpy();
-            DenseVectors.CheckDotProduct();
-            DenseVectors.CheckHadamardProduct();
-            DenseVectors.CheckLinearCombination();
-            DenseVectors.CheckNorm2();
-            DenseVectors.CheckScaling();
-            DenseVectors.CheckSubtraction();
-        }
-
-        public static void TestMatrixOperations()
-        {
-            DenseMatrices.CheckScaling();
-            DenseMatrices.CheckAddition();
-            DenseMatrices.CheckSubtraction();
-            DenseMatrices.CheckLinearCombination();
-            DenseMatrices.CheckTransposition();
-            DenseMatrices.CheckMatrixMultiplication();
-        } 
     }
 }
