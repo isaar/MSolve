@@ -20,8 +20,9 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			new object[]{InterpolationTet4.UniqueInstance},
 			new object[]{InterpolationTet10.UniqueInstance},
 			new object[]{InterpolationHexa8.UniqueInstance},
-			new object[]{InterpolationHexa20.UniqueInstance}
-
+			new object[]{InterpolationHexa20.UniqueInstance},
+			//TODO: test hexa27
+			new object[]{InterpolationWedge6.UniqueInstance}
 		};
 
 		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators =
@@ -30,7 +31,9 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				{InterpolationTet4.UniqueInstance, GenerateRandomPointsInTetrahedron},
 				{InterpolationTet10.UniqueInstance, GenerateRandomPointsInTetrahedron},
 				{InterpolationHexa8.UniqueInstance, GenerateRandomPointsInCube},
-				{InterpolationHexa20.UniqueInstance, GenerateRandomPointsInCube}
+				{InterpolationHexa20.UniqueInstance, GenerateRandomPointsInCube},
+				//TODO: test hexa27
+				{InterpolationWedge6.UniqueInstance, GenerarandomPointsInWedge }
 			};
 
 
@@ -67,7 +70,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 
 
 		/// <summary>
-		/// Generates random point in the tetrahedron.
+		/// Generates random points in the tetrahedron.
 		/// </summary>
 		/// <returns></returns>
 		private static NaturalPoint3D[] GenerateRandomPointsInTetrahedron()
@@ -80,6 +83,25 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				double eta = rand.NextDouble() * xi;
 				double zeta = rand.NextDouble() * eta;
 				randomPoints[i]= new NaturalPoint3D(xi,eta,zeta);
+			}
+
+			return randomPoints;
+		}
+
+		/// <summary>
+		/// Generates random points in a wedge
+		/// </summary>
+		/// <returns></returns>
+		private static NaturalPoint3D[] GenerarandomPointsInWedge()
+		{
+			var rand = new Random();
+			var randomPoints = new NaturalPoint3D[numRandomPoints];
+			for (int i = 0; i < numRandomPoints; i++)
+			{
+				double xi= -1 + rand.NextDouble() * 2.0;
+				double eta = rand.NextDouble();
+				double zeta = rand.NextDouble()*eta;
+				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
 			}
 
 			return randomPoints;
