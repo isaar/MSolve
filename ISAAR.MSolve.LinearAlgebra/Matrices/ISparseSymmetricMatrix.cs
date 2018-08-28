@@ -1,23 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
+//TODO: Perhaps the matrix itself should be the target of foreach
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
+    /// <summary>
+    /// A matrix that explicitly stores only the upper triangular non zero entries. Some zero entries may also be stored.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public interface ISparseSymmetricMatrix: ISymmetricMatrix, ISparseMatrix
     {
         /// <summary>
-        /// Counts the non zero entries of the upper part of the matrix, including the diagonal.
+        /// Counts how many non zero entries are stored in the upper triangle of the matrix, including the diagonal. This 
+        /// includes zeros that are explicitly stored.
         /// </summary>
-        /// <returns></returns>
         int CountNonZerosUpper();
 
         /// <summary>
-        /// Returns the non zero entries of the upper part of the matrix, including the diagonal, as triplets (row, col, value).
+        /// Iterates over the non zero entries of the upper part of the matrix, including the diagonal. This includes zeros that 
+        /// are explicitly stored.
         /// </summary>
-        /// <returns></returns>
-        IEnumerable<(int row, int col, double value)> EnumerateNonZerosSuperDiagonal(); //Perhaps the matrix itself should be the target of foreach
+        IEnumerable<(int row, int col, double value)> EnumerateNonZerosUpper(); 
     }
 }

@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     static class MenkBordasPreconditioner
     {
         
-        public static CholeskySuiteSparse CreateStandardPreconditioner(DOKSymmetricColMajor Kss)
+        public static CholeskySuiteSparse CreateStandardPreconditioner(DokSymmetric Kss)
         {
             // Standard preconditioner = cholesky factor U
             var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         }
 
         public static CholeskySuiteSparse[] CreateEnrichedPreconditioners(MenkBordasSystem.Dimensions dimensions,
-             IReadOnlyList<DOKSymmetricColMajor> Kee)
+             IReadOnlyList<DokSymmetric> Kee)
         {
             var Pe = new CholeskySuiteSparse[dimensions.NumSubdomains];
             for (int i = 0; i < dimensions.NumSubdomains; ++i)
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return Pe;
         }
 
-        public static CholeskySuiteSparse CreateEnrichedPreconditioner(DOKSymmetricColMajor Kee)
+        public static CholeskySuiteSparse CreateEnrichedPreconditioner(DokSymmetric Kee)
         {
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCSCArrays(true);
@@ -70,15 +70,15 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             foreach (var sub in B.Keys)
             {
                 // Contribution to the matrix that will undergo QR
-                Matrix contribution = Pe[sub].ForwardSubstitution(B[sub].CopyToFullMatrix(true));
+                Matrix contribution = Pe[sub].ForwardSubstitutions(B[sub].CopyToFullMatrix(true));
                 BPeTransp.SetSubmatrix(dimensions.SubdomainStarts[sub] - dimensions.NumDofsStd, 0, contribution);
             }
 
             // LQ factorization 
             //TODO: various optimizations might be possible here
             var qr = BPeTransp.FactorQR();
-            Matrix L = qr.GetFactorR().Slice(0, dimensions.NumEquations, 0, dimensions.NumEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
-            Matrix Q = qr.GetFactorQ().Slice(0, dimensions.NumDofsEnr, 0, dimensions.NumEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
+            Matrix L = qr.GetFactorR().GetSubmatrix(0, dimensions.NumEquations, 0, dimensions.NumEquations).Transpose(); //TODO: should probably use a packed UpperTriangular R
+            Matrix Q = qr.GetFactorQ().GetSubmatrix(0, dimensions.NumDofsEnr, 0, dimensions.NumEquations).Transpose(); //TODO: MKL has routines that only build some columns of Q!!!
 
             #region Debug
             //FullMatrixWriter.NumericFormat = new ExponentialFormat { NumDecimalDigits = 4 };

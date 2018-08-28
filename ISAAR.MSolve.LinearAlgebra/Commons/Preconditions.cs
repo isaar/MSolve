@@ -5,6 +5,11 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
+    /// <summary>
+    /// Checks for the compatibility of vector or matrix dimensions for various operations and for the indices. Also templates 
+    /// for exception messages.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public static class Preconditions
     {
         public static bool AreSameMatrixDimensions(IIndexable2D matrix1, IIndexable2D matrix2)
@@ -74,8 +79,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        public static void CheckMultiplicationDimensionsSection(IIndexable2D matrixLeft, IVectorView vectorRight, int vectorStart,
-            IVectorView result, int resultStart)
+        public static void CheckMultiplicationDimensionsSection(IIndexable2D matrixLeft, IVectorView vectorRight,
+            int vectorStart, IVectorView result, int resultStart)
         {
             if (vectorStart + matrixLeft.NumColumns > vectorRight.Length) throw new NonMatchingDimensionsException(
                 $"The multiplied vector's length = {vectorRight.Length} must be at least as large as the start index =" +
@@ -167,7 +172,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        public static void CheckVectorDimensions(IVectorView vector1, IVectorView vector2)
+        public static void CheckVectorDimensions(IIndexable1D vector1, IIndexable1D vector2)
         {
             if (vector1.Length != vector2.Length)
             {

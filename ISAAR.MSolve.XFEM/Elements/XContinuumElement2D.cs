@@ -258,6 +258,59 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         /// <summary>
+        /// This only works for points that do not lie on the crack interface. As such it is safe to pass GPs only
+        /// </summary>
+        /// <param name="gaussPoint"></param>
+        /// <param name="evaluatedInterpolation"></param>
+        /// <param name="standardNodalDisplacements"></param>
+        /// <param name="enrichedNodalDisplacements"></param>
+        /// <returns></returns>
+        public Vector2 CalculateDisplacementField(INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation,
+            Vector standardNodalDisplacements, Vector enrichedNodalDisplacements)
+        {
+            #region debug
+            double tol = 1e-6;
+            if ((Math.Abs(gaussPoint.Xi) <= tol) || (Math.Abs(gaussPoint.Eta) <= tol))
+            {
+                Console.WriteLine("Found an intersection point that isn't a node.");
+            }
+            #endregion
+            var displacements = new double[2];
+
+            // Standard contributions
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
+            {
+                double shapeFunction = evaluatedInterpolation.GetValueOf(Nodes[nodeIdx]);
+                displacements[0] += shapeFunction * standardNodalDisplacements[2 * nodeIdx];
+                displacements[1] += shapeFunction * standardNodalDisplacements[2 * nodeIdx + 1];
+            }
+
+            // Enriched contributions
+            //TODO: this should be taken as input, so that it is only computed once if it is needed for displacements, strains, 
+            //      stresses, just like the evaluated interpolation.
+            IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> evalEnrichments =
+                EvaluateEnrichments(gaussPoint, evaluatedInterpolation); 
+            int dof = 0;
+            foreach (XNode2D node in Nodes)
+            {
+                double shapeFunction = evaluatedInterpolation.GetValueOf(node);
+                foreach (var nodalEnrichment in node.EnrichmentItems)
+                {
+                    EvaluatedFunction2D[] currentEvalEnrichments = evalEnrichments[nodalEnrichment.Key];
+                    for (int e = 0; e < currentEvalEnrichments.Length; ++e)
+                    {
+                        double basisFunction = shapeFunction * (currentEvalEnrichments[e].Value - nodalEnrichment.Value[e]);
+                        //double basisFunction = shapeFunction * currentEvalEnrichments[e].Value; // for debugging
+                        displacements[0] += basisFunction * enrichedNodalDisplacements[dof++];
+                        displacements[1] += basisFunction * enrichedNodalDisplacements[dof++];
+                    }
+                }
+            }
+
+            return Vector2.CreateFromArray(displacements);
+        }
+
+        /// <summary>
         /// The displacement field derivatives are a 2x2 matrix: gradientU[i,j] = dui/dj where i is the vector component 
         /// and j is the coordinate, w.r.t which the differentiation is done. The differentation coordinates and the
         /// vector components refer to the global cartesian system. 
@@ -268,7 +321,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <returns></returns>
         public Matrix2by2 CalculateDisplacementFieldGradient(INaturalPoint2D gaussPoint, 
             EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
-            Vector enrichedNodalDisplacements)
+            Vector enrichedNodalDisplacements) //TODO: this must only allow evaluations at Gauss points. It doesn't work for points on the crack interface
         {
             var displacementGradient = Matrix2by2.CreateZero();
 
@@ -387,7 +440,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
             INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            var evalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
+            var cachedEvalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
             foreach (XNode2D node in Nodes)
             {
                 foreach (var enrichment in node.EnrichmentItems)
@@ -396,15 +449,14 @@ namespace ISAAR.MSolve.XFEM.Elements
                     double[] nodalEnrichmentValues = enrichment.Value;
 
                     // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
-                    EvaluatedFunction2D[] evaluatedEnrichments;
-                    if (!(evalEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
+                    if (!(cachedEvalEnrichments.TryGetValue(enrichmentItem, out EvaluatedFunction2D[] evaluatedEnrichments)))
                     {
                         evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
-                        evalEnrichments[enrichmentItem] = evaluatedEnrichments;
+                        cachedEvalEnrichments[enrichmentItem] = evaluatedEnrichments;
                     }
                 }
             }
-            return evalEnrichments;
+            return cachedEvalEnrichments;
         }
     }
 }

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -13,15 +11,16 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: use invalid values as initial
 //TODO: remove Matlab/Fortran notation from comments
 //TODO: the orthogonalizer should not be private.
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
+namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
 {
     /// <summary>
-    /// MINRES algorithm for solving an n-by-n system of linear equations: A*x = b, where A is symmetric and b is a given vector 
-    /// of length n. A may be indefinite. It can also be singular, in which case the least squares problem is solved instead.
-    /// The MINRES method is presented by C. C. Paige, M. A. Saunders in 
+    /// Implements the MINRES algorithm for solving an n-by-n system of linear equations: A*x = b, where A is symmetric and b  
+    /// is a given vector of length n. A may be indefinite. It can also be singular, in which case the least squares problem is 
+    /// solved instead. The MINRES method is presented by C. C. Paige, M. A. Saunders in 
     /// https://www.researchgate.net/publication/243578401_Solution_of_Sparse_Indefinite_Systems_of_Linear_Equations.
     /// Reorthogonalization is introduced by D. Maddix. For more information, including the Matlab scripts from which this code 
     /// is ported from, see http://web.stanford.edu/group/SOL/software/minres/.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class MinimumResidual
     {
@@ -34,16 +33,20 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
         private readonly double residualTolerance;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of <see cref="MinimumResidual"/> with the specified settings and convergence criteria.
         /// </summary>
-        /// <param name="maxIterations"></param>
-        /// <param name="residualTolerance"></param>
+        /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
+        /// <param name="residualTolerance">If norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, the 
+        ///     algorithm will terminate, where x is the current solution vector and x0 the initial guess.</param>
         /// <param name="numStoredOrthogonalDirections">If &gt;0 local reorthogonalization will be used to improve convergence. 
         ///     However that requires extra memory equal to <paramref name="numStoredOrthogonalDirections"/> * matrixOrder. 
         ///     The author suggests the values 10, 20 for memory economy or 50, 100 if the memory requirements can be met.
         ///     It must not be greater than the order of the matrix though.</param>
-        /// <param name="checkMatrixSymmetricity"></param>
-        /// <param name="printIterations"></param>
+        /// <param name="checkMatrixSymmetricity">If true, the matrix A of a linear system A*x=b will be checked to verify it is 
+        ///     symmetric, which is safer but requires an additional matrix-vector multiplication.</param>
+        /// <param name="printIterations">If true, the current solution vector x, the estimated condition number of the matrix A
+        ///     and other statistics will be written to the console at each iteration of the algorithm, which will hinder 
+        ///     performance.</param>
         public MinimumResidual(int maxIterations, double residualTolerance, int numStoredOrthogonalDirections = 0, 
             bool checkMatrixSymmetricity = false, bool printIterations = false)
         {
@@ -54,28 +57,65 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             this.printIterations = printIterations;
         }
 
-        public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, double shift = 0.0)
-        {
-            return SolveInternal(new MatrixTransformation(A), b, null, shift);
-        }
+        /// <summary>
+        /// Solves the linear system (A - s*I) * x = b, where A = <paramref name="matrix"/>, b = <paramref name="rhsVector"/> 
+        /// and s = <paramref name="shift"/>. If the matrix A - s*I is singular, it solves the same linear least squares problem.
+        /// </summary>
+        /// <param name="matrix">The matrix of the original linear system. It must be symmetric.</param>
+        /// <param name="rhsVector">The right hand side vector of the original linear system. Constraints:
+        ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
+        ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
+        public (Vector solution, MinresStatistics stats) Solve(IMatrixView matrix, Vector rhsVector, double shift = 0.0)
+            => SolveInternal(new MatrixTransformation(matrix), rhsVector, null, shift);
 
-        public (Vector, MinresStatistics) Solve(IMatrixView A, Vector b, IPreconditioner M, double shift = 0.0)
-        {
-            return SolveInternal(new MatrixTransformation(A), b, M, shift);
-        }
+        /// <summary>
+        /// Solves the linear system (A - s*I) * x = b preconditioned by the matrix <paramref name="preconditioner"/>, 
+        /// where A = <paramref name="matrix"/>, b = <paramref name="rhsVector"/> and s = <paramref name="shift"/>. 
+        /// If the matrix A - s*I is singular, it solves the same linear least squares problem.
+        /// </summary>
+        /// <param name="matrix">The matrix of the original linear system. It must be symmetric.</param>
+        /// <param name="rhsVector">The right hand side vector of the original linear system. Constraints:
+        ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
+        ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="preconditioner">A preconditioner matrix that has the same dimensions as A, but must be symmetric 
+        ///     positive definite, contrary to A.</param>
+        /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
+        public (Vector solution, MinresStatistics stats) Solve(IMatrixView matrix, Vector rhsVector, 
+            IPreconditioner preconditioner, double shift = 0.0)
+            => SolveInternal(new MatrixTransformation(matrix), rhsVector, preconditioner, shift);
 
-        public (Vector, MinresStatistics) Solve(ILinearTransformation<Vector> A, Vector b, double shift = 0.0)
-        {
-            return SolveInternal(A, b, null, shift);
-        }
+        /// <summary>
+        /// Solves the linear system (A - s*I) * x = b, where A = <paramref name="matrix"/>, b = <paramref name="rhsVector"/> 
+        /// and s = <paramref name="shift"/>. If the matrix A - s*I is singular, it solves the same linear least squares problem.
+        /// </summary>
+        /// <param name="matrix">The matrix of the original linear system. It must be symmetric.</param>
+        /// <param name="rhsVector">The right hand side vector of the original linear system. Constraints:
+        ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
+        ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
+        public (Vector solution, MinresStatistics stats) Solve(ILinearTransformation<Vector> matrix, Vector rhsVector, 
+            double shift = 0.0)
+            => SolveInternal(matrix, rhsVector, null, shift);
 
-        public (Vector, MinresStatistics) Solve(ILinearTransformation<Vector> A, Vector b, IPreconditioner M, double shift = 0.0)
-        {
-            return SolveInternal(A, b, M, shift);
-        }
+        /// <summary>
+        /// Solves the linear system (A - s*I) * x = b preconditioned by the matrix <paramref name="preconditioner"/>, 
+        /// where A = <paramref name="matrix"/>, b = <paramref name="rhsVector"/> and s = <paramref name="shift"/>. 
+        /// If the matrix A - s*I is singular, it solves the same linear least squares problem.
+        /// </summary>
+        /// <param name="matrix">The matrix of the original linear system. It must be symmetric.</param>
+        /// <param name="rhsVector">The right hand side vector of the original linear system. Constraints:
+        ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
+        ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
+        /// <param name="preconditioner">A preconditioner matrix that has the same dimensions as A, but must be symmetric 
+        ///     positive definite, contrary to A.</param>
+        /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
+        public (Vector solution, MinresStatistics stats) Solve(ILinearTransformation<Vector> matrix, Vector rhsVector, 
+            IPreconditioner preconditioner,  double shift = 0.0) 
+            => SolveInternal(matrix, rhsVector, preconditioner, shift);
 
-        private (Vector, MinresStatistics) SolveInternal(ILinearTransformation<Vector> A, Vector b, IPreconditioner M, 
-            double shift)
+        private (Vector solution, MinresStatistics stats) SolveInternal(ILinearTransformation<Vector> A, Vector b, 
+            IPreconditioner M, double shift)
         {
             /// Initialize.
 
@@ -168,10 +208,10 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 y = ShiftedMatrixVectorMult(A, v, shift); // shift is 0 otherwise solving A - shift*I
 
                 //WARNING: the following works if itn is initialized and updated as in the matlab script
-                if (itn >= 2) y.AxpyIntoThis(-beta / oldb, r1); // normalization is the division r1 by oldb 
+                if (itn >= 2) y.AxpyIntoThis(r1, - beta / oldb); // normalization is the division r1 by oldb 
 
                 double alfa = v * y;              // alphak
-                y.AxpyIntoThis(-alfa / beta, r2); // normalization of r2/beta = v
+                y.AxpyIntoThis(r2, - alfa / beta); // normalization of r2/beta = v
 
                 // v will be normalized through y later. 
                 // This is explicit orthogonalizing it versus the previous localSize lanczos vectors.
@@ -230,10 +270,10 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 Vector w1 = w2.Copy();
                 w2 = w;
                 // Do efficiently: w = (v - oldeps * w1 - delta * w2) * denom 
-                w = v.Axpy(-oldeps, w1);
-                w.AxpyIntoThis(-delta, w2);
+                w = v.Axpy(w1, - oldeps);
+                w.AxpyIntoThis(w2 , - delta);
                 w.ScaleIntoThis(denom);
-                x.AxpyIntoThis(phi, w);
+                x.AxpyIntoThis(w, phi);
 
                 /// Go round again.
 
@@ -338,19 +378,15 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
         }
 
         /// <summary>
-        /// Calculates (A - shift * v) = A*v - shift*v
+        /// Calculates (A - shift * I) * v = A*v - shift*v
         /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="vector"></param>
-        /// <param name="shift"></param>
-        /// <returns></returns>
         private static Vector ShiftedMatrixVectorMult(ILinearTransformation<Vector> matrix, Vector vector, double shift)
         {
             if (shift == 0.0) return matrix.Multiply(vector);
             else
             {
                 Vector result = matrix.Multiply(vector);
-                result.AxpyIntoThis(shift, vector);
+                result.AxpyIntoThis(vector, shift);
                 return result;
             }
         }
@@ -388,7 +424,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
             }
         }
 
-        class LocalReorthogonalizer
+        private class LocalReorthogonalizer
         {
             private readonly int localSize;
             private readonly LinkedList<Vector> store;
@@ -422,7 +458,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms
                 foreach (var p in store)
                 {
                     // we don't have to normalize since it is explicitly done in the code and so we don't need to redo it
-                    v.AxpyIntoThis(-(v * p), p); // orthogonalize to each stored vector
+                    v.AxpyIntoThis(p , - (v * p)); // orthogonalize to each stored vector
                 }
             }
         }

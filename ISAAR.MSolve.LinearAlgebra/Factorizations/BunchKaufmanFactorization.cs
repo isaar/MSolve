@@ -1,20 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
-    public class BunchKaufmanFactorization : IFactorization
+    /// <summary>
+    /// The Bunch-Kaufman factorization of a symmetric matrix A is" A = transpose(U) * D * U. It is recommended for symmetric 
+    /// indefinite matrices, since Cholesky factorization cannot be used and Bunch-Kaufman is more efficient than LU 
+    /// factorization. Uses Intel MKL.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class BunchKaufmanFactorization : ITriangulation
     {
-        double IFactorization.CalcDeterminant()
+        public double CalcDeterminant()
         {
             throw new NotImplementedException();
         }
 
-        Vector IFactorization.SolveLinearSystem(Vector rhs)
+        public Vector SolveLinearSystem(Vector rhs)
         {
             throw new NotImplementedException();
         }

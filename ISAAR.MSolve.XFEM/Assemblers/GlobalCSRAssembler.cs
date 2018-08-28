@@ -15,12 +15,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalCSRAssembler
     {
-        public (DOKRowMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (DokRowMajor Kff, DokRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-            var Kff = DOKRowMajor.CreateEmpty(numDofsFree, numDofsFree);
-            var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
+            var Kff = DokRowMajor.CreateEmpty(numDofsFree, numDofsFree);
+            var Kfc = DokRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
             //int el = 0;
             foreach (XContinuumElement2D element in model.Elements)

@@ -288,7 +288,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void CheckGlobalStiffnessNode7(Model2D model, ISolver solver)
         {
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, solver.DofOrderer);
+            (DokSymmetric Kuu, DokRowMajor Kuc) = (new GlobalDOKAssembler()).BuildGlobalMatrix(model, solver.DofOrderer);
 
             var dofsOfNode7 = new List<int>();
             foreach (int dof in solver.DofOrderer.GetStandardDofsOf(model.Nodes[7])) dofsOfNode7.Add(dof);
@@ -357,16 +357,18 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)
         {
+            var writer = new FullMatrixWriter();
+
             Console.WriteLine("Kss = " + 1/scale + " * ");
-            (new FullMatrixWriter(kss.Scale(scale))).WriteToConsole();
+            writer.WriteToConsole(kss.Scale(scale));
             Console.WriteLine();
 
             Console.WriteLine("Kes = " + 1 / scale + " * ");
-            (new FullMatrixWriter(kes.Scale(scale))).WriteToConsole();
+            writer.WriteToConsole(kes.Scale(scale));
             Console.WriteLine();
 
             Console.WriteLine("Kee = " + 1 / scale + " * ");
-            (new FullMatrixWriter(kee.Scale(scale))).WriteToConsole();
+            writer.WriteToConsole(kee.Scale(scale));
             Console.WriteLine();
         }
 

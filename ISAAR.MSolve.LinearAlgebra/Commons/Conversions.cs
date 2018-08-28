@@ -1,20 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 //TODO: All the functions in this namespace serve to copy entries to other positions. They should be performed in C and Pinvoked.
 //      Some might exist in MKL, thus I should use that one instead. In C# I should write the Pinvoke methods and wrap them in
 //      classes, in order to group them and simplify the naming. Naming the functions in C code should be done used abbreviations
 //      e.g. c=colMajor, p=packed, l=lower, 2=to etc. Optionally I could use OpenMP (CUDA is meaningless here) for some of these. 
 //      This also serves as OpenMP practice.
-namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
+//TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
+//TODO: See https://software.intel.com/en-us/mkl-developer-reference-c-lapack-auxiliary-routines "?tfttp" and beyond.
+namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
-    // TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
-    public static class Conversions
+    /// <summary>
+    /// Low level array operations to convert between matrix storage formats.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    internal static class Conversions
     {
-        public static double[,] Array2DLowerToSymmetric(double[,] array2D)
+        internal static double[,] Array2DLowerToSymmetric(double[,] array2D)
         {
             if (array2D.GetLength(0) != array2D.GetLength(1))
             {
@@ -33,7 +34,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return symm;
         }
 
-        public static double[,] Array2DUpperToSymmetric(double[,] array2D)
+        internal static double[,] Array2DUpperToSymmetric(double[,] array2D)
         {
             if (array2D.GetLength(0) != array2D.GetLength(1))
             {
@@ -52,7 +53,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return symm;
         }
 
-        public static double[] Array2DToFullColMajor(double[,] array2D)
+        internal static double[] Array2DToFullColMajor(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
             int numColumns = array2D.GetLength(1);
@@ -68,7 +69,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array1D;
         }
 
-        public static double[] Array2DToFullRowMajor(double[,] array2D)
+        internal static double[] Array2DToFullRowMajor(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
             int numColumns = array2D.GetLength(1);
@@ -83,7 +84,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array1D;
         }
 
-        public static double[] Array2DToPackedLowerColMajor(double[,] array2D)
+        internal static double[] Array2DToPackedLowerColMajor(double[,] array2D)
         {
             if (array2D.GetLength(0) != array2D.GetLength(1))
             {
@@ -103,7 +104,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array1D;
         }
 
-        public static double[] Array2DToPackedLowerRowMajor(double[,] array2D)
+        internal static double[] Array2DToPackedLowerRowMajor(double[,] array2D)
         {
             if (array2D.GetLength(0) != array2D.GetLength(1))
             {
@@ -123,7 +124,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array1D;
         }
 
-        public static double[] Array2DToPackedUpperColMajor(double[,] array2D)
+        internal static double[] Array2DToPackedUpperColMajor(double[,] array2D)
         {
             if (array2D.GetLength(0) != array2D.GetLength(1))
             {
@@ -143,7 +144,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array1D;
         }
 
-        public static double[] Array2DToPackedUpperRowMajor(double[,] array2D)
+        internal static double[] Array2DToPackedUpperRowMajor(double[,] array2D)
         {
             if (array2D.GetLength(0) != array2D.GetLength(1))
             {
@@ -163,7 +164,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array1D;
         }
 
-        public static double[] ColumnMajorToRowMajor(double[] colMajor, int numRows, int numCols)
+        internal static double[] ColumnMajorToRowMajor(double[] colMajor, int numRows, int numCols)
         {
             double[] rowMajor = new double[numRows * numCols];
             int idxCounter = -1;
@@ -178,7 +179,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         }
 
         // TODO: This is no longer a conversion per se. I need to organize these methods
-        public static void CopyUpperToLowerColMajor(double[] squareFullMatrix, int order)
+        internal static void CopyUpperToLowerColMajor(double[] squareFullMatrix, int order)
         {
             for (int j = 0; j < order; ++j)
             {
@@ -189,7 +190,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             }
         }
 
-        public static double[,] FullColMajorToArray2D(double[] array1D, int numRows, int numColumns)
+        internal static double[,] FullColMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];
             for (int j = 0; j < numColumns; ++j)
@@ -208,7 +209,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// <param name="full"></param>
         /// <param name="unitDiagonal"></param>
         /// <returns></returns>
-        public static double[] FullColMajorToFullLowerRowMajor(double[] full, bool unitDiagonal)
+        internal static double[] FullColMajorToFullLowerRowMajor(double[] full, bool unitDiagonal)
         {
             int n = FullLengthToOrder(full.Length);
             double[] lower = new double[n * n];
@@ -236,7 +237,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// <param name="full"></param>
         /// <param name="unitDiagonal"></param>
         /// <returns></returns>
-        public static double[] FullColMajorToFullLowerColMajor(double[] full, bool unitDiagonal)
+        internal static double[] FullColMajorToFullLowerColMajor(double[] full, bool unitDiagonal)
         {
             int n = FullLengthToOrder(full.Length);
             double[] lower = new double[n * n];
@@ -264,7 +265,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// <param name="full"></param>
         /// <param name="unitDiagonal"></param>
         /// <returns></returns>
-        public static double[] FullColMajorToFullUpperColMajor(double[] full, bool unitDiagonal)
+        internal static double[] FullColMajorToFullUpperColMajor(double[] full, bool unitDiagonal)
         {
             int n = FullLengthToOrder(full.Length);
             double[] upper = new double[n * n];
@@ -292,7 +293,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// <param name="full"></param>
         /// <param name="order"></param>
         /// <returns></returns>
-        public static double[] FullColMajorToPackedUpperColMajor(double[] full, int order)
+        internal static double[] FullColMajorToPackedUpperColMajor(double[] full, int order)
         {
             //int n = FullLengthToOrder(full.Length);
             int n = order;
@@ -309,7 +310,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return upper;
         }
 
-        public static double[,] FullRowMajorToArray2D(double[] array1D, int numRows, int numColumns)
+        internal static double[,] FullRowMajorToArray2D(double[] array1D, int numRows, int numColumns)
         {
             double[,] array2D = new double[numRows, numColumns];
             for (int i = 0; i < numRows; ++i)
@@ -322,7 +323,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[,] FullLowerColMajorToArray2D(double[] array1D, bool unitDiagonal)
+        internal static double[,] FullLowerColMajorToArray2D(double[] array1D, bool unitDiagonal)
         {
             int n = FullLengthToOrder(array1D.Length);
             double[,] array2D = new double[n, n];
@@ -344,7 +345,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[,] FullUpperColMajorToArray2D(double[] array1D, bool unitDiagonal)
+        internal static double[,] FullUpperColMajorToArray2D(double[] array1D, bool unitDiagonal)
         {
             int n = FullLengthToOrder(array1D.Length);
             double[,] array2D = new double[n, n];
@@ -366,7 +367,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[,] PackedLowerColMajorToArray2D(double[] array1D)
+        internal static double[,] PackedLowerColMajorToArray2D(double[] array1D)
         {
             int n = PackedLengthToOrder(array1D.Length);
             double[,] array2D = new double[n, n];
@@ -382,7 +383,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[,] PackedLowerRowMajorToArray2D(double[] array1D)
+        internal static double[,] PackedLowerRowMajorToArray2D(double[] array1D)
         {
             int n = PackedLengthToOrder(array1D.Length);
             double[,] array2D = new double[n, n];
@@ -398,7 +399,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[,] PackedUpperColMajorToArray2D(double[] array1D, int order = 0)
+        internal static double[,] PackedUpperColMajorToArray2D(double[] array1D, int order = 0)
         {
             int n = (order == 0) ? PackedLengthToOrder(array1D.Length) : order;
             double[,] array2D = new double[n, n];
@@ -414,7 +415,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[,] PackedUpperColMajorToArray2DSymm(double[] packed, int order = 0)
+        internal static double[,] PackedUpperColMajorToArray2DSymm(double[] packed, int order = 0)
         {
             int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
             double[, ] array2D = new double[n, n];
@@ -434,7 +435,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[] PackedUpperColMajorToFullColMajor(double[] packed, int order = 0)
+        internal static double[] PackedUpperColMajorToFullColMajor(double[] packed, int order = 0)
         {
             int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
             double[] full = new double[n * n];
@@ -458,7 +459,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         ///     value is provided, these will not be checked. If no value is provided, the order will be calculated from 
         ///     <see cref="packed"/> instead.</param>
         /// <returns></returns>
-        public static double[] PackedUpperColMajorToFullSymmColMajor(double[] packed, int order = 0)
+        internal static double[] PackedUpperColMajorToFullSymmColMajor(double[] packed, int order = 0)
         {
             int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
             double[] full = new double[n * n];
@@ -478,7 +479,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return full;
         }
 
-        public static double[,] PackedUpperRowMajorToArray2D(double[] array1D)
+        internal static double[,] PackedUpperRowMajorToArray2D(double[] array1D)
         {
             int n = PackedLengthToOrder(array1D.Length);
             double[,] array2D = new double[n, n];
@@ -494,7 +495,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return array2D;
         }
 
-        public static double[] PackedLowerRowMajorToFullColMajor(double[] packed, int order = 0)
+        internal static double[] PackedLowerRowMajorToFullColMajor(double[] packed, int order = 0)
         {
             int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
             double[] full = new double[n * n];
@@ -509,7 +510,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return full;
         }
 
-        public static int FullLengthToOrder(int length)
+        internal static int FullLengthToOrder(int length)
         {
             // length = n^2 => n = sqrt(length)
             double n = Math.Sqrt(length);
@@ -521,7 +522,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return order;
         }
 
-        public static int PackedLengthToOrder(int length)
+        internal static int PackedLengthToOrder(int length)
         {
             // length = n*(n+1)/2 => n = ( -1+sqrt(1+8*length) )/2
             double n = (-1.0 + Math.Sqrt(1 + 8 * length)) / 2;
@@ -534,24 +535,24 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         }
 
 
-        public static double[] RectColMajorToPackedLowerColMajor(int numRows, int numCols, double[] rect)
+        internal static double[] RectColMajorToPackedLowerColMajor(int numRows, int numCols, double[] rect)
         {
             throw new NotImplementedException();
         }
 
-        public static double[] RectColMajorToPackedUpperColMajor(int numRows, int numCols, double[] rect)
-        {
-            throw new NotImplementedException();
-
-        }
-
-        public static double[] RectColMajorToSquareFullLowerColMajor(int numRows, int numCols, double[] rect)
+        internal static double[] RectColMajorToPackedUpperColMajor(int numRows, int numCols, double[] rect)
         {
             throw new NotImplementedException();
 
         }
 
-        public static double[] RectColMajorToSquareFullUpperColMajor(int numRows, int numCols, double[] rect)
+        internal static double[] RectColMajorToSquareFullLowerColMajor(int numRows, int numCols, double[] rect)
+        {
+            throw new NotImplementedException();
+
+        }
+
+        internal static double[] RectColMajorToSquareFullUpperColMajor(int numRows, int numCols, double[] rect)
         {
             throw new NotImplementedException();
 
@@ -563,7 +564,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// </summary>
         /// <param name="rect"></param>
         /// <returns></returns>
-        public static double[] RectColMajorToRectLowerColMajor(int numRows, int numCols, double[] rect)
+        internal static double[] RectColMajorToRectLowerColMajor(int numRows, int numCols, double[] rect)
         {
             if (numRows > numCols) throw new NotImplementedException("For now: numRows <= numCols");
             double[] lower = new double[rect.Length];
@@ -583,7 +584,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
         /// </summary>
         /// <param name="rect"></param>
         /// <returns></returns>
-        public static double[] RectColMajorToRectUpperColMajor(int numRows, int numCols, double[] rect)
+        internal static double[] RectColMajorToRectUpperColMajor(int numRows, int numCols, double[] rect)
         {
             if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
             double[] upper = new double[rect.Length];
@@ -598,7 +599,7 @@ namespace ISAAR.MSolve.LinearAlgebra.ArrayManipulations
             return upper;
         }
 
-        public static double[] RectColMajorToSquarePackedUpperColMajor(int numRows, int numCols, double[] rect)
+        internal static double[] RectColMajorToSquarePackedUpperColMajor(int numRows, int numCols, double[] rect)
         {
             if (numCols > numRows) throw new NotImplementedException("For now: numRows >= numCols");
             double[] upper = new double[(numCols * (numCols + 1)) / 2];

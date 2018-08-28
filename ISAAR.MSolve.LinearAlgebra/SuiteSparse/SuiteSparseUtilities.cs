@@ -1,18 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 //TODO: Use enums as return values or at least named constants.
 namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
 {
+    /// <summary>
+    /// How to proceed after factorizing (triangulation) the linear system matrix: A=L*U.
+    /// </summary>
     internal enum SystemType
     {
-        Regular = 0, ForwardSubstitution = 4, BackSubstitution = 5
+        /// <summary>
+        /// Solve the original system A*x = b
+        /// </summary>
+        Regular = 0,
+
+        /// <summary>
+        /// Solve L*x = b
+        /// </summary>
+        ForwardSubstitution = 4,
+
+        /// <summary>
+        /// Solve U*x = b
+        /// </summary>
+        BackSubstitution = 5
     }
 
+    /// <summary>
+    /// Platform Invoke methods for calling the SuiteSparse library via my custom C interface.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal static class SuiteSparseUtilities
     {
         /// <summary>
@@ -27,7 +43,6 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///     converted to simplicial, though this can be	done automatically.</param>
         /// <param name="orderingType">0 for no reordering, 1 for automatic reordering (let suitesparse try some alternatives and
         ///     keep the best), 2 for AMD.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_create_common")]
         internal static extern IntPtr CreateCommon(int factorizationType, int orderingType);
 
@@ -66,16 +81,15 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///     <paramref name="colOffsets"/>[<paramref name="order"/>] = <paramref name="nnz"/>.</param>
         /// <param name="factorizedMatrix"> Out parameter - the factorized upper triangle of the symmetric CSC matrix.</param>
         /// <param name="common">The matrix settings.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_factorize_cscupper")]
         internal static extern int FactorizeCSCUpper(int order, int nnz, double[] values, int[] rowIndices, int[] colOffsets, 
             out IntPtr factorizedMatrix, IntPtr common);
 
         /// <summary>
-        /// Returns the number of non zero entries in the factorized matrix. If anything goes wrong -1 is returned.
+        /// Returns the number of non zero entries in the factorized matrix (only the explitily stored factor). If anything goes 
+        /// wrong -1 is returned.
         /// </summary>
         /// <param name="factorization">Pointer to the factorized matrix, which is stored in unmanaged memory.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_get_factor_nonzeros")]
         internal static extern int GetFactorNonZeros(IntPtr factorization);
 
@@ -97,7 +111,6 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         /// <param name="outFactorNNZ">Out parameter: the number of non zero entries in a subsequent L*L^T factorization. Will 
         ///     be -1 if the ordering fails.</param>
         /// <param name="common">The matrix settings.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_reorder_amd_upper")]
         internal static extern int ReorderAMDUpper(int order, int nnz, int[] rowIndices, int[] colOffsets, int[] outPermutation,
             [Out] out int outFactorNNZ, IntPtr common);
@@ -130,8 +143,8 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///		mapping).</param>
         ///	<param name="denseThreshold">A dense row/column in A + A^T can cause CAMD to spend significant time in ordering    
         /// 	the matrix. If <paramref name="denseThreshold"/> &gt;= 0, rows/columns with more than 
-        /// 	<paramref name="denseThreshold"/> * sqrt(order) entries are ignored during the ordering, and placed last in the 
-        /// 	output order. The default value of <paramref name="denseThreshold"/> is 10. If negative, no rows/columns are 
+        /// 	<paramref name="denseThreshold"/> * sqrt(order(A)) entries are ignored during the ordering, and placed last in  
+        /// 	the output order. The default value of <paramref name="denseThreshold"/> is 10. If negative, no rows/columns are 
         /// 	treated as dense. Rows/columns with 16 or fewer off-diagonal entries are never considered dense. WARNING: 
         /// 	allowing dense rows/columns may violate the constraints.</param>
         /// <param name="aggressiveAbsorption">If non zero, aggressive absorption will be performed, which means that a  
@@ -149,7 +162,6 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         ///     prior to ordering. These are placed last in the output order of <paramref name="outPermutation"/>. Will be -1 
         ///     if the ordering fails. WARNING: if <paramref name="outMovedDense"/> &gt; 0, it indicates that the constraints  
         ///     are violated.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_reorder_camd")]
         internal static extern int ReorderCAMD(int order, int[] rowIndices, int[] colOffsets, int[] constraints,
             int denseThreshold, int aggressiveAbsorption, int[] outPermutation, [Out] out int outFactorNNZ, 
@@ -168,7 +180,6 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         /// <param name="vectorRowIndices">The CSC format row indices of the row/column to add.</param>
         /// <param name="vectorColOffsets">The CSC format column offsets of the row/column to add.</param>
         /// <param name="common">The matrix settings.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_row_add")]
         internal static extern int RowAdd(int order, IntPtr factorizedMatrix, int rowIdx, int vectorNnz, 
             double[] vectorValues, int[] vectorRowIndices, int[] vectorColOffsets, IntPtr common);
@@ -180,7 +191,6 @@ namespace ISAAR.MSolve.LinearAlgebra.SuiteSparse
         /// <param name="factorizedMatrix">The LDL' factorization of the matrix. It will be modified.</param>
         /// <param name="rowIdx">Index of row/column to delete.</param>
         /// <param name="common">The matrix settings.</param>
-        /// <returns></returns>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_row_delete")]
         internal static extern int RowDelete(IntPtr factorizedMatrix, int rowIdx, IntPtr common);
 

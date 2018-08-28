@@ -68,13 +68,14 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
             Matrix Kss = bodyElement.BuildStandardStiffnessMatrix();
             (Matrix Kee, Matrix Kes) = bodyElement.BuildEnrichedStiffnessMatricesLower();
-            
+
+            var writer = new FullMatrixWriter();
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            (new FullMatrixWriter(Kss.Scale(1e-6))).WriteToConsole();
+            writer.WriteToConsole(Kss.Scale(1e-6));
             Console.WriteLine("Quad4 enriched-standard stiffness matrix = ");
-            (new FullMatrixWriter(Kes.Scale(1e-6))).WriteToConsole();
+            writer.WriteToConsole(Kes.Scale(1e-6));
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            (new FullMatrixWriter(Kee.Scale(1e-6))).WriteToConsole();
+            writer.WriteToConsole(Kee.Scale(1e-6));
         }
 
         private static void IsoparametricQuad4BimaterialTest(XNode2D[] nodes)
@@ -106,12 +107,13 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Matrix Kss = element.BuildStandardStiffnessMatrix();
             (Matrix Kee, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
 
+            var writer = new FullMatrixWriter();
             Console.WriteLine("Quad4 standard-standard stiffness matrix = ");
-            (new FullMatrixWriter(Kss.Scale(1e-6))).WriteToConsole();
+            writer.WriteToConsole(Kss.Scale(1e-6));
             Console.WriteLine("Quad4 enriched-standard stiffness matrix = ");
-            (new FullMatrixWriter(Kes.Scale(1e-6))).WriteToConsole();
+            writer.WriteToConsole(Kes.Scale(1e-6));
             Console.WriteLine("Quad4 enriched-enriched stiffness matrix = ");
-            (new FullMatrixWriter(Kee.Scale(1e-6))).WriteToConsole();
+            writer.WriteToConsole(Kee.Scale(1e-6));
         }
 
         static void Main(string[] args)

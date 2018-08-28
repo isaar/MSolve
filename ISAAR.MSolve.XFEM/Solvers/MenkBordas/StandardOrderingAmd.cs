@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void ReorderStandardDofs(XClusterDofOrderer stdDofOrderer)
         {
-            var orderingAlgorithm = new OrderingAMD();
+            var orderingAlgorithm = new OrderingAmd();
 
             int order = stdDofOrderer.NumStandardDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var standardDofs = stdDofOrderer.GetStandardDofsOf(element);
                 pattern.ConnectIndices(standardDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
 
             stdDofOrderer.ReorderStandardDofs(permutation, false);
         }

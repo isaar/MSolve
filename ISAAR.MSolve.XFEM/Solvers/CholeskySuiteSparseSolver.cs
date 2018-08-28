@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             DofOrderer = InterleavedDofOrderer.Create(model);
             //DofOrderer = DofOrdererSeparate.Create(model);
             var assembler = new GlobalDOKAssembler();
-            (DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             //if (!Kuu.IsSymmetric(double.Epsilon)) throw new AsymmetricMatrixException(
             //    "Stiffness matrix corresponding to free-free dofs is not symmetric");
             Vector rhs = CalcEffectiveRhs(Kuc);
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private Vector SolveWithSkyline()
         {
             var assembler = new GlobalSkylineAssembler();
-            (SkylineMatrix Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
+            (SkylineMatrix Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
             return Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
         }

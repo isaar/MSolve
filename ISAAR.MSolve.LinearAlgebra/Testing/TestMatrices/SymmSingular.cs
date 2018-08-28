@@ -96,8 +96,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
         {
             var A = SymmetricMatrix.CreateFromArray(matrix);
             Console.WriteLine("Symmetric singular matrix = ");
-            var writer = new FullMatrixWriter(A); // TODO: implement triangular printer
-            writer.WriteToConsole();
+            var writer = new FullMatrixWriter(); // TODO: implement triangular printer
+            writer.WriteToConsole(A);
         }
     }
 }

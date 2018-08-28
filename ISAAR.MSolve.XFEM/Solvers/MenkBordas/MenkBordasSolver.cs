@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -16,7 +11,6 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: remove checks and prints
@@ -183,7 +177,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var assembler = new XClusterMatrixAssembler();
             foreach (var subdomain in modifiedSubdomains)
             {
-                (DOKSymmetricColMajor Kee, DOKRowMajor Kes, DOKRowMajor Kec) =
+                (DokSymmetric Kee, DokRowMajor Kes, DokRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
                 var KesCSR = Kes.BuildCSRMatrix(true);
                 var be = Kec.MultiplyRight(Uc.Scale(-1.0), true); //Fe = 0 - Kec * Uc.
@@ -306,7 +300,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Sparse global matrix
             int order = denseK.NumRows;
-            var sparseK = DOKColMajor.CreateEmpty(order, order);
+            var sparseK = DokColMajor.CreateEmpty(order, order);
             for (int j = 0; j < order; ++j)
             {
                 for (int i = 0; i < order; ++i)
@@ -319,9 +313,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Export the global system to Matlab
             var writer = new MatlabWriter();
             string directory = @"C:\Users\Serafeim\Desktop\GRACM\MenkBordas_debugging\";
-            writer.WriteSparseMatrix(sparseK, directory + "global_matrix.txt");
-            writer.WriteFullVector(f, directory + "global_rhs.txt");
-            writer.WriteFullVector(denseX, directory + "solution.txt");
+            writer.WriteToFile(sparseK, directory + "global_matrix.txt");
+            writer.WriteToFile(f, directory + "global_rhs.txt");
+            writer.WriteToFile(denseX, directory + "solution.txt");
 
             // Export the submatrices to Matlab
             K.WriteToFiles(directory);

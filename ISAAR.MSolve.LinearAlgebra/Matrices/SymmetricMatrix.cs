@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
@@ -17,7 +16,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
     /// Symmetric matrix. Only the upper triangle is stored in Packed format (only stores the n*(n+1)/2 non zeros) and column 
-    /// major order. Uses MKL.
+    /// major order. Uses Intel MKL. Do not use this, since it is an experimantal class, which will probably be removed.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SymmetricMatrix: IMatrix, ISymmetricMatrix
     {
@@ -352,7 +352,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     that are not positive definite. Therefore set it to false if you are sure that the matrix is not positive
         ///     definite.</param>
         /// <returns></returns>
-        public IFactorization Factorize(bool tryCholesky = true)
+        public ITriangulation Factorize(bool tryCholesky = true)
         {
             // This should throw an exception if the posdef assumption is wrong.
             if (Definiteness == DefiniteProperty.PositiveDefinite) return FactorCholesky();  
@@ -477,6 +477,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             // no zeros implied
             return finalize(aggregator);
         }
+
+        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+
+        /// <summary>
+        /// result = scalar * this
+        /// </summary>
+        /// <param name="scalar"></param>
+        public SymmetricMatrix Scale(double scalar)
+        {
+            int numStoredEntries = this.data.Length;
+            double[] result = new double[numStoredEntries];
+            Array.Copy(this.data, result, numStoredEntries);
+            CBlas.Dscal(numStoredEntries, scalar, ref result[0], 1);
+            return new SymmetricMatrix(result, this.Order, this.Definiteness);
+        }
+
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
 
         // Not very efficient
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)

@@ -1,28 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 using IntelMKL.LP64;
 
-// TODO: Replace Compute.NET functions with th LAPACKE interface for triangulations (~trf) and system solutions (~trs)
-// TODO: Wrap these methods with ones using enums, which will then call MKL with the correct arguments.
+//TODO: Replace Compute.NET functions with th LAPACKE interface for triangulations (~trf) and system solutions (~trs)
+//TODO: Wrap these methods with ones using enums, which will then call MKL with the correct arguments.
+//TODO: This class works because the dlls are copied due to Compute.NET. If that library is removed or different dlls need to 
+//      be used, I must handle that. Ideally, this should be done using a nuget package for MKL bindings (actually 1 for x64 
+//      and 1 for x86).
 namespace ISAAR.MSolve.LinearAlgebra.MKL
 {
-    // This works because the dlls are copied due to Compute.NET. If that library is removed or different dlls need to be used, I 
-    // must handle that. Ideally, this should be done using a nuget package for MKL bindings (actually 1 for x64 and 1 for x86).
-    public static class LAPACKE
+    /// <summary>
+    /// Platform invoke methods for Intel MKL's LAPACKE (C interface of LAPACK). These are not covered by any nuget packages.
+    /// Also see the included "lapacke.h" C header file and MKL's C user guide.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    internal static class LAPACKE
     {
-        public const int LAPACK_ROW_MAJOR = 101;
-        public const int LAPACK_COL_MAJOR = 102;
-        public const char LAPACK_NO_TRANSPOSE = 'N';
-        public const char LAPACK_TRANSPOSE = 'T';
-        public const char LAPACK_HERMITIAN_TRANSPOSE = 'C';
-        public const char LAPACK_SIDE_LEFT = 'L';
-        public const char LAPACK_SIDE_RIGHT = 'R';
-        public const char LAPACK_UPPER = 'U';
-        public const char LAPACK_LOWER = 'L';
+        internal const int LAPACK_ROW_MAJOR = 101;
+        internal const int LAPACK_COL_MAJOR = 102;
+        internal const char LAPACK_NO_TRANSPOSE = 'N';
+        internal const char LAPACK_TRANSPOSE = 'T';
+        internal const char LAPACK_HERMITIAN_TRANSPOSE = 'C';
+        internal const char LAPACK_SIDE_LEFT = 'L';
+        internal const char LAPACK_SIDE_RIGHT = 'R';
+        internal const char LAPACK_UPPER = 'U';
+        internal const char LAPACK_LOWER = 'L';
 
         /// <summary>
         /// LQ factorization of a full <paramref name="m"/>-by-<paramref name="n"/> matrix.

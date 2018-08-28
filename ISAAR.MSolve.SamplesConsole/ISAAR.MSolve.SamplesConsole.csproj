@@ -9,12 +9,16 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
+    <PackageReference Include="Compute.Bindings.IntelMKL" Version="0.1.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Preprocessor\ISAAR.MSolve.Preprocessor.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Tests\ISAAR.MSolve.Tests.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.XFEM\ISAAR.MSolve.XFEM.csproj" />
   </ItemGroup>
 </Project>

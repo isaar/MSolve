@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms;
+using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Statistics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
@@ -17,7 +11,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
 {
     public class CGTests
     {
-        private delegate (Vector solution, IterativeStatistics statistics) SolveSystem(LinearSystem sys, double tol);
+        private delegate (Vector solution, CGStatistics statistics) SolveSystem(LinearSystem sys, double tol);
 
         public static void Run()
         {
@@ -31,18 +25,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
         {
             double checkTolerance = 1e-5;
             var comparer = new Comparer(Comparer.PrintMode.Always, checkTolerance);
-            (Vector solutionComputed, IterativeStatistics statistics) = solver(sys, solveTolerance);
+            (Vector solutionComputed, CGStatistics statistics) = solver(sys, solveTolerance);
             Console.WriteLine(statistics.ToString());
             comparer.CheckSystemSolution(sys.MatrixArray, sys.RhsArray, sys.SolutionExpected, solutionComputed.CopyToArray());
         }
 
-        private static (Vector solution, IterativeStatistics statistics) SolveWithCG(LinearSystem sys, double tol)
+        private static (Vector solution, CGStatistics statistics) SolveWithCG(LinearSystem sys, double tol)
         {
             var cg = new ConjugateGradient(sys.Matrix.NumColumns, tol);
             return cg.Solve(sys.Matrix, sys.Rhs);
         }
 
-        private static (Vector solution, IterativeStatistics statistics) SolveWithPCG(LinearSystem sys, double tol)
+        private static (Vector solution, CGStatistics statistics) SolveWithPCG(LinearSystem sys, double tol)
         {
             var pcg = new PreconditionedConjugateGradient(sys.Matrix.NumColumns, tol);
             //var preconditioner = new IdentityPreconditioner(true);
@@ -66,7 +60,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
         {
             // TODO: Add a DOK (extension) method that takes a whole matrix and only stores the matrix[i,j] != 0 entries.
             double[,] denseMatrix = SparsePositiveDefinite.matrix;
-            var dok = DOKRowMajor.CreateEmpty(SparsePositiveDefinite.order, SparsePositiveDefinite.order);
+            var dok = DokRowMajor.CreateEmpty(SparsePositiveDefinite.order, SparsePositiveDefinite.order);
             for (int j = 0; j < SparsePositiveDefinite.order; ++j)
             {
                 for (int i = 0; i < SparsePositiveDefinite.order; ++i)

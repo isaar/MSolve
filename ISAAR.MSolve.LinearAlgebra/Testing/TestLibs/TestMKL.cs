@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IntelMKL.LP64;
-using ISAAR.MSolve.LinearAlgebra.ArrayManipulations;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
 {
-    public static class TestMKL
+    public static class TestMkl
     {
         internal static void TestDgemv()
         {
@@ -49,10 +49,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             Array.Copy(SquareInvertible.rhs, B, n); // will be overwritten with solution
             int ldB = n;
 
-            int infoFact = MKLUtilities.DefaultInfo;
+            int infoFact = MklUtilities.DefaultInfo;
             infoFact = LAPACKE.Dgetrf(layout, m, n, A, ldA, iPiv);
             Console.Write("LAPACKE.Dgetrf() result: ");
-            if (infoFact == MKLUtilities.DefaultInfo)
+            if (infoFact == MklUtilities.DefaultInfo)
             {
                 // first check the default info value, since it lies in the other intervals.
                 // info == default => the MKL call did not succeed. 
@@ -72,10 +72,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             }
             else Console.WriteLine("LAPACKE.Dgetrf() was successful");
 
-            int infoSolve = MKLUtilities.DefaultInfo;
+            int infoSolve = MklUtilities.DefaultInfo;
             infoSolve = LAPACKE.Dgetrs(layout, transA, n, nRhs, A, ldA, iPiv, B, ldB);
             Console.Write("LAPACKE.Dgetrs() result: ");
-            if (infoSolve == MKLUtilities.DefaultInfo)
+            if (infoSolve == MklUtilities.DefaultInfo)
             {
                 // first check the default info value, since it lies in the other intervals.
                 // info == default => the MKL call did not succeed. 

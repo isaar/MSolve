@@ -188,8 +188,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 var globalWeightGradient = Vector2.CreateZero();
                 for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
-                    globalWeightGradient.AxpyIntoThis(nodalWeights[nodeIdx],
-                        evaluatedInterpolation.GetGlobalCartesianDerivativesOf(element.Nodes[nodeIdx]));
+                    globalWeightGradient.AxpyIntoThis(
+                        evaluatedInterpolation.GetGlobalCartesianDerivativesOf(element.Nodes[nodeIdx]), 
+                        nodalWeights[nodeIdx]);
                 }
                 Vector2 localWeightGradient = tipSystem.
                     TransformScalarFieldDerivativesGlobalCartesianToLocalCartesian(globalWeightGradient);

@@ -10,6 +10,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     interface IStandardMatrixAssembler
     {
         void BuildStandardMatrices(Model2D model, XClusterDofOrderer globalDofOrderer);
-        DOKRowMajor Ksc { get; }
+        DokRowMajor Ksc { get; }
     }
 }

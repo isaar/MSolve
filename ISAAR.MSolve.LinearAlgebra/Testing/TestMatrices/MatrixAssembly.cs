@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             pattern.ConnectIndices(globalIndices3, true);
 
             Console.WriteLine("Sparsity pattern of the global matrix:");
-            (new SparsityPatternWriter(pattern)).WriteToConsole();
+            (new SparsityPatternWriter()).WriteToConsole(pattern);
         }
     }
 }

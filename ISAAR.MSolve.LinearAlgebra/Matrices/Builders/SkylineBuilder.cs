@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 //TODO: Should the AddSubmatrix...() methods checks that the submatrix respects the pattern? 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
     /// <summary>
-    /// For symmetric and column major skyline matrices.
+    /// Use this class for building large symmetric sparse matrices not for operations. Convert to other matrix formats once 
+    /// finished and use them instead for matrix operations. The large matrices and their properties will be characterized as 
+    /// "global" in this namespace. This class is meant for building symmetric global matrices in skyline storage format
+    /// (see <see cref="SkylineMatrix"/>), where only entries of the upper triangle are explicitly stored.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SkylineBuilder: IMatrixBuilder, ISymmetricMatrixBuilder
+    public class SkylineBuilder: ISymmetricMatrixBuilder
     {
         private readonly int order;
         private readonly int numNonZeros;
@@ -27,9 +28,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             this.diagOffsets = diagOffsets;
         }
 
-        public int NumColumns { get { return order; } }
-        public int NumRows { get { return order; } }
+        /// <summary>
+        /// The number of columns of the matrix.
+        /// </summary>
+        public int NumColumns { get => order; }
 
+        /// <summary>
+        /// The number of rows of the matrix.
+        /// </summary>
+        public int NumRows { get => order; }
+
+        /// <summary>
+        /// See <see cref="IIndexable2D.this[int, int]"/>, <see cref="IMatrixBuilder.this[int, int]"/>.
+        /// </summary>
         public double this[int rowIdx, int colIdx]
         {
             get
@@ -55,16 +66,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of <see cref="SkylineBuilder"/> with the provided dimensions and sparsity bandwidth.
         /// </summary>
         /// <param name="numColumns">The number of columns in the matrix.</param>
         /// <param name="columnHeights">An array of length <paramref name="numColumns"/> containing the height of each column, 
         ///     namely the distance between the diagonal entry (exclusive) and the non-zero entry with the minimum row index 
-        ///     (inclusive) of that column. WARNING: As said before, these heights do not count the diagonal entry.</param>
-        /// <returns></returns>
+        ///     (inclusive) of that column. The first entry must be <paramref name="columnHeights"/>[0] = 0.</param>
+        /// <exception cref="ArgumentException">Thrown if the number of columns defined by <paramref name="numColumns"/>
+        ///     and <paramref name="columnHeights"/> is different or if <paramref name="columnHeights"/>[0] != 0.</exception>
         public static SkylineBuilder Create(int numColumns, int[] columnHeights)
         {
-            if (columnHeights.Length != numColumns) throw new NonMatchingDimensionsException(
+            if (columnHeights.Length != numColumns) throw new ArgumentException(
                 $"There are {columnHeights} column heights, but {numColumns} columns.");
             if (columnHeights[0] != 0) throw new ArgumentException(
                 $"The first column's height must be 0, but was {columnHeights[0]}.");
@@ -86,15 +98,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Maps <paramref name="subMatrix"/> to "global" rows and columns of the underlying skyline matrix and then adds 
-        /// the entries of <paramref name="subMatrix"/> to these global indices. The caller is respondible for the global 
-        /// indices falling inside the skyline sparsity pattern. WARNING: this method adds the whole <paramref name="subMatrix"/>.
-        /// If you only want to add the upper triangular part of it, use 
-        /// <see cref="AddSubmatrixSymmetric(IIndexable2D, IReadOnlyDictionary{int, int})"/> instead.
+        /// See <see cref="IMatrixBuilder.AddToEntry(int, int, double)"/>
         /// </summary>
-        /// <param name="subMatrix"></param>
-        /// <param name="subRowsToGlobalRows"></param>
-        /// <param name="subColsToGlobalCols"></param>
+        public void AddToEntry(int rowIdx, int colIdx, double value)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrix(IIndexable2D, IReadOnlyDictionary{int, int}, 
+        /// IReadOnlyDictionary{int, int})"/>.
+        /// </summary>
+        /// <remarks>The caller is respondible for the global indices falling inside the skyline sparsity pattern.</remarks>
         public void AddSubmatrix(IIndexable2D subMatrix,
             IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
         {
@@ -122,44 +137,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Maps <paramref name="subMatrix"/> to "global" rows and columns of the underlying skyline matrix and then adds 
-        /// the entries of <paramref name="subMatrix"/> to these global indices. The caller is respondible for the global 
-        /// indices falling inside the skyline sparsity pattern. Optimized version of 
-        /// <see cref="AddSubmatrix(IIndexable2D, IReadOnlyDictionary{int, int}, IReadOnlyDictionary{int, int})"/>, in case the
-        /// caller is sure that all global indices will be super diagonal.
+        /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrixSymmetric(IIndexable2D, IReadOnlyDictionary{int, int})"/>.
         /// </summary>
-        public void AddSubmatrixAboveDiagonal(IIndexable2D subMatrix,
-            IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
+        /// <remarks>The caller is respondible for the global indices falling inside the skyline sparsity pattern.</remarks>
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, IReadOnlyDictionary<int, int> subIndicesToGlobalIndices)
         {
-            foreach (var colPair in subColsToGlobalCols) // Col major ordering
+            foreach (var colPair in subIndicesToGlobalIndices)
             {
                 int subCol = colPair.Key;
                 int globalCol = colPair.Value;
-                foreach (var rowPair in subRowsToGlobalRows)
-                {
-                    int globalRow = rowPair.Value;
-
-                    // The assumption is: globalCol >= globalRow, thus height >=0
-                    int offset = diagOffsets[globalCol] + globalCol - globalRow;
-                    values[offset] += subMatrix[rowPair.Key, subCol];
-                }
-            }
-        }
-
-        /// <summary>
-        /// Maps <paramref name="subMatrix"/> to "global" rows and columns of the underlying skyline matrix and then adds the
-        /// entries of <paramref name="subMatrix"/> to these global indices. The caller is respondible for the global indices
-        /// falling inside the skyline sparsity pattern. Use this method if you only want to add the upper triangular part of the
-        /// submatrix. Otherwise <see cref="AddSubmatrix(IIndexable2D, IReadOnlyDictionary{int, int}, IReadOnlyDictionary{int, int})"/>
-        /// will add the shole submatrix, resulting in the off-diagonal entries being added twice.
-        /// </summary>
-        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, IReadOnlyDictionary<int, int> subDOFsToGlobalDOFs)
-        {
-            foreach (var colPair in subDOFsToGlobalDOFs)
-            {
-                int subCol = colPair.Key;
-                int globalCol = colPair.Value;
-                foreach (var rowPair in subDOFsToGlobalDOFs)
+                foreach (var rowPair in subIndicesToGlobalIndices)
                 {
                     int globalRow = rowPair.Value;
 
@@ -174,13 +161,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Maps <paramref name="subMatrix"/> to "global" rows and columns of the underlying skyline matrix and then adds 
-        /// the entries of <paramref name="subMatrix"/> to these global indices. The caller is respondible for the global 
-        /// indices falling inside the skyline sparsity pattern. Optimized version of 
-        /// <see cref="AddSubmatrix(IIndexable2D, IReadOnlyDictionary{int, int}, IReadOnlyDictionary{int, int})"/>, in case the
-        /// caller is sure that all global indices will be super diagonal.
+        /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrixToLowerTriangle(IIndexable2D, IReadOnlyDictionary{int, int}, 
+        /// IReadOnlyDictionary{int, int})"/>
         /// </summary>
-        public void AddSubmatrixUnderDiagonal(IIndexable2D subMatrix,
+        /// <remarks>The caller is respondible for the global indices falling inside the skyline sparsity pattern.</remarks>
+        public void AddSubmatrixToLowerTriangle(IIndexable2D subMatrix,
             IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
         {
             foreach (var rowPair in subRowsToGlobalRows) // Transpose(Col major ordering) = Row major ordering
@@ -199,25 +184,51 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             }
         }
 
+        /// <summary>
+        /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrixToUpperTriangle(IIndexable2D, IReadOnlyDictionary{int, int}, 
+        /// IReadOnlyDictionary{int, int})"/>
+        /// </summary>
+        /// <remarks>The caller is respondible for the global indices falling inside the skyline sparsity pattern.</remarks>
+        public void AddSubmatrixToUpperTriangle(IIndexable2D subMatrix,
+            IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols)
+        {
+            foreach (var colPair in subColsToGlobalCols) // Col major ordering
+            {
+                int subCol = colPair.Key;
+                int globalCol = colPair.Value;
+                foreach (var rowPair in subRowsToGlobalRows)
+                {
+                    int globalRow = rowPair.Value;
+
+                    // The assumption is: globalCol >= globalRow, thus height >=0
+                    int offset = diagOffsets[globalCol] + globalCol - globalRow;
+                    values[offset] += subMatrix[rowPair.Key, subCol];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initializes a <see cref="SkylineMatrix"/> representation of the current matrix. This method should be 
+        /// called after fully defining the matrix in <see cref="SkylineBuilder"/> format.
+        /// </summary>
+        /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
         public SkylineMatrix BuildSkylineMatrix()
         {
             if (values.Length == 0) throw new EmptyMatrixBuilderException("Cannot build skyline arrays from a DOK with nnz = 0.");
             return SkylineMatrix.CreateFromArrays(order, values, diagOffsets, false, false);
         }
 
+        /// <summary>
+        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
+        /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1E-13)
         {
             return BuildSkylineMatrix().Equals(other, tolerance);
         }
 
-        /// <summary>
-        /// Perhaps this should be manually inlined. Testing needed.
-        /// </summary>
-        /// <param name="rowIdx"></param>
-        /// <param name="colIdx"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ProcessIndices(ref int rowIdx, ref int colIdx)
-        {
+        { //TODO: Perhaps this should be manually inlined. Testing needed.
             if (rowIdx > colIdx)
             {
                 int swap = rowIdx;

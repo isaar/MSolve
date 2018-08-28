@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
+    /// <summary>
+    /// Algorithms for various linear algebra operations that do not take into account the sparsity pattern of the matrix or 
+    /// vector. These serve as a default implementation when a smarter one is not readily available.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal static class DenseStrategies
     {
         internal static bool AreEqual(IIndexable2D matrix1, IIndexable2D matrix2, double tolerance = 1e-13)
@@ -61,6 +60,40 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                     result[i, j] = binaryOperation(matrix1[i, j], matrix2[i, j]);
                 }
             }
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tolerance">Can be zero</param>
+        /// <returns></returns>
+        internal static bool IsZero(double[] array, double tolerance)
+        {
+            if (tolerance == 0)
+            {
+                for (int i = 0; i < array.Length; ++i)
+                {
+                    if (array[i] != 0.0) return false;
+                }
+                return true;
+            }
+            else
+            {
+                for (int i = 0; i < array.Length; ++i)
+                {
+                    if (Math.Abs(array[i]) > tolerance) return false;
+                }
+                return true;
+            }
+        }
+
+        internal static Vector LinearCombination(IIndexable1D vector1, double coefficient1, IIndexable1D vector2,
+            double coefficient2)
+        {
+            Preconditions.CheckVectorDimensions(vector1, vector2);
+            var result = Vector.CreateZero(vector1.Length);
+            for (int i = 0; i < vector1.Length; ++i) result[i] = coefficient1 * vector1[i] + coefficient2 * vector2[i];
             return result;
         }
 

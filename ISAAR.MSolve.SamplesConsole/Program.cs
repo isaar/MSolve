@@ -25,8 +25,13 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
-            //LinearAlgebraTestSuite.TestAll();
-            XFEMTestSuite.RunAll();
+
+            //FEM.Cantilever2D.Run();
+            //FEM.Cantilever2DPreprocessor.Run();
+            //FEM.WallWithOpenings.Run();
+
+            LinearAlgebraTestSuite.TestAll();
+            //XFEMTestSuite.RunAll();
         }
 
         private static void SolveBuildingInNoSoilSmall()
@@ -152,15 +157,6 @@ namespace ISAAR.MSolve.SamplesConsole
             stohasticAnalyzer.Solve();
 
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
-        }
-
-        static void Main(string[] args)
-        {
-            //SolveBuildingInNoSoilSmall();
-            //TrussExample.Run();
-            //FEM.Cantilever2D.Run();
-            //FEM.Cantilever2DPreprocessor.Run();
-            FEM.WallWithOpenings.Run();
         }
     }
 }

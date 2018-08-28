@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
@@ -42,18 +43,18 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public MenkBordasVector Axpy(double scalar, MenkBordasVector other)
         {
-            Vector resultVs = this.Vs.Axpy(scalar, other.Vs);
+            Vector resultVs = this.Vs.Axpy(other.Vs, scalar);
             var resultVe = new Vector[numSubdomains];
-            for (int i = 0; i < numSubdomains; ++i) resultVe[i] = this.Ve[i].Axpy(scalar, other.Ve[i]);
-            Vector resultVc =  this.Vc.Axpy(scalar, other.Vc); // TODO: avoid this if one or both are 0
+            for (int i = 0; i < numSubdomains; ++i) resultVe[i] = this.Ve[i].Axpy(other.Ve[i], scalar);
+            Vector resultVc =  this.Vc.Axpy(other.Vc, scalar); // TODO: avoid this if one or both are 0
             return new MenkBordasVector(numSubdomains, numEquations, resultVs, resultVe, resultVc);
         }
 
         public void AxpyIntoThis(double scalar, MenkBordasVector other)
         {
-            this.Vs.AxpyIntoThis(scalar, other.Vs);
-            for (int i = 0; i < numSubdomains; ++i) this.Ve[i].AxpyIntoThis(scalar, other.Ve[i]);
-            this.Vc.AxpyIntoThis(scalar, other.Vc); // TODO: avoid this if one or both are 0
+            this.Vs.AxpyIntoThis(other.Vs, scalar);
+            for (int i = 0; i < numSubdomains; ++i) this.Ve[i].AxpyIntoThis(other.Ve[i], scalar);
+            this.Vc.AxpyIntoThis(other.Vc, scalar); // TODO: avoid this if one or both are 0
         }
 
         public MenkBordasVector Copy()
@@ -125,17 +126,19 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public void WriteToConsole()
         {
-            var formatting = Array1DFormatting.PlainVertical;
-            FullVectorWriter.NumericFormat = new GeneralNumericFormat();
+            var writer = new FullVectorWriter(false);
+            writer.ArrayFormat = Array1DFormat.PlainVertical;
+            writer.NumericFormat = new GeneralNumericFormat();
+
             Console.WriteLine("\nStandard: ");
-            (new FullVectorWriter(Vs, false, formatting)).WriteToConsole();
+            writer.WriteToConsole(Vs);
             for (int i = 0; i < numSubdomains; ++i)
             {
                 Console.WriteLine($"\nEnriched subdomain {i}: ");
-                (new FullVectorWriter(Ve[i], false, formatting)).WriteToConsole();
+                writer.WriteToConsole(Ve[i]);
             }
             Console.WriteLine("\nContinuity equations: ");
-            (new FullVectorWriter(Vc, false, formatting)).WriteToConsole();
+            writer.WriteToConsole(Vc);
         }
     }
 }

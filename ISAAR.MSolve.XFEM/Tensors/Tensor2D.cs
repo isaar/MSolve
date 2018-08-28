@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ISAAR.MSolve.XFEM.Tensors
 {
     // TODO: Add methods that mustate the same instance instead of returning new ones.
-    class Tensor2D
+    public class Tensor2D
     {
         public double XX { get; }
         public double YY { get; }

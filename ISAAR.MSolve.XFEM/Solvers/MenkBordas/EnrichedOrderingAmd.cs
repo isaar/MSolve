@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     {
         public void ReorderEnrichedDofs(XSubdomain2D subdomain)
         {
-            var orderingAlgorithm = new OrderingAMD();
+            var orderingAlgorithm = new OrderingAmd();
 
             int order = subdomain.DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var enrichedDofs = subdomain.DofOrderer.GetSubdomainEnrichedDofsOf(element);
                 pattern.ConnectIndices(enrichedDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = pattern.Reorder(orderingAlgorithm);
+            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
 
             subdomain.DofOrderer.ReorderSubdomainDofs(permutation, false);
         }

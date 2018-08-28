@@ -14,12 +14,12 @@ namespace ISAAR.MSolve.XFEM.Assemblers
 {
     class GlobalDOKAssembler
     {
-        public (DOKSymmetricColMajor Kff, DOKRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
+        public (DokSymmetric Kff, DokRowMajor Kfc) BuildGlobalMatrix(Model2D model, IDofOrderer dofOrderer)
         {
             int numDofsConstrained = dofOrderer.NumConstrainedDofs;
             int numDofsFree = dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs;
-            var Kff = DOKSymmetricColMajor.CreateEmpty(numDofsFree);
-            var Kfc = DOKRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
+            var Kff = DokSymmetric.CreateEmpty(numDofsFree);
+            var Kfc = DokRowMajor.CreateEmpty(numDofsFree, numDofsConstrained);
 
             foreach (XContinuumElement2D element in model.Elements)
             {
