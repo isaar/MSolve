@@ -19,16 +19,18 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		{
 			new object[]{InterpolationTet4.UniqueInstance},
 			new object[]{InterpolationTet10.UniqueInstance},
-			new object[]{InterpolationHexa8.UniqueInstance}
+			new object[]{InterpolationHexa8.UniqueInstance},
+			new object[]{InterpolationHexa20.UniqueInstance}
 
 		};
 
-		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators= 
+		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators =
 			new Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints>()
 			{
-				{InterpolationTet4.UniqueInstance,GenerateRandomPointsInTetrahedron},
+				{InterpolationTet4.UniqueInstance, GenerateRandomPointsInTetrahedron},
 				{InterpolationTet10.UniqueInstance, GenerateRandomPointsInTetrahedron},
-				{InterpolationHexa8.UniqueInstance, GenerateRandomPointsInCube }
+				{InterpolationHexa8.UniqueInstance, GenerateRandomPointsInCube},
+				{InterpolationHexa20.UniqueInstance, GenerateRandomPointsInCube}
 			};
 
 
