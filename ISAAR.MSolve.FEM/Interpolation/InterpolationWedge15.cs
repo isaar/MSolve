@@ -27,10 +27,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			    new NaturalPoint3D(1, 1, 0),
 			    new NaturalPoint3D(1, 0, 1),
 			    new NaturalPoint3D(1, 0, 0),
+
 			    new NaturalPoint3D(-1, 0.5, 0.5),
 			    new NaturalPoint3D(-1, 0.5, 0),
 			    new NaturalPoint3D(0, 1, 0),
 			    new NaturalPoint3D(-1, 0, 0.5),
+
 			    new NaturalPoint3D(0, 0, 1),
 			    new NaturalPoint3D(0, 0, 0),
 			    new NaturalPoint3D(1, 0.5, 0.5),
@@ -71,10 +73,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    values[3] = y * (1 + x) * (2 * y - 2 + x) / 2;
 		    values[4] = z * (1 + x) * (2 * z - 2 + x) / 2;
 		    values[5] = (-x - 1) * (1 - y - z) * (-x + 2 * y + 2 * z) / 2;
+
 		    values[6] = 2 * y * z * (1 - x);
 		    values[7] = 2 * y * (1 - y - z) * (1 - x);
 		    values[8] = y * (1 - x * x);
-			values[9] = 2 * x * (1 - y - z) * (1 - x);
+
+			values[9] = 2 * z * (1 - y - z) * (1 - x);
+
 		    values[10] = z * (1 - x *x);
 		    values[11] = (1 - y - z) * (1 - x *x);
 		    values[12] = 2 * y * z * (1 + x);
@@ -101,7 +106,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    derivatives[6, 0] = -2 * y * z;
 		    derivatives[7, 0] = 2 * y * (y + z - 1);
 		    derivatives[8, 0] = -2 * x * y;
-		    derivatives[9, 0] = 2 * x * (y + z - 1) + 2 * (x - 1) * (y + z - 1);
+		    derivatives[9, 0] = 2 * z * (y + z - 1);
 		    derivatives[10, 0] = -2 * x * z;
 		    derivatives[11, 0] = 2 * x * (y + z - 1);
 		    derivatives[12, 0] = 2 * y * z;
@@ -117,7 +122,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    derivatives[6, 1] = -2 * z * (x - 1);
 		    derivatives[7, 1] = 2 * (x - 1) * (y + z - 1) + 2 * y * (x - 1);
 		    derivatives[8, 1] = 1 - x * x;
-		    derivatives[9, 1] = 2 * x * (x - 1);
+		    derivatives[9, 1] = 2 * z * (x - 1);
 		    derivatives[10, 1] = 0.0;
 		    derivatives[11, 1] = x * x - 1;
 		    derivatives[12, 1] = 2 * z * (x + 1);
