@@ -53,10 +53,10 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    var y = eta;
 		    var z = zeta;
 
-		    values[0] = (-x + y + z - 1) * (-x - y + z - 1) / (4 * (1 - z));
-		    values[1] = (-x - y + z - 1) * (x - y + z - 1) / (4 * (1 - z));
-		    values[2] = (x + y + z - 1) * (x - y + z - 1) / (4 * (1 - z));
-		    values[3] = (x + y + z - 1) * (-x + y + z - 1) / (4 * (1 - z));
+		    values[0] = (Math.Abs(z - 1) < 10e-10) ? 0 : (-x + y + z - 1) * (-x - y + z - 1) / (4 * (1 - z));
+		    values[1] = (Math.Abs(z - 1) < 10e-10) ? 0 : (-x - y + z - 1) * (x - y + z - 1) / (4 * (1 - z));
+		    values[2] = (Math.Abs(z - 1) < 10e-10) ? 0 : (x + y + z - 1) * (x - y + z - 1) / (4 * (1 - z));
+		    values[3] = (Math.Abs(z - 1) < 10e-10) ? 0 : (x + y + z - 1) * (-x + y + z - 1) / (4 * (1 - z));
 		    values[4] = z;
 
 		    return values;
