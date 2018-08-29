@@ -23,8 +23,8 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			new object[]{InterpolationHexa20.UniqueInstance},
 			//TODO: new object[]{InterpolationHexa27.UniqueInstance},
 			new object[]{InterpolationWedge6.UniqueInstance},
-			//TODO: new object[]{InterpolationWedge15.UniqueInstance},
-			//TODO: new object[]{InterpolationWedge18.UniqueInstance}
+			new object[]{InterpolationWedge15.UniqueInstance},
+			new object[]{InterpolationWedge18.UniqueInstance}
 		};
 
 		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators =
@@ -36,8 +36,8 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				{InterpolationHexa20.UniqueInstance, GenerateRandomPointsInCube},
 				//TODO: {InterpolationHexa27.UniqueInstance, GenerateRandomPointsInCube},
 				{InterpolationWedge6.UniqueInstance, GenerarandomPointsInWedge },
-				//TODO: {InterpolationWedge15.UniqueInstance, GenerarandomPointsInWedge },
-				//TODO: {InterpolationWedge18.UniqueInstance, GenerarandomPointsInWedge },
+				{InterpolationWedge15.UniqueInstance, GenerarandomPointsInWedge },
+				{InterpolationWedge18.UniqueInstance, GenerarandomPointsInWedge },
 
 			};
 
