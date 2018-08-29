@@ -24,7 +24,9 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			//TODO: new object[]{InterpolationHexa27.UniqueInstance},
 			new object[]{InterpolationWedge6.UniqueInstance},
 			new object[]{InterpolationWedge15.UniqueInstance},
-			new object[]{InterpolationWedge18.UniqueInstance}
+			new object[]{InterpolationWedge18.UniqueInstance},
+			new object[]{InterpolationPyra5.UniqueInstance},
+			new object[]{InterpolationPyra13.UniqueInstance}
 		};
 
 		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators =
@@ -35,10 +37,11 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				{InterpolationHexa8.UniqueInstance, GenerateRandomPointsInCube},
 				{InterpolationHexa20.UniqueInstance, GenerateRandomPointsInCube},
 				//TODO: {InterpolationHexa27.UniqueInstance, GenerateRandomPointsInCube},
-				{InterpolationWedge6.UniqueInstance, GenerarandomPointsInWedge },
-				{InterpolationWedge15.UniqueInstance, GenerarandomPointsInWedge },
-				{InterpolationWedge18.UniqueInstance, GenerarandomPointsInWedge },
-
+				{InterpolationWedge6.UniqueInstance, GenerarandomPointsInWedge},
+				{InterpolationWedge15.UniqueInstance, GenerarandomPointsInWedge},
+				{InterpolationWedge18.UniqueInstance, GenerarandomPointsInWedge},
+				{InterpolationPyra5.UniqueInstance, GenerateRandomPointsInPyramid},
+				{InterpolationPyra13.UniqueInstance, GenerateRandomPointsInPyramid}
 			};
 
 
@@ -113,7 +116,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		}
 
 		/// <summary>
-		/// Generates ranom points in the parent cube.
+		/// Generates random points in the parent cube.
 		/// </summary>
 		/// <returns></returns>
 		private static NaturalPoint3D[] GenerateRandomPointsInCube()
@@ -125,6 +128,25 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				double xi = -1 + rand.NextDouble() * 2.0;
 				double eta = -1 + rand.NextDouble() * 2.0;
 				double zeta = -1 + rand.NextDouble() * 2.0;
+				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
+			}
+
+			return randomPoints;
+		}
+
+		/// <summary>
+		/// Generates random points inside a pyramid <see cref="https://people.sc.fsu.edu/~jburkardt/m_src/pyramid_grid/pyramid_grid.html"/>
+		/// </summary>
+		/// <returns></returns>
+		private static NaturalPoint3D[] GenerateRandomPointsInPyramid()
+		{
+			var rand = new Random();
+			var randomPoints= new NaturalPoint3D[numRandomPoints];
+			for (int i = 0; i < numRandomPoints; i++)
+			{
+				double zeta = rand.NextDouble();
+				double xi = (-1 + rand.NextDouble() * 2.0)*(1-zeta);
+				double eta = (-1 + rand.NextDouble() * 2.0) * xi;
 				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
 			}
 
