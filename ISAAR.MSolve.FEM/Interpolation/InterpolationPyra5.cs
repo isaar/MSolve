@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    var z = zeta;
 
 		    var derivatives = new double[5, 3];
-
+			//TODO: when z->1, derivative value must be calculated by the equivalent limit
 		    derivatives[0, 0] = -(x + y - z + 1) / (4 * z - 4) - (x - y - z + 1) / (4 * z - 4);
 		    derivatives[1, 0] = (x + y - z + 1) / (4 * z - 4) + (x - y + z - 1) / (4 * z - 4);
 		    derivatives[2, 0] = -(x - y + z - 1) / (4 * z - 4) - (x + y + z - 1) / (4 * z - 4);
