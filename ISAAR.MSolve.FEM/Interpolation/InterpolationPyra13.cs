@@ -63,22 +63,24 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    var z = zeta;
 
 		    var values = new double[13];
-		    values[0] = (-x + y + z - 1) * (-x - y + z - 1) * (x - 0.5) / (2 * (1 - z));
-		    values[1] = (-x - y + z - 1) * (x - y + z - 1) * (y - 0.5) / (2 * (1 - z));
-		    values[2] = (x - y + z - 1) * (x + y + z - 1) * (-x - 0.5) / (2 * (1 - z));
-		    values[3] = (x + y + z - 1) * (-x + y + z - 1) * (-y - 0.5) / (2 * (1 - z));
+		    values[0] = (Math.Abs(z - 1) < 10e-10) ? 0 : (-x + y + z - 1) * (-x - y + z - 1) * (x - 0.5) / (2 * (1 - z));
+		    values[1] = (Math.Abs(z - 1) < 10e-10) ? 0 : (-x - y + z - 1) * (x - y + z - 1) * (y - 0.5) / (2 * (1 - z));
+		    values[2] = (Math.Abs(z - 1) < 10e-10) ? 0 : (x - y + z - 1) * (x + y + z - 1) * (-x - 0.5) / (2 * (1 - z));
+		    values[3] = (Math.Abs(z - 1) < 10e-10) ? 0 : (x + y + z - 1) * (-x + y + z - 1) * (-y - 0.5) / (2 * (1 - z));
 		    values[4] = 2 * z * (z - 0.5);
-		    values[5] = -(-x + y + z - 1) * (-x - y + z - 1) * (x - y + z - 1) / (2 * (1 - z));
-		    values[6] = -(-x - y + z - 1) * (x - y + z - 1) * (x + y + z - 1) / (2 * (1 - z));
-		    values[7] = -(x - y + z - 1) * (x + y + z - 1) * (-x + y + z - 1) / (2 * (1 - z));
-		    values[8] = -(x + y + z - 1) * (-x + y + z - 1) * (-x - y + z - 1) / (2 * (1 - z));
-		    values[9] = z * (-x + y + z - 1) * (-x - y + z - 1) / (1 - z);
-		    values[10] = z * (-x - y + z - 1) * (x - y + z - 1) / (1 - z);
-		    values[11] = z * (x - y + z - 1) * (x + y + z - 1) / (1 - z);
-		    values[12] = z * (x + y + z - 1) * (-x + y + z - 1) / (1 - z);
+		    values[5] = (Math.Abs(z - 1) < 10e-10) ? 0 : -(-x + y + z - 1) * (-x - y + z - 1) * (x - y + z - 1) / (2 * (1 - z));
+		    values[6] = (Math.Abs(z - 1) < 10e-10) ? 0 : -(x + y + z - 1) * (-x + y + z - 1) * (-x - y + z - 1) / (2 * (1 - z));
+		    values[7] = (Math.Abs(z - 1) < 10e-10) ? 0 : z * (-x + y + z - 1) * (-x - y + z - 1) / (1 - z);
+		    values[8] = (Math.Abs(z - 1) < 10e-10) ? 0 : -(-x - y + z - 1) * (x - y + z - 1) * (x + y + z - 1) / (2 * (1 - z));
+		    values[9] = (Math.Abs(z - 1) < 10e-10) ? 0 : z * (-x - y + z - 1) * (x - y + z - 1) / (1 - z);
+		    values[10] = (Math.Abs(z - 1) < 10e-10) ? 0 : -(x - y + z - 1) * (x + y + z - 1) * (-x + y + z - 1) / (2 * (1 - z));
+		    values[11] = (Math.Abs(z - 1) < 10e-10) ? 0 : z * (x - y + z - 1) * (x + y + z - 1) / (1 - z);
+		    values[12] = (Math.Abs(z - 1) < 10e-10) ? 0 : z * (x + y + z - 1) * (-x + y + z - 1) / (1 - z);
 		    return values;
 	    }
 
+
+		// TODO: verify derivatives of Pyra13
 	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
