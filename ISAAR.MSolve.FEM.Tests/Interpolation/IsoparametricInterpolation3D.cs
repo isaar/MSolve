@@ -21,12 +21,13 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			new object[]{InterpolationTet10.UniqueInstance},
 			new object[]{InterpolationHexa8.UniqueInstance},
 			new object[]{InterpolationHexa20.UniqueInstance},
-			//TODO: new object[]{InterpolationHexa27.UniqueInstance},
+			new object[]{InterpolationHexa27.UniqueInstance},
 			new object[]{InterpolationWedge6.UniqueInstance},
 			new object[]{InterpolationWedge15.UniqueInstance},
 			new object[]{InterpolationWedge18.UniqueInstance},
 			new object[]{InterpolationPyra5.UniqueInstance},
-			new object[]{InterpolationPyra13.UniqueInstance}
+			new object[]{InterpolationPyra13.UniqueInstance},
+			//TODO: new object[]{InterpolationPyra14.UniqueInstance}
 		};
 
 		private static readonly Dictionary<IIsoparametricInterpolation3D, GenerateRandomPoints> pointGenerators =
@@ -36,12 +37,13 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 				{InterpolationTet10.UniqueInstance, GenerateRandomPointsInTetrahedron},
 				{InterpolationHexa8.UniqueInstance, GenerateRandomPointsInCube},
 				{InterpolationHexa20.UniqueInstance, GenerateRandomPointsInCube},
-				//TODO: {InterpolationHexa27.UniqueInstance, GenerateRandomPointsInCube},
+				{InterpolationHexa27.UniqueInstance, GenerateRandomPointsInCube},
 				{InterpolationWedge6.UniqueInstance, GenerarandomPointsInWedge},
 				{InterpolationWedge15.UniqueInstance, GenerarandomPointsInWedge},
 				{InterpolationWedge18.UniqueInstance, GenerarandomPointsInWedge},
 				{InterpolationPyra5.UniqueInstance, GenerateRandomPointsInPyramid},
-				{InterpolationPyra13.UniqueInstance, GenerateRandomPointsInPyramid}
+				{InterpolationPyra13.UniqueInstance, GenerateRandomPointsInPyramid},
+				//TODO: {InterpolationPyra14.UniqueInstance, GenerateRandomPointsInPyramid}
 			};
 
 
