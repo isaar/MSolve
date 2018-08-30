@@ -36,19 +36,19 @@ namespace ISAAR.MSolve.FEM.Interpolation
 				new NaturalPoint3D(1, 0, -1),
 
 				new NaturalPoint3D(1, -1, 0),
-				new NaturalPoint3D(-1, 0, -1),
-				new NaturalPoint3D(-1, -1, 0),
-				new NaturalPoint3D(1, 0, -1),
-
-				new NaturalPoint3D(1, -1, 0),
 				new NaturalPoint3D(0, 1, -1),
+				new NaturalPoint3D(1, 1, 0),
+				new NaturalPoint3D(-1, 1, 0),
+
+				new NaturalPoint3D(0, -1, 1),
+				new NaturalPoint3D(-1, 0, 1),
 				new NaturalPoint3D(1, 0, 1),
 				new NaturalPoint3D(0, 1, 1),
 
 				new NaturalPoint3D(0, 0, -1),
 				new NaturalPoint3D(0, -1, 0),
 				new NaturalPoint3D(-1, 0, 0),
-				new NaturalPoint3D(-1, 0, 0),
+				new NaturalPoint3D(1, 0, 0),
 
 				new NaturalPoint3D(0, 1, 0),
 				new NaturalPoint3D(0, 0, 1),
@@ -91,29 +91,44 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			values[1] = 1 / 8.0 * x * (x + 1) * y * (y - 1) * z * (z - 1);
 			values[2] = 1 / 8.0 * x * (x + 1) * y * (y + 1) * z * (z - 1);
 			values[3] = 1 / 8.0 * x * (x - 1) * y * (y + 1) * z * (z - 1);
+
 			values[4] = 1 / 8.0 * x * (x - 1) * y * (y - 1) * z * (z + 1);
 			values[5] = 1 / 8.0 * x * (x + 1) * y * (y - 1) * z * (z + 1);
 			values[6] = 1 / 8.0 * x * (x + 1) * y * (y + 1) * z * (z + 1);
 			values[7] = 1 / 8.0 * x * (x - 1) * y * (y + 1) * z * (z + 1);
-			values[8] = 1 / 4.0 * (1 - Math.Pow(x, 2)) * y * (y - 1) * z * (z - 1);
-			values[9] = 1 / 4.0 * x * (x - 1) * (1 - Math.Pow(y, 2)) * z * (z - 1);
-			values[10] = 1 / 4.0 * x * (x - 1) * y * (y - 1) * (1 - Math.Pow(z, 2));
-			values[11] = 1 / 4.0 * x * (x + 1) * y * (1 - Math.Pow(y, 2)) * z * (z - 1);
-			values[12] = 1 / 4.0 * x * (x + 1) * y * (y - 1) * (1 - Math.Pow(z, 2));
-			values[13] = 1 / 4.0 * (1 - Math.Pow(x, 2)) * y * (y + 1) * z * (z - 1);
-			values[14] = 1 / 4.0 * x * (x + 1) * y * (y + 1) * (1 - Math.Pow(z, 2));
-			values[15] = 1 / 4.0 * x * (x - 1) * y * (y + 1) * (1 - Math.Pow(z, 2));
-			values[16] = 1 / 4.0 * (1 - Math.Pow(x, 2)) * y * (y - 1) * z * (z + 1);
-			values[17] = 1 / 4.0 * x * (x - 1) * (1 - Math.Pow(y, 2)) * z * (z + 1);
-			values[18] = 1 / 4.0 * x * (x + 1) * (1 - Math.Pow(y, 2)) * z * (z + 1);
-			values[19] = 1 / 4.0 * (1 - Math.Pow(x, 2)) * y * (y + 1) * z * (z + 1);
-			values[20] = 1 / 2.0 * (1 - Math.Pow(x, 2)) * (1 - Math.Pow(y, 2)) * z * (z - 1);
-			values[21] = 1 / 2.0 * (1 - Math.Pow(x, 2)) * y * (y - 1) * (1 - Math.Pow(z, 2));
-			values[22] = 1 / 2.0 * x * (x + 1) * (1 - Math.Pow(y, 2)) * (1 - Math.Pow(z, 2));
-			values[23] = 1 / 2.0 * x * (x + 1) * (1 - Math.Pow(y, 2)) * (1 - Math.Pow(z, 2));
-			values[24] = 1 / 2.0 * (1 - Math.Pow(x, 2)) * (1 - Math.Pow(y, 2)) * (1 - Math.Pow(z, 2));
-			values[25] = 1 / 2.0 * (1 - Math.Pow(x, 2)) * (1 - Math.Pow(y, 2)) * z * (z - 1);
-			values[26] = 1 / 2.0 * (1 - Math.Pow(x, 2)) * (1 - Math.Pow(y, 2)) * (1 - Math.Pow(z, 2));
+
+			values[8] = 1 / 4.0 * (1 - x * x) * y * (y - 1) * z * (z - 1);
+			values[9] = 1 / 4.0 * x * (x - 1) * (1 - y * y) * z * (z - 1);
+			values[10] = 1 / 4.0 * x * (x - 1) * y * (y - 1) * (1 - z * z);
+
+
+
+
+			values[11] = 1 / 4.0 * x * (x + 1) * (1 - y * y) * z * (z - 1);
+
+
+
+
+
+
+			values[12] = 1 / 4.0 * x * (x + 1) * y * (y - 1) * (1 - z * z);
+			values[13] = 1 / 4.0 * (1 - x * x) * y * (y + 1) * z * (z - 1);
+			values[14] = 1 / 4.0 * x * (x + 1) * y * (y + 1) * (1 - z * z);
+			values[15] = 1 / 4.0 * x * (x - 1) * y * (y + 1) * (1 - z * z);
+
+			values[16] = 1 / 4.0 * (1 - x * x) * y * (y - 1) * z * (z + 1);
+			values[17] = 1 / 4.0 * x * (x - 1) * (1 - y * y) * z * (z + 1);
+			values[18] = 1 / 4.0 * x * (x + 1) * (1 - y * y) * z * (z + 1);
+			values[19] = 1 / 4.0 * (1 - x * x) * y * (y + 1) * z * (z + 1);
+
+			values[20] = 1 / 2.0 * (1 - x * x) * (1 - y * y) * z * (z - 1);
+			values[21] = 1 / 2.0 * (1 - x * x) * y * (y - 1) * (1 - z * z);
+			values[22] = 1 / 2.0 * x * (x - 1) * (1 - y * y) * (1 - z * z);
+			values[23] = 1 / 2.0 * x * (x + 1) * (1 - y * y) * (1 - z * z);
+
+			values[24] = 1 / 2.0 * (1 - x * x) * y * (y + 1) * (1 - z * z);
+			values[25] = 1 / 2.0 * (1 - x * x) * (1 - y * y) * z * (z + 1);
+			values[26] = (1 - x * x) * (1 - y * y) * (1 - z * z);
 			return values;
 		}
 
