@@ -88,40 +88,44 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
+		    var x = xi;
+		    var y = eta;
+		    var z = zeta;
+
 		    var derivatives = new double[10, 3];
 
-		    derivatives[0, 0] = -3 + 4 * eta + 4 * zeta + 4 * xi;
-			derivatives[1, 0] = 4 * xi - 1;
+		    derivatives[0, 0] = 4 * x + 4 * y + 4 * z - 3;
+			derivatives[1, 0] = 4 * x - 1;
 		    derivatives[2, 0] = 0.0;
 		    derivatives[3, 0] = 0.0;
-			derivatives[4, 0] = 4 - 8 * xi - 4 * eta - 4 * zeta;
-			derivatives[5, 0] = 4 * eta;
-		    derivatives[6, 0] = -4 * eta;
-		    derivatives[7, 0] = -4 * zeta;
+			derivatives[4, 0] = 4 - 4 * y - 4 * z - 8 * x;
+			derivatives[5, 0] = 4 * y;
+		    derivatives[6, 0] = -4 * y;
+		    derivatives[7, 0] = -4 * z;
 			derivatives[8, 0] = 0.0;
-		    derivatives[9, 0] = 4 * zeta;
+		    derivatives[9, 0] = 4 * z;
 
-		    derivatives[0, 1] = -3 + 4 * xi + 4 * zeta + 4 * eta;
+		    derivatives[0, 1] = 4 * x + 4 * y + 4 * z - 3;
 			derivatives[1, 1] = 0.0;
-		    derivatives[2, 1] = 4*eta-1;
+		    derivatives[2, 1] = 4 * y - 1;
 		    derivatives[3, 1] = 0.0;
-			derivatives[4, 1] = -4 * xi;
-			derivatives[5, 1] = 4 * xi;
-		    derivatives[6, 1] = 4 - 4 * xi - 8 * eta - 4 * zeta;
-		    derivatives[7, 1] = -4 * zeta;
-			derivatives[8, 1] = 4 * zeta;
+			derivatives[4, 1] = -4 * x;
+			derivatives[5, 1] = 4 * x;
+		    derivatives[6, 1] = 4 - 8 * y - 4 * z - 4 * x;
+		    derivatives[7, 1] = -4 * z;
+			derivatives[8, 1] = 4 * z;
 		    derivatives[9, 1] = 0.0;
 
-			derivatives[0, 2] = -3 + 4 * eta + 4 * xi + 4 * zeta;
+			derivatives[0, 2] = 4 * x + 4 * y + 4 * z - 3;
 			derivatives[1, 2] = 0.0;
 		    derivatives[2, 2] = 0.0;
-		    derivatives[3, 2] = 4 * zeta - 1;
-		    derivatives[4, 2] = -4 * xi;
+		    derivatives[3, 2] = 4 * z - 1;
+		    derivatives[4, 2] = -4 * x;
 			derivatives[5, 2] = 0.0;
-		    derivatives[6, 2] = -4 * eta;
-		    derivatives[7, 2] = 4 - 4 * xi - 4 * eta - 8 * zeta;
-			derivatives[8, 2] = 4 * eta;
-		    derivatives[9, 2] = 4 * xi;
+		    derivatives[6, 2] = -4 * y;
+		    derivatives[7, 2] = 4 - 4 * y - 8 * z - 4 * x;
+			derivatives[8, 2] = 4 * y;
+		    derivatives[9, 2] = 4 * x;
 		    
 		    return derivatives;
 	    }
