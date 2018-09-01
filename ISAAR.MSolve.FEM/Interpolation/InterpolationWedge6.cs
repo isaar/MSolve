@@ -72,24 +72,24 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 		    derivatives[0, 0] = -y / 2;
 		    derivatives[1, 0] = -z / 2;
-		    derivatives[2, 0] = y / 2 + z / 2 - 1 / 2.0;
+		    derivatives[2, 0] = (y  + z  - 1) / 2;
 		    derivatives[3, 0] = y / 2;
 		    derivatives[4, 0] = z / 2;
-		    derivatives[5, 0] = 1 / 2.0 - z / 2 - y / 2;
+		    derivatives[5, 0] =  (1 - z  - y) / 2;
 
-		    derivatives[0, 1] = 1 / 2.0 - x / 2;
+		    derivatives[0, 1] = (1- x) / 2;
 		    derivatives[1, 1] = 0.0;
-		    derivatives[2, 1] = x / 2 - 1 / 2.0;
-		    derivatives[3, 1] = x / 2 + 1 / 2.0;
+		    derivatives[2, 1] = (x - 1) / 2;
+		    derivatives[3, 1] = (x + 1) / 2;
 		    derivatives[4, 1] = 0.0;
-		    derivatives[5, 1] = -x / 2 - 1 / 2.0;
+		    derivatives[5, 1] = (-x - 1) / 2;
 
 		    derivatives[0, 2] = 0.0;
-		    derivatives[1, 2] = 1 / 2.0 - x / 2;
-		    derivatives[2, 2] = x / 2 - 1 / 2.0;
+		    derivatives[1, 2] = (1 - x) / 2;
+		    derivatives[2, 2] = (x - 1) / 2;
 		    derivatives[3, 2] = 0.0;
-		    derivatives[4, 2] = x / 2 + 1 / 2.0;
-		    derivatives[5, 2] = -x / 2 - 1 / 2.0;
+		    derivatives[4, 2] = (x + 1) / 2;
+		    derivatives[5, 2] = (-x - 1) / 2;
 
 		    return derivatives;
 	    }
