@@ -69,7 +69,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    var z = zeta;
 
 		    var derivatives = new double[5, 3];
-			//TODO: when z->1, derivative value must be calculated by the equivalent limit
 		    derivatives[0, 0] = -(x + y - z + 1) / (4 * z - 4) - (x - y - z + 1) / (4 * z - 4);
 		    derivatives[1, 0] = (x + y - z + 1) / (4 * z - 4) + (x - y + z - 1) / (4 * z - 4);
 		    derivatives[2, 0] = -(x - y + z - 1) / (4 * z - 4) - (x + y + z - 1) / (4 * z - 4);
@@ -82,10 +81,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    derivatives[3, 1] = (x - y - z + 1) / (4 * z - 4) - (x + y + z - 1) / (4 * z - 4);
 		    derivatives[4, 1] = 0.0;
 
-		    derivatives[0, 2] = (x + y - z + 1) / (4 * z - 4) + (x - y - z + 1) / (4 * z - 4) + (4 * (x + y - z + 1) * (x - y - z + 1)) / Math.Pow(4 * z - 4,2);
-		    derivatives[1, 2] = (x + y - z + 1) / (4 * z - 4) - (x - y + z - 1) / (4 * z - 4) - (4 * (x + y - z + 1) * (x - y + z - 1)) / Math.Pow(4 * z - 4, 2);
-		    derivatives[2, 2] = (4 * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(4 * z - 4, 2) - (x + y + z - 1) / (4 * z - 4) - (x - y + z - 1) / (4 * z - 4);
-		    derivatives[3, 2] = (x - y - z + 1) / (4 * z - 4) - (x + y + z - 1) / (4 * z - 4) - (4 * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(4 * z - 4, 2);
+		    derivatives[0, 2] = (x + y - z + 1) / (4 * z - 4) + (x - y - z + 1) / (4 * z - 4) +
+		                        (4 * (x + y - z + 1) * (x - y - z + 1)) / Math.Pow(4 * z - 4, 2);
+		    derivatives[1, 2] = (x + y - z + 1) / (4 * z - 4) - (x - y + z - 1) / (4 * z - 4) -
+		                        (4 * (x + y - z + 1) * (x - y + z - 1)) / Math.Pow(4 * z - 4, 2);
+		    derivatives[2, 2] = (4 * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(4 * z - 4, 2) -
+		                        (x + y + z - 1) / (4 * z - 4) - (x - y + z - 1) / (4 * z - 4);
+		    derivatives[3, 2] = (x - y - z + 1) / (4 * z - 4) - (x + y + z - 1) / (4 * z - 4) -
+		                        (4 * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(4 * z - 4, 2);
 		    derivatives[4, 2] = 1.0;
 
 		    return derivatives;
