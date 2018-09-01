@@ -89,49 +89,105 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 		    var derivatives = new double[13,3];
 
-		    derivatives[0, 0] = -((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) - ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) - ((x - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2);
-		    derivatives[1, 0] = ((y - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) + ((y - 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2);
-		    derivatives[2, 0] = ((x + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) + ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2) + ((x + 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2);
-		    derivatives[3, 0] = -((y + 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) - ((y + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[0, 0] = -((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2);
+		    derivatives[1, 0] = ((y - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) +
+		                        ((y - 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2);
+		    derivatives[2, 0] = ((x + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) +
+		                        ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2) +
+		                        ((x + 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2);
+		    derivatives[3, 0] = -((y + 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((y + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2);
 		    derivatives[4, 0] = 0.0;
-		    derivatives[5, 0] = ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) + ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) + ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2);
-		    derivatives[6, 0] = ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) + ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) + ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[5, 0] = ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) +
+		                        ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) +
+		                        ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2);
+		    derivatives[6, 0] = ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) +
+		                        ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) +
+		                        ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2);
 		    derivatives[7, 0] = -(z * (x + y - z + 1)) / (z - 1) - (z * (x - y - z + 1)) / (z - 1);
-		    derivatives[8, 0] = -((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) - ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[8, 0] = -((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
 		    derivatives[9, 0] = (z * (x + y - z + 1)) / (z - 1) + (z * (x - y + z - 1)) / (z - 1);
-		    derivatives[10, 0] = -((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) - ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[10, 0] = -((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                         ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                         ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
 		    derivatives[11, 0] = -(z * (x - y + z - 1)) / (z - 1) - (z * (x + y + z - 1)) / (z - 1);
 		    derivatives[12, 0] = (z * (x - y - z + 1)) / (z - 1) + (z * (x + y + z - 1)) / (z - 1);
 
-		    derivatives[0, 1] = ((x - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) - ((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2);
-		    derivatives[1, 1] = ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) - ((y - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) + ((y - 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2);
-		    derivatives[2, 1] = ((x + 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2) - ((x + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2);
-		    derivatives[3, 1] = ((y + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) - ((y + 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) - ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2);
-		    derivatives[4, 1] = 0.0;
-		    derivatives[5, 1] = ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) - ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) - ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2);
-		    derivatives[6, 1] = ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) + ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) - ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2);
-		    derivatives[7, 1] = (z * (x + y - z + 1)) / (z - 1) - (z * (x - y - z + 1)) / (z - 1);
-		    derivatives[8, 1] = ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) - ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[0, 1] = ((x - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) -
+		                        ((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2);
+		    derivatives[1, 1] = ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) -
+		                        ((y - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) +
+		                        ((y - 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2);
+		    derivatives[2, 1] = ((x + 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2) -
+		                        ((x + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[3, 1] = ((y + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((y + 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2);
+			derivatives[4, 1] = 0.0;
+		    derivatives[5, 1] = ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2);
+		    derivatives[6, 1] = ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) +
+		                        ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2);
+			derivatives[7, 1] = (z * (x + y - z + 1)) / (z - 1) - (z * (x - y - z + 1)) / (z - 1);
+		    derivatives[8, 1] = ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) -
+		                        ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
 		    derivatives[9, 1] = (z * (x - y + z - 1)) / (z - 1) - (z * (x + y - z + 1)) / (z - 1);
-		    derivatives[10, 1] = ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) + ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
+		    derivatives[10, 1] = ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                         ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) +
+		                         ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2);
 		    derivatives[11, 1] = (z * (x + y + z - 1)) / (z - 1) - (z * (x - y + z - 1)) / (z - 1);
 		    derivatives[12, 1] = (z * (x - y - z + 1)) / (z - 1) - (z * (x + y + z - 1)) / (z - 1);
 
-		    derivatives[0, 2] = ((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) + ((x - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) + (2 * (x - 1 / 2.0) * (x + y - z + 1) * (x - y - z + 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[1, 2] = ((y - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) - ((y - 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2) - (2 * (y - 1 / 2.0) * (x + y - z + 1) * (x - y + z - 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[2, 2] = ((x + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) + ((x + 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2) - (2 * (x + 1 / 2.0) * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[3, 2] = ((y + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) - ((y + 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) + (2 * (y + 1 / 2.0) * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[4, 2] = 4 * z - 1;
-		    derivatives[5, 2] = ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) - ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) - ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) - (2 * (x + y - z + 1) * (x - y + z - 1) * (x - y - z + 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[6, 2] = ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) - ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - (2 * (x + y - z + 1) * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[7, 2] = (z * (x + y - z + 1)) / (z - 1) - ((x + y - z + 1) * (x - y - z + 1)) / (z - 1) + (z * (x - y - z + 1)) / (z - 1) + (z * (x + y - z + 1) * (x - y - z + 1)) / Math.Pow(z - 1, 2);
-		    derivatives[8, 2] = ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2) - ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) - ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) + (2 * (x + y - z + 1) * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[9, 2] = (z * (x + y - z + 1)) / (z - 1) - (z * (x - y + z - 1)) / (z - 1) + ((x + y - z + 1) * (x - y + z - 1)) / (z - 1) - (z * (x + y - z + 1) * (x - y + z - 1)) / Math.Pow(z - 1, 2);
-		    derivatives[10,2] = ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2) - ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) - ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) + (2 * (x - y + z - 1) * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
-		    derivatives[11, 2] = (z * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(z - 1, 2) - ((x - y + z - 1) * (x + y + z - 1)) / (z - 1) - (z * (x + y + z - 1)) / (z - 1) - (z * (x - y + z - 1)) / (z - 1);
-		    derivatives[12, 2] = (z * (x - y - z + 1)) / (z - 1) - (z * (x + y + z - 1)) / (z - 1) + ((x - y - z + 1) * (x + y + z - 1)) / (z - 1) - (z * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(z - 1, 2);
+		    derivatives[0, 2] = ((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) +
+		                        ((x - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) +
+		                        (2 * (x - 1 / 2.0) * (x + y - z + 1) * (x - y - z + 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[1, 2] = ((y - 1 / 2.0) * (x + y - z + 1)) / (2 * z - 2) -
+		                        ((y - 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2) -
+		                        (2 * (y - 1 / 2.0) * (x + y - z + 1) * (x - y + z - 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[2, 2] = ((x + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) +
+		                        ((x + 1 / 2.0) * (x - y + z - 1)) / (2 * z - 2) -
+		                        (2 * (x + 1 / 2.0) * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[3, 2] = ((y + 1 / 2.0) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((y + 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) +
+		                        (2 * (y + 1 / 2.0) * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
+			derivatives[4, 2] = 4 * z - 1;
+		    derivatives[5, 2] = ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) -
+		                        ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        (2 * (x + y - z + 1) * (x - y + z - 1) * (x - y - z + 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[6, 2] = ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                        ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                        (2 * (x + y - z + 1) * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[7, 2] = (z * (x + y - z + 1)) / (z - 1) - ((x + y - z + 1) * (x - y - z + 1)) / (z - 1) +
+		                        (z * (x - y - z + 1)) / (z - 1) +
+		                        (z * (x + y - z + 1) * (x - y - z + 1)) / Math.Pow(z - 1, 2);
+		    derivatives[8, 2] = ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                        ((x + y - z + 1) * (x - y + z - 1)) / (2 * z - 2) +
+		                        (2 * (x + y - z + 1) * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[9, 2] = (z * (x + y - z + 1)) / (z - 1) - (z * (x - y + z - 1)) / (z - 1) +
+		                        ((x + y - z + 1) * (x - y + z - 1)) / (z - 1) -
+		                        (z * (x + y - z + 1) * (x - y + z - 1)) / Math.Pow(z - 1, 2);
+		    derivatives[10, 2] = ((x - y + z - 1) * (x + y + z - 1)) / (2 * z - 2) -
+		                         ((x - y + z - 1) * (x - y - z + 1)) / (2 * z - 2) -
+		                         ((x - y - z + 1) * (x + y + z - 1)) / (2 * z - 2) +
+		                         (2 * (x - y + z - 1) * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(2 * z - 2, 2);
+		    derivatives[11, 2] = (z * (x - y + z - 1) * (x + y + z - 1)) / Math.Pow(z - 1, 2) -
+		                         ((x - y + z - 1) * (x + y + z - 1)) / (z - 1) - (z * (x + y + z - 1)) / (z - 1) -
+		                         (z * (x - y + z - 1)) / (z - 1);
+		    derivatives[12, 2] = (z * (x - y - z + 1)) / (z - 1) - (z * (x + y + z - 1)) / (z - 1) +
+		                         ((x - y - z + 1) * (x + y + z - 1)) / (z - 1) -
+		                         (z * (x - y - z + 1) * (x + y + z - 1)) / Math.Pow(z - 1, 2);
 
-		    return derivatives;
+			return derivatives;
 	    }
     }
 }
