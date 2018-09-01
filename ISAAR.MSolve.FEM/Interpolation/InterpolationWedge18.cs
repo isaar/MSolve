@@ -77,9 +77,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    values[6] = 2 * x * y * z * (x - 1);
 		    values[7] = -2 * x * y * (x - 1) * (z + y - 1);
 		    values[8] = y * (1 - x * x) * (2 * y - 1);
-
 		    values[9] = -2 * x * z * (x - 1) * (z + y - 1);
-
 		    values[10] = z * (1 - x * x) * (2 * z  - 1);
 		    values[11] = (1 - x * x) * (z + y - 1) * (2 * z + 2 * y - 1);
 		    values[12] = 2 * x * y * z * (x + 1);
@@ -103,12 +101,10 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 		    derivatives[0, 0] = (x * y * (2 * y - 1)) / 2 + (y * (2 * y - 1) * (x - 1)) / 2;
 		    derivatives[1, 0] = (x * z * (2 * z - 1)) / 2 + (z * (2 * z - 1) * (x - 1)) / 2;
-		    derivatives[2, 0] = (x * (2 * y + 2 * z - 1) * (y + z - 1)) / 2 +
-		                        ((x - 1) * (2 * y + 2 * z - 1) * (y + z - 1)) / 2;
+		    derivatives[2, 0] = (x * (2 * y + 2 * z - 1) * (y + z - 1)) / 2 + ((x - 1) * (2 * y + 2 * z - 1) * (y + z - 1)) / 2;
 		    derivatives[3, 0] = (x * y * (2 * y - 1)) / 2 + (y * (2 * y - 1) * (x + 1)) / 2;
 		    derivatives[4, 0] = (x * z * (2 * z - 1)) / 2 + (z * (2 * z - 1) * (x + 1)) / 2;
-		    derivatives[5, 0] = (x * (2 * y + 2 * z - 1) * (y + z - 1)) / 2 +
-		                        ((x + 1) * (2 * y + 2 * z - 1) * (y + z - 1)) / 2;
+		    derivatives[5, 0] = (x * (2 * y + 2 * z - 1) * (y + z - 1)) / 2 + ((x + 1) * (2 * y + 2 * z - 1) * (y + z - 1)) / 2;
 		    derivatives[6, 0] = 2 * y * z * (x - 1) + 2 * x * y * z;
 		    derivatives[7, 0] = -2 * y * (x - 1) * (y + z - 1) - 2 * x * y * (y + z - 1);
 		    derivatives[8, 0] = -2 * x * y * (2 * y - 1);
