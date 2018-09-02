@@ -16,12 +16,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
     /// Efficient for outputting the pattern to column major data structures (e.g. CSC arrays).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SparsityPatternSymmetricColMajor: ISparsityPatternSymmetric
+    public class SparsityPatternSymmetric: ISparsityPatternSymmetric
     {
         private readonly int order;
         private readonly HashSet<int>[] columns; //see performance concerns in DOKSymmetricColMajor.columns
 
-        private SparsityPatternSymmetricColMajor(int order, HashSet<int>[] columns)
+        private SparsityPatternSymmetric(int order, HashSet<int>[] columns)
         {
             this.order = order;
             this.columns = columns;
@@ -43,19 +43,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         public int Order { get { return order; } }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SparsityPatternSymmetricColMajor"/> for a 
+        /// Initializes a new instance of <see cref="SparsityPatternSymmetric"/> for a 
         /// <paramref name="order"/>-by-<paramref name="order"/> symmetric matrix. Initially all entries are assumed to be 0.
         /// </summary>
         /// <param name="order">The number of rows/columns of the matrix.</param>
-        public static SparsityPatternSymmetricColMajor CreateEmpty(int order)
+        public static SparsityPatternSymmetric CreateEmpty(int order)
         {
             var columns = new HashSet<int>[order];
             for (int j = 0; j < order; ++j) columns[j] = new HashSet<int>(); //Initial capacity may be optimized.
-            return new SparsityPatternSymmetricColMajor(order, columns);
+            return new SparsityPatternSymmetric(order, columns);
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SparsityPatternSymmetricColMajor"/> for an existing matrix
+        /// Initializes a new instance of <see cref="SparsityPatternSymmetric"/> for an existing matrix
         /// provided as <paramref name="dense"/>.
         /// Initialy, only the entries of <paramref name="dense"/> that satisfy: Math.Abs(<paramref name="dense"/>[i, j]) &gt;
         /// <paramref name="tolerance"/> will be considered as non-zero. 
@@ -65,10 +65,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// <param name="tolerance">The tolerance under which an entry of <paramref name="dense"/> is considered as 0.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="dense"/> is not 
         ///     square.</exception>
-        public static SparsityPatternSymmetricColMajor CreateFromDense(Matrix dense, double tolerance = 0.0)
+        public static SparsityPatternSymmetric CreateFromDense(Matrix dense, double tolerance = 0.0)
         {
             Preconditions.CheckSquare(dense);
-            SparsityPatternSymmetricColMajor pattern = CreateEmpty(dense.NumColumns);
+            SparsityPatternSymmetric pattern = CreateEmpty(dense.NumColumns);
             if (tolerance == 0.0)
             {
                 for (int j = 0; j < dense.NumColumns; ++j)

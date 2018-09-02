@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void ReorderPatternSuperset()
         {
             int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
 
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
-            factorizedKff = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
+            factorizedKff = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
             Solution = factorizedKff.SolveLinearSystem(rhs);
 
             //CheckSolutionAndEnforce(1.0);
@@ -281,7 +281,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var assembler = new ReanalysisWholeAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
-            CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
             double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");

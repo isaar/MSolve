@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             Console.WriteLine($"CSC non zeros = {Kuu.CountNonZeros()}");
 
             watch.Start();
-            using (var factor = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZeros}"
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDofs);
 
             watch.Restart();
-            using (var factor = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZeros}"
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             // Let SuiteSparse handle the AMD ordering
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
             watch.Restart();
-            using (var factor = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.AMD))
+            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.AMD))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZeros}"

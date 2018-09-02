@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// <returns>permutation: An array containing the new-to-old fill reducing permutation. 
         ///     stats: Measuments taken by SuiteSparse during the execution of AMD.</returns>
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded or if AMD fails.</exception>
-        public (int[] permutation, ReorderingStatistics stats) FindPermutation(SparsityPatternSymmetricColMajor pattern)
+        public (int[] permutation, ReorderingStatistics stats) FindPermutation(SparsityPatternSymmetric pattern)
         {
             (int[] rowIndices, int[] colOffsets) = pattern.BuildSymmetricCSCArrays(true);
             return FindPermutation(pattern.Order, rowIndices.Length, rowIndices, colOffsets);
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded or if AMD fails.</exception>
         public (int[] permutation, ReorderingStatistics stats) FindPermutation(DokSymmetric dok)
         {
-            (double[] values, int[] rowIndices, int[] colOffsets) = dok.BuildSymmetricCSCArrays(true);
+            (double[] values, int[] rowIndices, int[] colOffsets) = dok.BuildSymmetricCscArrays(true);
             return FindPermutation(dok.NumColumns, rowIndices.Length, rowIndices, colOffsets);
         }
     }

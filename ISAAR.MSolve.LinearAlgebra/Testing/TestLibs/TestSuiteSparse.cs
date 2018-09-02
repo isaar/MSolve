@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             matrixDOK[1, 1] = 10.0; matrixDOK[1, 2] = 1.0; matrixDOK[1, 3] = 3.0;
             matrixDOK[2, 2] = 8.0;
             matrixDOK[3, 3] = 9.0;
-            SymmetricCSC matrixCSC = matrixDOK.BuildSymmetricCSCMatrix(true);
+            SymmetricCscMatrix matrixCSC = matrixDOK.BuildSymmetricCscMatrix(true);
 
             //const int n = 4;
             //const int nnz = 7;
@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DokSymmetric.CreateIdentity(SparsePositiveDefinite.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -165,7 +165,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DokSymmetric.CreateIdentity(SparsePositiveDefinite.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                     if (matrixExpected[i, j] != 0) dok[i, j] = matrixExpected[i, j];
                 }
             }
-            CholeskySuiteSparse factor = dok.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -258,7 +258,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             Matrix XForwardExpect = L.Invert() * B;
 
             // Solve using SuiteSparse
-            var (values, rowIndices, colOffsets) = dok.BuildSymmetricCSCArrays(true);
+            var (values, rowIndices, colOffsets) = dok.BuildSymmetricCscArrays(true);
             CholeskySuiteSparse factor = CholeskySuiteSparse.Factorize(order, values.Length, values, rowIndices, colOffsets,
                 true, SuiteSparseOrdering.Natural);
             Vector xSolveComput = factor.SolveLinearSystem(b);

@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         ///     <paramref name="cscColOffsets"/> do not describe a valid symmetric matrix.</exception>
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded, or if there is not enough memory 
         ///     to allocate during CAMD.</exception>
-        public (int[] permutation, ReorderingStatistics stats) FindPermutation(SparsityPatternSymmetricColMajor pattern, 
+        public (int[] permutation, ReorderingStatistics stats) FindPermutation(SparsityPatternSymmetric pattern, 
             int[] constraints)
         {
             (int[] rowIndices, int[] colOffsets) = pattern.BuildSymmetricCSCArrays(true);

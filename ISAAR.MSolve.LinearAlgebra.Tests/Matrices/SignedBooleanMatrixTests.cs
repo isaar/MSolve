@@ -14,17 +14,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
     {
         private static readonly Comparer comparer = new Comparer(1E-13);
 
-        internal static SignedBooleanMatrix CreateMatrix(double[,] matrixAsArray)
+        internal static SignedBooleanMatrix CreateMatrix(double[,] matrix)
         {
-            int numRows = matrixAsArray.GetLength(0);
-            int numCols = matrixAsArray.GetLength(1);
-            var booleanMatrix = new SignedBooleanMatrix(numRows, numCols);
-            for (int i = 0; i < numRows; ++i)
+            int m = matrix.GetLength(0);
+            int n = matrix.GetLength(1);
+            var booleanMatrix = new SignedBooleanMatrix(m, n);
+            for (int i = 0; i < m; ++i)
             {
-                for (int j = 0; j < numCols; ++j)
+                for (int j = 0; j < n; ++j)
                 {
-                    if (matrixAsArray[i, j] == 1.0) booleanMatrix.AddEntry(i, j, true);
-                    else if (matrixAsArray[i, j] == -1.0) booleanMatrix.AddEntry(i, j, false);
+                    if (matrix[i, j] == 1.0) booleanMatrix.AddEntry(i, j, true);
+                    else if (matrix[i, j] == -1.0) booleanMatrix.AddEntry(i, j, false);
                 }
             }
             return booleanMatrix;

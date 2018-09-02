@@ -72,36 +72,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static readonly int[] cscColOffsets = { 0, 6, 8, 14, 21, 25 };
 
-        public static void CheckBuilders()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var dokRowMajor = DokRowMajor.CreateEmpty(numRows, numCols);
-            var dokColMajor = DokColMajor.CreateEmpty(numRows, numCols);
-            for (int i = 0; i < numRows; ++i)
-            {
-                for (int j = 0; j < numCols; ++j)
-                {
-                    if (matrix[i, j] != 0.0)
-                    {
-                        dokRowMajor[i, j] = matrix[i, j];
-                        dokColMajor[i, j] = matrix[i, j];
-                    }
-                }
-            }
-            Console.WriteLine();
-            Console.WriteLine("Checking DOKRowMajor indexer: ");
-            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokRowMajor));
-            Console.WriteLine();
-            Console.WriteLine("Checking DOKColMajor indexer: ");
-            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokColMajor));
-
-            Console.WriteLine();
-            Console.WriteLine("Checking DOKRowMajor to CSR conversion: ");
-            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokRowMajor.BuildCSRMatrix(true)));
-            Console.WriteLine();
-            Console.WriteLine("Checking DOKColMajor to CSC conversion: ");
-            comparer.CheckMatrixEquality(matrix, DenseStrategies.CopyToArray2D(dokColMajor.BuildCSCMatrix(true)));
-        }
 
         public static void Print()
         {

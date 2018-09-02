@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckReorderingAMD()
         {
-            var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingAmd();
             (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
             Comparer comparer = new Comparer();
@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckReorderingCAMD()
         {
-            var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingCamd();
 
             // Enforce indices order:
@@ -156,25 +156,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Console.WriteLine();
         }
 
-        public static void PrintDOKSparseColumns()
-        {
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var dok = DokSymmetric.CreateEmpty(order);
-            foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
-
-            var writer = new FullVectorWriter();
-            writer.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
-            for (int j = 0; j < order; ++j) 
-            {
-                // Since the matrix is symmetric the result should look like the whole matrix being printed
-                Console.Write($"Column {j}: ");
-                writer.WriteToConsole(dok.GetColumn(j));
-            }
-        }
-
         public static void PrintPatternAsBoolean()
         {
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
             for (int i = 0; i < order; ++i)
             {
                 for (int j = 0; j < order; ++j)

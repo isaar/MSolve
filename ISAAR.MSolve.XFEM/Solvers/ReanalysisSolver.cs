@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void ReorderPatternSuperset()
         {
             int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
 
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Factorize the whole stiffness matrix for the first and last time.
             // WARNING: DO NOT use using(){} here. We want the unmanaged resource to persist for the lifetime of this object.
             watch.Restart();
-            factorizedKff = Kff.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            factorizedKff = Kff.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             watch.Stop();
             Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
 
@@ -423,7 +423,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer) 
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
-            CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhsNew);
             double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");

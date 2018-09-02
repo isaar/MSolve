@@ -48,15 +48,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             TestMkl.TestDgetrf_Dgetrs();
         }
 
-        public static void TestBuilders()
-        {
-            SparseRect.CheckBuilders();
-            Console.WriteLine();
-            SparsePositiveDefinite.PrintDOKSparseColumns();
-            Console.WriteLine();
-        }
-
-
         public static void TestFactorization()
         {
             // Triangulations

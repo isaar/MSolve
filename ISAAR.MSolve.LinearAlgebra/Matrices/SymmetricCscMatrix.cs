@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// explicitly stored. Do not use this, since it is an experimantal class, which will probably be removed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SymmetricCSC: IIndexable2D
+    public class SymmetricCscMatrix: IIndexable2D
     {
         /// <summary>
         /// values.Length = number of non zeros in upper triangle.
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="rowIndices"></param>
         /// <param name="colOffsets"></param>
         /// <param name="checkInput">Set to true to perform basic dimension checks.</param>
-        public SymmetricCSC(double[] values, int[] rowIndices, int[] colOffsets, bool checkInput)
+        public SymmetricCscMatrix(double[] values, int[] rowIndices, int[] colOffsets, bool checkInput)
         {
             int nnz = colOffsets[colOffsets.Length - 1];
             if (checkInput)
@@ -94,9 +94,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public IIndexable2D DoPointwise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is SymmetricCSC) // In case both matrices have the exact same index arrays
+            if (other is SymmetricCscMatrix) // In case both matrices have the exact same index arrays
             {
-                SymmetricCSC otherCSC = (SymmetricCSC)other;
+                SymmetricCscMatrix otherCSC = (SymmetricCscMatrix)other;
                 if (HaveSameIndexArrays(otherCSC))
                 {
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     {
                         resultValues[i] = binaryOperation(this.values[i], otherCSC.values[i]);
                     }
-                    return new SymmetricCSC(resultValues, rowIndices, colOffsets, false);
+                    return new SymmetricCscMatrix(resultValues, rowIndices, colOffsets, false);
                 }
             }
 
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return result;
         }
 
-        public void DoPointwiseIntoThis(SymmetricCSC other, Func<double, double, double> binaryOperation)
+        public void DoPointwiseIntoThis(SymmetricCscMatrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
             if (!HaveSameIndexArrays(other))
@@ -144,11 +144,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Array.Copy(rowIndices, cloneRowIndices, rowIndices.Length);
                 int[] cloneColOffsets = new int[colOffsets.Length];
                 Array.Copy(colOffsets, cloneColOffsets, colOffsets.Length);
-                return new SymmetricCSC(newValues, cloneRowIndices, cloneColOffsets, false);
+                return new SymmetricCscMatrix(newValues, cloneRowIndices, cloneColOffsets, false);
             }
             else // The sparsity is destroyed. Revert to a full matrix.
             {
-                return new SymmetricCSC(newValues, rowIndices, colOffsets, false).ToFullMatrix();
+                return new SymmetricCscMatrix(newValues, rowIndices, colOffsets, false).ToFullMatrix();
             }
         }
 
@@ -180,7 +180,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool HaveSameIndexArrays(SymmetricCSC other)
+        public bool HaveSameIndexArrays(SymmetricCscMatrix other)
         {
             return (this.rowIndices == other.rowIndices) && (this.colOffsets == other.colOffsets);
         }
