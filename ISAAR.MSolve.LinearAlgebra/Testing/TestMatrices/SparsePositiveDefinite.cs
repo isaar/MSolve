@@ -64,24 +64,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static readonly int[] matlabPermutationAMD = { 0, 1, 8, 9, 7, 2, 3, 4, 5, 6 };
 
-        public static void CheckEquals()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var full = Matrix.CreateFromArray(matrix);
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            if (skyline.Equals(full)) Console.WriteLine("Skyline.Equals() works fine.");
-            else Console.WriteLine("Error in Skyline.Equals().");
-            if (full.Equals(skyline)) Console.WriteLine("Matrix.Equals() works fine.");
-            else Console.WriteLine("Error in Matrix.Equals().");
-        }
-
-        public static void CheckIndexing()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            comparer.CheckMatrixEquality(matrix, skyline.CopyToFullMatrix().CopyToArray2D());
-        }
-
         public static void CheckFactorization()
         {
             // Either my reconstruction of D*U or matlab's cholesky has limited precision. Probably mine, but I cannot figure why.
@@ -100,15 +82,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
                 var printer = new Printer();
                 printer.PrintIndefiniteMatrix(matrix);
             }
-        }
-
-        public static void CheckMatrixVectorMult()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var x = Vector.CreateFromArray(lhs);
-            Vector b = skyline.MultiplyRight(x, false);
-            comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.CopyToArray());
         }
 
         public static void CheckReorderingAMD()

@@ -56,11 +56,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             Console.WriteLine();
         }
 
-        public static void TestEquality()
-        {
-            //SparseRect.CheckEquals();
-            SparsePositiveDefinite.CheckEquals();
-        }
 
         public static void TestFactorization()
         {
@@ -75,15 +70,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             // Orthogonalizations
             //RectangularFullColRank.CheckFactorizationQR();
             //RectangularFullColRank.CheckFactorizationLQ();
-        }
-
-        public static void TestIndexing()
-        {
-            //SymmPositiveDefinite.CheckIndexing();
-            //SymmSingular.CheckIndexing();
-            //SparseRect.CheckIndexing();
-            //SparsePositiveDefinite.CheckIndexing();
-            SignedBoolean.CheckIndexer();
         }
 
         public static void TestReading()
@@ -150,11 +136,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             SparseRandomMatrix.CompareDokCsrMultiplication();
         }
 
-        public static void TestMatrixMatrixMultiplication()
-        {
-            SparseRect.CheckMatrixMatrixMult();
-        }
-
         public static void TestSystemSolution()
         {
             /// Linear systems - direct
@@ -174,14 +155,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             /// Least squares systems
             //RectangularFullColRank.CheckSolutionLeastSquares();
             //RectangularFullColRank.CheckSolutionMinNorm();
-        }
-
-        public static void TestTransposition()
-        {
-            //DenseMatrices.CheckTransposition();
-            //SymmPositiveDefinite.CheckTransposition();
-            //SymmSingular.CheckTransposition();
-            SparseRect.CheckTransposition();
         }
     }
 }
