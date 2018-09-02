@@ -32,38 +32,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
             NumericFormat = new FixedPointFormat { NumDecimalDigits = 4, MaxIntegerDigits = 3 }
         };
 
-        public static void ExampleRawArrays()
-        {
-            // Define linear system
-            const int n = 4;
-            const int nnz = 7;
-            int[] colOffsets = new int[n + 1] { 0, 1, 2, 5, nnz };
-            int[] rowIndices = new int[nnz] { 0, 1, 0, 1, 2, 1, 3 };
-            double[] values = new double[nnz] { 4.0, 10.0, 2.0, 1.0, 8.0, 3.0, 9.0 };
-            double[] rhs = new double[n] { 6.0, 14.0, 11.0, 12.0 };
-            double[] solution = new double[n];
-
-            // Solve it using SuiteSparse
-            IntPtr handle = SuiteSparseUtilities.CreateCommon(0, 0);
-            int status = SuiteSparseUtilities.FactorizeCSCUpper(n, nnz, values, rowIndices, colOffsets, out IntPtr factor, handle);
-            if (status != -1)
-            {
-                Console.WriteLine("Factorization failed");
-                return;
-            }
-            else
-            {
-                int nnzFactor = SuiteSparseUtilities.GetFactorNonZeros(factor);
-                Console.WriteLine($"Before factorization: nnz = {nnz}");
-                Console.WriteLine($"After factorization: nnz = {nnzFactor}");
-            }
-            SuiteSparseUtilities.Solve(0, n, 1, factor, rhs, solution, handle);
-            SuiteSparseUtilities.DestroyFactor(ref factor, handle);
-            SuiteSparseUtilities.DestroyCommon(ref handle);
-
-            ProcessResult(solution);
-        }
-
         public static void ExampleMatrixClasses()
         {
             // Define linear system
@@ -94,27 +62,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestLibs
                 Vector solution = factor.SolveLinearSystem(rhs);
                 ProcessResult(solution.CopyToArray());
             }
-        }
-
-        public static void CheckReordering1()
-        {
-            int order = ReorderMatrix.order;
-            int[] rowIndices = ReorderMatrix.cscRowIndices;
-            int[] colOffsets = ReorderMatrix.cscColOffsets;
-            int[] permutation = new int[order];
-            IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
-            int status = SuiteSparseUtilities.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation, 
-                out int factorNNZ, common);
-            if (status == 0)
-                Console.WriteLine("SuiteSparse reordering failed. A possible reason is the lack of enough available memory");
-            else
-            {
-                Comparer comparer = new Comparer();
-                bool success = comparer.AreEqual(ReorderMatrix.matlabPermutationAMD, permutation);
-                if (success) Console.WriteLine("AMD reordering was successful. The result is as expected.");
-                else Console.WriteLine("SuiteSparse reordering returned, but the result is not as expected.");
-            }
-            SuiteSparseUtilities.DestroyCommon(ref common);
         }
 
         public static void CheckRowAddition()

@@ -7,13 +7,13 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
     /// Utility methods to use when calling Intel MKL functions.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class MklUtilities
+    public static class MklUtilities
     {
         /// <summary>
         /// Use this value to initialize the output arguments named info. So far, negative values of the info are parameter 
         /// indices, thus the int.MinValue is safe to use as a default.  
         /// </summary>
-        internal const int DefaultInfo = int.MinValue;
+        public const int DefaultInfo = int.MinValue;
 
         /// <summary>
         /// Most MKL functions return the same negative error codes for invalid parameters. Parameter <paramref name="info"/> 
