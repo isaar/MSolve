@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms;
-using ISAAR.MSolve.LinearAlgebra.Testing.TestLibs;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing
