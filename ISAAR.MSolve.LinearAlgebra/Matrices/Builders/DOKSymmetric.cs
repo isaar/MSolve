@@ -295,7 +295,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSC matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCSCArrays(bool sortRowsOfEachCol)
+        public (double[] values, int[] rowIndices, int[] columnOffsets) BuildSymmetricCscArrays(bool sortRowsOfEachCol)
         {
             int[] colOffsets = new int[order + 1];
             int nnz = 0;
@@ -339,7 +339,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
-        /// Initializes a <see cref="SymmetricCSC"/> representation of the current matrix. This method should be 
+        /// Initializes a <see cref="SymmetricCscMatrix"/> representation of the current matrix. This method should be 
         /// called after fully defining the matrix in <see cref="DokSymmetric"/> format.
         /// </summary>
         /// <param name="sortColsOfEachCol">True to sort the column indices of the CSC matrix between colOffsets[j] and 
@@ -347,10 +347,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSC matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public SymmetricCSC BuildSymmetricCSCMatrix(bool sortRowsOfEachCol)
+        public SymmetricCscMatrix BuildSymmetricCscMatrix(bool sortRowsOfEachCol)
         {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(sortRowsOfEachCol);
-            return new SymmetricCSC(values, rowIndices, colOffsets, false);
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCscArrays(sortRowsOfEachCol);
+            return new SymmetricCscMatrix(values, rowIndices, colOffsets, false);
         }
 
         /// <summary>
@@ -524,7 +524,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// </summary>
         public SparseFormat GetSparseFormat()
         { //Perhaps there should be a dedicated symmetric CSC format, identical to CSC.
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCSCArrays(false);
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCscArrays(false);
             var format = new SparseFormat();
             format.RawValuesTitle = "Values";
             format.RawValuesArray = values;

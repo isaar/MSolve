@@ -64,24 +64,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static readonly int[] matlabPermutationAMD = { 0, 1, 8, 9, 7, 2, 3, 4, 5, 6 };
 
-        public static void CheckEquals()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var full = Matrix.CreateFromArray(matrix);
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            if (skyline.Equals(full)) Console.WriteLine("Skyline.Equals() works fine.");
-            else Console.WriteLine("Error in Skyline.Equals().");
-            if (full.Equals(skyline)) Console.WriteLine("Matrix.Equals() works fine.");
-            else Console.WriteLine("Error in Matrix.Equals().");
-        }
-
-        public static void CheckIndexing()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            comparer.CheckMatrixEquality(matrix, skyline.CopyToFullMatrix().CopyToArray2D());
-        }
-
         public static void CheckFactorization()
         {
             // Either my reconstruction of D*U or matlab's cholesky has limited precision. Probably mine, but I cannot figure why.
@@ -102,18 +84,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             }
         }
 
-        public static void CheckMatrixVectorMult()
-        {
-            var comparer = new Comparer(Comparer.PrintMode.Always);
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var x = Vector.CreateFromArray(lhs);
-            Vector b = skyline.MultiplyRight(x, false);
-            comparer.CheckMatrixVectorMult(matrix, lhs, rhs, b.CopyToArray());
-        }
-
         public static void CheckReorderingAMD()
         {
-            var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingAmd();
             (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
             Comparer comparer = new Comparer();
@@ -124,7 +97,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
         public static void CheckReorderingCAMD()
         {
-            var pattern = SparsityPatternSymmetricColMajor.CreateFromDense(Matrix.CreateFromArray(matrix));
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(matrix));
             var orderingAlg = new OrderingCamd();
 
             // Enforce indices order:
@@ -183,25 +156,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Console.WriteLine();
         }
 
-        public static void PrintDOKSparseColumns()
-        {
-            var skyline = SkylineMatrix.CreateFromArrays(order, skylineValues, skylineDiagOffsets, true, true);
-            var dok = DokSymmetric.CreateEmpty(order);
-            foreach (var (row, col, value) in skyline.EnumerateNonZeros()) dok[row, col] = value;
-
-            var writer = new FullVectorWriter();
-            writer.NumericFormat = new FixedPointFormat { MaxIntegerDigits = 2 };
-            for (int j = 0; j < order; ++j) 
-            {
-                // Since the matrix is symmetric the result should look like the whole matrix being printed
-                Console.Write($"Column {j}: ");
-                writer.WriteToConsole(dok.GetColumn(j));
-            }
-        }
-
         public static void PrintPatternAsBoolean()
         {
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
             for (int i = 0; i < order; ++i)
             {
                 for (int j = 0; j < order; ++j)

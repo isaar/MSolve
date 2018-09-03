@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var orderingAlgorithm = new OrderingAmd();
 
             int order = stdDofOrderer.NumStandardDofs;
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
             {

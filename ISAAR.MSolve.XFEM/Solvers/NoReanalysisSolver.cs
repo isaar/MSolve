@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             int nnzOrderedFactor;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 Solution = factorization.SolveLinearSystem(rhs);
                 nnzOrderedFactor = factorization.NumNonZeros;
@@ -106,7 +106,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         private void ReorderPatternSuperset()
         {
             int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
 
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = Fu - Kuc.MultiplyRight(uc);
             Vector unorderSolution;
             int nnzUnorderedFactor;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural)) 
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural)) 
             {
                 unorderSolution = factorization.SolveLinearSystem(rhs);
                 nnzUnorderedFactor = factorization.NumNonZeros;

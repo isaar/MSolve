@@ -25,23 +25,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
 
             CsrMatrix.UseMKL = false;
             watch.Restart();
-            Vector csrUnsortedTimesLhs = dok.BuildCSRMatrix(false).MultiplyRight(lhs, false);
+            Vector csrUnsortedTimesLhs = dok.BuildCsrMatrix(false).MultiplyRight(lhs, false);
             watch.Stop();
             long csrUnsortedTime = watch.ElapsedMilliseconds;
 
             watch.Restart();
-            Vector csrSortedTimesLhs = dok.BuildCSRMatrix(true).MultiplyRight(lhs, false);
+            Vector csrSortedTimesLhs = dok.BuildCsrMatrix(true).MultiplyRight(lhs, false);
             watch.Stop();
             long csrSortedTime = watch.ElapsedMilliseconds;
 
             CsrMatrix.UseMKL = true;
             watch.Restart();
-            Vector csrUnsortedMklTimesLhs = dok.BuildCSRMatrix(false).MultiplyRight(lhs, false);
+            Vector csrUnsortedMklTimesLhs = dok.BuildCsrMatrix(false).MultiplyRight(lhs, false);
             watch.Stop();
             long csrUnsortedMklTime = watch.ElapsedMilliseconds;
 
             watch.Restart();
-            Vector csrSortedMklTimesLhs = dok.BuildCSRMatrix(true).MultiplyRight(lhs, false);
+            Vector csrSortedMklTimesLhs = dok.BuildCsrMatrix(true).MultiplyRight(lhs, false);
             watch.Stop();
             long csrSortedMklTime = watch.ElapsedMilliseconds;
 

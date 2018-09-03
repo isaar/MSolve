@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Without preconditioning
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
             var minres = new MinimumResidual(maxIterations, tolerance, reorthoSize, false, false);
-            (Vector x, MinresStatistics statistics) = minres.Solve(Kuu.BuildCSRMatrix(true), rhs);
+            (Vector x, MinresStatistics statistics) = minres.Solve(Kuu.BuildCsrMatrix(true), rhs);
 
             // With preconditioning
             //var minres = new PreconditionedMinimumResidual(maxIterations, tolerance, false, false);
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //(Vector x, MinresStatistics statistics) = minres.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
 
             #region Debugging
-            double relres = (rhs - Kuu.BuildCSRMatrix(true).MultiplyRight(x)).Norm2() / rhs.Norm2();
+            double relres = (rhs - Kuu.BuildCsrMatrix(true).MultiplyRight(x)).Norm2() / rhs.Norm2();
             //var writer = new MatlabWriter();
             //string directory = @"C:\Users\Serafeim\Desktop\GRACM\Minres_debugging\";
             //writer.WriteSparseMatrix(Kuu, directory + "matrix.txt");

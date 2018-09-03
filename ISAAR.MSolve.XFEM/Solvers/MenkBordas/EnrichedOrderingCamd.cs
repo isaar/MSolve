@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
 
             int order = subdomain.DofOrderer.NumEnrichedDofs;
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
             
             // Sparsity pattern of U
             foreach (var element in subdomain.Elements)

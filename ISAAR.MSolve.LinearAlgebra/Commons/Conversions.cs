@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
     /// Low level array operations to convert between matrix storage formats.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class Conversions
+    public static class Conversions
     {
         internal static double[,] Array2DLowerToSymmetric(double[,] array2D)
         {
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return symm;
         }
 
-        internal static double[] Array2DToFullColMajor(double[,] array2D)
+        public static double[] Array2DToFullColMajor(double[,] array2D)
         {
             int numRows = array2D.GetLength(0);
             int numColumns = array2D.GetLength(1);

@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSR matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public (double[] values, int[] colIndices, int[] rowOffsets) BuildCSRArrays(bool sortColsOfEachCol)
+        public (double[] values, int[] colIndices, int[] rowOffsets) BuildCsrArrays(bool sortColsOfEachCol)
         {
             int[] rowOffsets = new int[NumRows + 1];
             int nnz = 0;
@@ -234,14 +234,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// Initializes a <see cref="CsrMatrix"/> representation of the current matrix. This method should be 
         /// called after fully defining the matrix in <see cref="DokRowMajor"/> format.
         /// </summary>
-        /// <param name="sortColsOfEachCol">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
+        /// <param name="sortColsOfEachRow">True to sort the column indices of the CSR matrix between rowOffsets[i] and 
         ///     rowOffsets[i+1] in ascending order. False to leave them unordered. Ordered columns might result in better  
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSR matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public CsrMatrix BuildCSRMatrix(bool sortColsOfEachCol)
+        public CsrMatrix BuildCsrMatrix(bool sortColsOfEachRow)
         {
-            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(sortColsOfEachCol);
+            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCsrArrays(sortColsOfEachRow);
             return CsrMatrix.CreateFromArrays(NumRows, NumColumns, values, colIndices, rowOffsets, false);
         }
 
@@ -322,7 +322,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// </summary>
         public SparseFormat GetSparseFormat()
         {
-            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCSRArrays(false);
+            (double[] values, int[] colIndices, int[] rowOffsets) = BuildCsrArrays(false);
             var format = new SparseFormat();
             format.RawValuesTitle = "Values";
             format.RawValuesArray = values;
@@ -347,7 +347,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             // MKL functions are way faster than managed code. Just don't sort the CSR.
             bool buildCSR = (!avoidBuilding) && CsrMatrix.UseMKL; 
-            if (buildCSR) return BuildCSRMatrix(false).MultiplyRight(vector); 
+            if (buildCSR) return BuildCsrMatrix(false).MultiplyRight(vector); 
 
             Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
             var result = new double[this.NumRows];

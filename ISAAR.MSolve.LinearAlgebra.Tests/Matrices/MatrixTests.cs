@@ -28,6 +28,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         }
 
         [Fact]
+        private static void TestEquality()
+        {
+            // Equals(SkylineMatrix)
+            var full1 = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
+            var skyline1 = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.order,
+                SparsePosDef10by10.skylineValues, SparsePosDef10by10.skylineDiagOffsets, true, true);
+            Assert.True(full1.Equals(skyline1));
+
+            // Equals(CsrMatrix)
+            var full2 = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
+            var csr2 = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
+                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+                true);
+            Assert.True(full2.Equals(csr2));
+
+            // Equals(CscMatrix)
+            var full3 = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
+            var csc3 = CscMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
+                SparseRectangular10by5.cscValues, SparseRectangular10by5.cscRowIndices, SparseRectangular10by5.cscColOffsets,
+                true);
+            Assert.True(full3.Equals(csc3));
+        }
+
+        [Fact]
         private static void TestLinearCombination()
         {
             var A1 = Matrix.CreateFromArray(SquareSingular10by10.matrix);

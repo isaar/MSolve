@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private StandardPreconditionerJacobi(DokRowMajor Kss)
         {
             CsrMatrix.UseMKL = true; //TODO: this should be done elsewhere
-            this.Kss = Kss.BuildCSRMatrix(true);
+            this.Kss = Kss.BuildCsrMatrix(true);
             this.order = Kss.NumColumns;
 
             // Diagonal preconditioner

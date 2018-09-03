@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms
             return new LinearSystem
             {
                 MatrixArray = SparsePositiveDefinite.matrix,
-                Matrix = dok.BuildCSRMatrix(true),
+                Matrix = dok.BuildCsrMatrix(true),
                 RhsArray = SparsePositiveDefinite.rhs,
                 Rhs = Vector.CreateFromArray(SparsePositiveDefinite.rhs),
                 SolutionExpected = SparsePositiveDefinite.lhs
