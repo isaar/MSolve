@@ -58,5 +58,14 @@
             171.2117, 233.6955, 100.5983, 83.1428, 145.5027, 177.3672, 200.7707, 320.6314, 192.0000, 158.6505 };
 
         internal static readonly int[] matlabPermutationAMD = { 0, 1, 8, 9, 7, 2, 3, 4, 5, 6 };
+
+        /// <summary>
+        /// Enforce indices order:
+        /// First group: 0, 1, 7. Second group: 3, 5, 6, 9. Third group: 2, 4, 8.
+        /// The new positions of these indices should be grouped, such as first group is before second before third.
+        /// </summary>
+        internal static readonly int[] constraintsCAMD = { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
+
+        internal static readonly int[] permutationCAMD = { 0, 1, 7, 3, 6, 9, 5, 2, 4, 8 };
     }
 }

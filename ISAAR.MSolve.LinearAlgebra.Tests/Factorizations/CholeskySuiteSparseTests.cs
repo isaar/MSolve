@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
     /// </summary>
     public static class CholeskySuiteSparseTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-13);
+        private static readonly Comparer comparer = new Comparer(1E-12);
 
         [Fact]
         private static void TestRowAddition()
@@ -31,14 +31,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
-                // Update matrix
-                Vector newRowVector = original.GetRow(i);
+                // Reference solution
                 #region minors are not positive definite this way
                 //matrixExpected.SetRow(i, newRowVector);
                 //matrixExpected.SetColumn(i, newRowVector);
                 #endregion
                 matrixExpected.SetSubmatrix(0, 0, original.GetSubmatrix(0, i + 1, 0, i + 1)); //this way they are
                 //Console.WriteLine($"\nOnly dofs [0, {i}]");
+                //matrixWriter.WriteToConsole(matrixExpected);
+
+                // Update matrix
+                Vector newRowVector = matrixExpected.GetRow(i);
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
 
                 // Solve new linear system

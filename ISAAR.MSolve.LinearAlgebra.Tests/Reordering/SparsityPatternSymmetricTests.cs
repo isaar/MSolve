@@ -1,4 +1,6 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using System;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -12,6 +14,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
     /// </summary>
     public static class SparsityPatternSymmetricTests
     {
+        private static readonly Comparer comparer = new Comparer(1E-13);
+
         [Fact]
         private static void TestConnectIndices()
         {
@@ -31,6 +35,40 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
                     Assert.True(patternHasZero == denseHasZero);
                 }
             }
+        }
+
+        [Fact]
+        private static void TestReorderingAMD()
+        {
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.matrix));
+            var orderingAlg = new OrderingAmd();
+            (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
+            comparer.AssertEqual(SparsePosDef10by10.matlabPermutationAMD, permutation);
+        }
+
+        [Fact]
+        private static void CheckReorderingCAMD()
+        {
+            int n = SparsePosDef10by10.order;
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.matrix));
+            var orderingAlg = new OrderingCamd();
+            (int[] permutation, ReorderingStatistics stats) = 
+                orderingAlg.FindPermutation(pattern, SparsePosDef10by10.constraintsCAMD);
+
+            var originalDiagonal = new double[n];
+            var permutedDiagonal = new double[n];
+            for (int i = 0; i < n; ++i) originalDiagonal[i] = SparsePosDef10by10.matrix[i, i];
+            for (int i = 0; i < n; ++i) permutedDiagonal[i] = originalDiagonal[permutation[i]];
+
+            var writer = new Array1DWriter();
+            Console.Write("Permutation (new-to-old): ");
+            writer.WriteToConsole(permutation);
+            Console.Write("Original diagonal: ");
+            writer.WriteToConsole(originalDiagonal);
+            Console.Write("Permuted diagonal: ");
+            writer.WriteToConsole(permutedDiagonal);
+
+            comparer.AssertEqual(SparsePosDef10by10.permutationCAMD, permutation);
         }
     }
 }

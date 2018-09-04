@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
     {
         public static void TestAll()
         {
-            SuiteSparse();
+            //SuiteSparse();
             //TestMarshaling();
             //TestBuilders();
             //TestInverse();
@@ -22,7 +22,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestFactorization();
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
-            //TestReordering();
             //TestReading();
             //TestSystemSolution();
             //TestTransposition();
@@ -60,18 +59,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestInput.CheckArray1DReader();
             //TestInput.CheckArray2DReader();
             TestInput.CheckMatrixCoo();
-        }
-
-        public static void TestReordering()
-        {
-            //SparsePositiveDefinite.PrintPatternAsBoolean();
-            //Console.WriteLine();
-            //MatrixAssembly.BuildPattern();
-            //Console.WriteLine();
-            //SparsePositiveDefinite.CheckReorderingAMD();
-            //Console.WriteLine();
-            SparsePositiveDefinite.CheckReorderingCAMD();
-            Console.WriteLine();
         }
 
         public static void TestWriting()
