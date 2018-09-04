@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Testing.IterativeLagorithms;
 using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing
@@ -23,7 +22,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestMatrixVectorMultiplication();
             //TestMatrixMatrixMultiplication();
             //TestReading();
-            //TestSystemSolution();
             //TestTransposition();
             //TestVectorOperations();
             //TestWriting();
@@ -37,21 +35,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //TestSuiteSparse.CheckRowDeletion();
             //TestSuiteSparse.CheckReordering1();
             //TestSuiteSparse.CheckSystemSolutions();
-        }
-
-        public static void TestFactorization()
-        {
-            // Triangulations
-            //SquareInvertible.CheckFactorization();
-            //SquareSingular.CheckFactorization();
-            //SquareSingular1Deficiency.CheckFactorization();
-            //SymmPositiveDefinite.CheckFactorization();
-            //SymmSingular.CheckFactorization();
-            //SparsePositiveDefinite.CheckFactorization();
-
-            // Orthogonalizations
-            //RectangularFullColRank.CheckFactorizationQR();
-            //RectangularFullColRank.CheckFactorizationLQ();
         }
 
         public static void TestReading()
@@ -103,28 +86,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SparseRect.CheckMatrixVectorMult();
             //SparsePositiveDefinite.CheckMatrixVectorMult();
             //SignedBoolean.CheckMatrixVectorMultiplication();
-            SparseRandomMatrix.CompareDokCsrMultiplication();
         }
 
-        public static void TestSystemSolution()
-        {
-            /// Linear systems - direct
-            //SquareInvertible.CheckSystemSolution();
-            //SquareSingular.CheckSystemSolution();
-            //SquareSingular1Deficiency.CheckSystemSolution();
-            //SymmPositiveDefinite.CheckSystemSolution();
-            //SymmSingular.CheckSystemSolution();
-            //SparsePositiveDefinite.CheckSystemSolution();
-
-            /// Linear systems - iterative
-            //CGTests.Run();
-            //MinresTests.CheckSolutionDefinite();
-            //MinresTests.CheckSolutionIndefinite();
-            //MinresTests.AssessPreconditioning();
-
-            /// Least squares systems
-            //RectangularFullColRank.CheckSolutionLeastSquares();
-            //RectangularFullColRank.CheckSolutionMinNorm();
-        }
     }
 }

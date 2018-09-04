@@ -3,18 +3,21 @@ using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
+namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
 {
-    class SparseRandomMatrix
+    /// <summary>
+    /// Benchmarks for <see cref="DokRowMajor"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public static class DokRowMajorBenchmarks
     {
         public static void CompareDokCsrMultiplication()
         {
             int numRows = 100000;
             int numCols = 10000;
-            DokRowMajor dok = CreateRandomMatrix(numRows, numCols, 0.15);
+            DokRowMajor dok = CreateRandomSparseMatrix(numRows, numCols, 0.15);
             Vector lhs = CreateRandomVector(numCols);
 
             var watch = new Stopwatch();
@@ -63,7 +66,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             Console.WriteLine("Multiplication DOK - sorted CSR (MKL): normalized error = " + errorSortedMkl);
         }
 
-        public static DokRowMajor CreateRandomMatrix(int numRows, int numCols, double nonZeroChance)
+        private static DokRowMajor CreateRandomSparseMatrix(int numRows, int numCols, double nonZeroChance)
         {
             var rand = new Random();
             var dok = DokRowMajor.CreateEmpty(numRows, numCols);
@@ -80,7 +83,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices
             return dok;
         }
 
-        public static Vector CreateRandomVector(int length)
+        private static Vector CreateRandomVector(int length)
         {
             var rand = new Random();
             var vector = new double[length];
