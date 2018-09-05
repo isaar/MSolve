@@ -1,4 +1,6 @@
-﻿namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
+﻿using System.IO;
+
+namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
     /// <summary>
     /// A 10-by-5 sparse matrix.
@@ -90,5 +92,24 @@
         /// A vector with length = 5, such that <see cref="matrix"/> * <see cref="lhs10"/> = <see cref="rhs5"/>.
         /// </summary>
         internal static readonly double[] rhs5 = { 38.358004392, 42.386998564, 39.584157392, 117.750301553, 40.799145145 };
+
+        internal static readonly string fullFormatPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparseRectangular10by5_FullFormat.txt";
+
+        internal static readonly string csrArraysPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparseRectangular10by5_CsrArrays.txt";
+
+        internal static readonly string cscArraysPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparseRectangular10by5_CscArrays.txt";
+
+        /// <summary>
+        /// The entries were iteration in CSC order.
+        /// </summary>
+        internal static readonly string coordinateFormatPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparseRectangular10by5_CoordinateFormat.txt";
     }
 }

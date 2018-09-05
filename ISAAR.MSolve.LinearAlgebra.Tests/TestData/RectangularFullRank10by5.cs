@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
+﻿using System.IO;
+using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
@@ -137,6 +138,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             0.4115012354314005, -0.1652228399115381, 0.3318849071280361, 0.4048451728664134, -0.4209082824823209, 0.3061133109183448, 0.2615025913792203, 0.1943785674066800, -0.0675278461506491, 0.1798101026385349
         };
 
-
+        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\RectangularFullRank10by5.txt";
     }
 }

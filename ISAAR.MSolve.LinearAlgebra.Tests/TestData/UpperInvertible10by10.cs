@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
+﻿using System.IO;
+using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
@@ -34,5 +35,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
         /// A vector with length = 10, such that <see cref="matrix"/> * <see cref="lhs"/> = <see cref="rhs"/>
         /// </summary>
         internal static readonly double[] rhs = MatrixOperations.MatrixTimesVector(matrix, lhs);
+
+        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\UpperInvertible10by10.txt";
     }
 }

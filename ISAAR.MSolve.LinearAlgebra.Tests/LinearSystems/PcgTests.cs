@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
     /// </summary>
     public static class PcgTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-5);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-5);
 
         [Fact]
         private static void TestDenseSystem()

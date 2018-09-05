@@ -9,11 +9,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Utilities
     /// Compares scalars, vectors and matrices.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal class Comparer
+    internal class MatrixComparer
     {
         private readonly ValueComparer valueComparer;
 
-        internal Comparer(double tolerance = 1e-13)
+        internal MatrixComparer(double tolerance = 1e-13)
         {
             this.valueComparer = new ValueComparer(tolerance);
         }

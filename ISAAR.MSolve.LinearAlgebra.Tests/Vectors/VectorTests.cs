@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
     /// </summary>
     public static class VectorTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-13);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         [Fact]
         private static void TestAddition()
@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
             var v1 = Vector.CreateFromArray(TestVectors.vector1);
             var v2 = Vector.CreateFromArray(TestVectors.vector2);
             var expected = 2.5 * v1 + -3.5 * v2;
-            var comparer = new Comparer();
+            var comparer = new MatrixComparer();
 
             // LinearCombination()
             comparer.AssertEqual(expected, v1.LinearCombination(2.5, v2, -3.5));

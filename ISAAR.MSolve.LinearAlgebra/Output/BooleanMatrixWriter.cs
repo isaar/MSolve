@@ -50,11 +50,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             {
                 for (int j = 0; j < matrix.NumColumns; ++j)
                 {
-                    Console.Write(string.Format(numberFormat, matrix[i, j]));
+                    writer.Write(string.Format(numberFormat, matrix[i, j]));
                 }
-                Console.WriteLine();
+                writer.WriteLine();
             }
-            Console.WriteLine();
+            writer.WriteLine();
         }
     }
 }

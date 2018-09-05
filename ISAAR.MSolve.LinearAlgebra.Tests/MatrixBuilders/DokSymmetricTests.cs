@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
     /// </summary>
     public static class DokSymmetricTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-13);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         private static DokSymmetric CreateDok(double[,] symmMatrix)
         {

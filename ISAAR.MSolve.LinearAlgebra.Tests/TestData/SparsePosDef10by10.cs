@@ -1,4 +1,6 @@
-﻿namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
+﻿using System.IO;
+
+namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
     /// <summary>
     /// A 10-by-10 sparse matrix that is symmetric positive definite.
@@ -67,5 +69,21 @@
         internal static readonly int[] constraintsCAMD = { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
 
         internal static readonly int[] permutationCAMD = { 0, 1, 7, 3, 6, 9, 5, 2, 4, 8 };
+
+        internal static readonly string fullFormatPath = 
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName 
+            + @"\Resources\SparsePosDef10by10_FullFormat.txt";
+
+        internal static readonly string skylineArraysPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparsePosDef10by10_SkylineArrays.txt";
+
+        internal static readonly string coordinateFormatPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparsePosDef10by10_CoordinateFormat.txt";
+
+        internal static readonly string patternPath =
+            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SparsePosDef10by10_Pattern.txt";
     }
 }

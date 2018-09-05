@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
     /// </summary>
     public static class LUFactorizationTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-13);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         [Fact]
         private static void TestDeterminant()

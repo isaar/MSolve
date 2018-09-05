@@ -1,4 +1,6 @@
-﻿namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
+﻿using System.IO;
+
+namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
     /// <summary>
     /// Hardcoded vectors and the results of operations between them.
@@ -33,5 +35,8 @@
         internal static readonly double dotProduct = 20.3720728903530;
 
         internal static readonly double norm2OfVector1 = 9.29917295970765;
+
+        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+           + @"\Resources\DenseVector10.txt";
     }
 }

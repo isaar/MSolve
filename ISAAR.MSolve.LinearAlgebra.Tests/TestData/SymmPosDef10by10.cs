@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
+﻿using System.IO;
+using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
@@ -59,5 +60,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { -5.02329472415375e-003,   -6.12024602474453e-003,  -1.04002539890800e-002, -5.57539070903115e-003, -8.43523792979407e-003, -3.94470775148731e-003, -4.51446541537761e-003, -2.76274802050418e-003,  1.30801943186731e-001, -1.28635721186656e-003 },
             { -6.71622551868538e-003,   -1.05313557472777e-002,  -6.29854537225606e-003, -2.74544183434557e-003, -3.58326599023808e-003, -5.80050621175504e-003, -1.50440957718562e-003, -5.86189359820442e-003, -1.28635721186656e-003,  1.07118222072671e-001 }
         };
+
+        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SymmPosDef10by10.txt";
     }
 }

@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestIndefiniteSystem()
         {
-            var comparer = new Comparer(1E-4);
+            var comparer = new MatrixComparer(1E-4);
             double residualTolerance = 1e-8;
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(20);
             var minres = new MinimumResidual(A.NumRows, residualTolerance, 0, true, false);
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestPosDefDenseSystem()
         {
-            var comparer = new Comparer(1E-6);
+            var comparer = new MatrixComparer(1E-6);
             int n = SparsePosDef10by10.order;
             var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestPosDefSparseSystem()
         {
-            var comparer = new Comparer(1E-6);
+            var comparer = new MatrixComparer(1E-6);
             int n = SparsePosDef10by10.order;
             var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);

@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
     /// </summary>
     public static class LapackTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-13);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         [Fact]
         internal static void TestDgetrf_Dgetrs()

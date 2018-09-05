@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Testing.TestMatrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Testing
 {
@@ -71,8 +70,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
             //SparseRect.Print();
             //SparsePositiveDefinite.Print();
             //Console.WriteLine();
-            SignedBoolean.WriteToConsole();
-            Console.WriteLine();
         }
 
         public static void TestMatrixVectorMultiplication()

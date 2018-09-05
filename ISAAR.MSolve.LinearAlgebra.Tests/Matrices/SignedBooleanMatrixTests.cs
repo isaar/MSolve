@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
     /// </summary>
     public static class SignedBooleanMatrixTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-13);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         internal static SignedBooleanMatrix CreateMatrix(double[,] matrix)
         {

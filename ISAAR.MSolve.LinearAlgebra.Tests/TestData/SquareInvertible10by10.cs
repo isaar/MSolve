@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
+﻿using System.IO;
+using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
 {
@@ -68,5 +69,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             {  0.82730381666590347,  0.09025541547457155,  0.05933160954592846, -0.21358055509691320, -0.30999188330290900, -0.70096781085450788, -0.53533297754915421,  0.16046882480870420,  0.15376464768899153,  0.16213121995953983 },
             { -0.41339744413805679, -0.05827031189181564,  0.01456033811781599,  0.20111566009168913,  0.12490019370398427,  0.30495337890162211,  0.24042238135589683, -0.15636978776831514, -0.05449355077458019, -0.08532973391890820 }
         };
+
+        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\SquareInvertible10by10.txt";
     }
 }

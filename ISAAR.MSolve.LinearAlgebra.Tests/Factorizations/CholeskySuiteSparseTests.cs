@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
     /// </summary>
     public static class CholeskySuiteSparseTests
     {
-        private static readonly Comparer comparer = new Comparer(1E-12);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-12);
 
         [Fact]
         private static void TestRowAddition()
