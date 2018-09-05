@@ -3,6 +3,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
@@ -17,8 +18,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
         {
             int numRows = 100000;
             int numCols = 10000;
-            DokRowMajor dok = CreateRandomSparseMatrix(numRows, numCols, 0.15);
-            Vector lhs = CreateRandomVector(numCols);
+            DokRowMajor dok = RandomUtilities.CreateRandomSparseMatrix(numRows, numCols, 0.15);
+            Vector lhs = RandomUtilities.CreateRandomVector(numCols);
 
             var watch = new Stopwatch();
             watch.Start();
@@ -64,34 +65,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             Console.WriteLine("Multiplication DOK - sorted CSR (C#): normalized error = " + errorSorted);
             Console.WriteLine("Multiplication DOK - unsorted CSR (MKL): normalized error = " + errorUnsortedMkl);
             Console.WriteLine("Multiplication DOK - sorted CSR (MKL): normalized error = " + errorSortedMkl);
-        }
-
-        private static DokRowMajor CreateRandomSparseMatrix(int numRows, int numCols, double nonZeroChance)
-        {
-            var rand = new Random();
-            var dok = DokRowMajor.CreateEmpty(numRows, numCols);
-            for (int i = 0; i < numRows; ++i)
-            {
-                for (int j = 0; j < numCols; ++j)
-                {
-                    if (rand.NextDouble() <= nonZeroChance)
-                    {
-                        dok[i, j] = rand.NextDouble();
-                    }
-                }
-            }
-            return dok;
-        }
-
-        private static Vector CreateRandomVector(int length)
-        {
-            var rand = new Random();
-            var vector = new double[length];
-            for (int i = 0; i < length; ++i)
-            {
-                vector[i] = rand.NextDouble();
-            }
-            return Vector.CreateFromArray(vector, false);
         }
     }
 }

@@ -40,7 +40,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Testing
         {
             //TestInput.CheckArray1DReader();
             //TestInput.CheckArray2DReader();
-            TestInput.CheckMatrixCoo();
         }
 
         public static void TestWriting()

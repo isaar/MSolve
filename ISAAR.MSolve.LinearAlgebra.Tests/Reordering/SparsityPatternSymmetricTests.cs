@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
         }
 
         [Fact]
-        private static void CheckReorderingCAMD()
+        private static void TestReorderingCAMD()
         {
             int n = SparsePosDef10by10.order;
             var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.matrix));
