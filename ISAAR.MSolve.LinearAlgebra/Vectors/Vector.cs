@@ -4,7 +4,6 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: this should not be in the same folder with the actual matrices and their interfaces
