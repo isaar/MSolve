@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.IGA;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Readers;
@@ -16,7 +11,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
-namespace ISAAR.MSolve.Tests.IGA
+namespace ISAAR.MSolve.IGA.Tests
 {
 	public class IsogeometricBenchmarks
 	{
