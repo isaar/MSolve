@@ -154,11 +154,11 @@ namespace ISAAR.MSolve.FEM.Elements
             constitutiveStiffness[3, 9] = -GJOverL;
 
             constitutiveStiffness[4, 4] = psiY_3_Plus_1_E_Iy_Overl;
-            constitutiveStiffness[4, 8] = psiY_E_6_Iy_OverlSquared; //psiZ_E_Iz_6_OverlSquared; // 
+            constitutiveStiffness[4, 8] = psiZ_E_Iz_6_OverlSquared;
             constitutiveStiffness[4, 10] = psiY_3_Minus_1_E_Iy_Overl;
 
             constitutiveStiffness[5, 5] = psiZ_3_Plus_1_E_Iz_Overl;
-            constitutiveStiffness[5, 7] = -psiZ_E_Iz_6_OverlSquared; //psiY_E_6_Iy_OverlSquared; //
+            constitutiveStiffness[5, 7] = -psiY_E_6_Iy_OverlSquared;
             constitutiveStiffness[5, 11] = psiZ_3_Minus_1_E_Iz_Overl;
 
             constitutiveStiffness[6, 6] = EAOverL;

@@ -22,28 +22,32 @@ using ISAAR.MSolve.Solvers.Skyline;
 using System.IO;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.Solvers.PCG;
+using ISAAR.MSolve.Solvers.PCGSkyline;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
-    public class CNTExample
+    class CNT_4_4_Example
     {
         public static void Run()
         {
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 16710.0;
             double poissonRatio = 0.034;
-            double nodalLoad = -1.0;
+            double nodalLoad = 1.2;
             double area = 5.594673861218848e-003;
             double inertiaY = 2.490804749753243e-006;
             double inertiaZ = 2.490804749753243e-006;
-            double torsionalInertia = inertiaY/2.0;
+            double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
             string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\CNTExample";
-            string geometryFileName = "CNT-8-8-L=100-h=3-Geometry.inp";
-            string connectivityFileName = "CNT-8-8-L=100-h=3-ConnMatr.inp";
+            string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
+            string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
+            string solverType = "PCG"; //"Skyline"; //
+            string childAnalyzerType = "Linear"; //"Newton-Raphson"; //
 
-            int nNodes = File.ReadLines(workingDirectory + '\\'  + geometryFileName).Count();
+            int nNodes = File.ReadLines(workingDirectory + '\\' + geometryFileName).Count();
             int nElems = File.ReadLines(workingDirectory + '\\' + connectivityFileName).Count();
             int monitorNode_1 = nNodes - 1;
             int monitorNode_2 = nNodes;
@@ -57,7 +61,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             ElasticMaterial3D material_2 = new ElasticMaterial3D
             {
-                YoungModulus = 100.0*youngModulus,
+                YoungModulus = 100.0 * youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
@@ -85,22 +89,36 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Constraints
-            model.NodesDictionary[monitorNode_1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[monitorNode_1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[monitorNode_1].Constraints.Add(DOFType.Z);
-            model.NodesDictionary[monitorNode_2].Constraints.Add(DOFType.X);
-            model.NodesDictionary[monitorNode_2].Constraints.Add(DOFType.Y);
+            IList<Node> constraintsNodes = new List<Node>();
+            constraintsNodes.Add(nodes[1 - 1]);
+            constraintsNodes.Add(nodes[2 - 1]);
+            constraintsNodes.Add(nodes[617 - 1]);
+            constraintsNodes.Add(nodes[618 - 1]);
+            constraintsNodes.Add(nodes[1029 - 1]);
+            constraintsNodes.Add(nodes[1030 - 1]);
+            constraintsNodes.Add(nodes[1441 - 1]);
+            constraintsNodes.Add(nodes[1442 - 1]);
+            constraintsNodes.Add(nodes[1649 - 1]);
+
+            for (int i = 0; i < 9; i++)
+            {
+                int iNode = constraintsNodes[i].ID;
+                model.NodesDictionary[iNode].Constraints.Add(DOFType.X);
+                model.NodesDictionary[iNode].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[iNode].Constraints.Add(DOFType.Z);
+                model.NodesDictionary[iNode].Constraints.Add(DOFType.RotX);
+                model.NodesDictionary[iNode].Constraints.Add(DOFType.RotY);
+                model.NodesDictionary[iNode].Constraints.Add(DOFType.RotZ);
+            }
+
 
             // Create new Beam3D section and element
             var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
-            
-            // element nodes
-            IList<Node> elementNodes = new List<Node>();
 
             // Generate elements
             using (TextReader reader = File.OpenText(workingDirectory + '\\' + connectivityFileName))
             {
-                for (int i = 0; i < (nElems - 32); i++)
+                for (int i = 0; i < (nElems - 16); i++)
                 {
                     string text = reader.ReadLine();
                     string[] bits = text.Split(',');
@@ -108,6 +126,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     int node1 = int.Parse(bits[1]);
                     int node2 = int.Parse(bits[2]);
                     // element nodes
+                    IList<Node> elementNodes = new List<Node>();
                     elementNodes.Add(model.NodesDictionary[node1]);
                     elementNodes.Add(model.NodesDictionary[node2]);
                     // create element
@@ -122,7 +141,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     model.ElementsDictionary.Add(element.ID, element);
                     model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
                 }
-                for (int i = (nElems - 31); i < nElems; i++)
+                for (int i = (nElems - 16); i < nElems; i++)
                 {
                     string text = reader.ReadLine();
                     string[] bits = text.Split(',');
@@ -130,6 +149,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     int node1 = int.Parse(bits[1]);
                     int node2 = int.Parse(bits[2]);
                     // element nodes
+                    IList<Node> elementNodes = new List<Node>();
                     elementNodes.Add(model.NodesDictionary[node1]);
                     elementNodes.Add(model.NodesDictionary[node2]);
                     // create element
@@ -147,7 +167,7 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode_2], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode_2], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -155,22 +175,27 @@ namespace ISAAR.MSolve.SamplesConsole
             // Choose linear equation system solver
             var linearSystems = new Dictionary<int, ILinearSystem>();
             linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+
+            // Skyline Solver
             SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            // PCG Skyline Solver
+            //SolverPCGSimpleSearchVectorCalculator search = new SolverPCGSimpleSearchVectorCalculator();
+            //SolverPCG<Matrix2D> solver = new SolverPCG<Matrix2D>(linearSystems[1], search);
 
             // Choose the provider of the problem -> here a structural problem
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
+            // Choose child analyzer -> Child: Linear
+            //LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 10;
+            int increments = 50;
             int totalDOFs = model.TotalDOFs;
-            //int maximumIteration = 120;
-            //int iterationStepsForMatrixRebuild = 500;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs);
-
+            
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
@@ -178,9 +203,9 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            int monDOF = (6 * monitorNode_2 - 3);
-            double monitorDisplacement = linearSystems[1].Solution[monDOF - 1];
-        }
+            int monDOF = linearSystems[1].Solution.Length - 5;  //(6 * monitorNode_2 - 4);
 
+            double monitorDisplacement = linearSystems[1].Solution[monDOF];
+        }
     }
 }
