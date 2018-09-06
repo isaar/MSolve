@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "..\\..\\..\\IGA\\InputFiles\\Cantilever2D.txt";
+			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
 			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
 			modelReader.CreateModelFromFile();
 
@@ -133,7 +133,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "..\\..\\..\\IGA\\InputFiles\\Cantilever2D.txt";
+			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
 			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
 			modelReader.CreateModelFromFile();
 
@@ -213,7 +213,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "..\\..\\..\\IGA\\InputFiles\\PlateTension.txt";
+			string filename = "..\\..\\..\\InputFiles\\PlateTension.txt";
 			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
 			modelReader.CreateModelFromFile();
 
