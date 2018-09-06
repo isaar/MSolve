@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public static CholeskySuiteSparse CreateStandardPreconditioner(DokSymmetric Kss)
         {
             // Standard preconditioner = cholesky factor U
-            var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
+            var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCscArrays(true);
             return CholeskySuiteSparse.Factorize(Kss.NumRows, valuesStd.Length, valuesStd, rowIndicesStd, colOffsetsStd,
                 true, SuiteSparseOrdering.Natural);
         }
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             for (int i = 0; i < dimensions.NumSubdomains; ++i)
             {
                 // Enriched preconditioner = cholesky factor U
-                var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee[i].BuildSymmetricCSCArrays(true);
+                var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee[i].BuildSymmetricCscArrays(true);
                 Pe[i] = CholeskySuiteSparse.Factorize(Kee[i].NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr, colOffsetsEnr,
                     true, SuiteSparseOrdering.Natural);
             }
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         public static CholeskySuiteSparse CreateEnrichedPreconditioner(DokSymmetric Kee)
         {
             // Enriched preconditioner = cholesky factor U
-            var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCSCArrays(true);
+            var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCscArrays(true);
             return CholeskySuiteSparse.Factorize(Kee.NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr, 
                 colOffsetsEnr, true, SuiteSparseOrdering.Natural);
         }

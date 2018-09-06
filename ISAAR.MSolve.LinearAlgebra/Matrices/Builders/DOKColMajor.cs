@@ -187,7 +187,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSC matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public (double[] values, int[] rowIndices, int[] colOffsets) BuildCSCArrays(bool sortRowsOfEachCol)
+        public (double[] values, int[] rowIndices, int[] colOffsets) BuildCscArrays(bool sortRowsOfEachCol)
         {
             int[] colOffsets = new int[NumColumns + 1];
             int nnz = 0;
@@ -236,9 +236,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     performance during multiplications or they might be required by 3rd party libraries. Conversely, leaving them 
         ///     unordered will be faster during creation of the CSC matrix.</param>
         /// <exception cref="EmptyMatrixBuilderException">Thrown if no non-zero entries have been defined yet.</exception>
-        public CscMatrix BuildCSCMatrix(bool sortRowsOfEachCol)
+        public CscMatrix BuildCscMatrix(bool sortRowsOfEachCol)
         {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildCSCArrays(sortRowsOfEachCol);
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildCscArrays(sortRowsOfEachCol);
             return CscMatrix.CreateFromArrays(NumRows, NumColumns, values, rowIndices, colOffsets, false);
         }
 
@@ -319,7 +319,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// </summary>
         public SparseFormat GetSparseFormat()
         {
-            (double[] values, int[] rowIndices, int[] colOffsets) = BuildCSCArrays(false);
+            (double[] values, int[] rowIndices, int[] colOffsets) = BuildCscArrays(false);
             var format = new SparseFormat();
             format.RawValuesTitle = "Values";
             format.RawValuesArray = values;

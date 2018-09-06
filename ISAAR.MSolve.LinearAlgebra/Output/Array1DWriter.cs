@@ -36,6 +36,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         }
 
         /// <summary>
+        /// Writes the provided array to Console.
+        /// </summary>
+        /// <param name="array">The integer array to write.</param>
+        public void WriteToConsole(int[] array)
+        {
+            Utilities.WriteToConsole((writer) => WriteToStream(array, writer));
+        }
+
+        /// <summary>
         /// Writes the provided array to the file at <paramref name="path"/>.
         /// </summary>
         /// <param name="array">The array to write.</param>
@@ -43,6 +52,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         /// <param name="append">If true, <paramref name="array"/> will be written after the current contents of the file at
         ///     <paramref name="path"/>. If false, it will overwrite them.</param>
         public void WriteToFile(double[] array, string path, bool append = false)
+        {
+            Utilities.WriteToFile((writer) => WriteToStream(array, writer), path, append);
+        }
+
+        /// <summary>
+        /// Writes the provided array to the file at <paramref name="path"/>.
+        /// </summary>
+        /// <param name="array">The integer array to write.</param>
+        /// <param name="path">The absolute path of the file, where <paramref name="array"/> will be written.</param>
+        /// <param name="append">If true, <paramref name="array"/> will be written after the current contents of the file at
+        ///     <paramref name="path"/>. If false, it will overwrite them.</param>
+        public void WriteToFile(int[] array, string path, bool append = false)
         {
             Utilities.WriteToFile((writer) => WriteToStream(array, writer), path, append);
         }
@@ -56,6 +77,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             for (int i = 1; i < array.Length; ++i)
             {
                 writer.Write(separator + string.Format(numberFormat, array[i]));
+            }
+            writer.WriteLine(ArrayFormat.End);
+        }
+
+        private void WriteToStream(int[] array, StreamWriter writer)
+        {
+            string separator = ArrayFormat.Separator;
+            writer.Write(ArrayFormat.Start);
+            writer.Write(array[0]);
+            for (int i = 1; i < array.Length; ++i)
+            {
+                writer.Write(separator + array[i]);
             }
             writer.WriteLine(ArrayFormat.End);
         }

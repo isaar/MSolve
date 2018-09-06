@@ -179,7 +179,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             {
                 (DokSymmetric Kee, DokRowMajor Kes, DokRowMajor Kec) =
                     assembler.BuildSubdomainMatrices(subdomain, cluster.DofOrderer);
-                var KesCSR = Kes.BuildCSRMatrix(true);
+                var KesCSR = Kes.BuildCsrMatrix(true);
                 var be = Kec.MultiplyRight(Uc.Scale(-1.0), true); //Fe = 0 - Kec * Uc.
                 system.SetSubdomainMatrices(subdomain, Kee, KesCSR, KesCSR.TransposeToCSR(), be);
             }

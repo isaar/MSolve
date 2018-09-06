@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
@@ -83,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Linear system solution
             watch.Restart();
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
                 Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
@@ -104,7 +101,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var orderingAlgorithm = new OrderingAmd();
 
             int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
-            var pattern = SparsityPatternSymmetricColMajor.CreateEmpty(order);
+            var pattern = SparsityPatternSymmetric.CreateEmpty(order);
             // Could build the sparsity pattern during Dof enumeration?
             foreach (var element in model.Elements)
             {
@@ -152,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var assembler = new GlobalDOKAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);
                 Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factorization.NumNonZeros}");

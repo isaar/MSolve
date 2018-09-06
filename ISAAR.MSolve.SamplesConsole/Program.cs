@@ -1,6 +1,5 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.LinearAlgebra.Testing;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
@@ -30,7 +29,6 @@ namespace ISAAR.MSolve.SamplesConsole
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
 
-            LinearAlgebraTestSuite.TestAll();
             //XFEMTestSuite.RunAll();
         }
 

@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         private StandardPreconditionerCholesky(DokSymmetric Kss)
         {
             int order = Kss.NumColumns;
-            var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCSCArrays(true);
+            var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCscArrays(true);
             Kss.Clear();  // No longer needed.
             factorU = CholeskySuiteSparse.Factorize(order, valuesStd.Length, valuesStd, rowIndicesStd, colOffsetsStd,
                 true, SuiteSparseOrdering.Natural);

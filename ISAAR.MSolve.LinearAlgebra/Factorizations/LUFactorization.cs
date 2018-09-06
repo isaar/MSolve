@@ -27,14 +27,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         private const double PivotTolerance = 1e-13;  //TODO: Perhaps a smaller tolerance is appropriate, since the "almost zero" will propagate during back & forward substitution.
 
         private readonly double[] lowerUpper;
-        private readonly int[] permutation;
+
+        /// <summary>
+        /// Its entries are in 1-based indexing. This is not the actual permutation vector. Instead it records the row exchanges. 
+        /// E.g. { 4, 4, 4, 4} means that rows 0, 1, 2 have been switched with the last row (the last row doesn't change).
+        /// </summary>
+        private readonly int[] rowExchanges;
         private readonly int firstZeroPivot;
 
         private LUFactorization(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot, bool isSingular)
         {
             this.Order = order;
             this.lowerUpper = lowerUpper;
-            this.permutation = permutation;
+            this.rowExchanges = permutation;
             this.firstZeroPivot = firstZeroPivot;
             this.IsSingular = isSingular;
             this.IsOverwritten = false;
@@ -97,21 +102,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// See <see cref="ITriangulation.CalcDeterminant"/>. WARNING: the sign might be wrong!
+        /// See <see cref="ITriangulation.CalcDeterminant"/>.
         /// </summary>
         /// <remarks>
         /// det(A) = det(L*U) = det(L)*det(U). Since all these are triangular matrices their determinants is the product of their 
         /// diagonal entries: det(L) = 1*1*...*1 = 1. Thus det(A) = det(U) = U1*U2*...*Un
+        /// The sign is positive for an even number of row exchanges and negative for an odd number. The row exchanges are 
+        /// recorded in <see cref="rowExchanges"/>. For more details see 
+        /// https://software.intel.com/en-us/forums/intel-math-kernel-library/topic/309460.
         /// </remarks>
-        public double CalcDeterminant()
+        public double CalcDeterminant() //TODO: this should be implemented in a dll
         {
             CheckOverwritten();
             if (IsSingular) return 0.0;
             else
             {
                 double det = 1.0;
-                for (int i = 0; i < Order; ++i) det *= lowerUpper[i * Order + i];
-                return det; //TODO: the sign depends on P.
+                for (int i = 0; i < Order; ++i)
+                {
+                    if (rowExchanges[i] == i + 1) det *= lowerUpper[i * Order + i];
+                    else det *= - lowerUpper[i * Order + i];
+                }
+                return det;
             }
         }
 
@@ -124,7 +136,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public Matrix GetFactorL()
         {
             CheckOverwritten();
-            double[] l = Conversions.FullColMajorToFullUpperColMajor(lowerUpper, true);
+            double[] l = Conversions.FullColMajorToFullLowerColMajor(lowerUpper, true);
             return Matrix.CreateFromArray(l, Order, Order, false);
         }
 
@@ -171,7 +183,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 inverse = new double[lowerUpper.Length];
                 Array.Copy(lowerUpper, inverse, lowerUpper.Length);
             }
-            info = LAPACKE.Dgetri(LAPACKE.LAPACK_COL_MAJOR, Order, inverse, Order, permutation);
+            info = LAPACKE.Dgetri(LAPACKE.LAPACK_COL_MAJOR, Order, inverse, Order, rowExchanges);
 
             // Check MKL execution
             if (info == 0) return Matrix.CreateFromArray(inverse, Order, Order, false);
@@ -211,7 +223,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int info = MklUtilities.DefaultInfo;
             int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int ldb = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dgetrs("N", ref n, ref nRhs, ref lowerUpper[0], ref n, ref permutation[0], ref b[0], ref ldb, ref info);
+            Lapack.Dgetrs("N", ref n, ref nRhs, ref lowerUpper[0], ref n, ref rowExchanges[0], ref b[0], ref ldb, ref info);
 
             // Check MKL execution
             if (info == 0) return Vector.CreateFromArray(b, false);

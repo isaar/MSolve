@@ -4,7 +4,6 @@ using System.Linq;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {

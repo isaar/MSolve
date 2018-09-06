@@ -13,17 +13,17 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
     /// Also see the included "lapacke.h" C header file and MKL's C user guide.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class LAPACKE
+    public static class LAPACKE
     {
-        internal const int LAPACK_ROW_MAJOR = 101;
-        internal const int LAPACK_COL_MAJOR = 102;
-        internal const char LAPACK_NO_TRANSPOSE = 'N';
-        internal const char LAPACK_TRANSPOSE = 'T';
-        internal const char LAPACK_HERMITIAN_TRANSPOSE = 'C';
-        internal const char LAPACK_SIDE_LEFT = 'L';
-        internal const char LAPACK_SIDE_RIGHT = 'R';
-        internal const char LAPACK_UPPER = 'U';
-        internal const char LAPACK_LOWER = 'L';
+        public const int LAPACK_ROW_MAJOR = 101;
+        public const int LAPACK_COL_MAJOR = 102;
+        public const char LAPACK_NO_TRANSPOSE = 'N';
+        public const char LAPACK_TRANSPOSE = 'T';
+        public const char LAPACK_HERMITIAN_TRANSPOSE = 'C';
+        public const char LAPACK_SIDE_LEFT = 'L';
+        public const char LAPACK_SIDE_RIGHT = 'R';
+        public const char LAPACK_UPPER = 'U';
+        public const char LAPACK_LOWER = 'L';
 
         /// <summary>
         /// LQ factorization of a full <paramref name="m"/>-by-<paramref name="n"/> matrix.
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
         /// Full matrix-vector multiplication. Covered by Compute.NET. I just implemented it for practice and testing purposes.
         /// </summary>
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_dgemv")]
-        internal static extern void Dgemv(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE transA, int m, int n, 
+        public static extern void Dgemv(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE transA, int m, int n, 
             double alpha, double[] A, int ldA, double[] X, int incX, double beta, double[] Y, int incY ); // CBLAS, rather than LAPACKE
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
         /// LU factorization of full matrix. Covered by Compute.NET. I just implemented it for practice and testing purposes.
         /// </summary>
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dgetrf")]
-        internal static extern int Dgetrf(int matrixLayout, int m, int n, double[] A, int ldA, int[] iPiv);
+        public static extern int Dgetrf(int matrixLayout, int m, int n, double[] A, int ldA, int[] iPiv);
 
         /// <summary>
         /// Inversion of matrix in full format, that underwent LU factorization by 
@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
         /// Covered by Compute.NET. I just implemented it for practice and testing purposes.
         /// </summary>
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dgetrs")]
-        internal static extern int Dgetrs(int matrixLayout, char transA, int n, int nRhs, 
+        public static extern int Dgetrs(int matrixLayout, char transA, int n, int nRhs, 
             double[] A, int ldA, int[] iPiv, double[] B, int ldB);
 
         /// <summary>

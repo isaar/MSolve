@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Restart();
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
             var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
-            (Vector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
+            (Vector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCsrMatrix(true), rhs, preconditioner);
             //var cg = new ConjugateGradient(maxIterations, tolerance);
             //(Vector x, IterativeStatistics statistics) = cg.Solve(Kuu.BuildCSRMatrix(true), rhs);
             watch.Stop();
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var assembler = new GlobalDOKAssembler();
             (DokSymmetric KuuChol, DokRowMajor KucChol) = assembler.BuildGlobalMatrix(model, dofOrderer);
-            if (!KuuChol.Equals(Kuu.BuildCSRMatrix(true), 1e-10)) throw new Exception("Incorrect stiffness matrix assembly");
+            if (!KuuChol.Equals(Kuu.BuildCsrMatrix(true), 1e-10)) throw new Exception("Incorrect stiffness matrix assembly");
         }
     }
 }

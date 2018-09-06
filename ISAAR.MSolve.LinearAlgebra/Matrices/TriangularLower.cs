@@ -4,7 +4,6 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
-using ISAAR.MSolve.LinearAlgebra.Testing.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: DoEntryWise may change the sparsity pattern if binaryOperation(0, 0)!=0. Fix this in all triangular and sparse matrices.
