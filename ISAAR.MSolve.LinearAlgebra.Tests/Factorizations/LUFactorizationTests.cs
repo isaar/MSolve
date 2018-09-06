@@ -17,25 +17,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         [Fact]
-        private static void TestDeterminant()
+        private static void TestDeterminantInvertiblePositive()
         {
-            // invertible (rank = 10)
-            var A1 = Matrix.CreateFromArray(SquareInvertible10by10.matrix);
-            LUFactorization factorization1 = A1.FactorLU();
-            double detComputed1 = factorization1.CalcDeterminant();
-            comparer.AssertEqual(SquareInvertible10by10.determinant, detComputed1);
+            // invertible (rank = 10) with positive det
+            var A = Matrix.CreateFromArray(SquareInvertible10by10.matrix);
+            LUFactorization factorization = A.FactorLU();
+            double det = factorization.CalcDeterminant();
+            comparer.AssertEqual(SquareInvertible10by10.determinant, det);
+        }
 
+        [Fact]
+        private static void TestDeterminantInvertibleNegative()
+        {
+            // Switch 2 rows to make the det negative
+            var A = Matrix.CreateFromArray(SquareInvertible10by10.matrix);
+            Vector row0 = A.GetRow(0);
+            Vector row9 = A.GetRow(9);
+            A.SetSubrow(0, row9);
+            A.SetSubrow(9, row0);
+            LUFactorization factorization = A.FactorLU();
+            double det = factorization.CalcDeterminant();
+            comparer.AssertEqual(-SquareInvertible10by10.determinant, det);
+        }
+
+        [Fact]
+        private static void TestDeterminantSingular1()
+        {
             // singular (rank = 8)
-            var A2 = Matrix.CreateFromArray(SquareSingular10by10.matrix);
-            LUFactorization factorization2 = A2.FactorLU();
-            double detComputed2 = factorization2.CalcDeterminant();
-            comparer.AssertEqual(SquareSingular10by10.determinant, detComputed2);
+            var A = Matrix.CreateFromArray(SquareSingular10by10.matrix);
+            LUFactorization factorization = A.FactorLU();
+            double det = factorization.CalcDeterminant();
+            comparer.AssertEqual(SquareSingular10by10.determinant, det);
+        }
 
+        [Fact]
+        private static void TestDeterminantSingular2()
+        {
             // singular (rank = 9)
-            var A3 = Matrix.CreateFromArray(SquareSingularSingleDeficiency10by10.matrix);
-            LUFactorization factorization3 = A3.FactorLU();
-            double detComputed3 = factorization3.CalcDeterminant();
-            comparer.AssertEqual(SquareSingularSingleDeficiency10by10.determinant, detComputed3);
+            var A = Matrix.CreateFromArray(SquareSingularSingleDeficiency10by10.matrix);
+            LUFactorization factorization = A.FactorLU();
+            double det = factorization.CalcDeterminant();
+            comparer.AssertEqual(SquareSingularSingleDeficiency10by10.determinant, det);
         }
 
         [Fact]
