@@ -7,7 +7,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {
     /// Calculates extrapolations of scalar, vector and tensor fields from the integration points of symmetric Gauss quadrature
-    /// for triangles with 1 Gauss point. This can be done for any point, but utility methods for directly outputting the 
+    /// for triangles with 1 Gauss point. This can be done at any point, but utility methods for directly outputting the 
     /// extrapolated fields at the nodes of finite elements are also provided. Note that since there is only 1 Gauss point,
     /// the scalar, vector and tensor fields are constant at all points and equal to their values at the Gauss point.
     /// Implements Singleton pattern.
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// The integration rule which defines the integration points used for extrapolating values and defining an auxiliary 
         /// coordinate system.
         /// </summary>
-        public IQuadrature2D Quadrature { get { return GaussQuadratureForTriangles.Order1Point1; } }
+        public IQuadrature2D Quadrature { get { return TriangleQuadratureSymmetricGaussian.Order1Point1; } }
 
         /// <summary>
         /// Get the unique <see cref="ExtrapolationGaussTriangular1Point"/> object for the whole program. Thread safe.

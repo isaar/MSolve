@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {
     /// <summary>
     /// Calculates extrapolations of scalar, vector and tensor fields from the integration points of 2-by-2 Gauss-Legendre 
-    /// quadrature. This can be done for any point, but utility methods for directly outputting the extrapolated fields at the
+    /// quadrature. This can be done at any point, but utility methods for directly outputting the extrapolated fields at the
     /// nodes of finite elements are also provided.
     /// Implements Singleton pattern.
     /// Authors: Serafeim Bakalakos
@@ -40,12 +40,12 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
             // Shape functions of the imaginary "Gauss element". 
             // Each shape function corresponds to an integration point of Gauss-Legendre 2x2. Therefore their order is the same
             // as the one defined by GaussLegendre2D.Order2x2, namely Xi major/Eta minor, instead of the usual Quad4 order.
-            var shapeFunctions = new double[4];
-            shapeFunctions[0] = 0.25 * (1 - r) * (1 - s);
-            shapeFunctions[1] = 0.25 * (1 + r) * (1 - s);
-            shapeFunctions[2] = 0.25 * (1 - r) * (1 + s);
-            shapeFunctions[3] = 0.25 * (1 + r) * (1 + s);
-            
+            var shapeFunctions = new double[4];             // The usual Quad4 shape function would be:
+            shapeFunctions[0] = 0.25 * (1 - r) * (1 - s);   // N0
+            shapeFunctions[1] = 0.25 * (1 + r) * (1 - s);   // N1
+
+            shapeFunctions[2] = 0.25 * (1 - r) * (1 + s);   // N3
+            shapeFunctions[3] = 0.25 * (1 + r) * (1 + s);   // N2
             return shapeFunctions;
         }
     }

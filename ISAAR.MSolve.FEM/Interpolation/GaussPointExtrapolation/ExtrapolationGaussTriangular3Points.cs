@@ -4,12 +4,30 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
+
+// This extrapolation is used for Tri6 interpolation with 3 Gauss points, where the node and GP numbering is:
+//
+// eta
+// ^
+// | s
+// | ^
+//   |
+// 1
+// | \
+// | 1 \
+// |     \
+// 4       3
+// |         \
+// | 2      0  \    --> r
+// |             \
+// 2 ---- 5 ----- 0   --> xi
+
 namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 {
     /// <summary>
     /// Calculates extrapolations of scalar, vector and tensor fields from the integration points of 
-    /// <see cref="GaussQuadratureForTriangles.Order2Points3"/>. This can be done for any point, but utility methods for directly 
-    /// outputting the extrapolated fields at the nodes of finite elements are also provided.
+    /// <see cref="TriangleSymmetricGaussianQuadrature.Order2Points3"/>. This can be done at any point, but utility methods for  
+    /// directly outputting the extrapolated fields at the nodes of finite elements are also provided.
     /// Implements Singleton pattern.
     /// Authors: Serafeim Bakalakos
     /// </summary>
@@ -18,7 +36,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         private const double oneOverThree = 1.0 / 3.0;
         private static readonly ExtrapolationGaussTriangular3Points uniqueInstance = new ExtrapolationGaussTriangular3Points();
 
-        private ExtrapolationGaussTriangular3Points() : base(GaussQuadratureForTriangles.Order2Points3)
+        private ExtrapolationGaussTriangular3Points() : base(TriangleQuadratureSymmetricGaussian.Order2Points3)
         { }
 
         /// <summary>
@@ -34,12 +52,13 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
             double s = 2.0 * point.Eta - oneOverThree;
 
             // Shape functions of the imaginary "Gauss element".
-            // Each shape function corresponds to an integration point of GaussQuadratureForTriangles.Order2Points3. Therefore 
-            // their order must be the same: point at right angle, point on Xi, point on Eta.
+            // Each shape function corresponds to an integration point of GaussQuadratureForTrianglesSymmetric.Order2Points3.  
+            // Therefore their order must be the same: point on Xi, point on Eta, point at right angle. This might differ from 
+            // the node order in InterpolationTri3.
             var shapeFunctions = new double[3];
-            shapeFunctions[0] = 1 - r - s;
-            shapeFunctions[1] = r;
-            shapeFunctions[2] = s;
+            shapeFunctions[0] = r;
+            shapeFunctions[1] = s;
+            shapeFunctions[2] = 1 - r - s;
             return shapeFunctions;
         }
     }

@@ -6,6 +6,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Shapes;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -19,13 +20,19 @@ namespace ISAAR.MSolve.FEM.Interpolation
         private readonly Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, double[]>> cachedRawShapeFunctionsAtGPs;
         private readonly Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, EvalShapeFunctions2D>> cachedShapeFunctionsAtGPs;
 
-        protected IsoparametricInterpolation2DBase(int numFunctions)
+        protected IsoparametricInterpolation2DBase(CellType2D cellType, int numFunctions)
         {
+            this.CellType = cellType;
             this.NumFunctions = numFunctions;
             this.cachedNaturalShapeDerivativesAtGPs = new Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, double[,]>>();
             this.cachedRawShapeFunctionsAtGPs = new Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, double[]>>();
             this.cachedShapeFunctionsAtGPs = new Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, EvalShapeFunctions2D>>();
         }
+
+        /// <summary>
+        /// The shape of a cell. Useful for interacting with other modules and software.
+        /// </summary>
+        public CellType2D CellType { get; }
 
         /// <summary>
         /// The number of shape functions that define this interpolation.

@@ -4,6 +4,8 @@ using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 
 //TODO: need special 2x2 Matrix class
+//TODO: once we know that an exception will be thrown, try to pinpoint the error: wrong node order, clockwise node order, the  
+//      element's shape is too distorted, midpoints are too close to corners in quadratic elements, etc...
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>

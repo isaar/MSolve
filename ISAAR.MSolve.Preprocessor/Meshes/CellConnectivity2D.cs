@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Geometry.Shapes;
 
-namespace ISAAR.MSolve.FEM.Meshes
+//TODO: this should be moved to Geometry.Shapes once Node2D has been replaced with a generic IPoint2D
+namespace ISAAR.MSolve.Preprocessor.Meshes
 {
     /// <summary>
     /// Data Transfer Object that packs the <see cref="CellType2D"/> with the vertices of a cell. Since there are no 
