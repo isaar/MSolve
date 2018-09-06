@@ -49,6 +49,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
         //Panos - I dont think I need these
         public double Density { get; set; }
+        public double Thickness { get; set; }
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
         //
@@ -314,7 +315,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     for (int j = i; j < 8; j++)
                     {
                         double stiffness = (b[0, j] * eb[0]) + (b[1, j] * eb[1]) + (b[2, j] * eb[2]);
-                        stiffnessMatrix[i, j] += stiffness * intPoint.WeightFactor;
+                        stiffnessMatrix[i, j] += stiffness * intPoint.WeightFactor*Thickness;
                     }
                 }
             }
@@ -376,9 +377,9 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] faWeight = new double[iInt3];
             double[,] fadStrains = new double[iInt3, 6];
             double[,] faStrains = new double[iInt3, 6];
-            //	CalcQ4GaussMatrices(ref iInt, faXY, faWeight, faS, faDS, faJ, faDetJ, faB);
-            //	CalcQ4Strains(ref iInt, faB, localDisplacements, faStrains);
-            //	CalcQ4Strains(ref iInt, faB, localdDisplacements, fadStrains);
+            //CalcQ4GaussMatrices(ref iInt, faXY, faWeight, faS, faDS, faJ, faDetJ, faB);
+            //CalcQ4Strains(ref iInt, faB, localDisplacements, faStrains);
+            //CalcQ4Strains(ref iInt, faB, localdDisplacements, fadStrains);
 
             double[] dStrains = new double[6];
             double[] strains = new double[6];

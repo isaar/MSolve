@@ -56,8 +56,7 @@ namespace ISAAR.MSolve.SamplesConsole
             trussModel.NodesDictionary[1].Constraints.Add(DOFType.Y);
             trussModel.NodesDictionary[2].Constraints.Add(DOFType.X);
             trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
-
-
+            
             var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea} };
             var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea} };
 

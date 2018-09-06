@@ -1,16 +1,17 @@
-﻿using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using ISAAR.MSolve.Materials.Interfaces; 
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces; 
+using ISAAR.MSolve.Numerical.LinearAlgebra; 
 
-namespace ISAAR.MSolve.FEM.Materials
+namespace ISAAR.MSolve.Materials
 {
-    public class ElasticMaterial3D : IIsotropicContinuumMaterial3D
+    public class ElasticMaterial3D_v2 : IContinuumMaterial3D, IIsotropicContinuumMaterial3D
     {
         private readonly double[] strains = new double[6];
-        private readonly double[] incrementalStrains = new double[6];
-        private readonly double[] stresses = new double[6];
-        private double[] stressesNew = new double[6];
+        private readonly StressStrainVectorContinuum3D stresses = new StressStrainVectorContinuum3D();
         private double[,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
@@ -42,19 +43,6 @@ namespace ISAAR.MSolve.FEM.Materials
             return afE;
         }
 
-        private void CalculateNextStressStrainPoint()
-        {
-            var stressesElastic = new double[6];
-            for (int i = 0; i < 6; i++)
-            {
-                stressesElastic[i] = this.stresses[i];
-                for (int j = 0; j < 6; j++)
-                    stressesElastic[i] += this.constitutiveMatrix[i, j] * this.incrementalStrains[j];
-            }
-
-            this.stressesNew = stressesElastic;
-        }
-
         #region IFiniteElementMaterial Members
 
         public int ID
@@ -75,41 +63,38 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region IFiniteElementMaterial3D Members
 
-        public StressStrainVectorContinuum3D Stresses { get { return new StressStrainVectorContinuum3D(stresses); } }
+        public StressStrainVectorContinuum3D Stresses { get { return stresses; } }
 
         public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(new StressStrainVectorContinuum3D(new double[6]));
+                if (constitutiveMatrix == null) UpdateMaterial(new double[6]);
                 return new ElasticityTensorContinuum3D(constitutiveMatrix);
             }
         }
 
-        public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
+        public void UpdateMaterial(double[] strains)
         {
-            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
+            //throw new NotImplementedException();
+
+            strains.CopyTo(this.strains, 0);
             constitutiveMatrix = GetConstitutiveMatrix();
-            this.CalculateNextStressStrainPoint();
         }
 
         public void ClearState()
         {
-            if (constitutiveMatrix != null) Array.Clear(constitutiveMatrix, 0, constitutiveMatrix.Length);
-            Array.Clear(incrementalStrains, 0, incrementalStrains.Length);
-            Array.Clear(stresses, 0, stresses.Length);
-            Array.Clear(stressesNew, 0, stressesNew.Length);
+            //throw new NotImplementedException();
         }
 
         public void SaveState()
         {
-            Array.Copy(this.stressesNew, this.stresses, 6);
+            //throw new NotImplementedException();
         }
 
         public void ClearStresses()
         {
-            Array.Clear(this.stresses, 0, 6);
-            Array.Clear(this.stressesNew, 0, 6);
+            //throw new NotImplementedException();
         }
 
         #endregion
@@ -118,10 +103,15 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public object Clone()
         {
-            return new ElasticMaterial3D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
+            return new ElasticMaterial3D_v2() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
         }
 
-        #endregion
+		public void UpdateMaterial(StressStrainVectorContinuum3D strains)
+		{
+			throw new NotImplementedException();
+		}
 
-    }
+		#endregion
+
+	}
 }
