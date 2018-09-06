@@ -13,8 +13,6 @@ namespace ISAAR.MSolve.IGA.Tests
 {
 	public class Nurbs2D
 	{
-		private const double Tolerance = 1e-7;
-
 		private List<ControlPoint> ElementControlPoints()
 		{
 			return new List<ControlPoint>
