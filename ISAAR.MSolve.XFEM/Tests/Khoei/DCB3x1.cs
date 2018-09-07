@@ -1,31 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
-using ISAAR.MSolve.XFEM.Solvers;
-using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
-using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
-using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Tests.Tools;
-using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
-using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 
 namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {

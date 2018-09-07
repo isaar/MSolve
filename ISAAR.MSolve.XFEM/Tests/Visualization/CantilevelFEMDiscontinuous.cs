@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Solvers;
-using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.FreedomDegrees;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Output;
 using ISAAR.MSolve.XFEM.Output.VTK;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Tensors;
 using ISAAR.MSolve.XFEM.Utilities;
 

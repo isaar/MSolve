@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
-using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging;
 using ISAAR.MSolve.XFEM.CrackPropagation;
@@ -15,22 +16,17 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
-using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
 using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh;
-using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Materials;
-using ISAAR.MSolve.XFEM.Solvers;
-using ISAAR.MSolve.XFEM.Tests.Tools;
-using ISAAR.MSolve.XFEM.Utilities;
-using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
-using System.IO;
 using ISAAR.MSolve.XFEM.Output.VTK;
+using ISAAR.MSolve.XFEM.Solvers;
+using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: limit enriched nodes in the areas around the cracks
 namespace ISAAR.MSolve.XFEM.Tests.GRACM

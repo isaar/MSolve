@@ -19,6 +19,7 @@ using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Tensors;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Solvers.MenkBordas;
-using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: This needs to be split between standard and enriched. Otherwise all enriched stuff may be uninitialized or in a 
 //      previous state.
