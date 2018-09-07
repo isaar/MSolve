@@ -14,24 +14,11 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.XFEM.Tests;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            //SolveBuildingInNoSoilSmall();
-            //TrussExample.Run();
-
-            //FEM.Cantilever2D.Run();
-            //FEM.Cantilever2DPreprocessor.Run();
-            //FEM.WallWithOpenings.Run();
-
-            //XFEMTestSuite.RunAll();
-        }
-
         private static void SolveBuildingInNoSoilSmall()
         {
             VectorExtensions.AssignTotalAffinityCount();
@@ -155,6 +142,15 @@ namespace ISAAR.MSolve.SamplesConsole
             stohasticAnalyzer.Solve();
 
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
+        }
+        
+        static void Main(string[] args)
+        {
+            //SolveBuildingInNoSoilSmall();
+            //TrussExample.Run();
+            //FEM.Cantilever2D.Run();
+            //FEM.Cantilever2DPreprocessor.Run();
+            FEM.WallWithOpenings.Run();
         }
     }
 }

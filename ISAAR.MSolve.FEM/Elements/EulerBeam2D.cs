@@ -19,6 +19,8 @@ namespace ISAAR.MSolve.FEM.Elements
         public double Density { get; set; }
         public double SectionArea { get; set; }
         public double MomentOfInertia { get; set; }
+        public double RayleighAlpha { get; set; }
+        public double RayleighBeta { get; set; }
 
         public EulerBeam2D(double youngModulus)
         {
@@ -93,6 +95,7 @@ namespace ISAAR.MSolve.FEM.Elements
         ////[   70*c^2+54*s^2,          16*c*s,         -13*s*L, 140*c^2+156*s^2,         -16*c*s,          22*s*L]
         ////[          16*c*s,   70*s^2+54*c^2,          13*c*L,         -16*c*s, 140*s^2+156*c^2,         -22*c*L]
         ////[          13*s*L,         -13*c*L,          -3*L^2,          22*s*L,         -22*c*L,           4*L^2]
+        
         //public IMatrix2D<double> MassMatrix(Element element)
         //{
         //    double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
@@ -144,7 +147,11 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D DampingMatrix(IElement element)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            var m = MassMatrix(element);
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
+            return m;
         }
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
@@ -198,10 +205,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
+            // Method intentionally left empty.
         }
-		
+
         public void ClearMaterialState()
         {
+            // Method intentionally left empty.
         }
 
         public void ClearMaterialStresses()
