@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.XFEM.Utilities;
+﻿using ISAAR.MSolve.Numerical.Commons;
+using ISAAR.MSolve.XFEM.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

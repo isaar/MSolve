@@ -5,12 +5,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.XFEM.Utilities
+//TODO: Add slicing features
+//TODO: Perhaps a Table.Builder would be better, since EntryCount can be O(1)
+//TODO: If we know that the rows are ALL the nodes of the model and they are numberd contiguously, we can implement the rows 
+//      as an array instead of Dictionary, in order to speed up things.
+namespace ISAAR.MSolve.Numerical.Commons
 {
-    // TODO: Add slicing features
-    // TODO: Perhaps a Table.Builder would be better, since EntryCount can be O(1)
-    // TODO: If we know that the rows are ALL the nodes of the model and they are numberd contiguously, we can implement the rows 
-    // as an array instead of Dictionary, in order to speed up things.
+    /// <summary>
+    /// Basic table data structure, which associates ordered pairs (row, column) with values. Contrary to matrices, not 
+    /// all (row, column) pairs of a table need to be associated with values.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    /// <typeparam name="TRow"></typeparam>
+    /// <typeparam name="TColumn"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
     public class Table<TRow, TColumn, TValue> : ITable<TRow, TColumn, TValue>
     {
         protected readonly Dictionary<TRow, Dictionary<TColumn, TValue>> data;
