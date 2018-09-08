@@ -711,7 +711,7 @@ namespace ISAAR.MSolve.Tests
 
         }
 
-        [Fact]
+        //[Fact]
         private static void SolveStaticLinearWall()
         {
             #region Read Data
@@ -907,7 +907,7 @@ namespace ISAAR.MSolve.Tests
             #endregion
         }
 
-        [Fact]
+        //[Fact]
         private static void SolveDynamicWall()
         {
             #region Read Data
@@ -1019,7 +1019,7 @@ namespace ISAAR.MSolve.Tests
         }
 
 
-        [Fact]
+        //[Fact]
         public void Solve4QuadProblem()
         {
             VectorExtensions.AssignTotalAffinityCount();

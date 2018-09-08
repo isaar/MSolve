@@ -42,9 +42,9 @@ namespace ISAAR.MSolve.FEM.Elements
             this.gp_d3_disp = gp_d3c;
             this.nGaussPoints = this.gp_d1_disp * this.gp_d2_disp * this.gp_d3_disp;
             materialsAtGaussPoints = new IContinuumMaterial3D[nGaussPoints];
-            for (int i = 0; i < nGaussPoints; i++)
-                materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
-        }
+			for (int i = 0; i < nGaussPoints; i++)
+				materialsAtGaussPoints[i] = (IContinuumMaterial3D)material;
+		}
 
         public int endeixiShapeFunctionAndGaussPointData = 1;
         //private double[] a_123g;
