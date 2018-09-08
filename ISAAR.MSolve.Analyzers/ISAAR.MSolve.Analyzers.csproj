@@ -6,6 +6,8 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Compute.Bindings.IntelMKL" Version="0.1.5" />
+    <PackageReference Include="Compute.Winx64.IntelMKL" Version="2018.1.156.1" />
     <PackageReference Include="Thrower" Version="4.3.1" />
     <PackageReference Include="Troschuetz.Random" Version="4.3.0" />
   </ItemGroup>
