@@ -20,22 +20,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    {
 		    NodalNaturalCoordinates = new NaturalPoint3D[]
 		    {
-			    new NaturalPoint3D(1, 0, 0),
-			    new NaturalPoint3D(0, 1, 0),
-			    new NaturalPoint3D(-1, 0, 0),
-			    new NaturalPoint3D(0, -1, 0),
-			    new NaturalPoint3D(0, 0, 1),
+				new NaturalPoint3D(-1,-1,-1),
+			    new NaturalPoint3D(1,-1,-1),
+			    new NaturalPoint3D(1,1,-1),
+			    new NaturalPoint3D(-1,1,-1),
+			    new NaturalPoint3D(0,0,1),
 
-			    new NaturalPoint3D(0.5, 0.5, 0),
-			    new NaturalPoint3D(0.5, -0.5, 0),
-			    new NaturalPoint3D(0.5, 0, 0.5),
-			    new NaturalPoint3D(-0.5, 0.5, 0),
-			    new NaturalPoint3D(0, 0.5, 0.5),
+			    new NaturalPoint3D(0,-1,-1),
+			    new NaturalPoint3D(-1,0,-1),
+			    new NaturalPoint3D(-0.5,-0.5,0),
+			    new NaturalPoint3D(1,0,-1),
+			    new NaturalPoint3D(0.5,-0.5,0),
 
-			    new NaturalPoint3D(-0.5, -0.5, 0),
-			    new NaturalPoint3D(-0.5, 0, 0.5),
-			    new NaturalPoint3D(0, -0.5, 0.5),
-			    new NaturalPoint3D(0, 0, 0),
+			    new NaturalPoint3D(0,1,-1),
+			    new NaturalPoint3D(0.5,0.5,0),
+			    new NaturalPoint3D(-0.5,0.5,0),
+				new NaturalPoint3D(0, 0, -1),
 		    };
 	    }
 

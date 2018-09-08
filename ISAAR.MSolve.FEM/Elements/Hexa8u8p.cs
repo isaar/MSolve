@@ -102,9 +102,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Hexa8u8p(IIsotropicContinuumMaterial3D material)
         {
-            materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[Hexa8u8p.iInt3];
-            for (int i = 0; i < Hexa8u8p.iInt3; i++)
-                materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
+            //materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[Hexa8u8p.iInt3];
+            //for (int i = 0; i < Hexa8u8p.iInt3; i++)
+            //    materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
         }
 
         public Hexa8u8p(IIsotropicContinuumMaterial3D material, IElementDOFEnumerator dofEnumerator) : this(material)

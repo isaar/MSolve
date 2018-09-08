@@ -43,9 +43,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Hexa8WithStochasticMaterial(IStochasticContinuumMaterial3D material)
         {
-            materialsAtGaussPoints = new IStochasticContinuumMaterial3D[iInt3];
-            for (int i = 0; i < iInt3; i++)
-                materialsAtGaussPoints[i] = (IStochasticContinuumMaterial3D)material.Clone();
+            //materialsAtGaussPoints = new IStochasticContinuumMaterial3D[iInt3];
+            //for (int i = 0; i < iInt3; i++)
+            //    materialsAtGaussPoints[i] = (IStochasticContinuumMaterial3D)material.Clone();
         }
 
         public Hexa8WithStochasticMaterial(IStochasticContinuumMaterial3D material, Hexa8Memoizer memoizer) : this(material)
