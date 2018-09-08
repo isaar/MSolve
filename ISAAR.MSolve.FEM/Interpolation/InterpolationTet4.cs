@@ -68,18 +68,19 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    {
 		    var derivatives = new double[4, 3];
 		    derivatives[0, 0] = -1.0;
+		    derivatives[0, 1] = -1.0;
+		    derivatives[0, 2] = -1.0;
+
 			derivatives[1, 0] = 1.0;
-		    derivatives[2, 0] = 0.0;
-		    derivatives[3, 0] = 0.0;
+		    derivatives[1, 1] = 0.0;
+		    derivatives[1, 2] = 0.0;
 
-			derivatives[0, 1] = -1.0;
-			derivatives[1, 1] = 0.0;
+			derivatives[2, 0] = 0.0;
 		    derivatives[2, 1] = 1.0;
-		    derivatives[3, 1] = 0.0;
-
-			derivatives[0, 2] = -1.0;
-			derivatives[1, 2] = 0.0;
 		    derivatives[2, 2] = 0.0;
+
+			derivatives[3, 0] = 0.0;
+		    derivatives[3, 1] = 0.0;
 		    derivatives[3, 2] = 1.0;
 		    
 		    return derivatives;

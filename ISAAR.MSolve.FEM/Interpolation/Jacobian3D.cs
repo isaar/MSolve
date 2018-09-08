@@ -72,13 +72,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			for (int nodeIndex = 0; nodeIndex < nodes.Count; nodeIndex++)
 			{
 				jacobianMatrix[0, 0] += naturalDerivatives[nodeIndex, 0] * nodes[nodeIndex].X;
-				jacobianMatrix[0, 1] += naturalDerivatives[nodeIndex, 0] * nodes[nodeIndex].Y;
-				jacobianMatrix[0, 2] += naturalDerivatives[nodeIndex, 0] * nodes[nodeIndex].Z;
-				jacobianMatrix[1, 0] += naturalDerivatives[nodeIndex, 1] * nodes[nodeIndex].X;
+				jacobianMatrix[0, 1] += naturalDerivatives[nodeIndex, 1] * nodes[nodeIndex].X;
+				jacobianMatrix[0, 2] += naturalDerivatives[nodeIndex, 2] * nodes[nodeIndex].X;
+
+				jacobianMatrix[1, 0] += naturalDerivatives[nodeIndex, 0] * nodes[nodeIndex].Y;
 				jacobianMatrix[1, 1] += naturalDerivatives[nodeIndex, 1] * nodes[nodeIndex].Y;
-				jacobianMatrix[1, 2] += naturalDerivatives[nodeIndex, 1] * nodes[nodeIndex].Z;
-				jacobianMatrix[2, 0] += naturalDerivatives[nodeIndex, 2] * nodes[nodeIndex].X;
-				jacobianMatrix[2, 1] += naturalDerivatives[nodeIndex, 2] * nodes[nodeIndex].Y;
+				jacobianMatrix[1, 2] += naturalDerivatives[nodeIndex, 2] * nodes[nodeIndex].Y;
+
+				jacobianMatrix[2, 0] += naturalDerivatives[nodeIndex, 0] * nodes[nodeIndex].Z;
+				jacobianMatrix[2, 1] += naturalDerivatives[nodeIndex, 1] * nodes[nodeIndex].Z;
 				jacobianMatrix[2, 2] += naturalDerivatives[nodeIndex, 2] * nodes[nodeIndex].Z;
 			}
 
