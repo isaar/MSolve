@@ -1,5 +1,4 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Discretization.Providers

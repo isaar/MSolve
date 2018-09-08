@@ -11,5 +11,11 @@ namespace ISAAR.MSolve.Materials.Interfaces
         bool Modified { get; }
         void ResetModified();
         double[] Coordinates { get; set; }
+        double YoungModulus { get; }
+        double PoissonRatio { get; }
+
+        void SaveState();
+        void ClearState();
+        void ClearStresses();
     }
 }

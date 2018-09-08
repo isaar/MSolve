@@ -11,7 +11,6 @@ namespace ISAAR.MSolve.Discretization.Providers
         {
             return element.IElementType.MassMatrix(element);
         }
-
         #endregion
     }
 }

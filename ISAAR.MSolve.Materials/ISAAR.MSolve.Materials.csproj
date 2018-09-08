@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ElasticMaterial3D_v2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
   </ItemGroup>
 

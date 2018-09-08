@@ -155,65 +155,6 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         public Dictionary<int, double> CalculateLoadingCondition(Element element,Edge edge,NeumannBoundaryCondition neumann)
         {
             throw new NotSupportedException();
-            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(element);
-            Dictionary<int, double> neumannLoad = new Dictionary<int, double>();
-
-            NURBS2D nurbs = new NURBS2D(element, element.ControlPoints);
-
-            for (int j = 0; j < gaussPoints.Count; j++)
-            {
-                Matrix2D jacobianMatrix = new Matrix2D(2, 3);
-                double xGaussPoint = 0;
-                double yGaussPoint = 0;
-                double zGaussPoint = 0;
-                for (int k = 0; k < element.ControlPoints.Count; k++)
-                {
-                    xGaussPoint += nurbs.NurbsValues[k, j] * element.ControlPoints[k].X;
-                    yGaussPoint += nurbs.NurbsValues[k, j] * element.ControlPoints[k].Y;
-                    zGaussPoint += nurbs.NurbsValues[k, j] * element.ControlPoints[k].Z;
-                    jacobianMatrix[0, 0] += nurbs.NurbsDerivativeValuesKsi[k, j] * element.ControlPoints[k].X;
-                    jacobianMatrix[0, 1] += nurbs.NurbsDerivativeValuesKsi[k, j] * element.ControlPoints[k].Y;
-                    jacobianMatrix[0, 2] += nurbs.NurbsDerivativeValuesKsi[k, j] * element.ControlPoints[k].Z;
-                    jacobianMatrix[1, 0] += nurbs.NurbsDerivativeValuesHeta[k, j] * element.ControlPoints[k].X;
-                    jacobianMatrix[1, 1] += nurbs.NurbsDerivativeValuesHeta[k, j] * element.ControlPoints[k].Y;
-                    jacobianMatrix[1, 2] += nurbs.NurbsDerivativeValuesHeta[k, j] * element.ControlPoints[k].Z;
-                }
-                Vector surfaceBasisVector1 = new Vector(3);
-                surfaceBasisVector1[0] = jacobianMatrix[0, 0];
-                surfaceBasisVector1[1] = jacobianMatrix[0, 1];
-                surfaceBasisVector1[2] = jacobianMatrix[0, 2];
-
-                Vector surfaceBasisVector2 = new Vector(3);
-                surfaceBasisVector2[0] = jacobianMatrix[1, 0];
-                surfaceBasisVector2[1] = jacobianMatrix[1, 1];
-                surfaceBasisVector2[2] = jacobianMatrix[1, 2];
-
-                Vector surfaceBasisVector3 = surfaceBasisVector1.CrossProduct(surfaceBasisVector2);
-
-                double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
-                    - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
-
-                for (int k = 0; k < element.ControlPoints.Count; k++)
-                {
-                    for (int m=0; m<3; m++)
-                    {
-                        int dofID= element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID]
-                            [(DOFType)Enum.Parse(typeof(DOFType), m.ToString())];
-                        if (neumannLoad.ContainsKey(dofID))
-                        {
-                            neumannLoad[dofID] += nurbs.NurbsValues[k, j] * jacdet * gaussPoints[j].WeightFactor * neumann.Value(xGaussPoint,yGaussPoint,zGaussPoint)[m] * surfaceBasisVector3[m];
-                        }
-                        else
-                        {
-                            neumannLoad.Add(dofID, nurbs.NurbsValues[k, j] * jacdet * gaussPoints[j].WeightFactor * neumann.Value(xGaussPoint, yGaussPoint, zGaussPoint)[m] * surfaceBasisVector3[m]);
-                        }
-                    }
-
-                }
-                
-                
-            }
-            return neumannLoad;
         }
 
 
@@ -252,7 +193,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
                 surfaceBasisVector2[1] = jacobianMatrix[1, 1];
                 surfaceBasisVector2[2] = jacobianMatrix[1, 2];
 
-                Vector surfaceBasisVector3 = surfaceBasisVector1.CrossProduct(surfaceBasisVector2);
+                Vector surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
 
                 double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
                     - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
@@ -319,7 +260,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
                 surfaceBasisVector2[1] = jacobianMatrix[1, 1];
                 surfaceBasisVector2[2] = jacobianMatrix[1, 2];
 
-                Vector surfaceBasisVector3 = surfaceBasisVector1.CrossProduct(surfaceBasisVector2);
+                Vector surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
 
                 double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
                     - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];

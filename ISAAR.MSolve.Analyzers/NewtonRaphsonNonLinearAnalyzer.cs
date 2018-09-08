@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISubdomainGlobalMapping[] mappings;
         private readonly int increments;
         private readonly int totalDOFs;
-        private readonly int maxSteps = 120;
-        private readonly int stepsForMatrixRebuild = 500;
-        private readonly double tolerance = 1e-5;
+        private int maxSteps = 1000;
+        private int stepsForMatrixRebuild = 1;
+        private readonly double tolerance = 1e-8;
         private double rhsNorm;
         private INonLinearParentAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
         public NewtonRaphsonNonLinearAnalyzer(ISolver solver, ILinearSystem[] linearSystems, INonLinearSubdomainUpdater[] subdomainUpdaters, ISubdomainGlobalMapping[] mappings,
-            INonLinearProvider provider, int increments, int totalDOFs, int maximumIteration=120, int iterationStepsForMatrixRebuild=500)
+            INonLinearProvider provider, int increments, int totalDOFs)
         {
             this.solver = solver;
             this.subdomainUpdaters = subdomainUpdaters;
@@ -46,11 +46,28 @@ namespace ISAAR.MSolve.Analyzers
             this.totalDOFs = totalDOFs;
             this.globalRHS = new Vector(totalDOFs);
 
-	        maxSteps = maximumIteration;
-	        stepsForMatrixRebuild=iterationStepsForMatrixRebuild;
-	        
-			InitializeInternalVectors();
+            InitializeInternalVectors();
         }
+
+        public int SetMaxIterations
+        {
+            set
+            {
+                if (value > 0) { this.maxSteps = value; }
+                else { throw new Exception("Iterations number cannot be negative or zero"); }
+            }
+        }
+
+
+        public int SetIterationsForMatrixRebuild
+        {
+            set
+            {
+                if (value > 0) { this.stepsForMatrixRebuild = value; }
+                else { throw new Exception("Iterations number for matrix rebuild cannot be negative or zero"); }
+            }
+        }
+
 
         private void InitializeLogs()
         {
@@ -82,7 +99,7 @@ namespace ISAAR.MSolve.Analyzers
             set { throw new InvalidOperationException("Newton-Raphson analyzer cannot contain an embedded analyzer."); }
         }
 
-        public void InitializeInternalVectors()
+        public void InitializeInternalVectors()//TODOMaria: this is probably where the initial internal nodal vector is calculated
         {
             globalRHS.Clear();
             rhs.Clear();
@@ -104,7 +121,7 @@ namespace ISAAR.MSolve.Analyzers
             rhsNorm = provider.RHSNorm(globalRHS.Data);
         }
 
-        private void UpdateInternalVectors()
+        private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRHS.Clear();
             foreach (ILinearSystem subdomain in linearSystems)
@@ -129,7 +146,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 rhs[subdomain.ID].CopyTo(subdomainRHS.Data, 0);
-                subdomainRHS.Multiply(step + 1);
+                //subdomainRHS.Multiply(step + 1);
             }
         }
 
@@ -138,23 +155,23 @@ namespace ISAAR.MSolve.Analyzers
             InitializeLogs();
 
             DateTime start = DateTime.Now;
-            UpdateInternalVectors();
+            UpdateInternalVectors();//TODOMaria this divides the externally applied load by the number of increments and scatters it to all subdomains and stores it in the class subdomain dictionary and total external load vector
             for (int increment = 0; increment < increments; increment++)
             {
                 double errorNorm = 0;
-                ClearIncrementalSolutionVector();
-                UpdateRHS(increment);
+                ClearIncrementalSolutionVector();//TODOMaria this sets du to 0
+                UpdateRHS(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
 
                 double firstError = 0;
                 int step = 0;
                 for (step = 0; step < maxSteps; step++)
                 {
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
                     if (step == 0) firstError = errorNorm;
                     if (errorNorm < tolerance) break;
 
-                    SplitResidualForcesToSubdomains();
+                    SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
                     if ((step + 1) % stepsForMatrixRebuild == 0)
                     {
                         provider.Reset();
@@ -165,8 +182,8 @@ namespace ISAAR.MSolve.Analyzers
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
-            CopySolutionToSubdomains();
-//            ClearMaterialStresses();
+            CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
+            //            ClearMaterialStresses();
             DateTime end = DateTime.Now;
 
             StoreLogResults(start, end);
@@ -193,18 +210,18 @@ namespace ISAAR.MSolve.Analyzers
                     uPlusdu[subdomain.ID].Add(du[subdomain.ID]);
                 }
                 //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
-                Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);
-                provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);
-                    //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
+                Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);//TODOMaria this calculates the internal forces
+                provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);//TODOMaria this does nothing
+                //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
                     internalRHS.Add(new Vector(parentAnalyzer.GetOtherRHSComponents(subdomain,
-                        uPlusdu[subdomain.ID])));
+                        uPlusdu[subdomain.ID])));//TODOMaria this does nothing for the static problem
                 //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
-                
+
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 subdomainRHS.Clear();
-                for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);
+                for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);//TODOMaria this adds the external forces 
                 subdomainRHS.Subtract(internalRHS);
                 mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
             }
@@ -243,15 +260,15 @@ namespace ISAAR.MSolve.Analyzers
                 u[subdomain.ID].CopyTo(((Vector)subdomain.Solution).Data, 0);
         }
 
-        private void ClearMaterialStresses()
-        {
-            foreach (ILinearSystem subdomain in linearSystems)
-                subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].ResetState();
-        }
+        //private void ClearMaterialStresses()
+        //{
+        //    foreach (ILinearSystem subdomain in linearSystems)
+        //        subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].ResetState();
+        //}
 
         public void BuildMatrices()
         {
-            if (parentAnalyzer == null) 
+            if (parentAnalyzer == null)
                 throw new InvalidOperationException("This Newton-Raphson non-linear analyzer has no parent.");
 
             parentAnalyzer.BuildMatrices();

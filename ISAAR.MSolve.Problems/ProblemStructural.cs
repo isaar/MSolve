@@ -7,12 +7,12 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using System;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.FEM.Providers;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.FEM.Providers;
 
 namespace ISAAR.MSolve.Problems
 {
@@ -159,6 +159,7 @@ namespace ISAAR.MSolve.Problems
 
         public void ProcessRHS(ILinearSystem subdomain, ImplicitIntegrationCoefficients coefficients)
         {
+            // Method intentionally left empty.
         }
 
         public IDictionary<int, double[]> GetAccelerationsOfTimeStep(int timeStep)

@@ -86,6 +86,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 MultiplyTranspose(vIn, vOut);
         }
 
+        public void Multiply(double[] vIn, double[] vOut)
+        {
+            Matrix2D AA = new Matrix2D(data);
+            for (int i = 0; i < rows; i++)
+            {
+                vOut[i] = 0;
+                for (int j = 0; j < columns; j++)
+                    vOut[i] += AA.Data[i, j] * vIn[j];
+            }
+        }
+
         private void MultiplyNormal(IVector vIn, double[] vOut)
         {
             Matrix2D AA = new Matrix2D(data);
@@ -100,11 +111,11 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
         private void MultiplyTranspose(IVector vIn, double[] vOut)
         {
             Matrix2D AA = new Matrix2D(data);
-            for (int i = 0; i < columns; i++)
+            for (int j = 0; j < columns; j++)
             {
-                vOut[i] = 0;
-                for (int j = 0; j < rows; j++)
-                    vOut[i] += AA.Data[j, i] * vIn[i];
+                vOut[j] = 0;
+                for (int i = 0; i < rows; i++)
+                    vOut[j] += AA.Data[i, j] * vIn[i]; 
             }
         }
 
@@ -186,7 +197,6 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 for (int j = 0; j < A.Columns; j++)
                     AA[i, j] = AA[i, j] * b;
             return AA;
-
         }
 
         public void SVD(double[] w, double[,] v)
@@ -565,6 +575,26 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //    for (i = 0; i < rows; i++) delete u[i];
             //    delete u;
             //  } 
+        }        
+
+        public void LinearCombinationGOAT(IList<double> coefficients, IList<IMatrix2D> matrices)
+        {
+            if (coefficients.Count != matrices.Count)
+                throw new ArgumentException("Coefficient and matrix sizes do not match");
+            foreach (var m in matrices)
+                if (m.Rows != this.Rows || m.Columns != this.Columns)
+                    throw new ArgumentException("Matrix sizes do not match");
+            var localData = data as double[,];
+            var localCoefficients = coefficients as IList<double>;
+
+            for (int k = 0; k < coefficients.Count; k++)
+            {
+                var m = (Matrix2D)matrices[k];
+                var d = localCoefficients[k];
+                for (int i = 0; i < this.Rows; i++)
+                    for (int j = 0; j < this.Columns; j++)
+                        localData[i, j] += d * m.Data[i, j];
+            }
         }
 
         public void LinearCombination(IList<double> coefficients, IList<IMatrix2D> matrices)
@@ -582,7 +612,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 var m = matrices[k];
                 for (int i = 0; i < rows; i++)
                     for (int j = 0; j < columns; j++)
-                        newData[i, j] += cs[i] * m[i, j];
+                        newData[i, j] += cs[k] * m[i, j];
                 //for (int j = 0; j < data.Length; j++)
                 //    newData[j] += cs[i] * m.Data[j];
             }
@@ -590,5 +620,20 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             Array.Copy(newData, data, data.Length);
         }
 
+        public static Matrix2D FromVector(double[] vector)
+        {
+            var m = new Matrix2D(vector.Length, 1);
+            for (int i = 0; i < m.Data.Length; i++)
+                m.Data[i, 0] = vector[i];
+            return m;
+        }
+
+        public static Matrix2D FromVectorTranspose(double[] vector)
+        {
+            var m = new Matrix2D(1, vector.Length);
+            for (int i = 0; i < m.Data.Length; i++)
+                m.Data[0, i] = vector[i];
+            return m;
+        }        
     }
 }
