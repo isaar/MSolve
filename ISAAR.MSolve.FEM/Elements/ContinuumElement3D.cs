@@ -233,6 +233,13 @@ namespace ISAAR.MSolve.FEM.Elements
 			return (strains, stresses);
 		}
 
+		/// <summary>
+		/// Assembles the deformation matrix of a solid element.
+		/// The calculation are based on <see cref="https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch08.d/AFEM.Ch08.pdf"/>
+		/// paragraph 8.4, equation 8.7
+		/// </summary>
+		/// <param name="shapeGradients"></param>
+		/// <returns></returns>
 		private Matrix2D BuildDeformationMatrix(EvalShapeGradients3D shapeGradients)
 		{
 			var deformation= new Matrix2D(6,3*Nodes.Count);
@@ -249,11 +256,11 @@ namespace ISAAR.MSolve.FEM.Elements
 				deformation[3, col1] = dNdx[1];
 				deformation[3, col2] = dNdx[0];
 
-				deformation[4, col1] = dNdx[2];
-				deformation[4, col3] = dNdx[0];
-
 				deformation[4, col2] = dNdx[2];
 				deformation[4, col3] = dNdx[1];
+
+				deformation[5, col1] = dNdx[2];
+				deformation[5, col3] = dNdx[0];
 			}
 
 			return deformation;
