@@ -1,0 +1,52 @@
+version: '1.0.{build}'
+configuration: Release
+image: Visual Studio 2017
+branches:
+  only: 
+    - develop
+clone_folder: C:\Users\user\Source\Repos\MSolve
+shallow_clone: true
+environment:
+  MSBUILDDISABLENODEREUSE: 1
+  CODECOV_TOKEN:
+    secure: X4e0xZjF4hpFxNTvKGC9QhyjnCML5BixbxDNytIGWNvBNlHGf+YKIa2fbofbRHG1
+  SONARCLOUD_TOKEN:
+    secure: vz+D+lQEcarbfFSumYJ5mFhSJc6ZLSFq6EJbPRkC6mS75HKe7RgkD5WS78CVZyex
+  GITHUB_REPO_TOKEN:
+    secure: RO45EjKJgJVwLCNFIimR7lmp29zB78RrmcD11pXGMbwgmf1TtVreUeoAfQ534UT1
+  COVERALLS_TOKEN:
+    secure: uCHsOleK9bLyqaC14VqkHlMfnpxWvOIXrUK8UHoM3OPQ9jHdZBrqugb8g6Bos0Se
+cache:
+  - packages
+install:
+  - dotnet restore --packages packages 
+before_build:
+- ps: >-
+    nuget restore
+    
+    choco install opencover.portable
+  
+    choco install codecov
+    
+    choco install msbuild-sonarqube-runner
+    
+    SonarQube.Scanner.MSBuild begin /k:"Sonar.MSolve" /d:"sonar.organization=dimtsap-github" /d:"sonar.host.url=https://sonarcloud.io" /d:"sonar.login=$env:SONARCLOUD_TOKEN"
+matrix:
+  fast_finish: true
+build:
+  project: ISAAR.MSolve.sln
+  parallel: true
+  verbosity: detailed
+after_build:
+- ps: >-
+    SonarQube.Scanner.MSBuild end /d:"sonar.login=$env:SONARCLOUD_TOKEN"
+test_script:
+- ps: >-
+    Remove-Item -Recurse -Force .sonarqube
+    
+    SonarQube.Scanner.MSBuild begin /k:"Sonar.MSolve" /d:"sonar.organization=dimtsap-github" /d:"sonar.host.url=https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="MSolve_coverage.xml"
+    
+    OpenCover.Console.exe -register:user -target:"dotnet.exe" -targetargs:"test ISAAR.MSolve.Tests --configuration Debug /p:DebugType=Full"  -output:MSolve_coverage.xml -oldStyle -excludebyattribute:*.ExcludeFromCodeCoverage*^ -filter:"+[*]* -[ISAAR.MSolve.Tests*]*" -hideskipped:all
+    
+    codecov -f MSolve_coverage.xml  -t $env:CODECOV_TOKEN
+    

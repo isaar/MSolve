@@ -24,9 +24,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Hexa8u8pWithStochasticMaterial(IStochasticIsotropicContinuumMaterial3D material)//why take IStochasticIsotropicFiniteElementMaterial if we're going to downcast to IIsotropicFiniteElementMaterial3D??
         {
-            materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[iInt3];
-            for (int i = 0; i < iInt3; i++)
-                materialsAtGaussPoints[i] = (IStochasticIsotropicContinuumMaterial3D)material.Clone();
+            //materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[iInt3];
+            //for (int i = 0; i < iInt3; i++)
+            //    materialsAtGaussPoints[i] = (IStochasticIsotropicContinuumMaterial3D)material.Clone();
         }
 
         public Hexa8u8pWithStochasticMaterial(IStochasticIsotropicContinuumMaterial3D material, Hexa8Memoizer memoizer)
