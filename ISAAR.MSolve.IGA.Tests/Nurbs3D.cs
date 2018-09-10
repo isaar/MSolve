@@ -119,26 +119,35 @@ namespace ISAAR.MSolve.IGA.Tests
 			});
 		}
 
+		private NURBSElement3D Element
+		{
+			get
+			{
+				var element = new NURBSElement3D();
+				var patch = new Patch();
+				foreach (var controlPoint in ElementControlPoints())
+					element.ControlPointsDictionary.Add(controlPoint.ID, controlPoint);
+				foreach (var knot in ElementKnot())
+					element.KnotsDictionary.Add(knot.ID, knot);
+				patch.DegreeKsi = 3;
+				patch.DegreeHeta = 3;
+				patch.DegreeZeta = 3;
+				patch.NumberOfControlPointsHeta = 4;
+				patch.NumberOfControlPointsZeta = 15;
+				patch.KnotValueVectorKsi = KnotValueVectorKsi();
+				patch.KnotValueVectorHeta = KnotValueVectorHeta();
+				patch.KnotValueVectorZeta = KnotValueVectorZeta();
+				element.Patch = patch;
+				return element;
+			}
+		}
+
+		private const double Tolerance = 1e-10;
+
 		[Fact]
 		public void TestShapeNurbs3DPartitionOfUnity()
 		{
-			const double tolerance = 1e-10;
-			var element = new NURBSElement3D();
-			var patch = new Patch();
-			foreach (var controlPoint in ElementControlPoints())
-				element.ControlPointsDictionary.Add(controlPoint.ID, controlPoint);
-			foreach (var knot in ElementKnot())
-				element.KnotsDictionary.Add(knot.ID, knot);
-			patch.DegreeKsi = 3;
-			patch.DegreeHeta = 3;
-			patch.DegreeZeta = 3;
-			patch.NumberOfControlPointsHeta = 4;
-			patch.NumberOfControlPointsZeta = 15;
-			patch.KnotValueVectorKsi = KnotValueVectorKsi();
-			patch.KnotValueVectorHeta = KnotValueVectorHeta();
-			patch.KnotValueVectorZeta = KnotValueVectorZeta();
-			element.Patch = patch;
-
+			var element = Element;
 			var nurbs3D = new NURBS3D(element, element.ControlPoints);
 
 			for (var p = 0; p < nurbs3D.NurbsValues.Columns; p++)
@@ -146,9 +155,8 @@ namespace ISAAR.MSolve.IGA.Tests
 				var sum = 0.0;
 				for (var f = 0; f < nurbs3D.NurbsValues.Rows; f++)
 					sum += nurbs3D.NurbsValues[f, p];
-				Assert.True(Utilities.AreValuesEqual(1.0, sum, tolerance));
+				Assert.True(Utilities.AreValuesEqual(1.0, sum, Tolerance));
 			}
 		}
-
 	}
 }
