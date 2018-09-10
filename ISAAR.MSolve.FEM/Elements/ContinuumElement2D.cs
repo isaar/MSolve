@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -199,6 +200,18 @@ namespace ISAAR.MSolve.FEM.Elements
         public IElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
 
         public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+
+        public DofTable<IDof> GetNodalDofs() // TODO: Perhaps this should be more minimalistic
+        {
+            var dofTable = new DofTable<IDof>();
+            int dofCounter = 0;
+            foreach (var node in Nodes)
+            {
+                dofTable[node, DisplacementDof.X] = dofCounter++;
+                dofTable[node, DisplacementDof.Y] = dofCounter++;
+            }
+            return dofTable;
+        }
 
         public IMatrix2D MassMatrix(IElement element)
         {

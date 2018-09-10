@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Reordering
             watch.Restart();
-            DofOrderer = unorderedDofs.DeepCopy();
+            DofOrderer = unorderedDofs.DeepCopy(); //TODO: this just wastes time, doesn't it? I think it was for testing purposes.
             Reorder();
             watch.Stop();
             Logger.LogDuration(iteration, "AMD ordering", watch.ElapsedMilliseconds);

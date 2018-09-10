@@ -401,9 +401,9 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public int StandardDofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
 
-        public DofTable<EnrichedDof> GetEnrichedDofs()
+        public FreedomDegrees.Ordering.DofTable<EnrichedDof> GetEnrichedDofs()
         {
-            var elementDofs = new DofTable<EnrichedDof>();
+            var elementDofs = new FreedomDegrees.Ordering.DofTable<EnrichedDof>();
             int dofCounter = 0;
             foreach (XNode2D node in Nodes)
             {
@@ -425,9 +425,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// code duplication with the standard ContinuumElement2D
         /// </summary>
         /// <returns></returns>
-        public DofTable<DisplacementDof> GetStandardDofs()
+        public FreedomDegrees.Ordering.DofTable<DisplacementDof> GetStandardDofs()
         {
-            var elementDofs = new DofTable<DisplacementDof>();
+            var elementDofs = new FreedomDegrees.Ordering.DofTable<DisplacementDof>();
             int dofCounter = 0;
             foreach (XNode2D node in Nodes)
             {
