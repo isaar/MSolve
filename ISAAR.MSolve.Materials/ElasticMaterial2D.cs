@@ -97,6 +97,8 @@ namespace ISAAR.MSolve.Materials
         #endregion
 
         #region ICloneable Members
+        object ICloneable.Clone() => Clone();
+
         public ElasticMaterial2D Clone()
         {
             return new ElasticMaterial2D(StressState)

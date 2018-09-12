@@ -115,6 +115,7 @@ namespace ISAAR.MSolve.FEM.Materials
         #endregion
 
         #region ICloneable Members
+        object ICloneable.Clone() => Clone();
 
         public ElasticMaterial3D Clone()
         {
