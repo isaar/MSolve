@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 //TODO: Remove this as soon as the legacy matrices are purged.
-namespace ISAAR.MSolve.Solvers.Utilities
+namespace ISAAR.MSolve.Solvers.Commons
 {
     internal static class Conversions
     {

@@ -5,7 +5,7 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Solvers.Ordering;
-using ISAAR.MSolve.Solvers.Utilities;
+using ISAAR.MSolve.Solvers.Commons;
 
 //TODO: The F = Ff - Kfc*Fc should not be done in the solver. The solver should only operate on the final linear systems.
 //      It could be done here or in the analyzer.
