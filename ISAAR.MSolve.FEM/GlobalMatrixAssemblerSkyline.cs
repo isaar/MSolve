@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.FEM
         //    return CalculateRowIndex(subdomain, subdomain.NodalDOFsDictionary);
         //}
 
-        public static SkylineMatrix2D CalculateGlobalMatrix(Subdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateFreeFreeGlobalMatrix(Subdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider) //TODOMaria this is where the free-free matrix is calculated 
         {
             // TODO: should encapsulate DOF logic into a separate entity that will manage things if embedded or not (should return element matrix and globaldofs correspondence list
             var times = new Dictionary<string, TimeSpan>();
@@ -100,9 +100,9 @@ namespace ISAAR.MSolve.FEM
             return K;
         }
 
-        public static SkylineMatrix2D CalculateGlobalMatrix(Subdomain subdomain, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateFreeFreeGlobalMatrix(Subdomain subdomain, IElementMatrixProvider elementProvider)
         {
-            return CalculateGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
+            return CalculateFreeFreeGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
         }
     }
 }
