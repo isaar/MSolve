@@ -243,8 +243,7 @@ namespace ISAAR.MSolve.Tests
             var model = new Model();
             model.SubdomainsDictionary.Add(1, new Subdomain { ID = 1 });
             HexaCantileverBeamForNewtonRaphson.Build(model, 850);
-
-
+            
             model.ConnectDataStructures();
 
             var linearSystems = new Dictionary<int, ILinearSystem>();
