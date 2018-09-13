@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected readonly IIsotropicContinuumMaterial3D[] materialsAtGaussPoints; //compa : isotropic  //protected readonly IFiniteElementMaterial3D[] materialsAtGaussPoints;
+        protected readonly IShellMaterial[] materialsAtGaussPoints; //compa : isotropic  //protected readonly IFiniteElementMaterial3D[] materialsAtGaussPoints;
         protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         // ews edw 
 
@@ -65,20 +65,22 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[][,] BL13; 
         //private double[] E;
         //private double[] ni;
-        private double[][,] ConsCartes;
+        private double[][,] ConsCartes; // TODOGer delete
+
+        private double[][] GLvec;
+        private double[][] SPKvec;
 
 
 
-        public Shell8dispCopyGetRAM_1(IIsotropicContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
+        public Shell8dispCopyGetRAM_1(IShellMaterial material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
         {
             this.gp_d1 = gp_d1c;
             this.gp_d2 = gp_d2c;
             this.gp_d3 = gp_d3c;
             this.nGaussPoints = this.gp_d1 * this.gp_d2 * this.gp_d3;
-            materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[nGaussPoints];
-            for (int i = 0; i < nGaussPoints; i++)
-                materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
-
+            materialsAtGaussPoints = new IShellMaterial[nGaussPoints];
+            for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
+               
             this.interpolation = InterpolationShell8.UniqueInstance;
         }
 
@@ -300,13 +302,10 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
             //PROSTHIKI gia ram 
-            double[,] Cons;
-            double[,] Cons_T_e;
-            double[] V3;
-            double V3_norm;
-            double[] V1;
-            double V1_norm;
-            double[] V2;
+            //double[,] Cons;
+            //double[,] Cons_T_e;
+            
+            //double[] V2;
             //double[,] T_e;
             //double l1;
             //double m1;
@@ -318,19 +317,24 @@ namespace ISAAR.MSolve.FEM.Elements
             //double m3;
             //double n3;
 
-            V3 = new double[3];
-            V1 = new double[3];
+            
             //V2 = new double[3];
             //T_e = new double[6, 6];
-            nGaussPoints = gp_d1 * gp_d2 * gp_d3;
-            ConsCartes = new double[nGaussPoints][,];
+            nGaussPoints = gp_d1 * gp_d2 * gp_d3; 
+            ConsCartes = new double[nGaussPoints][,]; // TODOGer delete
             E = new double[nGaussPoints];
             ni = new double[nGaussPoints];
             //Cons = new double[6, 6];
             //Cons_T_e = new double[6, 6];
             for (int j = 0; j < nGaussPoints; j++)
             {
-                E[j] = materialsAtGaussPoints[j].YoungModulus;
+                double[] V3 = new double[3];
+                double V3_norm;
+                double[] V1 = new double[3];
+                double V1_norm;
+                
+                
+                E[j] = materialsAtGaussPoints[j].YoungModulus; // TODOGer delete
                 ni[j] = materialsAtGaussPoints[j].PoissonRatio;
                 //ConsCartes[j] = new double[6, 6];
                 //for (int k = 0; k < 2; k++)
@@ -361,6 +365,9 @@ namespace ISAAR.MSolve.FEM.Elements
                     V3[l] = V3[l] / V3_norm;
                     V1[l] = V1[l] / V1_norm;
                 }
+
+                materialsAtGaussPoints[j].NormalVectorV3 = V3;
+                materialsAtGaussPoints[j].TangentVectorV1 = V1;
 
                 //V2[0] = V3[1] * V1[2] - V3[2] * V1[1];
                 //V2[1] = V3[2] * V1[0] - V3[0] * V1[2];
@@ -430,9 +437,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         
 
-        private double[][] GLvec;
-
-        private double[][] SPKvec;
+       
         //private double[,] SPK_circumflex;  //private double[][,] SPK_circumflex;
 
         private void CalculateSPK()
@@ -477,7 +482,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //    for (int l = 0; l < 9; l++)
             //    { SPK_circumflex[k, l] = 0; }  // PROSTHIKI RAM ektos loop nGausspoint
             //}
-        }
+        } 
 
         private void UpdateSPK()
         {
@@ -1488,7 +1493,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
-            return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
+            return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
         //aparaithta tou Istructural gia th dunamiki analusi
