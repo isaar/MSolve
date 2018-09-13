@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Materials
 
         private bool modified; // opws sto MohrCoulomb gia to modified
         private double [,] ConsCartes;
-        private double[] SPKvec;
+        private double[] SPKvec = new double[6];
 
         object ICloneable.Clone() => Clone();
 
@@ -38,8 +38,7 @@ namespace ISAAR.MSolve.Materials
             //elegxos initialize matrices
             if (ConsCartes==null)
             {
-                this.CalculateConstituveMatrixInCartesianCoordinates(NormalVectorV3,TangentVectorV1);
-                SPKvec = new double[6];
+                this.CalculateConstituveMatrixInCartesianCoordinates(NormalVectorV3,TangentVectorV1);                
             }
 
             for (int l = 0; l < 6; l++)

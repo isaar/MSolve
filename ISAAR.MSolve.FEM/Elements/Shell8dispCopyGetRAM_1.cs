@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[][,] ConsCartes; // TODOGer delete
 
         private double[][] GLvec;
-        private double[][] SPKvec;
+        //private double[][] SPKvec;
 
 
 
@@ -440,80 +440,80 @@ namespace ISAAR.MSolve.FEM.Elements
        
         //private double[,] SPK_circumflex;  //private double[][,] SPK_circumflex;
 
-        private void CalculateSPK()
-        {
-            SPKvec = new double[nGaussPoints][];
-            //SPK_circumflex = new double[9,9]; //SPK_circumflex = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                SPKvec[j] = new double[6];
-                //SPK_circumflex[j] = new double[9, 9];
-                for (int l = 0; l < 6; l++)
-                {
-                    SPKvec[j][l] = 0;
-                    for (int m = 0; m < 6; m++)
-                    {
-                        SPKvec[j][l] += ConsCartes[j][l, m] * GLvec[j][m];
-                    }
+        //private void CalculateSPK()
+        //{
+        //    SPKvec = new double[nGaussPoints][];
+        //    //SPK_circumflex = new double[9,9]; //SPK_circumflex = new double[nGaussPoints][,];
+        //    for (int j = 0; j < nGaussPoints; j++)
+        //    {
+        //        SPKvec[j] = new double[6];
+        //        //SPK_circumflex[j] = new double[9, 9];
+        //        for (int l = 0; l < 6; l++)
+        //        {
+        //            SPKvec[j][l] = 0;
+        //            for (int m = 0; m < 6; m++)
+        //            {
+        //                SPKvec[j][l] += ConsCartes[j][l, m] * GLvec[j][m];
+        //            }
 
-                }
-                //for (int k = 0; k < 9; k++)
-                //{
-                //    for (int l = 0; l < 9; l++)
-                //    { SPK_circumflex[j][k, l] = 0; }
-                //}
-                //for (int k = 0; k < 3; k++)
-                //{
-                //    for (int l = 0; l < 3; l++)
-                //    {
-                //        SPK_circumflex[j][3 * k + l, 3 * k + l] = SPKvec[j][l];
-                //    }
-                //    SPK_circumflex[j][3 * k, 3 * k + 1] = SPKvec[j][3];
-                //    SPK_circumflex[j][3 * k, 3 * k + 2] = SPKvec[j][5];
-                //    SPK_circumflex[j][3 * k + 1, 3 * k + 2] = SPKvec[j][4];
+        //        }
+        //        //for (int k = 0; k < 9; k++)
+        //        //{
+        //        //    for (int l = 0; l < 9; l++)
+        //        //    { SPK_circumflex[j][k, l] = 0; }
+        //        //}
+        //        //for (int k = 0; k < 3; k++)
+        //        //{
+        //        //    for (int l = 0; l < 3; l++)
+        //        //    {
+        //        //        SPK_circumflex[j][3 * k + l, 3 * k + l] = SPKvec[j][l];
+        //        //    }
+        //        //    SPK_circumflex[j][3 * k, 3 * k + 1] = SPKvec[j][3];
+        //        //    SPK_circumflex[j][3 * k, 3 * k + 2] = SPKvec[j][5];
+        //        //    SPK_circumflex[j][3 * k + 1, 3 * k + 2] = SPKvec[j][4];
 
-                //    SPK_circumflex[j][3 * k + 1, 3 * k] = SPKvec[j][3];
-                //    SPK_circumflex[j][3 * k + 2, 3 * k] = SPKvec[j][5];
-                //    SPK_circumflex[j][3 * k + 2, 3 * k + 1] = SPKvec[j][4];
-                //}
-            }
-            //for (int k = 0; k < 9; k++)
-            //{
-            //    for (int l = 0; l < 9; l++)
-            //    { SPK_circumflex[k, l] = 0; }  // PROSTHIKI RAM ektos loop nGausspoint
-            //}
-        } 
+        //        //    SPK_circumflex[j][3 * k + 1, 3 * k] = SPKvec[j][3];
+        //        //    SPK_circumflex[j][3 * k + 2, 3 * k] = SPKvec[j][5];
+        //        //    SPK_circumflex[j][3 * k + 2, 3 * k + 1] = SPKvec[j][4];
+        //        //}
+        //    }
+        //    //for (int k = 0; k < 9; k++)
+        //    //{
+        //    //    for (int l = 0; l < 9; l++)
+        //    //    { SPK_circumflex[k, l] = 0; }  // PROSTHIKI RAM ektos loop nGausspoint
+        //    //}
+        //} 
 
-        private void UpdateSPK()
-        {
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                for (int l = 0; l < 6; l++)
-                {
-                    SPKvec[j][l] = 0;
-                    for (int m = 0; m < 6; m++)
-                    {
-                        SPKvec[j][l] += ConsCartes[j][l, m] * GLvec[j][m];
-                    }
+        //private void UpdateSPK() //TODOGer Delete
+        //{
+        //    for (int j = 0; j < nGaussPoints; j++)
+        //    {
+        //        for (int l = 0; l < 6; l++)
+        //        {
+        //            SPKvec[j][l] = 0;
+        //            for (int m = 0; m < 6; m++)
+        //            {
+        //                SPKvec[j][l] += ConsCartes[j][l, m] * GLvec[j][m];
+        //            }
 
-                }
-                //for (int k = 0; k < 3; k++)
-                //{
-                //    for (int l = 0; l < 3; l++)
-                //    {
-                //        SPK_circumflex[j][3 * k + l, 3 * k + l] = SPKvec[j][l];
-                //    }
-                //    SPK_circumflex[j][3 * k, 3 * k + 1] = SPKvec[j][3];
-                //    SPK_circumflex[j][3 * k, 3 * k + 2] = SPKvec[j][5];
-                //    SPK_circumflex[j][3 * k + 1, 3 * k + 2] = SPKvec[j][4];
+        //        }
+        //        //for (int k = 0; k < 3; k++)
+        //        //{
+        //        //    for (int l = 0; l < 3; l++)
+        //        //    {
+        //        //        SPK_circumflex[j][3 * k + l, 3 * k + l] = SPKvec[j][l];
+        //        //    }
+        //        //    SPK_circumflex[j][3 * k, 3 * k + 1] = SPKvec[j][3];
+        //        //    SPK_circumflex[j][3 * k, 3 * k + 2] = SPKvec[j][5];
+        //        //    SPK_circumflex[j][3 * k + 1, 3 * k + 2] = SPKvec[j][4];
 
-                //    SPK_circumflex[j][3 * k + 1, 3 * k] = SPKvec[j][3];
-                //    SPK_circumflex[j][3 * k + 2, 3 * k] = SPKvec[j][5];
-                //    SPK_circumflex[j][3 * k + 2, 3 * k + 1] = SPKvec[j][4];
-                //}
+        //        //    SPK_circumflex[j][3 * k + 1, 3 * k] = SPKvec[j][3];
+        //        //    SPK_circumflex[j][3 * k + 2, 3 * k] = SPKvec[j][5];
+        //        //    SPK_circumflex[j][3 * k + 2, 3 * k + 1] = SPKvec[j][4];
+        //        //}
 
-            }
-        }
+        //    }
+        //}
 
         //private double[][,] ck;// 1 ana komvo kai ana gauss Point dld [GP][8komvoi,diastash9]
         private double [][,] CalculateCk(double[] [,] J_0a,double [][] tU )
@@ -562,15 +562,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        private void UpdatePartiallyPrecalculatedVariables__forStrains(Element element, double[][] tx_i)
-        {
-            //this.UpdateJ_1b();
-            //this.UpdateJ_1();
-            //this.UpdateDefGradTr();
-            //this.UpdateGL();
-            //this.UpdateGLvec();
-            this.CalculateStrains(element, tx_i);
-        }
+        //private void UpdatePartiallyPrecalculatedVariables__forStrains(Element element, double[][] tx_i)
+        //{
+        //    //this.UpdateJ_1b();
+        //    //this.UpdateJ_1();
+        //    //this.UpdateDefGradTr();
+        //    //this.UpdateGL();
+        //    //this.UpdateGLvec();
+        //    this.CalculateStrains(element, tx_i);
+        //}
 
         private void CalculateStrains(IElement element, double[][] tx_i)
         {
@@ -948,7 +948,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     Fxk[j][k] = 0;
                     for (int m = 0; m < 6; m++)
-                    { Fxk[j][k] += BL[j][m, k] * SPKvec[j][m]; }
+                    { Fxk[j][k] += BL[j][m, k] * materialsAtGaussPoints[j].Stresses[m]; }
                 }
             }
             for (int k = 0; k < 40; k++)
@@ -1161,15 +1161,15 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     for (int l = 0; l < 3; l++)
                     {
-                        SPK_circumflex[3 * k + l, 3 * k + l] = SPKvec[j][l];
+                        SPK_circumflex[3 * k + l, 3 * k + l] = materialsAtGaussPoints[j].Stresses[l];
                     }
-                    SPK_circumflex[3 * k, 3 * k + 1] = SPKvec[j][3];
-                    SPK_circumflex[3 * k, 3 * k + 2] = SPKvec[j][5];
-                    SPK_circumflex[3 * k + 1, 3 * k + 2] = SPKvec[j][4];
+                    SPK_circumflex[3 * k, 3 * k + 1] = materialsAtGaussPoints[j].Stresses[3];
+                    SPK_circumflex[3 * k, 3 * k + 2] = materialsAtGaussPoints[j].Stresses[5];
+                    SPK_circumflex[3 * k + 1, 3 * k + 2] = materialsAtGaussPoints[j].Stresses[4];
 
-                    SPK_circumflex[3 * k + 1, 3 * k] = SPKvec[j][3];
-                    SPK_circumflex[3 * k + 2, 3 * k] = SPKvec[j][5];
-                    SPK_circumflex[3 * k + 2, 3 * k + 1] = SPKvec[j][4];
+                    SPK_circumflex[3 * k + 1, 3 * k] = materialsAtGaussPoints[j].Stresses[3];
+                    SPK_circumflex[3 * k + 2, 3 * k] = materialsAtGaussPoints[j].Stresses[5];
+                    SPK_circumflex[3 * k + 2, 3 * k + 1] = materialsAtGaussPoints[j].Stresses[4];
                 }
 
                 for (int k = 0; k < 9; k++)
@@ -1190,7 +1190,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     BL01plus1_2tSPKvec[j][k] = 0;
                     for (int m = 0; m < 6; m++)
                     {
-                        BL01plus1_2tSPKvec[j][k] += BL01plus1_2[j][m, k] * SPKvec[j][m];
+                        BL01plus1_2tSPKvec[j][k] += BL01plus1_2[j][m, k] * materialsAtGaussPoints[j].Stresses[m];
                     }
                 }
 
@@ -1491,8 +1491,17 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (IIsotropicContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
         }
 
-        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
+            this.UpdateCoordinateData(localTotalDisplacements, element.INodes, out double[][] tx_i);
+            this.CalculateStrains(element, tx_i);
+            for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
+            {
+                materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+            }
+            //this.UpdatePartiallyPrecalculatedVariables__forStrains( element, tx_i);
+            //this.UpdateSPK(); //mporei na lamvanetai apo uliko nme materialsAtGPs.Stresses // mporei na xwristhei afto se spkvec kai ta upoloiopa pou einai gia KMatrices (SPK_circumflex)
+
             return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
@@ -1522,12 +1531,10 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
             double[] Fxk;
-            this.UpdateCoordinateData(localTotalDisplacements, element.INodes, out double[][] tx_i);
-            this.UpdatePartiallyPrecalculatedVariables__forStrains( element, tx_i);
-            this.UpdateSPK(); //mporei na lamvanetai apo uliko nme materialsAtGPs.Stresses // mporei na xwristhei afto se spkvec kai ta upoloiopa pou einai gia KMatrices (SPK_circumflex)
-
-
+           
             //this.UpdatePartiallyPrecalculatedVariables_andforForces();
+
+            // TODOGer metafora sto spkvec to material.stresses h xrhsh kateftheian stresses ** ti ginetai me to circumflex
             Fxk=this.UpdateForces(element);
 
             //PrintUtilities.WriteToFileVector(Fxk, @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output\Fxk_shell.txt");
@@ -1551,7 +1558,15 @@ namespace ISAAR.MSolve.FEM.Elements
                 this.CalculateStrains(element, tx_i);
 
                 //this.CalculateCk();
-                this.CalculateSPK(); // ousiastika kanei th douleia tou ulikou
+                //this.CalculateSPK(); // ousiastika kanei th douleia tou ulikou
+                //edw to hexa pairnei tis Spkvec[npoint][j] = materialsAtGaussPoints[npoint].Stresses[j];
+                //TODOGer tha to kaname etsi alla pleon tha xrhs mono materials.stresses kateftheian.
+                //Gia arxikes strains: (TODOGer den exei ginei sto hexa8)
+                for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
+                {
+                    materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+                }
+
                 this.InitializeFandKmatrixes();
 
                 //this.Calculatell2();
