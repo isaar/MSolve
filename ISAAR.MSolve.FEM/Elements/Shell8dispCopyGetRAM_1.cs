@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Elements
         // ews edw 
 
         public double[][] oVn_i { get; set; }
-        public double[][] oV1_i { get; set; }
+        //public double[][] oV1_i { get; set; }
         //public double[][] oV2_i { get; set; }
         public int gp_d1 { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
         public int gp_d2 { get; set; }
@@ -44,7 +44,30 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double a_3g;
         private readonly InterpolationShell8 interpolation;
 
-        
+        //private double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
+        //private double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
+        //private double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
+        //private double[][,] ll1;//einai teliko kai oxi prok
+        //private double[][,] J_0a;//einai teliko kai oxi prok
+        // metavlhtes pou einai ex oloklhrou proupologismenes// PRWTA APO AFTO THA EKTELESTEI GETINTIALGEOMETRICDATA(ELEMENT)
+        //private double[,] J_0b;    //einai idio gia ola ta gauss points 
+        //private double[][,] J_0;       //den einai to idio gia ola ta gausspoint // einai teliko kai oxi prok
+        //private double[] detJ_0; //[] osa kai ta gauss points
+        //private double[][,] J_0inv;
+        //private double[][,] BL11a;
+        //private double[][,] BL12;
+        //private double[][,] BNL1;
+
+        //private double[][] tx_i; //8 arrays twn 3 stoixeiwn //den einai apo afta pou orizei o xrhsths
+        private double[][] tU;   //8 arrays twn 6 stoixeiwn 
+        private double[][] tUvec;//8 arrays twn 6 stoixeiwn
+
+        //private double[][,] BL13; 
+        //private double[] E;
+        //private double[] ni;
+        private double[][,] ConsCartes;
+
+
 
         public Shell8dispCopyGetRAM_1(IIsotropicContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
         {
@@ -67,29 +90,7 @@ namespace ISAAR.MSolve.FEM.Elements
         // ews edw
 
 
-        //private double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-        //private double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-        //private double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
-        //private double[][,] ll1;//einai teliko kai oxi prok
-        //private double[][,] J_0a;//einai teliko kai oxi prok
-        // metavlhtes pou einai ex oloklhrou proupologismenes// PRWTA APO AFTO THA EKTELESTEI GETINTIALGEOMETRICDATA(ELEMENT)
-        //private double[,] J_0b;    //einai idio gia ola ta gauss points 
-        //private double[][,] J_0;       //den einai to idio gia ola ta gausspoint // einai teliko kai oxi prok
-        //private double[] detJ_0; //[] osa kai ta gauss points
-        //private double[][,] J_0inv;
-        //private double[][,] BL11a;
-        //private double[][,] BL12;
-        //private double[][,] BNL1;
-
-        //private double[][] tx_i; //8 arrays twn 3 stoixeiwn //den einai apo afta pou orizei o xrhsths
-        private double[][] tU;   //8 arrays twn 6 stoixeiwn 
-        private double[][] tUvec;//8 arrays twn 6 stoixeiwn
-
-        //private double[][,] BL13; 
-
-        //private double[] E;
-        //private double[] ni;
-        private double[][,] ConsCartes;
+        
 
         private double[][,] GetBL11a(double [][,] J_0inv)
         {
@@ -261,7 +262,7 @@ namespace ISAAR.MSolve.FEM.Elements
             tx_i = new double[8][];
             tU = new double[8][];
             tUvec = new double[8][];
-            oV1_i = new double[8][];
+            double[][] oV1_i = new double[8][]; //tangent vector ''1'' initial configuration
             for (int j = 0; j < 8; j++)
             {
                 tx_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
@@ -306,44 +307,44 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] V1;
             double V1_norm;
             double[] V2;
-            double[,] T_e;
-            double l1;
-            double m1;
-            double n1;
-            double l2;
-            double m2;
-            double n2;
-            double l3;
-            double m3;
-            double n3;
+            //double[,] T_e;
+            //double l1;
+            //double m1;
+            //double n1;
+            //double l2;
+            //double m2;
+            //double n2;
+            //double l3;
+            //double m3;
+            //double n3;
 
             V3 = new double[3];
             V1 = new double[3];
-            V2 = new double[3];
-            T_e = new double[6, 6];
+            //V2 = new double[3];
+            //T_e = new double[6, 6];
             nGaussPoints = gp_d1 * gp_d2 * gp_d3;
             ConsCartes = new double[nGaussPoints][,];
             E = new double[nGaussPoints];
             ni = new double[nGaussPoints];
-            Cons = new double[6, 6];
-            Cons_T_e = new double[6, 6];
+            //Cons = new double[6, 6];
+            //Cons_T_e = new double[6, 6];
             for (int j = 0; j < nGaussPoints; j++)
             {
                 E[j] = materialsAtGaussPoints[j].YoungModulus;
                 ni[j] = materialsAtGaussPoints[j].PoissonRatio;
-                ConsCartes[j] = new double[6, 6];
-                for (int k = 0; k < 2; k++)
-                { Cons[k, k] = E[j] / (1 - Math.Pow(ni[j], 2)); }
-                Cons[0, 1] = ni[j] * E[j] / (1 - Math.Pow(ni[j], 2));
-                Cons[1, 0] = ni[j] * E[j] / (1 - Math.Pow(ni[j], 2));
-                Cons[3, 3] = (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2));
-                Cons[4, 4] = (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2)); //Cons[4, 4] = (1 - ni[j]) * (0.41666666667) * E[j] / (1 - Math.Pow(ni[j], 2));
-                Cons[5, 5] = (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2)); //Cons[5, 5] = (1 - ni[j]) * (0.41666666667) * E[j] / (1 - Math.Pow(ni[j], 2));
+                //ConsCartes[j] = new double[6, 6];
                 //for (int k = 0; k < 2; k++)
-                //{ Cons[4 + k, 4 + k] = (5 / 6) * (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2)); }
+                //{ Cons[k, k] = E[j] / (1 - Math.Pow(ni[j], 2)); }
+                //Cons[0, 1] = ni[j] * E[j] / (1 - Math.Pow(ni[j], 2));
+                //Cons[1, 0] = ni[j] * E[j] / (1 - Math.Pow(ni[j], 2));
+                //Cons[3, 3] = (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2));
+                //Cons[4, 4] = (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2)); //Cons[4, 4] = (1 - ni[j]) * (0.41666666667) * E[j] / (1 - Math.Pow(ni[j], 2));
+                //Cons[5, 5] = (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2)); //Cons[5, 5] = (1 - ni[j]) * (0.41666666667) * E[j] / (1 - Math.Pow(ni[j], 2));
+                ////for (int k = 0; k < 2; k++)
+                ////{ Cons[4 + k, 4 + k] = (5 / 6) * (1 - ni[j]) * (0.5) * E[j] / (1 - Math.Pow(ni[j], 2)); }
 
                 for (int k = 0; k < 3; k++)
-                { V3[k] = 0; V1[k] = 0; V2[k] = 0; }
+                { V3[k] = 0; V1[k] = 0; /* V2[k] = 0; */ }
 
                 for (int k = 0; k < 8; k++)
                 {
@@ -361,62 +362,62 @@ namespace ISAAR.MSolve.FEM.Elements
                     V1[l] = V1[l] / V1_norm;
                 }
 
-                V2[0] = V3[1] * V1[2] - V3[2] * V1[1];
-                V2[1] = V3[2] * V1[0] - V3[0] * V1[2];
-                V2[2] = V3[0] * V1[1] - V3[1] * V1[0];
+                //V2[0] = V3[1] * V1[2] - V3[2] * V1[1];
+                //V2[1] = V3[2] * V1[0] - V3[0] * V1[2];
+                //V2[2] = V3[0] * V1[1] - V3[1] * V1[0];
 
-                l1 = V1[0];
-                m1 = V1[1];
-                n1 = V1[2];
+                //l1 = V1[0];
+                //m1 = V1[1];
+                //n1 = V1[2];
 
-                l2 = V2[0];
-                m2 = V2[1];
-                n2 = V2[2];
+                //l2 = V2[0];
+                //m2 = V2[1];
+                //n2 = V2[2];
 
-                l3 = V3[0];
-                m3 = V3[1];
-                n3 = V3[2];
+                //l3 = V3[0];
+                //m3 = V3[1];
+                //n3 = V3[2];
 
-                for (int i = 0; i < 3; i++)
-                {
-                    T_e[0, i] = (V1[i] * V1[i]);
-                    T_e[1, i] = (V2[i] * V2[i]);
-                    T_e[2, i] = (V3[i] * V3[i]);
+                //for (int i = 0; i < 3; i++)
+                //{
+                //    T_e[0, i] = (V1[i] * V1[i]);
+                //    T_e[1, i] = (V2[i] * V2[i]);
+                //    T_e[2, i] = (V3[i] * V3[i]);
 
-                    T_e[3, i] = (2 * V1[i] * V2[i]);
-                    T_e[4, i] = (2 * V2[i] * V3[i]);
-                    T_e[5, i] = (2 * V3[i] * V1[i]);
+                //    T_e[3, i] = (2 * V1[i] * V2[i]);
+                //    T_e[4, i] = (2 * V2[i] * V3[i]);
+                //    T_e[5, i] = (2 * V3[i] * V1[i]);
 
-                    T_e[0, 3 + i] = (V1[i] * V1[1 + i - 3 * i * (i - 1) / 2]);
-                    T_e[1, 3 + i] = (V2[i] * V2[1 + i - 3 * i * (i - 1) / 2]);
-                    T_e[2, 3 + i] = (V3[i] * V3[1 + i - 3 * i * (i - 1) / 2]);
+                //    T_e[0, 3 + i] = (V1[i] * V1[1 + i - 3 * i * (i - 1) / 2]);
+                //    T_e[1, 3 + i] = (V2[i] * V2[1 + i - 3 * i * (i - 1) / 2]);
+                //    T_e[2, 3 + i] = (V3[i] * V3[1 + i - 3 * i * (i - 1) / 2]);
 
-                    T_e[3, 3 + i] = (V1[i] * V2[1 + i - 3 * i * (i - 1) / 2] + V2[i] * V1[1 + i - 3 * i * (i - 1) / 2]);
-                    T_e[4, 3 + i] = (V2[i] * V3[1 + i - 3 * i * (i - 1) / 2] + V3[i] * V2[1 + i - 3 * i * (i - 1) / 2]);
-                    T_e[5, 3 + i] = (V3[i] * V1[1 + i - 3 * i * (i - 1) / 2] + V1[i] * V3[1 + i - 3 * i * (i - 1) / 2]);
-                }
+                //    T_e[3, 3 + i] = (V1[i] * V2[1 + i - 3 * i * (i - 1) / 2] + V2[i] * V1[1 + i - 3 * i * (i - 1) / 2]);
+                //    T_e[4, 3 + i] = (V2[i] * V3[1 + i - 3 * i * (i - 1) / 2] + V3[i] * V2[1 + i - 3 * i * (i - 1) / 2]);
+                //    T_e[5, 3 + i] = (V3[i] * V1[1 + i - 3 * i * (i - 1) / 2] + V1[i] * V3[1 + i - 3 * i * (i - 1) / 2]);
+                //}
 
                 // multiplication [Te']*[cons]*[Te];
 
-                for (int i = 0; i < 6; i++)
-                {
-                    for (int k = 0; k < 6; k++)
-                    {
-                        Cons_T_e[i, k] = 0;
-                        for (int l = 0; l < 6; l++)
-                        { Cons_T_e[i, k] += Cons[i, l] * T_e[l, k]; }
-                    }
-                }
+                //for (int i = 0; i < 6; i++)
+                //{
+                //    for (int k = 0; k < 6; k++)
+                //    {
+                //        Cons_T_e[i, k] = 0;
+                //        for (int l = 0; l < 6; l++)
+                //        { Cons_T_e[i, k] += Cons[i, l] * T_e[l, k]; }
+                //    }
+                //}
 
-                for (int i = 0; i < 6; i++)
-                {
-                    for (int k = 0; k < 6; k++)
-                    {
-                        ConsCartes[j][i, k] = 0;
-                        for (int l = 0; l < 6; l++)
-                        { ConsCartes[j][i, k] += T_e[l, i] * Cons_T_e[l, k]; }
-                    }
-                }
+                //for (int i = 0; i < 6; i++)
+                //{
+                //    for (int k = 0; k < 6; k++)
+                //    {
+                //        ConsCartes[j][i, k] = 0;
+                //        for (int l = 0; l < 6; l++)
+                //        { ConsCartes[j][i, k] += T_e[l, i] * Cons_T_e[l, k]; }
+                //    }
+                //}
             }
 
             //BL13 = GetBL13(shapeFunctionDerivatives, tUvec, J_0a);
