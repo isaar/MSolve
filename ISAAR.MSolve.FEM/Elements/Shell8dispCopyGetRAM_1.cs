@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[][,] BL13; 
         //private double[] E;
         //private double[] ni;
-        private double[][,] ConsCartes; // TODOGer delete
+        //private double[][,] ConsCartes; // TODOGer delete
 
         private double[][] GLvec;
         //private double[][] SPKvec;
@@ -321,7 +321,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //V2 = new double[3];
             //T_e = new double[6, 6];
             nGaussPoints = gp_d1 * gp_d2 * gp_d3; 
-            ConsCartes = new double[nGaussPoints][,]; // TODOGer delete
+            //ConsCartes = new double[nGaussPoints][,]; // TODOGer delete
             E = new double[nGaussPoints];
             ni = new double[nGaussPoints];
             //Cons = new double[6, 6];
@@ -1212,7 +1212,7 @@ namespace ISAAR.MSolve.FEM.Elements
                         ConsBL[k, l] = 0;
                         for (int m = 0; m < 6; m++)
                         {
-                            ConsBL[k, l] += ConsCartes[j][k, m] * BL[j][m, l];
+                            ConsBL[k, l] += materialsAtGaussPoints[j].ConstitutiveMatrix[k, m] * BL[j][m, l];
                         }
                     }
                 }
