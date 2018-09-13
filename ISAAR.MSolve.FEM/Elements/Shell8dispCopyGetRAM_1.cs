@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.FEM.Interfaces;//using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matrices.Interfaces;
-using System.Runtime.InteropServices;
-using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;//using ISAAR.MSolve.PreProcessor.Elements.SupportiveClasses;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 //using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
 // compa
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;//using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matrices.Interfaces;
+using System;
+using System.Collections.Generic;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -30,7 +26,6 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[][] oVn_i { get; set; }
         public double[][] oV1_i { get; set; }
         //public double[][] oV2_i { get; set; }
-        private double[][] ox_i; //den einai apo afta pou orizei o xrhsths
         public int gp_d1 { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
         public int gp_d2 { get; set; }
         public int gp_d3 { get; set; }
@@ -47,10 +42,9 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double a_1g;
         //private double a_2g;
         //private double a_3g;
+        private readonly InterpolationShell8 interpolation;
 
-        protected Shell8dispCopyGetRAM_1()//consztructor apo to hexa8
-        {
-        }
+        
 
         public Shell8dispCopyGetRAM_1(IIsotropicContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
         {
@@ -62,6 +56,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < nGaussPoints; i++)
                 materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
 
+            this.interpolation = InterpolationShell8.UniqueInstance;
         }
 
         //public Shell8dispCopyGet(IFiniteElementMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator)//pithanotata den xreiazetai
@@ -86,7 +81,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[][,] BL12;
         //private double[][,] BNL1;
 
-        private double[][] tx_i; //8 arrays twn 3 stoixeiwn //den einai apo afta pou orizei o xrhsths
+        //private double[][] tx_i; //8 arrays twn 3 stoixeiwn //den einai apo afta pou orizei o xrhsths
         private double[][] tU;   //8 arrays twn 6 stoixeiwn 
         private double[][] tUvec;//8 arrays twn 6 stoixeiwn
 
@@ -96,258 +91,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[] ni;
         private double[][,] ConsCartes;
 
-
-
-
-
-        private Tuple<double [][],double[][],double[][],double[]> GetShapeFunctionData(int gp_d1,int gp_d2,int gp_d3)
-        {
-            double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-            double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-            double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
-
-            double ksi = 0;
-            double heta = 0;
-            double zeta = 0;
-            double a_1g = 0;
-            double a_2g = 0;
-            double a_3g = 0;
-
-             int nGaussPoints = gp_d1 * gp_d2 * gp_d3;
-            double[] a_123g = new double[nGaussPoints];
-            gausscoordinates = new double[3][];
-            for (int l = 0; l < 3; l++)
-            { gausscoordinates[l] = new double[nGaussPoints]; }
-            for (int l = 0; l < gp_d3; l++)
-            {
-                for (int k = 0; k < gp_d2; k++)
-                {
-                    for (int j = 0; j < gp_d1; j++)
-                    {
-                        npoint = l * (gp_d1 * gp_d2) + k * gp_d1 + j;
-                        if (gp_d1 == 3)
-                        {
-                            ksi = 0.5 * (j - 1) * (j - 2) * (-0.774596669241483) + (-1) * (j) * (j - 2) * (0) + 0.5 * (j) * (j - 1) * (0.774596669241483);
-                            a_1g = 0.5 * (j - 1) * (j - 2) * (0.555555555555555) + (-1) * (j) * (j - 2) * (0.888888888888888) + 0.5 * (j) * (j - 1) * (0.555555555555555);
-                        }
-                        if (gp_d1 == 2)
-                        {
-                            ksi = (-0.577350269189626) * (j - 1) * (-1) + (0.577350269189626) * (j) * (+1);
-                            a_1g = 1;
-                        }
-                        if (gp_d2 == 3)
-                        {
-                            heta = 0.5 * (k - 1) * (k - 2) * (-0.774596669241483) + (-1) * (k) * (k - 2) * (0) + 0.5 * (k) * (k - 1) * (0.774596669241483);
-                            a_2g = 0.5 * (k - 1) * (k - 2) * (0.555555555555555) + (-1) * (k) * (k - 2) * (0.888888888888888) + 0.5 * (k) * (k - 1) * (0.555555555555555);
-                        }
-                        if (gp_d2 == 2)
-                        {
-                            heta = (-0.577350269189626) * (k - 1) * (-1) + (0.577350269189626) * (k) * (+1);
-                            a_2g = 1;
-                        }
-                        if (gp_d3 == 3)
-                        {
-                            zeta = 0.5 * (l - 1) * (l - 2) * (-0.774596669241483) + (-1) * (l) * (l - 2) * (0) + 0.5 * (l) * (l - 1) * (0.774596669241483);
-                            a_3g = 0.5 * (l - 1) * (l - 2) * (0.555555555555555) + (-1) * (l) * (l - 2) * (0.888888888888888) + 0.5 * (l) * (l - 1) * (0.555555555555555);
-                        }
-                        if (gp_d3 == 2)
-                        {
-                            zeta = (-0.577350269189626) * (l - 1) * (-1) + (0.577350269189626) * (l) * (+1);
-                            a_3g = 1;
-                        }
-                        gausscoordinates[0][npoint] = ksi;
-                        gausscoordinates[1][npoint] = heta;
-                        gausscoordinates[2][npoint] = zeta;
-
-                        a_123g[npoint] = a_1g * a_2g * a_3g;
-                    }
-                }
-            }
-
-            shapeFunctions = new double[8][];
-            for (int j = 0; j < 8; j++)
-            { shapeFunctions[j] = new double[nGaussPoints]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                shapeFunctions[4][j] = 0.5 * (1 - Math.Pow(gausscoordinates[0][j], 2)) * (1 + gausscoordinates[1][j]);
-                shapeFunctions[5][j] = 0.5 * (1 - Math.Pow(gausscoordinates[1][j], 2)) * (1 - gausscoordinates[0][j]);
-                shapeFunctions[6][j] = 0.5 * (1 - Math.Pow(gausscoordinates[0][j], 2)) * (1 - gausscoordinates[1][j]);
-                shapeFunctions[7][j] = 0.5 * (1 - Math.Pow(gausscoordinates[1][j], 2)) * (1 + gausscoordinates[0][j]);
-                shapeFunctions[0][j] = 0.25 * (1 + gausscoordinates[0][j]) * (1 + gausscoordinates[1][j]) - 0.5 * shapeFunctions[4][j] - 0.5 * shapeFunctions[7][j];
-                shapeFunctions[1][j] = 0.25 * (1 - gausscoordinates[0][j]) * (1 + gausscoordinates[1][j]) - 0.5 * shapeFunctions[4][j] - 0.5 * shapeFunctions[5][j];
-                shapeFunctions[2][j] = 0.25 * (1 - gausscoordinates[0][j]) * (1 - gausscoordinates[1][j]) - 0.5 * shapeFunctions[5][j] - 0.5 * shapeFunctions[6][j];
-                shapeFunctions[3][j] = 0.25 * (1 + gausscoordinates[0][j]) * (1 - gausscoordinates[1][j]) - 0.5 * shapeFunctions[6][j] - 0.5 * shapeFunctions[7][j];
-            }
-
-
-
-            shapeFunctionDerivatives = new double[16][];
-            for (int j = 0; j < 16; j++)
-            { shapeFunctionDerivatives[j] = new double[nGaussPoints]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                //Ni_ksi
-                shapeFunctionDerivatives[4][j] = (-gausscoordinates[0][j]) * (1 + gausscoordinates[1][j]);
-                shapeFunctionDerivatives[5][j] = -0.5 * (1 - Math.Pow(gausscoordinates[1][j], 2));
-                shapeFunctionDerivatives[6][j] = 0.5 * (-2 * gausscoordinates[0][j]) * (1 - gausscoordinates[1][j]);
-                shapeFunctionDerivatives[7][j] = 0.5 * (1 - Math.Pow(gausscoordinates[1][j], 2));
-                shapeFunctionDerivatives[0][j] = +0.25 * (1 + gausscoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[4][j] - 0.5 * shapeFunctionDerivatives[7][j];
-                shapeFunctionDerivatives[1][j] = -0.25 * (1 + gausscoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[4][j] - 0.5 * shapeFunctionDerivatives[5][j];
-                shapeFunctionDerivatives[2][j] = -0.25 * (1 - gausscoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[5][j] - 0.5 * shapeFunctionDerivatives[6][j];
-                shapeFunctionDerivatives[3][j] = +0.25 * (1 - gausscoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[6][j] - 0.5 * shapeFunctionDerivatives[7][j];
-                //Ni_heta
-                shapeFunctionDerivatives[12][j] = 0.5 * (1 - Math.Pow(gausscoordinates[0][j], 2));
-                shapeFunctionDerivatives[13][j] = 0.5 * (-2 * gausscoordinates[1][j]) * (1 - gausscoordinates[0][j]);
-                shapeFunctionDerivatives[14][j] = 0.5 * (1 - Math.Pow(gausscoordinates[0][j], 2)) * (-1);
-                shapeFunctionDerivatives[15][j] = 0.5 * (-2 * gausscoordinates[1][j]) * (1 + gausscoordinates[0][j]);
-                shapeFunctionDerivatives[8][j] = +0.25 * (1 + gausscoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[12][j] - 0.5 * shapeFunctionDerivatives[15][j];
-                shapeFunctionDerivatives[9][j] = +0.25 * (1 - gausscoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[12][j] - 0.5 * shapeFunctionDerivatives[13][j];
-                shapeFunctionDerivatives[10][j] = -0.25 * (1 - gausscoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[13][j] - 0.5 * shapeFunctionDerivatives[14][j];
-                shapeFunctionDerivatives[11][j] = -0.25 * (1 + gausscoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[14][j] - 0.5 * shapeFunctionDerivatives[15][j];
-            }
-
-            Tuple<double[][], double[][], double[][],double[]> shapeFunctionData = new Tuple<double[][], double[][], double[][],double[]>(gausscoordinates, shapeFunctions, shapeFunctionDerivatives,a_123g);
-            return shapeFunctionData;
-        }
-
-        private Tuple<double[][,],double[][,]> Getll1AndJ_0a(int nGaussPoints,double[] tk, double [][] gausscoordinates, double[][] shapeFunctions, double [][] shapeFunctionDerivatives)
-        {
-            double[][,] ll1;
-            ll1 = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            { ll1[j] = new double[3, 24]; }
-            for (int j = 0; j < nGaussPoints; j++) //dhmiourgia olklhrou tou ll1 gia kathe gauss point
-            {
-                for (int k = 0; k < 8; k++)
-                {
-                    ll1[j][0, 3 * k] = shapeFunctionDerivatives[k][j];
-                    ll1[j][0, 3 * k + 1] = 0.5 * gausscoordinates[2][j] * tk[k] * shapeFunctionDerivatives[k][j];
-                    ll1[j][0, 3 * k + 2] = -ll1[j][0, 3 * k + 1];
-                    ll1[j][1, 3 * k] = shapeFunctionDerivatives[k + 8][j];
-                    ll1[j][1, 3 * k + 1] = 0.5 * gausscoordinates[2][j] * tk[k] * shapeFunctionDerivatives[k + 8][j];
-                    ll1[j][1, 3 * k + 2] = -ll1[j][1, 3 * k + 1];
-                    ll1[j][2, 3 * k] = 0;
-                    ll1[j][2, 3 * k + 1] = 0.5 * tk[k] * shapeFunctions[k][j];
-                    ll1[j][2, 3 * k + 2] = -ll1[j][2, 3 * k + 1];
-                }
-
-            }
-
-            double[][,] J_0a;//einai teliko kai oxi prok
-            J_0a = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            { J_0a[j] = new double[3, 16]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                for (int k = 0; k < 8; k++)
-                {
-                    J_0a[j][0, 2 * k] = ll1[j][0, 3 * k];
-                    J_0a[j][0, 2 * k + 1] = ll1[j][0, 3 * k + 1];
-                    J_0a[j][1, 2 * k] = ll1[j][1, 3 * k];
-                    J_0a[j][1, 2 * k + 1] = ll1[j][1, 3 * k + 1];
-                    J_0a[j][2, 2 * k] = ll1[j][2, 3 * k];
-                    J_0a[j][2, 2 * k + 1] = ll1[j][2, 3 * k + 1];
-                }
-            }
-
-            Tuple<double[][,], double[][,]> ll1AndJ0_a= new Tuple<double[][,], double[][,]>(ll1,J_0a);
-            return ll1AndJ0_a;
-        }
-        
-        private Tuple<double [][,],double[]> GetJ_0invAndDetJ_0(double[][,] J_0a, IElement element)
-        {
-            ox_i = new double[8][];
-            for (int j = 0; j < 8; j++)
-            {
-                 ox_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
-            }
-
-            double[,] J_0b;    //einai idio gia ola ta gauss points 
-            double[][,] J_0;       //den einai to idio gia ola ta gausspoint // einai teliko kai oxi prok
-
-            J_0b = new double[16, 3];
-            for (int j = 0; j < 8; j++)
-            {
-                J_0b[2 * j, 0] = ox_i[j][0];
-                J_0b[2 * j + 1, 0] = this.oVn_i[j][0];
-                J_0b[2 * j, 1] = ox_i[j][1];
-                J_0b[2 * j + 1, 1] = this.oVn_i[j][1];
-                J_0b[2 * j, 2] = ox_i[j][2];
-                J_0b[2 * j + 1, 2] = this.oVn_i[j][2];
-            }
-
-            J_0 = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            { J_0[j] = new double[3, 3]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    for (int l = 0; l < 3; l++)
-                    {
-                        J_0[j][k, l] = 0;
-                        for (int m = 0; m < 16; m++)
-                        {
-                            J_0[j][k, l] += J_0a[j][k, m] * J_0b[m, l];
-                        }
-
-                    }
-
-                }
-            }
-
-            double[] detJ_0 = new double[nGaussPoints];
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                double det1 = J_0[j][0, 0] *
-                     ((J_0[j][1, 1] * J_0[j][2, 2]) - (J_0[j][2, 1] * J_0[j][1, 2]));
-                double det2 = J_0[j][0, 1] *
-                              ((J_0[j][1, 0] * J_0[j][2, 2]) - (J_0[j][2, 0] * J_0[j][1, 2]));
-                double det3 = J_0[j][0, 2] *
-                              ((J_0[j][1, 0] * J_0[j][2, 1]) - (J_0[j][2, 0] * J_0[j][1, 1]));
-
-                double jacobianDeterminant = det1 - det2 + det3;
-
-                if (jacobianDeterminant < 0)
-                {
-                    throw new InvalidOperationException("The Jacobian Determinant is negative.");
-                }
-
-                detJ_0[j] = jacobianDeterminant;
-            }
-
-            double[][,] J_0inv;
-            J_0inv = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            { J_0inv[j] = new double[3, 3]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                J_0inv[j][0, 0] = ((J_0[j][1, 1] * J_0[j][2, 2]) - (J_0[j][2, 1] * J_0[j][1, 2])) *
-                                (1 / detJ_0[j]);
-                J_0inv[j][0, 1] = ((J_0[j][2, 1] * J_0[j][0, 2]) - (J_0[j][0, 1] * J_0[j][2, 2])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][0, 2] = ((J_0[j][0, 1] * J_0[j][1, 2]) - (J_0[j][1, 1] * J_0[j][0, 2])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][1, 0] = ((J_0[j][2, 0] * J_0[j][1, 2]) - (J_0[j][1, 0] * J_0[j][2, 2])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][1, 1] = ((J_0[j][0, 0] * J_0[j][2, 2]) - (J_0[j][2, 0] * J_0[j][0, 2])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][1, 2] = ((J_0[j][1, 0] * J_0[j][0, 2]) - (J_0[j][0, 0] * J_0[j][1, 2])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][2, 0] = ((J_0[j][1, 0] * J_0[j][2, 1]) - (J_0[j][2, 0] * J_0[j][1, 1])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][2, 1] = ((J_0[j][2, 0] * J_0[j][0, 1]) - (J_0[j][2, 1] * J_0[j][0, 0])) *
-                                        (1 / detJ_0[j]);
-                J_0inv[j][2, 2] = ((J_0[j][0, 0] * J_0[j][1, 1]) - (J_0[j][1, 0] * J_0[j][0, 1])) *
-                                        (1 / detJ_0[j]);
-            }
-
-            Tuple<double[][,], double[]> J_OinvAndDetJ_0 = new Tuple<double[][,], double[]>(J_0inv, detJ_0);
-            return J_OinvAndDetJ_0;
-
-        }
-
-        private double [][,] GetBL11a(double [][,] J_0inv)
+        private double[][,] GetBL11a(double [][,] J_0inv)
         {
             double[][,] BL11a;
             BL11a = new double[nGaussPoints][,];
@@ -390,6 +134,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             return BL11a;
         }
+
         private double[][,] GetBL12(double[][,] J_0inv)
         {
             double[][,] BL12;
@@ -400,8 +145,7 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int k = 0; k < 9; k++)
                 {
-                    for (int l = 0; l < 9; l++)
-                    { BL12[j][k, l] = 0; }
+                    for (int l = 0; l < 9; l++) BL12[j][k, l] = 0; 
                 }
 
                 for (int k = 0; k < 3; k++)
@@ -424,32 +168,6 @@ namespace ISAAR.MSolve.FEM.Elements
             }
 
             return BL12;
-        }
-        private double[][,] GetBNL1(double[][,] J_0inv)
-        {
-            double[][,] BNL1;
-            BNL1 = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            { BNL1[j] = new double[9, 9]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                //for (int k = 0; k < 9; k++)
-                //{
-                //    for (int l = 0; l < 9; l++)
-                //    { BNL1[j][k, l] = 0; }
-                //} //sp1
-
-                for (int m = 0; m < 3; m++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        for (int l = 0; l < 3; l++)
-                        { BNL1[j][3 * m + k, 3 * m + l] = J_0inv[j][k, l]; }
-                    }
-                }
-            }
-
-            return BNL1;
         }
 
         private double[][,] GetBL13(double[][] shapeFunctionDerivatives,double [][] tUvec , double[][,] J_0a)
@@ -497,44 +215,55 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL13;
         }
 
+        private double[][,] GetBNL1(double[][,] J_0inv)
+        {
+            double[][,] BNL1;
+            BNL1 = new double[nGaussPoints][,];
+            for (int j = 0; j < nGaussPoints; j++)
+            { BNL1[j] = new double[9, 9]; }
+            for (int j = 0; j < nGaussPoints; j++)
+            {
+                //for (int k = 0; k < 9; k++)
+                //{
+                //    for (int l = 0; l < 9; l++)
+                //    { BNL1[j][k, l] = 0; }
+                //} //sp1
 
+                for (int m = 0; m < 3; m++)
+                {
+                    for (int k = 0; k < 3; k++)
+                    {
+                        for (int l = 0; l < 3; l++)
+                        { BNL1[j][3 * m + k, 3 * m + l] = J_0inv[j][k, l]; }
+                    }
+                }
+            }
 
+            return BNL1;
+        }
 
-        private void CalculateInitialConfigurationData(IElement element)
+        private void CalculateInitialConfigurationData(IElement element, out double[][] tx_i)
         {
             // prosthiki ram 
-            double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-            double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-            double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
+            
             //double[,] J_0b;    //einai idio gia ola ta gauss points 
             //double[][,] J_0;       //den einai to idio gia ola ta gausspoint // einai teliko kai oxi prok
             double[] E;
             double[] ni;
 
-            Tuple<double[][], double[][], double[][],double[]> shapeFunctionData;
-            shapeFunctionData = GetShapeFunctionData(gp_d1, gp_d2, gp_d3);
-            gausscoordinates = shapeFunctionData.Item1;
-            shapeFunctions = shapeFunctionData.Item2;
-            shapeFunctionDerivatives = shapeFunctionData.Item3;
-            double[] a_123g = shapeFunctionData.Item4;
+            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
+                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
 
-            Tuple<double[][,], double[][,]> ll1AndJ0_a;
-            ll1AndJ0_a = Getll1AndJ_0a(nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
-            double[][,] ll1;
-            ll1 = ll1AndJ0_a.Item1;
-            double[][,] J_0a;//einai teliko kai oxi prok
-            J_0a = ll1AndJ0_a.Item2;
-
-
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
+                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
+           
             double tV1norm;
-            ox_i = new double[8][];
             tx_i = new double[8][];
             tU = new double[8][];
             tUvec = new double[8][];
             oV1_i = new double[8][];
             for (int j = 0; j < 8; j++)
             {
-                ox_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
                 tx_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
                 tU[j] = new double[6];
                 tUvec[j] = new double[6];
@@ -560,11 +289,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 tUvec[j][5] = tU[j][3 + 0] * tUvec[j][1] - tU[j][3 + 1] * tUvec[j][0];
             }
 
-            Tuple<double[][,], double[]> J_OinvAndDetJ_0;
-            J_OinvAndDetJ_0 = GetJ_0invAndDetJ_0(J_0a, element);
-            double[][,] J_0inv;
-            J_0inv= J_OinvAndDetJ_0.Item1;
-            double[] detJ_0 = J_OinvAndDetJ_0.Item2;
+            (double[][,] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
 
 
             //BL11a = GetBL11a(J_0inv);
@@ -830,44 +556,28 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        private void UpdatePartiallyPrecalculatedVariables__forStrains(Element element)
+        private void UpdatePartiallyPrecalculatedVariables__forStrains(Element element, double[][] tx_i)
         {
             //this.UpdateJ_1b();
             //this.UpdateJ_1();
             //this.UpdateDefGradTr();
             //this.UpdateGL();
             //this.UpdateGLvec();
-            this.CalculateStrains(element);
+            this.CalculateStrains(element, tx_i);
         }
 
-        private void CalculateStrains(IElement element)
+        private void CalculateStrains(IElement element, double[][] tx_i)
         {
             // prosthiki logw J_0inv oxi global
             // kai anagkastika kai J_0a
-            double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-            double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-            double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
-            Tuple<double[][], double[][], double[][], double[]> shapeFunctionData;
-            shapeFunctionData = GetShapeFunctionData(gp_d1, gp_d2, gp_d3);
-            gausscoordinates = shapeFunctionData.Item1;
-            shapeFunctions = shapeFunctionData.Item2;
-            shapeFunctionDerivatives = shapeFunctionData.Item3;
-            double[] a_123g = shapeFunctionData.Item4;
-            Tuple<double[][,], double[][,]> ll1AndJ0_a;
-            ll1AndJ0_a = Getll1AndJ_0a(nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
-            //double[][,] ll1;
-            //ll1 = ll1AndJ0_a.Item1;
-            double[][,] J_0a;//einai teliko kai oxi prok
-            J_0a = ll1AndJ0_a.Item2;
+            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
+                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
+                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
 
 
-            Tuple<double[][,], double[]> J_OinvAndDetJ_0;
-            J_OinvAndDetJ_0 = GetJ_0invAndDetJ_0(J_0a, element);
-            double[][,] J_0inv;
-            J_0inv = J_OinvAndDetJ_0.Item1;
-
-
-
+            (double[][,] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
 
             double[,] J_1b;
             double[][,] J_1;
@@ -1056,28 +766,15 @@ namespace ISAAR.MSolve.FEM.Elements
         {
 
             //prosthikes gia ll1 entos methodwn mono
-            double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-            double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-            double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
-            Tuple<double[][], double[][], double[][], double[]> shapeFunctionData;
-            shapeFunctionData = GetShapeFunctionData(gp_d1, gp_d2, gp_d3);
-            gausscoordinates = shapeFunctionData.Item1;
-            shapeFunctions = shapeFunctionData.Item2;
-            shapeFunctionDerivatives = shapeFunctionData.Item3;
-            double[] a_123g = shapeFunctionData.Item4;
-            Tuple<double[][,], double[][,]> ll1AndJ0_a;
-            ll1AndJ0_a = Getll1AndJ_0a(nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
-            double[][,] ll1;
-            ll1 = ll1AndJ0_a.Item1;
-            double[][,] J_0a;//einai teliko kai oxi prok
-            J_0a = ll1AndJ0_a.Item2;
+            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
+                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
+                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
             //prosthikes gia ll1 entos methodwn mono
 
             //prosthikes gia BL11a entos methodwn
-            Tuple<double[][,], double[]> J_OinvAndDetJ_0;
-            J_OinvAndDetJ_0 = GetJ_0invAndDetJ_0(J_0a, element);
-            double[][,] J_0inv;
-            J_0inv = J_OinvAndDetJ_0.Item1;
+            (double[][,] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
             double[][,] BL11a;
             BL11a = GetBL11a(J_0inv);
             double[][,] BL12;
@@ -1273,25 +970,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-            double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-            double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-            double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
-            Tuple<double[][], double[][], double[][], double[]> shapeFunctionData;
-            shapeFunctionData = GetShapeFunctionData(gp_d1, gp_d2, gp_d3);
-            gausscoordinates = shapeFunctionData.Item1;
-            shapeFunctions = shapeFunctionData.Item2;
-            shapeFunctionDerivatives = shapeFunctionData.Item3;
-            //double[] a_123g = shapeFunctionData.Item4;
-            Tuple<double[][,], double[][,]> ll1AndJ0_a;
-            ll1AndJ0_a = Getll1AndJ_0a(nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
-            double[][,] ll1;
-            ll1 = ll1AndJ0_a.Item1;
-            double[][,] J_0a;//einai teliko kai oxi prok
-            J_0a = ll1AndJ0_a.Item2;
-            Tuple<double[][,], double[]> J_OinvAndDetJ_0;
-            J_OinvAndDetJ_0 = GetJ_0invAndDetJ_0(J_0a, element);
-            double[][,] J_0inv;
-            J_0inv = J_OinvAndDetJ_0.Item1;
+            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
+                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
+                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
+            (double[][,] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
             double[][,] BNL1;
             BNL1 = GetBNL1(J_0inv);
             double[][,] BL13;
@@ -1603,13 +1287,21 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[] tdtVn = new double[3];
         //private double tV1norm;
 
-        private void UpdateCoordinateData(double[] localdisplacements)
+        private void UpdateCoordinateData(double[] localdisplacements, IList<INode> elementNodes, out double[][] tx_i)
         {
+            double[][] ox_i = new double[8][]; // this should be allocated in the constructor
+            for (int j = 0; j < 8; j++)
+            {
+                ox_i[j] = new double[] { elementNodes[j].X, elementNodes[j].Y, elementNodes[j].Z, };
+            }
+
             //PROSHIKI ram
             double ak;
             double bk;
+            tx_i = new double[8][];
             for (int k = 0; k < 8; k++)
             {
+                tx_i[k] = new double[3];
                 for (int l = 0; l < 3; l++)
                 {
                     tx_i[k][l] = ox_i[k][l] + localdisplacements[5 * k + l];
@@ -1824,8 +1516,8 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
             double[] Fxk;
-            this.UpdateCoordinateData(localTotalDisplacements);
-            this.UpdatePartiallyPrecalculatedVariables__forStrains( element);
+            this.UpdateCoordinateData(localTotalDisplacements, element.INodes, out double[][] tx_i);
+            this.UpdatePartiallyPrecalculatedVariables__forStrains( element, tx_i);
             this.UpdateSPK(); //mporei na lamvanetai apo uliko nme materialsAtGPs.Stresses // mporei na xwristhei afto se spkvec kai ta upoloiopa pou einai gia KMatrices (SPK_circumflex)
 
 
@@ -1846,11 +1538,11 @@ namespace ISAAR.MSolve.FEM.Elements
                 //GetInitialGeometricData(element);
                 //this.CalculateCompletelyPrecalculatedVariables();
                 //this.CalculateCons();
-                this.CalculateInitialConfigurationData(element);
+                this.CalculateInitialConfigurationData(element, out double[][] tx_i);
 
 
                 //this.InitializeAndCalculateOriginalValuesForPartiallyPrecalculatedVariables(); //<-- periexei to calculate strains                
-                this.CalculateStrains(element);
+                this.CalculateStrains(element, tx_i);
 
                 //this.CalculateCk();
                 this.CalculateSPK(); // ousiastika kanei th douleia tou ulikou

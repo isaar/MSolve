@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    class InterpolationHexa8Reverse
+    public class InterpolationHexa8Reverse
     {
         private static readonly InterpolationHexa8Reverse uniqueInstance = new InterpolationHexa8Reverse();
 
