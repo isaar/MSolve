@@ -6,11 +6,13 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
+using MathNet.Numerics.Data.Matlab;
+using MathNet.Numerics.LinearAlgebra;
 using Xunit;
+using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
@@ -853,6 +855,620 @@ namespace ISAAR.MSolve.IGA.Tests
 				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 7);
 
 			#endregion
+		}
+
+
+		[Fact]
+		public void IsogeometricPlaneStrainRing()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			ModelCreator modelCreator = new ModelCreator(model);
+			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			modelReader.CreateModelFromFile();
+
+			// Forces and Boundary Conditions
+			//model.PatchesDictionary[0].EdgesDictionary[1].LoadingConditions.Add(new PressureBoundaryCondition(0.3));
+			//model.PatchesDictionary[0].EdgesDictionary[3].LoadingConditions.Add(new PressureBoundaryCondition(0.3));
+			Value horizontalDistributedLoad = delegate (double x, double y, double z)
+			{
+				return new double[] { -0.30, 0, 0 };
+			};
+			model.PatchesDictionary[0].EdgesDictionary[1].LoadingConditions
+				.Add(new NeumannBoundaryCondition(horizontalDistributedLoad));
+
+			Value verticalDistributedLoad = delegate (double x, double y, double z)
+			{
+				return new double[] { 0, -0.3, 0 };
+			};
+			model.PatchesDictionary[0].EdgesDictionary[3].LoadingConditions
+				.Add(new NeumannBoundaryCondition(verticalDistributedLoad));
+
+			// Boundary Conditions - Dirichlet
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
+				.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+			}
+
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[2].ControlPointsDictionary
+				.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+			}
+
+			model.ConnectDataStructures();
+
+			// Solvers
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+			var forceVectorExpected = new double[]
+			{
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0166666666666667,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0250000000000000,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0333333333333333,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0333333333333333,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0333333333333333,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0333333333333333,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0333333333333333,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0333333333333333,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0250000000000000,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				-0.0166666666666667,
+				-0.0166666666666667,
+				0,
+				-0.0250000000000000,
+				0,
+				-0.0333333333333333,
+				0,
+				-0.0333333333333333,
+				0,
+				-0.0333333333333333,
+				0,
+				-0.0333333333333333,
+				0,
+				-0.0333333333333333,
+				0,
+				-0.0333333333333333,
+				0,
+				-0.0250000000000000,
+				0,
+				-0.0166666666666667,
+				0,
+				-0.00833333333333334,
+				-0.00833333333333334,
+			};
+
+			for (int i = 0; i < forceVectorExpected.Length; i++)
+				Assert.Equal(forceVectorExpected[i], model.PatchesDictionary[0].Forces[i], 7);
+
+			#region expectedDisplacement
+
+			var displacementVectorExpected = new double[]
+			{
+				-0.00314820363909275,
+				-0.00314820363909275,
+				-0.00379395242120674,
+				-0.00474046877963962,
+				-0.00527896515562401,
+				-0.00627080476725420,
+				-0.00611202232103848,
+				-0.00732618402014196,
+				-0.00671664390713507,
+				-0.00830517563434155,
+				-0.00750778852140214,
+				-0.00921569343748655,
+				-0.00711656646035208,
+				-0.0104552048087267,
+				-0.00857783159759678,
+				-0.0115132239445180,
+				-0.00447714927679477,
+				-0.0142326173251668,
+				-0.00896507378072984,
+				-0.0172326398522936,
+				0.0165696344045362,
+				-0.0344920417612453,
+				-0.00474046877963962,
+				-0.00379395242120674,
+				-0.0106163667467970,
+				-0.0106163667467970,
+				-0.0145901385325659,
+				-0.0159579381873314,
+				-0.0175798662746167,
+				-0.0200752820397931,
+				-0.0197642416239734,
+				-0.0232933594058257,
+				-0.0209594659687415,
+				-0.0269739141344681,
+				-0.0221701240269120,
+				-0.0304381009757610,
+				-0.0204015380221106,
+				-0.0372162332314755,
+				-0.0190262809325074,
+				-0.0451261112082839,
+				0.000524263735174436,
+				-0.0646122725733136,
+				0.0134058371171140,
+				-0.0674237539857168,
+				-0.00627080476725419,
+				-0.00527896515562400,
+				-0.0159579381873313,
+				-0.0145901385325660,
+				-0.0255583394854834,
+				-0.0255583394854834,
+				-0.0320458295432382,
+				-0.0340345779839745,
+				-0.0364394696445877,
+				-0.0416128738023956,
+				-0.0392520264843806,
+				-0.0489264479827333,
+				-0.0394128785675202,
+				-0.0579962012559210,
+				-0.0375262954335112,
+				-0.0685615165413566,
+				-0.0269408733978005,
+				-0.0856583155480079,
+				-0.0140932604372300,
+				-0.0958837290337786,
+				-0.00425322389965576,
+				-0.102864805751424,
+				-0.00732618402014194,
+				-0.00611202232103848,
+				-0.0200752820397931,
+				-0.0175798662746167,
+				-0.0340345779839744,
+				-0.0320458295432382,
+				-0.0442399103415714,
+				-0.0442399103415714,
+				-0.0511182027891641,
+				-0.0551752972826913,
+				-0.0547664019599041,
+				-0.0662589972721233,
+				-0.0554544754480729,
+				-0.0781539846420991,
+				-0.0514092081933032,
+				-0.0928498000772380,
+				-0.0427832850822321,
+				-0.108645057746992,
+				-0.0311333714176029,
+				-0.120963904936585,
+				-0.0251089003632628,
+				-0.125275523366600,
+				-0.00830517563434156,
+				-0.00671664390713508,
+				-0.0232933594058256,
+				-0.0197642416239734,
+				-0.0416128738023955,
+				-0.0364394696445877,
+				-0.0551752972826911,
+				-0.0511182027891642,
+				-0.0644659012290671,
+				-0.0644659012290672,
+				-0.0694887264699124,
+				-0.0777115338314980,
+				-0.0702085098844087,
+				-0.0920154063898269,
+				-0.0670415920146972,
+				-0.107342294443253,
+				-0.0590775341097851,
+				-0.124438661501351,
+				-0.0522405165453920,
+				-0.134720354624928,
+				-0.0486371118189779,
+				-0.139962781550140,
+				-0.00921569343748652,
+				-0.00750778852140214,
+				-0.0269739141344680,
+				-0.0209594659687415,
+				-0.0489264479827331,
+				-0.0392520264843806,
+				-0.0662589972721231,
+				-0.0547664019599042,
+				-0.0777115338314978,
+				-0.0694887264699125,
+				-0.0840291771115493,
+				-0.0840291771115496,
+				-0.0855834304606439,
+				-0.0992380743950709,
+				-0.0829894406989148,
+				-0.115516212797889,
+				-0.0776932540445211,
+				-0.131918682864287,
+				-0.0732614094641817,
+				-0.142841837190617,
+				-0.0714730797892666,
+				-0.147708704990261,
+				-0.0104552048087266,
+				-0.00711656646035210,
+				-0.0304381009757609,
+				-0.0221701240269120,
+				-0.0579962012559208,
+				-0.0394128785675203,
+				-0.0781539846420988,
+				-0.0554544754480730,
+				-0.0920154063898266,
+				-0.0702085098844090,
+				-0.0992380743950705,
+				-0.0855834304606441,
+				-0.101501531630957,
+				-0.101501531630958,
+				-0.0999370644850315,
+				-0.118017394845313,
+				-0.0962343442201912,
+				-0.134878482285728,
+				-0.0940899630707035,
+				-0.145633866412365,
+				-0.0936977503670338,
+				-0.150902312951907,
+				-0.0115132239445179,
+				-0.00857783159759677,
+				-0.0372162332314754,
+				-0.0204015380221106,
+				-0.0685615165413564,
+				-0.0375262954335112,
+				-0.0928498000772377,
+				-0.0514092081933034,
+				-0.107342294443253,
+				-0.0670415920146973,
+				-0.115516212797889,
+				-0.0829894406989151,
+				-0.118017394845313,
+				-0.0999370644850319,
+				-0.117164741332239,
+				-0.117164741332239,
+				-0.114732961045519,
+				-0.134270598345563,
+				-0.113764345865824,
+				-0.145437001617946,
+				-0.114021716983238,
+				-0.150889885103904,
+				-0.0142326173251668,
+				-0.00447714927679481,
+				-0.0451261112082838,
+				-0.0190262809325074,
+				-0.0856583155480077,
+				-0.0269408733978006,
+				-0.108645057746992,
+				-0.0427832850822322,
+				-0.124438661501351,
+				-0.0590775341097853,
+				-0.131918682864286,
+				-0.0776932540445212,
+				-0.134878482285727,
+				-0.0962343442201915,
+				-0.134270598345562,
+				-0.114732961045519,
+				-0.132671391727535,
+				-0.132671391727535,
+				-0.132190010013491,
+				-0.144083210808925,
+				-0.132499710574820,
+				-0.149832975007404,
+				-0.0172326398522934,
+				-0.00896507378072984,
+				-0.0646122725733136,
+				0.000524263735174192,
+				-0.0958837290337782,
+				-0.0140932604372301,
+				-0.120963904936585,
+				-0.0311333714176032,
+				-0.134720354624928,
+				-0.0522405165453921,
+				-0.142841837190616,
+				-0.0732614094641819,
+				-0.145633866412364,
+				-0.0940899630707035,
+				-0.145437001617945,
+				-0.113764345865824,
+				-0.144083210808926,
+				-0.132190010013491,
+				-0.143845673350073,
+				-0.143845673350073,
+				-0.143883483258064,
+				-0.149631002634067,
+				-0.0344920417612453,
+				0.0165696344045361,
+				-0.0674237539857166,
+				0.0134058371171139,
+				-0.102864805751424,
+				-0.00425322389965601,
+				-0.125275523366599,
+				-0.0251089003632630,
+				-0.139962781550140,
+				-0.0486371118189782,
+				-0.147708704990260,
+				-0.0714730797892668,
+				-0.150902312951907,
+				-0.0936977503670341,
+				-0.150889885103902,
+				-0.114021716983238,
+				-0.149832975007405,
+				-0.132499710574819,
+				-0.149631002634066,
+				-0.143883483258064,
+				-0.149670908292985,
+				-0.149670908292985,
+			};
+
+			for (int i = 0; i < displacementVectorExpected.Length; i++)
+				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 7);
+
+			#endregion
+		}
+
+
+		//[Fact]
+		public void IsogeometricCurvedBeamBenchmark()
+		{
+			// Model
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			ModelCreator modelCreator = new ModelCreator(model);
+			string filename = "..\\..\\..\\InputFiles\\CurvedBeam.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			modelReader.CreateModelFromFile();
+
+			// Forces and Boundary Conditions
+			model.PatchesDictionary[0].EdgesDictionary[0].LoadingConditions
+				.Add(new PressureBoundaryCondition(30000));
+
+			// Boundary Conditions - Dirichlet
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
+				.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+			}
+
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[1].ControlPointsDictionary
+				.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+			}
+
+			model.ConnectDataStructures();
+
+			// Solvers
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+			Matrix<double> forceVectorExpected= MatlabReader.Read<double>("CurvedBeam.mat", "forceVector");
+			
+			for (int i = 0; i < forceVectorExpected.RowCount; i++)
+				Assert.Equal(forceVectorExpected.At(i,0), model.PatchesDictionary[0].Forces[i], 7);
+
+			Matrix<double> displacementVectorExpected = MatlabReader.Read<double>("CurvedBeam.mat", "forceVector");
+
+			for (int i = 0; i < displacementVectorExpected.RowCount; i++)
+				Assert.Equal(displacementVectorExpected.At(i,0), linearSystems[0].Solution[i], 7);
 		}
 
 		//[Fact]
