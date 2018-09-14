@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -12,7 +14,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes };
         private readonly double massCoefficient;
-        private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        private IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public int ID
         {
@@ -24,18 +26,18 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.ThreeD; }
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             if (element == null) return dofs;
 
             var d = new List<IList<DOFType>>();
-            foreach (var node in element.Nodes)
+            foreach (var node in element.INodes)
             {
                 var nodeDofs = new List<DOFType>();
                 nodeDofs.AddRange(nodalDOFTypes);
@@ -54,13 +56,13 @@ namespace ISAAR.MSolve.FEM.Elements
             this.massCoefficient = massCoefficient;
         }
 
-        public ConcentratedMass3D(double massCoefficient, IFiniteElementDOFEnumerator dofEnumerator)
+        public ConcentratedMass3D(double massCoefficient, IElementDOFEnumerator dofEnumerator)
             : this(massCoefficient)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
             return new SymmetricMatrix2D(new double[] { massCoefficient, 0, 0,
                 massCoefficient, 0,
@@ -68,12 +70,12 @@ namespace ISAAR.MSolve.FEM.Elements
             });
         }
 
-        public IMatrix2D StiffnessMatrix(Element element)
+        public IMatrix2D StiffnessMatrix(IElement element)
         {
             return new SymmetricMatrix2D(new double[6]);
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
             return new SymmetricMatrix2D(new double[6]);
         }

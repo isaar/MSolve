@@ -115,6 +115,17 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             for (int i = 0; i < data.Length; i++) v1Data[i] -= v2Data[i];
         }
 
+
+        public static Vector operator ^(Vector v1, Vector v2)
+        {
+            if (v1.Length != 3 || v2.Length != 3) throw new InvalidOperationException("Only 3D cross product is supported.");
+
+            double[] v1Data = v1.data as double[];
+            double[] v2Data = v2.data as double[];
+            double[] result = new[] { v1Data[1] * v2Data[2] - v1Data[2] * v2Data[1], v1Data[2] * v2Data[0] - v1Data[0] * v2Data[2], v1Data[0] * v2Data[1] - v1Data[1] * v2Data[0] };
+            return new Vector(result);
+        }
+
         #region IVector<T> Members
 
         public int Length
@@ -167,6 +178,66 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
                 sw.WriteLine(d.ToString("g17", new CultureInfo("en-US", false).NumberFormat));
             sw.Close();
         }
+
+        public Vector[] RemoveDuplicatesFindMultiplicity()
+        {
+            double[] mData = data as double[];
+
+            Array.Sort(mData);
+            HashSet<Double> set = new HashSet<Double>();
+            int indexSingles = 0;
+            double[] singles = new double[mData.Length];
+
+            int[] multiplicity = new int[mData.Length];
+            int counterMultiplicity = 0;
+
+            for (int i = 0; i < mData.Length; i++)
+            {
+                // If same integer is already present then add method will return
+                // FALSE
+                if (set.Add(mData[i]) == true)
+                {
+                    singles[indexSingles] = mData[i];
+
+                    multiplicity[indexSingles] = counterMultiplicity;
+                    indexSingles++;
+
+                }
+                else
+                {
+                    counterMultiplicity++;
+                }
+            }
+            int numberOfZeros = 0;
+            for (int i = mData.Length - 1; i >= 0; i--)
+            {
+                if (singles[i] == 0)
+                {
+                    numberOfZeros++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            Vector[] singlesMultiplicityVectors = new Vector[2];
+
+            singlesMultiplicityVectors[0] = new Vector(mData.Length - numberOfZeros);
+            for (int i = 0; i < mData.Length - numberOfZeros; i++)
+            {
+                singlesMultiplicityVectors[0][i] = singles[i];
+            }
+
+            singlesMultiplicityVectors[1] = new Vector(mData.Length - numberOfZeros);
+            for (int i = 0; i < mData.Length - numberOfZeros; i++)
+            {
+                singlesMultiplicityVectors[1][i] = multiplicity[i];
+            }
+
+            return singlesMultiplicityVectors;
+        }
+
+
 
         #endregion
     }

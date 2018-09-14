@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -12,24 +14,26 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly DOFType[] nodalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         private readonly double youngModulus;
-        private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        private IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
         public double SectionArea { get; set; }
         public double MomentOfInertia { get; set; }
+        public double RayleighAlpha { get; set; }
+        public double RayleighBeta { get; set; }
 
         public EulerBeam2D(double youngModulus)
         {
             this.youngModulus = youngModulus;
         }
 
-        public EulerBeam2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
+        public EulerBeam2D(double youngModulus, IElementDOFEnumerator dofEnumerator)
             : this(youngModulus)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IFiniteElementDOFEnumerator DOFEnumerator
+        public IElementDOFEnumerator DOFEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -47,7 +51,7 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.TwoD; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
         {
             return dofs;
         }
@@ -63,14 +67,14 @@ namespace ISAAR.MSolve.FEM.Elements
         //[ -c^2*E*A/L-12*s^2*E*I/L^3, -s*E*A/L*c+12*c*E*I/L^3*s,               6*E*I/L^2*s,  c^2*E*A/L+12*s^2*E*I/L^3,  s*E*A/L*c-12*c*E*I/L^3*s,               6*E*I/L^2*s]
         //[ -s*E*A/L*c+12*c*E*I/L^3*s, -s^2*E*A/L-12*c^2*E*I/L^3,              -6*E*I/L^2*c,  s*E*A/L*c-12*c*E*I/L^3*s,  s^2*E*A/L+12*c^2*E*I/L^3,              -6*E*I/L^2*c]
         //[              -6*E*I/L^2*s,               6*E*I/L^2*c,                   2*E*I/L,               6*E*I/L^2*s,              -6*E*I/L^2*c,                   4*E*I/L]
-        public virtual IMatrix2D StiffnessMatrix(Element element)
+        public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);
-            double c = (element.Nodes[1].X - element.Nodes[0].X) / L;
+            double c = (element.INodes[1].X - element.INodes[0].X) / L;
             double c2 = c * c;
-            double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
+            double s = (element.INodes[1].Y - element.INodes[0].Y) / L;
             double s2 = s * s;
             double EL = this.youngModulus / L;
             double EAL = EL * SectionArea;
@@ -91,6 +95,7 @@ namespace ISAAR.MSolve.FEM.Elements
         ////[   70*c^2+54*s^2,          16*c*s,         -13*s*L, 140*c^2+156*s^2,         -16*c*s,          22*s*L]
         ////[          16*c*s,   70*s^2+54*c^2,          13*c*L,         -16*c*s, 140*s^2+156*c^2,         -22*c*L]
         ////[          13*s*L,         -13*c*L,          -3*L^2,          22*s*L,         -22*c*L,           4*L^2]
+        
         //public IMatrix2D<double> MassMatrix(Element element)
         //{
         //    double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
@@ -116,15 +121,15 @@ namespace ISAAR.MSolve.FEM.Elements
         //[   70*c^2+54*s^2,          16*c*s,         -13*s*L, 140*c^2+156*s^2,         -16*c*s,          22*s*L]
         //[          16*c*s,   70*s^2+54*c^2,          13*c*L,         -16*c*s, 140*s^2+156*c^2,         -22*c*L]
         //[          13*s*L,         -13*c*L,          -3*L^2,          22*s*L,         -22*c*L,           4*L^2]
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix2D MassMatrix(IElement element)
         {
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);
             double L2 = L * L;
-            double c = (element.Nodes[1].X - element.Nodes[0].X) / L;
+            double c = (element.INodes[1].X - element.INodes[0].X) / L;
             double c2 = c * c;
-            double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
+            double s = (element.INodes[1].Y - element.INodes[0].Y) / L;
             double s2 = s * s;
             double dAL420 = Density * SectionArea * L / 420;
 
@@ -140,9 +145,13 @@ namespace ISAAR.MSolve.FEM.Elements
                 0 });
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix2D DampingMatrix(IElement element)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            var m = MassMatrix(element);
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
+            return m;
         }
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
@@ -196,14 +205,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
+            // Method intentionally left empty.
         }
-
-        #endregion
-
-        #region IFiniteElement Members
 
         public void ClearMaterialState()
         {
+            // Method intentionally left empty.
         }
 
         public void ClearMaterialStresses()

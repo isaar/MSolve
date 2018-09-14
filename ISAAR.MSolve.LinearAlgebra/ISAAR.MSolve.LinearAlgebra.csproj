@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+	<ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+	<ContentWithTargetPath Include="lib\libamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libamd.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libbtf.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libbtf.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libcamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcamd.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libccolamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libccolamd.dll</TargetPath>
+	</ContentWithTargetPath>
+	<ContentWithTargetPath Include="lib\libcholmod.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcholmod.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libcolamd.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcolamd.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libcxsparse.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libcxsparse.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libklu.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libklu.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libldl.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libldl.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libspqr.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libspqr.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\libumfpack.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>libumfpack.dll</TargetPath>
+	</ContentWithTargetPath>
+    <ContentWithTargetPath Include="lib\suitesparse_utilities.dll">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>suitesparse_utilities.dll</TargetPath>
+	</ContentWithTargetPath>
+    <Content Include="MKL\lapacke.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Compute.Bindings.IntelMKL" Version="0.1.5" />
+  </ItemGroup>
+</Project>
