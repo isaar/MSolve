@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
