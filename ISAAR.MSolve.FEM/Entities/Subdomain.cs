@@ -5,6 +5,8 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System.Globalization;
+using System.IO;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
@@ -254,8 +256,22 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
+        // prosthiki print
+        int ekteleseis_counter = 0;
+        string string1 = @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_3\U_sunol_{0}.txt";
+
         public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
         {
+            ekteleseis_counter += 1;
+            ////if (ekteleseis_counter == 1)
+            ////{ solution.WriteToFile(@"C:\Users\turbo-x\Desktop\cohesive_check_MSOLVE_2\paradeigma_apo_arxika_swsta_embeded_shell_gia_check_tou_rve_embedding_sto_MSolve\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1\U_sunol.txt"); }
+            ////if (ekteleseis_counter == 2)
+            ////{ solution.WriteToFile(@"C:\Users\turbo-x\Desktop\cohesive_check_MSOLVE_2\paradeigma_apo_arxika_swsta_embeded_shell_gia_check_tou_rve_embedding_sto_MSolve\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1\U_sunol_2.txt"); }
+            string counter_data = ekteleseis_counter.ToString();
+            string path = string.Format(string1, counter_data);
+            double[] solutionData = new double[solution.Length];
+            solution.CopyTo(solutionData, 0);
+            WriteToFile(path, solutionData);
             var forces = new Vector(TotalDOFs);
             foreach (Element element in elementsDictionary.Values)
             {
@@ -317,6 +333,17 @@ namespace ISAAR.MSolve.FEM.Entities
                     if (localDOF > -1 && globalDOF > -1) vOut[localDOF] = vIn[globalDOF];
                 }
             }
+        }
+
+        public void WriteToFile(string name, double[] mData)
+        {
+            //if (typeof(T) != typeof(double)) throw new InvalidOperationException("Only double type is supported.");
+            //double[] mData = data as double[];
+
+            StreamWriter sw = new StreamWriter(name);
+            foreach (double d in mData)
+                sw.WriteLine(d.ToString("g17", new CultureInfo("en-US", false).NumberFormat));
+            sw.Close();
         }
 
     }
