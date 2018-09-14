@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[] ni;
         //private double[][,] ConsCartes; // TODOGer delete
 
-        private double[][] GLvec;
+        private double[][] GLvec; // TODOGer tha epistrefetai apo calculate strains  all gia mh grammikotha ulikou me thn parousa logikh tou von mises tha to kratame opws hexa( to last converged...)
         //private double[][] SPKvec;
 
 
@@ -1463,7 +1463,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //aparaithta tou IstructuralElement gia to material
         public void ClearMaterialState()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState(); // TODOGer
         }
 
         public void SaveMaterialState()
