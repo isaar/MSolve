@@ -100,12 +100,12 @@ namespace ISAAR.MSolve.SamplesConsole
             for (int i = 0; i < 9; i++)
             {
                 int iNode = constraintsNodes[i].ID;
-                model.NodesDictionary[iNode].Constraints.Add(DOFType.X);
-                model.NodesDictionary[iNode].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[iNode].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[iNode].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[iNode].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[iNode].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
             }
 
 
