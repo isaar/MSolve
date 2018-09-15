@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly int increments;
         private readonly int totalDOFs;
         private int maxSteps = 1000;
-        private int stepsForMatrixRebuild = 0;
+        private int stepsForMatrixRebuild = 1;
         private readonly double tolerance = 1e-8;
         private double rhsNorm;
         private INonLinearParentAnalyzer parentAnalyzer = null;

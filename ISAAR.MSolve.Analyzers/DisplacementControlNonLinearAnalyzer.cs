@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISubdomainGlobalMapping[] mappings;
         private readonly int increments;
         private readonly int totalDOFs;
-        private int maxSteps = 1000;
+        private int maxiterations = 1000;
         private int stepsForMatrixRebuild = 0;
         private readonly double tolerance = 1e-8;
         private double rhsNorm;
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             set
             {
-                if (value > 0) { this.maxSteps = value; }
+                if (value > 0) { this.maxiterations = value; }
                 else { throw new Exception("Iterations number cannot be negative or zero"); }
             }
         }
@@ -140,13 +140,13 @@ namespace ISAAR.MSolve.Analyzers
             solver.Initialize();
         }
 
-        private void UpdateRHS(int step)
+        private void UpdateRHS(int iteration)
         {
             foreach (ILinearSystem subdomain in linearSystems)
             {
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
                 rhs[subdomain.ID].CopyTo(subdomainRHS.Data, 0);
-                //subdomainRHS.Multiply(step + 1);
+                //subdomainRHS.Multiply(iteration + 1);
             }
         }
 
@@ -163,23 +163,23 @@ namespace ISAAR.MSolve.Analyzers
                 UpdateRHS(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
 
                 double firstError = 0;
-                int step = 0;
-                for (step = 0; step < maxSteps; step++)
+                int iteration = 0;
+                for (iteration = 0; iteration < maxiterations; iteration++)
                 {
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                    if (step == 0) firstError = errorNorm;
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    if (iteration == 0) firstError = errorNorm;
                     if (errorNorm < tolerance) break;
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                    if ((step + 1) % stepsForMatrixRebuild == 0)
+                    if ((iteration + 1) % stepsForMatrixRebuild == 0)
                     {
                         provider.Reset();
                         BuildMatrices();
                         solver.Initialize();
                     }
                 }
-                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
+                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
             CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
@@ -189,12 +189,12 @@ namespace ISAAR.MSolve.Analyzers
             StoreLogResults(start, end);
         }
 
-        private double CalculateInternalRHS(int currentIncrement, int step)
+        private double CalculateInternalRHS(int currentIncrement, int iteration)
         {
             globalRHS.Clear();
             foreach (ILinearSystem subdomain in linearSystems)
             {
-                if (currentIncrement == 0 && step == 0)
+                if (currentIncrement == 0 && iteration == 0)
                 {
                     Array.Clear(du[subdomain.ID].Data, 0, du[subdomain.ID].Length);
                     Array.Clear(uPlusdu[subdomain.ID].Data, 0, uPlusdu[subdomain.ID].Length);
