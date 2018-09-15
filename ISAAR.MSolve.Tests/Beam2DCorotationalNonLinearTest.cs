@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.Tests
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
-            double nodalLoad = 20000.0;
+            double nodalDisplacement = 146.0;
             double area = 91.04;
             double inertia = 8091.0;
             int nNodes = 3;
@@ -179,8 +179,8 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
 
             // Applied displacement
-            model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = 146.00 });
-
+            model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = nodalDisplacement });
+            
             // Generate elements of the structure
             int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)
