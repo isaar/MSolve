@@ -278,8 +278,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 5; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(DOFType.X);
-                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             int indexElement = 0;
@@ -371,8 +371,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 5; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(DOFType.X);
-                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             int indexElement = 0;
@@ -469,8 +469,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 3; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(DOFType.X);
-                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             int indexElement = 0;
@@ -554,10 +554,10 @@ namespace ISAAR.MSolve.Tests
                 trussModel.NodesDictionary.Add(i + 1, nodes[i]);
             }
 
-            trussModel.NodesDictionary[1].Constraints.Add(DOFType.X);
-            trussModel.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            trussModel.NodesDictionary[2].Constraints.Add(DOFType.X);
-            trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
+            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
+            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
+            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
 
 
             var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
