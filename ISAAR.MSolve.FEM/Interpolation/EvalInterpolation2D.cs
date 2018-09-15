@@ -56,6 +56,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return new Matrix2D(array2D);
         }
 
+        public Matrix2D BuildScalarShapeFunctionMatrix() //TODO: reconsider this. As it is, it just returns the shape functions in a Matrix2D
+        {
+            var array2D = new double[1, shapeFunctions.Length];
+            for (int i = 0; i < shapeFunctions.Length; ++i)
+            {
+                array2D[0, i] = shapeFunctions[i];
+            }
+            return new Matrix2D(array2D);
+        }
+
         /// <summary>
         /// The value of the stored shape function that corresponds to the node with local index <paramref name="nodeIdx"/>.
         /// </summary>
