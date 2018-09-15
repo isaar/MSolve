@@ -415,7 +415,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static void HexaElementsOnlyVonMisesHexa8NL(Model model)
         {
-            //proelefsi EmbeddedexamplesBuilder ekdoshs msolve telikhs pro feat/prosthiki_allagwn
+            //proelefsi ParadeigmataElegxwnBuilder.HexaElementsOnlyVonMises
 
             int startX = 0;
             int startY = 0;
@@ -459,15 +459,37 @@ namespace ISAAR.MSolve.SamplesConsole
                 ID = 1,
                 ElementType = new Hexa8NLRAM_1mat(material1,2,2,2) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
             };
+            int[] element1nodenumbers = new int[8];
             ID2 = 1;
+            int node_counter = 0;
             for (int j = 0; j < 2; j++)
             {
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 1, model.NodesDictionary[4 * (ID2 - 1) + 1]); // na allaxthei h arithmisi swsth seira
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 2, model.NodesDictionary[4 * (ID2 - 1) + 2]);
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 4, model.NodesDictionary[4 * (ID2 - 1) + 4]);
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 3, model.NodesDictionary[4 * (ID2 - 1) + 3]);
-                ID2++;
+                 element1nodenumbers[node_counter]=4 * (ID2 - 1) + 1; 
+                 node_counter++;
+                 element1nodenumbers[node_counter]=4 * (ID2 - 1) + 2; 
+                 node_counter++;
+                 element1nodenumbers[node_counter]=4 * (ID2 - 1) + 4; 
+                 node_counter++;
+                 element1nodenumbers[node_counter]=4 * (ID2 - 1) + 3;
+                 node_counter++;
+                 ID2++;
             }
+            int[] new_numb = new int[] { 7, 8, 5, 6, 3, 4, 1, 2 };
+            for (int j = 0; j < 8; j++)
+            {
+                e1.NodesDictionary.Add(element1nodenumbers[new_numb[j]-1], model.NodesDictionary[element1nodenumbers[new_numb[j]-1]]); // na allaxthei h arithmisi swsth seira
+            }
+            //ID2 = 1;
+            //for (int j = 0; j < 2; j++)
+            //{                
+            //    e1.NodesDictionary.Add(4 * (ID2 - 1) + 1, model.NodesDictionary[4 * (ID2 - 1) + 1]); // na allaxthei h arithmisi swsth seira
+            //    e1.NodesDictionary.Add(4 * (ID2 - 1) + 2, model.NodesDictionary[4 * (ID2 - 1) + 2]);
+            //    e1.NodesDictionary.Add(4 * (ID2 - 1) + 4, model.NodesDictionary[4 * (ID2 - 1) + 4]);
+            //    e1.NodesDictionary.Add(4 * (ID2 - 1) + 3, model.NodesDictionary[4 * (ID2 - 1) + 3]);
+            //    ID2++;
+            //}
+
+
 
 
             int subdomainID = 1; // tha mporei kai na dinetai sto hexabuilder opws sto MakeBeamBuilding
@@ -481,15 +503,35 @@ namespace ISAAR.MSolve.SamplesConsole
                 ID = 2,
                 ElementType = new Hexa8NLRAM_1mat(material1, 2, 2, 2)// dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
             };
+
+            int[] element2nodenumbers = new int[8];
             ID2 = 1;
+            node_counter = 0;
             for (int j = 0; j < 2; j++)
             {
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 5, model.NodesDictionary[4 * (ID2 - 1) + 5]); // na allaxthei h arithmisi swsth seira
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 6, model.NodesDictionary[4 * (ID2 - 1) + 6]);
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 8, model.NodesDictionary[4 * (ID2 - 1) + 8]);
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 7, model.NodesDictionary[4 * (ID2 - 1) + 7]);
+                element2nodenumbers[node_counter] = 4 * (ID2 - 1) + 5;
+                node_counter++;
+                element2nodenumbers[node_counter] = 4 * (ID2 - 1) + 6;
+                node_counter++;
+                element2nodenumbers[node_counter] = 4 * (ID2 - 1) + 8;
+                node_counter++;
+                element2nodenumbers[node_counter] = 4 * (ID2 - 1) + 7;
+                node_counter++;
                 ID2++;
             }
+            for (int j = 0; j < 8; j++)
+            {
+                e2.NodesDictionary.Add(element2nodenumbers[new_numb[j]-1], model.NodesDictionary[element2nodenumbers[new_numb[j]-1]]); // na allaxthei h arithmisi swsth seira
+            }
+            //ID2 = 1;
+            //for (int j = 0; j < 2; j++)
+            //{
+            //    e2.NodesDictionary.Add(4 * (ID2 - 1) + 5, model.NodesDictionary[4 * (ID2 - 1) + 5]); // na allaxthei h arithmisi swsth seira
+            //    e2.NodesDictionary.Add(4 * (ID2 - 1) + 6, model.NodesDictionary[4 * (ID2 - 1) + 6]);
+            //    e2.NodesDictionary.Add(4 * (ID2 - 1) + 8, model.NodesDictionary[4 * (ID2 - 1) + 8]);
+            //    e2.NodesDictionary.Add(4 * (ID2 - 1) + 7, model.NodesDictionary[4 * (ID2 - 1) + 7]);
+            //    ID2++;
+            //}
             model.ElementsDictionary.Add(e2.ID, e2);
             model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e2.ID, e2);
             // ews edw
