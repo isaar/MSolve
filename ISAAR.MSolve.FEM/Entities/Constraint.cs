@@ -1,14 +1,15 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
     public class Constraint
     {
-        public DOFType DOF { get; set; }//TODOMaria: make constraint immutable (add a constructor taking Node and DOF as arguments) (the same goes for Load, Node)
-
+        public Node Node { get; set; }
+        public DOFType DOF { get; set; }
         public double Amount { get; set; }
     }
 }
