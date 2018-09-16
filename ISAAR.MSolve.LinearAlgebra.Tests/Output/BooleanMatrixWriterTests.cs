@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         {
             string tempFile = "temp.txt";
             writer.WriteToFile(matrix, tempFile);
-            bool success = IOUtilities.AreFilesIdentical(referenceFile, tempFile);
+            bool success = IOUtilities.AreFilesEquivalent(referenceFile, tempFile);
             File.Delete(tempFile);
             Assert.True(success);
         }

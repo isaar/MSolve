@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
     public static class FullVectorWriterTests
     {
         [Fact]
-        private static void TestUpperSingular()
+        private static void TestVector1()
         {
             var vector = Vector.CreateFromArray(TestVectors.vector1, true);
             var writer = new FullVectorWriter(false) { ArrayFormat = Array1DFormat.Brackets };
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         {
             string tempFile = "temp.txt";
             writer.WriteToFile(vector, tempFile);
-            bool success = IOUtilities.AreFilesIdentical(referenceFile, tempFile);
+            bool success = IOUtilities.AreFilesEquivalent(referenceFile, tempFile);
             File.Delete(tempFile);
             Assert.True(success);
         }
