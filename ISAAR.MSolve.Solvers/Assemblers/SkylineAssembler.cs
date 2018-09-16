@@ -9,10 +9,12 @@ using ISAAR.MSolve.Solvers.Commons;
 
 //TODO: The F = Ff - Kfc*Fc should not be done in the solver. The solver should only operate on the final linear systems.
 //      It could be done here or in the analyzer.
-namespace ISAAR.MSolve.Solvers.Skyline
+//TODO: this should work with MatrixProviders instead of asking the elements directly.
+namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
     /// Builds the global matrix of the linear system that will be solved. This matrix is in Skyline format.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SkylineAssembler
     {
@@ -38,8 +40,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             return (Kff.BuildSkylineMatrix(), Kfc);
         }
 
-        public SkylineMatrix BuildGlobalMatrix(IEnumerable<ContinuumElement2D> elements,
-            FreeDofOrderer dofOrderer)
+        public SkylineMatrix BuildGlobalMatrix(IEnumerable<ContinuumElement2D> elements, FreeDofOrderer dofOrderer)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
             SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrderer.FreeDofs);
