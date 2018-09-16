@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region ICloneable Members
 
-        public object Clone()
+        public ElasticMaterial3D Clone()
         {
             return new ElasticMaterial3D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
         }

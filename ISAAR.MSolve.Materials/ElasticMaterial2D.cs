@@ -106,10 +106,6 @@ namespace ISAAR.MSolve.Materials
             };
         }
 
-        object ICloneable.Clone()
-        {
-            return Clone();
-        }
         #endregion
 
     }
