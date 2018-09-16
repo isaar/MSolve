@@ -66,6 +66,8 @@ namespace ISAAR.MSolve.SamplesConsole
             { ParadeigmataElegxwnBuilder.HexaElementsOnlyVonMises(model); }
             if (model__builder_choice == 32) // Hexa8 kanoniko me NL analyzer paradeigma me Vasili Von mises
             { ParadeigmataElegxwnBuilder.HexaElementsOnlyVonMisesHexa8NL(model); }
+            if (model__builder_choice == 33) // Hexa8 kanoniko me NL analyzer paradeigma me Vasili Von mises
+            { ParadeigmataElegxwnBuilder2.ShellPlateBuilder(model,1); }
 
 
             bool use_domain_decomposer = false;
