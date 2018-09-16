@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
@@ -33,7 +34,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
 
         private static void TestWriteOperation(ISparsityPattern pattern, string referenceFile, SparsityPatternWriter writer)
         {
-            string tempFile = "temp.txt";
+            string tempFile = Guid.NewGuid().ToString() + ".txt";
             writer.WriteToFile(pattern, tempFile);
             bool success = IOUtilities.AreFilesEquivalent(referenceFile, tempFile);
             File.Delete(tempFile);

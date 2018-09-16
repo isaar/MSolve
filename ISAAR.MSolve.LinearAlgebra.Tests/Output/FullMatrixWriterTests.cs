@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
@@ -118,7 +119,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
 
         private static void TestWriteOperation(IIndexable2D matrix, string referenceFile, FullMatrixWriter writer)
         {
-            string tempFile = "temp.txt";
+            string tempFile = Guid.NewGuid().ToString() + ".txt";
             writer.WriteToFile(matrix, tempFile);
             bool success = IOUtilities.AreFilesEquivalent(referenceFile, tempFile);
             File.Delete(tempFile);
