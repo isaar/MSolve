@@ -1264,10 +1264,11 @@ namespace ISAAR.MSolve.FEM.Elements
             }
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
+                IMatrix2D constitutiveMatrix = materialsAtGaussPoints[npoint].ConstitutiveMatrix;
                 for (int j = 0; j < 6; j++)
                 {
                     for (int k = 0; k < 6; k++)
-                    { Cons_disp[npoint][j, k] = materialsAtGaussPoints[npoint].ConstitutiveMatrix[j, k]; }
+                    { Cons_disp[npoint][j, k] = constitutiveMatrix[j, k]; }
                 }
             }
             k_stoixeiou=this.UpdateKmatrices(element);
@@ -1292,7 +1293,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ClearMaterialState()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            //foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()

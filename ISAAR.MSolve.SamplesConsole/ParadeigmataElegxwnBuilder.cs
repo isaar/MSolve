@@ -336,7 +336,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     nodeID++;
                 }
             }
-            VonMisesMaterial3D material1 = new VonMisesMaterial3D(2.1e5, 0.35, 2.1e5, 0.15);
+            VonMisesMaterial3D material1 = new VonMisesMaterial3D(2.1e5, 0.35, 2.1e2, 0.15);
             //{
             //    youngModulus = 2.1e5,
             //    PoissonRatio = 0.35,
