@@ -61,9 +61,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Utilities
             return ((file1byte - file2byte) == 0);
         }
 
-        //internal static void AssertFileEquality(string expectedFile, Func<string> )
-        //{
+        /// <summary>
+        /// Compares 2 files line-by-line, taking into account equivalent characters.
+        /// </summary>
+        /// <param name="file1">The absolute path of the first file.</param>
+        /// <param name="file2">The absolute path of the second file.</param>
+        internal static bool AreFilesEquivalent(string file1, string file2)
+        {
+            // Determine if the same file was referenced two times.
+            if (file1 == file2)
+            {
+                // Return true to indicate that the files are the same.
+                return true;
+            }
 
-        //}
+            // Open the two files.
+            using (var reader1 = new StreamReader(file1))
+            using(var reader2 = new StreamReader(file2))
+            {
+                while (true)
+                {
+                    // Reading lines removes the \r, \n, or \r\n at the end.
+                    string line1 = reader1.ReadLine();
+                    string line2 = reader2.ReadLine();
+
+                    if ((line1 == null) && (line2 == null)) return true; // both files have ended without finding a difference.
+                    else if ((line1 == null) != (line2 == null)) return false; // only 1 file has ended.
+                    if (!line1.Equals(line2)) return false;
+                }
+            }
+        }
     }
 }
