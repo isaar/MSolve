@@ -56,6 +56,9 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return Kff.BuildSkylineMatrix();
         }
 
+        //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
+        // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
+        // though.
         private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<ContinuumElement2D> elements,
             int numFreeDofs, DofTable<IDof> freeDofs)
         {
@@ -66,7 +69,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 //      and colHeights[] at once?
 
                 // To determine the col height, first find the min of the dofs of this element. All these are 
-                // considered to interact with each other, even if there are 0 entries in the element stiffness matrix.
+                // considered to interact with each other, even if there are 0.0 entries in the element stiffness matrix.
                 int minDof = Int32.MaxValue;
                 foreach (var node in element.Nodes)
                 {

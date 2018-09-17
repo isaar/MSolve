@@ -44,14 +44,26 @@ namespace ISAAR.MSolve.Solvers.Ordering
             int dofCounter = 0;
             foreach (var element in elements)
             {
-                DofTable<IDof> elementDofs = element.GetNodalDofs();
-                foreach (var node in element.Nodes)
+                IReadOnlyList<IReadOnlyList<IDof>> elementDofs = element.GetNodalDofs();
+                for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
-                    foreach (var dof in elementDofs.GetColumnsOfRow(node))
+                    IDiscretePoint node = element.Nodes[nodeIdx];
+                    for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
                     {
+                        IDof dof = elementDofs[nodeIdx][dofIdx];
                         if (!constraints.Contains(node, dof)) freeDofs[node, dof] = dofCounter++;
                     }
                 }
+
+                // These are for using tables instead of nested lists. They should be purged.
+                //DofTable<IDof> elementDofs = element.GetNodalDofsTable();
+                //foreach (var node in element.Nodes)
+                //{
+                //    foreach (var dof in elementDofs.GetColumnsOfRow(node))
+                //    {
+                //        if (!constraints.Contains(node, dof)) freeDofs[node, dof] = dofCounter++;
+                //    }
+                //}
             }
             return new FreeDofOrderer(dofCounter, freeDofs);
         }
@@ -87,26 +99,58 @@ namespace ISAAR.MSolve.Solvers.Ordering
 
         public Vector ExtractVectorElementFromGlobal(ContinuumElement2D element, Vector globalVector)
         {
-            DofTable<IDof> elementDofs = element.GetNodalDofs();
-            double[] elementVector = new double[elementDofs.EntryCount];
-            foreach (Tuple<IDiscretePoint, IDof, int> nodeDofNumber in elementDofs)
+            double[] elementVector = new double[element.GetNodalDofsCount()];
+            IReadOnlyList<IReadOnlyList<IDof>> elementDofs = element.GetNodalDofs();
+            int elementDofIdx = 0;
+            for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
             {
-                bool isFree = FreeDofs.TryGetValue(nodeDofNumber.Item1, nodeDofNumber.Item2, out int globalDof);
-                if (isFree) elementVector[nodeDofNumber.Item3] = globalVector[globalDof];
-                // Else, the quantity of interest is 0.0 at all constrained dofs.
+                IDiscretePoint node = element.Nodes[nodeIdx];
+                for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
+                {
+                    bool isFree = FreeDofs.TryGetValue(node, elementDofs[nodeIdx][dofIdx], out int globalDofIdx);
+                    if (isFree) elementVector[elementDofIdx] = globalVector[globalDofIdx];
+                    // Else, the quantity of interest is 0.0 at all constrained dofs.
+                    ++elementDofIdx; // This must be incremented for constrained dofs as well
+                }
             }
+
+            // These are for using tables instead of nested lists. They should be purged.
+            //DofTable<IDof> elementDofs = element.GetNodalDofsTable();
+            //double[] elementVector = new double[elementDofs.EntryCount];
+            //foreach (Tuple<IDiscretePoint, IDof, int> nodeDofNumber in elementDofs)
+            //{
+            //    bool isFree = FreeDofs.TryGetValue(nodeDofNumber.Item1, nodeDofNumber.Item2, out int globalDof);
+            //    if (isFree) elementVector[nodeDofNumber.Item3] = globalVector[globalDof];
+            //    // Else, the quantity of interest is 0.0 at all constrained dofs.
+            //}
+
             return Vector.CreateFromArray(elementVector);
         }
 
         public IReadOnlyDictionary<int, int> MapFreeDofsElementToGlobal(ContinuumElement2D element)
         {
-            DofTable<IDof> elementDofs = element.GetNodalDofs();
             var dofMap = new Dictionary<int, int>();
-            foreach (Tuple<IDiscretePoint, IDof, int> nodeDofNumber in elementDofs)
+            IReadOnlyList<IReadOnlyList<IDof>> elementDofs = element.GetNodalDofs();
+            int elementDofIdx = 0;
+            for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
             {
-                bool isFree = FreeDofs.TryGetValue(nodeDofNumber.Item1, nodeDofNumber.Item2, out int globalDofNumber);
-                if (isFree) dofMap[nodeDofNumber.Item3] = globalDofNumber;
+                IDiscretePoint node = element.Nodes[nodeIdx];
+                for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
+                {
+                    bool isFree = FreeDofs.TryGetValue(node, elementDofs[nodeIdx][dofIdx], out int globalDofIdx);
+                    if (isFree) dofMap[elementDofIdx] = globalDofIdx;
+                    ++elementDofIdx; // This must be incremented for constrained dofs as well
+                }
             }
+
+            // These are for using tables instead of nested lists. They should be purged.
+            //DofTable<IDof> elementDofs = element.GetNodalDofsTable();
+            //foreach (Tuple<IDiscretePoint, IDof, int> nodeDofNumber in elementDofs)
+            //{
+            //    bool isFree = FreeDofs.TryGetValue(nodeDofNumber.Item1, nodeDofNumber.Item2, out int globalDofNumber);
+            //    if (isFree) dofMap[nodeDofNumber.Item3] = globalDofNumber;
+            //}
+
             return dofMap;
         }
 

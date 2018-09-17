@@ -201,7 +201,30 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
 
-        public DofTable<IDof> GetNodalDofs() // TODO: Perhaps this should be more minimalistic
+        /// <summary>
+        /// The returned structure is a list with as many entries as the number of nodes of this element. Each entry contains 
+        /// a list with the dofs of the corresponding node. E.g. For node idx = 3, dof idx = 2 the IDof is result[3][2].
+        /// </summary>
+        /// <returns></returns>
+        public IReadOnlyList<IReadOnlyList<IDof>> GetNodalDofs()
+        {
+            var allDofs = new IDof[Nodes.Count][];
+            for (int i = 0; i < Nodes.Count; ++i)
+            {
+                var nodalDofs = new IDof[2];
+                nodalDofs[0] = DisplacementDof.X;
+                nodalDofs[1] = DisplacementDof.Y;
+                allDofs[i] = nodalDofs;
+            }
+            return allDofs;
+        }
+
+        //TODO: This must be a property or returned with the count. Clients should not have to iterate it once, just to count. 
+        public int GetNodalDofsCount() => 2 * Nodes.Count;
+
+        // Perhaps this should be more minimalistic
+        // TODO: Either keep this or the GetNodlDofs() logic, but through a DofEnumerator and caching the dofs.
+        public DofTable<IDof> GetNodalDofsTable() 
         {
             var dofTable = new DofTable<IDof>();
             int dofCounter = 0;
