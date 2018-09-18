@@ -68,6 +68,8 @@ namespace ISAAR.MSolve.SamplesConsole
             { ParadeigmataElegxwnBuilder.HexaElementsOnlyVonMisesHexa8NL(model); }
             if (model__builder_choice == 33) // Hexa8 kanoniko me NL analyzer paradeigma me Vasili Von mises
             { ParadeigmataElegxwnBuilder2.ShellPlateBuilder(model,1); }
+            if (model__builder_choice == 34) // einai to benchmark 4 me to neo hexa_mat
+            { ParadeigmataElegxwnBuilder.Hexanl_v2_CantileverBuilder(model, 850); }
 
 
             bool use_domain_decomposer = false;
@@ -112,7 +114,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
 
-            var increments = 2;
+            var increments = 1;
             var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers, provider, increments, model.TotalDOFs);
             //h epomenhgrammh einai gia paradeigma ws pros to access
             //IAnalyzer childAnalyzer2 = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers, provider, increments, model.TotalDOFs);
