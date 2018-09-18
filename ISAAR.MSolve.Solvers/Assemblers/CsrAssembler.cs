@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
@@ -27,20 +28,21 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 
-        public (CsrMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<ContinuumElement2D> elements,
-            AllDofOrderer dofOrderer)
+        public (CsrMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
+            AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
         {
             int numConstrainedDofs = dofOrderer.NumConstrainedDofs;
             int numFreeDofs = dofOrderer.NumFreeDofs;
             var Kff = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
             var Kfc = DokRowMajor.CreateEmpty(numFreeDofs, numConstrainedDofs);
 
-            foreach (ContinuumElement2D element in elements)
+            foreach (IElement elementWrapper in elements)
             {
+                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (IReadOnlyDictionary<int, int> mapStandard, IReadOnlyDictionary<int, int> mapConstrained) =
                     dofOrderer.MapDofsElementToGlobal(element);
-                Matrix k = Conversions.MatrixOldToNew(element.BuildStiffnessMatrix());
+                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
                 Kff.AddSubmatrixSymmetric(k, mapStandard);
                 Kfc.AddSubmatrix(k, mapStandard, mapConstrained);
             }
@@ -49,16 +51,18 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
         }
 
-        public CsrMatrix BuildGlobalMatrix(IEnumerable<ContinuumElement2D> elements, FreeDofOrderer dofOrderer)
+        public CsrMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
+            IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
             var Kff = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
 
-            foreach (ContinuumElement2D element in elements)
+            foreach (IElement elementWrapper in elements)
             {
+                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 IReadOnlyDictionary<int, int> mapStandard = dofOrderer.MapFreeDofsElementToGlobal(element);
-                Matrix k = Conversions.MatrixOldToNew(element.BuildStiffnessMatrix());
+                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
                 Kff.AddSubmatrixSymmetric(k, mapStandard);
             }
 

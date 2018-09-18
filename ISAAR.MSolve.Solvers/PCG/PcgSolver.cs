@@ -56,13 +56,13 @@ namespace ISAAR.MSolve.Solvers.PCG
         ///     be provided in the same order as the subdomain matrices are provided in 
         ///     <see cref="SetLinearSystemMatrices(IReadOnlyList{IIndexable2D})"/>.</param>
         /// <returns></returns>
-        public IReadOnlyList<Vector> Solve(IReadOnlyList<Vector> subdomainRhsVectors)
+        public IReadOnlyList<Numerical.LinearAlgebra.Interfaces.IVector> Solve(IReadOnlyList<Vector> subdomainRhsVectors)
         {
             if (subdomainRhsVectors.Count != 1) throw new InvalidSolverException(
                 name + " only works when there is a single subdomain.");
 
             (Vector solution, CGStatistics stats) = pcgAlgorithm.Solve(matrix, subdomainRhsVectors[0], preconditioner);
-            return new Vector[] { solution };
+            return new Numerical.LinearAlgebra.Interfaces.IVector[] { solution.ToLegacyVector() };
         }
     }
 }
