@@ -218,18 +218,15 @@ namespace ISAAR.MSolve.SamplesConsole
             //xrhsimopoiithike to  ParadeigmataElegxwnBuilder.HexaCantileverBuilder(Model model, double load_value)
             // allagh tou element kai tou material
 
-            //ElasticMaterial3D material1 = new ElasticMaterial3D()
-            //{
-            //    YoungModulus = 1353000,
-            //    PoissonRatio = 0.3,
-            //};
+            ElasticMaterial3D material1 = new ElasticMaterial3D()
+            {
+                YoungModulus = 1353000,
+                PoissonRatio = 0.3,
+            };
 
 
-            VonMisesMaterial3D material1 = new VonMisesMaterial3D(1353000, 0.30, 1353000, 0.15);
-            //{
-            //    youngModulus = 1353000,
-            //    PoissonRatio = 0.30,
-            //};
+            //VonMisesMaterial3D material1 = new VonMisesMaterial3D(1353000, 0.30, 1353000, 0.15);
+            
 
             double[,] nodeData = new double[,] { {-0.250000,-0.250000,-1.000000},
             {0.250000,-0.250000,-1.000000},
