@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.Analyzers
             }
             rhsNorm = provider.RHSNorm(globalRHS.Data);
         }
-
+        
         public void Initialize()
         {
             solver.Initialize();
@@ -171,9 +171,10 @@ namespace ISAAR.MSolve.Analyzers
                     {
                         //linearSystems[0].Solution = EquivalentLoadsAssembler.GetEquivalentNodalLoads(subdomainUpdaters, provider, solution, dSolution);//TODOGeorge: here it should calculate R_fp = K_fp*DU_p -> GetEquivalentNodalLoads
                         //TODOGeorge: here it should calculate free dofs internal forces -> F_f
-                        //TODOGeorge: update residual (RHS ??) -> r = -(R_fp + F_f)                        
-                        solver.Solve();
+                        //TODOGeorge: update residual (RHS ??) -> r = -(R_fp + F_f)   
+                        //solver.Solve();
                         errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                        solver.Solve();
                         firstError = errorNorm;
                         if (errorNorm < tolerance) break;
                         SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
@@ -249,6 +250,58 @@ namespace ISAAR.MSolve.Analyzers
             double providerRHSNorm = provider.RHSNorm(globalRHS.Data);
             return providerRHSNorm;
         }
+
+
+
+
+
+        private double AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)
+        {
+            //globalRHS.Clear();
+            foreach (ILinearSystem subdomain in linearSystems)
+            {
+                if (currentIncrement == 0 && iteration == 0)
+                {
+                    Array.Clear(du[subdomain.ID].Data, 0, du[subdomain.ID].Length);
+                    Array.Clear(uPlusdu[subdomain.ID].Data, 0, uPlusdu[subdomain.ID].Length);
+                    du[subdomain.ID].Add(((Vector)subdomain.Solution));
+                    uPlusdu[subdomain.ID].Add(((Vector)subdomain.Solution));
+                    du[subdomain.ID].Subtract(u[subdomain.ID]);
+                }
+                else
+                {
+                    du[subdomain.ID].Add(((Vector)subdomain.Solution));
+                    Array.Clear(uPlusdu[subdomain.ID].Data, 0, uPlusdu[subdomain.ID].Length);
+                    uPlusdu[subdomain.ID].Add(u[subdomain.ID]);
+                    uPlusdu[subdomain.ID].Add(du[subdomain.ID]);
+                }
+                //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
+                Vector internalRHS = (Vector)subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);//TODOMaria this calculates the internal forces
+                provider.ProcessInternalRHS(subdomain, internalRHS.Data, uPlusdu[subdomain.ID].Data);//TODOMaria this does nothing
+                //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
+
+                if (parentAnalyzer != null)
+                    internalRHS.Add(new Vector(parentAnalyzer.GetOtherRHSComponents(subdomain,
+                        uPlusdu[subdomain.ID])));//TODOMaria this does nothing for the static problem
+                //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
+
+                Vector subdomainRHS = ((Vector)subdomain.RHS);
+                subdomainRHS.Clear();
+                for (int j = 0; j <= currentIncrement; j++) subdomainRHS.Add((Vector)rhs[subdomain.ID]);//TODOMaria this adds the external forces 
+                subdomainRHS.Subtract(internalRHS);
+                mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
+            }
+            double providerRHSNorm = provider.RHSNorm(globalRHS.Data);
+            return providerRHSNorm;
+        }
+
+
+
+
+
+
+
+
 
         private void ClearIncrementalSolutionVector()
         {
