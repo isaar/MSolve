@@ -1463,24 +1463,24 @@ namespace ISAAR.MSolve.FEM.Elements
         //aparaithta tou IstructuralElement gia to material
         public void ClearMaterialState()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState(); // TODOGer
+            foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearState(); // TODOGer
         }
 
         public void SaveMaterialState()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IShellMaterial m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         public bool MaterialModified
         {
             get
             {
-                foreach (IIsotropicContinuumMaterial3D material in materialsAtGaussPoints)
+                foreach (IShellMaterial material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -1488,7 +1488,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IIsotropicContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IShellMaterial material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
