@@ -12,9 +12,9 @@ namespace ISAAR.MSolve.FEM
     public class EquivalentLoadsAssembler : IEquivalentLoadsAssembler
     {
         private Subdomain subdomain;
-        private Interfaces.IElementMatrixProvider elementProvider;
+        private Discretization.Interfaces.IElementMatrixProvider elementProvider;
 
-        public EquivalentLoadsAssembler(Subdomain subdomain, Interfaces.IElementMatrixProvider elementProvider)
+        public EquivalentLoadsAssembler(Subdomain subdomain, Discretization.Interfaces.IElementMatrixProvider elementProvider)
         {
             this.subdomain = subdomain;
             this.elementProvider = elementProvider;
