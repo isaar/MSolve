@@ -171,39 +171,19 @@ namespace ISAAR.MSolve.Analyzers
                 int iteration = 0;
                 for (iteration = 0; iteration < maxiterations; iteration++)
                 {
-                    if (iteration == 0)
+                    AddEquivalentNodalLoadsToRHS(increment, iteration);
+                    solver.Solve();
+                    ScaleSubdomainConstraints(increment, iteration);
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    if (iteration == 0) firstError = errorNorm;
+                    if (errorNorm < tolerance) break;
+
+                    SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
+                    if ((iteration + 1) % stepsForMatrixRebuild == 0)
                     {
-                        //linearSystems[0].Solution = EquivalentLoadsAssembler.GetEquivalentNodalLoads(subdomainUpdaters, provider, solution, dSolution);//TODOGeorge: here it should calculate R_fp = K_fp*DU_p -> GetEquivalentNodalLoads
-                        //TODOGeorge: here it should calculate free dofs internal forces -> F_f
-                        //TODOGeorge: update residual (RHS ??) -> r = -(R_fp + F_f)   
-                        //solver.Solve();
-                        errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                        //TODOMaria AddEquivalentNodalLoadsToRHS() 
-                        solver.Solve();
-                        firstError = errorNorm;
-                        if (errorNorm < tolerance) break;
-                        SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                        if ((iteration + 1) % stepsForMatrixRebuild == 0)
-                        {
-                            provider.Reset();
-                            BuildMatrices();
-                            solver.Initialize();
-                        }
-                    }
-                    else if (iteration > 0)
-                    {
-                        //TODOGeorge: here it should calculate free dofs internal forces -> F_f
-                        //TODOGeorge: update residual (RHS ??) -> r = -F_f
-                        solver.Solve();
-                        errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                        if (errorNorm < tolerance) break;
-                        SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                        if ((iteration + 1) % stepsForMatrixRebuild == 0)
-                        {
-                            provider.Reset();
-                            BuildMatrices();
-                            solver.Initialize();
-                        }
+                        provider.Reset();
+                        BuildMatrices();
+                        solver.Initialize();
                     }
                 }
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
@@ -273,6 +253,21 @@ namespace ISAAR.MSolve.Analyzers
                 subdomainRHS.Add(equivalentNodalLoads);
 
                 mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
+            }
+        }
+
+        private void ScaleSubdomainConstraints(int currentIncrement, int iteration)
+        {
+            if (iteration != 0)
+                return;
+
+            foreach (ILinearSystem subdomain in linearSystems)
+            {
+                Vector subdomainRHS = ((Vector)subdomain.RHS);
+                var subdomainUpdater = subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i })
+                                                                      .First(x => x.System.ID == subdomain.ID).Index];
+
+                subdomainUpdater.ScaleConstraints((currentIncrement + 2) / (currentIncrement + 1));
             }
         }
 
