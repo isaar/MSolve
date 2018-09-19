@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.FEM
             this.elementProvider = elementProvider;
         }
 
-        public IVector GetEquivalentNodalLoads(IVector solution, IVector dSolution) //TODOMaria this should also take as argument the nodal displacements of the constraints (after the refactoring)
+        public IVector GetEquivalentNodalLoads(IVector solution, double constraintScalingFactor) 
         {
             var times = new Dictionary<string, TimeSpan>();
             var totalStart = DateTime.Now;
@@ -35,10 +35,10 @@ namespace ISAAR.MSolve.FEM
                 IMatrix2D ElementK = elementProvider.Matrix(element);
 
                 double[] localSolution = subdomain.CalculateElementNodalDisplacements(element, solution);
-                double[] localdSolution = subdomain.CalculateElementNodalDisplacements(element, dSolution);
+                double[] localdSolution = subdomain.CalculateElementIcrementalConstraintDisplacements(element, constraintScalingFactor);
 
                 var equivalentNodalForces = new double[localSolution.Length];
-                ElementK.Multiply(new Vector(localSolution), equivalentNodalForces);
+                ElementK.Multiply(new Vector(localdSolution), equivalentNodalForces);
                 subdomain.AddLocalVectorToGlobal(element, equivalentNodalForces, subdomainEquivalentNodalForces);
 
                 times["addition"] += DateTime.Now - elStart;

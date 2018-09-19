@@ -254,6 +254,16 @@ namespace ISAAR.MSolve.FEM.Entities
 
         }
 
+        public double[] CalculateElementIcrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        {
+            var elementNodalDisplacements = new double[element.ElementType.DOFEnumerator.GetDOFTypes(element).Count];
+            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            var icrementalElementNodalDisplacementsVector = new Vector(elementNodalDisplacements);
+            icrementalElementNodalDisplacementsVector.Multiply(constraintScalingFactor);
+            icrementalElementNodalDisplacementsVector.Subtract(new Vector(elementNodalDisplacements));
+            return icrementalElementNodalDisplacementsVector.Data;
+        }
+
         public double[] CalculateElementNodalDisplacements(Element element, IVector globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             double[] elementNodalDisplacements = GetLocalVectorFromGlobal(element, globalDisplacementVector);

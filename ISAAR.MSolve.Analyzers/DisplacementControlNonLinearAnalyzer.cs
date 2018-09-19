@@ -249,7 +249,7 @@ namespace ISAAR.MSolve.Analyzers
 
                 var equivalentLoadsAssembler = equivalentLoadsAssemblers[linearSystems.Select((v, i) => new { System = v, Index = i })
                                                                                       .First(x => x.System.ID == subdomain.ID).Index];
-                var equivalentNodalLoads = (Vector)equivalentLoadsAssembler.GetEquivalentNodalLoads(u[subdomain.ID], du[subdomain.ID]);
+                var equivalentNodalLoads = (Vector)equivalentLoadsAssembler.GetEquivalentNodalLoads(u[subdomain.ID], ((double)currentIncrement + 2) / (currentIncrement + 1));
                 subdomainRHS.Add(equivalentNodalLoads);
 
                 mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
@@ -267,7 +267,7 @@ namespace ISAAR.MSolve.Analyzers
                 var subdomainUpdater = subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i })
                                                                       .First(x => x.System.ID == subdomain.ID).Index];
 
-                subdomainUpdater.ScaleConstraints((currentIncrement + 2) / (currentIncrement + 1));
+                subdomainUpdater.ScaleConstraints(((double)currentIncrement + 2) / (currentIncrement + 1));
             }
         }
 

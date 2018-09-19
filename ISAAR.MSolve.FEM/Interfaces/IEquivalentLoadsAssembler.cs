@@ -7,6 +7,6 @@ namespace ISAAR.MSolve.FEM.Interfaces
 {
     public interface IEquivalentLoadsAssembler
     {
-        IVector GetEquivalentNodalLoads(IVector solution, IVector dSolution);
+        IVector GetEquivalentNodalLoads(IVector solution, double constraintScalingFactor);
     }
 }
