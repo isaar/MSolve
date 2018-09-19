@@ -6,7 +6,7 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface INonLinearSubdomainUpdater
     {
-        void ApplyConstraints(Dictionary<int, Dictionary<DOFType, double>> globalConstraintsDictionary);
+        void ScaleConstraints(double scalingFactor);
         IVector GetRHSFromSolution(IVector solution, IVector dSolution);
         void UpdateState();
         void ResetState();

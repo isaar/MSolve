@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.Analyzers
             this.subdomain = subdomain;
         }
 
-        public void ApplyConstraints(Dictionary<int, Dictionary<DOFType, double>> globalConstraintsDictionary)
+        public void ScaleConstraints(double scalingFactor)
         {
-            this.subdomain.ApplyConstraints(globalConstraintsDictionary);
+            this.subdomain.ScaleConstraints(scalingFactor);
         }
 
         public IVector GetRHSFromSolution(IVector solution, IVector dSolution) //TODO leave 

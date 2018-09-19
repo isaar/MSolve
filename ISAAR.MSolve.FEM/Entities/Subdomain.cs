@@ -246,13 +246,12 @@ namespace ISAAR.MSolve.FEM.Entities
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
         }
 
-        public void ApplyConstraints(Dictionary<int, Dictionary<DOFType, double>> globalConstraintsDictionary)
+        public void ScaleConstraints(double scalingFactor)
         {
-            foreach (var constraint in globalConstraintsDictionary)
-            {
-                if (this.constraintsDictionary.ContainsKey(constraint.Key))
-                    this.constraintsDictionary[constraint.Key] = constraint.Value;
-            }
+            foreach (var nodeId in constraintsDictionary.Keys)
+                foreach (var dof in constraintsDictionary[nodeId].Keys)
+                    constraintsDictionary[nodeId][dof] = constraintsDictionary[nodeId][dof] * scalingFactor;
+
         }
 
         public double[] CalculateElementNodalDisplacements(Element element, IVector globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
