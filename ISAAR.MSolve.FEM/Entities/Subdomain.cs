@@ -9,8 +9,8 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Subdomain: ISubdomain
-	{
+    public class Subdomain : ISubdomain
+    {
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
@@ -30,18 +30,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return elementsDictionary; }
         }
 
-		public Dictionary<int, IElement> ΙElementsDictionary
-		{
-			get
-			{
-				var a = new Dictionary<int, IElement>();
-				foreach (var element in elementsDictionary.Values)
-					a.Add(element.ID, element);
-				return a;
-			}
-		}
+        public Dictionary<int, IElement> ΙElementsDictionary
+        {
+            get
+            {
+                var a = new Dictionary<int, IElement>();
+                foreach (var element in elementsDictionary.Values)
+                    a.Add(element.ID, element);
+                return a;
+            }
+        }
 
-		public Dictionary<int, Node> NodesDictionary
+        public Dictionary<int, Node> NodesDictionary
         {
             get { return nodesDictionary; }
         }
@@ -244,6 +244,15 @@ namespace ISAAR.MSolve.FEM.Entities
             }
 
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
+        }
+
+        public void ApplyConstraints(Dictionary<int, Dictionary<DOFType, double>> globalConstraintsDictionary)
+        {
+            foreach (var constraint in globalConstraintsDictionary)
+            {
+                if (this.constraintsDictionary.ContainsKey(constraint.Key))
+                    this.constraintsDictionary[constraint.Key] = constraint.Value;
+            }
         }
 
         public double[] CalculateElementNodalDisplacements(Element element, IVector globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??

@@ -1,4 +1,5 @@
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -16,6 +17,11 @@ namespace ISAAR.MSolve.Analyzers
         public NonLinearSubdomainUpdater(Subdomain subdomain)
         {
             this.subdomain = subdomain;
+        }
+
+        public void ApplyConstraints(Dictionary<int, Dictionary<DOFType, double>> globalConstraintsDictionary)
+        {
+            this.subdomain.ApplyConstraints(globalConstraintsDictionary);
         }
 
         public IVector GetRHSFromSolution(IVector solution, IVector dSolution) //TODO leave 
