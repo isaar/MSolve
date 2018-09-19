@@ -7,7 +7,7 @@ using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Model:IStructuralModel
+    public class Model : IStructuralModel
     {
         public const int constrainedDofIdx = -1;
         private int totalDOFs = 0;
@@ -45,18 +45,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return subdomainsDictionary; }
         }
 
-	    public Dictionary<int, ISubdomain> ISubdomainsDictionary
-	    {
-		    get
-		    {
-			    var a = new Dictionary<int, ISubdomain>();
-			    foreach (var subdomain in subdomainsDictionary.Values)
-				    a.Add(subdomain.ID,subdomain);
-				return a;
-		    }
-	    }
+        public Dictionary<int, ISubdomain> ISubdomainsDictionary
+        {
+            get
+            {
+                var a = new Dictionary<int, ISubdomain>();
+                foreach (var subdomain in subdomainsDictionary.Values)
+                    a.Add(subdomain.ID, subdomain);
+                return a;
+            }
+        }
 
-		public Dictionary<int, Cluster> ClustersDictionary
+        public Dictionary<int, Cluster> ClustersDictionary
         {
             get { return clustersDictionary; }
         }
@@ -79,6 +79,11 @@ namespace ISAAR.MSolve.FEM.Entities
         public IList<Cluster> Clusters
         {
             get { return clustersDictionary.Values.ToList<Cluster>(); }
+        }
+
+        public Dictionary<int, Dictionary<DOFType, double>> Constraints
+        {
+            get { return this.constraintsDictionary; }
         }
 
         public IList<Load> Loads
