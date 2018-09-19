@@ -14,6 +14,8 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.Discretization.Providers;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -180,7 +182,7 @@ namespace ISAAR.MSolve.Tests
 
             // Applied displacement
             model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = nodalDisplacement });
-            
+
             // Generate elements of the structure
             int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)
@@ -212,7 +214,7 @@ namespace ISAAR.MSolve.Tests
                 model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
                 iNode++;
             }
-            
+
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
 
@@ -228,10 +230,11 @@ namespace ISAAR.MSolve.Tests
             var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+            var equivalentLoadsAssemblers = new[] { new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) };
             int increments = 10;
             int totalDOFs = model.TotalDOFs;
             DisplacementControlNonLinearAnalyzer childAnalyzer = new DisplacementControlNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
-            provider, increments, totalDOFs);
+            equivalentLoadsAssemblers, provider, increments, totalDOFs);
 
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
