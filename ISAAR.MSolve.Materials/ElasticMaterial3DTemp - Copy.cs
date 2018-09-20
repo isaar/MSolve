@@ -5,7 +5,7 @@ using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
-    public class ElasticMaterial3DTemp : IIsotropicContinuumMaterial3D
+    public class ElasticMaterial3DTemp_copy : IIsotropicContinuumMaterial3D
     {
         private readonly double[] strains = new double[6];
         private double[] incrementalStrains = new double[6];
@@ -45,13 +45,19 @@ namespace ISAAR.MSolve.FEM.Materials
 
         private void CalculateNextStressStrainPoint()
         {
-            stressesNew = new double[6];
+            var stressesElastic = new double[6];
             for (int i = 0; i < 6; i++)
             {
-                stressesNew[i] = this.stresses[i];
+                stressesElastic[i] = this.stresses[i];
                 for (int j = 0; j < 6; j++)
-                    stressesNew[i] += this.constitutiveMatrix[i, j] * this.incrementalStrains[j];
-            }         
+                    stressesElastic[i] += this.constitutiveMatrix[i, j] * this.incrementalStrains[j];
+            }
+
+            //this.stressesNew = stressesElastic; //DIORTHOSI A.4
+            //Array.Copy(stressesElastic, this.stressesNew, 6);
+            stressesNew = new double[6] { stressesElastic[0], stressesElastic[1], stressesElastic[2],
+                stressesElastic[3], stressesElastic[4], stressesElastic[5] };
+
         }
 
         #region IFiniteElementMaterial Members
@@ -87,7 +93,10 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
         {
-            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6); 
+            //Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6); //DIORHOSI A.5
+            this.incrementalStrains = new double[6] { strainsIncrement.Data[0], strainsIncrement.Data[1], strainsIncrement.Data[2],
+                strainsIncrement.Data[3], strainsIncrement.Data[4], strainsIncrement.Data[5] };
+
             constitutiveMatrix = GetConstitutiveMatrix();
             this.CalculateNextStressStrainPoint();
         }
@@ -102,7 +111,9 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public void SaveState()
         {
-            Array.Copy(this.stressesNew, this.stresses, 6);
+            //Array.Copy(this.stressesNew, this.stresses, 6);
+            this.stresses = new double[6] { stressesNew[0], stressesNew[1], stressesNew[2],
+                stressesNew[3], stressesNew[4], stressesNew[5] };
         }
 
         public void ClearStresses()
@@ -116,9 +127,9 @@ namespace ISAAR.MSolve.FEM.Materials
         #region ICloneable Members
         object ICloneable.Clone() => Clone();
 
-        public ElasticMaterial3DTemp Clone()
+        public ElasticMaterial3DTemp_copy Clone()
         {
-            return new ElasticMaterial3DTemp() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
+            return new ElasticMaterial3DTemp_copy() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
         }
 
         #endregion

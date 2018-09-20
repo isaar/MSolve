@@ -143,5 +143,48 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
             return (J_0inv, detJ_0);
         }
+
+        public static double[][,]  Get_J_1(int nGaussPoints, double[][] tx_i, double[][] tU, double[][,] J_0a)
+        {
+            double[,] J_1b;
+            double[][,] J_1;
+
+            J_1b = new double[16, 3];
+            J_1 = new double[nGaussPoints][,];
+
+            for (int j = 0; j < nGaussPoints; j++)
+            {
+                J_1[j] = new double[3, 3];              
+            }
+
+            for (int j = 0; j < 8; j++)
+            {
+                J_1b[2 * j, 0] = tx_i[j][0];
+                J_1b[2 * j + 1, 0] = tU[j][3];
+                J_1b[2 * j, 1] = tx_i[j][1];
+                J_1b[2 * j + 1, 1] = tU[j][4];
+                J_1b[2 * j, 2] = tx_i[j][2];
+                J_1b[2 * j + 1, 2] = tU[j][5];
+            }
+
+            for (int j = 0; j < nGaussPoints; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    for (int l = 0; l < 3; l++)
+                    {
+                        J_1[j][k, l] = 0;
+                        for (int m = 0; m < 16; m++)
+                        {
+                            J_1[j][k, l] += J_0a[j][k, m] * J_1b[m, l];
+                        }
+
+                    }
+
+                }
+            }
+            return J_1;
+        }
+
     }
 }
