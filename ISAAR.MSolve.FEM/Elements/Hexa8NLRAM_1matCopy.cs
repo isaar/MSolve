@@ -1299,7 +1299,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
-                for (int i1 = 0; i1 < 3; i1++)
+                for (int i1 = 0; i1 < 6; i1++)
                 { GLvec_last_converged[npoint][i1]= GLvec[npoint][i1]; }
             }
 

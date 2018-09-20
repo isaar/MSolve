@@ -19,7 +19,7 @@ using ISAAR.MSolve.FEM.Interpolation;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Hexa8NLRAM_1mat : IStructuralFiniteElement , IEmbeddedHostElement
+    public class Hexa8NLRAM_1mat_Copy_gia_Ser : IStructuralFiniteElement , IEmbeddedHostElement
     {
         //metavlhtes opws sto hexa8
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
@@ -35,11 +35,11 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly int nGaussPoints;
         private readonly InterpolationHexa8Reverse interpolation = InterpolationHexa8Reverse.UniqueInstance;
 
-        protected Hexa8NLRAM_1mat()//consztructor apo to hexa8
+        protected Hexa8NLRAM_1mat_Copy_gia_Ser()//consztructor apo to hexa8
         {
         }
 
-        public Hexa8NLRAM_1mat(IContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
+        public Hexa8NLRAM_1mat_Copy_gia_Ser(IContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
         {
             this.gp_d1_disp = gp_d1c;
             this.gp_d2_disp = gp_d2c;

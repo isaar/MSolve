@@ -152,6 +152,7 @@ namespace ISAAR.MSolve.SamplesConsole
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
             ProgramElegxoiDdm.SolveRVEExample();
+            //SeparateCodeCheckingClass.Check06();
 
         }
     }

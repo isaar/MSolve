@@ -19,7 +19,7 @@ using ISAAR.MSolve.FEM.Interpolation;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Hexa8NLRAM_1mat : IStructuralFiniteElement , IEmbeddedHostElement
+    public class Hexa8NLRAM_1mat_allages_getSpk : IStructuralFiniteElement , IEmbeddedHostElement
     {
         //metavlhtes opws sto hexa8
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
@@ -35,11 +35,11 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly int nGaussPoints;
         private readonly InterpolationHexa8Reverse interpolation = InterpolationHexa8Reverse.UniqueInstance;
 
-        protected Hexa8NLRAM_1mat()//consztructor apo to hexa8
+        protected Hexa8NLRAM_1mat_allages_getSpk()//consztructor apo to hexa8
         {
         }
 
-        public Hexa8NLRAM_1mat(IContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
+        public Hexa8NLRAM_1mat_allages_getSpk(IContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
         {
             this.gp_d1_disp = gp_d1c;
             this.gp_d2_disp = gp_d2c;
@@ -1222,6 +1222,24 @@ namespace ISAAR.MSolve.FEM.Elements
                                                                               GLvec[npoint][3]- GLvec_last_converged[npoint][3],GLvec[npoint][4]- GLvec_last_converged[npoint][4],GLvec[npoint][5]- GLvec_last_converged[npoint][5]};
                 materialsAtGaussPoints[npoint].UpdateMaterial(new StressStrainVectorContinuum3D(GLvec_strain_minus_last_converged_value)); //gia Update me to total strain apla: materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
             }
+
+            //DIORTHOSI A.2
+            for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
+            {
+                for (int j = 0; j < 6; j++)
+                { Spkvec[npoint][j] = materialsAtGaussPoints[npoint].Stresses[j]; }
+            }
+            for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
+            {
+                IMatrix2D constitutiveMatrix = materialsAtGaussPoints[npoint].ConstitutiveMatrix;
+                for (int j = 0; j < 6; j++)
+                {
+                    for (int k = 0; k < 6; k++)
+                    { Cons_disp[npoint][j, k] = constitutiveMatrix[j, k]; }
+                }
+            }
+
+
             return new Tuple<double[], double[]>(GLvec_strain_minus_last_converged_value, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
             //gia Update me to total strain apla:
             //return new Tuple<double[], double[]>(GLvec[materialsAtGaussPoints.Length - 1], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
@@ -1261,6 +1279,12 @@ namespace ISAAR.MSolve.FEM.Elements
                     { Spkvec[npoint][j] = materialsAtGaussPoints[npoint].Stresses[j]; }
                 }
                 this.InitializeBland_sunt_ol_Spkvec();// meta to get twn stresses apo to material dioiti periexei ton pol/smo suntol epi Spkvec
+
+                // DIORTHOSI A.1
+                for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
+                {
+                    materialsAtGaussPoints[npoint].UpdateMaterial(new StressStrainVectorContinuum3D(new double[6] { 0, 0, 0, 0, 0, 0 })); //gia Update me to total strain apla: materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+                }
             }
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
