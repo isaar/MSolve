@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+//J_0inv_hexa and detJ_0 can only be calculated during initialization (at the first configuration) and then cached
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     public class JacobianHexa8Reverse

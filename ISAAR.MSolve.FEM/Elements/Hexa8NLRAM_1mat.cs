@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;//using ISAAR.MSolve.PreProcessor.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
-// compa
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.FEM;
@@ -34,6 +33,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public int gp_d3_disp { get; set; }
         private readonly int nGaussPoints;
         private readonly InterpolationHexa8Reverse interpolation = InterpolationHexa8Reverse.UniqueInstance;
+        private bool isInitialized = false;
 
         protected Hexa8NLRAM_1mat()//consztructor apo to hexa8
         {
@@ -69,7 +69,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
         private double[][] ox_i; //den einai apo afta pou orizei o xrhsths 8 arrays twn 3 stoixeiwn
-        private double[][] tx_i;
         private double[][] tu_i;
         //private double[][,] J_0b_hexa; // exoume tosa [,] osa einai kai ta gpoints
         //private double[][,] J_0_hexa;
@@ -84,12 +83,10 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
         //private double[,] ll2; //einai anexarthto twn GP // initialize gia to update coordinate
-        private double[][] GLvec;
-        private double[][] GLvec_last_converged;
-        private double[][] Spkvec;
+        private double[][] GLvec; //TODO na elgxthei ti kratietai apo ta material kai ti apo ta elements.
+        private double[][] GLvec_last_converged; //TODO na elgxthei ti kratietai apo ta material kai ti apo ta elements.
         //private double[][] sunt_ol_Spkvec;
         //private double[][,] BL;
-        private double[][,] Cons_disp; // upologismos apo to updatematerial
 
 
         private double [][,] Getll1Hexa(double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, int gp_d1_disp, int gp_d2_disp, int gp_d3_disp)
@@ -264,8 +261,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return BNL1_hexa;
         }
 
-
-
         private void CalculateInitialConfigurationData(IElement element)
         {
             (double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, double[] a_123g) = interpolation.GetShapeFunctionDerivatives(gp_d1_disp, gp_d2_disp, gp_d3_disp);
@@ -280,7 +275,6 @@ namespace ISAAR.MSolve.FEM.Elements
             endeixiShapeFunctionAndGaussPointData = 2;
 
             ox_i = new double[8][];
-            tx_i = new double[8][];
             tu_i = new double[8][]; // apla initialized edw kai tpt allo
 
             (double[][,] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
@@ -297,7 +291,6 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int j = 0; j < 8; j++)
             {
                 ox_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
-                tx_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
                 //tu_i[j] = new double[] { 0, 0, 0 }; den ananewnontai se afth th methodo ta mhtrwa pou periexoun tu_i
             }
 
@@ -325,21 +318,17 @@ namespace ISAAR.MSolve.FEM.Elements
 
             
             tu_i = new double[8][];
-            tx_i = new double[8][];
             //ll2 = new double[8, 3];
             GLvec = new double[nGaussPoints][];
             GLvec_last_converged = new double[nGaussPoints][];
-            Spkvec = new double[nGaussPoints][];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
                 GLvec[gpoint] = new double[6];
                 GLvec_last_converged[gpoint] = new double[6];
-                Spkvec[gpoint] = new double[6];
             }
             for (int k = 0; k < 8; k++)
             {
                 tu_i[k] = new double[3];
-                tx_i[k] = new double[3];
             }
 
             //sunt_ol_Spkvec = new double[nGaussPoints][];
@@ -350,99 +339,25 @@ namespace ISAAR.MSolve.FEM.Elements
                 //BL[gpoint] = new double[6, 24];
 
             }
-            Cons_disp = new double[nGaussPoints][,]; // upologismos apo to updatematerial
-            for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
-            {
-                Cons_disp[gpoint] = new double[6, 6];
-            }
+            isInitialized = true;
 
         }
 
-        
-
-
-        private void InitializeMatrices()  // DEN XRHSIMOPOIEITAI PIA KAPOU
+        private void UpdateCoordinateData(double[] localdisplacements,out double[][] tx_i)
         {
-            // initialize gia to update coordinate
-            tu_i = new double[8][];
             tx_i = new double[8][];
-            //ll2 = new double[8, 3];
-            //J_1b = new double[8, 3];
-            //J_1 = new double[nGaussPoints][,];
-            //BL11b= new double[nGaussPoints][,];
-            //DGtr = new double[nGaussPoints][,];
-            //GL = new double[nGaussPoints][,];
-            GLvec = new double[nGaussPoints][];
-            Spkvec = new double[nGaussPoints][];
-            for (int npoint = 0; npoint < nGaussPoints; npoint++)
+            for (int j = 0; j < 8; j++)
             {
-                //BL11b[npoint] = new double[9,9];   
-                //J_1[npoint] = new double[3, 3];
-                //DGtr[npoint] = new double[3, 3];
-                //GL[npoint] = new double[3, 3];
-                GLvec[npoint] = new double[6];
-                Spkvec[npoint] = new double[6];
-                // epiprosthtws mhdenizoueme gia efkolia edw osa apo ta parapanw the tha gemisoun plhrws 
-                //for (int j = 0; j < 9; j++)
-                //{
-                //    for (int k = 0; k < 9; k++)
-                //    {
-                //        BL11b[npoint][j, k] = 0;
-                //    }
-                //}
+                tx_i[j] = new double[3];
+                for (int k = 0; k < 3; k++)
+                {
+                    tu_i[j][k] = localdisplacements[3 * j + k];
+                    tx_i[j][k] = ox_i[j][k] + tu_i[j][k];
+                }
             }
-            for (int k=0; k < 8; k++)
-            {
-                tu_i[k] = new double[3];
-                tx_i[k] = new double[3];
-            }
-
-            // initialize gia to update forces
-            //l_perisp = new double[3, 3];
-            //sunt_ol_Spkvec = new double[nGaussPoints][];
-            //BL11 = new double[nGaussPoints][,];
-            //BL1112sun01_hexa = new double[nGaussPoints][,];
-            //BL = new double[nGaussPoints][,];
-            //fxk1 = new double[nGaussPoints+1][];
-            for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {
-                //sunt_ol_Spkvec[npoint] = new double[6];
-                //BL11[npoint] = new double[6, 9];
-                //BL1112sun01_hexa[npoint] = new double[6, 9];
-                //BL[npoint] = new double[6, 24];
-                
-            }
-            //for (int npoint = 0; npoint < nGaussPoints+1; npoint++)
-            //{
-            //    fxk1[npoint] = new double[24];
-            //}
-
-            // initialize gia to updateKmatrices
-            //sunt_ol_Spk = new double[nGaussPoints][,];
-            //sunt_ol_SPK_epi_BNL_hexa = new double[9,24];
-            //kl_ = new double[nGaussPoints + 1][,]; 
-            //knl_ = new double[nGaussPoints + 1][,]; 
-            //k_stoixeiou = new double[24,24]; 
-            Cons_disp = new double[nGaussPoints ][,] ; // upologismos apo to updatematerial
-            //sunt_ol_cons_disp = new double [6,6];
-            //sunt_ol_cons_disp_epi_BL = new double[6, 24];
-            for (int npoint = 0; npoint < nGaussPoints ; npoint++)
-            {
-                //sunt_ol_Spk[npoint] = new double[3,3];
-                Cons_disp[npoint] = new double[6, 6];
-            }
-            //for (int npoint = 0; npoint < nGaussPoints + 1; npoint++)
-            //{
-            //    kl_[npoint] = new double[24,24];
-            //    knl_[npoint] = new double[24, 24];
-            //}
-
-
         }
 
-
-
-        private void UpdateCoordinateData(double[] localdisplacements, IElement element) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
+        private void CalculateStrains(double[] localdisplacements, IElement element, double[][] tx_i) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
             //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn 
             (double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, double[] a_123g) = interpolation.GetShapeFunctionDerivatives(gp_d1_disp, gp_d2_disp, gp_d3_disp);
@@ -458,16 +373,7 @@ namespace ISAAR.MSolve.FEM.Elements
             {                       
                 DGtr[npoint] = new double[3, 3];
                 GL[npoint] = new double[3, 3];
-            }
-
-            for (int j = 0; j < 8; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    tu_i[j][k]= localdisplacements[3 * j + k];
-                    tx_i[j][k] = ox_i[j][k] + tu_i[j][k];
-                }
-            }
+            }            
 
             double[][,] J_1 = JacobianHexa8Reverse.Get_J_1(nGaussPoints, tx_i, ll1_hexa);
 
@@ -535,11 +441,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
         }
 
-
-        // apo uliko tha einai gnwsto to SpkVec[npoint][1:6] gia ola ta npoints
-        // me vash afto programmatizontai oi forces
-
-
         private double[] UpdateForces(IElement element)
         {
             // upologismos entos forces olwn twn apaitoumenwn mhtrwwn
@@ -600,7 +501,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 //
                 for (int m = 0; m < 6; m++)
                 {
-                    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * Spkvec[npoint][m];
+                    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses[m];
                 }
 
                 //
@@ -847,7 +748,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 //
                 for (int m = 0; m < 6; m++)
                 {
-                    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * Spkvec[npoint][m];
+                    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses[m];
                 }
 
                 //
@@ -983,11 +884,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 sunt_ol_Spk[npoint][2, 2] = sunt_ol_Spkvec[npoint][2];
 
                 //
+                ElasticityTensorContinuum3D consDisp = materialsAtGaussPoints[npoint].ConstitutiveMatrix;
                 for (int m = 0; m < 6; m++)
                 {
                     for (int n = 0; n < 6; n++)
                     {
-                        sunt_ol_cons_disp[m, n] = sunt_oloklhrwmatos[npoint] * Cons_disp[npoint][m, n];
+                        sunt_ol_cons_disp[m, n] = sunt_oloklhrwmatos[npoint] * consDisp[m, n];
                     }
                 }
 
@@ -1086,7 +988,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
-            this.UpdateCoordinateData(localTotalDisplacements, element);
+            this.UpdateCoordinateData(localTotalDisplacements, out double[][] tx_i);
+            this.CalculateStrains(localTotalDisplacements, element,tx_i);
             double[] GLvec_strain_minus_last_converged_value=new double[6];
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
@@ -1103,11 +1006,6 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
             double[] fxk1;
-            for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
-            {
-                for (int j = 0; j < 6; j++)
-                { Spkvec[npoint][j] = materialsAtGaussPoints[npoint].Stresses[j]; }
-            }
             fxk1=this.UpdateForces(element);
             return fxk1;
         }
@@ -1120,28 +1018,15 @@ namespace ISAAR.MSolve.FEM.Elements
         public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
             double[,] k_stoixeiou = new double[24, 24];
-            if (Cons_disp == null)
+            if (!isInitialized)
             {
                 //this.CalculateShapeFunctionAndGaussPointData();
                 //this.GetInitialGeometricDataAndInitializeMatrices(element);
                 this.CalculateInitialConfigurationData(element);
-
-                this.UpdateCoordinateData(new double[24],element);
-                for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)// loop gia getfirstStressesFromMaterial
-                {
-                    for (int j = 0; j < 6; j++)
-                    { Spkvec[npoint][j] = materialsAtGaussPoints[npoint].Stresses[j]; }
-                }
+                var localTotalDisplacements = new double[24];
+                this.UpdateCoordinateData(localTotalDisplacements, out double[][] tx_i);
+                this.CalculateStrains(localTotalDisplacements, element, tx_i);
                 this.InitializeBland_sunt_ol_Spkvec();// meta to get twn stresses apo to material dioiti periexei ton pol/smo suntol epi Spkvec
-            }
-            for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
-            {
-                IMatrix2D constitutiveMatrix = materialsAtGaussPoints[npoint].ConstitutiveMatrix;
-                for (int j = 0; j < 6; j++)
-                {
-                    for (int k = 0; k < 6; k++)
-                    { Cons_disp[npoint][j, k] = constitutiveMatrix[j, k]; }
-                }
             }
             k_stoixeiou=this.UpdateKmatrices(element);
             IMatrix2D element_stiffnessMatrix = new Matrix2D(k_stoixeiou); // TODO giati de ginetai return dof.Enumerator.GetTransformedMatrix, xrhsh symmetric
