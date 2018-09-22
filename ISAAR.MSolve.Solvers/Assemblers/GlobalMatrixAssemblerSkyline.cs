@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement; // TODO: Probably solvers should not have dependencies from FEM, IGA, etc. Find a way to hide the embedding.
 
-namespace ISAAR.MSolve.Discretization
+namespace ISAAR.MSolve.Solvers.Assemblers
 {
     public static class GlobalMatrixAssemblerSkyline
     {
