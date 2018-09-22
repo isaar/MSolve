@@ -1783,7 +1783,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacementsSuperElement, double[] localdDisplacementsSuperElement)
         {
             double[][] Delta = new double[nGaussPoints][];
-            double[] localTotalDisplacements = dofEnumerator.GetTransformedVector(localTotalDisplacementsSuperElement); // PROSTHIKI EMBEDDED: metonomasthkan ta localTotalDisplacements se "SuperElement" apo ta opoia tha upologizontai pleon ta localTotalDisplacemeents
+            double[] localTotalDisplacements = dofEnumerator.GetTransformedDisplacementsVector(localTotalDisplacementsSuperElement); // PROSTHIKI EMBEDDED: metonomasthkan ta localTotalDisplacements se "SuperElement" apo ta opoia tha upologizontai pleon ta localTotalDisplacemeents
             //double[] localDisplacements = dofEnumerator.GetTransformedVector(localdDisplacementsSuperElement); // PROSTHIKI EMBEDDED: omoiws apla einai commented out epeidh den ta Xrhsimopoioume pouthena
             //if (print_counter == 3)
             //{
@@ -1978,7 +1978,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //return (transformation * new Vector<double>(values)).Data;
 
-            return dofEnumerator.GetTransformedVector(hostDOFValues);
+            return dofEnumerator.GetTransformedDisplacementsVector(hostDOFValues);
         }
 
     }
