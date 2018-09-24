@@ -19,10 +19,12 @@ using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
+using ISAAR.MSolve.FEM.Interpolation;
 
 
 //TODO: current nodal coordinates should be managed by the analyzer, instead of each element calculting and storing them independently. The same applies for direction vectors of shells. 
 //TODO: direction vectors creation and update could be handled by a dedicated class that will be composed into this element. Which element would update them then?
+//TODO: perhaps separate the cases fot when the shell is over or under the cohesive element ibto 2 subclasses
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk : IStructuralFiniteElement, IEmbeddedElement
@@ -34,6 +36,7 @@ namespace ISAAR.MSolve.FEM.Elements
             nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly ICohesiveZoneMaterial3D[] materialsAtGaussPoints;
+        private readonly InterpolationShell8Cohesive interpolation = InterpolationShell8Cohesive.UniqueInstance;
         protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         // ews edw
 
@@ -166,127 +169,6 @@ namespace ISAAR.MSolve.FEM.Elements
         //private int npoint;
 
 
-        private Tuple<double[][], double[][,], double[][], double[][], double[]> GetShapeFunctionAndGaussPointData()
-        {
-            //initialize edw twn arrays pou pleon tha epistrefontai
-            double[] a_12g; 
-            double[][] N1;
-            double[][,] N3;
-            double[][] N1_ksi;
-            double[][] N1_heta;
-
-            // PROSTHIKI RAM
-            double a_1g = 0;
-            double a_2g = 0;
-            double[] N_i;
-            double[] N_i_ksi;
-            double[] N_i_heta;
-            double ksi = 0;
-            double heta = 0;
-            //double zeta;
-            int npoint;
-
-
-            nGaussPoints = gp_d1_coh * gp_d2_coh;
-            a_12g = new double[nGaussPoints];
-            N_i = new double[8]; // 4 gia ligoterous komvous coh8
-            N_i_ksi = new double[8]; // 
-            N_i_heta = new double[8]; // 
-            N1 = new double[nGaussPoints][];
-            N3 = new double[nGaussPoints][,];
-            N1_ksi = new double[nGaussPoints][];
-            N1_heta = new double[nGaussPoints][];
-            for (int l = 0; l < nGaussPoints; l++)
-            {
-                N1[l] = new double[8];
-                N3[l] = new double[3, 24];
-                N1_ksi[l] = new double[8];
-                N1_heta[l] = new double[8];
-            }
-            for (int j = 0; j < gp_d1_coh; j++)
-            {
-                for (int k = 0; k < gp_d2_coh; k++)
-                {
-                    npoint = j * gp_d1_coh + k;
-                    if (gp_d1_coh == 3)
-                    {
-                        ksi = 0.5 * (j - 1) * (j - 2) * (-0.774596669241483) + (-1) * (j) * (j - 2) * (0) + 0.5 * (j) * (j - 1) * (0.774596669241483);
-                        a_1g = 0.5 * (j - 1) * (j - 2) * (0.555555555555555) + (-1) * (j) * (j - 2) * (0.888888888888888) + 0.5 * (j) * (j - 1) * (0.555555555555555);
-                    }
-                    if (gp_d1_coh == 2)
-                    {
-                        ksi = (-0.577350269189626) * (j - 1) * (-1) + (0.577350269189626) * (j) * (+1);
-                        a_1g = 1;
-                    }
-                    if (gp_d2_coh == 3)
-                    {
-                        heta = 0.5 * (k - 1) * (k - 2) * (-0.774596669241483) + (-1) * (k) * (k - 2) * (0) + 0.5 * (k) * (k - 1) * (0.774596669241483);
-                        a_2g = 0.5 * (k - 1) * (k - 2) * (0.555555555555555) + (-1) * (k) * (k - 2) * (0.888888888888888) + 0.5 * (k) * (k - 1) * (0.555555555555555);
-                    }
-                    if (gp_d2_coh == 2)
-                    {
-                        heta = (-0.577350269189626) * (k - 1) * (-1) + (0.577350269189626) * (k) * (+1);
-                        a_2g = 1;
-                    }
-
-                    a_12g[npoint] = a_1g * a_2g;
-
-                    N_i[4] = 0.5 * (1 - Math.Pow(ksi, 2)) * (1 + heta);
-                    N_i[5] = 0.5 * (1 - Math.Pow(heta, 2)) * (1 - ksi);
-                    N_i[6] = 0.5 * (1 - Math.Pow(ksi, 2)) * (1 - heta);
-                    N_i[7] = 0.5 * (1 - Math.Pow(heta, 2)) * (1 + ksi);
-
-                    N_i[0] = 0.25 * (1 + ksi) * (1 + heta) - 0.5 * N_i[4] - 0.5 * N_i[7];
-                    N_i[1] = 0.25 * (1 - ksi) * (1 + heta) - 0.5 * N_i[4] - 0.5 * N_i[5];
-                    N_i[2] = 0.25 * (1 - ksi) * (1 - heta) - 0.5 * N_i[5] - 0.5 * N_i[6];
-                    N_i[3] = 0.25 * (1 + ksi) * (1 - heta) - 0.5 * N_i[6] - 0.5 * N_i[7];
-
-                    N_i_ksi[4] = (-ksi) * (1 + heta);
-                    N_i_ksi[5] = -0.5 * (1 - Math.Pow(heta, 2));
-                    N_i_ksi[6] = 0.5 * (-2 * ksi) * (1 - heta);
-                    N_i_ksi[7] = 0.5 * (1 - Math.Pow(heta, 2));
-                    N_i_ksi[0] = +0.25 * (1 + heta) - 0.5 * N_i_ksi[4] - 0.5 * N_i_ksi[7];
-                    N_i_ksi[1] = -0.25 * (1 + heta) - 0.5 * N_i_ksi[4] - 0.5 * N_i_ksi[5];
-                    N_i_ksi[2] = -0.25 * (1 - heta) - 0.5 * N_i_ksi[5] - 0.5 * N_i_ksi[6];
-                    N_i_ksi[3] = +0.25 * (1 - heta) - 0.5 * N_i_ksi[6] - 0.5 * N_i_ksi[7];
-
-                    N_i_heta[4] = 0.5 * (1 - Math.Pow(ksi, 2));
-                    N_i_heta[5] = 0.5 * (-2 * heta) * (1 - ksi);
-                    N_i_heta[6] = 0.5 * (1 - Math.Pow(ksi, 2)) * (-1);
-                    N_i_heta[7] = 0.5 * (-2 * heta) * (1 + ksi);
-                    N_i_heta[0] = +0.25 * (1 + ksi) - 0.5 * N_i_heta[4] - 0.5 * N_i_heta[7];
-                    N_i_heta[1] = +0.25 * (1 - ksi) - 0.5 * N_i_heta[4] - 0.5 * N_i_heta[5];
-                    N_i_heta[2] = -0.25 * (1 - ksi) - 0.5 * N_i_heta[5] - 0.5 * N_i_heta[6];
-                    N_i_heta[3] = -0.25 * (1 + ksi) - 0.5 * N_i_heta[6] - 0.5 * N_i_heta[7];
-
-                    for (int l = 0; l < 8; l++)  // to 8 ginetai 4 gia to cohesive8node
-                    { N1[npoint][l] = N_i[l]; }
-
-                    for (int l = 0; l < 3; l++)  // arxika mhdenismos twn stoixweiwn tou pinaka
-                    {
-                        for (int m = 0; m < 24; m++)
-                        { N3[npoint][l, m] = 0; }
-                    }
-
-                    for (int l = 0; l < 3; l++)
-                    {
-                        for (int m = 0; m < 8; m++)
-                        { N3[npoint][l, l + 3 * m] = N_i[m]; }
-                    }
-
-                    for (int l = 0; l < 8; l++)
-                    { N1_ksi[npoint][l] = N_i_ksi[l]; }
-
-                    for (int l = 0; l < 8; l++)
-                    { N1_heta[npoint][l] = N_i_heta[l]; }
-
-                }
-            }
-            
-            Tuple<double[][], double[][,], double[][], double[][], double[]> ShapeFunctionData = new Tuple<double[][], double[][,], double[][], double[][], double[]>(N1, N3, N1_ksi, N1_heta, a_12g);
-            return ShapeFunctionData;
-
-        }
 
         //private void CalculateShapeFunctionAndGaussPointData()
         //{
@@ -460,6 +342,7 @@ namespace ISAAR.MSolve.FEM.Elements
         
 
         // vasikes methodoi apo to 16 node kai prosarmogh gia tous extra vathmous eleftherias
+
         private void GetInitialGeometricDataAndInitializeMatrices(IElement element)
         {
             //prosarmogh methodou
@@ -684,15 +567,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[][] UpdateCoordinateDataAndCalculateDisplacementVector(double[] localdisplacements) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
             // retrieve twn metavlhtwn pou den tha apothikevontai (shape function data)
-            Tuple<double[][], double[][,], double[][], double[][], double[]> ShapeFunctionData;
-            ShapeFunctionData = GetShapeFunctionAndGaussPointData();            
-
-            double[][] N1;
-            N1 = ShapeFunctionData.Item1;
-            double[][] N1_ksi;
-            N1_ksi = ShapeFunctionData.Item3;
-            double[][] N1_heta;
-            N1_heta = ShapeFunctionData.Item4;
+            (double[][] N1, double[][,] N3, double[][] N1_ksi, double[][] N1_heta, double[] a_12g) =interpolation.GetShapeFunctionAndGaussPointData(nGaussPoints, gp_d1_coh, gp_d2_coh);
 
             //PROSTHIKI RAM 
             //double[] x_local = new double[48]; // to dianusma x ths matlab sunarthshs pou einai apo t_x_global_pr
@@ -785,7 +660,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     e_ksi[l] = 0.5 * e_ksi[l];
                     e_heta[l] = 0.5 * e_heta[l];
                 }
-                this.cross(e_ksi, e_heta, e_3);
+                this.Cross(e_ksi, e_heta, e_3);
                 e_3_norm = Math.Sqrt(e_3[0] * e_3[0] + e_3[1] * e_3[1] + e_3[2] * e_3[2]);
                 e_ksi_norm = Math.Sqrt(e_ksi[0] * e_ksi[0] + e_ksi[1] * e_ksi[1] + e_ksi[2] * e_ksi[2]);
                 for (int l = 0; l < 3; l++)
@@ -793,7 +668,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     e_3[l] = e_3[l] / e_3_norm;
                     e_1[l] = e_ksi[l] / e_ksi_norm;
                 }
-                this.cross(e_1, e_3, e_2);
+                this.Cross(e_1, e_3, e_2);
                 for (int l = 0; l < 3; l++)
                 {
                     R[npoint1][l, 0] = e_1[l];
@@ -847,18 +722,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private Tuple<double[][,], double[]> CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations() // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
             //retrieve ta mhtrwa pou tha lamvanoume pleon me Get kai den tha apotikevontai
-            Tuple<double[][], double[][,], double[][], double[][], double[]> ShapeFunctionData;
-            ShapeFunctionData = GetShapeFunctionAndGaussPointData();
-            double[] a_12g;
-            a_12g = ShapeFunctionData.Item5;
-            double[][] N1_ksi;
-            N1_ksi = ShapeFunctionData.Item3;
-            double[][] N1_heta;
-            N1_heta = ShapeFunctionData.Item4;
-            double[][,] N3;
-            N3 = ShapeFunctionData.Item2;
-            
-
+            (double[][] N1, double[][,] N3, double[][] N1_ksi, double[][] N1_heta, double[] a_12g) = interpolation.GetShapeFunctionAndGaussPointData(nGaussPoints, gp_d1_coh, gp_d2_coh);
 
             //initialize twn mhtrwwn pou ta epistrefontai
             double[]sunt_olokl = new double[nGaussPoints];
@@ -955,7 +819,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     e_ksi[l] = 0.5 * e_ksi[l];
                     e_heta[l] = 0.5 * e_heta[l];
                 }
-                this.cross(e_ksi, e_heta, e_3);
+                this.Cross(e_ksi, e_heta, e_3);
                 e_3_norm = Math.Sqrt(e_3[0] * e_3[0] + e_3[1] * e_3[1] + e_3[2] * e_3[2]);
                 e_ksi_norm = Math.Sqrt(e_ksi[0] * e_ksi[0] + e_ksi[1] * e_ksi[1] + e_ksi[2] * e_ksi[2]);
                 for (int l = 0; l < 3; l++)
@@ -963,7 +827,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     e_3[l] = e_3[l] / e_3_norm;
                     e_1[l] = e_ksi[l] / e_ksi_norm;
                 }
-                this.cross(e_1, e_3, e_2);
+                this.Cross(e_1, e_3, e_2);
                 for (int l = 0; l < 3; l++)
                 {
                     R[npoint1][l, 0] = e_1[l];
@@ -990,7 +854,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 //    }
                 //}
 
-                this.cross(e_ksi, e_heta, c_1[npoint1]);
+                this.Cross(e_ksi, e_heta, c_1[npoint1]);
                 coh_det_J_t[npoint1] = Math.Sqrt(c_1[npoint1][0] * c_1[npoint1][0] + c_1[npoint1][1] * c_1[npoint1][1] + c_1[npoint1][2] * c_1[npoint1][2]);
                 sunt_olokl[npoint1] = coh_det_J_t[npoint1] * a_12g[npoint1];
 
@@ -1018,7 +882,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        private void cross(double[] A, double[] B, double[] C)
+        private void Cross(double[] A, double[] B, double[] C)
         {
             C[0] = A[1] * B[2] - A[2] * B[1];
             C[1] = A[2] * B[0] - A[0] * B[2];
@@ -1112,13 +976,8 @@ namespace ISAAR.MSolve.FEM.Elements
             T = new double[24, 40];
             double[,] eye3 = new double[3, 3];
             for (int m = 0; m < 3; m++)
-            {
-                for (int l = 0; l < 3; l++)
-                {
-                    eye3[m, l] = 0;
-                }
+            {                
                 eye3[m, m] = 1;
-
             }
             for (int m = 0; m < 8; m++)
             {
@@ -1196,7 +1055,7 @@ namespace ISAAR.MSolve.FEM.Elements
         // telikh morfh pinakwn gia embeding kai endiameses metavlhtes
 
 
-        private double [] multiply_forces_for_embeding(double [] fxk1_coh,Element element)
+        private double [] MultiplyForcesForEmbedding(double [] fxk1_coh,Element element)
         {
             //upologismos tou T
             double[,] T;
@@ -1243,7 +1102,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return fxk2_coh;
         }
 
-        private double [,] multiply_stifnessMatrix_for_embeding(double [,] k_stoixeiou_coh, IElement element)
+        private double [,] MultiplyStifnessMatrixForEmbedding(double [,] k_stoixeiou_coh, IElement element)
         {
             //upologismos tou T
             double[,] T;
@@ -1457,37 +1316,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return k_stoixeiou_coh2;
         }
 
-        // methodoi apo to cohesive16node me prosthetes mono tis entoles pou kaloun pollaplasiasmous me TKT
-        // oi prosthetes entoles mphkan sto updateForces  kai sto updateKMatrices kai allaxe kai ti epistrefoun ta CalcForces kai to StifnessMatrix
-
-
-
-
-        private void InitializeRN3()
-        {
-
-            //for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
-            //{
-
-            //    for (int l = 0; l < 3; l++)
-            //    {
-            //        for (int m = 0; m < 24; m++)
-            //        {
-            //            RN3[npoint1][l, m] = 0;
-            //        }
-            //    }
-            //    for (int l = 0; l < 3; l++)
-            //    {
-            //        for (int m = 0; m < 24; m++)
-            //        {
-            //            for (int n = 0; n < 3; n++)
-            //            { RN3[npoint1][l, m] += R[npoint1][l, n] * N3[npoint1][n, m]; }
-            //        }
-            //    }
-            //}
-
-        }
-
         private double[] UpdateForces(Element element, double[][,] RtN3, double[] sunt_olokl)
         {
             double [] fxk2_coh = new double[64];
@@ -1546,7 +1374,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //    PrintUtilities.WriteToFileVector(fxk1_coh, @"C:\Users\turbo-x\Desktop\cohesive_check_MSOLVE_2\paradeigma_apo_arxika_swsta_shell_orthi_gia_check_tou_neou_class\orthi\CopyApoTaShellNewLoadCaseArgurhs\unused_anest_kai_t\fxk1_coh_output_2.txt");
             //}
             //
-            fxk2_coh=this.multiply_forces_for_embeding(fxk1_coh,element);
+            fxk2_coh=this.MultiplyForcesForEmbedding(fxk1_coh,element);
             //PrintUtilities.WriteToFileVector(fxk1_coh, @"C:\Users\turbo-x\Desktop\cohesive_check_MSOLVE_2\paradeigma_apo_arxika_swsta_shell_orthi_gia_check_tou_neou_class\orthi\CopyApoTaShellNewLoadCaseArgurhs\unused_anest_kai_t\fxk1_mh_an.txt");
             ////
             //if (print_counter == 1)
@@ -1635,7 +1463,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
 
-            k_stoixeiou_coh2 =this.multiply_stifnessMatrix_for_embeding(k_stoixeiou_coh,element);
+            k_stoixeiou_coh2 =this.MultiplyStifnessMatrixForEmbedding(k_stoixeiou_coh,element);
             //if (print_counter == 1)
             //{
             //    PrintUtilities.SeparateAndWriteToFile(k_stoixeiou_coh2,
@@ -1708,7 +1536,6 @@ namespace ISAAR.MSolve.FEM.Elements
                 //this.CalculateShapeFunctionAndGaussPointData();
                 this.GetInitialGeometricDataAndInitializeMatrices(element);
                 this.UpdateCoordinateDataAndCalculateDisplacementVector(new double[64]); // mporei na lamvanetai apo to update... to return tou (pou einai Delta[][] p.x. gia material)
-                this.InitializeRN3();
                 MatrixIsNotInitialized = false;
             }
             //for (int i = 0; i < materialsAtGaussPoints.Length; i++)
@@ -1803,7 +1630,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return new Matrix2D(64, 64);
         }
 
-        // Perioxh EMBEDDED
+        #region EMBEDDED
         private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>(); //
         public IList<EmbeddedNode> EmbeddedNodes { get { return embeddedNodes; } } // opws Beam3D
 
@@ -1852,6 +1679,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
             return dofEnumerator.GetTransformedDisplacementsVector(hostDOFValues);
         }
-
+        #endregion
     }
 }
