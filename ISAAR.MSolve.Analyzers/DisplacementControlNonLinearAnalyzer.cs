@@ -328,4 +328,3 @@ namespace ISAAR.MSolve.Analyzers
         #endregion
     }
 }
-
