@@ -443,6 +443,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private double[] UpdateForces(IElement element)
         {
+            //TODO: the gauss point loop should be the outer one
+
             // upologismos entos forces olwn twn apaitoumenwn mhtrwwn
             double[,] ll2 = new double[8, 3];
             for (int m = 0; m < 8; m++)
@@ -598,99 +600,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
             return fxk1[nGaussPoints];
         }
-
-        private void InitializeBland_sunt_ol_Spkvec() //.first_calc_for_Kmatrices
-        {
-            // DEN XREIAZETAI PIA INITIALIZE AFTWN pou kratiountai ginontai initialize ekei pou upologizontai 
-
-            //double[][,] BL11 = new double[nGaussPoints][,];
-            //double[][,] BL1112sun01_hexa = new double[nGaussPoints][,];
-            //for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            //{
-            //    BL11[npoint] = new double[6, 9];
-            //    BL1112sun01_hexa[npoint] = new double[6, 9];
-            //}
-
-            for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {
-
-                //
-                //for (int m = 0; m < 6; m++)
-                //{
-                //    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * Spkvec[npoint][m];
-                //}
-
-                //
-                //double[,] l_perisp = new double[3, 3];
-                //for (int m = 0; m < 3; m++)
-                //{
-                //    for (int n = 0; n < 3; n++)
-                //    {
-                //        //l_perisp[m, n] = 0; // sp1
-                //        for (int p = 0; p < 8; p++)
-                //        {
-                //            l_perisp[m, n] += ll1_hexa[npoint][m, p] * ll2[p, n];
-                //        }
-                //    }
-                //}
-
-                //
-                //for (int m = 0; m < 6; m++)
-                //{
-                //    for (int n = 0; n < 9; n++)
-                //    {
-                //        BL11[npoint][m, n] = 0;
-                //    }
-                //} //sp1
-                //for (int m = 0; m < 6; m++)
-                //{
-                //    for (int n = 0; n < 3; n++)
-                //    {
-                //        for (int p = 0; p < 3; p++)
-                //        {
-                //            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_perisp[p, n];
-                //            BL11[npoint][m, 3 + n] += BL11a_hexa[npoint][m, 3 + p] * l_perisp[p, n];
-                //            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_perisp[p, n];
-                //        }
-                //    }
-                //}
-
-                ////
-                //for (int m = 0; m < 6; m++)
-                //{
-                //    for (int n = 0; n < 9; n++)
-                //    {
-                //        //BL1112sun01_hexa[npoint][m, n] = 0; //sp1
-                //        for (int p = 0; p < 9; p++)
-                //        {
-                //            BL1112sun01_hexa[npoint][m, n] += BL11[npoint][m, p] * BL12_hexa[npoint][p, n];
-                //        }
-                //    }
-                //}
-                //for (int m = 0; m < 6; m++)
-                //{
-                //    for (int n = 0; n < 9; n++)
-                //    {
-                //        BL1112sun01_hexa[npoint][m, n] += BL01_hexa[npoint][m, n];
-                //    }
-                //}
-
-                //
-                //for (int m = 0; m < 6; m++)
-                //{
-                //    for (int n = 0; n < 24; n++)
-                //    {
-                //        BL[npoint][m, n] = 0;
-                //        for (int p = 0; p < 9; p++)
-                //        {
-                //            BL[npoint][m, n] += BL1112sun01_hexa[npoint][m, p] * BL13_hexa[npoint][p, n];
-                //        }
-                //    }
-                //}
-            }
-
-        }
-
 
         private double [,]  UpdateKmatrices(IElement element)
         {
@@ -1005,9 +914,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
-            double[] fxk1;
-            fxk1=this.UpdateForces(element);
-            return fxk1;
+            return this.UpdateForces(element);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
@@ -1017,7 +924,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public virtual IMatrix2D StiffnessMatrix(IElement element)
         {
-            double[,] k_stoixeiou = new double[24, 24];
             if (!isInitialized)
             {
                 //this.CalculateShapeFunctionAndGaussPointData();
@@ -1025,10 +931,9 @@ namespace ISAAR.MSolve.FEM.Elements
                 this.CalculateInitialConfigurationData(element);
                 var localTotalDisplacements = new double[24];
                 this.UpdateCoordinateData(localTotalDisplacements, out double[][] tx_i);
-                this.CalculateStrains(localTotalDisplacements, element, tx_i);
-                this.InitializeBland_sunt_ol_Spkvec();// meta to get twn stresses apo to material dioiti periexei ton pol/smo suntol epi Spkvec
+                this.CalculateStrains(localTotalDisplacements, element, tx_i);                
             }
-            k_stoixeiou=this.UpdateKmatrices(element);
+            double[,] k_stoixeiou =this.UpdateKmatrices(element);
             IMatrix2D element_stiffnessMatrix = new Matrix2D(k_stoixeiou); // TODO giati de ginetai return dof.Enumerator.GetTransformedMatrix, xrhsh symmetric
             return element_stiffnessMatrix;
         }
@@ -1050,6 +955,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ClearMaterialState()
         {
+            //TODO: the next throws an exception. Investigate. Possible changes in Analyzers may be the cause.
             //foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
         }
 
@@ -1068,8 +974,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
         }
-
-        // omoiws me hexa 8 shell8disp implemented
+        
         public int ID
         {
             get { return 13; }
@@ -1090,7 +995,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return dofTypes;
         }
 
-        //NOT IMPLEMENTED
+        #region not implemented
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
             throw new NotImplementedException();
@@ -1105,10 +1010,10 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             throw new NotImplementedException();
         }
-        //NOT IMPLEMENTED ews edw
+        #endregion
 
 
-        // Perioxh IEmbeddedHostElement 
+        #region IEmbeddedHostElement
 
         // methodoi apo to Hexa8.cs
         protected double[,] GetCoordinatesTranspose(IElement element)
@@ -1123,6 +1028,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return faXYZ;
         }
 
+        //TODO: This should be handled by InterpolationHexa8Reverse
         private double[] CalcH8Shape(double fXi, double fEta, double fZeta)
         {
             const double fSqC125 = 0.5;
@@ -1159,6 +1065,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //};
         }
 
+        //TODO: This should be handled by InterpolationHexa8Reverse
         private double[] CalcH8NablaShape(double fXi, double fEta, double fZeta)
         {
             const double fSq125 = 0.35355339059327376220042218105242;
@@ -1203,6 +1110,7 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
         protected static double determinantTolerance = 0.00000001;
+        //TODO: This should be handled by JacobianHexa8Reverse
         private Tuple<double[,], double[,], double> CalcH8JDetJ(double[,] faXYZ, double[] faDS)
         {
             double[,] faJ = new double[3, 3];
@@ -1333,7 +1241,7 @@ namespace ISAAR.MSolve.FEM.Elements
             };
         }
 
-        // Perioxh IEmbeddedHostElement
+        #endregion
 
     }
 

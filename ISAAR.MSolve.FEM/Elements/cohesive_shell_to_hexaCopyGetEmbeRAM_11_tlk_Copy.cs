@@ -20,12 +20,9 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
-
-//TODO: current nodal coordinates should be managed by the analyzer, instead of each element calculting and storing them independently. The same applies for direction vectors of shells. 
-//TODO: direction vectors creation and update could be handled by a dedicated class that will be composed into this element. Which element would update them then?
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk : IStructuralFiniteElement, IEmbeddedElement
+    public class cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk_Copy : IStructuralFiniteElement, IEmbeddedElement
     {
         //metavlhtes opws sto hexa8
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
@@ -40,83 +37,83 @@ namespace ISAAR.MSolve.FEM.Elements
         public int gp_d1_coh { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
         public int gp_d2_coh { get; set; }
         private int nGaussPoints;
+
         public double[][] oVn_i { get; set; } // apo to shell8disp kai oti allo xreiazetai tha paroume apo shell8disp kai ena bool akomh
         public double[] tk { get; set; } //
-        /// <summary>
-        /// zero denotes bottom surface of the shell element
-        /// </summary>
-        public int ShellElementSide { get; set; } // 
+        public int endeixi_element_2 { get; set; }
 
-        // diadikasies dhmiourgias kai ananewshs twn dianusmatwn katefthunshs apo to shell8disp kai aparaithtes metavlhtes aftwn
-        private double[][] tU;   //8 arrays twn 6 stoixeiwn 
-        private double[][] tUvec;//8 arrays twn 6 stoixeiwn
-        //private double tV1norm;
-
-        /// <summary>
-        /// Initial coordinates of shell midsurface nodes
-        /// </summary>
-        private double[][] ox_i_shell_midsurface;
-        //private double[][] tx_i_shell_midsurface;
-
-        // metavlhtes vasikwn methodwn apo to cohesive 16 node
-
-        /// <summary>
-        /// Initial nodel coordinates of 16 node inner cohesive element
-        /// </summary>
-        private double[][] ox_i; //den einai apo afta pou orizei o xrhsths
-
-        /// <summary>
-        /// Unrolled current nodal coordinates of 16 node inner cohesive element
-        /// </summary>
-        private double[] x_local; // to dianusma x ths matlab sunarthshs pou einai apo t_x_global_pr
-
-        /// <summary>
-        ///  ananewsh strofwn tou stoixeiou
-        /// voithitikes metavlhtes gia upologismo strofhs
-        /// </summary>      
-        private double[] ak_total = new double[8];
-        private double[] bk_total = new double[8];
-        public bool MatrixIsNotInitialized = true;
-
-
-        protected cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk()//consztructor apo to hexa8
+        protected cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk_Copy()//consztructor apo to hexa8
         {
         }
 
-        public cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk(ICohesiveZoneMaterial3D material, int gp_d1c, int gp_d2c)
+        public cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk_Copy(ICohesiveZoneMaterial3D material, int gp_d1c, int gp_d2c)
         {
             this.gp_d1_coh = gp_d1c;
             this.gp_d2_coh = gp_d2c;
             this.nGaussPoints = this.gp_d1_coh * this.gp_d2_coh;
             materialsAtGaussPoints = new ICohesiveZoneMaterial3D[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++)
-                materialsAtGaussPoints[i] = material.Clone();
+                materialsAtGaussPoints[i] = (ICohesiveZoneMaterial3D)material.Clone();
 
         }
 
 
-        
-        private void GetInitialGeometricDataForMidsurface(IElement element) //TODO mhpws me endeixiInitialGeometricD...
+        // diadikasies dhmiourgias kai ananewshs twn dianusmatwn katefthunshs apo to shell8disp kai aparaithtes metavlhtes aftwn
+        private double[][] tU;   //8 arrays twn 6 stoixeiwn 
+        private double[][] tUvec;//8 arrays twn 6 stoixeiwn
+        //private double tV1norm;
+        private double [][] ox_i_shell_midsurface;
+        private double [][] tx_i_shell_midsurface;
+        private void GetInitialGeometricDataForDirectVectorsAndMidsurface(IElement element) //TODO mhpws me endeixiInitialGeometricD...
         {
+            // PROSTHIKI RAM 
+            double tV1norm;
+
+            tU = new double[8][];
+            tUvec = new double[8][];
             ox_i_shell_midsurface = new double[8][];
-            for (int j = 0; j < 8; j++)
-            {
-                ox_i_shell_midsurface[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };                               
-            }
-        }
-
-        
-
-        private void UpdateCoordinateDataForDirectVectorsAndMidsurface(double[] localdisplacements, out double[][] tx_i_shell_midsurface)
-        {
-            double ak;
-            double bk;
             tx_i_shell_midsurface = new double[8][];
             for (int j = 0; j < 8; j++)
             {
-                tx_i_shell_midsurface[j] = new double[3];
-            }
+                ox_i_shell_midsurface[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
+                tx_i_shell_midsurface[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
+                tU[j] = new double[6];
+                tUvec[j] = new double[6];
+                for (int k = 0; k < 3; k++) { tU[j][3 + k] = oVn_i[j][k]; } // ean allaxthei to tU san onoma kai diastaseis tha
+                                                          //ephreastei edw kai oles oi upoloipes anafores se afto parakatw 
 
+                tUvec[j][0] = tU[j][5];
+                tUvec[j][1] = 0;
+                tUvec[j][2] = -tU[j][3];
+
+                tV1norm = Math.Sqrt(tUvec[j][0] * tUvec[j][0] + tUvec[j][1] * tUvec[j][1] + tUvec[j][2] * tUvec[j][2]);
+
+                tUvec[j][0] = tUvec[j][0] / tV1norm;
+                tUvec[j][1] = tUvec[j][1] / tV1norm;
+                tUvec[j][2] = tUvec[j][2] / tV1norm;
+
+                tUvec[j][3] = tU[j][3 + 1] * tUvec[j][2] - tU[j][3 + 2] * tUvec[j][1];
+                tUvec[j][4] = tU[j][3 + 2] * tUvec[j][0] - tU[j][3 + 0] * tUvec[j][2];
+                tUvec[j][5] = tU[j][3 + 0] * tUvec[j][1] - tU[j][3 + 1] * tUvec[j][0];
+            }
+        }
+
+        // ananewsh strofwn tou stoixeiou--------------------------------------------
+        // voithitikes metavlhtes gia upologismo strofhs-----------------------------
+        private double[] ak_total = new double[8];
+        private double[] bk_total = new double[8];
+        // metavlhtes gia anafora stis strofes kai voithitikoi pinakes
+        //private double ak;
+        //private double bk;
+        //private double gk1;
+        //private double[,] Q = new double[3, 3];
+        //private double[,] Q2 = new double[3, 3];
+        //private double[] tdtVn = new double[3];
+
+        private void UpdateCoordinateDataForDirectVectorsAndMidsurface(double[] localdisplacements)
+        {
+            double ak;
+            double bk;
             for (int k = 0; k < 8; k++)
             {
                 for (int l = 0; l < 3; l++)
@@ -131,7 +128,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 ak_total[k] = localdisplacements[5 * k + 3];
                 bk = localdisplacements[5 * k + 4] - bk_total[k];
                 bk_total[k] = localdisplacements[5 * k + 4];
-                Shell8DirectionVectorUtilities.RotateNodalDirectionVectors(ak, bk, k,  tU,  tUvec);
+                this.RotateNodalDirectionVectors(ak, bk, k);
                 // update twn tU kai tUvec ews edw                
             }
             // shmeio print dedomenwn gia debug
@@ -145,10 +142,112 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[] tdtV2 = new double[3];
         //private double theta;
         //private double[] theta_vec = new double[3];
-        //private double[,] s_k = new double[3, 3];        
+        //private double[,] s_k = new double[3, 3];
+        private void RotateNodalDirectionVectors(double ak, double bk,int n_vector)
+        {
+            // PROSTHIKI RAM 
+            double gk1;
+            double[,] Q = new double[3, 3];
+            double[,] Q2 = new double[3, 3];
+
+            double[] tdtVn = new double[3];
+            double[] tdtV1 = new double[3];
+            double[] tdtV2 = new double[3];
+            double theta;
+            double[] theta_vec = new double[3];
+            double[,] s_k = new double[3, 3];
+
+            for (int j = 0; j < 3; j++)
+            {
+                theta_vec[j] = ak * tUvec[n_vector][j] + bk * tUvec[n_vector][3 + j];
+            }
+            theta = Math.Sqrt((theta_vec[0] * theta_vec[0]) + (theta_vec[1] * theta_vec[1]) + (theta_vec[2] * theta_vec[2]));
+            if(theta>0)
+            {
+                s_k[0, 1] = -theta_vec[2];
+                s_k[0, 2] = theta_vec[1];
+                s_k[1, 0] = theta_vec[2];
+                s_k[1, 2] = -theta_vec[0];
+                s_k[2, 0] = -theta_vec[1];
+                s_k[2, 1] = theta_vec[0];
+
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int m = 0; m < 3; m++)
+                    {
+                        Q[j, m] = (Math.Sin(theta) / theta) * s_k[j, m];
+                    }
+                }
+
+                for (int m = 0; m < 3; m++)
+                {
+                    Q[m, m] += 1;
+                }
+                gk1 = 0.5 * ((Math.Sin(0.5 * theta) / (0.5 * theta)) * (Math.Sin(0.5 * theta) / (0.5 * theta)));
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int m = 0; m < 3; m++)
+                    {
+                        //Q2[j, m] = 0; //sp1
+                        for (int n = 0; n < 3; n++)
+                        { Q2[j, m] += gk1 * s_k[j, n] * s_k[n, m]; }
+                    }
+                }
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int m = 0; m < 3; m++)
+                    {
+                        Q[j, m] += Q2[j, m];
+                    }
+                }
+                //
+                for (int j = 0; j < 3; j++)
+                {
+                    tdtVn[j] = 0;
+                    for (int m = 0; m < 3; m++)
+                    {
+                        tdtVn[j] += Q[j, m] * tU[n_vector][3 + m];
+                    }
+                }
+
+                for (int j = 0; j < 3; j++)
+                {
+                    tU[n_vector][3 + j] = tdtVn[j];
+                }
+                //
+                for (int j = 0; j < 3; j++)
+                {
+                    tdtV1[j] = 0;
+                    for (int m = 0; m < 3; m++)
+                    {
+                        tdtV1[j] += Q[j, m] * tUvec[n_vector][m];
+                    }
+                }
+
+                for (int j = 0; j < 3; j++)
+                {
+                    tUvec[n_vector][j] = tdtV1[j];
+                }
+                //
+                for (int j = 0; j < 3; j++)
+                {
+                    tdtV2[j] = 0;
+                    for (int m = 0; m < 3; m++)
+                    {
+                        tdtV2[j] += Q[j, m] * tUvec[n_vector][3+m];
+                    }
+                }
+
+                for (int j = 0; j < 3; j++)
+                {
+                    tUvec[n_vector][3+j] = tdtV2[j];
+                }
+            }
+        }
 
         // prokatarktikes Methodoi kai metavlhtes apo to cohesive 16 node
 
+        public bool MatrixIsNotInitialized = true;
         //private double[] a_12g;
         //private double a_1g;
         //private double a_2g;
@@ -456,17 +555,46 @@ namespace ISAAR.MSolve.FEM.Elements
         //}
 
 
-        
-        
+        // metavlhtes vasikwn methodwn apo to cohesive 16 node
+        private double[][] ox_i; //den einai apo afta pou orizei o xrhsths
+        //private double[][] tx_i; //16 arrays twn 3 stoixeiwn
+        private double[] x_local; // to dianusma x ths matlab sunarthshs pou einai apo t_x_global_pr
+        //private double[,] u_prok;
+        //private double[,] x_pavla;
+        //private double[,] k_stoixeiou_coh;
+        //private double[] fxk1_coh;
+        //private double[] d_trial;
+        //private double[] e_ksi;
+        //private double e_ksi_norm;
+        //private double[] e_heta;
+        //private double[] e_1;
+        //private double[] e_2;
+        //private double[] e_3;
+        //private double e_3_norm;
+        //private double[][,] R;
+        //private double[] u; // 3 epi 1
+        //private double[][] Delta; // [nGausspoints][3]
+        //private double[][,] D_tan; // [nGausspoints][3,3]
+        //private double[][] T_int;  //[nGausspoints][3]
+        //private double[][] c_1; // [nGausspoints][3]
+        //private double[] coh_det_J_t;
+        //private double[] sunt_olokl;
+        //private double[,] M; // 24 epi 24
+        //private double[] r_int; // 48 epi 1 // dn xrhsimopoeitai 
+        //private double[] r_int_1; // to panw miso tou dianusmatos
+        // gia tous pollaplasiasmous
+        //private double[][,] RN3;
+        //private double[,] D_tan_sunt_ol;
+        //private double[,] D_RN3_sunt_ol;
+        //private double[] T_int_sunt_ol;
 
         // vasikes methodoi apo to 16 node kai prosarmogh gia tous extra vathmous eleftherias
         private void GetInitialGeometricDataAndInitializeMatrices(IElement element)
         {
             //prosarmogh methodou
-            (tU, tUvec) = Shell8DirectionVectorUtilities.GetInitialDirectionVectorValues(oVn_i);
-            this.GetInitialGeometricDataForMidsurface(element); 
+            this.GetInitialGeometricDataForDirectVectorsAndMidsurface(element); 
             ox_i = new double[16][];
-            if ( ShellElementSide == 0)
+            if ( endeixi_element_2 == 0)
             {
                 for (int j = 0; j < 8; j++)
                 { ox_i[j] = new double[] { ox_i_shell_midsurface[j][0]-0.5* tk[j] * tU[j][3], ox_i_shell_midsurface[j][1] - 0.5 * tk[j] * tU[j][4],
@@ -723,9 +851,9 @@ namespace ISAAR.MSolve.FEM.Elements
             { R[j] = new double[3, 3]; }
 
             //prosarmogh methodou
-            this.UpdateCoordinateDataForDirectVectorsAndMidsurface(localdisplacements,out double [][] tx_i_shell_midsurface);
+            this.UpdateCoordinateDataForDirectVectorsAndMidsurface(localdisplacements);
             // ananewsi tou x_local
-            if (ShellElementSide == 0)
+            if (endeixi_element_2 == 0)
             {
                 for (int j = 0; j < 8; j++)
                 {
@@ -1131,7 +1259,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
 
             }
-            if (ShellElementSide == 0)
+            if (endeixi_element_2 == 0)
             {
                 for (int m = 0; m < 8; m++)
                 {
@@ -1203,7 +1331,7 @@ namespace ISAAR.MSolve.FEM.Elements
             T = CalculateTMatrix(element);
             // declare tou dianusmatos pou tha epistrefei h methodos
             double [] fxk2_coh = new double[64];
-            if (ShellElementSide==0)
+            if (endeixi_element_2==0)
             {
                 for (int n = 0; n < 40; n++)
                 {
@@ -1251,7 +1379,7 @@ namespace ISAAR.MSolve.FEM.Elements
             // declare tou mhtrwou pou tha epistrefei h methodos kathws kai enos aparaithtou gia tous upologismous
             double [,] k_stoixeiou_coh2 = new double[64, 64];
             double [,] Kii_A = new double[24, 40];
-            if (ShellElementSide == 0)
+            if (endeixi_element_2 == 0)
             {
                 //upologismos Kii_A (mhdenismos kai upologismoi)
                 //for (int n = 0; n < 24; n++)

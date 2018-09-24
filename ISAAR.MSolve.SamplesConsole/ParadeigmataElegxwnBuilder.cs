@@ -798,7 +798,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     oVn_i = VH,
                     tk = Tk_vec,
-                    endeixi_element_2 = 0,
+                    ShellElementSide = 0,
                 }
             };
 
