@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 //using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
 // compa
 using ISAAR.MSolve.FEM.Entities;
@@ -261,36 +262,18 @@ namespace ISAAR.MSolve.FEM.Elements
             (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
                 nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
            
-            double tV1norm;
             tx_i = new double[8][];
-            tU = new double[8][];
-            tUvec = new double[8][];
+            (tU, tUvec) = Shell8DirectionVectorUtilities.GetInitialDirectionVectorValues(oVn_i);
             double[][] oV1_i = new double[8][]; //tangent vector ''1'' initial configuration
             for (int j = 0; j < 8; j++)
             {
                 tx_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
-                tU[j] = new double[6];
-                tUvec[j] = new double[6];
                 oV1_i[j] = new double[3];
-                for (int k = 0; k < 3; k++) { tU[j][3 + k] = oVn_i[j][k]; }
-
-                tUvec[j][0] = tU[j][5];
-                tUvec[j][1] = 0;
-                tUvec[j][2] = -tU[j][3];
-
-                tV1norm = Math.Sqrt(tUvec[j][0] * tUvec[j][0] + tUvec[j][1] * tUvec[j][1] + tUvec[j][2] * tUvec[j][2]);
-
-                tUvec[j][0] = tUvec[j][0] / tV1norm;
-                tUvec[j][1] = tUvec[j][1] / tV1norm;
-                tUvec[j][2] = tUvec[j][2] / tV1norm;
 
                 oV1_i[j][0] = tUvec[j][0];
                 oV1_i[j][1] = tUvec[j][1];
                 oV1_i[j][2] = tUvec[j][2];
 
-                tUvec[j][3] = tU[j][3 + 1] * tUvec[j][2] - tU[j][3 + 2] * tUvec[j][1];
-                tUvec[j][4] = tU[j][3 + 2] * tUvec[j][0] - tU[j][3 + 0] * tUvec[j][2];
-                tUvec[j][5] = tU[j][3 + 0] * tUvec[j][1] - tU[j][3 + 1] * tUvec[j][0];
             }
 
             (double[][,] J_0inv, double[] detJ_0) =
@@ -1296,7 +1279,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 ak_total[k] = localdisplacements[5 * k + 3];
                 bk = localdisplacements[5 * k + 4] - bk_total[k];
                 bk_total[k] = localdisplacements[5 * k + 4];
-                this.RotateNodalDirectionVectors(ak, bk, k);
+                Shell8DirectionVectorUtilities.RotateNodalDirectionVectors(ak, bk, k,tU,tUvec);
                 // update twn tU kai tUvec ews edw         
             }
             // shmeio print dedomenwn gia debug
@@ -1311,107 +1294,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double theta;
         //private double[] theta_vec = new double[3];
         //private double[,] s_k = new double[3, 3];
-        private void RotateNodalDirectionVectors(double ak, double bk, int n_vector)
-        {
-            //PROSTHIKI gia ram
-            double gk1;
-            double[,] Q = new double[3, 3];
-            double[,] Q2 = new double[3, 3];
-            double[] tdtVn = new double[3];
-            double[] tdtV1 = new double[3];
-            double[] tdtV2 = new double[3];
-            double theta;
-            double[] theta_vec = new double[3];
-            double[,] s_k = new double[3, 3];
-
-
-            for (int j = 0; j < 3; j++)
-            {
-                theta_vec[j] = ak * tUvec[n_vector][j] + bk * tUvec[n_vector][3 + j];
-            }
-            theta = Math.Sqrt((theta_vec[0] * theta_vec[0]) + (theta_vec[1] * theta_vec[1]) + (theta_vec[2] * theta_vec[2]));
-            if (theta > 0)
-            {
-                s_k[0, 1] = -theta_vec[2];
-                s_k[0, 2] = theta_vec[1];
-                s_k[1, 0] = theta_vec[2];
-                s_k[1, 2] = -theta_vec[0];
-                s_k[2, 0] = -theta_vec[1];
-                s_k[2, 1] = theta_vec[0];
-
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int m = 0; m < 3; m++)
-                    {
-                        Q[j, m] = (Math.Sin(theta) / theta) * s_k[j, m];
-                    }
-                }
-
-                for (int m = 0; m < 3; m++)
-                {
-                    Q[m, m] += 1;
-                }
-                gk1 = 0.5 * ((Math.Sin(0.5 * theta) / (0.5 * theta)) * (Math.Sin(0.5 * theta) / (0.5 * theta)));
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int m = 0; m < 3; m++)
-                    {
-                        Q2[j, m] = 0;
-                        for (int n = 0; n < 3; n++)
-                        { Q2[j, m] += gk1 * s_k[j, n] * s_k[n, m]; }
-                    }
-                }
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int m = 0; m < 3; m++)
-                    {
-                        Q[j, m] += Q2[j, m];
-                    }
-                }
-                //
-                for (int j = 0; j < 3; j++)
-                {
-                    tdtVn[j] = 0;
-                    for (int m = 0; m < 3; m++)
-                    {
-                        tdtVn[j] += Q[j, m] * tU[n_vector][3 + m];
-                    }
-                }
-
-                for (int j = 0; j < 3; j++)
-                {
-                    tU[n_vector][3 + j] = tdtVn[j];
-                }
-                //
-                for (int j = 0; j < 3; j++)
-                {
-                    tdtV1[j] = 0;
-                    for (int m = 0; m < 3; m++)
-                    {
-                        tdtV1[j] += Q[j, m] * tUvec[n_vector][m];
-                    }
-                }
-
-                for (int j = 0; j < 3; j++)
-                {
-                    tUvec[n_vector][j] = tdtV1[j];
-                }
-                //
-                for (int j = 0; j < 3; j++)
-                {
-                    tdtV2[j] = 0;
-                    for (int m = 0; m < 3; m++)
-                    {
-                        tdtV2[j] += Q[j, m] * tUvec[n_vector][3 + m];
-                    }
-                }
-
-                for (int j = 0; j < 3; j++)
-                {
-                    tUvec[n_vector][3 + j] = tdtV2[j];
-                }
-            }
-        }
+        
 
         // aparaithta tou IStructuralFiniteElement
 

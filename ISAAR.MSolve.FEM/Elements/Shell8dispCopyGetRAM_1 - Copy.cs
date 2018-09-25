@@ -11,9 +11,10 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matri
 using System;
 using System.Collections.Generic;
 
+//TODO: move stuff to Shell8DirectionVectorUtilities
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Shell8dispCopyGetRAM_1_Copy : IStructuralFiniteElement
+    public class Shell8dispCopyGetRAM_1_copy : IStructuralFiniteElement
     {
         //metavlhtes opws sto hexa8
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
@@ -72,7 +73,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        public Shell8dispCopyGetRAM_1_Copy(IShellMaterial material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
+        public Shell8dispCopyGetRAM_1_copy(IShellMaterial material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
         {
             this.gp_d1 = gp_d1c;
             this.gp_d2 = gp_d2c;
@@ -585,50 +586,25 @@ namespace ISAAR.MSolve.FEM.Elements
             (double[][,] J_0inv, double[] detJ_0) =
                 JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
 
-            double[,] J_1b;
-            double[][,] J_1;
+            
+            double[][,] J_1 = JacobianShell8Calculations.Get_J_1(nGaussPoints, tx_i, tU, J_0a);
             double[][,] DefGradTr;
             double[][,] GL;
 
-            J_1b = new double[16, 3];
-            J_1 = new double[nGaussPoints][,];
+            
             DefGradTr = new double[nGaussPoints][,];
             GL = new double[nGaussPoints][,];
             for (int j = 0; j < nGaussPoints; j++)
             {
-                J_1[j] = new double[3, 3];
+                
                 DefGradTr[j] = new double[3, 3];
                 GL[j] = new double[3, 3];
             }
 
-            GLvec = new double[nGaussPoints][]; // xehwristh perioxh 
-
-            for (int j = 0; j < 8; j++)
-            {
-                J_1b[2 * j, 0] = tx_i[j][0];
-                J_1b[2 * j + 1, 0] = tU[j][3];
-                J_1b[2 * j, 1] = tx_i[j][1];
-                J_1b[2 * j + 1, 1] = tU[j][4];
-                J_1b[2 * j, 2] = tx_i[j][2];
-                J_1b[2 * j + 1, 2] = tU[j][5];
-            }
+            GLvec = new double[nGaussPoints][]; // xehwristh perioxh           
 
             for (int j = 0; j < nGaussPoints; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    for (int l = 0; l < 3; l++)
-                    {
-                        J_1[j][k, l] = 0;
-                        for (int m = 0; m < 16; m++)
-                        {
-                            J_1[j][k, l] += J_0a[j][k, m] * J_1b[m, l];
-                        }
-
-                    }
-
-                }
-
+            {                
                 for (int k = 0; k < 3; k++)
                 {
                     for (int l = 0; l < 3; l++)
@@ -1463,24 +1439,24 @@ namespace ISAAR.MSolve.FEM.Elements
         //aparaithta tou IstructuralElement gia to material
         public void ClearMaterialState()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState(); // TODOGer
+            foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearState(); // TODOGer
         }
 
         public void SaveMaterialState()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IShellMaterial m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IIsotropicContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         public bool MaterialModified
         {
             get
             {
-                foreach (IIsotropicContinuumMaterial3D material in materialsAtGaussPoints)
+                foreach (IShellMaterial material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -1488,7 +1464,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IIsotropicContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IShellMaterial material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
