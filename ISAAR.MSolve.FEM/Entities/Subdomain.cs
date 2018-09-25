@@ -265,7 +265,9 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
             var elementNodalDisplacements = new double[localDOFs];
             elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
-            var icrementalElementNodalDisplacementsVector = new Vector(elementNodalDisplacements);
+            var incrementalNodalDisplacements = new double[localDOFs];
+            elementNodalDisplacements.CopyTo(incrementalNodalDisplacements,0);
+            var icrementalElementNodalDisplacementsVector = new Vector(incrementalNodalDisplacements);
             icrementalElementNodalDisplacementsVector.Multiply(constraintScalingFactor);
             icrementalElementNodalDisplacementsVector.Subtract(new Vector(elementNodalDisplacements));
             return icrementalElementNodalDisplacementsVector.Data;
