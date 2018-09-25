@@ -11,6 +11,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matri
 using System;
 using System.Collections.Generic;
 
+//TODO: move stuff to Shell8DirectionVectorUtilities
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class Shell8dispCopyGetRAM_1 : IStructuralFiniteElement
