@@ -47,33 +47,6 @@ namespace ISAAR.MSolve.FEM
             var totalTime = DateTime.Now - totalStart;
 
             return new Vector(subdomainEquivalentNodalForces);
-        }
-
-        //private Vector CalculateElementPrescribedDisplacements(Element element)
-        //{
-        //    int numDofs = 0;
-        //    IList<IList<DOFType>> nodalDofs = element.ElementType.GetElementDOFTypes(element);
-        //    for (int nodeIdx = 0; nodeIdx < nodalDofs.Count; ++nodeIdx)
-        //    {
-        //        numDofs += nodalDofs[nodeIdx].Count;
-        //    }
-
-        //    //element.ElementType.GetElementDOFTypes(element) uses its own order for DOFTypes of the same node.
-        //    //The vector u uses the same order as element.ElementType.GetElementDOFTypes(element).
-        //    //node.Constraints may contain Constraint objects in different order of their DOFType
-        //    //Perhaps use SortedSet instead of List for node.Constraints
-        //    var u = new Vector(numDofs);
-        //    for (int nodeIdx = 0; nodeIdx < nodalDofs.Count; ++nodeIdx)
-        //    {
-        //        Node node = element.Nodes[nodeIdx];
-        //        if (node.Constraints.Count > 0)
-        //        {
-        //            foreach (var dof in nodalDofs[nodeIdx])
-        //            {
-
-        //            }
-        //        }
-        //    }
-        //}
+        }        
     }
 }
