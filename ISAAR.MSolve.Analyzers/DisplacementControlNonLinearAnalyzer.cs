@@ -171,10 +171,10 @@ namespace ISAAR.MSolve.Analyzers
                 int iteration = 0;
                 for (iteration = 0; iteration < maxiterations; iteration++)
                 {
-                    rhsNorm = AddEquivalentNodalLoadsToRHS(increment, iteration);
+                    AddEquivalentNodalLoadsToRHS(increment, iteration);
                     solver.Solve();
                     ScaleSubdomainConstraints(increment, iteration);
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    errorNorm = CalculateInternalRHS(increment, iteration) ;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
                     if (iteration == 0) firstError = errorNorm;
                     if (errorNorm < tolerance) break;
 
@@ -236,10 +236,10 @@ namespace ISAAR.MSolve.Analyzers
             return providerRHSNorm;
         }
 
-        private double AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)
+        private void AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)
         {
             if (iteration != 0)
-                return provider.RHSNorm(globalRHS.Data);
+                return;
 
             foreach (ILinearSystem subdomain in linearSystems)
             {
@@ -250,13 +250,10 @@ namespace ISAAR.MSolve.Analyzers
                 var equivalentLoadsAssembler = equivalentLoadsAssemblers[linearSystems.Select((v, i) => new { System = v, Index = i })
                                                                                       .First(x => x.System.ID == subdomain.ID).Index];
                 var equivalentNodalLoads = (Vector)equivalentLoadsAssembler.GetEquivalentNodalLoads(u[subdomain.ID], ((double)currentIncrement + 2) / (currentIncrement + 1));
-                subdomainRHS.Add(equivalentNodalLoads);
+                subdomainRHS.Subtract(equivalentNodalLoads);
 
                 mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
             }
-
-            rhsNorm = provider.RHSNorm(globalRHS.Data);
-            return rhsNorm;
         }
 
         private void ScaleSubdomainConstraints(int currentIncrement, int iteration)
