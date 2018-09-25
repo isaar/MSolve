@@ -248,18 +248,15 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void ScaleConstraints(double scalingFactor)
         {
-            var keys1 = new List<int>(constraintsDictionary.Keys);
-            foreach (int key1 in keys1)
+            var nodeIds = constraintsDictionary.Keys.ToList();
+            foreach (var nodeId in nodeIds)
             {
-                var keys2 = new List<DOFType>(constraintsDictionary[key1].Keys);
-                foreach (DOFType key2 in keys2)
+                var dofs = constraintsDictionary[nodeId].Keys.ToList();
+                foreach (DOFType dof in dofs)
                 {
-                    constraintsDictionary[key1][key2] = constraintsDictionary[key1][key2] * scalingFactor;
+                    constraintsDictionary[nodeId][dof] = constraintsDictionary[nodeId][dof] * scalingFactor;
                 }
             }
-            //foreach (var nodeId in constraintsDictionary.Keys)
-            //    foreach (var dof in constraintsDictionary[nodeId].Keys)
-            //        constraintsDictionary[nodeId][dof] = constraintsDictionary[nodeId][dof] * scalingFactor;
         }
 
         public double[] CalculateElementIcrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
