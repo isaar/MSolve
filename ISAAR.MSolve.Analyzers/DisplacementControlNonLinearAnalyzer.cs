@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.Analyzers
                 int iteration = 0;
                 for (iteration = 0; iteration < maxiterations; iteration++)
                 {
-                    AddEquivalentNodalLoadsToRHS(increment, iteration);
+                    rhsNorm = AddEquivalentNodalLoadsToRHS(increment, iteration);
                     solver.Solve();
                     ScaleSubdomainConstraints(increment, iteration);
                     errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
@@ -236,10 +236,10 @@ namespace ISAAR.MSolve.Analyzers
             return providerRHSNorm;
         }
 
-        private void AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)
+        private double AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)
         {
             if (iteration != 0)
-                return;
+                return provider.RHSNorm(globalRHS.Data);
 
             foreach (ILinearSystem subdomain in linearSystems)
             {
@@ -254,6 +254,9 @@ namespace ISAAR.MSolve.Analyzers
 
                 mappings[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].SubdomainToGlobalVector(subdomainRHS.Data, globalRHS.Data);
             }
+
+            rhsNorm = provider.RHSNorm(globalRHS.Data);
+            return rhsNorm;
         }
 
         private void ScaleSubdomainConstraints(int currentIncrement, int iteration)
