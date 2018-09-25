@@ -11,6 +11,7 @@ using System.IO;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
 
+//TODO: this and EmbeddedGrouping have most things in common. Use a base class for them and template method or use polymorhism from the composed classes.
 namespace ISAAR.MSolve.PreProcessor.Embedding
 {
     public class EmbeddedCohesiveGrouping
@@ -51,10 +52,10 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
         {
             IEmbeddedDOFInHostTransformationVector transformer;
             if (hasEmbeddedRotations)
-                //NOT IMPLEMENTED
-                transformer = new Hexa8TranslationAndRotationTransformationVector();
+                //transformer = new Hexa8TranslationAndRotationTransformationVector();
+                throw new NotImplementedException();
             else
-                transformer = new Hexa8NLTranslationTransformationVector();
+                transformer = new Hexa8LAndNLTranslationTransformationVector();
 
             foreach (var embeddedElement in embeddedGroup)
             {
