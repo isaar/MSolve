@@ -6,6 +6,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 //TODO: add tensor product for LinearAlgebra.Vectors.IVectorView. It is useful in mass matrix calculations.
+//TODO: this can be removed. Having a dedicated class only makes sense to pack together both shape functions and shape gradients.
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>
@@ -33,7 +34,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// row 1 to dof Y.
         /// </summary>
         /// <returns></returns>
-        public Matrix2D BuildShapeFunctionMatrix()
+        public Matrix2D BuildShapeFunctionMatrix() //TODO: this is only for continuum elements for vector problems. Scalar problems need a different matrix.
         {
             var array2D = new double[2, 2 * shapeFunctions.Length];
             for (int i = 0; i < shapeFunctions.Length; ++i)

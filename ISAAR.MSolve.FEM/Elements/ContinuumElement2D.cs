@@ -92,16 +92,18 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var lumpedMass = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients =
-                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, QuadratureForConsistentMass);
+            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+                Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             // Contribution of each Gauss point to the element's area
             //TODO: Perhaps I could calculate the volume of the element without going through each Gauss point. Probably the 
             //      nodes are needed instead of the GPs. For linear elements I can find the area geometrically (as polygons).
+            //TODO: this should have been cached when integrating other quantities (e.g. stiffness)
             double area = 0;
             foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
             {
-                area += shapeGradients[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
+                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                area += jacobian.Determinant * gaussPoint.Weight;
             }
 
             // Divide the total mass uniformly for each node
@@ -115,18 +117,21 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var stiffness = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients =
-                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, QuadratureForStiffness);
+            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+                Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
             foreach (GaussPoint2D gaussPoint in QuadratureForStiffness.IntegrationPoints)
             {
                 // Calculate the necessary quantities for the integration
                 Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
-                Matrix2D deformation = BuildDeformationMatrix(shapeGradients[gaussPoint]);
+                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                Matrix2D shapeGradientsCartesian = 
+                    jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gaussPoint]);
+                Matrix2D deformation = BuildDeformationMatrix(shapeGradientsCartesian);
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
-                double dA = shapeGradients[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
+                double dA = jacobian.Determinant * gaussPoint.Weight; //TODO: this is used by all methods that integrate. I should cache it.
                 stiffness.AxpyIntoThis(partial, dA);
             }
             stiffness.Scale(Thickness);
@@ -246,34 +251,39 @@ namespace ISAAR.MSolve.FEM.Elements
             int numGPs = QuadratureForStiffness.IntegrationPoints.Count;
             var strains = new double[numGPs][];
             var stresses = new double[numGPs][];
-            Dictionary<GaussPoint2D, EvalShapeGradients2D> shapeGradients =
-                Interpolation.EvaluateGradientsAtGaussPoints(Nodes, QuadratureForStiffness);
+            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+                Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+
             for (int i = 0; i < numGPs; ++i)
             {
                 GaussPoint2D gaussPoint = QuadratureForStiffness.IntegrationPoints[i];
                 IMatrix2D constitutive = materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix;
-                Matrix2D deformation = BuildDeformationMatrix(shapeGradients[gaussPoint]);
+                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                Matrix2D shapeGrandientsCartesian =
+                    jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gaussPoint]);
+                Matrix2D deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
+
                 strains[i] = new double[3];
                 deformation.Multiply(localDisplVector, strains[i]);
                 stresses[i] = new double[3];
                 constitutive.Multiply(new Vector(strains[i]), stresses[i]);
             }
+
             return (strains, stresses);
         }
 
-        private Matrix2D BuildDeformationMatrix(EvalShapeGradients2D shapeGradients)
+        private Matrix2D BuildDeformationMatrix(Matrix2D shapeGradientsCartesian)
         {
             var deformation = new Matrix2D(3, 2 * Nodes.Count);
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                int col1 = 2 * nodeIdx;
-                int col2 = 2 * nodeIdx + 1;
-                IReadOnlyList<double> dNdX = shapeGradients[nodeIdx];
+                int col0 = 2 * nodeIdx;
+                int col1 = 2 * nodeIdx + 1;
 
-                deformation[0, col1] = dNdX[0];
-                deformation[1, col2] = dNdX[1];
-                deformation[2, col1] = dNdX[1];
-                deformation[2, col2] = dNdX[0];
+                deformation[0, col0] = shapeGradientsCartesian[nodeIdx, 0];
+                deformation[1, col1] = shapeGradientsCartesian[nodeIdx, 1];
+                deformation[2, col0] = shapeGradientsCartesian[nodeIdx, 1];
+                deformation[2, col1] = shapeGradientsCartesian[nodeIdx, 0];
             }
             return deformation;
         }

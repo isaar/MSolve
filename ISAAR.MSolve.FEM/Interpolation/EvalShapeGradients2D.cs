@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+//TODO: this can be removed. Having a dedicated class only makes sense to pack together both shape functions and shape gradients.
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>

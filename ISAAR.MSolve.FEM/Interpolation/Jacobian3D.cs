@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// This class encapsulates the determinant and inverse of the Jacobian matrix for a 3D mapping.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-	public class Jacobian3D
+    /// <summary>
+    /// This class encapsulates the determinant and inverse of the Jacobian matrix for a 3D mapping.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class Jacobian3D
 	{
 		private const double determinantTolerance = 1E-8;
 
-		private readonly double[,] inverseJ;
+		private readonly Matrix2D inverseJ;
 
 		/// <summary>
 		/// The caller (usually the interpolation class) assumes responsibility for matching the nodes to the shape function 
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="nodes">The nodes used for the interpolation.</param>
 		/// <param name="naturalCoordinates">The shape function derivatives at a specific integration point.</param>
-		public Jacobian3D(IReadOnlyList<Node3D> nodes, double[,] naturalDerivatives)
+		public Jacobian3D(IReadOnlyList<Node3D> nodes, Matrix2D naturalDerivatives)
 		{
 			double[,] jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
 			(inverseJ, Determinant) = InvertAndDeterminant(jacobianMatrix);
@@ -37,7 +37,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		public double Determinant { get; }
 
-		public double[] TransformNaturalDerivativesToCartesian(double[] naturalGradient)
+        /// <summary>
+        /// Transforms the gradient of a vector-valued function from the natural to the global cartesian coordinate system.
+        /// </summary>
+        /// <param name="naturalGradient">The gradient of a vector-valued function in the natural coordinate system. Each row 
+        ///     corresponds to the gradient of a single component of the vector function. Each column corresponds to the 
+        ///     derivatives of all components with respect to a single coordinate.</param>
+        public Matrix2D TransformNaturalDerivativesToCartesian(Matrix2D naturalGradient) => naturalGradient * inverseJ;
+
+        public double[] TransformNaturalDerivativesToCartesian(double[] naturalGradient)
 		{
 			var result = new double[3];
 			result[0] = naturalGradient[0] * inverseJ[0, 0] + naturalGradient[1] * inverseJ[1, 0] +
@@ -65,7 +73,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return result;
 		}
 
-		private static double[,] CalculateJacobianMatrix(IReadOnlyList<Node3D> nodes, double[,] naturalDerivatives)
+		private static double[,] CalculateJacobianMatrix(IReadOnlyList<Node3D> nodes, Matrix2D naturalDerivatives)
 		{
 			var jacobianMatrix = new double[3,3];
 
@@ -87,7 +95,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return jacobianMatrix;
 		}
 
-		private static (double[,] inverse, double determinant) InvertAndDeterminant(double[,] jacobianMatrix)
+		private static (Matrix2D inverse, double determinant) InvertAndDeterminant(double[,] jacobianMatrix)
 		{
 			double determinant = jacobianMatrix[0, 0] *
 			                     (jacobianMatrix[1, 1] * jacobianMatrix[2, 2] - jacobianMatrix[2, 1] * jacobianMatrix[1, 2])
@@ -112,7 +120,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			inverseJacobian[2, 1] = (jacobianMatrix[0, 1] * jacobianMatrix[2, 0] - jacobianMatrix[0, 0] * jacobianMatrix[2, 1]) / determinant;
 			inverseJacobian[2, 2] = (jacobianMatrix[0, 0] * jacobianMatrix[1, 1] - jacobianMatrix[0, 1] * jacobianMatrix[1, 0]) / determinant;
 
-			return (inverseJacobian,determinant);
+			return (new Matrix2D(inverseJacobian), determinant);
 		}
 	}
 }
