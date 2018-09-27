@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
@@ -72,14 +71,17 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var mass = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, EvalInterpolation2D> evalInterpolations =
-                Interpolation.EvaluateAllAtGaussPoints(Nodes, QuadratureForConsistentMass);
+            Dictionary<GaussPoint2D, Vector> shapeFunctions =
+                Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForConsistentMass);
+            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+                Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
             {
-                Matrix2D shapeFunctionMatrix = evalInterpolations[gaussPoint].BuildShapeFunctionMatrix();
+                Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gaussPoint]);
                 Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
-                double dA = evalInterpolations[gaussPoint].Jacobian.Determinant * gaussPoint.Weight;
+                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                double dA = jacobian.Determinant * gaussPoint.Weight;
                 mass.AxpyIntoThis(partial, dA);
             }
 
@@ -286,6 +288,21 @@ namespace ISAAR.MSolve.FEM.Elements
                 deformation[2, col1] = shapeGradientsCartesian[nodeIdx, 0];
             }
             return deformation;
+        }
+
+        /// <summary>
+        /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
+        /// row 1 to dof Y.
+        /// </summary>
+        private Matrix2D BuildShapeFunctionMatrix(Vector shapeFunctions)
+        {
+            var array2D = new double[2, 2 * shapeFunctions.Length];
+            for (int i = 0; i < shapeFunctions.Length; ++i)
+            {
+                array2D[0, 2 * i] = shapeFunctions[i];
+                array2D[1, 2 * i + 1] = shapeFunctions[i];
+            }
+            return new Matrix2D(array2D);
         }
     }
 }

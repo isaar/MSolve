@@ -53,22 +53,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         public Matrix2D ShapeGradientsNatural { get; }
 
-        /// <summary>
-        /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
-        /// row 1 to dof Y.
-        /// </summary>
-        /// <returns></returns>
-        public Matrix2D BuildShapeFunctionMatrix() //TODO: this is only for vector problems. It should be done by the element like B.
-        {
-            var array2D = new double[2, 2 * ShapeFunctions.Length];
-            for (int i = 0; i < ShapeFunctions.Length; ++i)
-            {
-                array2D[0, 2 * i] = ShapeFunctions[i];
-                array2D[1, 2 * i + 1] = ShapeFunctions[i];
-            }
-            return new Matrix2D(array2D);
-        }
-
         public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes)
         {
             if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(

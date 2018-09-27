@@ -51,18 +51,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         public Matrix2D ShapeGradientsNatural { get; }
 
-        public Matrix2D BuildShapeFunctionMatrix()
-        {
-            var array2D = new double[3, 3 * ShapeFunctions.Length];
-            for (int i = 0; i < ShapeFunctions.Length; i++)
-            {
-                array2D[0, 3 * i] = ShapeFunctions[i];
-                array2D[1, 2 * i + 1] = ShapeFunctions[i];
-                array2D[2, 3 * i + 2] = ShapeFunctions[i];
-            }
-            return new Matrix2D(array2D);
-        }
-
         public CartesianPoint3D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalCoordinates)
         {
             if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
@@ -77,6 +65,5 @@ namespace ISAAR.MSolve.FEM.Interpolation
             }
             return new CartesianPoint3D(x,y,z);
         }
-
     }
 }
