@@ -7,16 +7,17 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 //TODO: need special 2x2 Matrix class
 //TODO: once we know that an exception will be thrown, try to pinpoint the error: wrong node order, clockwise node order, the  
 //      element's shape is too distorted, midpoints are too close to corners in quadratic elements, etc...
-namespace ISAAR.MSolve.FEM.Interpolation
+namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 {
     /// <summary>
-    /// This class encapsulates the determinant and inverse of the Jacobian matrix for a 2D mapping.
-    /// Let f be a mapping: x \in R^2 -> f(x) \in R^2. The Jacobian matrix of the mapping is 
-    /// J = [df_1/dx_1 df_1/dx_2; df_2/dx_1 df_2/dx_2]. Note that some sources call the transpose of this matrix as J. In FEM we 
-    /// are usually interested in the determinant and inverse of the Jacobian matrix. 
+    /// This class encapsulates the determinant and inverse of the Jacobian matrix for a 2D isoparametric mapping.
+    /// Let f be a mapping: x \in R^2 -> f(x) \in R^2. The Jacobian matrix of the mapping is: 
+    /// J = [df_1/dx_1 df_1/dx_2; df_2/dx_1 df_2/dx_2]. 
+    /// Note that some sources call the transpose of this matrix as J. In FEM we are usually interested in the determinant and
+    /// inverse of the Jacobian matrix. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Jacobian2D 
+    public class IsoparametricJacobian2D 
     {
         private const double determinantTolerance = 1E-8; // This needs to be in a static settings class.
 
@@ -28,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes used for the interpolation.</param>
         /// <param name="naturalDerivatives">The shape function derivatives at a specific integration point.</param>
-        public Jacobian2D(IReadOnlyList<Node2D> nodes, Matrix2D naturalDerivatives)
+        public IsoparametricJacobian2D(IReadOnlyList<Node2D> nodes, Matrix2D naturalDerivatives)
         {
             // The original matrix is not stored. Only the inverse and the determinant
             double[,] jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);

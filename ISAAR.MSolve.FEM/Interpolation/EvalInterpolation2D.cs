@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
@@ -16,7 +17,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation2D
     {
-        public EvalInterpolation2D(Vector shapeFunctions, Matrix2D shapeGradientsNatural, Jacobian2D jacobian)
+        public EvalInterpolation2D(Vector shapeFunctions, Matrix2D shapeGradientsNatural, IsoparametricJacobian2D jacobian)
         {
             int numNodes = shapeFunctions.Length;
             if (shapeGradientsNatural.Rows != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// The inverse Jacobian matrix of the interpolation and its determinant.
         /// </summary>
-        public Jacobian2D Jacobian { get; }
+        public IsoparametricJacobian2D Jacobian { get; }
 
         /// <summary>
         /// A vector that contains the shape functions in the same order as the nodes of the interpolation.

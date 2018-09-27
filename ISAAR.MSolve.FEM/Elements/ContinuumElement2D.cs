@@ -8,6 +8,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -80,7 +81,7 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gaussPoint]);
                 Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
-                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
                 double dA = jacobian.Determinant * gaussPoint.Weight;
                 mass.AxpyIntoThis(partial, dA);
             }
@@ -104,7 +105,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double area = 0;
             foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
             {
-                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
                 area += jacobian.Determinant * gaussPoint.Weight;
             }
 
@@ -126,7 +127,7 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 // Calculate the necessary quantities for the integration
                 Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
-                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
                 Matrix2D shapeGradientsCartesian = 
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gaussPoint]);
                 Matrix2D deformation = BuildDeformationMatrix(shapeGradientsCartesian);
@@ -260,7 +261,7 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 GaussPoint2D gaussPoint = QuadratureForStiffness.IntegrationPoints[i];
                 IMatrix2D constitutive = materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix;
-                var jacobian = new Jacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
                 Matrix2D shapeGrandientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gaussPoint]);
                 Matrix2D deformation = BuildDeformationMatrix(shapeGrandientsCartesian);

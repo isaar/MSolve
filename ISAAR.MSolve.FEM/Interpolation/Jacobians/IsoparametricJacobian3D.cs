@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
-namespace ISAAR.MSolve.FEM.Interpolation
+namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 {
     /// <summary>
-    /// This class encapsulates the determinant and inverse of the Jacobian matrix for a 3D mapping.
+    /// This class encapsulates the determinant and inverse of the Jacobian matrix for a 3D isoparametric mapping.
+    /// Let f be a mapping: x \in R^3 -> f(x) \in R^3. The Jacobian matrix of the mapping is: 
+    /// J = [df_1/dx_1 df_1/dx_2 df_1/dx_3; df_2/dx_1 df_2/dx_2 df_2/dx_3; df_3/dx_1 df_3/dx_2 df_3/dx_3]. 
+    /// Note that some sources call the transpose of this matrix as J. In FEM we are usually interested in the determinant and 
+    /// inverse of the Jacobian matrix.
     /// Authors: Dimitris Tsapetis
     /// </summary>
-    public class Jacobian3D
+    public class IsoparametricJacobian3D
 	{
 		private const double determinantTolerance = 1E-8;
 
@@ -21,7 +25,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="nodes">The nodes used for the interpolation.</param>
 		/// <param name="naturalCoordinates">The shape function derivatives at a specific integration point.</param>
-		public Jacobian3D(IReadOnlyList<Node3D> nodes, Matrix2D naturalDerivatives)
+		public IsoparametricJacobian3D(IReadOnlyList<Node3D> nodes, Matrix2D naturalDerivatives)
 		{
 			double[,] jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
 			(inverseJ, Determinant) = InvertAndDeterminant(jacobianMatrix);

@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -58,7 +59,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             var shapeFunctions = new Vector(EvaluateAt(xi, eta, zeta));
             var naturalShapeDerivatives = new Matrix2D(EvaluateGradientsAt(xi, eta, zeta));
             return new EvalInterpolation3D(shapeFunctions, naturalShapeDerivatives,
-                new Jacobian3D(nodes, naturalShapeDerivatives));
+                new IsoparametricJacobian3D(nodes, naturalShapeDerivatives));
         }
 
         /// <summary>
@@ -76,7 +77,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             foreach (var gaussPoint in quadrature.IntegrationPoints)
             {
                 interpolationsAtGPs[gaussPoint] = new EvalInterpolation3D(shapeFunctionsAtGPs[gaussPoint],
-                    naturalShapeDerivativesAtGPs[gaussPoint], new Jacobian3D(nodes, naturalShapeDerivativesAtGPs[gaussPoint]));
+                    naturalShapeDerivativesAtGPs[gaussPoint], new IsoparametricJacobian3D(nodes, naturalShapeDerivativesAtGPs[gaussPoint]));
             }
             return interpolationsAtGPs;
         }
