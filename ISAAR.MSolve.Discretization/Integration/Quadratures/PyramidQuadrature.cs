@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Points;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
-namespace ISAAR.MSolve.Discretization.Integration
+namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
-	/// <summary>
-	/// Enum class with the 3D integration rules for tetrahedra of varying orders. These are not tensor product of
-	/// simple <see cref="GaussLegendre1D"/> rules. Quadrature rules were provided in https://www.code-aster.org/V2/doc/v11/fr/man_r/r3/r3.01.01.pdf
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-	public sealed class PyramidQuadrature:IQuadrature3D
+    /// <summary>
+    /// Enum class with the 3D integration rules for tetrahedra of varying orders. These are not tensor product of
+    /// simple <see cref="GaussLegendre1D"/> rules. Quadrature rules were provided in https://www.code-aster.org/V2/doc/v11/fr/man_r/r3/r3.01.01.pdf
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public sealed class PyramidQuadrature:IQuadrature3D
 	{
 		public static readonly PyramidQuadrature Points5 = new PyramidQuadrature(
 			new GaussPoint3D(0.5, 0, 0.1531754163448146, 2.0 / 15.0),

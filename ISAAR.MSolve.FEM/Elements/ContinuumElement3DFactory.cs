@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Integration;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
@@ -13,12 +10,12 @@ using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-	/// <summary>
-	/// Creates isoparametric continuum 3D elements. Abstracts the interpolations, integrations,
-	/// extrapolations and any other strategies that differentiate the elements(e.g. Hexa8, Hexa20)
-	/// It is also very convenient when the material properties are the same throughout the whole domain or a region.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
+    /// <summary>
+    /// Creates isoparametric continuum 3D elements. Abstracts the interpolations, integrations,
+    /// extrapolations and any other strategies that differentiate the elements(e.g. Hexa8, Hexa20)
+    /// It is also very convenient when the material properties are the same throughout the whole domain or a region.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
     public class ContinuumElement3DFactory
 	{
 		private static readonly IReadOnlyDictionary<CellType3D, IGaussPointExtrapolation3D> extrapolations;
