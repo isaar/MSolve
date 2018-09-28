@@ -243,10 +243,9 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            double displacement = linearSystems[1].Solution[4];
-            double force = linearSystems[1].RHS[4];
+            double displacement = linearSystems[1].Solution[3];
 
-            Assert.Equal(146.5587362562, linearSystems[1].Solution[4], 3);
+            Assert.Equal(-72.090605787610343, displacement, 8);
         }
     }
 }

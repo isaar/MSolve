@@ -266,10 +266,9 @@ namespace ISAAR.MSolve.FEM.Entities
             var elementNodalDisplacements = new double[localDOFs];
             elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
             var incrementalNodalDisplacements = new double[localDOFs];
-            elementNodalDisplacements.CopyTo(incrementalNodalDisplacements,0);
+            elementNodalDisplacements.CopyTo(incrementalNodalDisplacements, 0);
             var icrementalElementNodalDisplacementsVector = new Vector(incrementalNodalDisplacements);
-            icrementalElementNodalDisplacementsVector.Multiply(constraintScalingFactor);
-            icrementalElementNodalDisplacementsVector.Subtract(new Vector(elementNodalDisplacements));
+            
             return icrementalElementNodalDisplacementsVector.Data;
         }
 
@@ -282,7 +281,6 @@ namespace ISAAR.MSolve.FEM.Entities
 
         private double[] ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)//QUESTION: should we perhaps make it void??
         {
-            //QUESTION: Would this be wrong?? foreach (Node node in element.NodesDictionary)
             int pos = 0;
             for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
             {
