@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 
 //TODO: this can be removed. Having a dedicated class only makes sense to pack together both shape functions and shape gradients.
 namespace ISAAR.MSolve.FEM.Interpolation
@@ -15,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private readonly double[][] shapeGradientsCartesian;
 
-        public EvalShapeGradients2D(double[,] shapeGradientsNatural, Jacobian2D jacobian)
+        public EvalShapeGradients2D(double[,] shapeGradientsNatural, IsoparametricJacobian2D jacobian)
         {
             int numNodes = shapeGradientsNatural.GetLength(0);
             this.shapeGradientsCartesian = new double[numNodes][];
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// The inverse Jacobian matrix of the interpolation and its determinant.
         /// </summary>
-        public Jacobian2D Jacobian { get; }
+        public IsoparametricJacobian2D Jacobian { get; }
 
         /// <summary>
         /// The values of the stored shape function derivatives, with respect to the global cartesian coordinates, that 

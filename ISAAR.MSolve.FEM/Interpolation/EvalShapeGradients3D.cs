@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -14,7 +15,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
 		private readonly double[][] shapeGradientsCartesian;
 
-	    public EvalShapeGradients3D(double[,] shapeGradientNatural, Jacobian3D jacobian)
+	    public EvalShapeGradients3D(double[,] shapeGradientNatural, IsoparametricJacobian3D jacobian)
 	    {
 		    int numberOfNodes = shapeGradientNatural.GetLength(0);
 			this.shapeGradientsCartesian=new double[numberOfNodes][];
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// <summary>
 		/// The inverse Jacobian matrix of the interpolation and its determinant.s
 		/// </summary>
-		public Jacobian3D Jacobian { get; }
+		public IsoparametricJacobian3D Jacobian { get; }
 
 		/// <summary>
 		/// The values of the stored shape function derivatives, with respect to the global cartesian coordinates, that 
