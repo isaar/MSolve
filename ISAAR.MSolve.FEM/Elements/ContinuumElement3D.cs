@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gaussPoint]);
                 Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gaussPoint]);
-                double dA = jacobian.Determinant * gaussPoint.Weight;
+                double dA = jacobian.DirectDeterminant * gaussPoint.Weight;
                 mass.AxpyIntoThis(partial,dA);
             }
             mass.Scale(dynamicProperties.Density);
@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (var gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
             {
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gaussPoint]);
-                area += jacobian.Determinant * gaussPoint.Weight;
+                area += jacobian.DirectDeterminant * gaussPoint.Weight;
             }
 
             double nodalMass = area * dynamicProperties.Density / Nodes.Count;
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 Matrix2D deformation = BuildDeformationMatrix(shapeGradientsCartesian);
 
                 Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
-                double dA = jacobian.Determinant * gaussPoint.Weight;
+                double dA = jacobian.DirectDeterminant * gaussPoint.Weight;
                 stiffness.AxpyIntoThis(partial,dA);
             }
 
