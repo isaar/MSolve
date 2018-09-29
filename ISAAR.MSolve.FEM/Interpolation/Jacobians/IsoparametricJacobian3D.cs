@@ -59,7 +59,12 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         ///     derivatives of all components with respect to a single coordinate.</param>
         public Matrix2D TransformNaturalDerivativesToCartesian(Matrix2D naturalGradient) => naturalGradient * InverseMatrix;
 
-        public double[] TransformNaturalDerivativesToCartesian(double[] naturalGradient)
+        /// <summary>
+        /// Transforms the gradient of a scalar-valued function from the natural to the global cartesian coordinate system.
+        /// </summary>
+        /// <param name="naturalGradient">The gradient of a scalar-valued function in the natural coordinate system. Each entry 
+        ///     corresponds to the derivative with respect to a single coordinate.</param>
+        public double[] TransformNaturalDerivativesToCartesian(double[] naturalGradient) //TODO: rowVector * matrix
         {
             var result = new double[3];
             result[0] = naturalGradient[0] * InverseMatrix[0, 0] + naturalGradient[1] * InverseMatrix[1, 0] +
@@ -70,20 +75,6 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             result[2] = naturalGradient[0] * InverseMatrix[0, 2] + naturalGradient[1] * InverseMatrix[1, 2] +
                         naturalGradient[2] * InverseMatrix[2, 2];
-            return result;
-        }
-
-        public double[] TransformNaturalDerivativesToCartesian(double derivativeXi, double derivativeEta, double derivativeZeta)
-        {
-            var result = new double[3];
-            result[0] = derivativeXi * InverseMatrix[0, 0] + derivativeEta * InverseMatrix[1, 0] +
-                        derivativeZeta * InverseMatrix[2, 0];
-
-            result[1] = derivativeXi * InverseMatrix[0, 1] + derivativeEta * InverseMatrix[1, 1] +
-                        derivativeZeta * InverseMatrix[2, 1];
-
-            result[2] = derivativeXi * InverseMatrix[0, 2] + derivativeEta * InverseMatrix[1, 2] +
-                        derivativeZeta * InverseMatrix[2, 2];
             return result;
         }
 
