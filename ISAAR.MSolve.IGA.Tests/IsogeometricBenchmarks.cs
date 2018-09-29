@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
@@ -856,7 +858,143 @@ namespace ISAAR.MSolve.IGA.Tests
 			#endregion
 		}
 
-		//[Fact]
+		#region CantileverShellData
+		private List<ControlPoint> ElementControlPoints()
+		{
+			return new List<ControlPoint>
+			{
+				new ControlPoint {ID = 0, X = 0.0, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 1, X = 0.0, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 2, X = 0.0, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 3, X = 16.66666667, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 4, X = 16.66666667, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 5, X = 16.66666667, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 6, X = 33.33333333, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 7, X = 33.33333333, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 8, X = 33.33333333, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 9, X = 50.0, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 10, X = 50.0, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 11, X = 50.0, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
+			};
+		}
+
+		private List<Knot> ElementKnot()
+		{
+			return new List<Knot>()
+			{
+				new Knot(){ID=0,Ksi=0.0,Heta=0.0,Zeta =0.0 },
+				new Knot(){ID=1,Ksi=0.0,Heta=1.0,Zeta =0.0 },
+				new Knot(){ID=2,Ksi=1.0,Heta=0.0,Zeta =0.0 },
+				new Knot(){ID=3,Ksi=1.0,Heta=1.0,Zeta =0.0 }
+			};
+		}
+
+		private Vector KnotValueVectorKsi()
+		{
+			return new Vector(new double[8]
+			{
+				0, 0, 0, 0, 1, 1, 1, 1
+			});
+		}
+
+		private Vector KnotValueVectorHeta()
+		{
+			return new Vector(new double[6]
+			{
+				0, 0, 0, 1, 1, 1
+			});
+		}
+
+		private NURBSKirchhoffLoveShellElement Element
+		{
+			get
+			{
+				var element = new NURBSKirchhoffLoveShellElement();
+				var patch = new Patch(){ID = 0};
+				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
+				{
+					YoungModulus = 100,
+					PoissonRatio = 0.0
+				};
+				foreach (var controlPoint in ElementControlPoints())
+					element.ControlPointsDictionary.Add(controlPoint.ID, controlPoint);
+				foreach (var knot in ElementKnot())
+					element.KnotsDictionary.Add(knot.ID, knot);
+				element.ElementType = element;
+				patch.Thickness = 1;
+				patch.DegreeKsi = 3;
+				patch.DegreeHeta = 2;
+				patch.NumberOfControlPointsHeta = 3;
+				patch.KnotValueVectorKsi = KnotValueVectorKsi();
+				patch.KnotValueVectorHeta = KnotValueVectorHeta();
+				element.Patch = patch;
+				return element;
+			}
+		}
+		#endregion
+
+
+		[Fact]
+		public void IsogeometricCantileverShell()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			model.PatchesDictionary.Add(0,Element.Patch);
+			ElementControlPoints().ForEach(e=>model.ControlPointsDictionary.Add(e.ID,e));
+			model.ElementsDictionary.Add(Element.ID,Element);
+			model.PatchesDictionary[0].ElementsDictionary.Add(Element.ID,Element);
+			ElementControlPoints().ForEach(e => model.PatchesDictionary[0].ControlPointsDictionary.Add(e.ID, e));
+
+			model.Loads.Add(new Load()
+			{
+				Amount = -1,
+				ControlPoint = model.ControlPoints[9],
+				DOF = DOFType.Z
+			});
+			model.Loads.Add(new Load()
+			{
+				Amount = -1,
+				ControlPoint = model.ControlPoints[10],
+				DOF = DOFType.Z
+			});
+			model.Loads.Add(new Load()
+			{
+				Amount = -1,
+				ControlPoint = model.ControlPoints[11],
+				DOF = DOFType.Z
+			});
+
+			for (int i = 0; i < 6; i++)
+			{
+				model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
+			}
+
+			model.ConnectDataStructures();
+
+			// Solvers
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+			var expectedSolution = new double[18]
+			{
+				0.0, 0.0, -7499.999986865148, 0.0, 0.0, -7499.99998660616, 0.0, 0.0, -7499.999986347174, 0.0, 0.0,
+				-14999.999980230163, 0.0, 0.0, -14999.999980050825, 0.0, 0.0, -14999.999979871487
+			};
+			for (int i = 0; i < expectedSolution.Length; i++)
+				Assert.Equal(expectedSolution[i], linearSystems[0].Solution[i], 7);
+		}
+
+		/[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
@@ -1592,7 +1730,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		}
 
 		
-		[Fact]
+		//[Fact]
 		public void IsogeometricBeam3D()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
