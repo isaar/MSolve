@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Extrapolation
         {
             double tolerance = 1e-10;
             var extrapolation = ExtrapolationGaussLegendre3x3.UniqueInstance;
-            var gaussPoints = GaussLegendre2D.Order3x3.IntegrationPoints;
+            var gaussPoints = GaussLegendre2D.GetQuadratureWithOrder(3, 3).IntegrationPoints;
 
             for (int i = 0; i < gaussPoints.Count; ++i)
             {

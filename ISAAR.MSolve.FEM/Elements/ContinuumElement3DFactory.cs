@@ -49,22 +49,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
 			// Hexa8
 			interpolations.Add(CellType3D.Hexa8, InterpolationHexa8.UniqueInstance);
-			integrationsForStiffness.Add(CellType3D.Hexa8, GaussLegendre3D.Order2x2x2);
-			integrationsForMass.Add(CellType3D.Hexa8, GaussLegendre3D.Order2x2x2);
+			integrationsForStiffness.Add(CellType3D.Hexa8, GaussLegendre3D.GetQuadratureWithOrder(2, 2, 2));
+			integrationsForMass.Add(CellType3D.Hexa8, GaussLegendre3D.GetQuadratureWithOrder(2, 2, 2));
 			extrapolations.Add(CellType3D.Hexa8, ExtrapolationGaussLegendre2x2x2.UniqueInstance);
 
 			// Hexa20
 			// TODO: extrapolations for Hexa20
 			interpolations.Add(CellType3D.Hexa20, InterpolationHexa20.UniqueInstance);
-			integrationsForStiffness.Add(CellType3D.Hexa20, GaussLegendre3D.Order3x3x3);
-			integrationsForMass.Add(CellType3D.Hexa20, GaussLegendre3D.Order3x3x3);
+			integrationsForStiffness.Add(CellType3D.Hexa20, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3));
+			integrationsForMass.Add(CellType3D.Hexa20, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3));
 			extrapolations.Add(CellType3D.Hexa20, null);
 
 			// Hexa27
 			// TODO: extrapolations for Hexa27
 			interpolations.Add(CellType3D.Hexa27, InterpolationHexa27.UniqueInstance);
-			integrationsForStiffness.Add(CellType3D.Hexa27, GaussLegendre3D.Order3x3x3);
-			integrationsForMass.Add(CellType3D.Hexa27, GaussLegendre3D.Order3x3x3);
+			integrationsForStiffness.Add(CellType3D.Hexa27, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3));
+			integrationsForMass.Add(CellType3D.Hexa27, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3));
 			extrapolations.Add(CellType3D.Hexa27, null);
 
 			// Wedge6

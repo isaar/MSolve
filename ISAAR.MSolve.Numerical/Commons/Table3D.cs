@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Numerical.Commons
     /// <typeparam name="TValue"></typeparam>
     public class Table3D<TKey1, TKey2, TKey3, TValue> : ITable3D<TKey1, TKey2, TKey3, TValue>
     {
-        private const int defaultInitialCapacity = 0; //TODO: get this from Dictionary class.
+        private const int defaultInitialCapacity = 1; //There will be at least 1. TODO: perhaps get this from Dictionary class.
         private readonly int initialCapacityForEachDim;
         private readonly Dictionary<TKey1, Dictionary<TKey2, Dictionary<TKey3, TValue>>> data;
 
@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.Numerical.Commons
             get
             {
                 int count = 0;
-                foreach (var key1Pair in data)
+                foreach (var key1Entries in data)
                 {
-                    foreach (var key2Pair in key1Pair.Value) count += key2Pair.Value.Count;
+                    foreach (var key2Entries in key1Entries.Value) count += key2Entries.Value.Count;
                 }
                 return count;
             }
@@ -38,7 +38,8 @@ namespace ISAAR.MSolve.Numerical.Commons
 
         public TValue this[TKey1 key1, TKey2 key2, TKey3 key3]
         {
-            get { return data[key1][key2][key3]; }
+            get => data[key1][key2][key3];
+
             set
             {
                 bool containsKey1 = data.TryGetValue(key1, out Dictionary<TKey2, Dictionary<TKey3, TValue>> key1Entries);

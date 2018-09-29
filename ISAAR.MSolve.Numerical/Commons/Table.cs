@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Numerical.Commons
     /// <typeparam name="TValue"></typeparam>
     public class Table<TRow, TColumn, TValue> : ITable<TRow, TColumn, TValue>
     {
-        protected const int defaultInitialCapacity = 0; //TODO: get this from Dictionary class.
+        protected const int defaultInitialCapacity = 1; //There will be at least 1. TODO: perhaps get this from Dictionary class.
         protected readonly int initialCapacityForEachDim;
         protected readonly Dictionary<TRow, Dictionary<TColumn, TValue>> data;
 
@@ -47,7 +47,8 @@ namespace ISAAR.MSolve.Numerical.Commons
 
         public TValue this[TRow row, TColumn col]
         {
-            get { return data[row][col]; }
+            get => data[row][col];
+
             set
             {
                 bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
