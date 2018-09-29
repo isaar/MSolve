@@ -36,12 +36,12 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private DynamicMaterial dynamicProperties;
-        private readonly Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints;
+        private readonly IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints;
 
         public ContinuumElement2D(double thickness, IReadOnlyList<Node2D> nodes, IIsoparametricInterpolation2D interpolation,
             IQuadrature2D quadratureForStiffness, IQuadrature2D quadratureForConsistentMass, 
-            IGaussPointExtrapolation2D gaussPointExtrapolation, 
-            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+            IGaussPointExtrapolation2D gaussPointExtrapolation,
+            IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             this.dynamicProperties = dynamicProperties;
             this.materialsAtGaussPoints = materialsAtGaussPoints;
@@ -72,17 +72,17 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var mass = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, Vector> shapeFunctions =
+            IReadOnlyList<Vector> shapeFunctions =
                 Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForConsistentMass);
-            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix2D> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
-            foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
+            for (int gp = 0; gp < QuadratureForConsistentMass.IntegrationPoints.Count; ++gp)
             {
-                Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gaussPoint]);
+                Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gp]);
                 Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
-                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
-                double dA = jacobian.DirectDeterminant * gaussPoint.Weight;
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
+                double dA = jacobian.DirectDeterminant * QuadratureForConsistentMass.IntegrationPoints[gp].Weight;
                 mass.AxpyIntoThis(partial, dA);
             }
 
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var lumpedMass = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix2D> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             // Contribution of each Gauss point to the element's area
@@ -103,10 +103,10 @@ namespace ISAAR.MSolve.FEM.Elements
             //      nodes are needed instead of the GPs. For linear elements I can find the area geometrically (as polygons).
             //TODO: this should have been cached when integrating other quantities (e.g. stiffness)
             double area = 0;
-            foreach (GaussPoint2D gaussPoint in QuadratureForConsistentMass.IntegrationPoints)
+            for (int gp = 0; gp < QuadratureForConsistentMass.IntegrationPoints.Count; ++gp)
             {
-                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
-                area += jacobian.DirectDeterminant * gaussPoint.Weight;
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
+                area += jacobian.DirectDeterminant * QuadratureForConsistentMass.IntegrationPoints[gp].Weight;
             }
 
             // Divide the total mass uniformly for each node
@@ -120,21 +120,21 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var stiffness = new Matrix2D(numDofs, numDofs);
-            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix2D> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
-            foreach (GaussPoint2D gaussPoint in QuadratureForStiffness.IntegrationPoints)
+            for (int gp = 0; gp < QuadratureForStiffness.IntegrationPoints.Count; ++gp)
             {
                 // Calculate the necessary quantities for the integration
-                Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
-                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gp].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
                 Matrix2D shapeGradientsCartesian = 
-                    jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gaussPoint]);
+                    jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
                 Matrix2D deformation = BuildDeformationMatrix(shapeGradientsCartesian);
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
-                double dA = jacobian.DirectDeterminant * gaussPoint.Weight; //TODO: this is used by all methods that integrate. I should cache it.
+                double dA = jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight; //TODO: this is used by all methods that integrate. I should cache it.
                 stiffness.AxpyIntoThis(partial, dA);
             }
             stiffness.Scale(Thickness);
@@ -186,12 +186,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ClearMaterialState()
         {
-            foreach (ElasticMaterial2D m in materialsAtGaussPoints.Values) m.ClearState();
+            foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (ElasticMaterial2D m in materialsAtGaussPoints.Values) m.ClearStresses();
+            foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         public IMatrix2D DampingMatrix(IElement element)
@@ -218,7 +218,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (ElasticMaterial2D material in materialsAtGaussPoints.Values)
+                foreach (ElasticMaterial2D material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -226,12 +226,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (ElasticMaterial2D material in materialsAtGaussPoints.Values) material.ResetModified();
+            foreach (ElasticMaterial2D material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void SaveMaterialState()
         {
-            foreach (ElasticMaterial2D m in materialsAtGaussPoints.Values) m.SaveState();
+            foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.SaveState();
         }
 
         //TODO: why do I need the wrapping element?
@@ -254,22 +254,21 @@ namespace ISAAR.MSolve.FEM.Elements
             int numGPs = QuadratureForStiffness.IntegrationPoints.Count;
             var strains = new double[numGPs][];
             var stresses = new double[numGPs][];
-            Dictionary<GaussPoint2D, Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix2D> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
-            for (int i = 0; i < numGPs; ++i)
+            for (int gp = 0; gp < numGPs; ++gp)
             {
-                GaussPoint2D gaussPoint = QuadratureForStiffness.IntegrationPoints[i];
-                IMatrix2D constitutive = materialsAtGaussPoints[gaussPoint].ConstitutiveMatrix;
-                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gaussPoint]);
+                IMatrix2D constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
                 Matrix2D shapeGrandientsCartesian =
-                    jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gaussPoint]);
+                    jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
                 Matrix2D deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
 
-                strains[i] = new double[3];
-                deformation.Multiply(localDisplVector, strains[i]);
-                stresses[i] = new double[3];
-                constitutive.Multiply(new Vector(strains[i]), stresses[i]);
+                strains[gp] = new double[3];
+                deformation.Multiply(localDisplVector, strains[gp]);
+                stresses[gp] = new double[3];
+                constitutive.Multiply(new Vector(strains[gp]), stresses[gp]);
             }
 
             return (strains, stresses);

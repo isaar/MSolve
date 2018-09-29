@@ -54,13 +54,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <see cref="EvaluateAllAt(IReadOnlyList{Node3D}, NaturalPoint3D)"/>
         /// element are the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the 
         /// latter cases we could also cache the <see cref="EvalInterpolation3D"/> at the integration points of each element).
+        /// The <see cref="EvalInterpolation3D"/>s per integration point are returned in the same order as the integration 
+        /// points in <paramref name="quadrature"/>.<see cref="IQuadrature3D.IntegrationPoints"/>.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions and derivatives  
         ///     are calculated. The integration points of this instance of <see cref="IQuadrature3D"/> are always the 
         ///     same.</param>
-        Dictionary<GaussPoint3D, EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node3D> nodes,
-            IQuadrature3D quadrature);
+        IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node3D> nodes, IQuadrature3D quadrature);
 
         /// <summary>
         /// Evaluate the shape functions at a given natural point and returns them in a vector in the same order as the nodes
@@ -75,12 +76,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// This method caches all possible quantities from previous calls. Use it instead of 
         /// <see cref="EvaluateFunctionsAt(NaturalPoint3D)"/> when the integration points of an element are the same across 
         /// multiple elements or multiple iterations of a non linear or dynamic analysis.
-        /// Each returned vector contains the shape functions in the same order as the nodes of the interpolation.
+        /// The shape functions vectors per integration point are returned in the same order as the integration 
+        /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>. Each vector contains the
+        /// shape functions in the same order as the nodes of the interpolation.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions are calculated. 
         ///     The integration points of this instance of <see cref="IQuadrature2D"/> are always the same.</param>
-        Dictionary<GaussPoint3D, Vector> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature);
+        IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
@@ -100,13 +103,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <see cref="EvaluateNaturalGradientsAt(NaturalPoint3D)"/> when the integration points of an element are the same
         /// across multiple elements or multiple iterations of a non linear or dynamic analysis (in the latter cases we could
         /// also cache the cartesian gradients at the integration points of each element).
-        /// For each returned matrix: Each row corresponds to the gradient of a single shape function. Each column corresponds 
-        /// to the derivatives of all shape functions with respect to a single coordinate.
+        /// The shape gradients matrices per integration point are returned in the same order as the integration 
+        /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>. Each row of a matrix  
+        /// corresponds to the gradient of a single shape function. Each column corresponds to the derivatives of all shape
+        /// functions with respect to a single coordinate.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape function derivatives are 
         ///     calculated. The integration points of this instance of <see cref="IQuadrature3D"/> are always the same.</param>
-        Dictionary<GaussPoint3D, Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D quadrature);
+        IReadOnlyList<Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D quadrature);
 
         /// <summary>
         /// Transforms the coordinates from the natural (element local) coordinate system to the the global

@@ -55,14 +55,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// This method caches all possible quantities from previous calls. Use it instead of 
         /// <see cref="EvaluateAllAt(IReadOnlyList{Node2D}, NaturalPoint2D)"/> when the integration points of an element are
         /// the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the latter cases
-        /// we could also cache the <see cref="EvalInterpolation2D"/> at the integration points of each element).
+        /// we could also cache the <see cref="EvalInterpolation2D"/> at the integration points of each element). 
+        /// The <see cref="EvalInterpolation2D"/>s per integration point are returned in the same order as the integration 
+        /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions and derivatives  
         ///     are calculated. The integration points of this instance of <see cref="IQuadrature2D"/> are always the 
         ///     same.</param>
-        Dictionary<GaussPoint2D, EvalInterpolation2D> EvaluateAllAtGaussPoints(IReadOnlyList<Node2D> nodes,
-            IQuadrature2D quadrature);
+        IReadOnlyList<EvalInterpolation2D> EvaluateAllAtGaussPoints(IReadOnlyList<Node2D> nodes, IQuadrature2D quadrature);
 
         /// <summary>
         /// Evaluate the shape functions at a given natural point and returns them in a vector in the same order as the nodes
@@ -76,12 +77,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// Evaluate the shape functions at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of 
         /// <see cref="EvaluateFunctionsAt(NaturalPoint2D)"/> when the integration points of an element are the same across 
-        /// multiple elements or multiple iterations of a non linear or dynamic analysis. 
-        /// Each returned vector contains the shape functions in the same order as the nodes of the interpolation.
+        /// multiple elements or multiple iterations of a non linear or dynamic analysis.
+        /// The shape functions vectors per integration point are returned in the same order as the integration 
+        /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>. Each vector contains the
+        /// shape functions in the same order as the nodes of the interpolation.
         /// </summary>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions are calculated. 
         ///     The integration points of this instance of <see cref="IQuadrature2D"/> are always the same.</param>
-        Dictionary<GaussPoint2D, Vector> EvaluateFunctionsAtGaussPoints(IQuadrature2D quadrature);
+        IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature2D quadrature);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
@@ -101,12 +104,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <see cref="EvaluateNaturalGradientsAt(NaturalPoint2D)"/>, when the integration points of an element 
         /// are the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the latter 
         /// cases we could also cache the cartesian gradients at the integration points of each element). 
-        /// For each returned matrix: Each row corresponds to the gradient of a single shape function. Each column corresponds 
-        /// to the derivatives of all shape functions with respect to a single coordinate.
+        /// The shape gradients matrices per integration point are returned in the same order as the integration 
+        /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>. Each row of a matrix  
+        /// corresponds to the gradient of a single shape function. Each column corresponds to the derivatives of all shape
+        /// functions with respect to a single coordinate.
         /// </summary>
         /// <param name="quadrature">The integration rule that defines integration points where shape function derivatives are 
         ///     calculated. The integration points of this instance of <see cref="IQuadrature2D"/> are always the same.</param>
-        Dictionary<GaussPoint2D, Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature2D quadrature);
+        IReadOnlyList<Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature2D quadrature);
 
         /// <summary>
         /// Transforms the coordinates from the natural (element local) coordinate system to the the global

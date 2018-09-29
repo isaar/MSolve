@@ -99,16 +99,14 @@ namespace ISAAR.MSolve.FEM.Elements
         public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes, double thickness,
             ElasticMaterial2D material, DynamicMaterial dynamicProperties)
         {
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in integrationsForStiffness[cellType].IntegrationPoints)
-            {
-                materialsAtGaussPoints[gaussPoint] = material.Clone();
-            }
+            int numGPs = integrationsForStiffness[cellType].IntegrationPoints.Count;
+            var materialsAtGaussPoints = new ElasticMaterial2D[numGPs];
+            for (int gp = 0; gp < numGPs; ++gp) materialsAtGaussPoints[gp] = material.Clone();
             return CreateElement(cellType, nodes, thickness, materialsAtGaussPoints, dynamicProperties);
         }
 
         public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes, double thickness,
-            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+            IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             //TODO: check if nodes - interpolation and Gauss points - materials match
             return new ContinuumElement2D(thickness, nodes, interpolations[cellType],

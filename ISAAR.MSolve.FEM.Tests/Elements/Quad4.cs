@@ -66,10 +66,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             // reduced integration rule - bad idea
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(1, 1);
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var quad4 = new ContinuumElement2D(thickness, nodeSet1, InterpolationQuad4.UniqueInstance,
                 GaussLegendre2D.GetQuadratureWithOrder(2, 2), quadratureForMass,
@@ -107,10 +107,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             // full integration rule
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(2, 2);
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var quad4 = new ContinuumElement2D(thickness, nodeSet1, InterpolationQuad4.UniqueInstance,
                 GaussLegendre2D.GetQuadratureWithOrder(2, 2), quadratureForMass,

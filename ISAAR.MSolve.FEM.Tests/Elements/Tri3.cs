@@ -77,10 +77,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestConsistentMassParametric(IReadOnlyList<Node2D> nodeSet, IQuadrature2D quadratureForMass,
             bool reducedQuadrature)
         {
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var tri3 = new ContinuumElement2D(thickness, nodeSet, InterpolationTri3.UniqueInstance,
                 TriangleQuadratureSymmetricGaussian.Order1Point1, quadratureForMass,

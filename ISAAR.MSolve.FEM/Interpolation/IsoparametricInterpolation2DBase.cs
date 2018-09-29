@@ -16,15 +16,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public abstract class IsoparametricInterpolation2DBase: IIsoparametricInterpolation2D
     {
-        private readonly Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, Vector>> cachedFunctionsAtGPs;
-        private readonly Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, Matrix2D>> cachedNaturalGradientsAtGPs;
+        private readonly Dictionary<IQuadrature2D, IReadOnlyList<Vector>> cachedFunctionsAtGPs;
+        private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>> cachedNaturalGradientsAtGPs;
 
         protected IsoparametricInterpolation2DBase(CellType2D cellType, int numFunctions)
         {
             this.CellType = cellType;
             this.NumFunctions = numFunctions;
-            this.cachedFunctionsAtGPs = new Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, Vector>>();
-            this.cachedNaturalGradientsAtGPs = new Dictionary<IQuadrature2D, Dictionary<GaussPoint2D, Matrix2D>>();
+            this.cachedFunctionsAtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Vector>>();
+            this.cachedNaturalGradientsAtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>>();
         }
 
         /// <summary>
@@ -63,19 +63,19 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation2D.EvaluateAllAtGaussPoints(IReadOnlyList{Node2D}, IQuadrature2D)"/>.
         /// </summary>
-        public Dictionary<GaussPoint2D, EvalInterpolation2D> EvaluateAllAtGaussPoints(IReadOnlyList<Node2D> nodes,
-            IQuadrature2D quadrature)
+        public IReadOnlyList<EvalInterpolation2D> EvaluateAllAtGaussPoints(IReadOnlyList<Node2D> nodes, IQuadrature2D quadrature)
         {
             // The shape functions and natural derivatives at each Gauss point are probably cached from previous calls
-            Dictionary<GaussPoint2D, Vector> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
-            Dictionary<GaussPoint2D, Matrix2D> naturalShapeDerivativesAtGPs = EvaluateNaturalGradientsAtGaussPoints(quadrature);
+            IReadOnlyList<Vector> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
+            IReadOnlyList<Matrix2D> naturalShapeDerivativesAtGPs = EvaluateNaturalGradientsAtGaussPoints(quadrature);
 
             // Calculate the Jacobians and shape derivatives w.r.t. global cartesian coordinates at each Gauss point
-            var interpolationsAtGPs = new Dictionary<GaussPoint2D, EvalInterpolation2D>();
-            foreach (var gaussPoint in quadrature.IntegrationPoints)
+            int numGPs = quadrature.IntegrationPoints.Count;
+            var interpolationsAtGPs = new EvalInterpolation2D[numGPs];
+            for (int gp = 0; gp < numGPs; ++gp)
             {
-                interpolationsAtGPs[gaussPoint] = new EvalInterpolation2D(shapeFunctionsAtGPs[gaussPoint],
-                    naturalShapeDerivativesAtGPs[gaussPoint], new IsoparametricJacobian2D(nodes, naturalShapeDerivativesAtGPs[gaussPoint]));
+                interpolationsAtGPs[gp] = new EvalInterpolation2D(shapeFunctionsAtGPs[gp],
+                    naturalShapeDerivativesAtGPs[gp], new IsoparametricJacobian2D(nodes, naturalShapeDerivativesAtGPs[gp]));
             }
             return interpolationsAtGPs;
         }
@@ -89,20 +89,23 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation2D.EvaluateFunctionsAtGaussPoints(IQuadrature2D)"/>.
         /// </summary>
-        public Dictionary<GaussPoint2D, Vector> EvaluateFunctionsAtGaussPoints(IQuadrature2D quadrature)
+        public IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature2D quadrature)
         {
             bool isCached = cachedFunctionsAtGPs.TryGetValue(quadrature,
-                out Dictionary<GaussPoint2D, Vector> shapeFunctionsAtGPs);
-            if (!isCached)
+                out IReadOnlyList<Vector> shapeFunctionsAtGPs);
+            if (isCached) return shapeFunctionsAtGPs;
+            else
             {
-                shapeFunctionsAtGPs = new Dictionary<GaussPoint2D, Vector>();
-                foreach (var gaussPoint in quadrature.IntegrationPoints)
+                int numGPs = quadrature.IntegrationPoints.Count;
+                var shapeFunctionsAtGPsArray = new Vector[numGPs];
+                for (int gp = 0; gp < numGPs; ++gp)
                 {
-                    shapeFunctionsAtGPs[gaussPoint] = new Vector(EvaluateAt(gaussPoint.Xi, gaussPoint.Eta));
+                    GaussPoint2D gaussPoint = quadrature.IntegrationPoints[gp];
+                    shapeFunctionsAtGPsArray[gp] = new Vector(EvaluateAt(gaussPoint.Xi, gaussPoint.Eta));
                 }
-                cachedFunctionsAtGPs.Add(quadrature, shapeFunctionsAtGPs);
+                cachedFunctionsAtGPs.Add(quadrature, shapeFunctionsAtGPsArray);
+                return shapeFunctionsAtGPsArray;
             }
-            return shapeFunctionsAtGPs;
         }
 
         /// <summary>
@@ -115,20 +118,23 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// See <see cref="IIsoparametricInterpolation2D.EvaluateNaturalGradientsAtGaussPoints(IQuadrature2D)"/>.
         /// </summary>
         /// <param name="quadrature"></param>
-        public Dictionary<GaussPoint2D, Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature2D quadrature)
+        public IReadOnlyList<Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature2D quadrature)
         {
             bool isCached = cachedNaturalGradientsAtGPs.TryGetValue(quadrature,
-                out Dictionary<GaussPoint2D, Matrix2D> naturalGradientsAtGPs);
-            if (!isCached)
+                out IReadOnlyList<Matrix2D> naturalGradientsAtGPs);
+            if (isCached) return naturalGradientsAtGPs;
+            else
             {
-                naturalGradientsAtGPs = new Dictionary<GaussPoint2D, Matrix2D>();
-                foreach (var gaussPoint in quadrature.IntegrationPoints)
+                int numGPs = quadrature.IntegrationPoints.Count;
+                var naturalGradientsAtGPsArray = new Matrix2D[numGPs];
+                for (int gp = 0; gp < numGPs; ++gp)
                 {
-                    naturalGradientsAtGPs[gaussPoint] = new Matrix2D(EvaluateGradientsAt(gaussPoint.Xi, gaussPoint.Eta));
+                    GaussPoint2D gaussPoint = quadrature.IntegrationPoints[gp];
+                    naturalGradientsAtGPsArray[gp] = new Matrix2D(EvaluateGradientsAt(gaussPoint.Xi, gaussPoint.Eta));
                 }
-                cachedNaturalGradientsAtGPs.Add(quadrature, naturalGradientsAtGPs);
+                cachedNaturalGradientsAtGPs.Add(quadrature, naturalGradientsAtGPsArray);
+                return naturalGradientsAtGPsArray;
             }
-            return naturalGradientsAtGPs;
         }
 
         /// <summary>
