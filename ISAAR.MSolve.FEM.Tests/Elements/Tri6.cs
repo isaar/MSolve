@@ -55,10 +55,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             IQuadrature2D quadratureForMass = TriangleQuadratureSymmetricGaussian.Order4Points6;
 
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var tri6 = new ContinuumElement2D(thickness, nodeSet0, InterpolationTri6.UniqueInstance,
                 TriangleQuadratureSymmetricGaussian.Order2Points3, quadratureForMass,

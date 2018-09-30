@@ -1,53 +1,64 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Numerical.Commons;
 
+//TODO: A thread safe Table3D is needed with an atomic method: 
+//      GetOrAddNew(int orderXi, int orderEta, int orderZeta Func<int, int, int, GaussLegendre3D> createFunc). This quadrature  
+//      class should also be thread safe. What about distributed systems?
 namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
-	/// <summary>
-	/// Enum class with the 3D Gauss-Legendre integration rules of varying orders. Tensor product of 
-	/// <see cref="GaussLegendre1D"/> rules along each axis.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-	public sealed class GaussLegendre3D : IQuadrature3D
-	{
-		public static readonly GaussLegendre3D Order1x1x1 = new GaussLegendre3D(GaussLegendre1D.Order1, GaussLegendre1D.Order1, GaussLegendre1D.Order1);
-		public static readonly GaussLegendre3D Order2x2x2 = new GaussLegendre3D(GaussLegendre1D.Order2, GaussLegendre1D.Order2, GaussLegendre1D.Order2);
-		public static readonly GaussLegendre3D Order3x3x3 = new GaussLegendre3D(GaussLegendre1D.Order3, GaussLegendre1D.Order3, GaussLegendre1D.Order3);
-		public static readonly GaussLegendre3D Order4x4x4 = new GaussLegendre3D(GaussLegendre1D.Order4, GaussLegendre1D.Order4, GaussLegendre1D.Order4);
-		public static readonly GaussLegendre3D Order5x5x5 = new GaussLegendre3D(GaussLegendre1D.Order5, GaussLegendre1D.Order5, GaussLegendre1D.Order5);
-		public static readonly GaussLegendre3D Order6x6x6 = new GaussLegendre3D(GaussLegendre1D.Order6, GaussLegendre1D.Order6, GaussLegendre1D.Order6);
-		public static readonly GaussLegendre3D Order7x7x7 = new GaussLegendre3D(GaussLegendre1D.Order7, GaussLegendre1D.Order7, GaussLegendre1D.Order7);
-		public static readonly GaussLegendre3D Order8x8x8 = new GaussLegendre3D(GaussLegendre1D.Order8, GaussLegendre1D.Order8, GaussLegendre1D.Order8);
-		public static readonly GaussLegendre3D Order9x9x9 = new GaussLegendre3D(GaussLegendre1D.Order9, GaussLegendre1D.Order9, GaussLegendre1D.Order9);
-		public static readonly GaussLegendre3D Order10x10x10 = new GaussLegendre3D(GaussLegendre1D.Order10, GaussLegendre1D.Order10, GaussLegendre1D.Order10);
+    /// <summary>
+    /// Contains the 3D Gauss-Legendre integration rules of varying orders. These are created as tensor products of 
+    /// <see cref="GaussLegendre1D"/> rules along each axis. Each quadrature is a singleton that can be accessed through this 
+    /// class.
+    /// Authors: Dimitris Tsapetis, Serafeim Bakalakos
+    /// </summary>
+    public sealed class GaussLegendre3D : IQuadrature3D
+    {
+        private const int initialCapacity = 10;
 
+        private static readonly Table3D<int, int, int, GaussLegendre3D> quadratures =
+            new Table3D<int, int, int, GaussLegendre3D>(initialCapacity);
 
-		private GaussLegendre3D(GaussLegendre1D ruleXi, GaussLegendre1D ruleEta, GaussLegendre1D ruleZeta)
-		{
-			// Combine the integration rules of each axis: 
-			// WARNING: Do not change their order (Xi major, Eta minor). Other classes, such as ExtrapolationGaussLegendre2x2 
-			//          depend on it.
-			var points3D = new List<GaussPoint3D>();
-			foreach (var pointZeta in ruleZeta.IntegrationPoints)
-			{
-				foreach (var pointEta in ruleEta.IntegrationPoints)
-				{
-					foreach (var pointXi in ruleXi.IntegrationPoints)
-					{
-						points3D.Add(new GaussPoint3D(pointXi.Xi, pointEta.Xi, pointZeta.Xi,
-							pointXi.Weight * pointEta.Weight * pointZeta.Weight));
-					}
-				}
-			}
-			
-			this.IntegrationPoints = points3D;
-		}
+        public static GaussLegendre3D GetQuadratureWithOrder(int orderXi, int orderEta, int orderZeta)
+        {
+            //TODO: these should be thread safe and atomic.
+            bool exists = quadratures.TryGetValue(orderXi, orderEta, orderZeta, out GaussLegendre3D quadrature);
+            if (!exists)
+            {
+                quadrature = new GaussLegendre3D(orderXi, orderEta, orderZeta);
+                quadratures[orderXi, orderEta, orderZeta] = quadrature;
+            }
+            return quadrature;
+        }
 
-		/// <summary>
-		/// The integration points are sorted based on an order strictly defined for each quadrature.
-		/// </summary>
-		public IReadOnlyList<GaussPoint3D> IntegrationPoints { get; }
-	}
+        private GaussLegendre3D(int orderXi, int orderEta, int orderZeta)
+        {
+            GaussLegendre1D quadratureXi = GaussLegendre1D.GetQuadratureWithOrder(orderXi);
+            GaussLegendre1D quadratureEta = GaussLegendre1D.GetQuadratureWithOrder(orderEta);
+            GaussLegendre1D quadratureZeta = GaussLegendre1D.GetQuadratureWithOrder(orderZeta);
+            var points3D = new List<GaussPoint3D>();
+
+            // Combine the integration rules of each axis. The order is Xi minor - Eta middle - Zeta major
+            // WARNING: Do not change their order. Other classes, such as the ones that implement extrapolations, depend on it.
+            foreach (var pointZeta in quadratureZeta.IntegrationPoints)
+            {
+                foreach (var pointEta in quadratureEta.IntegrationPoints)
+                {
+                    foreach (var pointXi in quadratureXi.IntegrationPoints)
+                    {
+                        points3D.Add(new GaussPoint3D(pointXi.Xi, pointEta.Xi, pointZeta.Xi,
+                            pointXi.Weight * pointEta.Weight * pointZeta.Weight));
+                    }
+                }
+            }
+
+            this.IntegrationPoints = points3D;
+        }
+
+        /// <summary>
+        /// The integration points are sorted based on an order strictly defined for each quadrature.
+        /// </summary>
+        public IReadOnlyList<GaussPoint3D> IntegrationPoints { get; }
+    }
 }
