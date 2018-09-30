@@ -65,14 +65,14 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestConsistentMass0()
         {
             // reduced integration rule - bad idea
-            IQuadrature2D quadratureForMass = GaussLegendre2D.Order1x1;
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(1, 1);
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var quad4 = new ContinuumElement2D(thickness, nodeSet1, InterpolationQuad4.UniqueInstance,
-                GaussLegendre2D.Order2x2, quadratureForMass,
+                GaussLegendre2D.GetQuadratureWithOrder(2, 2), quadratureForMass,
                 ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicMaterial);
             IMatrix2D M = quad4.BuildConsistentMassMatrix();
 
@@ -106,14 +106,14 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestConsistentMass1()
         {
             // full integration rule
-            IQuadrature2D quadratureForMass = GaussLegendre2D.Order2x2;
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(2, 2);
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var quad4 = new ContinuumElement2D(thickness, nodeSet1, InterpolationQuad4.UniqueInstance,
-                GaussLegendre2D.Order2x2, quadratureForMass,
+                GaussLegendre2D.GetQuadratureWithOrder(2, 2), quadratureForMass,
                 ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicMaterial);
             IMatrix2D M = quad4.BuildConsistentMassMatrix();
 

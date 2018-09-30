@@ -37,14 +37,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             Assert.True(full1.Equals(skyline1));
 
             // Equals(CsrMatrix)
-            var full2 = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
+            var full2 = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
             var csr2 = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
                 SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
                 true);
             Assert.True(full2.Equals(csr2));
 
             // Equals(CscMatrix)
-            var full3 = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
+            var full3 = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
             var csc3 = CscMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
                 SparseRectangular10by5.cscValues, SparseRectangular10by5.cscRowIndices, SparseRectangular10by5.cscColOffsets,
                 true);

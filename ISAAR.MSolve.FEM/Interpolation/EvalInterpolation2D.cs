@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
@@ -17,69 +17,52 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation2D
     {
-        private readonly double[] shapeFunctions;
-        private readonly double[][] shapeGradientsCartesian;
-
-        public EvalInterpolation2D(double[] shapeFunctions, double[,] shapeGradientsNatural, Jacobian2D jacobian)
+        public EvalInterpolation2D(Vector shapeFunctions, Matrix2D shapeGradientsNatural, IsoparametricJacobian2D jacobian)
         {
             int numNodes = shapeFunctions.Length;
-            if (shapeGradientsNatural.GetLength(0) != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
-               + $" evaluated shape functions, but {shapeGradientsNatural.GetLength(0)} evaluated natural shape derivatives.");
-            this.shapeFunctions = shapeFunctions;
-            this.shapeGradientsCartesian = new double[numNodes][];
-            for (int i = 0; i < numNodes; ++i)
-            {
-                this.shapeGradientsCartesian[i] = jacobian.TransformNaturalDerivativesToCartesian(
-                    shapeGradientsNatural[i, 0], shapeGradientsNatural[i, 1]);
-            }
+            if (shapeGradientsNatural.Rows != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
+               + $" evaluated shape functions, but {shapeGradientsNatural.Rows} evaluated natural shape derivatives.");
+            this.ShapeFunctions = shapeFunctions;
+            this.ShapeGradientsNatural = shapeGradientsNatural;
             this.Jacobian = jacobian;
+            this.ShapeGradientsCartesian = jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural);
         }
 
         /// <summary>
         /// The inverse Jacobian matrix of the interpolation and its determinant.
         /// </summary>
-        public Jacobian2D Jacobian { get; }
+        public IsoparametricJacobian2D Jacobian { get; }
 
         /// <summary>
-        /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
-        /// row 1 to dof Y.
+        /// A vector that contains the shape functions in the same order as the nodes of the interpolation.
         /// </summary>
-        /// <returns></returns>
-        public Matrix2D BuildShapeFunctionMatrix()
-        {
-            var array2D = new double[2, 2 * shapeFunctions.Length];
-            for (int i = 0; i < shapeFunctions.Length; ++i)
-            {
-                array2D[0, 2 * i] = shapeFunctions[i];
-                array2D[1, 2 * i + 1] = shapeFunctions[i];
-            }
-            return new Matrix2D(array2D);
-        }
+        public Vector ShapeFunctions { get; }
 
         /// <summary>
-        /// The value of the stored shape function that corresponds to the node with local index <paramref name="nodeIdx"/>.
+        /// A matrix that contains the 1st order shape function derivatives with respect to the global cartesian coordinate 
+        /// system at the integration points defined by a given quadrature. Each row corresponds to the gradient of a single 
+        /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
+        /// coordinate.
         /// </summary>
-        /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
-        /// <returns></returns>
-        public double GetShapeFunction(int nodeIdx) => shapeFunctions[nodeIdx];
+        public Matrix2D ShapeGradientsCartesian { get; }
 
         /// <summary>
-        /// The values of the stored shape function derivatives, with respect to the global cartesian coordinates, that 
-        /// correspond to the node with local index <paramref name="nodeIdx"/>.
+        /// A matrix that contains the 1st order shape function derivatives with respect to the natural coordinate 
+        /// system at the integration points defined by a given quadrature. Each row corresponds to the gradient of a single 
+        /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
+        /// coordinate.
         /// </summary>
-        /// <param name="nodeIdx">The local index of the node, namely its order among the nodes of the finite element.</param>
-        /// <returns></returns>
-        public IReadOnlyList<double> GetShapeGradientCartesian(int nodeIdx) => shapeGradientsCartesian[nodeIdx];
+        public Matrix2D ShapeGradientsNatural { get; }
 
         public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes)
         {
-            if (nodes.Count != shapeFunctions.Length) throw new ArgumentException(
-                $"There are {shapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
+            if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
+                $"There are {ShapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
             double x = 0, y = 0;
-            for (int i = 0; i < shapeFunctions.Length; ++i)
+            for (int i = 0; i < ShapeFunctions.Length; ++i)
             {
                 Node2D node = nodes[i];
-                double val = shapeFunctions[i];
+                double val = ShapeFunctions[i];
                 x += val * node.X;
                 y += val * node.Y;
             }

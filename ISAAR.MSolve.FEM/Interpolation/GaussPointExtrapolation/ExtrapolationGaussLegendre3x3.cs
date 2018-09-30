@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         private static readonly double sqrt5over3 = Math.Sqrt(5.0 / 3.0);
         private static readonly ExtrapolationGaussLegendre3x3 uniqueInstance = new ExtrapolationGaussLegendre3x3();
 
-        private ExtrapolationGaussLegendre3x3() : base(GaussLegendre2D.Order3x3)
+        private ExtrapolationGaussLegendre3x3() : base(GaussLegendre2D.GetQuadratureWithOrder(3, 3))
         { }
 
         /// <summary>

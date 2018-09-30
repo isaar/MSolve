@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
     /// <summary>
     /// Enum class with the 2D integration rules for triangles of varying orders. These are not tensor product of 
-    /// simple <see cref="GaussLegendre1D"/> rules. Instead the points are derived by symmetric Gaussian quadratures for
+    /// simple <see cref="GaussLegendre1D_old"/> rules. Instead the points are derived by symmetric Gaussian quadratures for
     /// triangles which are more efficient. 
     /// The theory is published in: "High degree efficient symmetrical Gaussian quadrature rules for the triangle", 
     /// D. A. Dunavant, 1985. It is also explained in http://math2.uncc.edu/~shaodeng/TEACHING/math5172/Lectures/Lect_15.PDF. The
