@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         }
 
-        private InterpolationHexa8ReverseNew Interpolation { get; }
+        public InterpolationHexa8ReverseNew Interpolation { get; }
         public IQuadrature3D QuadratureForStiffness { get; }
 
         public int endeixiShapeFunctionAndGaussPointData = 1;

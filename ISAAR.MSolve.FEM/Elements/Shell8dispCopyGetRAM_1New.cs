@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 //using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
@@ -29,23 +30,23 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[][] oVn_i { get; set; }
         //public double[][] oV1_i { get; set; }
         //public double[][] oV2_i { get; set; }
-        public int gp_d1 { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
-        public int gp_d2 { get; set; }
-        public int gp_d3 { get; set; }
+        //public int gp_d1 { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
+        //public int gp_d2 { get; set; }
+        //public int gp_d3 { get; set; }
         public double[] tk { get; set; } //public static int[] tk { get; set; }
         private int nGaussPoints;
 
         //private double ksi;
         //private double heta;
         //private double zeta;
-        private int npoint;
+        //private int npoint; //TODO remove
 
         private double[] integrationCoefficient;
         //private double[] a_123g;
         //private double a_1g;
         //private double a_2g;
         //private double a_3g;
-        private readonly InterpolationShell8 interpolation;
+        
 
         //private double[][] gausscoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
         //private double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
@@ -75,17 +76,17 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-        public Shell8dispCopyGetRAM_1New(IShellMaterial material, int gp_d1c, int gp_d2c, int gp_d3c) // compa isotropic
+        public Shell8dispCopyGetRAM_1New(IShellMaterial material, IQuadrature3D quadratureForStiffness) // compa isotropic
         {
-            this.gp_d1 = gp_d1c;
-            this.gp_d2 = gp_d2c;
-            this.gp_d3 = gp_d3c;
-            this.nGaussPoints = this.gp_d1 * this.gp_d2 * this.gp_d3;
+            this.Interpolation = InterpolationShell8.UniqueInstance;
+            this.QuadratureForStiffness = quadratureForStiffness;
+            this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
             materialsAtGaussPoints = new IShellMaterial[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
-               
-            this.interpolation = InterpolationShell8.UniqueInstance;
         }
+
+        public InterpolationShell8 Interpolation { get; }
+        public IQuadrature3D QuadratureForStiffness { get; }
 
         //public Shell8dispCopyGet(IFiniteElementMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator)//pithanotata den xreiazetai
         //    : this(material, gp_d1, gp_d2, gp_d3)
@@ -95,7 +96,7 @@ namespace ISAAR.MSolve.FEM.Elements
         // ews edw
 
 
-        
+
 
         private double[][,] GetBL11a(double [][,] J_0inv)
         {
@@ -176,7 +177,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL12;
         }
 
-        private double[][,] GetBL13(double[][] shapeFunctionDerivatives,double [][] tUvec , double[][,] J_0a)
+        private double[][,] GetBL13(IReadOnlyList<double[,]> shapeFunctionDerivatives,double [][] tUvec , double[][,] J_0a)
         {
             double[][,] BL13;
             BL13 = new double[nGaussPoints][,];
@@ -199,7 +200,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int l = 0; l < 2; l++)
                         {
-                            BL13[j][3 * k + l, 5 * m + k] = shapeFunctionDerivatives[m + 8 * l][j];
+                            BL13[j][3 * k + l, 5 * m + k] = shapeFunctionDerivatives[j][m, l];
                         }
                     }
                 }
@@ -257,12 +258,12 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] E;
             double[] ni;
 
-            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
-                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
 
-            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
-                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
-           
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
+            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);            
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
+
+
             tx_i = new double[8][];
             (tU, tUvec) = Shell8DirectionVectorUtilities.GetInitialDirectionVectorValues(oVn_i);
             double[][] oV1_i = new double[8][]; //tangent vector ''1'' initial configuration
@@ -305,7 +306,6 @@ namespace ISAAR.MSolve.FEM.Elements
             
             //V2 = new double[3];
             //T_e = new double[6, 6];
-            nGaussPoints = gp_d1 * gp_d2 * gp_d3; 
             //ConsCartes = new double[nGaussPoints][,]; // TODOGer delete
             E = new double[nGaussPoints];
             ni = new double[nGaussPoints];
@@ -339,8 +339,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     for (int l = 0; l < 3; l++)
                     {
-                        V3[l] += shapeFunctions[k][j] * oVn_i[k][l];
-                        V1[l] += shapeFunctions[k][j] * oV1_i[k][l];
+                        V3[l] += shapeFunctions[j][k] * oVn_i[k][l];
+                        V1[l] += shapeFunctions[j][k] * oV1_i[k][l];
                     }
                 }
                 V3_norm = Math.Sqrt(V3[0] * V3[0] + V3[1] * V3[1] + V3[2] * V3[2]);
@@ -416,7 +416,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             integrationCoefficient = new double[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { integrationCoefficient[j] += a_123g[j] * detJ_0[j]; }
+            { integrationCoefficient[j] += QuadratureForStiffness.IntegrationPoints[j].Weight * detJ_0[j]; }
 
         }
 
@@ -504,7 +504,6 @@ namespace ISAAR.MSolve.FEM.Elements
         private double [][,] CalculateCk(double[] [,] J_0a,double [][] tU )
         {
             //initialize
-            nGaussPoints = gp_d1 * gp_d2 * gp_d3;
             double[][,] ck;
             ck = new double[nGaussPoints][,];
             for (int j = 0; j < nGaussPoints; j++)
@@ -561,10 +560,9 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             // prosthiki logw J_0inv oxi global
             // kai anagkastika kai J_0a
-            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
-                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
-            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
-                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
+            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
 
 
             (double[][,] J_0inv, double[] detJ_0) =
@@ -732,10 +730,9 @@ namespace ISAAR.MSolve.FEM.Elements
         {
 
             //prosthikes gia ll1 entos methodwn mono
-            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
-                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
-            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
-                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
+            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             //prosthikes gia ll1 entos methodwn mono
 
             //prosthikes gia BL11a entos methodwn
@@ -746,7 +743,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[][,] BL12;
             BL12 = GetBL12(J_0inv);
             double[][,] BL13;
-            BL13 = GetBL13(shapeFunctionDerivatives, tUvec, J_0a);
+            BL13 = GetBL13(shapeFunctionsDerivatives, tUvec, J_0a);
 
             //prosthiki declare BL klp entos upd force
             double[][,] BL;
@@ -935,17 +932,15 @@ namespace ISAAR.MSolve.FEM.Elements
             double[][] BL01plus1_2tSPKvec;
 
 
-
-            (double[][] gausscoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) =
-                interpolation.GetShapeFunctions(gp_d1, gp_d2, gp_d3);
-            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
-                nGaussPoints, tk, gausscoordinates, shapeFunctions, shapeFunctionDerivatives);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
+            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);
+            (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             (double[][,] J_0inv, double[] detJ_0) =
                 JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
             double[][,] BNL1;
             BNL1 = GetBNL1(J_0inv);
             double[][,] BL13;
-            BL13 = GetBL13(shapeFunctionDerivatives, tUvec, J_0a); //logw pou de tha kratietai apo Ton upologismo tou stis forces
+            BL13 = GetBL13(shapeFunctionsDerivatives, tUvec, J_0a); //logw pou de tha kratietai apo Ton upologismo tou stis forces
 
 
 
