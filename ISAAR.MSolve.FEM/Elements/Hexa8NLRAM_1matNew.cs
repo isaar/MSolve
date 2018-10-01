@@ -257,10 +257,10 @@ namespace ISAAR.MSolve.FEM.Elements
             //double[] a_123g = new double[nGaussPoints];//[QuadratureForStiffness.IntegrationPoints.Count];
             //for (int gpoint = 0; gpoint < nGaussPoints; gpoint++) {a_123g }
 
-            IReadOnlyList<Matrix2D> ll1_hexa;
-            ll1_hexa = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapheFunctionNaturalDerivatives;
+            shapheFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
             Matrix2D[] BL13_hexa;
-            BL13_hexa = GetBL13Hexa(ll1_hexa);
+            BL13_hexa = GetBL13Hexa(shapheFunctionNaturalDerivatives);
 
             Matrix2D[] BNL1_hexa;
 
@@ -270,7 +270,7 @@ namespace ISAAR.MSolve.FEM.Elements
             ox_i = new double[8][];
             tu_i = new double[8][]; // apla initialized edw kai tpt allo
 
-            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapheFunctionNaturalDerivatives, element.INodes, nGaussPoints);
 
             sunt_oloklhrwmatos = new double[nGaussPoints];
            
@@ -353,10 +353,10 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private void CalculateStrains(double[] localdisplacements, IElement element, double[][] tx_i) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
-            //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn 
-            IReadOnlyList<Matrix2D> ll1_hexa;
-            ll1_hexa = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
-            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
+            //YPOLOGISMOS EDW KAI TOU ll1_hexa(shapeFunctionNaturalDerivatives) pou de tha karatietai pia kai olwn 
+            IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
+            shapeFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn kai tou J_0inv
 
 
@@ -368,7 +368,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 GL[npoint] = new Matrix2D(3, 3);
             }
 
-            Matrix2D[] J_1 = JacobianHexa8Reverse.Get_J_1(nGaussPoints, tx_i, ll1_hexa);
+            Matrix2D[] J_1 = JacobianHexa8Reverse.Get_J_1(nGaussPoints, tx_i, shapeFunctionNaturalDerivatives);
 
             // //
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
@@ -447,12 +447,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
             // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
-            IReadOnlyList<Matrix2D> ll1_hexa;
-            ll1_hexa = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
+            shapeFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
             //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
-            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             Matrix2D[] BL13_hexa;
-            BL13_hexa = GetBL13Hexa(ll1_hexa);
+            BL13_hexa = GetBL13Hexa(shapeFunctionNaturalDerivatives);
             Matrix2D[] BL11a_hexa; // exoume tosa [,] osa einai kai ta gpoints
             Matrix2D[] BL12_hexa;
             Matrix2D[] BL01_hexa;
@@ -506,7 +506,7 @@ namespace ISAAR.MSolve.FEM.Elements
                         //l_perisp[m, n] = 0; //sp1
                         for (int p = 0; p < 8; p++)
                         {
-                            l_perisp[m, n] += ll1_hexa[npoint][m, p] * ll2[p, n];
+                            l_perisp[m, n] += shapeFunctionNaturalDerivatives[npoint][m, p] * ll2[p, n];
                         }
                     }
                 }
@@ -611,12 +611,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
             // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
-            IReadOnlyList<Matrix2D> ll1_hexa;
-            ll1_hexa = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
+            shapeFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
             //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
-            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             Matrix2D[] BL13_hexa;
-            BL13_hexa = GetBL13Hexa(ll1_hexa);
+            BL13_hexa = GetBL13Hexa(shapeFunctionNaturalDerivatives);
             Matrix2D[] BL11a_hexa; // exoume tosa [,] osa einai kai ta gpoints
             Matrix2D[] BL12_hexa;
             Matrix2D[] BL01_hexa;
@@ -652,7 +652,7 @@ namespace ISAAR.MSolve.FEM.Elements
                         //l_perisp[m, n] = 0; //sp1
                         for (int p = 0; p < 8; p++)
                         {
-                            l_perisp[m, n] += ll1_hexa[npoint][m, p] * ll2[p, n];
+                            l_perisp[m, n] += shapeFunctionNaturalDerivatives[npoint][m, p] * ll2[p, n];
                         }
                     }
                 }
@@ -741,9 +741,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-            Matrix2D sunt_ol_SPK_epi_BNL_hexa = new Matrix2D(9, 24); //TODO
-            Matrix2D sunt_ol_cons_disp = new Matrix2D(6, 6); //TODO
-            Matrix2D sunt_ol_cons_disp_epi_BL = new Matrix2D(6, 24);//TODO
+            
 
             Matrix2D[]sunt_ol_Spk = new Matrix2D[nGaussPoints];
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
@@ -763,6 +761,10 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
+                Matrix2D sunt_ol_SPK_epi_BNL_hexa = new Matrix2D(9, 24); //TODO
+                Matrix2D sunt_ol_cons_disp = new Matrix2D(6, 6); //TODO
+                Matrix2D sunt_ol_cons_disp_epi_BL = new Matrix2D(6, 24);//TODO
+
                 //
                 sunt_ol_Spk[npoint][0, 0] = sunt_ol_Spkvec[npoint][0];
                 sunt_ol_Spk[npoint][0, 1] = sunt_ol_Spkvec[npoint][3];
