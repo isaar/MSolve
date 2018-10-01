@@ -258,7 +258,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //for (int gpoint = 0; gpoint < nGaussPoints; gpoint++) {a_123g }
 
             IReadOnlyList<Matrix2D> shapheFunctionNaturalDerivatives;
-            shapheFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            shapheFunctionNaturalDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             Matrix2D[] BL13_hexa;
             BL13_hexa = GetBL13Hexa(shapheFunctionNaturalDerivatives);
 
@@ -355,7 +355,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             //YPOLOGISMOS EDW KAI TOU ll1_hexa(shapeFunctionNaturalDerivatives) pou de tha karatietai pia kai olwn 
             IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
-            shapeFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            shapeFunctionNaturalDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn kai tou J_0inv
 
@@ -448,7 +448,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
             // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
             IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
-            shapeFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            shapeFunctionNaturalDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
             (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             Matrix2D[] BL13_hexa;
@@ -612,7 +612,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
             // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
             IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
-            shapeFunctionNaturalDerivatives = interpolation.GetShapeFunctionNaturalDerivatives(QuadratureForStiffness);
+            shapeFunctionNaturalDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
             (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             Matrix2D[] BL13_hexa;

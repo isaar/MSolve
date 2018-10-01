@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -112,6 +114,52 @@ namespace ISAAR.MSolve.FEM.Interpolation
             }
 
             return (Ni_ksi, Ni_heta, Ni_zeta, a_123g);
+        }
+
+        // antigrafo
+        public IReadOnlyList<Matrix2D> GetShapeFunctionNaturalDerivatives(IQuadrature3D quadrature)
+        {
+            int nGaussPoints = quadrature.IntegrationPoints.Count;
+            var allNaturalDerivatives = new Matrix2D[nGaussPoints];
+            for (int i = 0; i < nGaussPoints; ++i)
+            {
+                var gaussPoint = quadrature.IntegrationPoints[i];
+                var naturalDerivatives = new double[3, 8];
+
+                // Derivatives with respect to Xi
+                naturalDerivatives[0, 0] = +0.125 * (1 + gaussPoint.Eta) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[0, 1] = -0.125 * (1 + gaussPoint.Eta) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[0, 2] = -0.125 * (1 - gaussPoint.Eta) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[0, 3] = +0.125 * (1 - gaussPoint.Eta) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[0, 4] = +0.125 * (1 + gaussPoint.Eta) * (1 - gaussPoint.Zeta);
+                naturalDerivatives[0, 5] = -0.125 * (1 + gaussPoint.Eta) * (1 - gaussPoint.Zeta);
+                naturalDerivatives[0, 6] = -0.125 * (1 - gaussPoint.Eta) * (1 - gaussPoint.Zeta);
+                naturalDerivatives[0, 7] = +0.125 * (1 - gaussPoint.Eta) * (1 - gaussPoint.Zeta);
+
+                // Derivatives with respect to Eta
+                naturalDerivatives[1, 0] = 0.125 * (1 + gaussPoint.Xi) * (+1) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[1, 1] = 0.125 * (1 - gaussPoint.Xi) * (+1) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[1, 2] = 0.125 * (1 - gaussPoint.Xi) * (-1) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[1, 3] = 0.125 * (1 + gaussPoint.Xi) * (-1) * (1 + gaussPoint.Zeta);
+                naturalDerivatives[1, 4] = 0.125 * (1 + gaussPoint.Xi) * (+1) * (1 - gaussPoint.Zeta);
+                naturalDerivatives[1, 5] = 0.125 * (1 - gaussPoint.Xi) * (+1) * (1 - gaussPoint.Zeta);
+                naturalDerivatives[1, 6] = 0.125 * (1 - gaussPoint.Xi) * (-1) * (1 - gaussPoint.Zeta);
+                naturalDerivatives[1, 7] = 0.125 * (1 + gaussPoint.Xi) * (-1) * (1 - gaussPoint.Zeta);
+
+                // Derivatives with respect to Zeta
+                naturalDerivatives[2, 0] = 0.125 * (1 + gaussPoint.Xi) * (1 + gaussPoint.Eta) * (+1);
+                naturalDerivatives[2, 1] = 0.125 * (1 - gaussPoint.Xi) * (1 + gaussPoint.Eta) * (+1);
+                naturalDerivatives[2, 2] = 0.125 * (1 - gaussPoint.Xi) * (1 - gaussPoint.Eta) * (+1);
+                naturalDerivatives[2, 3] = 0.125 * (1 + gaussPoint.Xi) * (1 - gaussPoint.Eta) * (+1);
+                naturalDerivatives[2, 4] = 0.125 * (1 + gaussPoint.Xi) * (1 + gaussPoint.Eta) * (-1);
+                naturalDerivatives[2, 5] = 0.125 * (1 - gaussPoint.Xi) * (1 + gaussPoint.Eta) * (-1);
+                naturalDerivatives[2, 6] = 0.125 * (1 - gaussPoint.Xi) * (1 - gaussPoint.Eta) * (-1);
+                naturalDerivatives[2, 7] = 0.125 * (1 + gaussPoint.Xi) * (1 - gaussPoint.Eta) * (-1);
+
+                allNaturalDerivatives[i] = new Matrix2D(naturalDerivatives);
+            }
+
+            return allNaturalDerivatives;
         }
     }
 }
