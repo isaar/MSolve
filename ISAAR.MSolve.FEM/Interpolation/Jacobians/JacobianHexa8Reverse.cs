@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 
 //J_0inv_hexa and detJ_0 can only be calculated during initialization (at the first configuration) and then cached
-namespace ISAAR.MSolve.FEM.Interpolation
+namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 {
     public class JacobianHexa8Reverse
     {
@@ -220,6 +220,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
             return J_1;
         }
+
         public static double[][,] Get_J_1(int nGaussPoints, double[][] tx_i,double [][,] ll1_hexa)
         {
             double[,] J_1b = new double[8, 3];

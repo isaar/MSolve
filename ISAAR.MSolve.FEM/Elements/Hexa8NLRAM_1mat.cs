@@ -15,6 +15,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 
 namespace ISAAR.MSolve.FEM.Elements
 {

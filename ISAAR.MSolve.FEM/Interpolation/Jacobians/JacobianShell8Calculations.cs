@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 
 //J_0a and ll1 can only be calculated during initialization (at the first configuration) and then cached
-namespace ISAAR.MSolve.FEM.Interpolation
+namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 {
     public class JacobianShell8Calculations
     {
