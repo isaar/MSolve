@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,6 +28,52 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                     ll1[j][1, 3 * k + 2] = -ll1[j][1, 3 * k + 1];
                     ll1[j][2, 3 * k] = 0;
                     ll1[j][2, 3 * k + 1] = 0.5 * tk[k] * shapeFunctions[k][j];
+                    ll1[j][2, 3 * k + 2] = -ll1[j][2, 3 * k + 1];
+                }
+
+            }
+
+            double[][,] J_0a;//einai teliko kai oxi prok
+            J_0a = new double[nGaussPoints][,];
+            for (int j = 0; j < nGaussPoints; j++)
+            { J_0a[j] = new double[3, 16]; }
+            for (int j = 0; j < nGaussPoints; j++)
+            {
+                for (int k = 0; k < 8; k++)
+                {
+                    J_0a[j][0, 2 * k] = ll1[j][0, 3 * k];
+                    J_0a[j][0, 2 * k + 1] = ll1[j][0, 3 * k + 1];
+                    J_0a[j][1, 2 * k] = ll1[j][1, 3 * k];
+                    J_0a[j][1, 2 * k + 1] = ll1[j][1, 3 * k + 1];
+                    J_0a[j][2, 2 * k] = ll1[j][2, 3 * k];
+                    J_0a[j][2, 2 * k + 1] = ll1[j][2, 3 * k + 1];
+                }
+            }
+
+            return (ll1, J_0a);
+        }
+
+        public static (double[][,] ll1, double[][,] J_0a)
+           Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, IReadOnlyList<double[]> shapeFunctions, IReadOnlyList<double[,]> shapeFunctionDerivatives)
+        {
+            int nGaussPoints = quadrature.IntegrationPoints.Count;
+            double[][,] ll1;
+            ll1 = new double[nGaussPoints][,];
+            for (int j = 0; j < nGaussPoints; j++)
+            { ll1[j] = new double[3, 24]; }
+            for (int j = 0; j < nGaussPoints; j++) //dhmiourgia olklhrou tou ll1 gia kathe gauss point
+            {
+                var gaussPoint = quadrature.IntegrationPoints[j];
+                for (int k = 0; k < 8; k++)
+                {
+                    ll1[j][0, 3 * k] = shapeFunctionDerivatives[j][k,0];
+                    ll1[j][0, 3 * k + 1] = 0.5 * gaussPoint.Zeta * tk[k] * shapeFunctionDerivatives[j][k,0];
+                    ll1[j][0, 3 * k + 2] = -ll1[j][0, 3 * k + 1];
+                    ll1[j][1, 3 * k] = shapeFunctionDerivatives[j][k,1];
+                    ll1[j][1, 3 * k + 1] = 0.5 * gaussPoint.Zeta * tk[k] * shapeFunctionDerivatives[j][k,1];
+                    ll1[j][1, 3 * k + 2] = -ll1[j][1, 3 * k + 1];
+                    ll1[j][2, 3 * k] = 0;
+                    ll1[j][2, 3 * k + 1] = 0.5 * tk[k] * shapeFunctions[j][k];
                     ll1[j][2, 3 * k + 2] = -ll1[j][2, 3 * k + 1];
                 }
 
