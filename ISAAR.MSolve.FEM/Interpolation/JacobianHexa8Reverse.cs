@@ -9,11 +9,11 @@ namespace ISAAR.MSolve.FEM.Interpolation
 {
     public class JacobianHexa8Reverse
     {
-        public static (double[][,] J_0inv_hexa, double[] detJ_0) GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix2D> ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
+        public static (Matrix2D[] J_0inv_hexa, double[] detJ_0) GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix2D> ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
         {
             double[][,] J_0b_hexa; // exoume tosa [,] osa einai kai ta gpoints
             double[][,] J_0_hexa;
-            double[][,] J_0inv_hexa;
+            Matrix2D[] J_0inv_hexa;
             double[] detJ_0; //osa kai ta gpoints
 
             double[][] ox_i;
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             }
             J_0b_hexa = new double[nGaussPoints][,];
             J_0_hexa = new double[nGaussPoints][,];
-            J_0inv_hexa = new double[nGaussPoints][,];
+            J_0inv_hexa = new Matrix2D[nGaussPoints];
             detJ_0 = new double[nGaussPoints];
 
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 // initialize diastaseis twn mhtrwwn kai meta gemisma keliwn (olwn h mono oswn mporoume sthn arxh)
                 J_0b_hexa[gpoint] = new double[8, 3];
                 J_0_hexa[gpoint] = new double[3, 3];
-                J_0inv_hexa[gpoint] = new double[3, 3];
+                J_0inv_hexa[gpoint] =new Matrix2D(3, 3);
 
                 //
                 for (int m = 0; m < 8; m++)
@@ -184,14 +184,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         }
 
-        public static double[][,] Get_J_1(int nGaussPoints, double[][] tx_i,IReadOnlyList<Matrix2D> ll1_hexa)
+        public static Matrix2D[] Get_J_1(int nGaussPoints, double[][] tx_i,IReadOnlyList<Matrix2D> ll1_hexa)
         {
             double[,] J_1b = new double[8, 3];
-            double[][,] J_1 = new double[nGaussPoints][,];
+            Matrix2D[] J_1 = new Matrix2D[nGaussPoints];
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                J_1[npoint] = new double[3, 3];
+                J_1[npoint] = new Matrix2D(3, 3);
             }
 
             for (int m = 0; m < 8; m++)
