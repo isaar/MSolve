@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -54,7 +55,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         }
 
         public static (double[][,] ll1, double[][,] J_0a)
-           Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, IReadOnlyList<double[]> shapeFunctions, IReadOnlyList<double[,]> shapeFunctionDerivatives)
+           Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, IReadOnlyList<Vector> shapeFunctions, IReadOnlyList<Matrix2D> shapeFunctionDerivatives)
         {
             int nGaussPoints = quadrature.IntegrationPoints.Count;
             double[][,] ll1;

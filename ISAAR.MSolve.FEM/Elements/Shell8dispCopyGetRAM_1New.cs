@@ -78,14 +78,14 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Shell8dispCopyGetRAM_1New(IShellMaterial material, IQuadrature3D quadratureForStiffness) // compa isotropic
         {
-            this.Interpolation = InterpolationShell8.UniqueInstance;
+            this.Interpolation = InterpolationShell8New.UniqueInstance;
             this.QuadratureForStiffness = quadratureForStiffness;
             this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
             materialsAtGaussPoints = new IShellMaterial[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
         }
 
-        public InterpolationShell8 Interpolation { get; }
+        public InterpolationShell8New Interpolation { get; }
         public IQuadrature3D QuadratureForStiffness { get; }
 
         //public Shell8dispCopyGet(IFiniteElementMaterial3D material, IFiniteElementDOFEnumerator dofEnumerator)//pithanotata den xreiazetai
@@ -94,8 +94,6 @@ namespace ISAAR.MSolve.FEM.Elements
         //    this.dofEnumerator = dofEnumerator;
         //}
         // ews edw
-
-
 
 
         private double[][,] GetBL11a(double [][,] J_0inv)
@@ -177,7 +175,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL12;
         }
 
-        private double[][,] GetBL13(IReadOnlyList<double[,]> shapeFunctionDerivatives,double [][] tUvec , double[][,] J_0a)
+        private double[][,] GetBL13(IReadOnlyList<Matrix2D> shapeFunctionDerivatives,double [][] tUvec , double[][,] J_0a)
         {
             double[][,] BL13;
             BL13 = new double[nGaussPoints][,];
@@ -259,8 +257,8 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] ni;
 
 
-            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
-            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);            
+            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);            
             (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
 
 
@@ -560,8 +558,8 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             // prosthiki logw J_0inv oxi global
             // kai anagkastika kai J_0a
-            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
-            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);
+            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
 
 
@@ -730,8 +728,8 @@ namespace ISAAR.MSolve.FEM.Elements
         {
 
             //prosthikes gia ll1 entos methodwn mono
-            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
-            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);
+            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             //prosthikes gia ll1 entos methodwn mono
 
@@ -932,8 +930,8 @@ namespace ISAAR.MSolve.FEM.Elements
             double[][] BL01plus1_2tSPKvec;
 
 
-            IReadOnlyList<double[]> shapeFunctions = Interpolation.GetShapeFunctions(QuadratureForStiffness);
-            IReadOnlyList<double[,]> shapeFunctionsDerivatives = Interpolation.GetShapeFunctionsDerivatives(QuadratureForStiffness);
+            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (double[][,] ll1, double[][,] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             (double[][,] J_0inv, double[] detJ_0) =
                 JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);

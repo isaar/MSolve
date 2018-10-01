@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
         {
-            var naturalDerivatives = new double[3, 8];
+            var naturalDerivatives = new double[3, 8]; //TODO: perhaps transpose this and the client code that uses it
 
             // Derivatives with respect to Xi
             naturalDerivatives[0, 0] = +0.125 * (1 + eta) * (1 + zeta);
