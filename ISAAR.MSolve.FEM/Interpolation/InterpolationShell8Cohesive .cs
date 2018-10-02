@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -131,5 +132,90 @@ namespace ISAAR.MSolve.FEM.Interpolation
             
         }
 
+
+        public IReadOnlyList<double[,]> GetShapeFunctionsDerivativesAtGaussPoints(IQuadrature2D quadrature)
+        {
+            int nGaussPoints = quadrature.IntegrationPoints.Count;
+            var shapeFunctionDerivativesAll = new double[nGaussPoints][,]; // shapeFunctionsgpData
+
+            for (int l = 0; l < nGaussPoints; l++) //foreach (GaussPoint3D gaussPoint3D in quadrature.IntegrationPoints)
+            {
+                double ksi = quadrature.IntegrationPoints[l].Xi;
+                double heta = quadrature.IntegrationPoints[l].Eta;
+                var shapeFunctionDerivativesGp = new double[2, 8]; // 2(0:ws pros ksi 1:ws pros heta) 8(arithmos shape functions ara kai komvwn)
+
+                shapeFunctionDerivativesGp[0, 4] = (-ksi) * (1 + heta);
+                shapeFunctionDerivativesGp[0, 5] = -0.5 * (1 - Math.Pow(heta, 2));
+                shapeFunctionDerivativesGp[0, 6] = 0.5 * (-2 * ksi) * (1 - heta);
+                shapeFunctionDerivativesGp[0, 7] = 0.5 * (1 - Math.Pow(heta, 2));
+                shapeFunctionDerivativesGp[0, 0] = +0.25 * (1 + heta) - 0.5 * shapeFunctionDerivativesGp[0, 4] - 0.5 * shapeFunctionDerivativesGp[0, 7];
+                shapeFunctionDerivativesGp[0, 1] = -0.25 * (1 + heta) - 0.5 * shapeFunctionDerivativesGp[0, 4] - 0.5 * shapeFunctionDerivativesGp[0, 5];
+                shapeFunctionDerivativesGp[0, 2] = -0.25 * (1 - heta) - 0.5 * shapeFunctionDerivativesGp[0, 5] - 0.5 * shapeFunctionDerivativesGp[0, 6];
+                shapeFunctionDerivativesGp[0, 3] = +0.25 * (1 - heta) - 0.5 * shapeFunctionDerivativesGp[0, 6] - 0.5 * shapeFunctionDerivativesGp[0, 7];
+
+                shapeFunctionDerivativesGp[1, 4] = 0.5 * (1 - Math.Pow(ksi, 2));
+                shapeFunctionDerivativesGp[1, 5] = 0.5 * (-2 * heta) * (1 - ksi);
+                shapeFunctionDerivativesGp[1, 6] = 0.5 * (1 - Math.Pow(ksi, 2)) * (-1);
+                shapeFunctionDerivativesGp[1, 7] = 0.5 * (-2 * heta) * (1 + ksi);
+                shapeFunctionDerivativesGp[1, 0] = +0.25 * (1 + ksi) - 0.5 * shapeFunctionDerivativesGp[1, 4] - 0.5 * shapeFunctionDerivativesGp[1, 7];
+                shapeFunctionDerivativesGp[1, 1] = +0.25 * (1 - ksi) - 0.5 * shapeFunctionDerivativesGp[1, 4] - 0.5 * shapeFunctionDerivativesGp[1, 5];
+                shapeFunctionDerivativesGp[1, 2] = -0.25 * (1 - ksi) - 0.5 * shapeFunctionDerivativesGp[1, 5] - 0.5 * shapeFunctionDerivativesGp[1, 6];
+                shapeFunctionDerivativesGp[1, 3] = -0.25 * (1 + ksi) - 0.5 * shapeFunctionDerivativesGp[1, 6] - 0.5 * shapeFunctionDerivativesGp[1, 7];
+
+                shapeFunctionDerivativesAll[l] = shapeFunctionDerivativesGp;
+            }
+
+            return shapeFunctionDerivativesAll;
+        }
+
+        public IReadOnlyList<double[]> GetShapeFunctionsAtGaussPoints(IQuadrature2D quadrature)
+        {
+            int nGaussPoints = quadrature.IntegrationPoints.Count;
+            var N1 = new double[nGaussPoints][]; // shapeFunctionsgpData
+
+            for (int l = 0; l < nGaussPoints; l++) //foreach (GaussPoint3D gaussPoint3D in quadrature.IntegrationPoints)
+            {
+                double ksi = quadrature.IntegrationPoints[l].Xi;
+                double heta = quadrature.IntegrationPoints[l].Eta;
+                double[] N1gp = new double[8]; //8=nShapeFunctions;
+                N1gp[4] = 0.5 * (1 - Math.Pow(ksi, 2)) * (1 + heta);
+                N1gp[5] = 0.5 * (1 - Math.Pow(heta, 2)) * (1 - ksi);
+                N1gp[6] = 0.5 * (1 - Math.Pow(ksi, 2)) * (1 - heta);
+                N1gp[7] = 0.5 * (1 - Math.Pow(heta, 2)) * (1 + ksi);
+
+                N1gp[0] = 0.25 * (1 + ksi) * (1 + heta) - 0.5 * N1gp[4] - 0.5 * N1gp[7];
+                N1gp[1] = 0.25 * (1 - ksi) * (1 + heta) - 0.5 * N1gp[4] - 0.5 * N1gp[5];
+                N1gp[2] = 0.25 * (1 - ksi) * (1 - heta) - 0.5 * N1gp[5] - 0.5 * N1gp[6];
+                N1gp[3] = 0.25 * (1 + ksi) * (1 - heta) - 0.5 * N1gp[6] - 0.5 * N1gp[7];
+
+                N1[l] = N1gp;
+            }
+
+            return N1;
+        }
+
+        public IReadOnlyList<double[,]> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature)
+        {
+            //TODO reorganize cohesive shell  to use only N1 (not reorganised)
+            IReadOnlyList<double[]> N1 = GetShapeFunctionsAtGaussPoints(quadrature);
+
+            int nGaussPoints = quadrature.IntegrationPoints.Count;
+            var N3 = new double[nGaussPoints][,]; // shapeFunctionsgpData
+            for (int npoint = 0; npoint < nGaussPoints; npoint++)
+            {
+                double ksi = quadrature.IntegrationPoints[npoint].Xi;
+                double heta = quadrature.IntegrationPoints[npoint].Eta;
+                double[,] N3gp = new double[3, 24]; ; //8=nShapeFunctions;
+
+                for (int l = 0; l < 3; l++)
+                {
+                    for (int m = 0; m < 8; m++)
+                    { N3gp[l, l + 3 * m] = N1[npoint][m]; }
+                }
+                N3[npoint] = N3gp;
+            }
+            return N3;
+
+        }
     }
 }

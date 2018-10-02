@@ -27,8 +27,8 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
             // Order 2
             quadratures[2] = new GaussLegendre1D(
             //new GaussPoint1D(-0.5773502691896257645091488, 1.0),
-            new GaussPoint1D(-0.577350269189626, 1.0),
             //new GaussPoint1D(+0.5773502691896257645091488, 1.0));
+            new GaussPoint1D(-0.577350269189626, 1.0),
             new GaussPoint1D(+0.577350269189626, 1.0));
 
             // Order 3
