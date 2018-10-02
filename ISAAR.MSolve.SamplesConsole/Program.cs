@@ -151,7 +151,9 @@ namespace ISAAR.MSolve.SamplesConsole
             //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
-            new AppliedDisplacementExample().check();
+            //new AppliedDisplacementExample().check();
+            //CNT_4_4_Example_NewtonRaphson.Run();
+            CNT_4_4_Example_DisplacementControl.Run();
         }
     }
 }
