@@ -25,6 +25,8 @@ namespace ISAAR.MSolve.Tests.FEM
 {
     public static class EmbeddingCheckNLRVE
     {
+        //TO PASS TEST change hexa8NLtransformation.cs: if host==Hexa8NLRAM_1mat
+
         private const int subdomainID = 1;
 
         [Fact]
