@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // EPILOGH MONTELOU
             int model__builder_choice;
-            model__builder_choice =36;   // 9 einai to megalo me to renumbering pou tsekaretai
+            model__builder_choice =37;   // 9 einai to megalo me to renumbering pou tsekaretai
 
             //comment out A1
             //if (model__builder_choice == 1) // 
@@ -74,6 +74,8 @@ namespace ISAAR.MSolve.SamplesConsole
             { ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11tlkShellPaktwsh(model); }
             if (model__builder_choice == 36) // einai to benchmark 4 me to neo hexa_mat
             { IntegrationTestModelBuilders.Reference2RVEExample1000ddm_test_for_Msolve_release_version(model); }
+            if (model__builder_choice == 37) // einai to benchmark 4 me to neo hexa_mat
+            { int[] correction=ParadeigmataElegxwnBuilder2.GetConversionToOldOrder(3, 3); }
 
 
             bool use_domain_decomposer = false;

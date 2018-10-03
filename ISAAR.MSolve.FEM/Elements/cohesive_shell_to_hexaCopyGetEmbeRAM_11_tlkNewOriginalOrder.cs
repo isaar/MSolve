@@ -28,7 +28,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 //TODO: perhaps separate the cases fot when the shell is over or under the cohesive element ibto 2 subclasses
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNew : IStructuralFiniteElement, IEmbeddedElement
+    public class cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNewOriginalOrder : IStructuralFiniteElement, IEmbeddedElement
     {
         //metavlhtes opws sto hexa8
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
@@ -81,13 +81,13 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[] ak_total = new double[8];
         private double[] bk_total = new double[8];
         public bool MatrixIsNotInitialized = true;
-        int[] correctOrder = new int[9] { 0, 3, 6, 1, 4, 7, 2, 5, 8 };
 
-        protected cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNew()//consztructor apo to hexa8
+
+        protected cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNewOriginalOrder()//consztructor apo to hexa8
         {
         }
 
-        public cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNew(ICohesiveZoneMaterial3D material, int gp_d1c, int gp_d2c, IQuadrature2D quadratureForStiffness)
+        public cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNewOriginalOrder(ICohesiveZoneMaterial3D material, int gp_d1c, int gp_d2c, IQuadrature2D quadratureForStiffness)
         {
 
             this.gp_d1_coh = gp_d1c;
@@ -1335,7 +1335,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //}
             double [] fxk1_coh = new double[48];
 
-            for (int npoint2 = 0; npoint2 < nGaussPoints; npoint2++)
+            for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
             {
                 // o upologismos tou RN3 ginetai entos tou updatecoordinateData
                 //for (int l = 0; l < 3; l++)
@@ -1353,7 +1353,6 @@ namespace ISAAR.MSolve.FEM.Elements
                 //        { RN3[npoint1][l, m] += R[npoint1][l, n] * N3[npoint1][n, m]; }
                 //    }
                 //}
-                int npoint1 = correctOrder[npoint2];
                 double [] T_int_sunt_ol = new double[3];
                 for (int l = 0; l < 3; l++)
                 {
@@ -1416,9 +1415,8 @@ namespace ISAAR.MSolve.FEM.Elements
             double [,] k_stoixeiou_coh = new double[48, 48];
 
 
-            for (int npoint2 = 0; npoint2 < nGaussPoints; npoint2++)
+            for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
             {
-                int npoint1 = correctOrder[npoint2];
                 double [,] D_tan_sunt_ol = new double[3, 3];
                 for (int l = 0; l < 3; l++)
                 {

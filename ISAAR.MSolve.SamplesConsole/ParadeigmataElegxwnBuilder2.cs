@@ -14,6 +14,7 @@ using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 //using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -175,5 +176,82 @@ namespace ISAAR.MSolve.SamplesConsole
             model.Loads.Add(load1);
             
         }
+
+        public static int[] GetConversionToOldOrder(int gp_d1_coh, int gp_d2_coh)
+        {
+            int nGaussPoints;
+            nGaussPoints = gp_d1_coh * gp_d2_coh;
+
+            int[] correctionOrder = new int[nGaussPoints];
+
+            double[,] gausscoordinates1 = GaussPointOrder1(3, 3);
+            double[,] gausscoordinates2 = GaussPointOrder2(3, 3);
+
+            for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
+            {
+                for (int npoint2 = 0; npoint2 < nGaussPoints; npoint2++)
+                {
+                    if (gausscoordinates1[npoint1,0]==gausscoordinates2[npoint2,0])
+                    {
+                        if (gausscoordinates1[npoint1, 1] == gausscoordinates2[npoint2, 1])
+                        {
+                            correctionOrder[npoint1] = npoint2;
+                        }
+                    }
+                }
+            }
+            return correctionOrder;
+        }
+
+
+        public static double[,] GaussPointOrder1( int gp_d1_coh, int gp_d2_coh)
+        {
+            int nGaussPoints;
+            nGaussPoints = gp_d1_coh * gp_d2_coh;
+
+            double[,] gausscoordinates = new double[nGaussPoints, 2];
+
+            for (int j = 0; j < gp_d1_coh; j++)
+            {
+                for (int k = 0; k < gp_d2_coh; k++)
+                {
+                    int npoint = j * gp_d1_coh + k;
+                    if (gp_d1_coh == 3)
+                    {
+                        gausscoordinates[npoint,0] = 0.5 * (j - 1) * (j - 2) * (-0.774596669241483) + (-1) * (j) * (j - 2) * (0) + 0.5 * (j) * (j - 1) * (0.774596669241483);
+                    }
+                    if (gp_d1_coh == 2)
+                    {
+                        gausscoordinates[npoint, 0] = (-0.577350269189626) * (j - 1) * (-1) + (0.577350269189626) * (j) * (+1);
+                    }
+                    if (gp_d2_coh == 3)
+                    {
+                        gausscoordinates[npoint, 1] = 0.5 * (k - 1) * (k - 2) * (-0.774596669241483) + (-1) * (k) * (k - 2) * (0) + 0.5 * (k) * (k - 1) * (0.774596669241483);
+                    }
+                    if (gp_d2_coh == 2)
+                    {
+                        gausscoordinates[npoint, 1] = (-0.577350269189626) * (k - 1) * (-1) + (0.577350269189626) * (k) * (+1);
+                    }
+                }
+            }
+            return gausscoordinates;
+        }
+
+        public static double[,] GaussPointOrder2( int gp_d1_coh, int gp_d2_coh)
+        {
+            int nGaussPoints;
+            nGaussPoints = gp_d1_coh * gp_d2_coh;
+            IQuadrature2D quadrature = GaussLegendre2D.GetQuadratureWithOrder(gp_d1_coh, gp_d2_coh);
+            double[,] gausscoordinates = new double[nGaussPoints, 2];
+
+            for (int npoint=0; npoint<nGaussPoints; npoint++)
+            {
+                gausscoordinates[npoint, 0] = quadrature.IntegrationPoints[npoint].Xi;
+                gausscoordinates[npoint, 1] = quadrature.IntegrationPoints[npoint].Eta;
+            }
+
+            return gausscoordinates;
+        }
+
     }
 }
