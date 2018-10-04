@@ -934,7 +934,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		#endregion
 
 
-		[Fact]
+		//[Fact]
 		public void IsogeometricCantileverShell()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
@@ -994,7 +994,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				Assert.Equal(expectedSolution[i], linearSystems[0].Solution[i], 7);
 		}
 
-		/[Fact]
+		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
