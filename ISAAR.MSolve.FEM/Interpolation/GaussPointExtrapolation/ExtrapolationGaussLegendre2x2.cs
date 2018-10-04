@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         private static readonly double sqrt3 = Math.Sqrt(3.0);
         private static readonly ExtrapolationGaussLegendre2x2 uniqueInstance = new ExtrapolationGaussLegendre2x2();
 
-        private ExtrapolationGaussLegendre2x2(): base(GaussLegendre2D.Order2x2)
+        private ExtrapolationGaussLegendre2x2(): base(GaussLegendre2D.GetQuadratureWithOrder(2, 2))
         { }
 
         /// <summary>

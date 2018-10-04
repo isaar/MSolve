@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
     {
         public static void Run()
         {
-            //SolveStaticLinearWall();
-            SolveDynamicLinearWall();
+            SolveStaticLinearWall();
+            //SolveDynamicLinearWall();
         }
 
         private static void SolveStaticLinearWall()
