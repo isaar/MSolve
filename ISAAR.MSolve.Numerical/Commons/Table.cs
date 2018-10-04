@@ -58,6 +58,7 @@ namespace ISAAR.MSolve.Numerical.Commons
                     data.Add(row, wholeRow);
                 }
                 wholeRow[col] = value; // This allows changing the value after an entry has been added.
+
                 // The code below was used to prevent changes after an entry has been added, but that makes reordering difficult.
                 //if (wholeRow.ContainsKey(col))
                 //{

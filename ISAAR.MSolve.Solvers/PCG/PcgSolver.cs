@@ -4,6 +4,8 @@ using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.Interfaces;
+using LegacyVector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 //TODO: perhaps the user should choose the PCG settings himself and pass it. In this case, this should be named IterativeSolver.
 //TODO: the maxIterations of PCG should be able to use the order of the matrix as a default value.
@@ -14,16 +16,18 @@ namespace ISAAR.MSolve.Solvers.PCG
     /// Iterative solver for models with only 1 subdomain. Uses the Proconditioned Conjugate Gradient algorithm.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class PcgSolver
+    public class PcgSolver: ISolver
     {
         private const string name = "PcgSolver"; // for error messages
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerBuilder preconditionerBuilder;
-        private IMatrixView matrix;
+        private readonly LinearSystem_v2<IMatrix, LegacyVector> linearSystem;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(int maxIterations, double residualTolerance, IPreconditionerBuilder preconditionerBuilder)
+        public PcgSolver(IReadOnlyList<LinearSystem_v2<IMatrix, LegacyVector>> linearSystems, 
+            int maxIterations, double residualTolerance, IPreconditionerBuilder preconditionerBuilder)
         {
+            if (linearSystems.Count != 1) throw new InvalidSolverException(name + " can be used if there is only 1 subdomain.");
             pcgAlgorithm = new PreconditionedConjugateGradient(maxIterations, residualTolerance);
             this.preconditionerBuilder = preconditionerBuilder;
         }
@@ -33,36 +37,18 @@ namespace ISAAR.MSolve.Solvers.PCG
         }
 
         /// <summary>
-        /// Forces the solver to replace the previous linear system matrix for each subdomain with the new ones. Any processing 
-        /// done on these matrices (e.g. factorization) will be repeated.
+        /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.
         /// </summary>
-        /// <param name="subdomainMatrices"></param>
-        public void SetLinearSystemMatrices(IReadOnlyList<IIndexable2D> subdomainMatrices)
+        public void Solve()
         {
-            if (subdomainMatrices.Count != 1) throw new InvalidSolverException(
-                name + " only works when there is a single subdomain.");
-            if (subdomainMatrices[0] is IMatrixView matrixMultipliable)
+            if (linearSystem.IsMatrixModified)
             {
-                matrix = matrixMultipliable;
-                preconditioner = preconditionerBuilder.BuildPreconditioner(matrix);
+                preconditioner = preconditionerBuilder.BuildPreconditioner(linearSystem.Matrix);
+                linearSystem.IsMatrixModified = false;
             }
-            else throw new InvalidSolverException(name + " can only operate on matrices that can be multiplied with vectors.");
-        }
-
-        /// <summary>
-        /// Solves the linear systems using the subdomain matrices stored for each subdomain.
-        /// </summary>
-        /// <param name="subdomainRhsVectors">The right hand side vectors for the linear systems of all subdomains. They must 
-        ///     be provided in the same order as the subdomain matrices are provided in 
-        ///     <see cref="SetLinearSystemMatrices(IReadOnlyList{IIndexable2D})"/>.</param>
-        /// <returns></returns>
-        public IReadOnlyList<Numerical.LinearAlgebra.Interfaces.IVector> Solve(IReadOnlyList<Vector> subdomainRhsVectors)
-        {
-            if (subdomainRhsVectors.Count != 1) throw new InvalidSolverException(
-                name + " only works when there is a single subdomain.");
-
-            (Vector solution, CGStatistics stats) = pcgAlgorithm.Solve(matrix, subdomainRhsVectors[0], preconditioner);
-            return new Numerical.LinearAlgebra.Interfaces.IVector[] { solution.ToLegacyVector() };
+            (Vector solution, CGStatistics stats) = 
+                pcgAlgorithm.Solve(linearSystem.Matrix, Vector.CreateFromLegacyVector(linearSystem.RhsVector), preconditioner);
+            linearSystem.Solution = solution.ToLegacyVector();
         }
     }
 }

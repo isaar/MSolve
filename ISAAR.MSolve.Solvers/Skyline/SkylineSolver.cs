@@ -3,6 +3,8 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.Interfaces;
+using LegacyVector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 //TODO: factorization should be done during Solve() to time correctly. Alternatively, an observer should record the durations.
 //TODO: investigate if it is possible to avoid casting the matrix provided by the analyzer/assembler into skyline. Perhaps the
@@ -16,14 +18,18 @@ namespace ISAAR.MSolve.Solvers.Skyline
     /// stored in Skyline format.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SkylineSolver
+    public class SkylineSolver: ISolver
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly double factorizationPivotTolerance;
+        private readonly LinearSystem_v2<SkylineMatrix, LegacyVector> linearSystem;
         private CholeskySkyline factorizedMatrix;
 
-        public SkylineSolver(double factorizationPivotTolerance = 1E-15)
+        public SkylineSolver(IReadOnlyList<LinearSystem_v2<SkylineMatrix, LegacyVector>> linearSystems, 
+            double factorizationPivotTolerance = 1E-15)
         {
+            if (linearSystems.Count != 1) throw new InvalidSolverException(name + " can be used if there is only 1 subdomain.");
+            this.linearSystem = linearSystems[0];
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
@@ -32,34 +38,17 @@ namespace ISAAR.MSolve.Solvers.Skyline
         }
 
         /// <summary>
-        /// Forces the solver to replace the previous linear system matrix for each subdomain with the new ones. Any processing 
-        /// done on these matrices (e.g. factorization) will be repeated.
+        /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
-        /// <param name="subdomainMatrices"></param>
-        public void SetLinearSystemMatrices(IReadOnlyList<IIndexable2D> subdomainMatrices)
+        public void Solve()
         {
-            if (subdomainMatrices.Count != 1) throw new InvalidSolverException(
-                name + " only works when there is a single subdomain.");
-            if (subdomainMatrices[0] is SkylineMatrix skyline)
+            if (linearSystem.IsMatrixModified)
             {
-                factorizedMatrix = skyline.FactorCholesky(true, factorizationPivotTolerance);
+                factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance);
+                linearSystem.IsMatrixModified = false;
             }
-            else throw new InvalidSolverException(name + " can only operate on matrices stored in Skyline format.");
-        }
-
-        /// <summary>
-        /// Solves the linear systems using the subdomain matrices stored for each subdomain.
-        /// </summary>
-        /// <param name="subdomainRhsVectors">The right hand side vectors for the linear systems of all subdomains. They must 
-        ///     be provided in the same order as the subdomain matrices are provided in 
-        ///     <see cref="SetLinearSystemMatrices(IReadOnlyList{IIndexable2D})"/>.</param>
-        /// <returns></returns>
-        public IReadOnlyList<Numerical.LinearAlgebra.Interfaces.IVector> Solve(IReadOnlyList<Vector> subdomainRhsVectors)
-        {
-            if (subdomainRhsVectors.Count != 1) throw new InvalidSolverException(
-                name + " only works when there is a single subdomain.");
-            Vector solution = factorizedMatrix.SolveLinearSystem(subdomainRhsVectors[0]);
-            return new Numerical.LinearAlgebra.Interfaces.IVector[] { solution.ToLegacyVector() };
+            Vector solution = factorizedMatrix.SolveLinearSystem(Vector.CreateFromLegacyVector(linearSystem.RhsVector));
+            linearSystem.Solution = solution.ToLegacyVector();
         }
     }
 }

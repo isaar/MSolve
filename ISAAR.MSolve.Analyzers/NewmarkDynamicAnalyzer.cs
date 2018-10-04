@@ -111,6 +111,8 @@ namespace ISAAR.MSolve.Analyzers
             foreach (ILinearSystem subdomain in subdomains.Values)
                 provider.CalculateEffectiveMatrix(subdomain, coeffs);
 
+            // What is the point of the following code? Generally nonZeroCount should be queried from the matrix itself, but 
+            // here it isn't even used anywhere. On the other hand, this code requires significant extra memory and calculations.
             var m = (SkylineMatrix2D)subdomains[0].Matrix;//TODO: Subdomain matrices should not be retrieved like that.
             var x = new HashSet<double>();
             int nonZeroCount = 0;
@@ -135,7 +137,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 provider.ProcessRHS(subdomain, coeffs);
                 int dofs = subdomain.RHS.Length;
-                for (int i = 0; i < dofs; i++) rhs[subdomain.ID][i] = subdomain.RHS[i];
+                for (int i = 0; i < dofs; i++) rhs[subdomain.ID][i] = subdomain.RHS[i]; //TODO: copying the vectors is wasteful.
             }
         }
 
