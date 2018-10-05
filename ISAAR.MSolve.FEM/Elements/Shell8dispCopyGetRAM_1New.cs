@@ -828,8 +828,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
             Matrix2D[] BL11;
             BL11 = new Matrix2D[nGaussPoints];
-            for (int j = 0; j < nGaussPoints; j++)
-            { BL11[j] = new Matrix2D(6, 9); }
+            //for (int j = 0; j < nGaussPoints; j++)
+            //{ BL11[j] = new Matrix2D(6, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 //praxeis
@@ -850,10 +850,10 @@ namespace ISAAR.MSolve.FEM.Elements
             
             Matrix2D[] BL1_2;
             BL1_2 = new Matrix2D[nGaussPoints];
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                BL1_2[j] = new Matrix2D(6, 9); //TODOSer
-            }
+            //for (int j = 0; j < nGaussPoints; j++)
+            //{
+            //    BL1_2[j] = new Matrix2D(6, 9); //TODOSer
+            //}
             for (int j = 0; j < nGaussPoints; j++)
             {
                 //praxeis
