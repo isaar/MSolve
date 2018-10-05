@@ -724,7 +724,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Delta;
         }
 
-        private Tuple<double[][,], double[]> CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations() // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
+        private Tuple<Matrix2D[], double[]> CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations() // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
             // retrieve twn metavlhtwn pou den tha apothikevontai (shape function data)
             //(double[][] N1old, double[][,] N3old, double[][] N1_ksi, double[][] N1_heta, double[] a_12g) = interpolation.GetShapeFunctionAndGaussPointData(nGaussPoints, gp_d1_coh, gp_d2_coh);
@@ -735,16 +735,14 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //initialize twn mhtrwwn pou ta epistrefontai
             double[]sunt_olokl = new double[nGaussPoints];
-            double [] [,] RtN3 = new double[nGaussPoints][,];
+            Matrix2D []  RtN3 = new Matrix2D [nGaussPoints];
 
             //PROSTHIKI RAM 
             //double[] x_local = new double[48]; // to dianusma x ths matlab sunarthshs pou einai apo t_x_global_pr
             //double[,] u_prok = new double[3, 8];
             double[,] x_pavla = new double[3, 8];
 
-            double[] e_ksi = new double[3];
-            double e_ksi_norm;
-            double[] e_heta = new double[3];
+            
             double[] e_1 = new double[3];
             double[] e_2 = new double[3];
             double[] e_3 = new double[3];
@@ -761,9 +759,9 @@ namespace ISAAR.MSolve.FEM.Elements
                 c_1[j] = new double[3];
             }
 
-            double[][,] R = new double[nGaussPoints][,]; // an theloume na kanoume save to R afto tha oristhei exw sto initialize matrices opou twra to RN3
+            Matrix2D[] R = new Matrix2D [nGaussPoints]; // an theloume na kanoume save to R afto tha oristhei exw sto initialize matrices opou twra to RN3
             for (int j = 0; j < nGaussPoints; j++)
-            { R[j] = new double[3, 3]; }
+            { R[j] = new Matrix2D( 3, 3); }
 
             //prosarmogh methodou
             //this.UpdateCoordinateDataForDirectVectorsAndMidsurface(localdisplacements);
@@ -815,11 +813,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
             {
-
+                double[] e_ksi = new double[3];                
+                double[] e_heta = new double[3];
                 for (int l = 0; l < 3; l++)
                 {
-                    e_ksi[l] = 0;
-                    e_heta[l] = 0;
+                    //e_ksi[l] = 0;
+                    //e_heta[l] = 0;
                     for (int m = 0; m < 8; m++) // tha ginei 4 sto cohesive 8 node
                     {
                         e_ksi[l] += shapeFunctionDerivatives[npoint1][0, m] * x_pavla[l, m];
@@ -830,7 +829,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
                 this.Cross(e_ksi, e_heta, e_3);
                 e_3_norm = Math.Sqrt(e_3[0] * e_3[0] + e_3[1] * e_3[1] + e_3[2] * e_3[2]);
-                e_ksi_norm = Math.Sqrt(e_ksi[0] * e_ksi[0] + e_ksi[1] * e_ksi[1] + e_ksi[2] * e_ksi[2]);
+                double e_ksi_norm = Math.Sqrt(e_ksi[0] * e_ksi[0] + e_ksi[1] * e_ksi[1] + e_ksi[2] * e_ksi[2]);
                 for (int l = 0; l < 3; l++)
                 {
                     e_3[l] = e_3[l] / e_3_norm;
@@ -869,22 +868,24 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
                 // upologimsos tou RN3 edw anti entos tou initializeRN3 kai tou updateForces
-                RtN3[npoint1] = new double[3, 24];
-                for (int l = 0; l < 3; l++)
-                {
-                    for (int m = 0; m < 24; m++)
-                    {
-                        for (int n = 0; n < 3; n++)
-                        { RtN3[npoint1][l, m] += R[npoint1][n,l] * N3[npoint1][n, m]; }
-                    }
-                }
+
+                RtN3[npoint1] = R[npoint1].Transpose() * N3[npoint1];
+                //RtN3[npoint1] = new double[3, 24];
+                //for (int l = 0; l < 3; l++)
+                //{
+                //    for (int m = 0; m < 24; m++)
+                //    {
+                //        for (int n = 0; n < 3; n++)
+                //        { RtN3[npoint1][l, m] += R[npoint1][n,l] * N3[npoint1][n, m]; }
+                //    }
+                //}
 
 
 
             }
             //this.UpdateTMatrix();
             //print_counter += 1;
-            Tuple<double[][,], double[]> RtN3AndSunt_olokl = new Tuple<double[][,], double[]>(RtN3, sunt_olokl);
+            Tuple<Matrix2D[], double[]> RtN3AndSunt_olokl = new Tuple<Matrix2D[], double[]>(RtN3, sunt_olokl);
             return RtN3AndSunt_olokl;
         }
 
@@ -1325,7 +1326,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return k_stoixeiou_coh2;
         }
 
-        private double[] UpdateForces(Element element, double[][,] RtN3, double[] sunt_olokl)
+        private double[] UpdateForces(Element element, Matrix2D[] RtN3, double[] sunt_olokl)
         {
             double [] fxk2_coh = new double[64];
 
@@ -1402,7 +1403,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return fxk2_coh;
         }
 
-        private double [,] UpdateKmatrices(IElement element, double[][,] RtN3, double[] sunt_olokl)
+        private double [,] UpdateKmatrices(IElement element, Matrix2D[] RtN3, double[] sunt_olokl)
         {
             double [,] k_stoixeiou_coh2 = new double[64, 64];
             //for (int k = 0; k < 48; k++) // allagh sto cohesive 8 node
@@ -1417,7 +1418,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
             {
-                double [,] D_tan_sunt_ol = new double[3, 3];
+                Matrix2D D_tan_sunt_ol = new Matrix2D (3, 3);
                 for (int l = 0; l < 3; l++)
                 {
                     for (int m = 0; m < 3; m++)
@@ -1433,15 +1434,17 @@ namespace ISAAR.MSolve.FEM.Elements
                 //        D_RN3_sunt_ol[l, m] = 0;
                 //    }
                 //}
-                double [,] D_RtN3_sunt_ol = new double[3, 24];
-                for (int l = 0; l < 3; l++)
-                {
-                    for (int m = 0; m < 24; m++)
-                    {
-                        for (int n = 0; n < 3; n++)
-                        { D_RtN3_sunt_ol[l, m] += D_tan_sunt_ol[l, n] * RtN3[npoint1][n, m]; }
-                    }
-                }
+
+                Matrix2D  D_RtN3_sunt_ol = D_tan_sunt_ol*RtN3[npoint1];
+                //for (int l = 0; l < 3; l++)
+                //{
+                //    for (int m = 0; m < 24; m++)
+                //    {
+                //        for (int n = 0; n < 3; n++)
+                //        { D_RtN3_sunt_ol[l, m] += D_tan_sunt_ol[l, n] * RtN3[npoint1][n, m]; }
+                //    }
+                //}
+
                 //for (int l = 0; l < 24; l++)
                 //{
                 //    for (int m = 0; m < 24; m++)
@@ -1449,17 +1452,20 @@ namespace ISAAR.MSolve.FEM.Elements
                 //        M[l, m] = 0;
                 //    }
                 //}
-                double [,] M = new double[24, 24];
-                for (int l = 0; l < 24; l++)
-                {
-                    for (int m = 0; m < 24; m++)
-                    {
-                        for (int n = 0; n < 3; n++)
-                        {
-                            M[l, m] += RtN3[npoint1][n, l] * D_RtN3_sunt_ol[n, m];
-                        }
-                    }
-                }
+
+                Matrix2D M = RtN3[npoint1].Transpose() * D_RtN3_sunt_ol;
+                //double [,] M = new double[24, 24];
+                //for (int l = 0; l < 24; l++)
+                //{
+                //    for (int m = 0; m < 24; m++)
+                //    {
+                //        for (int n = 0; n < 3; n++)
+                //        {
+                //            M[l, m] += RtN3[npoint1][n, l] * D_RtN3_sunt_ol[n, m];
+                //        }
+                //    }
+                //}
+
                 for (int l = 0; l < 24; l++)
                 {
                     for (int m = 0; m < 24; m++)
@@ -1518,9 +1524,9 @@ namespace ISAAR.MSolve.FEM.Elements
             //    for (int j = 0; j < 3; j++)
             //    { T_int[i][j] = materialsAtGaussPoints[i].Stresses[j]; }
             //}
-            Tuple<double[][,], double[]> RtN3AndSunt_olokl;
+            Tuple<Matrix2D[], double[]> RtN3AndSunt_olokl;
             RtN3AndSunt_olokl = CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations();
-            double[][,] RtN3;
+            Matrix2D[] RtN3;
             RtN3 = RtN3AndSunt_olokl.Item1;
             double[] sunt_olokl; //osa kai ta gpoints
             sunt_olokl = RtN3AndSunt_olokl.Item2;
@@ -1555,9 +1561,9 @@ namespace ISAAR.MSolve.FEM.Elements
             //        { D_tan[i][j, k] = materialsAtGaussPoints[i].ConstitutiveMatrix[j, k]; }
             //    }
             //}
-            Tuple<double[][,], double[]> RtN3AndSunt_olokl;
+            Tuple<Matrix2D[], double[]> RtN3AndSunt_olokl;
             RtN3AndSunt_olokl = CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations();
-            double[][,] RtN3;
+            Matrix2D[] RtN3;
             RtN3 = RtN3AndSunt_olokl.Item1;
             double[] sunt_olokl; //osa kai ta gpoints
             sunt_olokl = RtN3AndSunt_olokl.Item2;
