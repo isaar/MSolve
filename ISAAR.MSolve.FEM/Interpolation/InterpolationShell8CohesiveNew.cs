@@ -5,6 +5,7 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,11 +16,11 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationShell8CohesiveNew uniqueInstance = new InterpolationShell8CohesiveNew();
 
-        private readonly Dictionary<IQuadrature2D, IReadOnlyList<double[,]>> cachedN3AtGPs;
+        private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>> cachedN3AtGPs;
 
         private InterpolationShell8CohesiveNew() : base(CellType2D.Quad8,8)
         {
-            cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<double[,]>>();
+            cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>>();
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
                 //TODO: validate this
@@ -81,10 +82,10 @@ namespace ISAAR.MSolve.FEM.Interpolation
            return shapeFunctionDerivativesGp;
         }
 
-        public IReadOnlyList<double[,]> EvaluateN3ShapeFunctionsReorganized(IQuadrature2D quadrature)
+        public IReadOnlyList<Matrix2D> EvaluateN3ShapeFunctionsReorganized(IQuadrature2D quadrature)
         {
             bool isCached = cachedN3AtGPs.TryGetValue(quadrature,
-                out IReadOnlyList<double[,]> N3AtGPs);
+                out IReadOnlyList<Matrix2D> N3AtGPs);
             if (isCached) return N3AtGPs;
             else
             {
@@ -95,12 +96,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
             }
         }
 
-        private IReadOnlyList<double[,]> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature, IReadOnlyList<Vector> N1)
+        private IReadOnlyList<Matrix2D> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature, IReadOnlyList<Vector> N1)
         {
             //TODO reorganize cohesive shell  to use only N1 (not reorganised)
 
             int nGaussPoints = quadrature.IntegrationPoints.Count;
-            var N3 = new double[nGaussPoints][,]; // shapeFunctionsgpData
+            var N3 = new Matrix2D[nGaussPoints]; // shapeFunctionsgpData
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
                 double ksi = quadrature.IntegrationPoints[npoint].Xi;
@@ -112,7 +113,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                     for (int m = 0; m < 8; m++)
                     { N3gp[l, l + 3 * m] = N1[npoint][m]; }
                 }
-                N3[npoint] = N3gp;
+                N3[npoint] = new Matrix2D(N3gp);
             }
             return N3;
 

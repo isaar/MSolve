@@ -572,7 +572,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //(double[][] N1old, double[][,] N3old, double[][] N1_ksi, double[][] N1_heta, double[] a_12g) =interpolation.GetShapeFunctionAndGaussPointData(nGaussPoints, gp_d1_coh, gp_d2_coh);
             IReadOnlyList<Matrix2D> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<double[,]> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
 
             //PROSTHIKI RAM 
             //double[] x_local = new double[48]; // to dianusma x ths matlab sunarthshs pou einai apo t_x_global_pr
@@ -730,7 +730,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //(double[][] N1old, double[][,] N3old, double[][] N1_ksi, double[][] N1_heta, double[] a_12g) = interpolation.GetShapeFunctionAndGaussPointData(nGaussPoints, gp_d1_coh, gp_d2_coh);
 
             IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<double[,]> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
+            IReadOnlyList<Matrix2D> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
             IReadOnlyList<Matrix2D> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
             //initialize twn mhtrwwn pou ta epistrefontai
