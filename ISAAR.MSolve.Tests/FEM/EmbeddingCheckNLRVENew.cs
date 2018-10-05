@@ -438,7 +438,7 @@ namespace ISAAR.MSolve.Tests.FEM
             int elementCounter = 0;
             int subdomainID = 1;
 
-            ElasticMaterial3DTemp material1 = new ElasticMaterial3DTemp()
+            NEWElasticMaterial3D material1 = new NEWElasticMaterial3D()
             {
                 YoungModulus = E_disp,
                 PoissonRatio = ni_disp,
