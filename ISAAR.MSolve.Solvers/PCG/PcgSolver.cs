@@ -19,15 +19,17 @@ namespace ISAAR.MSolve.Solvers.PCG
     public class PcgSolver: ISolver
     {
         private const string name = "PcgSolver"; // for error messages
+        private readonly LinearSystem_v2<IMatrix, LegacyVector> linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerBuilder preconditionerBuilder;
-        private readonly LinearSystem_v2<IMatrix, LegacyVector> linearSystem;
         private IPreconditioner preconditioner;
 
         public PcgSolver(IReadOnlyList<LinearSystem_v2<IMatrix, LegacyVector>> linearSystems, 
             int maxIterations, double residualTolerance, IPreconditionerBuilder preconditionerBuilder)
         {
-            if (linearSystems.Count != 1) throw new InvalidSolverException(name + " can be used if there is only 1 subdomain.");
+            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
+                name + " can be used if there is only 1 subdomain.");
+            this.linearSystem = linearSystems[0];
             pcgAlgorithm = new PreconditionedConjugateGradient(maxIterations, residualTolerance);
             this.preconditionerBuilder = preconditionerBuilder;
         }

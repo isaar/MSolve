@@ -5,6 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
+using LegacyVector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 //TODO: this should work with MatrixProviders instead of asking the elements directly.
 namespace ISAAR.MSolve.Solvers.Assemblers
@@ -13,8 +14,10 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     /// Builds the global matrix of the linear system that will be solved. This matrix is in CSR format.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CsrAssembler
+    public class CsrAssembler: IGlobalMatrixAssembler
     {
+        private const string name = "CsrAssembler"; // for error messages
+        private readonly LinearSystem_v2<CsrMatrix, LegacyVector> linearSystem;
         private readonly bool sortColsOfEachRow;
 
         /// <summary>
@@ -23,8 +26,12 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         /// <param name="sortColsOfEachRow">Sorting the columns of each row in the CSR storage format may increase performance 
         ///     of the matrix vector multiplications. It is recommended to set it to true, especially for iterative linear 
         ///     system solvers.</param>
-        public CsrAssembler(bool sortColsOfEachRow = true)
+        public CsrAssembler(IReadOnlyList<LinearSystem_v2<CsrMatrix, LegacyVector>> linearSystems, 
+            bool sortColsOfEachRow = true)
         {
+            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
+                name + " can be used if there is only 1 subdomain.");
+            this.linearSystem = linearSystems[0];
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 
@@ -51,7 +58,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
         }
 
-        public CsrMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
+        public void BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
@@ -66,7 +73,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 Kff.AddSubmatrixSymmetric(k, mapStandard);
             }
 
-            return Kff.BuildCsrMatrix(sortColsOfEachRow);
+            linearSystem.Matrix = Kff.BuildCsrMatrix(sortColsOfEachRow);
+            linearSystem.IsMatrixModified = true;
         }
     }
 }

@@ -11,6 +11,8 @@ using LegacyVector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 //      the matrix could be obtained directly from the assembler and the analyzer could provide delegates with the operations it 
 //      wants done on the matrix, instead of doing them itself.
 //TODO: try to abstract the subdomain logic from ther analyzers. I doubt it is possible though.
+//TODO: directly pass the single linear system instead of a list that must be checked. The same holds for all solvers and 
+//      assemblers.
 namespace ISAAR.MSolve.Solvers.Skyline
 {
     /// <summary>
@@ -28,7 +30,8 @@ namespace ISAAR.MSolve.Solvers.Skyline
         public SkylineSolver(IReadOnlyList<LinearSystem_v2<SkylineMatrix, LegacyVector>> linearSystems, 
             double factorizationPivotTolerance = 1E-15)
         {
-            if (linearSystems.Count != 1) throw new InvalidSolverException(name + " can be used if there is only 1 subdomain.");
+            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
+                name + " can be used if there is only 1 subdomain.");
             this.linearSystem = linearSystems[0];
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }

@@ -12,6 +12,13 @@ namespace ISAAR.MSolve.Solvers.Commons
         where TMatrix:IMatrix 
         where TVector:IVector
     {
+        public LinearSystem_v2(int id)
+        {
+            this.ID = id;
+        }
+
+        public int ID { get; }
+
         //TODO: this is error prone. This object should manage the state when clients read or modify the matrix.
         public bool IsMatrixModified { get; set; } = true;
 
