@@ -15,11 +15,12 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Hexa8NLRAM_1mat : IStructuralFiniteElement , IEmbeddedHostElement
+    public class Hexa8NonLinear : IStructuralFiniteElement, IEmbeddedHostElement
     {
         //metavlhtes opws sto hexa8
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
@@ -29,28 +30,34 @@ namespace ISAAR.MSolve.FEM.Elements
         protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
         // ews edw
 
-        public int gp_d1_disp { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
-        public int gp_d2_disp { get; set; }
-        public int gp_d3_disp { get; set; }
+        //public int gp_d1_disp { get; set; } // den prepei na einai static--> shmainei idio gia ola taantikeimena afthw ths klashs
+        //public int gp_d2_disp { get; set; }
+        //public int gp_d3_disp { get; set; }
         private readonly int nGaussPoints;
-        private readonly InterpolationHexa8Reverse interpolation = InterpolationHexa8Reverse.UniqueInstance;
         private bool isInitialized = false;
 
-        protected Hexa8NLRAM_1mat()//consztructor apo to hexa8
+        protected Hexa8NonLinear()//consztructor apo to hexa8
         {
         }
 
-        public Hexa8NLRAM_1mat(IContinuumMaterial3D material, int gp_d1c, int gp_d2c, int gp_d3c)
+        public Hexa8NonLinear(IContinuumMaterial3D material, IQuadrature3D quadratureForStiffness)
         {
-            this.gp_d1_disp = gp_d1c;
-            this.gp_d2_disp = gp_d2c;
-            this.gp_d3_disp = gp_d3c;
-            this.nGaussPoints = this.gp_d1_disp * this.gp_d2_disp*this.gp_d3_disp;
+            //this.gp_d1_disp = gp_d1c;
+            //this.gp_d2_disp = gp_d2c;
+            //this.gp_d3_disp = gp_d3c;
+            //this.nGaussPoints = this.gp_d1_disp * this.gp_d2_disp*this.gp_d3_disp;            
+            this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
+            this.QuadratureForStiffness = quadratureForStiffness;
+            this.Interpolation = InterpolationHexa8Reverse.UniqueInstance;
+
             materialsAtGaussPoints = new IContinuumMaterial3D[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++)
                 materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
 
         }
+
+        public InterpolationHexa8Reverse Interpolation { get; }
+        public IQuadrature3D QuadratureForStiffness { get; }
 
         public int endeixiShapeFunctionAndGaussPointData = 1;
         //private double[] a_123g;
@@ -90,78 +97,63 @@ namespace ISAAR.MSolve.FEM.Elements
         //private double[][,] BL;
 
 
-        private double [][,] Getll1Hexa(double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, int gp_d1_disp, int gp_d2_disp, int gp_d3_disp)
+        //private double [][,] Getll1Hexa(double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, int gp_d1_disp, int gp_d2_disp, int gp_d3_disp)
+        //{
+        //    int nGaussPoints = gp_d1_disp * gp_d2_disp * gp_d3_disp;
+        //    int npoint;
+
+        //    double[][,] ll1_hexa;
+        //    ll1_hexa = new double[nGaussPoints][,];
+        //    for (int l = 0; l < gp_d3_disp; l++)
+        //    {
+        //        for (int k = 0; k < gp_d2_disp; k++)
+        //        {
+        //            for (int j = 0; j < gp_d1_disp; j++)
+        //            {
+        //                npoint = l * (gp_d1_disp * gp_d2_disp) + k * gp_d1_disp + j;
+
+        //                ll1_hexa[npoint] = new double[3, 8];
+        //                for (int m = 0; m < 8; m++)
+        //                {
+        //                    ll1_hexa[npoint][0, m] = Ni_ksi[m, npoint];
+        //                    ll1_hexa[npoint][1, m] = Ni_heta[m, npoint];
+        //                    ll1_hexa[npoint][2, m] = Ni_zeta[m, npoint];
+        //                }
+
+        //            }
+        //        }
+        //    }
+        //    return ll1_hexa;
+        //}
+
+        private Matrix2D[] GetBL13Hexa(IReadOnlyList<Matrix2D> ll1_hexa)
         {
-            int nGaussPoints = gp_d1_disp * gp_d2_disp * gp_d3_disp;
-            int npoint;
-
-            double[][,] ll1_hexa;
-            ll1_hexa = new double[nGaussPoints][,];
-            for (int l = 0; l < gp_d3_disp; l++)
+            Matrix2D[] BL13_hexa;
+            //int nGaussPoints = gp_d1_disp * gp_d2_disp * gp_d3_disp;
+            //int npoint;
+            BL13_hexa = new Matrix2D[nGaussPoints];
+            for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                for (int k = 0; k < gp_d2_disp; k++)
+                BL13_hexa[npoint] = new Matrix2D(new double[9, 24]);
+                for (int m = 0; m < 8; m++)
                 {
-                    for (int j = 0; j < gp_d1_disp; j++)
+                    for (int n = 0; n < 3; n++)
                     {
-                        npoint = l * (gp_d1_disp * gp_d2_disp) + k * gp_d1_disp + j;
-
-                        ll1_hexa[npoint] = new double[3, 8];
-                        for (int m = 0; m < 8; m++)
-                        {
-                            ll1_hexa[npoint][0, m] = Ni_ksi[m, npoint];
-                            ll1_hexa[npoint][1, m] = Ni_heta[m, npoint];
-                            ll1_hexa[npoint][2, m] = Ni_zeta[m, npoint];
-                        }
-
+                        BL13_hexa[npoint][n, 3 * m + 0] = ll1_hexa[npoint][n, m];
+                        BL13_hexa[npoint][n + 3, 3 * m + 1] = ll1_hexa[npoint][n, m];
+                        BL13_hexa[npoint][n + 6, 3 * m + 2] = ll1_hexa[npoint][n, m];
                     }
                 }
-            }
-            return ll1_hexa;
-        }
-
-        private double[][,] GetBL13Hexa(double[][,] ll1_hexa, int gp_d1_disp, int gp_d2_disp, int gp_d3_disp)
-        {
-            double[][,] BL13_hexa;
-            int nGaussPoints = gp_d1_disp * gp_d2_disp * gp_d3_disp;
-            int npoint;
-            BL13_hexa = new double[nGaussPoints][,];
-            for (int l = 0; l < gp_d3_disp; l++)
-            {
-                for (int k = 0; k < gp_d2_disp; k++)
-                {
-                    for (int j = 0; j < gp_d1_disp; j++)
-                    {
-                        npoint = l * (gp_d1_disp * gp_d2_disp) + k * gp_d1_disp + j;
-
-                        BL13_hexa[npoint] = new double[9, 24];
-                        for (int m = 0; m < 9; m++)
-                        {
-                            for (int n = 0; n < 24; n++)
-                            { BL13_hexa[npoint][m, n] = 0; }
-                        }// TODO: den xreiazetai mhdenismos edw 
-
-                        for (int m = 0; m < 8; m++)
-                        {
-                            for (int n = 0; n < 3; n++)
-                            {
-                                BL13_hexa[npoint][n, 3 * m + 0] = ll1_hexa[npoint][n, m];
-                                BL13_hexa[npoint][n + 3, 3 * m + 1] = ll1_hexa[npoint][n, m];
-                                BL13_hexa[npoint][n + 6, 3 * m + 2] = ll1_hexa[npoint][n, m];
-                            }
-                        }
-                    }
-                }
-
             }
             return BL13_hexa;
         }
-        
-        private double[][,] GetBL11a_hexa(double[][,] J_0inv_hexa)
+
+        private Matrix2D[] GetBL11a_hexa(Matrix2D[] J_0inv_hexa)
         {
-            double [][,] BL11a_hexa = new double[nGaussPoints][,];
+            Matrix2D[] BL11a_hexa = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                BL11a_hexa[gpoint] = new double[6, 9];
+                BL11a_hexa[gpoint] = new Matrix2D(6, 9);
                 for (int m = 0; m < 3; m++) // upologismos triwn prwtwn grammwn
                 {
                     for (int n = 0; n < 3; n++)
@@ -183,12 +175,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL11a_hexa;
         }
 
-        private double[][,] GetBL12_hexa(double[][,] J_0inv_hexa)
+        private Matrix2D[] GetBL12_hexa(Matrix2D[] J_0inv_hexa)
         {
-            double[][,] BL12_hexa = new double[nGaussPoints][,];
+            Matrix2D[] BL12_hexa = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                BL12_hexa[gpoint] = new double[9, 9];
+                BL12_hexa[gpoint] = new Matrix2D(9, 9);
                 for (int m = 0; m < 3; m++) // upologismos triwn prwtwn grammwn
                 {
                     for (int n = 0; n < 3; n++)
@@ -216,12 +208,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL12_hexa;
         }
 
-        private double[][,] GetBL01_hexa(double[][,] J_0inv_hexa)
+        private Matrix2D[] GetBL01_hexa(Matrix2D[] J_0inv_hexa)
         {
-            double[][,] BL01_hexa = new double[nGaussPoints][,];
+            Matrix2D[] BL01_hexa = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                BL01_hexa[gpoint] = new double[6, 9];
+                BL01_hexa[gpoint] = new Matrix2D(6, 9);
                 for (int m = 0; m < 3; m++) // upologismos triwn prwtwn grammwn
                 {
                     for (int n = 0; n < 3; n++)
@@ -242,12 +234,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL01_hexa;
         }
 
-        private double[][,] GetBNL1_hexa(double[][,] J_0inv_hexa)
+        private Matrix2D[] GetBNL1_hexa(Matrix2D[] J_0inv_hexa)
         {
-            double[][,] BNL1_hexa = new double[nGaussPoints][,];
+            Matrix2D[] BNL1_hexa = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                BNL1_hexa[gpoint] = new double[9, 9];
+                BNL1_hexa[gpoint] = new Matrix2D(9, 9);
                 for (int m = 0; m < 3; m++)
                 {
                     for (int n = 0; n < 3; n++)
@@ -264,13 +256,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private void CalculateInitialConfigurationData(IElement element)
         {
-            (double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, double[] a_123g) = interpolation.GetShapeFunctionDerivatives(gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            double[][,] ll1_hexa;
-            ll1_hexa = Getll1Hexa(Ni_ksi,  Ni_heta,  Ni_zeta, gp_d1_disp,  gp_d2_disp,  gp_d3_disp);
-            double[][,] BL13_hexa;
-            BL13_hexa = GetBL13Hexa(ll1_hexa, gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            
-            double[][,] BNL1_hexa;
+            //double[] a_123g = new double[nGaussPoints];//[QuadratureForStiffness.IntegrationPoints.Count];
+            //for (int gpoint = 0; gpoint < nGaussPoints; gpoint++) {a_123g }
+
+            IReadOnlyList<Matrix2D> shapheFunctionNaturalDerivatives;
+            shapheFunctionNaturalDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            Matrix2D[] BL13_hexa;
+            BL13_hexa = GetBL13Hexa(shapheFunctionNaturalDerivatives);
+
+            Matrix2D[] BNL1_hexa;
 
             //PrintUtilities.WriteToFile(Ni, @"C:\Users\turbo-x\Desktop\cohesive_check_MSOLVE_2\paradeigma_apo_arxika_swsta_embeded_shell_gia_check_tou_rve_embedding_sto_MSolve\elegxos_alalgwn_fe2_tax_me1_arxiko_chol_dixws_me1_OneElementRVECheckExample\Ni_data_8epi27.txt");
             endeixiShapeFunctionAndGaussPointData = 2;
@@ -278,10 +272,10 @@ namespace ISAAR.MSolve.FEM.Elements
             ox_i = new double[8][];
             tu_i = new double[8][]; // apla initialized edw kai tpt allo
 
-            (double[][,] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapheFunctionNaturalDerivatives, element.INodes, nGaussPoints);
 
             sunt_oloklhrwmatos = new double[nGaussPoints];
-           
+
             //BL11a_hexa = GetBL11a_hexa(J_0inv_hexa);
             //BL12_hexa = GetBL12_hexa(J_0inv_hexa);
             //BL01_hexa = GetBL01_hexa(J_0inv_hexa);
@@ -300,8 +294,9 @@ namespace ISAAR.MSolve.FEM.Elements
                 // initialize diastaseis twn mhtrwwn kai meta gemisma keliwn (olwn h mono oswn mporoume sthn arxh)
                 //BNL_hexa[gpoint] = new double[9, 24];
 
-                sunt_oloklhrwmatos[gpoint] = detJ_0[gpoint] * a_123g[gpoint];
-                              
+                //sunt_oloklhrwmatos[gpoint] = detJ_0[gpoint] * a_123g[gpoint];
+                sunt_oloklhrwmatos[gpoint] = detJ_0[gpoint] * QuadratureForStiffness.IntegrationPoints[gpoint].Weight;
+
                 //
                 //for (int m = 0; m < 9; m++)
                 //{
@@ -317,7 +312,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
 
 
-            
+
             tu_i = new double[8][];
             //ll2 = new double[8, 3];
             GLvec = new double[nGaussPoints][];
@@ -344,7 +339,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         }
 
-        private void UpdateCoordinateData(double[] localdisplacements,out double[][] tx_i)
+        private void UpdateCoordinateData(double[] localdisplacements, out double[][] tx_i)
         {
             tx_i = new double[8][];
             for (int j = 0; j < 8; j++)
@@ -360,27 +355,26 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private void CalculateStrains(double[] localdisplacements, IElement element, double[][] tx_i) // sto shell8disp sto calculate forces kaleitai me this.UpdateCoordinateData(localTotalDisplacements);
         {
-            //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn 
-            (double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, double[] a_123g) = interpolation.GetShapeFunctionDerivatives(gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            double[][,] ll1_hexa;
-            ll1_hexa = Getll1Hexa(Ni_ksi, Ni_heta, Ni_zeta, gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            (double[][,] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
+            //YPOLOGISMOS EDW KAI TOU ll1_hexa(shapeFunctionNaturalDerivatives) pou de tha karatietai pia kai olwn 
+            IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
+            shapeFunctionNaturalDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
             //YPOLOGISMOS EDW KAI TOU ll1_hexa pou de tha karatietai pia kai olwn kai tou J_0inv
 
 
-            double[][,] DGtr = new double[nGaussPoints][,];
-            double[][,] GL = new double[nGaussPoints][,];
+            Matrix2D[] DGtr = new Matrix2D[nGaussPoints];
+            Matrix2D[] GL = new Matrix2D[nGaussPoints];
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {                       
-                DGtr[npoint] = new double[3, 3];
-                GL[npoint] = new double[3, 3];
-            }            
+            {
+                DGtr[npoint] = new Matrix2D(3, 3);
+                GL[npoint] = new Matrix2D(3, 3);
+            }
 
-            double[][,] J_1 = JacobianHexa8Reverse.Get_J_1(nGaussPoints, tx_i, ll1_hexa);
+            Matrix2D[] J_1 = JacobianHexa8Reverse.Get_J_1(nGaussPoints, tx_i, shapeFunctionNaturalDerivatives);
 
             // //
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {                        
+            {
                 //
                 //for (int m = 0; m < 3; m++)
                 //{
@@ -393,42 +387,45 @@ namespace ISAAR.MSolve.FEM.Elements
                 //    }
                 //}
 
-                //
-                for (int m = 0; m < 3; m++)
-                {
-                    for (int n = 0; n < 3; n++)
-                    {
-                        DGtr[npoint][m, n] = 0;
-                        for (int p = 0; p < 3; p++)
-                        {
-                            DGtr[npoint][m, n] += J_0inv_hexa[npoint][m, p] * J_1[npoint][p,n];
-                        }
-                    }
-                }
+                // //praxeis
+                DGtr[npoint] = J_0inv_hexa[npoint] * J_1[npoint];
+                //for (int m = 0; m < 3; m++)
+                //{
+                //    for (int n = 0; n < 3; n++)
+                //    {                        
+                //        for (int p = 0; p < 3; p++)
+                //        {
+                //            DGtr[npoint][m, n] += J_0inv_hexa[npoint][m, p] * J_1[npoint][p,n];
+                //        }
+                //    }
+                //}
 
-                //
-                for (int m = 0; m < 3; m++)
-                {
-                    for (int n = 0; n < 3; n++)
-                    {
-                        GL[npoint][m, n] = 0;
-                        for (int p = 0; p < 3; p++)
-                        {
-                            GL[npoint][m, n] += DGtr[npoint][m,p] * DGtr[npoint][n,p];
-                        }
-                    }
-                }
+                // //praxeis
+                GL[npoint] = DGtr[npoint] * DGtr[npoint].Transpose();
+                //for (int m = 0; m < 3; m++)
+                //{
+                //    for (int n = 0; n < 3; n++)
+                //    {
+                //        //GL[npoint][m, n] = 0;
+                //        for (int p = 0; p < 3; p++)
+                //        {
+                //            GL[npoint][m, n] += DGtr[npoint][m,p] * DGtr[npoint][n,p];
+                //        }
+                //    }
+                //}
                 for (int m = 0; m < 3; m++)
                 {
                     GL[npoint][m, m] += -1;
                 }
-                for (int m = 0; m < 3; m++)
-                {
-                    for (int n = 0; n < 3; n++)
-                    {
-                        GL[npoint][m, n] = 0.5 * GL[npoint][m, n];
-                    }
-                }
+                //praxeis
+                GL[npoint].Scale(0.5);
+                //for (int m = 0; m < 3; m++)
+                //{
+                //    for (int n = 0; n < 3; n++)
+                //    {
+                //        GL[npoint][m, n] = 0.5 * GL[npoint][m, n];
+                //    }
+                //}
 
                 //
                 for (int m = 0; m < 3; m++)
@@ -447,7 +444,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //TODO: the gauss point loop should be the outer one
 
             // upologismos entos forces olwn twn apaitoumenwn mhtrwwn
-            double[,] ll2 = new double[8, 3];
+            Matrix2D ll2 = new Matrix2D(8, 3);
             for (int m = 0; m < 8; m++)
             {
                 for (int n = 0; n < 3; n++)
@@ -456,44 +453,42 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
             // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
-            (double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, double[] a_123g) = interpolation.GetShapeFunctionDerivatives(gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            double[][,] ll1_hexa;
-            ll1_hexa = Getll1Hexa(Ni_ksi, Ni_heta, Ni_zeta, gp_d1_disp, gp_d2_disp, gp_d3_disp);
+            IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
+            shapeFunctionNaturalDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
-            (double[][,] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
-            double[][,] BL13_hexa;
-            BL13_hexa = GetBL13Hexa(ll1_hexa, gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            double[][,] BL11a_hexa; // exoume tosa [,] osa einai kai ta gpoints
-            double[][,] BL12_hexa;
-            double[][,] BL01_hexa;
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
+            Matrix2D[] BL13_hexa;
+            BL13_hexa = GetBL13Hexa(shapeFunctionNaturalDerivatives);
+            Matrix2D[] BL11a_hexa; // exoume tosa [,] osa einai kai ta gpoints
+            Matrix2D[] BL12_hexa;
+            Matrix2D[] BL01_hexa;
             BL11a_hexa = GetBL11a_hexa(J_0inv_hexa);
             BL12_hexa = GetBL12_hexa(J_0inv_hexa);
             BL01_hexa = GetBL01_hexa(J_0inv_hexa);
 
             //INITIALIZE EDW TWN mhtrwwn pou den tha apothikevontai pia
-            double[][] sunt_ol_Spkvec = new double[nGaussPoints][];
-            double[][,] BL = new double[nGaussPoints][,];
+            Vector[] sunt_ol_Spkvec = new Vector[nGaussPoints];
+            Matrix2D[] BL = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                sunt_ol_Spkvec[gpoint] = new double[6];
-                BL[gpoint] = new double[6, 24];
-
+                sunt_ol_Spkvec[gpoint] = new Vector(6);
+                BL[gpoint] = new Matrix2D(6, 24);
             }
 
 
 
-            double [][] fxk1 = new double[nGaussPoints + 1][];
+            Vector[] fxk1 = new Vector[nGaussPoints + 1];
             for (int npoint = 0; npoint < nGaussPoints + 1; npoint++)
             {
-                fxk1[npoint] = new double[24];
+                fxk1[npoint] = new Vector(24);
             }
 
-            double [][,] BL11 = new double[nGaussPoints][,];
-            double[][,] BL1112sun01_hexa = new double[nGaussPoints][,];
+            Matrix2D[] BL11 = new Matrix2D[nGaussPoints];
+            Matrix2D[] BL1112sun01_hexa = new Matrix2D[nGaussPoints];
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {                
-                BL11[npoint] = new double[6, 9];
-                BL1112sun01_hexa[npoint] = new double[6, 9];
+            {
+                BL11[npoint] = new Matrix2D(6, 9);
+                BL1112sun01_hexa[npoint] = new Matrix2D(6, 9);
             }
 
 
@@ -501,179 +496,28 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
 
-                //
-                for (int m = 0; m < 6; m++)
-                {
-                    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses[m];
-                }
-
-                //
-                double[,] l_perisp = new double [3,3];
-                for (int m = 0; m < 3; m++)
-                {
-                    for (int n = 0; n < 3; n++)
-                    {
-                        //l_perisp[m, n] = 0; //sp1
-                        for (int p = 0; p < 8; p++)
-                        {
-                            l_perisp[m, n] += ll1_hexa[npoint][m, p] * ll2[p, n];
-                        }
-                    }
-                }
-
-                //
+                //praxeis
+                sunt_ol_Spkvec[npoint] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses;
                 //for (int m = 0; m < 6; m++)
                 //{
-                //    for (int n = 0; n < 9; n++)
+                //    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses[m];
+                //}
+
+                //
+                Matrix2D l_perisp = new Matrix2D(3, 3);
+                //praxeis
+                l_perisp = shapeFunctionNaturalDerivatives[npoint] * ll2;
+                //for (int m = 0; m < 3; m++)
+                //{
+                //    for (int n = 0; n < 3; n++)
                 //    {
-                //        BL11[npoint][m,n] = 0;
+                //        //l_perisp[m, n] = 0; //sp1
+                //        for (int p = 0; p < 8; p++)
+                //        {
+                //            l_perisp[m, n] += shapeFunctionNaturalDerivatives[npoint][m, p] * ll2[p, n];
+                //        }
                 //    }
-                //} sp1
-                for (int m = 0; m < 6; m++)
-                {
-                    for (int n = 0; n < 3; n++)
-                    {
-                        for (int p = 0; p < 3; p++)
-                        {
-                            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_perisp[p, n];
-                            BL11[npoint][m,3+n]+= BL11a_hexa[npoint][m, 3+p] * l_perisp[p, n];
-                            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_perisp[p, n];
-                        }
-                    }
-                }
-
-                //
-                for (int m = 0; m < 6; m++)
-                {
-                    for (int n = 0; n < 9; n++)
-                    {
-                        //BL1112sun01_hexa[npoint][m, n] = 0; sp1
-                        for (int p = 0; p < 9; p++)
-                        {
-                            BL1112sun01_hexa[npoint][m, n] += BL11[npoint][m, p] * BL12_hexa[npoint][p, n];
-                        }
-                    }
-                }
-                for (int m = 0; m < 6; m++)
-                {
-                    for (int n = 0; n < 9; n++)
-                    {
-                        BL1112sun01_hexa[npoint][m, n] += BL01_hexa[npoint][m, n];
-                    }
-                }
-
-                //
-                for (int m = 0; m < 6; m++)
-                {
-                    for (int n = 0; n < 24; n++)
-                    {
-                        BL[npoint][m, n] = 0;
-                        for (int p = 0; p < 9; p++)
-                        {
-                            BL[npoint][m, n] += BL1112sun01_hexa[npoint][m, p] * BL13_hexa[npoint][p, n];
-                        }
-                    }
-                }
-
-                //
-                for (int m = 0; m < 24; m++)
-                {
-                    //fxk1[npoint][m] = 0; //sp1
-                    for (int n = 0; n < 6; n++)
-                    {
-                        fxk1[npoint][m] += BL[npoint][n, m] * sunt_ol_Spkvec[npoint][n];
-                    }
-                }
-            }
-
-            //
-            //for (int m = 0; m < 24; m++)
-            //{
-            //    fxk1[nGaussPoints][m] = 0; //sp1
-            //}
-            for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {
-                for (int m = 0; m < 24; m++)
-                {
-                    fxk1[nGaussPoints][m] += fxk1[npoint][m];
-                }
-            }
-
-            return fxk1[nGaussPoints];
-        }
-
-        private double [,]  UpdateKmatrices(IElement element)
-        {
-            double [,] k_stoixeiou = new double[24, 24];
-
-
-            // KAI INITIALIZE TWN APARAITHTWN APO TIS FORCES pou den tha pothikevontai poia
-            double[][] sunt_ol_Spkvec = new double[nGaussPoints][];
-            double[][,] BL = new double[nGaussPoints][,];
-            for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
-            {
-                sunt_ol_Spkvec[gpoint] = new double[6];
-                BL[gpoint] = new double[6, 24];
-
-            }
-
-            //PRWTA TA APARAITHTA APO TIS FORCES POU DEN THA KRATIOUNTAI pia apo tis FORCES
-            // upologismos entos forces olwn twn apaitoumenwn mhtrwwn
-            double[,] ll2 = new double[8, 3];
-            for (int m = 0; m < 8; m++)
-            {
-                for (int n = 0; n < 3; n++)
-                {
-                    ll2[m, n] = tu_i[m][n];
-                }
-            }
-            // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
-            (double[,] Ni_ksi, double[,] Ni_heta, double[,] Ni_zeta, double[] a_123g) = interpolation.GetShapeFunctionDerivatives(gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            double[][,] ll1_hexa;
-            ll1_hexa = Getll1Hexa(Ni_ksi, Ni_heta, Ni_zeta, gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
-            (double[][,] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(ll1_hexa, element.INodes, nGaussPoints);
-            double[][,] BL13_hexa;
-            BL13_hexa = GetBL13Hexa(ll1_hexa, gp_d1_disp, gp_d2_disp, gp_d3_disp);
-            double[][,] BL11a_hexa; // exoume tosa [,] osa einai kai ta gpoints
-            double[][,] BL12_hexa;
-            double[][,] BL01_hexa;
-            BL11a_hexa = GetBL11a_hexa(J_0inv_hexa);
-            BL12_hexa = GetBL12_hexa(J_0inv_hexa);
-            BL01_hexa = GetBL01_hexa(J_0inv_hexa);
-
-            double[][,] BL11 = new double[nGaussPoints][,];
-            double[][,] BL1112sun01_hexa = new double[nGaussPoints][,];
-            for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {
-                BL11[npoint] = new double[6, 9];
-                BL1112sun01_hexa[npoint] = new double[6, 9];
-            }
-
-
-
-            for (int npoint = 0; npoint < nGaussPoints; npoint++)
-            {
-
-                //
-                for (int m = 0; m < 6; m++)
-                {
-                    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses[m];
-                }
-
-                //
-                double[,] l_perisp = new double[3, 3];
-                for (int m = 0; m < 3; m++)
-                {
-                    for (int n = 0; n < 3; n++)
-                    {
-                        //l_perisp[m, n] = 0; //sp1
-                        for (int p = 0; p < 8; p++)
-                        {
-                            l_perisp[m, n] += ll1_hexa[npoint][m, p] * ll2[p, n];
-                        }
-                    }
-                }
+                //}
 
                 //
                 //for (int m = 0; m < 6; m++)
@@ -696,63 +540,223 @@ namespace ISAAR.MSolve.FEM.Elements
                     }
                 }
 
-                //
-                for (int m = 0; m < 6; m++)
+                // //praxeis
+                BL1112sun01_hexa[npoint] = BL11[npoint] * BL12_hexa[npoint];
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 9; n++)
+                //    {
+                //        //BL1112sun01_hexa[npoint][m, n] = 0; sp1
+                //        for (int p = 0; p < 9; p++)
+                //        {
+                //            BL1112sun01_hexa[npoint][m, n] += BL11[npoint][m, p] * BL12_hexa[npoint][p, n];
+                //        }
+                //    }
+                //}
+                BL1112sun01_hexa[npoint].Add(BL01_hexa[npoint]);
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 9; n++)
+                //    {
+                //        BL1112sun01_hexa[npoint][m, n] += BL01_hexa[npoint][m, n]; // MatrixA.Add(MatrixB);
+                //    }
+                //}
+
+                // //praxeis
+                BL[npoint] = BL1112sun01_hexa[npoint] * BL13_hexa[npoint];
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 24; n++)
+                //    {
+                //        for (int p = 0; p < 9; p++)
+                //        {
+                //            BL[npoint][m, n] += BL1112sun01_hexa[npoint][m, p] * BL13_hexa[npoint][p, n];
+                //        }
+                //    }
+                //}
+
+                // //praxeis
+                fxk1[npoint] = BL[npoint].Transpose() * sunt_ol_Spkvec[npoint];
+                //for (int m = 0; m < 24; m++)
+                //{
+                //    for (int n = 0; n < 6; n++) //transpose
+                //    {
+                //        fxk1[npoint][m] += BL[npoint][n, m] * sunt_ol_Spkvec[npoint][n];
+                //    }
+                //}
+            }
+
+            for (int npoint = 0; npoint < nGaussPoints; npoint++)
+            {
+                // praxeis
+                fxk1[nGaussPoints].Add(fxk1[npoint]);
+                //for (int m = 0; m < 24; m++)
+                //{
+                //    fxk1[nGaussPoints][m] += fxk1[npoint][m];
+                //}
+            }
+
+            return fxk1[nGaussPoints].Data;
+        }
+
+
+
+        private Matrix2D UpdateKmatrices(IElement element)
+        {
+            Matrix2D k_stoixeiou = new Matrix2D(24, 24);
+
+
+            // KAI INITIALIZE TWN APARAITHTWN APO TIS FORCES pou den tha pothikevontai poia
+            Vector[] sunt_ol_Spkvec = new Vector[nGaussPoints];
+            Matrix2D[] BL = new Matrix2D[nGaussPoints];
+            for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
+            {
+                sunt_ol_Spkvec[gpoint] = new Vector(6);
+                BL[gpoint] = new Matrix2D(6, 24);
+
+            }
+
+            //PRWTA TA APARAITHTA APO TIS FORCES POU DEN THA KRATIOUNTAI pia apo tis FORCES
+            // upologismos entos forces olwn twn apaitoumenwn mhtrwwn
+            Matrix2D ll2 = new Matrix2D(8, 3);
+            for (int m = 0; m < 8; m++)
+            {
+                for (int n = 0; n < 3; n++)
                 {
-                    for (int n = 0; n < 9; n++)
-                    {
-                        //BL1112sun01_hexa[npoint][m, n] = 0; sp1
-                        for (int p = 0; p < 9; p++)
-                        {
-                            BL1112sun01_hexa[npoint][m, n] += BL11[npoint][m, p] * BL12_hexa[npoint][p, n];
-                        }
-                    }
+                    ll2[m, n] = tu_i[m][n];
                 }
+            }
+            // upologismos ennoeitai kai twn mhtrwwn apo tous arxikous upologismous pou xreiazontai edw (ola ews ll1_hexa)
+            IReadOnlyList<Matrix2D> shapeFunctionNaturalDerivatives;
+            shapeFunctionNaturalDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            //11a 12 13 kai 01 epishs xreiazontai opote kai to J_0inv_hexa pou afta theloun 
+            (Matrix2D[] J_0inv_hexa, double[] detJ_0) = JacobianHexa8Reverse.GetJ_0invHexaAndDetJ_0(shapeFunctionNaturalDerivatives, element.INodes, nGaussPoints);
+            Matrix2D[] BL13_hexa;
+            BL13_hexa = GetBL13Hexa(shapeFunctionNaturalDerivatives);
+            Matrix2D[] BL11a_hexa; // exoume tosa [,] osa einai kai ta gpoints
+            Matrix2D[] BL12_hexa;
+            Matrix2D[] BL01_hexa;
+            BL11a_hexa = GetBL11a_hexa(J_0inv_hexa);
+            BL12_hexa = GetBL12_hexa(J_0inv_hexa);
+            BL01_hexa = GetBL01_hexa(J_0inv_hexa);
+
+            Matrix2D[] BL11 = new Matrix2D[nGaussPoints];
+            Matrix2D[] BL1112sun01_hexa = new Matrix2D[nGaussPoints];
+            for (int npoint = 0; npoint < nGaussPoints; npoint++)
+            {
+                BL11[npoint] = new Matrix2D(6, 9);
+                BL1112sun01_hexa[npoint] = new Matrix2D(6, 9); //TODO this may be unnescessary
+            }
+
+
+
+            for (int npoint = 0; npoint < nGaussPoints; npoint++)
+            {
+
+                // //praxeis
+                sunt_ol_Spkvec[npoint] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses;
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    sunt_ol_Spkvec[npoint][m] = sunt_oloklhrwmatos[npoint] * materialsAtGaussPoints[npoint].Stresses[m];
+                //}
+
+                //
+                Matrix2D l_perisp = new Matrix2D(3, 3);
+                // praxeis 
+                l_perisp = shapeFunctionNaturalDerivatives[npoint] * ll2;
+                //for (int m = 0; m < 3; m++)
+                //{
+                //    for (int n = 0; n < 3; n++)
+                //    {
+                //        //l_perisp[m, n] = 0; //sp1
+                //        for (int p = 0; p < 8; p++)
+                //        {
+                //            l_perisp[m, n] += shapeFunctionNaturalDerivatives[npoint][m, p] * ll2[p, n];
+                //        }
+                //    }
+                //}
+
+                //
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 9; n++)
+                //    {
+                //        BL11[npoint][m,n] = 0;
+                //    }
+                //} sp1
                 for (int m = 0; m < 6; m++)
                 {
-                    for (int n = 0; n < 9; n++)
+                    for (int n = 0; n < 3; n++)
                     {
-                        BL1112sun01_hexa[npoint][m, n] += BL01_hexa[npoint][m, n];
+                        for (int p = 0; p < 3; p++)
+                        {
+                            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_perisp[p, n];
+                            BL11[npoint][m, 3 + n] += BL11a_hexa[npoint][m, 3 + p] * l_perisp[p, n];
+                            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_perisp[p, n];
+                        }
                     }
                 }
 
-                //
-                for (int m = 0; m < 6; m++)
-                {
-                    for (int n = 0; n < 24; n++)
-                    {
-                        BL[npoint][m, n] = 0;
-                        for (int p = 0; p < 9; p++)
-                        {
-                            BL[npoint][m, n] += BL1112sun01_hexa[npoint][m, p] * BL13_hexa[npoint][p, n];
-                        }
-                    }
-                }
+                // //praxeis
+                BL1112sun01_hexa[npoint] = BL11[npoint] * BL12_hexa[npoint];
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 9; n++)
+                //    {
+                //        //BL1112sun01_hexa[npoint][m, n] = 0; sp1
+                //        for (int p = 0; p < 9; p++)
+                //        {
+                //            BL1112sun01_hexa[npoint][m, n] += BL11[npoint][m, p] * BL12_hexa[npoint][p, n];
+                //        }
+                //    }
+                //}
+                BL1112sun01_hexa[npoint].Add(BL01_hexa[npoint]);
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 9; n++)
+                //    {
+                //        BL1112sun01_hexa[npoint][m, n] += BL01_hexa[npoint][m, n];
+                //    }
+                //}
+
+                // //praxeis
+                BL[npoint] = BL1112sun01_hexa[npoint] * BL13_hexa[npoint];
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 24; n++)
+                //    {
+                //        for (int p = 0; p < 9; p++)
+                //        {
+                //            BL[npoint][m, n] += BL1112sun01_hexa[npoint][m, p] * BL13_hexa[npoint][p, n];
+                //        }
+                //    }
+                //}
             }
             //PRWTA TA APARAITHTA APO TIS FORCES POU DEN THA KRATIOUNTAI pia apo tis FORCES
 
             //DEFTERON UPOLOGIZETAI TO BNL pou den tha proupologizetai pleon apo to initial configuration
-            double[][,] BNL1_hexa;
-            double[][,] BNL_hexa;
+            Matrix2D[] BNL1_hexa;
+            Matrix2D[] BNL_hexa;
             BNL1_hexa = GetBNL1_hexa(J_0inv_hexa);
-            BNL_hexa = new double[nGaussPoints][,];
+            BNL_hexa = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
                 // initialize diastaseis twn mhtrwwn kai meta gemisma keliwn (olwn h mono oswn mporoume sthn arxh)
-                BNL_hexa[gpoint] = new double[9, 24];
+                BNL_hexa[gpoint] = new Matrix2D(9, 24); //todo this may be unnescessary
 
-                //
-                for (int m = 0; m < 9; m++)
-                {
-                    for (int n = 0; n < 24; n++)
-                    {
-                        //BNL_hexa[gpoint][m, n] = 0;    //sp1
-                        for (int p = 0; p < 9; p++)
-                        {
-                            BNL_hexa[gpoint][m, n] += BNL1_hexa[gpoint][m, p] * BL13_hexa[gpoint][p, n];
-                        }
-                    }
-                }
+                // //praxeis 
+                BNL_hexa[gpoint] = BNL1_hexa[gpoint] * BL13_hexa[gpoint];
+                //for (int m = 0; m < 9; m++)
+                //{
+                //    for (int n = 0; n < 24; n++)
+                //    {
+                //        //BNL_hexa[gpoint][m, n] = 0;    //sp1
+                //        for (int p = 0; p < 9; p++)
+                //        {
+                //            BNL_hexa[gpoint][m, n] += BNL1_hexa[gpoint][m, p] * BL13_hexa[gpoint][p, n];
+                //        }
+                //    }
+                //}
             }
             //DEFTERON UPOLOGIZETAI TO BNL pou den tha proupologizetai pleon apo to initial configuration
 
@@ -760,28 +764,30 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
 
-            double[,] sunt_ol_SPK_epi_BNL_hexa = new double[9, 24];
-            double[,] sunt_ol_cons_disp = new double[6, 6];
-            double[,] sunt_ol_cons_disp_epi_BL = new double[6, 24];
-            
-            double [] [,] sunt_ol_Spk = new double[nGaussPoints][,];
+
+
+            Matrix2D[] sunt_ol_Spk = new Matrix2D[nGaussPoints];
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                sunt_ol_Spk[npoint] = new double[3, 3];
+                sunt_ol_Spk[npoint] = new Matrix2D(3, 3);
             }
 
-            double[][,] kl_ = new double[nGaussPoints + 1][,];
-            double[][,] knl_ = new double[nGaussPoints + 1][,];
+            Matrix2D[] kl_ = new Matrix2D[nGaussPoints + 1];
+            Matrix2D[] knl_ = new Matrix2D[nGaussPoints + 1];
             for (int npoint = 0; npoint < nGaussPoints + 1; npoint++)
             {
-                kl_[npoint] = new double[24, 24];
-                knl_[npoint] = new double[24, 24];
+                kl_[npoint] = new Matrix2D(24, 24);
+                knl_[npoint] = new Matrix2D(24, 24);
             }
 
 
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
+                Matrix2D sunt_ol_SPK_epi_BNL_hexa = new Matrix2D(9, 24); //TODO
+                Matrix2D sunt_ol_cons_disp = new Matrix2D(6, 6); //TODO
+                Matrix2D sunt_ol_cons_disp_epi_BL = new Matrix2D(6, 24);//TODO
+
                 //
                 sunt_ol_Spk[npoint][0, 0] = sunt_ol_Spkvec[npoint][0];
                 sunt_ol_Spk[npoint][0, 1] = sunt_ol_Spkvec[npoint][3];
@@ -794,7 +800,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 sunt_ol_Spk[npoint][2, 2] = sunt_ol_Spkvec[npoint][2];
 
                 //
-                ElasticityTensorContinuum3D consDisp = materialsAtGaussPoints[npoint].ConstitutiveMatrix;
+                double[,] consDisp = materialsAtGaussPoints[npoint].ConstitutiveMatrix.Data;
+                //sunt_ol_cons_disp = consDisp * sunt_oloklhrwmatos[npoint];
                 for (int m = 0; m < 6; m++)
                 {
                     for (int n = 0; n < 6; n++)
@@ -803,31 +810,31 @@ namespace ISAAR.MSolve.FEM.Elements
                     }
                 }
 
-                //
-                for (int m = 0; m < 6; m++)
-                {
-                    for (int n = 0; n < 24; n++)
-                    {
-                        sunt_ol_cons_disp_epi_BL[m, n] = 0;
-                        for (int p = 0; p < 6; p++)
-                        {
-                            sunt_ol_cons_disp_epi_BL[m, n] += sunt_ol_cons_disp[m, p] * BL[npoint][p, n];
-                        }
-                    }
-                }
+                // //praxeis
+                sunt_ol_cons_disp_epi_BL = sunt_ol_cons_disp * BL[npoint];
+                //for (int m = 0; m < 6; m++)
+                //{
+                //    for (int n = 0; n < 24; n++)
+                //    {
+                //        for (int p = 0; p < 6; p++)
+                //        {
+                //            sunt_ol_cons_disp_epi_BL[m, n] += sunt_ol_cons_disp[m, p] * BL[npoint][p, n];
+                //        }
+                //    }
+                //}
 
-                //
-                for (int m = 0; m < 24; m++)
-                {
-                    for (int n = 0; n < 24; n++)
-                    {
-                        kl_[npoint][m, n] = 0;
-                        for (int p = 0; p < 6; p++)
-                        {
-                            kl_[npoint][m, n] += BL[npoint][p, m] * sunt_ol_cons_disp_epi_BL[p, n];
-                        }
-                    }
-                }
+                // //praxeis
+                kl_[npoint] = BL[npoint].Transpose() * sunt_ol_cons_disp_epi_BL;
+                //for (int m = 0; m < 24; m++)
+                //{
+                //    for (int n = 0; n < 24; n++)
+                //    {
+                //        for (int p = 0; p < 6; p++)
+                //        {
+                //            kl_[npoint][m, n] += BL[npoint][p, m] * sunt_ol_cons_disp_epi_BL[p, n];
+                //        }
+                //    }
+                //}
                 //tha athroisoume meta ola ta kl- sthn teleftaia thesi
 
                 //
@@ -835,36 +842,34 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     for (int n = 0; n < 24; n++)
                     {
-                        sunt_ol_SPK_epi_BNL_hexa[m, n] = 0;
-                        sunt_ol_SPK_epi_BNL_hexa[3+m, n] = 0;
-                        sunt_ol_SPK_epi_BNL_hexa[6 + m, n] = 0;
                         for (int p = 0; p < 3; p++)
                         {
-                            sunt_ol_SPK_epi_BNL_hexa[m, n] += sunt_ol_Spk[npoint][m,p] * BNL_hexa[npoint][p, n];
-                            sunt_ol_SPK_epi_BNL_hexa[3+m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][3+p, n];
+                            sunt_ol_SPK_epi_BNL_hexa[m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][p, n];
+                            sunt_ol_SPK_epi_BNL_hexa[3 + m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][3 + p, n];
                             sunt_ol_SPK_epi_BNL_hexa[6 + m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][6 + p, n];
                         }
                     }
                 }
 
-                //
-                for (int m = 0; m < 24; m++)
-                {
-                    for (int n = 0; n < 24; n++)
-                    {
-                        knl_[npoint][m, n] = 0;
-                        for (int p = 0; p < 9; p++)
-                        {
-                            knl_[npoint][m, n] += BNL_hexa[npoint][p, m] * sunt_ol_SPK_epi_BNL_hexa[p, n];
-                        }
-                    }
-                }
+                // //praxeis
+                knl_[npoint] = BNL_hexa[npoint].Transpose() * sunt_ol_SPK_epi_BNL_hexa;
+                //for (int m = 0; m < 24; m++)
+                //{
+                //    for (int n = 0; n < 24; n++)
+                //    {
+                //        knl_[npoint][m, n] = 0;
+                //        for (int p = 0; p < 9; p++)
+                //        {
+                //            knl_[npoint][m, n] += BNL_hexa[npoint][p, m] * sunt_ol_SPK_epi_BNL_hexa[p, n];
+                //        }
+                //    }
+                //}
                 //tha athroisoume meta ola ta knl_ sthn teleftaia thesi i kateftheian sto k_stoixeiou
 
             }
 
             // athroisma olwn twn gpoints se k_stoixeiou kai prwta mhdenismos aftou
-            for (int m = 0; m < 24; m++)
+            for (int m = 0; m < 24; m++) // TODO DELETE that
             {
                 for (int n = 0; n < 24; n++)
                 {
@@ -892,15 +897,15 @@ namespace ISAAR.MSolve.FEM.Elements
             }
 
             return k_stoixeiou;
-      }
+        }
 
-        // telikes entoles kai mhtrwo mazas apo to hexa8
+        //telikes entoles kai mhtrwo mazas apo to hexa8        
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
             this.UpdateCoordinateData(localTotalDisplacements, out double[][] tx_i);
-            this.CalculateStrains(localTotalDisplacements, element,tx_i);
-            double[] GLvec_strain_minus_last_converged_value=new double[6];
+            this.CalculateStrains(localTotalDisplacements, element, tx_i);
+            double[] GLvec_strain_minus_last_converged_value = new double[6];
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
                 GLvec_strain_minus_last_converged_value = new double[6] { GLvec[npoint][0]- GLvec_last_converged[npoint][0], GLvec[npoint][1] - GLvec_last_converged[npoint][1], GLvec[npoint][2] - GLvec_last_converged[npoint][2],
@@ -932,11 +937,11 @@ namespace ISAAR.MSolve.FEM.Elements
                 this.CalculateInitialConfigurationData(element);
                 var localTotalDisplacements = new double[24];
                 this.UpdateCoordinateData(localTotalDisplacements, out double[][] tx_i);
-                this.CalculateStrains(localTotalDisplacements, element, tx_i);                
+                this.CalculateStrains(localTotalDisplacements, element, tx_i);
             }
-            double[,] k_stoixeiou =this.UpdateKmatrices(element);
-            IMatrix2D element_stiffnessMatrix = new Matrix2D(k_stoixeiou); // TODO giati de ginetai return dof.Enumerator.GetTransformedMatrix, xrhsh symmetric
-            return element_stiffnessMatrix;
+            Matrix2D k_stoixeiou = this.UpdateKmatrices(element);
+            //IMatrix2D element_stiffnessMatrix = new Matrix2D(k_stoixeiou); // TODO giati de ginetai return dof.Enumerator.GetTransformedMatrix, xrhsh symmetric
+            return k_stoixeiou;
         }
 
         public bool MaterialModified
@@ -965,7 +970,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
                 for (int i1 = 0; i1 < 6; i1++)
-                { GLvec_last_converged[npoint][i1]= GLvec[npoint][i1]; }
+                { GLvec_last_converged[npoint][i1] = GLvec[npoint][i1]; }
             }
 
             foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
@@ -975,7 +980,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
         }
-        
+
         public int ID
         {
             get { return 13; }
@@ -1043,12 +1048,12 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] H8Shape = new double[8]; // PROSTHIKI EMBEDDED : allagh twn Calc8shape pou eginan copy
 
             H8Shape[6] = fXiM * fEtaM * fZetaM;
-            H8Shape[7] = fXiP* fEtaM *fZetaM;
-            H8Shape[4] = fXiP* fEtaP *fZetaM;
-            H8Shape[5] = fXiM* fEtaP *fZetaM;
-            H8Shape[2] = fXiM* fEtaM *fZetaP;
-            H8Shape[3] = fXiP* fEtaM *fZetaP;
-            H8Shape[0] = fXiP* fEtaP *fZetaP;
+            H8Shape[7] = fXiP * fEtaM * fZetaM;
+            H8Shape[4] = fXiP * fEtaP * fZetaM;
+            H8Shape[5] = fXiM * fEtaP * fZetaM;
+            H8Shape[2] = fXiM * fEtaM * fZetaP;
+            H8Shape[3] = fXiP * fEtaM * fZetaP;
+            H8Shape[0] = fXiP * fEtaP * fZetaP;
             H8Shape[1] = fXiM * fEtaP * fZetaP;
 
             return H8Shape;
@@ -1082,9 +1087,9 @@ namespace ISAAR.MSolve.FEM.Elements
             faDS[4] = fEtaP * fZetaM;
             faDS[2] = -fEtaM * fZetaP;
             faDS[0] = fEtaP * fZetaP;
-            faDS[7] = -faDS[6];            
-            faDS[5] = -faDS[4];           
-            faDS[3] = -faDS[2];           
+            faDS[7] = -faDS[6];
+            faDS[5] = -faDS[4];
+            faDS[3] = -faDS[2];
             faDS[1] = -faDS[0];
 
 

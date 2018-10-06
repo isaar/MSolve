@@ -20,10 +20,11 @@ using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 //using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 namespace ISAAR.MSolve.Tests.FEM
 {
-    public static class shell8NonLinearPlate
+    public static class Shell8NonLinearPlate
     {
         private const int subdomainID = 1;
 
@@ -55,14 +56,25 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             var expectedDisplacements = new Dictionary<int, double>[4]; //TODO: this should be 11 EINAI ARRAY APO DICTIONARIES
 
+            // MIKRH AKRIVEIA TWN GAUSS POINT
+            //expectedDisplacements[0] = new Dictionary<int, double> {
+            //{ 0,1.341690670391555900e-21 }, {11,5.426715620119622300e-22 }, {23,3.510351163876216100e-19 }, {35,6.417697126233693400e-23 }, {47,9.703818759449350300e-06 }};
+            //expectedDisplacements[1] = new Dictionary<int, double> {
+            //{ 0,-1.766631410417230800e-10 }, {11,-1.766623168621910600e-10 }, {23,-1.384381502841035000e-16 }, {35,6.203787968704410500e-17 }, {47,9.703818433005175000e-06 }};
+            //expectedDisplacements[2] = new Dictionary<int, double> {
+            //{ 0,-5.299892610611580200e-10 }, {11,-5.299884368826366100e-10 }, {23,-1.389870365102331700e-16 }, {35,6.203729982771704200e-17 }, {47,1.940763607980495300e-05 }};
+            //expectedDisplacements[3] = new Dictionary<int, double> {
+            //{ 0,-7.066521335188173400e-10 }, {11,-7.066513887514916600e-10 }, {23,6.902764393184828500e-16 }, {35,-6.400975456584840300e-20 }, {47,1.940763490956924100e-05 }};
+
+            // MEGALH AKRIVEIA TWN GAUSS POINT
             expectedDisplacements[0] = new Dictionary<int, double> {
-    { 0,1.341690670391555900e-21 }, {11,5.426715620119622300e-22 }, {23,3.510351163876216100e-19 }, {35,6.417697126233693400e-23 }, {47,9.703818759449350300e-06 }};
+    { 0,-2.609907246226515400e-22 }, {11,1.413528855321975800e-22 }, {23,-2.458757134937532800e-19 }, {35,2.289334051771179900e-22 }, {47,9.703818759449467200e-06 }};
             expectedDisplacements[1] = new Dictionary<int, double> {
-    { 0,-1.766631410417230800e-10 }, {11,-1.766623168621910600e-10 }, {23,-1.384381502841035000e-16 }, {35,6.203787968704410500e-17 }, {47,9.703818433005175000e-06 }};
+    { 0,-1.766635527587974300e-10 }, {11,-1.766634689918627600e-10 }, {23,9.157257237104792300e-17 }, {35,-2.559311444145733000e-16 }, {47,9.703818432907000400e-06 }};
             expectedDisplacements[2] = new Dictionary<int, double> {
-    { 0,-5.299892610611580200e-10 }, {11,-5.299884368826366100e-10 }, {23,-1.389870365102331700e-16 }, {35,6.203729982771704200e-17 }, {47,1.940763607980495300e-05 }};
+    { 0,-5.299896727797873100e-10 }, {11,-5.299895890111070100e-10 }, {23,9.124758457251682500e-17 }, {35,-2.559323845353319000e-16 }, {47,1.940763607970688300e-05 }};
             expectedDisplacements[3] = new Dictionary<int, double> {
-    { 0,-7.066521335188173400e-10 }, {11,-7.066513887514916600e-10 }, {23,6.902764393184828500e-16 }, {35,-6.400975456584840300e-20 }, {47,1.940763490956924100e-05 }};
+    { 0,-7.066535263910381200e-10 }, {11,-7.066531664241640700e-10 }, {23,4.128219398586412200e-16 }, {35,2.340064775305142000e-18 }, {47,1.940763490936303600e-05 }};
 
             return expectedDisplacements;
         }
@@ -217,7 +229,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 e1 = new Element()
                 {
                     ID = nElement + 1,
-                    ElementType = new Shell8dispCopyGetRAM_1(material1, 3, 3, 2)//ElementType = new Shell8dispCopyGet(material2, 3, 3, 3)
+                    ElementType = new Shell8NonLinear(material1, GaussLegendre3D.GetQuadratureWithOrder(3,3,2))//ElementType = new Shell8dispCopyGet(material2, 3, 3, 3)
                     {
                         //oVn_i= new double[][] { new double [] {ElementID, ElementID }, new double [] { ElementID, ElementID } },
                         oVn_i = new double[][] { new double[] { 0,0,1 },

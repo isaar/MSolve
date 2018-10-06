@@ -1,184 +1,80 @@
 ﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interpolation.Inverse;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
+//TODO: rename IsoparametricInterpolation3DBase. It works for shells as well.
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationShell8
+    public class InterpolationShell8 : IsoparametricInterpolation3DBase
     {
         private static readonly InterpolationShell8 uniqueInstance = new InterpolationShell8();
 
+        private InterpolationShell8() : base(8)
+        {
+            NodalNaturalCoordinates = new NaturalPoint3D[]
+            {
+                //TODO: validate this
+                new NaturalPoint3D(1, 1, 0),
+                new NaturalPoint3D(-1, 1, 0),
+                new NaturalPoint3D(-1, -1, 0),
+                new NaturalPoint3D(1, -1, 0),
+                new NaturalPoint3D(0, 1, 0),
+                new NaturalPoint3D(-1, 0, 0),
+                new NaturalPoint3D(0, -1, 0),
+                new NaturalPoint3D(1, 0, 0)
+            };
+        }
+
+        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+
         public static InterpolationShell8 UniqueInstance => uniqueInstance;
-        
-        public (double[][] gaussCoordinates, double[][] shapeFunctions, double[][] shapeFunctionDerivatives, double[] a_123g) 
-            GetShapeFunctions(int gp_d1, int gp_d2, int gp_d3)
+
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes) => throw new NotImplementedException();
+
+        protected override double[] EvaluateAt(double xi, double eta, double zeta)
         {
-            double[][] gaussCoordinates;//3 dianysmata me tis timew tvn ksi heta zeta se ola ta gauss points
-            double[][] shapeFunctions;// 8 dianusmata me tis times twn N1....N8 se kathe gauss point
-            double[][] shapeFunctionDerivatives;// 16 dianusmata me tis times twn N1ksi....N8ksi,N1heta,....N8heta se kathe gauss point
-
-            double ksi = 0;
-            double heta = 0;
-            double zeta = 0;
-            double a_1g = 0;
-            double a_2g = 0;
-            double a_3g = 0;
-
-            int nGaussPoints = gp_d1 * gp_d2 * gp_d3;
-            double[] a_123g = new double[nGaussPoints];
-            gaussCoordinates = new double[3][];
-            for (int l = 0; l < 3; l++)
-            { gaussCoordinates[l] = new double[nGaussPoints]; }
-            for (int l = 0; l < gp_d3; l++)
-            {
-                for (int k = 0; k < gp_d2; k++)
-                {
-                    for (int j = 0; j < gp_d1; j++)
-                    {
-                        int npoint = l * (gp_d1 * gp_d2) + k * gp_d1 + j;
-                        if (gp_d1 == 3)
-                        {
-                            ksi = 0.5 * (j - 1) * (j - 2) * (-0.774596669241483) + (-1) * (j) * (j - 2) * (0) + 0.5 * (j) * (j - 1) * (0.774596669241483);
-                            a_1g = 0.5 * (j - 1) * (j - 2) * (0.555555555555555) + (-1) * (j) * (j - 2) * (0.888888888888888) + 0.5 * (j) * (j - 1) * (0.555555555555555);
-                        }
-                        if (gp_d1 == 2)
-                        {
-                            ksi = (-0.577350269189626) * (j - 1) * (-1) + (0.577350269189626) * (j) * (+1);
-                            a_1g = 1;
-                        }
-                        if (gp_d2 == 3)
-                        {
-                            heta = 0.5 * (k - 1) * (k - 2) * (-0.774596669241483) + (-1) * (k) * (k - 2) * (0) + 0.5 * (k) * (k - 1) * (0.774596669241483);
-                            a_2g = 0.5 * (k - 1) * (k - 2) * (0.555555555555555) + (-1) * (k) * (k - 2) * (0.888888888888888) + 0.5 * (k) * (k - 1) * (0.555555555555555);
-                        }
-                        if (gp_d2 == 2)
-                        {
-                            heta = (-0.577350269189626) * (k - 1) * (-1) + (0.577350269189626) * (k) * (+1);
-                            a_2g = 1;
-                        }
-                        if (gp_d3 == 3)
-                        {
-                            zeta = 0.5 * (l - 1) * (l - 2) * (-0.774596669241483) + (-1) * (l) * (l - 2) * (0) + 0.5 * (l) * (l - 1) * (0.774596669241483);
-                            a_3g = 0.5 * (l - 1) * (l - 2) * (0.555555555555555) + (-1) * (l) * (l - 2) * (0.888888888888888) + 0.5 * (l) * (l - 1) * (0.555555555555555);
-                        }
-                        if (gp_d3 == 2)
-                        {
-                            zeta = (-0.577350269189626) * (l - 1) * (-1) + (0.577350269189626) * (l) * (+1);
-                            a_3g = 1;
-                        }
-                        gaussCoordinates[0][npoint] = ksi;
-                        gaussCoordinates[1][npoint] = heta;
-                        gaussCoordinates[2][npoint] = zeta;
-
-                        a_123g[npoint] = a_1g * a_2g * a_3g;
-                    }
-                }
-            }
-
-            shapeFunctions = new double[8][];
-            for (int j = 0; j < 8; j++)
-            { shapeFunctions[j] = new double[nGaussPoints]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                shapeFunctions[4][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[0][j], 2)) * (1 + gaussCoordinates[1][j]);
-                shapeFunctions[5][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[1][j], 2)) * (1 - gaussCoordinates[0][j]);
-                shapeFunctions[6][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[0][j], 2)) * (1 - gaussCoordinates[1][j]);
-                shapeFunctions[7][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[1][j], 2)) * (1 + gaussCoordinates[0][j]);
-                shapeFunctions[0][j] = 0.25 * (1 + gaussCoordinates[0][j]) * (1 + gaussCoordinates[1][j]) - 0.5 * shapeFunctions[4][j] - 0.5 * shapeFunctions[7][j];
-                shapeFunctions[1][j] = 0.25 * (1 - gaussCoordinates[0][j]) * (1 + gaussCoordinates[1][j]) - 0.5 * shapeFunctions[4][j] - 0.5 * shapeFunctions[5][j];
-                shapeFunctions[2][j] = 0.25 * (1 - gaussCoordinates[0][j]) * (1 - gaussCoordinates[1][j]) - 0.5 * shapeFunctions[5][j] - 0.5 * shapeFunctions[6][j];
-                shapeFunctions[3][j] = 0.25 * (1 + gaussCoordinates[0][j]) * (1 - gaussCoordinates[1][j]) - 0.5 * shapeFunctions[6][j] - 0.5 * shapeFunctions[7][j];
-            }
-
-
-
-            shapeFunctionDerivatives = new double[16][];
-            for (int j = 0; j < 16; j++)
-            { shapeFunctionDerivatives[j] = new double[nGaussPoints]; }
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                //Ni_ksi
-                shapeFunctionDerivatives[4][j] = (-gaussCoordinates[0][j]) * (1 + gaussCoordinates[1][j]);
-                shapeFunctionDerivatives[5][j] = -0.5 * (1 - Math.Pow(gaussCoordinates[1][j], 2));
-                shapeFunctionDerivatives[6][j] = 0.5 * (-2 * gaussCoordinates[0][j]) * (1 - gaussCoordinates[1][j]);
-                shapeFunctionDerivatives[7][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[1][j], 2));
-                shapeFunctionDerivatives[0][j] = +0.25 * (1 + gaussCoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[4][j] - 0.5 * shapeFunctionDerivatives[7][j];
-                shapeFunctionDerivatives[1][j] = -0.25 * (1 + gaussCoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[4][j] - 0.5 * shapeFunctionDerivatives[5][j];
-                shapeFunctionDerivatives[2][j] = -0.25 * (1 - gaussCoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[5][j] - 0.5 * shapeFunctionDerivatives[6][j];
-                shapeFunctionDerivatives[3][j] = +0.25 * (1 - gaussCoordinates[1][j]) - 0.5 * shapeFunctionDerivatives[6][j] - 0.5 * shapeFunctionDerivatives[7][j];
-                //Ni_heta
-                shapeFunctionDerivatives[12][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[0][j], 2));
-                shapeFunctionDerivatives[13][j] = 0.5 * (-2 * gaussCoordinates[1][j]) * (1 - gaussCoordinates[0][j]);
-                shapeFunctionDerivatives[14][j] = 0.5 * (1 - Math.Pow(gaussCoordinates[0][j], 2)) * (-1);
-                shapeFunctionDerivatives[15][j] = 0.5 * (-2 * gaussCoordinates[1][j]) * (1 + gaussCoordinates[0][j]);
-                shapeFunctionDerivatives[8][j] = +0.25 * (1 + gaussCoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[12][j] - 0.5 * shapeFunctionDerivatives[15][j];
-                shapeFunctionDerivatives[9][j] = +0.25 * (1 - gaussCoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[12][j] - 0.5 * shapeFunctionDerivatives[13][j];
-                shapeFunctionDerivatives[10][j] = -0.25 * (1 - gaussCoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[13][j] - 0.5 * shapeFunctionDerivatives[14][j];
-                shapeFunctionDerivatives[11][j] = -0.25 * (1 + gaussCoordinates[0][j]) - 0.5 * shapeFunctionDerivatives[14][j] - 0.5 * shapeFunctionDerivatives[15][j];
-            }
-           
-            return (gaussCoordinates, shapeFunctions, shapeFunctionDerivatives, a_123g);
+            var shapeFunctions = new double[8];
+            shapeFunctions[4] = 0.5 * (1 - Math.Pow(xi, 2)) * (1 + eta);
+            shapeFunctions[5] = 0.5 * (1 - Math.Pow(eta, 2)) * (1 - xi);
+            shapeFunctions[6] = 0.5 * (1 - Math.Pow(xi, 2)) * (1 - eta);
+            shapeFunctions[7] = 0.5 * (1 - Math.Pow(eta, 2)) * (1 + xi);
+            shapeFunctions[0] = 0.25 * (1 + xi) * (1 + eta) - 0.5 * shapeFunctions[4] - 0.5 * shapeFunctions[7];
+            shapeFunctions[1] = 0.25 * (1 - xi) * (1 + eta) - 0.5 * shapeFunctions[4] - 0.5 * shapeFunctions[5];
+            shapeFunctions[2] = 0.25 * (1 - xi) * (1 - eta) - 0.5 * shapeFunctions[5] - 0.5 * shapeFunctions[6];
+            shapeFunctions[3] = 0.25 * (1 + xi) * (1 - eta) - 0.5 * shapeFunctions[6] - 0.5 * shapeFunctions[7];
+            return shapeFunctions;
         }
 
-        public  IReadOnlyList<double[]> GetShapeFunctions(IQuadrature3D quadrature)
+        protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
         {
-            int nGaussPoints = quadrature.IntegrationPoints.Count;
-            var allShapeFunctions = new double[nGaussPoints][];
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                var gaussPoint = quadrature.IntegrationPoints[j]; //sugkekrimeno gauss point
-                var shapeFunctionsAtGP = new double[8]; //1 dianusmata me tis times twn 8 shape functions N1....N8 sto sugkekrimeno gauss point
+            var naturalDerivatives = new double[8, 2];
 
-                shapeFunctionsAtGP[4] = 0.5 * (1 - Math.Pow(gaussPoint.Xi, 2)) * (1 + gaussPoint.Eta);
-                shapeFunctionsAtGP[5] = 0.5 * (1 - Math.Pow(gaussPoint.Eta, 2)) * (1 - gaussPoint.Xi);
-                shapeFunctionsAtGP[6] = 0.5 * (1 - Math.Pow(gaussPoint.Xi, 2)) * (1 - gaussPoint.Eta);
-                shapeFunctionsAtGP[7] = 0.5 * (1 - Math.Pow(gaussPoint.Eta, 2)) * (1 + gaussPoint.Xi);
-                shapeFunctionsAtGP[0] = 0.25 * (1 + gaussPoint.Xi) * (1 + gaussPoint.Eta) - 0.5 * shapeFunctionsAtGP[4] - 0.5 * shapeFunctionsAtGP[7];
-                shapeFunctionsAtGP[1] = 0.25 * (1 - gaussPoint.Xi) * (1 + gaussPoint.Eta) - 0.5 * shapeFunctionsAtGP[4] - 0.5 * shapeFunctionsAtGP[5];
-                shapeFunctionsAtGP[2] = 0.25 * (1 - gaussPoint.Xi) * (1 - gaussPoint.Eta) - 0.5 * shapeFunctionsAtGP[5] - 0.5 * shapeFunctionsAtGP[6];
-                shapeFunctionsAtGP[3] = 0.25 * (1 + gaussPoint.Xi) * (1 - gaussPoint.Eta) - 0.5 * shapeFunctionsAtGP[6] - 0.5 * shapeFunctionsAtGP[7];
+            // Derivatives with respect to Xi
+            naturalDerivatives[4, 0] = (-xi) * (1 + eta);
+            naturalDerivatives[5, 0] = -0.5 * (1 - Math.Pow(eta, 2));
+            naturalDerivatives[6, 0] = 0.5 * (-2 * xi) * (1 - eta);
+            naturalDerivatives[7, 0] = 0.5 * (1 - Math.Pow(eta, 2));
+            naturalDerivatives[0, 0] = +0.25 * (1 + eta) - 0.5 * naturalDerivatives[4, 0] - 0.5 * naturalDerivatives[7, 0];
+            naturalDerivatives[1, 0] = -0.25 * (1 + eta) - 0.5 * naturalDerivatives[4, 0] - 0.5 * naturalDerivatives[5, 0];
+            naturalDerivatives[2, 0] = -0.25 * (1 - eta) - 0.5 * naturalDerivatives[5, 0] - 0.5 * naturalDerivatives[6, 0];
+            naturalDerivatives[3, 0] = +0.25 * (1 - eta) - 0.5 * naturalDerivatives[6, 0] - 0.5 * naturalDerivatives[7, 0];
 
-                allShapeFunctions[j] = shapeFunctionsAtGP;
-            }
+            // Derivatives with respect to Eta
+            naturalDerivatives[4, 1] = 0.5 * (1 - Math.Pow(xi, 2));
+            naturalDerivatives[5, 1] = 0.5 * (-2 * eta) * (1 - xi);
+            naturalDerivatives[6, 1] = 0.5 * (1 - Math.Pow(xi, 2)) * (-1);
+            naturalDerivatives[7, 1] = 0.5 * (-2 * eta) * (1 + xi);
+            naturalDerivatives[0, 1] = +0.25 * (1 + xi) - 0.5 * naturalDerivatives[4, 1] - 0.5 * naturalDerivatives[7, 1];
+            naturalDerivatives[1, 1] = +0.25 * (1 - xi) - 0.5 * naturalDerivatives[4, 1] - 0.5 * naturalDerivatives[5, 1];
+            naturalDerivatives[2, 1] = -0.25 * (1 - xi) - 0.5 * naturalDerivatives[5, 1] - 0.5 * naturalDerivatives[6, 1];
+            naturalDerivatives[3, 1] = -0.25 * (1 + xi) - 0.5 * naturalDerivatives[6, 1] - 0.5 * naturalDerivatives[7, 1];
 
-            return allShapeFunctions;    
+            return naturalDerivatives;
         }
-
-        public IReadOnlyList<double[,]> GetShapeFunctionsDerivatives(IQuadrature3D quadrature)
-        {
-
-            int nGaussPoints = quadrature.IntegrationPoints.Count;
-            var allShapeFunctionsDerivatives = new double[nGaussPoints][,];
-            for (int j = 0; j < nGaussPoints; j++)
-            {
-                var gaussPoint = quadrature.IntegrationPoints[j]; //sugkekrimeno gauss point
-                var shapeFunctionsDerivativesAtGP = new double[8, 2];
-                //Ni_ksi
-                shapeFunctionsDerivativesAtGP[4, 0] = (-gaussPoint.Xi) * (1 + gaussPoint.Eta);
-                shapeFunctionsDerivativesAtGP[5, 0] = -0.5 * (1 - Math.Pow(gaussPoint.Eta, 2));
-                shapeFunctionsDerivativesAtGP[6, 0] = 0.5 * (-2 * gaussPoint.Xi) * (1 - gaussPoint.Eta);
-                shapeFunctionsDerivativesAtGP[7, 0] = 0.5 * (1 - Math.Pow(gaussPoint.Eta, 2));
-                shapeFunctionsDerivativesAtGP[0, 0] = +0.25 * (1 + gaussPoint.Eta) - 0.5 * shapeFunctionsDerivativesAtGP[4, 0] - 0.5 * shapeFunctionsDerivativesAtGP[7, 0];
-                shapeFunctionsDerivativesAtGP[1, 0] = -0.25 * (1 + gaussPoint.Eta) - 0.5 * shapeFunctionsDerivativesAtGP[4, 0] - 0.5 * shapeFunctionsDerivativesAtGP[5, 0];
-                shapeFunctionsDerivativesAtGP[2, 0] = -0.25 * (1 - gaussPoint.Eta) - 0.5 * shapeFunctionsDerivativesAtGP[5, 0] - 0.5 * shapeFunctionsDerivativesAtGP[6, 0];
-                shapeFunctionsDerivativesAtGP[3, 0] = +0.25 * (1 - gaussPoint.Eta) - 0.5 * shapeFunctionsDerivativesAtGP[6, 0] - 0.5 * shapeFunctionsDerivativesAtGP[7, 0];
-                //Ni_heta
-                shapeFunctionsDerivativesAtGP[4, 1] = 0.5 * (1 - Math.Pow(gaussPoint.Xi, 2));
-                shapeFunctionsDerivativesAtGP[5, 1] = 0.5 * (-2 * gaussPoint.Eta) * (1 - gaussPoint.Xi);
-                shapeFunctionsDerivativesAtGP[6, 1] = 0.5 * (1 - Math.Pow(gaussPoint.Xi, 2)) * (-1);
-                shapeFunctionsDerivativesAtGP[7, 1] = 0.5 * (-2 * gaussPoint.Eta) * (1 + gaussPoint.Xi);
-                shapeFunctionsDerivativesAtGP[0, 1] = +0.25 * (1 + gaussPoint.Xi) - 0.5 * shapeFunctionsDerivativesAtGP[4, 1] - 0.5 * shapeFunctionsDerivativesAtGP[7, 1];
-                shapeFunctionsDerivativesAtGP[1, 1] = +0.25 * (1 - gaussPoint.Xi) - 0.5 * shapeFunctionsDerivativesAtGP[4, 1] - 0.5 * shapeFunctionsDerivativesAtGP[5, 1];
-                shapeFunctionsDerivativesAtGP[2, 1] = -0.25 * (1 - gaussPoint.Xi) - 0.5 * shapeFunctionsDerivativesAtGP[5, 1] - 0.5 * shapeFunctionsDerivativesAtGP[6, 1];
-                shapeFunctionsDerivativesAtGP[3, 1] = -0.25 * (1 + gaussPoint.Xi) - 0.5 * shapeFunctionsDerivativesAtGP[6, 1] - 0.5 * shapeFunctionsDerivativesAtGP[7, 1];
-
-                allShapeFunctionsDerivatives[j] = shapeFunctionsDerivativesAtGP;
-            }
-
-            return allShapeFunctionsDerivatives;
-        }
-
     }
 }

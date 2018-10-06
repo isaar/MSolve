@@ -16,9 +16,11 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 
+//TODO: get rid of Hexa8.cs
+
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Hexa8original : IStructuralFiniteElement, IEmbeddedHostElement
+    public class Hexa8Fixed : IStructuralFiniteElement, IEmbeddedHostElement
     {
         protected static double determinantTolerance = 0.00000001;
         protected static int iInt = 2;
@@ -68,18 +70,18 @@ namespace ISAAR.MSolve.FEM.Elements
             [MarshalAs(UnmanagedType.LPArray)]double[] faWeight, [MarshalAs(UnmanagedType.LPArray)]double[] faM);
         #endregion
 
-        protected Hexa8original()
+        protected Hexa8Fixed()
         {
         }
 
-        public Hexa8original(IContinuumMaterial3D material)
+        public Hexa8Fixed(IContinuumMaterial3D material)
         {
             materialsAtGaussPoints = new IContinuumMaterial3D[iInt3];
             for (int i = 0; i < iInt3; i++)
                 materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
         }
 
-        public Hexa8original(IContinuumMaterial3D material, IElementDOFEnumerator dofEnumerator)
+        public Hexa8Fixed(IContinuumMaterial3D material, IElementDOFEnumerator dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;

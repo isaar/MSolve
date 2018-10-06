@@ -12,13 +12,13 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationShell8CohesiveNew: IsoparametricInterpolation2DBase
+    public class InterpolationShell8Cohesive: IsoparametricInterpolation2DBase
     {
-        private static readonly InterpolationShell8CohesiveNew uniqueInstance = new InterpolationShell8CohesiveNew();
+        private static readonly InterpolationShell8Cohesive uniqueInstance = new InterpolationShell8Cohesive();
 
         private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>> cachedN3AtGPs;
 
-        private InterpolationShell8CohesiveNew() : base(CellType2D.Quad8,8)
+        private InterpolationShell8Cohesive() : base(CellType2D.Quad8,8)
         {
             cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>>();
             NodalNaturalCoordinates = new NaturalPoint2D[]
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
         public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
 
-        public static InterpolationShell8CohesiveNew UniqueInstance => uniqueInstance;
+        public static InterpolationShell8Cohesive UniqueInstance => uniqueInstance;
 
         public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes) => throw new NotImplementedException();
 

@@ -8,7 +8,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra; //using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class BenzeggaghKenaneCohMat : ICohesiveZoneMaterial3D // ean de vazamr to public sto class de tha mporousame na orisoume uliko sto hexaBuilder
+    public class BenzeggaghKenaneCohesiveMaterial : ICohesiveZoneMaterial3D // ean de vazamr to public sto class de tha mporousame na orisoume uliko sto hexaBuilder
     {
         private bool modified; // opws sto MohrCoulomb gia to modified
 
@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.Materials
             return this.Clone(); 
         }
 
-        public BenzeggaghKenaneCohMat Clone()
+        public BenzeggaghKenaneCohesiveMaterial Clone()
         {
-            return new BenzeggaghKenaneCohMat()
+            return new BenzeggaghKenaneCohesiveMaterial()
             {
                 T_o_3 = this.T_o_3,
                 D_o_3 = this.D_o_3,

@@ -54,14 +54,14 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return (ll1, J_0a);
         }
 
-        public static (double[][,] ll1, double[][,] J_0a)
+        public static (Matrix2D[] ll1, Matrix2D[] J_0a)
            Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, IReadOnlyList<Vector> shapeFunctions, IReadOnlyList<Matrix2D> shapeFunctionDerivatives)
         {
             int nGaussPoints = quadrature.IntegrationPoints.Count;
-            double[][,] ll1;
-            ll1 = new double[nGaussPoints][,];
+            Matrix2D[] ll1;
+            ll1 = new Matrix2D[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { ll1[j] = new double[3, 24]; }
+            { ll1[j] = new Matrix2D(3, 24); }
             for (int j = 0; j < nGaussPoints; j++) //dhmiourgia olklhrou tou ll1 gia kathe gauss point
             {
                 var gaussPoint = quadrature.IntegrationPoints[j];
@@ -80,10 +80,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             }
 
-            double[][,] J_0a;//einai teliko kai oxi prok
-            J_0a = new double[nGaussPoints][,];
+            Matrix2D[] J_0a;//einai teliko kai oxi prok
+            J_0a = new Matrix2D[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { J_0a[j] = new double[3, 16]; }
+            { J_0a[j] = new Matrix2D(3, 16); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 for (int k = 0; k < 8; k++)
@@ -100,8 +100,8 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return (ll1, J_0a);
         }
 
-        public static (double[][,] J_0inv,  double[] detJ_0) 
-            GetJ_0invAndDetJ_0(double[][,] J_0a, IList<INode> elementNodes, double[][] oVn_i, int nGaussPoints)
+        public static (Matrix2D [] J_0inv,  double[] detJ_0) 
+            GetJ_0invAndDetJ_0(Matrix2D[] J_0a, IList<INode> elementNodes, double[][] oVn_i, int nGaussPoints)
         {
             double[][] ox_i = new double[8][];
             for (int j = 0; j < 8; j++)
@@ -163,10 +163,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                 detJ_0[j] = jacobianDeterminant;
             }
 
-            double[][,] J_0inv;
-            J_0inv = new double[nGaussPoints][,];
+            Matrix2D [] J_0inv;
+            J_0inv = new Matrix2D[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { J_0inv[j] = new double[3, 3]; }
+            { J_0inv[j] = new Matrix2D(3, 3); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 J_0inv[j][0, 0] = ((J_0[j][1, 1] * J_0[j][2, 2]) - (J_0[j][2, 1] * J_0[j][1, 2])) *
@@ -192,17 +192,16 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return (J_0inv, detJ_0);
         }
 
-        public static double[][,]  Get_J_1(int nGaussPoints, double[][] tx_i, double[][] tU, double[][,] J_0a)
+        public static Matrix2D[]  Get_J_1(int nGaussPoints, double[][] tx_i, double[][] tU, Matrix2D[] J_0a)
         {
             double[,] J_1b;
-            double[][,] J_1;
 
             J_1b = new double[16, 3];
-            J_1 = new double[nGaussPoints][,];
+            var J_1 = new Matrix2D[nGaussPoints];
 
             for (int j = 0; j < nGaussPoints; j++)
             {
-                J_1[j] = new double[3, 3];              
+                J_1[j] = new Matrix2D(3, 3);              
             }
 
             for (int j = 0; j < 8; j++)

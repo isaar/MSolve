@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -17,7 +18,7 @@ using Xunit;
 
 namespace ISAAR.MSolve.Tests.FEM
 {
-    public static class shell8andCohesiveNonLinear
+    public static class Shell8andCohesiveNonLinear
     {
         private const int subdomainID = 1;
 
@@ -31,7 +32,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, IncrementalDisplacementsLog computedDisplacements)
         {
-            var comparer = new ValueComparer(1E-13);
+            var comparer = new ValueComparer(1E-15);
             for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
             {
                 foreach (int dof in expectedDisplacements[iter].Keys)
@@ -50,15 +51,15 @@ namespace ISAAR.MSolve.Tests.FEM
             var expectedDisplacements = new Dictionary<int, double>[5]; //TODO: this should be 11 EINAI ARRAY APO DICTIONARIES
 
             expectedDisplacements[0] = new Dictionary<int, double> {
-    { 0,-1.501306714739379200e-05 }, {11,4.963733738129762700e-06 }, {23,-1.780945407868164000e-05 }, {35,-1.499214801866597700e-05 }, {39,-5.822833969672407000e-05 }};
+    { 0,-1.501306714739351400e-05 }, {11,4.963733738129490800e-06 }, {23,-1.780945407868029400e-05 }, {35,-1.499214801866540600e-05 }, {39,-5.822833969672272200e-05 }};
             expectedDisplacements[1] = new Dictionary<int, double> {
-    { 0,-1.500991892603258200e-05 }, {11,4.962619842284933700e-06 }, {23,-1.780557361554878800e-05 }, {35,-1.498958552760043300e-05 }, {39,-5.821676140518532700e-05 }};
+    { 0,-1.500991892603005000e-05 }, {11,4.962619842302796000e-06 }, {23,-1.780557361553905700e-05 }, {35,-1.498958552758854400e-05 }, {39,-5.821676140520536400e-05 }};
             expectedDisplacements[2] = new Dictionary<int, double> {
-    { 0,-3.001954880280654900e-05 }, {11,9.925100656459454300e-06 }, {23,-3.561116405105287500e-05 }, {35,-2.997946837567278200e-05 }, {39,-1.164336113147122200e-04 }};
+    { 0,-3.001954880280401800e-05 }, {11,9.925100656477526600e-06 }, {23,-3.561116405104391700e-05 }, {35,-2.997946837566090700e-05 }, {39,-1.164336113147322500e-04 }};
             expectedDisplacements[3] = new Dictionary<int, double> {
-    { 0,-3.074327250557275400e-05 }, {11,1.064972618934132200e-05 }, {23,-3.846410374899734500e-05 }, {35,-3.069783728673289500e-05 }, {39,-1.191612724602051200e-04 }};
+    { 0,-3.074327250558424700e-05 }, {11,1.064972618932890100e-05 }, {23,-3.846410374898863100e-05 }, {35,-3.069783728664514200e-05 }, {39,-1.191612724600880000e-04 }};
             expectedDisplacements[4] = new Dictionary<int, double> {
-    { 0,-3.074281618470940200e-05 }, {11,1.064926767847933800e-05 }, {23,-3.846254167902190800e-05 }, {35,-3.069737876105337200e-05 }, {39,-1.191596225032377100e-04 }};
+    { 0,-3.074281618479765600e-05 }, {11,1.064926767853693300e-05 }, {23,-3.846254167901110600e-05 }, {35,-3.069737876082750600e-05 }, {39,-1.191596225034872200e-04 }};
 
 
             return expectedDisplacements;
@@ -186,7 +187,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //perioxh constraints ews edw
 
             // perioxh materials 
-            BenzeggaghKenaneCohMat material1 = new BenzeggaghKenaneCohMat()
+            BenzeggaghKenaneCohesiveMaterial material1 = new BenzeggaghKenaneCohesiveMaterial()
             {
                 T_o_3 = 57, // New load case argurhs NR_shell_coh.m
                 D_o_3 = 5.7e-5,
@@ -211,8 +212,6 @@ namespace ISAAR.MSolve.Tests.FEM
             // perioxh materials ews edw
 
 
-
-
             //eisagwgh tou shell element
             double[] Tk_vec = new double[8];
             for (int j = 0; j < 8; j++)
@@ -224,7 +223,7 @@ namespace ISAAR.MSolve.Tests.FEM
             e1 = new Element()
             {
                 ID = 1,
-                ElementType = new Shell8dispCopyGetRAM_1(material2, 3, 3, 3)
+                ElementType = new Shell8NonLinear(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))// 3, 3, 3
                 {
                     oVn_i = VH,
                     tk = Tk_vec,
@@ -252,7 +251,7 @@ namespace ISAAR.MSolve.Tests.FEM
             e2 = new Element()
             {
                 ID = 2,
-                ElementType = new cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk(material1, 3, 3)
+                ElementType = new CohesiveShell8ToHexa20(material1, GaussLegendre2D.GetQuadratureWithOrder(3,3))
                 {
                     oVn_i = VH,
                     tk = Tk_vec,

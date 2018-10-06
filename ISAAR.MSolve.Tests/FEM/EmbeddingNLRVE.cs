@@ -24,7 +24,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 namespace ISAAR.MSolve.Tests.FEM
 {
-    public static class EmbeddingCheckNLRVENew
+    public static class EmbeddingNLRVE
     {
         private const int subdomainID = 1;
 
@@ -438,7 +438,7 @@ namespace ISAAR.MSolve.Tests.FEM
             int elementCounter = 0;
             int subdomainID = 1;
 
-            NEWElasticMaterial3D material1 = new NEWElasticMaterial3D()
+            ElasticMaterial3D material1 = new ElasticMaterial3D()
             {
                 YoungModulus = E_disp,
                 PoissonRatio = ni_disp,
@@ -466,7 +466,7 @@ namespace ISAAR.MSolve.Tests.FEM
                         e1 = new Element()
                         {
                             ID = ElementID,
-                            ElementType = new Hexa8NLRAM_1matNew(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
+                            ElementType = new Hexa8NonLinear(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
                         };
 
                         for (int j = 0; j < 8; j++)
@@ -885,7 +885,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 {
                     ID = ElementID,
                     //
-                    ElementType = new Shell8dispCopyGetRAM_1New(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) //ElementType = new Shell8dispCopyGetRAM_1(material2, 3, 3, 3)
+                    ElementType = new Shell8NonLinear(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) //ElementType = new Shell8dispCopyGetRAM_1(material2, 3, 3, 3)
                     {
                         //oVn_i= new double[][] { new double [] {ElementID, ElementID }, new double [] { ElementID, ElementID } },
                         oVn_i = new double[][] { new double[] { o_xsunol[6 * (midsurfaceNodeIDforlocalShellNode_i[0] - 1) + 3], o_xsunol[6 * (midsurfaceNodeIDforlocalShellNode_i[0] - 1) + 4],o_xsunol[6 * (midsurfaceNodeIDforlocalShellNode_i[0] - 1) + 5] },
@@ -924,7 +924,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //
 
             //orismos elements katw strwshs
-            BenzeggaghKenaneCohMat material3 = new Materials.BenzeggaghKenaneCohMat()
+            BenzeggaghKenaneCohesiveMaterial material3 = new Materials.BenzeggaghKenaneCohesiveMaterial()
             {
                 T_o_3 = T_o_3,
                 D_o_3 = D_o_3,
@@ -952,7 +952,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 e2 = new Element()
                 {
                     ID = ElementID,
-                    ElementType = new cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNew(material3, 3, 3, GaussLegendre2D.GetQuadratureWithOrder(3, 3)) //ElementType = new cohesive_shell_to_hexaCopyGetEmbeRAM_1(material3, 3, 3)
+                    ElementType = new CohesiveShell8ToHexa20(material3, GaussLegendre2D.GetQuadratureWithOrder(3, 3))
                     {
                         oVn_i = new double[][] { new double[] { o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[0] - 1) + 3], o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[0] - 1) + 4],o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[0] - 1) + 5] },
                                                  new double[] { o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[1] - 1) + 3], o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[1] - 1) + 4],o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[1] - 1) + 5] },
@@ -1010,7 +1010,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 e2 = new Element()
                 {
                     ID = ElementID,
-                    ElementType = new cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlkNew(material3, 3, 3, GaussLegendre2D.GetQuadratureWithOrder(3, 3)) //ElementType = new cohesive_shell_to_hexaCopyGetEmbeRAM_1(material3, 3, 3)
+                    ElementType = new CohesiveShell8ToHexa20(material3, GaussLegendre2D.GetQuadratureWithOrder(3, 3))
                     {
                         oVn_i = new double[][] { new double[] { o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[0] - 1) + 3], o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[0] - 1) + 4],o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[0] - 1) + 5] },
                                                  new double[] { o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[1] - 1) + 3], o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[1] - 1) + 4],o_xsunol[6 * (midsurfaceNodeIDforlocalCohesiveNode_i[1] - 1) + 5] },
@@ -1311,5 +1311,131 @@ namespace ISAAR.MSolve.Tests.FEM
         }
     }
 
+    public class rveMatrixParameters
+    {
+        public double E_disp { get; set; }
+        public double ni_disp { get; set; }
+        public double L01 { get; set; }
+        public double L02 { get; set; }
+        public double L03 { get; set; }
+        public int hexa1 { get; set; }
+        public int hexa2 { get; set; }
+        public int hexa3 { get; set; }
 
+        public rveMatrixParameters()
+        {
+
+        }
+        public rveMatrixParameters(double E_disp, double ni_disp, double L01, double L02, double L03, int hexa1, int hexa2, int hexa3)
+        {
+            this.E_disp = E_disp;
+            this.ni_disp = ni_disp;
+            this.L01 = L01;
+            this.L02 = L02;
+            this.L03 = L03;
+            this.hexa1 = hexa1;
+            this.hexa2 = hexa2;
+            this.hexa3 = hexa3;
+        }
+    }
+
+    public class o_x_parameters
+    {
+        //public double E_disp { get; set; }
+        //public double ni_disp { get; set; }
+        //public double L01 { get; set; }
+        //public double L02 { get; set; }
+        //public double L03 { get; set; }
+        //public int hexa1 { get; set; }
+        //public int hexa2 { get; set; }
+        //public int hexa3 { get; set; }
+
+        public o_x_parameters()
+        {
+
+        }
+        public o_x_parameters(double E_disp, double ni_disp, double L01, double L02, double L03, int hexa1, int hexa2, int hexa3)
+        {
+            //this.E_disp = E_disp;
+            //this.ni_disp = ni_disp;
+            //this.L01 = L01;
+            //this.L02 = L02;
+            //this.L03 = L03;
+            //this.hexa1 = hexa1;
+            //this.hexa2 = hexa2;
+            //this.hexa3 = hexa3;
+        }
+    }
+
+    public class grapheneSheetParameters
+    {
+        // parametroi shell
+        public double E_shell; // GPa = 1000Mpa = 1000N / mm2
+        public double ni_shell; // stathera poisson
+        public int elem1;
+        public int elem2;
+        public double L1;// nm
+        public double L2;// nm
+        public double L3; // nm
+        public double a1_shell; // nm
+        public double tk;  // 0.0125016478913782nm
+                           //parametroi cohesive epifaneias
+        public double T_o_3;// Gpa = 1000Mpa = 1000N / mm2
+        public double D_o_3; // nm
+        public double D_f_3; // nm
+        public double T_o_1;// Gpa
+        public double D_o_1; // nm
+        public double D_f_1; // nm
+        public double n_curve = 1.4;
+
+        public grapheneSheetParameters()
+        {
+
+        }
+        public grapheneSheetParameters(double E_shell, double ni_shell, int elem1, int elem2, double L1, double L2, double L3, double a1_shell, double tk,
+            double T_o_3, double D_o_3, double D_f_3, double T_o_1, double D_o_1, double D_f_1, double n_curve)
+        {
+            this.E_shell = E_shell; // GPa = 1000Mpa = 1000N / mm2
+            this.ni_shell = ni_shell; // stathera poisson
+            this.elem1 = elem1;
+            this.elem2 = elem2;
+            this.L1 = L1;// nm
+            this.L2 = L2;// nm
+            this.L3 = L3; // nm
+            this.a1_shell = a1_shell; // nm
+            this.tk = tk;  // 0.0125016478913782nm
+
+            //parametroi cohesive epifaneias
+            //T_o_3, D_o_3,D_f_3,T_o_1,D_o_1,D_f_1,n_curve
+            this.T_o_3 = T_o_3;// Gpa = 1000Mpa = 1000N / mm2
+            this.D_o_3 = D_o_3; // nm
+            this.D_f_3 = D_f_3; // nm
+
+            this.T_o_1 = T_o_1;// Gpa
+            this.D_o_1 = D_o_1; // nm
+            this.D_f_1 = D_f_1; // nm
+
+            this.n_curve = n_curve;
+        }
+    }
+
+    public class renumbering
+    {
+        public int[] sunol_nodes_numbering { get; set; }
+
+        public renumbering()
+        {
+
+        }
+        public renumbering(int[] sunol_nodes_numbering)
+        {
+            this.sunol_nodes_numbering = sunol_nodes_numbering;
+        }
+
+        public int GetNewNodeNumbering(int initial_node_number)
+        {
+            return sunol_nodes_numbering[initial_node_number - 1];
+        }
+
+    }
 }

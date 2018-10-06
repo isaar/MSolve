@@ -11,6 +11,8 @@ using ISAAR.MSolve.Problems;
 //using ISAAR.MSolve.SamplesConsole;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using System.Collections.Generic;
 using Xunit;
 
@@ -134,8 +136,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
 
             //VonMisesMaterial3D material1 = new VonMisesMaterial3D(1353000, 0.30, 1353000, 0.15);
-            NEWElasticMaterial3D material1 = new NEWElasticMaterial3D(){ PoissonRatio=0.3, YoungModulus= 1353000 }; 
-
+            ElasticMaterial3D material1 = new ElasticMaterial3D() { PoissonRatio = 0.3, YoungModulus = 1353000 };
 
             double[,] nodeData = new double[,] { {-0.250000,-0.250000,-1.000000},
             {0.250000,-0.250000,-1.000000},
@@ -178,7 +179,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 e1 = new Element()
                 {
                     ID = nElement + 1,
-                    ElementType = new Hexa8NLRAM_1mat(material1, 3, 3, 3) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8                    
+                    ElementType = new Hexa8NonLinear(material1, GaussLegendre3D.GetQuadratureWithOrder(3,3,3)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8                    
                 };
                 for (int j = 0; j < 8; j++)
                 {

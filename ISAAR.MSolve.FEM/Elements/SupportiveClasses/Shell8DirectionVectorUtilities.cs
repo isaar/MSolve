@@ -14,8 +14,8 @@ namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
             {
                 tU[j] = new double[6];
                 tUvec[j] = new double[6];
-                for (int k = 0; k < 3; k++) { tU[j][3 + k] = oVn_i[j][k]; } // ean allaxthei to tU san onoma kai diastaseis tha
-                                                                            //ephreastei edw kai oles oi upoloipes anafores se afto parakatw 
+                for (int k = 0; k < 3; k++) { tU[j][3 + k] = oVn_i[j][k]; }
+                                                                            
 
                 tUvec[j][0] = tU[j][5];
                 tUvec[j][1] = 0;
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
 
 
         /// <summary>
-        /// method used by cohesive shell elements for now
+        /// Used by cohesive shell elements for now
         /// </summary>
         /// <param name="ak"></param>
         /// <param name="bk"></param>
@@ -47,15 +47,12 @@ namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
         /// 
         public static void RotateNodalDirectionVectors(double ak, double bk, int n_vector, double[][] tU, double[][] tUvec )
         {                                                                          
-            // PROSTHIKI RAM 
-            double gk1;
             double[,] Q = new double[3, 3];
             double[,] Q2 = new double[3, 3];
 
             double[] tdtVn = new double[3];
             double[] tdtV1 = new double[3];
             double[] tdtV2 = new double[3];
-            double theta;
             double[] theta_vec = new double[3];
             double[,] s_k = new double[3, 3];
 
@@ -63,7 +60,7 @@ namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
             {
                 theta_vec[j] = ak * tUvec[n_vector][j] + bk * tUvec[n_vector][3 + j];
             }
-            theta = Math.Sqrt((theta_vec[0] * theta_vec[0]) + (theta_vec[1] * theta_vec[1]) + (theta_vec[2] * theta_vec[2]));
+            double theta = Math.Sqrt((theta_vec[0] * theta_vec[0]) + (theta_vec[1] * theta_vec[1]) + (theta_vec[2] * theta_vec[2]));
             if (theta > 0)
             {
                 s_k[0, 1] = -theta_vec[2];
@@ -85,12 +82,11 @@ namespace ISAAR.MSolve.FEM.Elements.SupportiveClasses
                 {
                     Q[m, m] += 1;
                 }
-                gk1 = 0.5 * ((Math.Sin(0.5 * theta) / (0.5 * theta)) * (Math.Sin(0.5 * theta) / (0.5 * theta)));
+                double gk1 = 0.5 * ((Math.Sin(0.5 * theta) / (0.5 * theta)) * (Math.Sin(0.5 * theta) / (0.5 * theta)));
                 for (int j = 0; j < 3; j++)
                 {
                     for (int m = 0; m < 3; m++)
                     {
-                        //Q2[j, m] = 0; //sp1
                         for (int n = 0; n < 3; n++)
                         { Q2[j, m] += gk1 * s_k[j, n] * s_k[n, m]; }
                     }
