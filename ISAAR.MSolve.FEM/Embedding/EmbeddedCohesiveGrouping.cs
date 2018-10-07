@@ -1,15 +1,9 @@
-﻿using System;
+﻿using ISAAR.MSolve.FEM.Embedding;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.FEM.Interfaces;//using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
-using System.IO;
-//using ISAAR.MSolve.PreProcessor.Elements;
-// compa
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
 
 //TODO: this and EmbeddedGrouping have most things in common. Use a base class for them and template method or use polymorhism from the composed classes.
 namespace ISAAR.MSolve.PreProcessor.Embedding

@@ -24,20 +24,13 @@ namespace ISAAR.MSolve.FEM.Embedding
         private readonly IEmbeddedDOFInHostTransformationVector transformation;
         private readonly Dictionary<SuperElementDOF, int> superElementMap = new Dictionary<SuperElementDOF, int>();
         private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
-        //PROSTHIKI EMBEDDED: comment out to private apo to transformation matrix
         private CscMatrix transformationMatrix;
-        ////EMBEDDED:
-        //public Matrix2D<double> transformationMatrix;
-
-        //private bool isElementEmbedded = false;
-
         public CohesiveElementEmbedder(Model model, Element embeddedElement, IEmbeddedDOFInHostTransformationVector transformation)
         {
             this.model = model;
             this.embeddedElement = embeddedElement;
             this.transformation = transformation;
-            Initialize();
-            // PROSTHIKI EMBEDDED:
+            Initialize();            
         }
 
        
@@ -192,7 +185,6 @@ namespace ISAAR.MSolve.FEM.Embedding
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return matrix;
             if (e.EmbeddedNodes.Count == 0) return matrix;
-            //PrintUtilities.WriteToFile(transformationMatrix.Data, @"C:\Users\turbo-x\Desktop\cohesive_check_MSOLVE_2\paradeigma_apo_arxika_swsta_embeded_shell_gia_check_tou_rve_embedding_sto_MSolve\elegxos_alalgwn_fe2_tax_me1_arxiko_chol_dixws_me1_OneElementRVECheckExample\transformationMatrix.txt");//transformationMatrix.Data();
             return transformationMatrix.MultiplyTransposeThisTimesOtherTimesThis((Matrix2D)matrix);
         }
 

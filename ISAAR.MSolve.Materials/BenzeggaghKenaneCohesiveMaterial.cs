@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces; //using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra; //using ISAAR.MSolve.Matrices;
+﻿using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class BenzeggaghKenaneCohesiveMaterial : ICohesiveZoneMaterial3D // ean de vazamr to public sto class de tha mporousame na orisoume uliko sto hexaBuilder
+    public class BenzeggaghKenaneCohesiveMaterial : ICohesiveZoneMaterial3D 
     {
-        private bool modified; // opws sto MohrCoulomb gia to modified
+        private bool modified;
 
-        public double T_o_3 { get; set; } // opws sto elastic 3d 
+        public double T_o_3 { get; set; }
         public double D_o_3 { get; set; }
         public double D_f_3 { get; set; }
         public double T_o_1 { get; set; }
@@ -77,14 +74,10 @@ namespace ISAAR.MSolve.Materials
 
         public void UpdateMaterial(double[] Delta)
         {
-            //Array.Copy(strainsIncrement, this.incrementalStrains, 6);
-            //this.CalculateNextStressStrainPoint();
-
-            //elegxos initialize matrices
             if (matrices_not_initialized)
             { this.InitializeMatrices(); }
 
-            // apothikefsi palaiou modified check
+            // Store previous Tangent moduli for ifmaterialsModified check
             for (int k = 0; k < 3; k++)
             {
                 for (int j = 0; j < 3; j++)
@@ -204,7 +197,7 @@ namespace ISAAR.MSolve.Materials
             return false;
         }
 
-        public double[] Tractions // opws xrhsimopoeitai sto mohrcoulomb kai hexa8
+        public double[] Tractions 
         {
             get { return T_int; }
         }
@@ -238,14 +231,13 @@ namespace ISAAR.MSolve.Materials
             get { return 999; }
         }
 
-        // methodoi ews edw xrhsimopoiountai
-
-        public void ClearState() // pithanws TODO 
+        public void ClearState() 
         {
-            //ean thelei to D_tan ths arxikhs katastashs kanoume kommati ths diadikasias ths update material 
-            // me d_prev_step=0 kai Delta [i] = 0 gia i=0,1 kai 2
-            // alla oxi ia na to xrhsimopoihsei gia elastiko se alles periptwseis
-            // sthn epanalhptikh diadikasia (opws px provider.Reset pou sumvainei se polles epanalipseis?)
+            // possibly TODO 
+            //if D_tan of initial state is wanted copy calculations from update material for 
+            // d_prev_step=0 kai Delta [i] = 0 gia i=0,1 kai 2
+            //but don't use it as elastic in other cases
+            // maybe in iterative procedure (example provider.Reset ?)
         }
         public void ClearTractions()
         {
@@ -267,6 +259,7 @@ namespace ISAAR.MSolve.Materials
         }
 
         private double [] coordinates ;
+
         public double [] Coordinates
         {
 
