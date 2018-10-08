@@ -40,12 +40,12 @@ namespace ISAAR.MSolve.SamplesConsole
             double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
-            string workingDirectory = @"D:\George\Desktop\input files"; //"E:\GEORGE_DATA\DESKTOP\CNTExample";
+            string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\CNTExample"; //"D:\George\Desktop\input files"; //
             string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
             string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
-            string solverType = "PCG"; //"Skyline"; //
-            string childAnalyzerType = "Linear"; //"Newton-Raphson"; //
+            int increments = 100;
 
+            //Read number of nodes and number of elements from input files
             int nNodes = File.ReadLines(workingDirectory + '\\' + geometryFileName).Count();
             int nElems = File.ReadLines(workingDirectory + '\\' + connectivityFileName).Count();
             int monitorNode_1 = nNodes - 1;
@@ -188,8 +188,7 @@ namespace ISAAR.MSolve.SamplesConsole
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
-            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 50;
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };            
             int totalDOFs = model.TotalDOFs;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs);
@@ -215,16 +214,17 @@ namespace ISAAR.MSolve.SamplesConsole
             double youngModulus = 16710.0;
             double poissonRatio = 0.034;
             double nodalLoad = 1.2;
-            double nodalDisplacement = 10.0;
+            double nodalDisplacement = 23.73;
             double area = 5.594673861218848e-003;
             double inertiaY = 2.490804749753243e-006;
             double inertiaZ = 2.490804749753243e-006;
             double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
-            string workingDirectory = @"D:\George\Desktop\input files"; //"E:\GEORGE_DATA\DESKTOP\CNTExample";
+            string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\CNTExample";
             string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
             string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
+            int increments = 100;
 
             int nNodes = File.ReadLines(workingDirectory + '\\' + geometryFileName).Count();
             int nElems = File.ReadLines(workingDirectory + '\\' + connectivityFileName).Count();
@@ -363,8 +363,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            var equivalentLoadsAssemblers = new[] { new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) };
-            int increments = 10;
+            var equivalentLoadsAssemblers = new[] { new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) };            
             int totalDOFs = model.TotalDOFs;
             DisplacementControlNonLinearAnalyzer childAnalyzer = new DisplacementControlNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             equivalentLoadsAssemblers, provider, increments, totalDOFs);
