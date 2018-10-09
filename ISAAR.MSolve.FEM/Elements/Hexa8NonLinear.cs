@@ -373,7 +373,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private Matrix2D UpdateKmatrices(IElement element)
         {
-            Matrix2D k_stoixeiou = new Matrix2D(24, 24);
+            Matrix2D k_element = new Matrix2D(24, 24);
 
 
             // initialization of matrices that are not cached currently
@@ -529,7 +529,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 knl_[npoint] = BNL_hexa[npoint].Transpose() * integrCoeff_SPK_epi_BNL_hexa;                
             }
 
-            // Add contributions of each gp on the total element stiffness matrix k_stoixeiou            
+            // Add contributions of each gp on the total element stiffness matrix k_element            
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
                 for (int m = 0; m < 24; m++)
@@ -545,11 +545,11 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int n = 0; n < 24; n++)
                 {
-                    k_stoixeiou[m, n] = kl_[nGaussPoints][m, n] + knl_[nGaussPoints][m, n];
+                    k_element[m, n] = kl_[nGaussPoints][m, n] + knl_[nGaussPoints][m, n];
                 }
             }
 
-            return k_stoixeiou;
+            return k_element;
         }
         
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
