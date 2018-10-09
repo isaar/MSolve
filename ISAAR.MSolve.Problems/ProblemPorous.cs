@@ -14,6 +14,7 @@ using ISAAR.MSolve.FEM.Providers;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Solvers.Assemblers;
 
 namespace ISAAR.MSolve.Problems
 {
