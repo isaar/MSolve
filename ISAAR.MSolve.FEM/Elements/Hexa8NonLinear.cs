@@ -1,22 +1,17 @@
-﻿using System;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Embedding;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.FEM.Interpolation.Jacobians;
+using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.FEM.Interfaces;//using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matrices.Interfaces;
-using System.Runtime.InteropServices;
-using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;//using ISAAR.MSolve.PreProcessor.Elements.SupportiveClasses;
-using ISAAR.MSolve.FEM.Embedding;//using ISAAR.MSolve.PreProcessor.Embedding;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.FEM.Interpolation;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -311,11 +306,11 @@ namespace ISAAR.MSolve.FEM.Elements
             BL01_hexa = GetBL01_hexa(J_0inv_hexa);
 
             //INITIALIZATION of MAtrixes that are currently not cached
-            Vector[] sunt_ol_Spkvec = new Vector[nGaussPoints];
+            Vector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
             Matrix2D[] BL = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                sunt_ol_Spkvec[gpoint] = new Vector(6);
+                integrCoeff_Spkvec[gpoint] = new Vector(6);
                 BL[gpoint] = new Matrix2D(6, 24);
             }
 
@@ -336,11 +331,11 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
 
-                sunt_ol_Spkvec[npoint] = integrationCoeffs[npoint] * materialsAtGaussPoints[npoint].Stresses;
+                integrCoeff_Spkvec[npoint] = integrationCoeffs[npoint] * materialsAtGaussPoints[npoint].Stresses;
                 
                 //
-                Matrix2D l_perisp = new Matrix2D(3, 3);
-                l_perisp = shapeFunctionNaturalDerivatives[npoint] * ll2;
+                Matrix2D l_cyrcumflex = new Matrix2D(3, 3);
+                l_cyrcumflex = shapeFunctionNaturalDerivatives[npoint] * ll2;
 
                 for (int m = 0; m < 6; m++)
                 {
@@ -348,9 +343,9 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int p = 0; p < 3; p++)
                         {
-                            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_perisp[p, n];
-                            BL11[npoint][m, 3 + n] += BL11a_hexa[npoint][m, 3 + p] * l_perisp[p, n];
-                            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_perisp[p, n];
+                            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_cyrcumflex[p, n];
+                            BL11[npoint][m, 3 + n] += BL11a_hexa[npoint][m, 3 + p] * l_cyrcumflex[p, n];
+                            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_cyrcumflex[p, n];
                         }
                     }
                 }
@@ -363,7 +358,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 BL[npoint] = BL1112sun01_hexa[npoint] * BL13_hexa[npoint];
                 
                 // 
-                fxk1[npoint] = BL[npoint].Transpose() * sunt_ol_Spkvec[npoint];                
+                fxk1[npoint] = BL[npoint].Transpose() * integrCoeff_Spkvec[npoint];                
             }
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
@@ -382,11 +377,11 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
             // initialization of matrices that are not cached currently
-            Vector[] sunt_ol_Spkvec = new Vector[nGaussPoints];
+            Vector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
             Matrix2D[] BL = new Matrix2D[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                sunt_ol_Spkvec[gpoint] = new Vector(6);
+                integrCoeff_Spkvec[gpoint] = new Vector(6);
                 BL[gpoint] = new Matrix2D(6, 24);
 
             }
@@ -424,11 +419,11 @@ namespace ISAAR.MSolve.FEM.Elements
             {
 
                 // 
-                sunt_ol_Spkvec[npoint] = integrationCoeffs[npoint] * materialsAtGaussPoints[npoint].Stresses;
+                integrCoeff_Spkvec[npoint] = integrationCoeffs[npoint] * materialsAtGaussPoints[npoint].Stresses;
                 
                 //
-                Matrix2D l_perisp = new Matrix2D(3, 3);
-                l_perisp = shapeFunctionNaturalDerivatives[npoint] * ll2;
+                Matrix2D l_cyrcumflex = new Matrix2D(3, 3);
+                l_cyrcumflex = shapeFunctionNaturalDerivatives[npoint] * ll2;
                  
                 for (int m = 0; m < 6; m++)
                 {
@@ -436,9 +431,9 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int p = 0; p < 3; p++)
                         {
-                            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_perisp[p, n];
-                            BL11[npoint][m, 3 + n] += BL11a_hexa[npoint][m, 3 + p] * l_perisp[p, n];
-                            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_perisp[p, n];
+                            BL11[npoint][m, n] += BL11a_hexa[npoint][m, p] * l_cyrcumflex[p, n];
+                            BL11[npoint][m, 3 + n] += BL11a_hexa[npoint][m, 3 + p] * l_cyrcumflex[p, n];
+                            BL11[npoint][m, 6 + n] += BL11a_hexa[npoint][m, 6 + p] * l_cyrcumflex[p, n];
                         }
                     }
                 }
@@ -466,10 +461,10 @@ namespace ISAAR.MSolve.FEM.Elements
             }
 
 
-            Matrix2D[] sunt_ol_Spk = new Matrix2D[nGaussPoints];
+            Matrix2D[] integrCoeff_Spk = new Matrix2D[nGaussPoints];
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                sunt_ol_Spk[npoint] = new Matrix2D(3, 3);
+                integrCoeff_Spk[npoint] = new Matrix2D(3, 3);
             }
 
             Matrix2D[] kl_ = new Matrix2D[nGaussPoints + 1];
@@ -484,20 +479,20 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                Matrix2D sunt_ol_SPK_epi_BNL_hexa = new Matrix2D(9, 24); //TODO
-                Matrix2D sunt_ol_cons_disp = new Matrix2D(6, 6); //TODO
-                Matrix2D sunt_ol_cons_disp_epi_BL = new Matrix2D(6, 24);//TODO
+                Matrix2D integrCoeff_SPK_epi_BNL_hexa = new Matrix2D(9, 24); //TODO
+                Matrix2D integrCoeff_cons_disp = new Matrix2D(6, 6); //TODO
+                Matrix2D integrCoeff_cons_disp_epi_BL = new Matrix2D(6, 24);//TODO
 
                 //
-                sunt_ol_Spk[npoint][0, 0] = sunt_ol_Spkvec[npoint][0];
-                sunt_ol_Spk[npoint][0, 1] = sunt_ol_Spkvec[npoint][3];
-                sunt_ol_Spk[npoint][0, 2] = sunt_ol_Spkvec[npoint][5];
-                sunt_ol_Spk[npoint][1, 0] = sunt_ol_Spkvec[npoint][3];
-                sunt_ol_Spk[npoint][1, 1] = sunt_ol_Spkvec[npoint][1];
-                sunt_ol_Spk[npoint][1, 2] = sunt_ol_Spkvec[npoint][4];
-                sunt_ol_Spk[npoint][2, 0] = sunt_ol_Spkvec[npoint][5];
-                sunt_ol_Spk[npoint][2, 1] = sunt_ol_Spkvec[npoint][4];
-                sunt_ol_Spk[npoint][2, 2] = sunt_ol_Spkvec[npoint][2];
+                integrCoeff_Spk[npoint][0, 0] = integrCoeff_Spkvec[npoint][0];
+                integrCoeff_Spk[npoint][0, 1] = integrCoeff_Spkvec[npoint][3];
+                integrCoeff_Spk[npoint][0, 2] = integrCoeff_Spkvec[npoint][5];
+                integrCoeff_Spk[npoint][1, 0] = integrCoeff_Spkvec[npoint][3];
+                integrCoeff_Spk[npoint][1, 1] = integrCoeff_Spkvec[npoint][1];
+                integrCoeff_Spk[npoint][1, 2] = integrCoeff_Spkvec[npoint][4];
+                integrCoeff_Spk[npoint][2, 0] = integrCoeff_Spkvec[npoint][5];
+                integrCoeff_Spk[npoint][2, 1] = integrCoeff_Spkvec[npoint][4];
+                integrCoeff_Spk[npoint][2, 2] = integrCoeff_Spkvec[npoint][2];
 
                 //
                 double[,] consDisp = materialsAtGaussPoints[npoint].ConstitutiveMatrix.Data;
@@ -506,15 +501,15 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     for (int n = 0; n < 6; n++)
                     {
-                        sunt_ol_cons_disp[m, n] = integrationCoeffs[npoint] * consDisp[m, n];
+                        integrCoeff_cons_disp[m, n] = integrationCoeffs[npoint] * consDisp[m, n];
                     }
                 }
 
                 //
-                sunt_ol_cons_disp_epi_BL = sunt_ol_cons_disp * BL[npoint];
+                integrCoeff_cons_disp_epi_BL = integrCoeff_cons_disp * BL[npoint];
                 
                 //
-                kl_[npoint] = BL[npoint].Transpose() * sunt_ol_cons_disp_epi_BL;                
+                kl_[npoint] = BL[npoint].Transpose() * integrCoeff_cons_disp_epi_BL;                
 
                 //
                 for (int m = 0; m < 3; m++) // 3x24 dimensions
@@ -523,26 +518,18 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int p = 0; p < 3; p++)
                         {
-                            sunt_ol_SPK_epi_BNL_hexa[m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][p, n];
-                            sunt_ol_SPK_epi_BNL_hexa[3 + m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][3 + p, n];
-                            sunt_ol_SPK_epi_BNL_hexa[6 + m, n] += sunt_ol_Spk[npoint][m, p] * BNL_hexa[npoint][6 + p, n];
+                            integrCoeff_SPK_epi_BNL_hexa[m, n] += integrCoeff_Spk[npoint][m, p] * BNL_hexa[npoint][p, n];
+                            integrCoeff_SPK_epi_BNL_hexa[3 + m, n] += integrCoeff_Spk[npoint][m, p] * BNL_hexa[npoint][3 + p, n];
+                            integrCoeff_SPK_epi_BNL_hexa[6 + m, n] += integrCoeff_Spk[npoint][m, p] * BNL_hexa[npoint][6 + p, n];
                         }
                     }
                 }
 
                 //
-                knl_[npoint] = BNL_hexa[npoint].Transpose() * sunt_ol_SPK_epi_BNL_hexa;                
+                knl_[npoint] = BNL_hexa[npoint].Transpose() * integrCoeff_SPK_epi_BNL_hexa;                
             }
 
-            // athroisma olwn twn gpoints se k_stoixeiou kai prwta mhdenismos aftou
-            for (int m = 0; m < 24; m++) // TODO DELETE that
-            {
-                for (int n = 0; n < 24; n++)
-                {
-                    kl_[nGaussPoints][m, n] = 0;
-                    knl_[nGaussPoints][m, n] = 0;
-                }
-            }
+            // Add contributions of each gp on the total element stiffness matrix k_stoixeiou            
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
                 for (int m = 0; m < 24; m++)
@@ -579,7 +566,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return new Tuple<double[], double[]>(GLvec_strain_minus_last_converged_value, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
             //TODO return data with total strains data would be:
             //return new Tuple<double[], double[]>(GLvec[materialsAtGaussPoints.Length - 1], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
-            //TODO mono to teleftaio dianusma tha epistrefei?
+            //TODO: why return only the strain- stress of the gausspoint that is last on the array, Where is it needed?
         }
 
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)

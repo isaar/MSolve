@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         protected override double[,] EvaluateGradientsAt(double ksi, double heta)
         {
-            var shapeFunctionDerivativesGp = new double[2, 8]; // 2(0:ws pros ksi 1:ws pros heta) 8(arithmos shape functions ara kai komvwn)
+            var shapeFunctionDerivativesGp = new double[2, 8]; //notation per each dimension 2(0:denotes derivative ksi 1:denotes derivative heta) 8(number of shape functions and hence nodes)
 
             shapeFunctionDerivativesGp[0, 4] = (-ksi) * (1 + heta);
             shapeFunctionDerivativesGp[0, 5] = -0.5 * (1 - Math.Pow(heta, 2));

@@ -30,6 +30,11 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[] integrationCoefficient;
         private double[][] tU;   //dimensions 8 arrays of six elements
         private double[][] tUvec;//dimensions 8 arrays of six elements
+        
+        // updating element configurations (NESSESARY for UpdateCoordinateData method)
+        // auxiliary fields for calculating element iterative rotations
+        private double[] ak_total = new double[8];
+        private double[] bk_total = new double[8];
 
         private double[][] GLvec; // TODO possibly gl_vec_last_converged can be saved too if strains aren't handled in tthe current way by shell material classes
         
@@ -439,7 +444,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private Matrix2D UpdateKmatrices(IElement element)
         {            
-            double[][] kck;// 1 per node and (one per Gauss point+1 for the addition) -->[GP][8 vathmoi komvoi]
+            double[][] kck;// 1 per node and (one per Gauss point+1 for the addition) -->[GP][8 dofs_per_node*nodes]
             Matrix2D[] KNL;
             Matrix2D[] KL;
             double[][] BL01plus1_2tSPKvec;
@@ -627,11 +632,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
             return Kt;
         }
-
-        // updating element configurations
-        // auxiliary fields for calculating element iterative rotations
-        private double[] ak_total = new double[8];
-        private double[] bk_total = new double[8];
 
         private void UpdateCoordinateData(double[] localdisplacements, IList<INode> elementNodes, out double[][] tx_i)
         {

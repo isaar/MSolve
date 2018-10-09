@@ -441,7 +441,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return fxk2_coh;
         }
 
-        private double[,] MultiplyStifnessMatrixForEmbedding(double [,] k_stoixeiou_coh, IElement element)
+        private double[,] MultiplyStifnessMatrixForEmbedding(double [,] k_element_coh, IElement element)
         {
             double[,] T = CalculateTMatrix( element);
             double[,] k_element_coh2 = new double[64, 64];
@@ -454,7 +454,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int k = 0; k < 24; k++)
                         {
-                            Kii_A[n, p] += k_stoixeiou_coh[n, k] * T[k, p];
+                            Kii_A[n, p] += k_element_coh[n, k] * T[k, p];
                         }
                     }
                 }
@@ -476,7 +476,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int k = 0; k < 24; k++)
                         {
-                            k_element_coh2[n, 40 + p] += T[k, n] * k_stoixeiou_coh[k, 24 + p];
+                            k_element_coh2[n, 40 + p] += T[k, n] * k_element_coh[k, 24 + p];
                         }
                     }
                 }
@@ -487,7 +487,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int k = 0; k < 24; k++)
                         {
-                            k_element_coh2[40+n, p] +=  k_stoixeiou_coh[24+n, k] * T[k, p];
+                            k_element_coh2[40+n, p] +=  k_element_coh[24+n, k] * T[k, p];
                         }
                     }
                 }
@@ -497,7 +497,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     for (int p = 0; p < 24; p++)
                     {
-                        k_element_coh2[40 + n,40 + p] = k_stoixeiou_coh[24+n,24+p];
+                        k_element_coh2[40 + n,40 + p] = k_element_coh[24+n,24+p];
                     }
                 }
             }
@@ -509,7 +509,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int k = 0; k < 24; k++)
                         {
-                            Kii_A[n, p] += k_stoixeiou_coh[24+n, 24+k] * T[k, p];
+                            Kii_A[n, p] += k_element_coh[24+n, 24+k] * T[k, p];
                         }
                     }
                 }
@@ -519,7 +519,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     for (int p = 0; p < 24; p++)
                     {
-                        k_element_coh2[40+n,40+ p] = k_stoixeiou_coh[n, p];
+                        k_element_coh2[40+n,40+ p] = k_element_coh[n, p];
                     }
                 }
 
@@ -530,7 +530,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int k = 0; k < 24; k++)
                         {
-                            k_element_coh2[40+n, p] += k_stoixeiou_coh[n, 24 + k] * T[k, p];
+                            k_element_coh2[40+n, p] += k_element_coh[n, 24 + k] * T[k, p];
                         }
                     }
                 }
@@ -542,7 +542,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         for (int k = 0; k < 24; k++)
                         {
-                            k_element_coh2[n,40+ p] += T[k, n] * k_stoixeiou_coh[24 + k, p];
+                            k_element_coh2[n,40+ p] += T[k, n] * k_element_coh[24 + k, p];
                         }
                     }
                 }

@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             ll1 = new double[nGaussPoints][,];
             for (int j = 0; j < nGaussPoints; j++)
             { ll1[j] = new double[3, 24]; }
-            for (int j = 0; j < nGaussPoints; j++) //dhmiourgia olklhrou tou ll1 gia kathe gauss point
+            for (int j = 0; j < nGaussPoints; j++) //calcualte ll1 as a whole, at each gp
             {
                 for (int k = 0; k < 8; k++)
                 {
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             }
 
-            double[][,] J_0a;//einai teliko kai oxi prok
+            double[][,] J_0a;//final values (not precalculated )
             J_0a = new double[nGaussPoints][,];
             for (int j = 0; j < nGaussPoints; j++)
             { J_0a[j] = new double[3, 16]; }
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             ll1 = new Matrix2D[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             { ll1[j] = new Matrix2D(3, 24); }
-            for (int j = 0; j < nGaussPoints; j++) //dhmiourgia olklhrou tou ll1 gia kathe gauss point
+            for (int j = 0; j < nGaussPoints; j++) //calcualte ll1 as a whole, at each gp
             {
                 var gaussPoint = quadrature.IntegrationPoints[j];
                 for (int k = 0; k < 8; k++)
@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             }
 
-            Matrix2D[] J_0a;//einai teliko kai oxi prok
+            Matrix2D[] J_0a;//final values (not precalculated )
             J_0a = new Matrix2D[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             { J_0a[j] = new Matrix2D(3, 16); }
@@ -109,8 +109,8 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                 ox_i[j] = new double[] { elementNodes[j].X, elementNodes[j].Y, elementNodes[j].Z, };
             }
 
-            double[,] J_0b;    //einai idio gia ola ta gauss points 
-            double[][,] J_0;       //den einai to idio gia ola ta gausspoint // einai teliko kai oxi prok
+            double[,] J_0b;    //the same for all of the gauss points
+            double[][,] J_0;       //different value for each gausspoint //final values (not precalculated )
 
             J_0b = new double[16, 3];
             for (int j = 0; j < 8; j++)

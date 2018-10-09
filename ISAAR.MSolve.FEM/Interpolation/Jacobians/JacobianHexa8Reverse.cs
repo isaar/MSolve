@@ -11,10 +11,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
     {
         public static (Matrix2D[] J_0inv_hexa, double[] detJ_0) GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix2D> ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
         {
-            double[][,] J_0b_hexa; // exoume tosa [,] osa einai kai ta gpoints
+            double[][,] J_0b_hexa; // dimension [] number of gpoints
             double[][,] J_0_hexa;
             Matrix2D[] J_0inv_hexa;
-            double[] detJ_0; //osa kai ta gpoints
+            double[] detJ_0; // dimension [] number of gpoints
 
             double[][] ox_i;
             ox_i = new double[8][];
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                // initialize diastaseis twn mhtrwwn kai meta gemisma keliwn (olwn h mono oswn mporoume sthn arxh)
+                // initialize matrices and calculate those known in the undeformed configuration
                 J_0b_hexa[gpoint] = new double[8, 3];
                 J_0_hexa[gpoint] = new double[3, 3];
                 J_0inv_hexa[gpoint] =new Matrix2D(3, 3);
@@ -98,10 +98,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         }
         public static (double[][,] J_0inv_hexa, double[] detJ_0) GetJ_0invHexaAndDetJ_0(double[][,] ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
         {
-            double[][,] J_0b_hexa; // exoume tosa [,] osa einai kai ta gpoints
+            double[][,] J_0b_hexa; // dimension [] number of gpoints
             double[][,] J_0_hexa;
             double[][,] J_0inv_hexa;
-            double[] detJ_0; //osa kai ta gpoints
+            double[] detJ_0; // dimension [] number of gpoints
 
             double[][] ox_i;
             ox_i = new double[8][];
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                // initialize diastaseis twn mhtrwwn kai meta gemisma keliwn (olwn h mono oswn mporoume sthn arxh)
+                // initialize matrices and calculate those known in the undeformed configuration
                 J_0b_hexa[gpoint] = new double[8, 3];
                 J_0_hexa[gpoint] = new double[3, 3];
                 J_0inv_hexa[gpoint] = new double[3, 3];
