@@ -7,14 +7,14 @@ namespace ISAAR.MSolve.FEM.Materials
 {
     public class ElasticMaterial3D : IIsotropicContinuumMaterial3D
     {
-        private readonly double[] strains = new double[6];
-        private readonly double[] incrementalStrains = new double[6];
+        //private readonly double[] strains = new double[6];
         private readonly double[] stresses = new double[6];
-        private double[] stressesNew = new double[6];
         private double[,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
         public double[] Coordinates { get; set; }
+        private readonly double[] incrementalStrains = new double[6];
+        private double[] stressesNew = new double[6];
 
         private double[,] GetConstitutiveMatrix()
         {
@@ -36,8 +36,8 @@ namespace ISAAR.MSolve.FEM.Materials
             afE[4, 4] = fE4;
             afE[5, 5] = fE4;
 
-            Vector s = (new Matrix2D(afE)) * (new Vector(strains));
-            s.Data.CopyTo(stresses, 0);
+            //Vector<double> s = (new Matrix2D<double>(afE)) * (new Vector<double>(incrementalStrains));
+            //s.Data.CopyTo(stresses, 0);
 
             return afE;
         }
@@ -75,27 +75,29 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region IFiniteElementMaterial3D Members
 
-        public StressStrainVectorContinuum3D Stresses { get { return new StressStrainVectorContinuum3D(stresses); } }
+        public StressStrainVectorContinuum3D Stresses { get { return new StressStrainVectorContinuum3D(stressesNew); } }
 
         public ElasticityTensorContinuum3D ConstitutiveMatrix
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(new StressStrainVectorContinuum3D(new double[6]));
+                if (constitutiveMatrix == null) UpdateMaterial(new StressStrainVectorContinuum3D( new double[6]));
                 return new ElasticityTensorContinuum3D(constitutiveMatrix);
             }
         }
 
         public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
         {
+            //throw new NotImplementedException();
             Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
             constitutiveMatrix = GetConstitutiveMatrix();
             this.CalculateNextStressStrainPoint();
+
         }
 
         public void ClearState()
         {
-            if (constitutiveMatrix != null) Array.Clear(constitutiveMatrix, 0, constitutiveMatrix.Length);
+            //Array.Clear(constitutiveMatrix, 0, constitutiveMatrix.Length);
             Array.Clear(incrementalStrains, 0, incrementalStrains.Length);
             Array.Clear(stresses, 0, stresses.Length);
             Array.Clear(stressesNew, 0, stressesNew.Length);
@@ -116,6 +118,11 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region ICloneable Members
 
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
+
         public ElasticMaterial3D Clone()
         {
             return new ElasticMaterial3D() { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
@@ -124,4 +131,5 @@ namespace ISAAR.MSolve.FEM.Materials
         #endregion
 
     }
+
 }

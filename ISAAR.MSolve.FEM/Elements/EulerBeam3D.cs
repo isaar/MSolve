@@ -747,7 +747,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //return (transformation * new Vector<double>(values)).Data;
 
-            return dofEnumerator.GetTransformedVector(hostDOFValues);
+            return dofEnumerator.GetTransformedDisplacementsVector(hostDOFValues);
         }
 
         #endregion
