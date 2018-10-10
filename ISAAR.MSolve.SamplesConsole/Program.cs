@@ -148,12 +148,10 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
-            //FEM.Cantilever2D.Run();
+            FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
             //new AppliedDisplacementExample().check();
-            //CNT_4_4_Example_NewtonRaphson.Run();
-            CNT_4_4_Example_DisplacementControl.Run();
         }
     }
 }
