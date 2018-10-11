@@ -156,8 +156,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Numerical.LinearAlgebra.Matrix2D other)
         { //TODO: delete this once legacy vectors, matrices are no longer used.
             var otherCopy = Matrix.CreateFromLegacyMatrix(other);
-            Matrix otherTimesThis = csc.MultiplyLeft(otherCopy, false, false);
-            Matrix result = csc.MultiplyRight(otherTimesThis, true, false);
+            Matrix transposeThisTimesOther = csc.MultiplyRight(otherCopy, true, false);
+            Matrix result = csc.MultiplyLeft(transposeThisTimesOther, false, false);
+            //Matrix otherTimesThis = csc.MultiplyLeft(otherCopy, false, false);
+            //Matrix result = csc.MultiplyRight(otherTimesThis, true, false);
             return new Numerical.LinearAlgebra.Matrix2D(result.CopyToArray2D());
         }
 

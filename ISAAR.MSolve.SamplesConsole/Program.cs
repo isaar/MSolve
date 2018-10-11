@@ -100,9 +100,9 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Fix cantilever left end node of the model
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+            model.NodesDictionary[0].Constraints.Add(DOFType.X);
+            model.NodesDictionary[0].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[0].Constraints.Add(DOFType.RotZ);
 
             for (int i = 0; i < model.NodesDictionary.Count - 1; i++)
             {
@@ -148,10 +148,11 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
-            FEM.Cantilever2D.Run();
+            //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
-            //new AppliedDisplacementExample().check();
+            //SeparateCodeCheckingClass.Check06();
+
         }
     }
 }

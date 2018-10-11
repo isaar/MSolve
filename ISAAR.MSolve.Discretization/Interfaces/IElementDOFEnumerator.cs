@@ -9,6 +9,15 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement element);
 		IList<INode> GetNodesForMatrixAssembly(IElement element);
 		IMatrix2D GetTransformedMatrix(IMatrix2D matrix);
-		double[] GetTransformedVector(double[] vector);
-	}
+
+        /// <summary>
+        /// Returns element local displacements.
+        /// </summary>
+		double[] GetTransformedDisplacementsVector(double[] superElementDisplacements);
+
+        /// <summary>
+        /// Returns super-element forces.
+        /// </summary>
+        double[] GetTransformedForcesVector(double[] elementLocalForces);
+    }
 }

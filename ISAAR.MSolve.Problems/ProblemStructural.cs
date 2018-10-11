@@ -13,6 +13,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.FEM.Providers;
+using ISAAR.MSolve.Solvers.Assemblers;
 
 namespace ISAAR.MSolve.Problems
 {

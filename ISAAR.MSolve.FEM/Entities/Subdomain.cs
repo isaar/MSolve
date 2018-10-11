@@ -6,6 +6,8 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using System.Globalization;
+using System.IO;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
@@ -308,12 +310,13 @@ namespace ISAAR.MSolve.FEM.Entities
             var localVector = new double[localDOFs];//TODOMaria: here is where I have to check if the dof is constrained
 
             int pos = 0;
-            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            for (int i = 0; i < nodes.Count; i++)
             {
-                Node node = element.Nodes[i];
-                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                foreach (DOFType dofType in nodalDofs[i])
                 {
-                    int dof = NodalDOFsDictionary[node.ID][dofType];
+                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
                     if (dof != -1) localVector[pos] = globalVector[dof];
                     pos++;
                 }
@@ -324,20 +327,23 @@ namespace ISAAR.MSolve.FEM.Entities
         public void AddLocalVectorToGlobal(Element element, double[] localVector, double[] globalVector)
         {
             int pos = 0;
-            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            for (int i = 0; i < nodes.Count; i++)
             {
-                Node node = element.Nodes[i];
-                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                foreach (DOFType dofType in nodalDofs[i])
                 {
-                    int dof = NodalDOFsDictionary[node.ID][dofType];
+                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
                     if (dof != -1) globalVector[dof] += localVector[pos];
                     pos++;
                 }
             }
         }
 
+        
         public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
         {
+           
             var forces = new Vector(TotalDOFs);
             foreach (Element element in elementsDictionary.Values)
             {
@@ -402,6 +408,6 @@ namespace ISAAR.MSolve.FEM.Entities
                 }
             }
         }
-
+       
     }
 }
