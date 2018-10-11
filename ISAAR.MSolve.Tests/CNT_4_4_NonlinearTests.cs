@@ -36,7 +36,8 @@ namespace ISAAR.MSolve.Tests
             double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
-            string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\CNTExample";
+            
+            string workingDirectory = "..\\..\\..\\InputFiles"; 
             string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
             string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
             int increments = 20;
@@ -210,7 +211,7 @@ namespace ISAAR.MSolve.Tests
             double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
-            string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\CNTExample"; //"D:\George\Desktop\input files"; //
+            string workingDirectory = "..\\..\\..\\InputFiles";
             string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
             string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
             int increments = 100;
