@@ -16,7 +16,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 //TODO: Is there any point in having different material properties per Gauss point?
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement2D //: IFiniteElement
+    public class ThermalElement2D : IFiniteElement
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.Temperature };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.FEM.Elements
             this.Thickness = thickness;
 
             dofTypes = new DOFType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new DOFType[] { DOFType.X, DOFType.Y };
+            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new DOFType[] { DOFType.Temperature };
         }
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
@@ -53,6 +53,9 @@ namespace ISAAR.MSolve.FEM.Elements
         public IQuadrature2D QuadratureForStiffness { get; }
         public double Thickness { get; }
 
+        public bool MaterialModified => throw new NotImplementedException();
+
+        public IElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
 
         public IMatrix2D MassMatrix(IElement element)
         {
@@ -128,6 +131,58 @@ namespace ISAAR.MSolve.FEM.Elements
                 deformation[1, nodeIdx] = dNdX[1];
             }
             return deformation;
+        }
+
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+
+        public void ResetMaterialModified()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveMaterialState()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearMaterialState()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearMaterialStresses()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMatrix2D StiffnessMatrix(IElement element)
+        {
+            return BuildConductivityMatrix();
+        }
+
+        public IMatrix2D DampingMatrix(IElement element)
+        {
+            throw new NotImplementedException();
         }
     }
 }
