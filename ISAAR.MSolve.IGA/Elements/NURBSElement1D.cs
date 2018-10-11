@@ -210,36 +210,35 @@ namespace ISAAR.MSolve.IGA.Elements
             for (int j = 0; j < gaussPoints.Count; j++)
             {
                 double xGaussPoint = 0;
-                double yGaussPoint = 0;
-                double zGaussPoint = 0;
+	            double yGaussPoint = 0;
                 double jacobian1 = 0.0;
                 double jacobian2 = 0.0;
                 for (int k = 0; k < element.ControlPoints.Count; k++)
                 {
                     xGaussPoint += nurbs.NurbsValues[k, j] * element.ControlPoints[k].X;
                     yGaussPoint += nurbs.NurbsValues[k, j] * element.ControlPoints[k].Y;
-                    zGaussPoint += nurbs.NurbsValues[k, j] * element.ControlPoints[k].Z;
                     jacobian1 += nurbs.NurbsDerivativeValuesKsi[k, j] * element.ControlPoints[k].X;
                     jacobian2 += nurbs.NurbsDerivativeValuesKsi[k, j] * element.ControlPoints[k].Y;
                 }
                 double jacdet = Math.Sqrt(Math.Pow(jacobian1, 2) + Math.Pow(jacobian2, 2));
 
                 double norm = Math.Sqrt(Math.Pow(xGaussPoint, 2) + Math.Pow(yGaussPoint, 2));
-                var loadGaussPoint = pressure.Value;
+                var loadGaussPointX = pressure.Value* xGaussPoint / norm;
+	            var loadGaussPointY = pressure.Value* yGaussPoint / norm;
 
-                for (int k = 0; k < element.ControlPoints.Count; k++)
+				for (int k = 0; k < element.ControlPoints.Count; k++)
                 {
                     int dofIDX = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
                     int dofIDY = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
                     if (pressureLoad.ContainsKey(dofIDX))
-                        pressureLoad[dofIDX] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * xGaussPoint/norm;
+                        pressureLoad[dofIDX] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPointX;
                     else
-                        pressureLoad.Add(dofIDX, jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * xGaussPoint / norm);
+                        pressureLoad.Add(dofIDX, jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] *  loadGaussPointX);
 
                     if (pressureLoad.ContainsKey(dofIDY))
-                        pressureLoad[dofIDY] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * yGaussPoint / norm;
+                        pressureLoad[dofIDY] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] *  loadGaussPointY;
                     else
-                        pressureLoad.Add(dofIDY, jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * yGaussPoint / norm);
+                        pressureLoad.Add(dofIDY, jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] *  loadGaussPointY);
                 }
             }
             return pressureLoad;

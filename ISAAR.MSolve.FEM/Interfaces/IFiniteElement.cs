@@ -24,6 +24,6 @@ namespace ISAAR.MSolve.FEM.Interfaces
         void SaveMaterialState();
         void ClearMaterialState();
 
-        void ClearMaterialStresses();
+        void ClearMaterialStresses(); //TODO this is only for structural problems.
     }
 }

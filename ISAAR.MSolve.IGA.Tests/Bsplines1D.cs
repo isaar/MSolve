@@ -9,29 +9,49 @@ namespace ISAAR.MSolve.IGA.Tests
 {
 	public class Bsplines1D
 	{
+		private const double Tolerance = 1e-14;
+
+		private static Vector KnotValueVector
+		{
+			get
+			{
+				var knotValueVector = new Vector(new double[]
+				{
+					0, 0, 0, 0, 0.11111111111111111, 0.22222222222222222, 0.33333333333333333, 0.44444444444444444,
+					0.55555555555555555, 0.66666666666666666, 0.7777777777777777, 0.8888888888888888, 1, 1, 1, 1
+				});
+				return knotValueVector;
+			}
+		}
+
+		private static Vector ParametricCoordinates
+		{
+			get
+			{
+				return new Vector(new double[]
+					{0.007714649348171322, 0.0366677197641736, 0.0744433912358264, 0.10339646165182867});
+			}
+		}
+
+
 		[Fact]
 		public void TestBSplines1DValues()
 		{
-			const double tolerance = 1e-7;
+			
 			var degree = 3;
-			var knotValueVector = new Vector(new double[]
-			{
-				0, 0, 0, 0, 0.11111111111111111, 0.22222222222222222, 0.33333333333333333, 0.44444444444444444,
-				0.55555555555555555, 0.66666666666666666, 0.7777777777777777, 0.8888888888888888, 1, 1, 1, 1
-			});
+			var knotValueVector = KnotValueVector;
 
-			var parametricCoordinates = new Vector(new double[]
-				{0.007714649348171322, 0.0366677197641736, 0.0744433912358264, 0.10339646165182867});
+			var parametricCoordinates = ParametricCoordinates;
 
 			var bsplines1D= new BSPLines1D(degree, knotValueVector,parametricCoordinates);
 			bsplines1D.calculateBSPLinesAndDerivatives();
 
 			var expectedValues = new double[4, 4]
 			{
-				{0.805832094644764, 0.300750235878434, 0.0359400966193526, 0.000334715714594480},
-				{0.187187770657043, 0.562845453025830, 0.516291631351937, 0.305103716393759},
-				{0.00692434874576065, 0.130414294992511, 0.397643232715638, 0.560256218784186},
-				{5.57859524324130e-05, 0.00599001610322543, 0.0501250393130722, 0.134305349107461},
+				{0.8058320948251374, 0.3007502363228445, 0.035940096838251105, 3.3471572805268126E-4},
+				{0.18718777049037877, 0.5628454528272727, 0.5162916318030126, 0.30510371716505036},
+				{0.006924348732218876, 0.13041429476462738, 0.39764323219603925, 0.5602562184023526},
+				{5.5785952265056314E-5, 0.005990016085255392, 0.05012503916269711, 0.13430534870454433},
 			};
 
 			for (var i = 0; i < 4; i++)
@@ -39,34 +59,28 @@ namespace ISAAR.MSolve.IGA.Tests
 				for (var j = 0; j < 4; j++)
 				{
 					Assert.True(Utilities.AreValuesEqual(expectedValues[i, j], bsplines1D.BSPLineValues[i, j],
-						tolerance));
+						Tolerance));
 				}
 			}
 		}
-
+		
 		[Fact]
 		public void TestBSplines1DDerivativeValues()
 		{
-			const double tolerance = 1e-7;
 			var degree = 3;
-			var knotValueVector = new Vector(new double[]
-			{
-				0, 0, 0, 0, 0.11111111111111111, 0.22222222222222222, 0.33333333333333333, 0.44444444444444444,
-				0.55555555555555555, 0.66666666666666666, 0.7777777777777777, 0.8888888888888888, 1, 1, 1, 1
-			});
+			var knotValueVector = KnotValueVector;
 
-			var parametricCoordinates = new Vector(new double[]
-				{0.007714649348171322, 0.0366677197641736, 0.0744433912358264, 0.10339646165182867});
+			var parametricCoordinates = ParametricCoordinates;
 
 			var bsplines1D = new BSPLines1D(degree, knotValueVector, parametricCoordinates);
 			bsplines1D.calculateBSPLinesAndDerivatives();
 
 			var expectedDerivativeValues = new double[4, 4]
 			{
-				{-23.3808414997539, -12.1199570808756, -2.94046890408451, -0.130161086714501},
-				{21.6038025213095, 5.41505284733459, -6.05930737365432, -7.45954799498977},
-				{1.75534546399199, 6.21482608286030, 6.97978343092623, 3.69290216507861},
-				{0.0216935144524168, 0.490078150680752, 2.01999284681261, 3.89680691662566},
+				{-23.380841503242923, -12.119957092815207, -2.940468916024088, -0.13016109020350003},
+				{21.603802526477924, 5.4150528637737025, -6.0593073618049385, -7.4595480014466915},
+				{1.7553454623559663, 6.214826079340906, 6.979783435056406, 3.6929021828181523},
+				{0.02169351440903006, 0.49007814970059616, 2.01999284277262, 3.8968069088320396},
 			};
 
 			for (var i = 0; i < 4; i++)
@@ -74,7 +88,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				for (var j = 0; j < 4; j++)
 				{
 					Assert.True(Utilities.AreValuesEqual(expectedDerivativeValues[i, j], bsplines1D.BSPLineDerivativeValues[i, j],
-						tolerance));
+						Tolerance));
 				}
 			}
 		}
@@ -83,16 +97,10 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void TestBSplines1DPartitionOfUnity()
 		{
-			const double tolerance = 1e-10;
 			var degree = 3;
-			var knotValueVector = new Vector(new double[]
-			{
-				0, 0, 0, 0, 0.11111111111111111, 0.22222222222222222, 0.33333333333333333, 0.44444444444444444,
-				0.55555555555555555, 0.66666666666666666, 0.7777777777777777, 0.8888888888888888, 1, 1, 1, 1
-			});
+			var knotValueVector = KnotValueVector;
 
-			var parametricCoordinates = new Vector(new double[]
-				{0.007714649348171322, 0.0366677197641736, 0.0744433912358264, 0.10339646165182867});
+			var parametricCoordinates = ParametricCoordinates;
 
 			var bsplines1D = new BSPLines1D(degree, knotValueVector, parametricCoordinates);
 			bsplines1D.calculateBSPLinesAndDerivatives();
@@ -102,7 +110,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				var sum = 0.0;
 				for (var f = 0; f < bsplines1D.BSPLineValues.GetLength(0); f++)
 					sum += bsplines1D.BSPLineValues[f, p];
-				Assert.True(Utilities.AreValuesEqual(1.0, sum, tolerance));
+				Assert.True(Utilities.AreValuesEqual(1.0, sum, Tolerance));
 			}
 		}
 	}

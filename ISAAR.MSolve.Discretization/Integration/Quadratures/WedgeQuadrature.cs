@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
 	/// <summary>
 	/// Enum class with the 2D integration rules for wedges of varying orders. These are not tensor product of
-	/// simple <see cref="GaussLegendre1D"/> rules. Quadrature rules were provided in https://www.code-aster.org/V2/doc/default/fr/man_r/r3/r3.01.01.pdf
+	/// simple <see cref="GaussLegendre1D_old"/> rules. Quadrature rules were provided in https://www.code-aster.org/V2/doc/default/fr/man_r/r3/r3.01.01.pdf
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
 	public sealed class WedgeQuadrature:IQuadrature3D

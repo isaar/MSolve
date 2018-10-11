@@ -47,20 +47,20 @@ namespace ISAAR.MSolve.FEM.Elements
 
             // Quad4
             interpolations.Add(CellType2D.Quad4, InterpolationQuad4.UniqueInstance);
-            integrationsForStiffness.Add(CellType2D.Quad4, GaussLegendre2D.Order2x2);
-            integrationsForMass.Add(CellType2D.Quad4, GaussLegendre2D.Order2x2);
+            integrationsForStiffness.Add(CellType2D.Quad4, GaussLegendre2D.GetQuadratureWithOrder(2, 2));
+            integrationsForMass.Add(CellType2D.Quad4, GaussLegendre2D.GetQuadratureWithOrder(2, 2));
             extrapolations.Add(CellType2D.Quad4, ExtrapolationGaussLegendre2x2.UniqueInstance);
 
             // Quad8
             interpolations.Add(CellType2D.Quad8, InterpolationQuad8.UniqueInstance);
-            integrationsForStiffness.Add(CellType2D.Quad8, GaussLegendre2D.Order3x3);
-            integrationsForMass.Add(CellType2D.Quad8, GaussLegendre2D.Order3x3);
+            integrationsForStiffness.Add(CellType2D.Quad8, GaussLegendre2D.GetQuadratureWithOrder(3, 3));
+            integrationsForMass.Add(CellType2D.Quad8, GaussLegendre2D.GetQuadratureWithOrder(3, 3));
             extrapolations.Add(CellType2D.Quad8, ExtrapolationGaussLegendre3x3.UniqueInstance);
 
             // Quad9
             interpolations.Add(CellType2D.Quad9, InterpolationQuad9.UniqueInstance);
-            integrationsForStiffness.Add(CellType2D.Quad9, GaussLegendre2D.Order3x3);
-            integrationsForMass.Add(CellType2D.Quad9, GaussLegendre2D.Order3x3);
+            integrationsForStiffness.Add(CellType2D.Quad9, GaussLegendre2D.GetQuadratureWithOrder(3, 3));
+            integrationsForMass.Add(CellType2D.Quad9, GaussLegendre2D.GetQuadratureWithOrder(3, 3));
             extrapolations.Add(CellType2D.Quad9, ExtrapolationGaussLegendre3x3.UniqueInstance);
 
             // Tri3
@@ -99,16 +99,14 @@ namespace ISAAR.MSolve.FEM.Elements
         public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes, double thickness,
             ElasticMaterial2D material, DynamicMaterial dynamicProperties)
         {
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in integrationsForStiffness[cellType].IntegrationPoints)
-            {
-                materialsAtGaussPoints[gaussPoint] = material.Clone();
-            }
+            int numGPs = integrationsForStiffness[cellType].IntegrationPoints.Count;
+            var materialsAtGaussPoints = new ElasticMaterial2D[numGPs];
+            for (int gp = 0; gp < numGPs; ++gp) materialsAtGaussPoints[gp] = material.Clone();
             return CreateElement(cellType, nodes, thickness, materialsAtGaussPoints, dynamicProperties);
         }
 
         public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes, double thickness,
-            Dictionary<GaussPoint2D, ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+            IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             //TODO: check if nodes - interpolation and Gauss points - materials match
             return new ContinuumElement2D(thickness, nodes, interpolations[cellType],

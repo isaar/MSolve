@@ -6,48 +6,9 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
-    public class SuperElementDOF
-    {
-        public Element Element { get; set; }
-        public Node HostNode { get; set; }
-        public Node EmbeddedNode { get; set; }
-        public DOFType DOF { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is SuperElementDOF == false) return false;
-            var e = obj as SuperElementDOF;
-            if (e == null) return false;
-
-            if ((e.Element == null && this.Element != null) || (e.Element != null && this.Element == null)) return false;
-            if ((e.HostNode == null && this.HostNode != null) || (e.HostNode != null && this.HostNode == null)) return false;
-            if ((e.EmbeddedNode == null && this.EmbeddedNode != null) || (e.EmbeddedNode != null && this.EmbeddedNode == null)) return false;
-
-            return (e.DOF == this.DOF && 
-                ((e.Element == null && this.Element == null) || (e.Element.ID == this.Element.ID)) && 
-                ((e.HostNode == null && this.HostNode == null) || (e.HostNode.ID == this.HostNode.ID)) &&
-                ((e.EmbeddedNode == null && this.EmbeddedNode == null) || (e.EmbeddedNode.ID == this.EmbeddedNode.ID)));
-        }
-
-        public override int GetHashCode()
-        {
-            int elementID = Element == null ? 0 : Element.ID;
-            int hostNodeID = HostNode == null ? 0 : HostNode.ID;
-            return String.Format("H{3}E{0}N{1}{2}", elementID, hostNodeID, DOF, EmbeddedNode.ID).GetHashCode();
-        }
-
-        public override string ToString()
-        {
-            int elementID = Element == null ? 0 : Element.ID;
-            int hostNodeID = HostNode == null ? 0 : HostNode.ID;
-            return String.Format("N:{3} -> E:{0}, N:{1}, {2}", elementID, hostNodeID, DOF, EmbeddedNode.ID);
-        }
-    }
-
     public class ElementEmbedder : IElementDOFEnumerator
     {
         private readonly Model model;
@@ -209,7 +170,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return transformationMatrix.Transpose() * ((SymmetricMatrix2D)matrix).ToMatrix2D() * transformationMatrix;
         }
 
-        public double[] GetTransformedVector(double[] vector)
+        public double[] GetTransformedDisplacementsVector(double[] vector)
         {
             var e = embeddedElement.ElementType as IEmbeddedElement;
             //if (e == null || !isElementEmbedded) return matrix;
@@ -219,17 +180,28 @@ namespace ISAAR.MSolve.FEM.Embedding
             return (transformationMatrix * new Vector(vector)).Data;
         }
 
+        public double[] GetTransformedForcesVector(double[] vector) //compa prosthiki msolve
+        {
+            var e = embeddedElement.ElementType as IEmbeddedElement;
+            //if (e == null || !isElementEmbedded) return matrix;
+            if (e == null) return vector;
+            if (e.EmbeddedNodes.Count == 0) return vector;
+
+            return (transformationMatrix.Transpose() * new Vector(vector)).Data; // compa Vector<double>
+        }
+
+
         public IList<IList<DOFType>> GetDOFTypes(IElement element)
         {
             //return element.ElementType.GetElementDOFTypes(element);
 
             var dofs = new List<IList<DOFType>>();
-            Node currentNode = null;
+            INode currentNode = null;
             List<DOFType> nodeDOFs = null;
 
             foreach (var superElement in superElementMap)
             {
-                Node node = superElement.Key.HostNode == null ? superElement.Key.EmbeddedNode : superElement.Key.HostNode;
+                INode node = superElement.Key.HostNode == null ? superElement.Key.EmbeddedNode : superElement.Key.HostNode;
 
                 if (currentNode != node)
                 {
@@ -262,13 +234,13 @@ namespace ISAAR.MSolve.FEM.Embedding
             for (int i = 0; i < element.INodes.Count; i++)
                 dofs.Add(new List<DOFType>());
 
-            Node currentNode = null;
+            INode currentNode = null;
             List<DOFType> nodeDOFs = null;
 
             foreach (var superElement in superElementMap)
             {
                 if (superElement.Key.HostNode != null) continue;
-                Node node = superElement.Key.EmbeddedNode;
+                INode node = superElement.Key.EmbeddedNode;
                 //Node node = superElement.Key.HostNode == null ? superElement.Key.EmbeddedNode : superElement.Key.HostNode;
 
                 if (currentNode != node)
