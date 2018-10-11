@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Problems
         {
             ks = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                ks.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, stiffnessProvider));
+                ks.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, stiffnessProvider));
         }
 
         private void RebuildKs()
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.Problems
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
             {
                 if (subdomain.MaterialsModified)
-                    ks[subdomain.ID] = GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, stiffnessProvider);
+                    ks[subdomain.ID] = GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, stiffnessProvider);
                 subdomain.ResetMaterialsModifiedProperty();
             }
         }
@@ -98,14 +98,14 @@ namespace ISAAR.MSolve.Problems
         {
             ms = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                ms.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, massProvider));
+                ms.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, massProvider));
         }
 
         private void BuildCs()
         {
             cs = new Dictionary<int, IMatrix2D>(model.SubdomainsDictionary.Count);
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)
-                cs.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, dampingProvider));
+                cs.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, dampingProvider));
         }
 
         private void BuildQs()
