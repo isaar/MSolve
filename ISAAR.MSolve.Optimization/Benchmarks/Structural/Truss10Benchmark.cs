@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
         {
             for (int i = 0; i < Solution.Length; ++i)
             {
-                if (Math.Abs(computedSolution[i] / Solution[i] - 1) > tolerance)
+                if (Math.Abs(computedSolution[i]/Solution[i] - 1) > tolerance)
                 {
                     Console.WriteLine("Optimization did not find the correct solution");
                     return;
@@ -181,10 +181,10 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 model.SubdomainsDictionary[1].ElementsDictionary.Add(element9.ID, element9);
                 model.SubdomainsDictionary[1].ElementsDictionary.Add(element10.ID, element10);
 
-                model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[5].Constraints.Add(DOFType.X);
+                model.NodesDictionary[5].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[6].Constraints.Add(DOFType.X);
+                model.NodesDictionary[6].Constraints.Add(DOFType.Y);
 
                 model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = DOFType.Y });
                 model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = DOFType.Y });

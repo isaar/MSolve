@@ -193,7 +193,7 @@ namespace ISAAR.MSolve.Analyzers
             StoreLogResults(start, end); //TODO: the results should be exported at each Newton-Raphson iteration or at least at each equilibrium step.
         }
 
-        private double CalculateInternalRHS(int currentIncrement, int step) 
+        private double CalculateInternalRHS(int currentIncrement, int step)
         {
             globalRHS.Clear();
             foreach (ILinearSystem subdomain in linearSystems)

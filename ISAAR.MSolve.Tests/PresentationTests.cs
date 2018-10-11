@@ -281,8 +281,8 @@ namespace ISAAR.MSolve.Tests
             var constrainedNodes = new int[] { 0, 1, 3, 4, 5, 6, 7, 8, 9 };
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(DOFType.X);
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(DOFType.Y);
             }
 
             #endregion
@@ -661,8 +661,8 @@ namespace ISAAR.MSolve.Tests
             var constrainedNodes = new int[] { 0, 1, 3, 4, 5, 6, 7, 8, 9 };
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(DOFType.X);
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(DOFType.Y);
             }
 
             #endregion
@@ -763,8 +763,8 @@ namespace ISAAR.MSolve.Tests
             Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(DOFType.X);
+                constrainedNodes[i].Constraints.Add(DOFType.Y);
             }
 
             // Loads
@@ -862,8 +862,8 @@ namespace ISAAR.MSolve.Tests
             Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(DOFType.X);
+                constrainedNodes[i].Constraints.Add(DOFType.Y);
             }
 
             // Loads
@@ -961,8 +961,8 @@ namespace ISAAR.MSolve.Tests
             Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(DOFType.X);
+                constrainedNodes[i].Constraints.Add(DOFType.Y);
             }
 
             // Loads
@@ -1061,11 +1061,11 @@ namespace ISAAR.MSolve.Tests
             #endregion
 
             #region constraints
-            node0.Constraints.Add(new Constraint { DOF = DOFType.X });
-            node0.Constraints.Add(new Constraint { DOF = DOFType.Y });
+            node0.Constraints.Add(DOFType.X);
+            node0.Constraints.Add(DOFType.Y);
 
-            node2.Constraints.Add(new Constraint { DOF = DOFType.X });
-            node2.Constraints.Add(new Constraint { DOF = DOFType.Y });
+            node2.Constraints.Add(DOFType.X);
+            node2.Constraints.Add(DOFType.Y);
             #endregion
 
             #region subdomains
