@@ -83,8 +83,10 @@ namespace ISAAR.MSolve.Tests.FEM
 
             for (int i = 0; i < numElements; ++i)
             {
-                model.ElementsDictionary[i] = new Element() { ID = i, ElementType = elements[i] };
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(i, model.ElementsDictionary[i]);
+                var elementWrapper = new Element() { ID = i, ElementType = elements[i] };
+                foreach (var node in elements[i].Nodes) elementWrapper.AddNode(node);
+                model.ElementsDictionary[i] = elementWrapper;
+                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(i, elementWrapper);
             }
 
             // Dirichlet BC
@@ -104,6 +106,8 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static IVector SolveModel(Model model)
         {
+            VectorExtensions.AssignTotalAffinityCount();
+
             var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
             linearSystems[subdomainID] = new SkylineLinearSystem(subdomainID, model.SubdomainsDictionary[subdomainID].Forces);
             var solver = new SolverSkyline(linearSystems[subdomainID]);
