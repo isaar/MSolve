@@ -58,10 +58,10 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[4].Constraints.Add(DOFType.X);
-            model.NodesDictionary[4].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[4].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[4].Constraints.Add(new Constraint { DOF = DOFType.Y });
 
             // Create Quad4 element
             var quad = new Quad4(material) { Thickness = thickness };

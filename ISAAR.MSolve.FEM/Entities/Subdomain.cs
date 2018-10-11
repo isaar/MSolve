@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -10,13 +11,14 @@ using System.IO;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Subdomain: ISubdomain
-	{
+    public class Subdomain : ISubdomain
+    {
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> globalNodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();
         private double[] forces;
 
         #region Properties
@@ -30,18 +32,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return elementsDictionary; }
         }
 
-		public Dictionary<int, IElement> ΙElementsDictionary
-		{
-			get
-			{
-				var a = new Dictionary<int, IElement>();
-				foreach (var element in elementsDictionary.Values)
-					a.Add(element.ID, element);
-				return a;
-			}
-		}
+        public Dictionary<int, IElement> ΙElementsDictionary
+        {
+            get
+            {
+                var a = new Dictionary<int, IElement>();
+                foreach (var element in elementsDictionary.Values)
+                    a.Add(element.ID, element);
+                return a;
+            }
+        }
 
-		public Dictionary<int, Node> NodesDictionary
+        public Dictionary<int, Node> NodesDictionary
         {
             get { return nodesDictionary; }
         }
@@ -118,14 +120,26 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
                 {
                     int dofID = 0;
-                    foreach (DOFType constraint in node.Constraints)
+                    #region removeMaria
+                    //foreach (DOFType constraint in node.Constraints)
+                    //{
+                    //    if (constraint == dofType)
+                    //    {
+                    //        dofID = -1;
+                    //        break;
+                    //    }
+                    //}
+                    #endregion
+
+                    foreach (var constraint in node.Constraints)
                     {
-                        if (constraint == dofType)
+                        if (constraint.DOF == dofType)
                         {
                             dofID = -1;
                             break;
                         }
                     }
+
                     //var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
                     ////if (node.EmbeddedInElement != null && node.EmbeddedInElement.ElementType.GetDOFTypes(null)
                     ////    .SelectMany(d => d).Count(d => d == dofType) > 0)
@@ -141,8 +155,8 @@ namespace ISAAR.MSolve.FEM.Entities
                     }
                     dofsDictionary.Add(dofType, dofID);
                 }
-                
-                nodalDOFsDictionary.Add(node.ID, dofsDictionary); 
+
+                nodalDOFsDictionary.Add(node.ID, dofsDictionary);
             }
             forces = new double[TotalDOFs];
         }
@@ -152,8 +166,8 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (int nodeID in nodalDOFsDictionary.Keys)
             {
                 Dictionary<DOFType, int> dofTypes = nodalDOFsDictionary[nodeID];
-                Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType,int>(dofTypes.Count);
-                foreach (DOFType dofType in dofTypes.Keys) 
+                Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType, int>(dofTypes.Count);
+                foreach (DOFType dofType in dofTypes.Keys)
                     globalDOFTypes.Add(dofType, glodalDOFsDictionary[nodeID][dofType]);
                 globalNodalDOFsDictionary.Add(nodeID, globalDOFTypes);
             }
@@ -178,6 +192,19 @@ namespace ISAAR.MSolve.FEM.Entities
 
             //foreach (var e in modelEmbeddedNodes.Where(x => nodeIDs.IndexOf(x.Node.ID) >= 0))
             //    embeddedNodes.Add(e);
+        }
+
+        public void BuildConstraintDisplacementDictionary()
+        {
+            foreach (Node node in nodesDictionary.Values)
+            {
+                if (node.Constraints == null) continue;
+                constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
+                foreach (Constraint constraint in node.Constraints)
+                {
+                    constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
+                }
+            }
         }
 
         #endregion
@@ -221,11 +248,66 @@ namespace ISAAR.MSolve.FEM.Entities
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
         }
 
-        public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)
+        public void ScaleConstraints(double scalingFactor)
+        {
+            var nodeIds = constraintsDictionary.Keys.ToList();
+            foreach (var nodeId in nodeIds)
+            {
+                var dofs = constraintsDictionary[nodeId].Keys.ToList();
+                foreach (DOFType dof in dofs)
+                {
+                    constraintsDictionary[nodeId][dof] = constraintsDictionary[nodeId][dof] * scalingFactor;
+                }
+            }
+        }
+
+        public double[] CalculateElementIcrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
-            var localVector = new double[localDOFs];
+            var elementNodalDisplacements = new double[localDOFs];
+            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            var incrementalNodalDisplacements = new double[localDOFs];
+            elementNodalDisplacements.CopyTo(incrementalNodalDisplacements, 0);
+            var icrementalElementNodalDisplacementsVector = new Vector(incrementalNodalDisplacements);
+            
+            return icrementalElementNodalDisplacementsVector.Data;
+        }
+
+        public double[] CalculateElementNodalDisplacements(Element element, IVector globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        {
+            double[] elementNodalDisplacements = GetLocalVectorFromGlobal(element, globalDisplacementVector);
+            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            return elementNodalDisplacements;
+        }
+
+        private double[] ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)//QUESTION: should we perhaps make it void??
+        {
+            int pos = 0;
+            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            {
+                Node node = element.Nodes[i];
+                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                {
+                    Dictionary<DOFType, double> constrainedDOFs;
+                    double constraintDisplacement;
+                    if (constraintsDictionary.TryGetValue(node.ID, out constrainedDOFs) && constrainedDOFs.TryGetValue(dofType, out constraintDisplacement))
+                    {
+                        Debug.Assert(elementNodalDisplacements[pos] == 0);
+                        elementNodalDisplacements[pos] = constraintDisplacement;
+                    }
+                    pos++;
+                }
+            }
+            return elementNodalDisplacements;
+        }
+
+        public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
+                                                                                       //TODOMaria: Change visibility to private
+        {
+            int localDOFs = 0;
+            foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
+            var localVector = new double[localDOFs];//TODOMaria: here is where I have to check if the dof is constrained
 
             int pos = 0;
             IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
@@ -265,10 +347,12 @@ namespace ISAAR.MSolve.FEM.Entities
             var forces = new Vector(TotalDOFs);
             foreach (Element element in elementsDictionary.Values)
             {
-                var localSolution = GetLocalVectorFromGlobal(element, solution);
-                var localdSolution = GetLocalVectorFromGlobal(element, dSolution);
+                //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
+                //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
+                double[] localSolution = CalculateElementNodalDisplacements(element, solution);
+                double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
-                if (element.ElementType.MaterialModified) 
+                if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
                 double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 AddLocalVectorToGlobal(element, f, forces.Data);

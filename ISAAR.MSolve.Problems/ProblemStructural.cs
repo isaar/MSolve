@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.Problems
                 {
                     internalKs[limit.Item1] = new Dictionary<int, IMatrix2D>(limit.Item3 - limit.Item2);
                     for (int i = limit.Item2; i < limit.Item3; i++)
-                        internalKs[limit.Item1].Add(k[i], GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(model.ISubdomainsDictionary[k[i]], s));
+                        internalKs[limit.Item1].Add(k[i], GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(model.ISubdomainsDictionary[k[i]], s));
                 }
                 else
                     internalKs[limit.Item1] = new Dictionary<int, IMatrix2D>();
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.Problems
             {
                 if (subdomain.MaterialsModified)
                 {
-                    ks[subdomain.ID] = GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, stiffnessProvider);
+                    ks[subdomain.ID] = GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, stiffnessProvider);
                     subdomain.ResetMaterialsModifiedProperty();
                 }
             }
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Problems
             //ms.Add(1, new SkylineMatrix2D<double>(new double[,] { { 2, 0 }, { 0, 1 } }));
             ElementStructuralMassProvider s = new ElementStructuralMassProvider();
             foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
-                ms.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, s));
+                ms.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, s));
         }
 
         private void BuildCs()
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.Problems
             //    cs.Add(subdomain.ID, SkylineMatrix2D<double>.Empty(subdomain.TotalDOFs));
             ElementStructuralDampingProvider s = new ElementStructuralDampingProvider();
             foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
-                cs.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateGlobalMatrix(subdomain, s));
+                cs.Add(subdomain.ID, GlobalMatrixAssemblerSkyline.CalculateFreeFreeGlobalMatrix(subdomain, s));
         }
 
         #region IAnalyzerProvider Members

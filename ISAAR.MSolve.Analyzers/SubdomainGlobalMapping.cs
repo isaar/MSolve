@@ -1,4 +1,4 @@
-﻿using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using System;
 using System.Collections.Generic;
@@ -30,4 +30,3 @@ namespace ISAAR.MSolve.Analyzers
         }
     }
 }
-
