@@ -6,6 +6,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Compute.Bindings.IntelMKL" Version="0.1.5" />
     <PackageReference Include="Thrower" Version="4.3.1" />
     <PackageReference Include="Troschuetz.Random" Version="4.3.0" />
   </ItemGroup>
@@ -13,5 +14,10 @@
     <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

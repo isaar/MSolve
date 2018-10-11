@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             if (hasEmbeddedRotations)
                 transformer = new Hexa8TranslationAndRotationTransformationVector();
             else
-                transformer = new Hexa8TranslationTransformationVector();
+                transformer = new Hexa8LAndNLTranslationTransformationVector();
 
             foreach (var embeddedElement in embeddedGroup)
             {

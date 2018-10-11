@@ -14,6 +14,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.Tests.Supportive_Classes;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
@@ -102,9 +103,9 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
 
 
             // Create a new Beam2D element
@@ -277,8 +278,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 5; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(DOFType.X);
-                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             int indexElement = 0;
@@ -370,8 +371,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 5; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(DOFType.X);
-                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             int indexElement = 0;
@@ -468,8 +469,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 3; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(DOFType.X);
-                model.NodesDictionary[i].Constraints.Add(DOFType.Y);
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             int indexElement = 0;
@@ -553,10 +554,10 @@ namespace ISAAR.MSolve.Tests
                 trussModel.NodesDictionary.Add(i + 1, nodes[i]);
             }
 
-            trussModel.NodesDictionary[1].Constraints.Add(DOFType.X);
-            trussModel.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            trussModel.NodesDictionary[2].Constraints.Add(DOFType.X);
-            trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
+            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
+            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
+            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
 
 
             var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
@@ -595,6 +596,58 @@ namespace ISAAR.MSolve.Tests
 
             Assert.Equal(0.00053333333333333336, linearSystems[0].Solution[0], 10);
             Assert.Equal(0.0017294083664636196, linearSystems[0].Solution[1], 10);
+        }
+
+        [Fact]
+        public void SolveHexaCantileverWithNewtonRaphson()
+        {
+            VectorExtensions.AssignTotalAffinityCount();
+            var model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain { ID = 1 });
+            HexaCantileverBeamForNewtonRaphson.Build(model, 850);
+            
+            model.ConnectDataStructures();
+
+            var linearSystems = new Dictionary<int, ILinearSystem>();
+            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
+
+            var linearSystemsArray = new[] { linearSystems[1] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+
+            var solver = new SolverSkyline(linearSystems[1]);
+            var provider = new ProblemStructural(model, linearSystems);
+
+            var increments = 1;
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers, provider, increments, model.TotalDOFs);
+            childAnalyzer.SetMaxIterations = 100;
+            childAnalyzer.SetIterationsForMatrixRebuild = 1;
+
+            var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);//1. increments einai to 1 (arxika eixame thesei2 26 incr)
+
+            //LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
+            //gia 2CZM
+            //Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, 17, model.TotalDOFs);//1. increments einai to 17 (arxika eixame thesei2 26 incr)
+            //gia 3CZM
+
+            childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
+            //model.NodalDOFsDictionary[12][DOFType.Y],
+            model.NodalDOFsDictionary[20][DOFType.X]});
+
+
+            parentAnalyzer.BuildMatrices();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+
+            Console.WriteLine("Writing results for node 6");
+            var actual = (childAnalyzer.Logs[1][0] as DOFSLog).DOFValues[45];
+            var expected = 0.70735531140026664;
+            Assert.True((actual - expected) == 0);
+
+            //Console.WriteLine("Dof and Values for Displacement X, Y, Z");
+            //Console.WriteLine(analyzer.Logs[1][0]);
+            //Console.ReadLine();
+
         }
     }
 }

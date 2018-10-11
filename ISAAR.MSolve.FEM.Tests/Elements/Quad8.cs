@@ -56,15 +56,15 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         [Fact]
         private static void TestConsistentMass0()
         {
-            IQuadrature2D quadratureForMass = GaussLegendre2D.Order3x3;
+            IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(3, 3);
 
-            var materialsAtGaussPoints = new Dictionary<GaussPoint2D, ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
-                materialsAtGaussPoints[gaussPoint] = material0.Clone();
+                materialsAtGaussPoints.Add(material0.Clone());
             }
             var quad8 = new ContinuumElement2D(thickness, nodeSet0, InterpolationQuad8.UniqueInstance,
-                GaussLegendre2D.Order3x3, quadratureForMass,
+                GaussLegendre2D.GetQuadratureWithOrder(3, 3), quadratureForMass,
                 ExtrapolationGaussLegendre3x3.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
 

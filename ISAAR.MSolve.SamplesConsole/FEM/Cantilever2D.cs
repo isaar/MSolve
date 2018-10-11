@@ -97,8 +97,8 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(DOFType.X);
-                constrainedNodes[i].Constraints.Add(DOFType.Y);
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
             }
 
             // Loads

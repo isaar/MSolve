@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Node: INode
 	{
-        private readonly List<DOFType> constraints = new List<DOFType>();
+        private readonly List<Constraint> constraints = new List<Constraint>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();
         private readonly Dictionary<int, Subdomain> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain>();
@@ -17,44 +17,54 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             var header = String.Format("{0}: ({1}, {2}, {3})", ID, X, Y, Z);
             string constraintsDescripton = string.Empty;
-            foreach (var c in constraints)
-            {
-                string con = string.Empty;
-                switch (c)
-                {
-                    case DOFType.Pore:
-                        con = "Pore";
-                        break;
-                    case DOFType.RotX:
-                        con = "rX";
-                        break;
-                    case DOFType.RotY:
-                        con = "rY";
-                        break;
-                    case DOFType.RotZ:
-                        con = "rZ";
-                        break;
-                    case DOFType.Unknown:
-                        con = "?";
-                        break;
-                    case DOFType.X:
-                        con = "X";
-                        break;
-                    case DOFType.Y:
-                        con = "Y";
-                        break;
-                    case DOFType.Z:
-                        con = "Z";
-                        break;
-                }
-                constraintsDescripton += c.ToString() + ", ";
-            }
+            #region removeMaria
+            //UNDONE: fix text
+            //foreach (var c in constraints)
+            //{
+            //    string con = string.Empty;
+            //    switch (c)
+            //    {
+            //        case DOFType.Pore:
+            //            con = "Pore";
+            //            break;
+            //        case DOFType.RotX:
+            //            con = "rX";
+            //            break;
+            //        case DOFType.RotY:
+            //            con = "rY";
+            //            break;
+            //        case DOFType.RotZ:
+            //            con = "rZ";
+            //            break;
+            //        case DOFType.Unknown:
+            //            con = "?";
+            //            break;
+            //        case DOFType.X:
+            //            con = "X";
+            //            break;
+            //        case DOFType.Y:
+            //            con = "Y";
+            //            break;
+            //        case DOFType.Z:
+            //            con = "Z";
+            //            break;
+            //    }
+            //    constraintsDescripton += c.ToString() + ", ";
+            //}
+            #endregion
             constraintsDescripton = constraintsDescripton.Length > 1 ? constraintsDescripton.Substring(0, constraintsDescripton.Length - 2) : constraintsDescripton;
 
             return String.Format("{0} - Con ({1})", header, constraintsDescripton);
         }
 
-        public List<DOFType> Constraints
+        #region removeMaria
+        //public List<DOFType> Constraints
+        //{
+        //    get { return constraints; }
+        //}
+        #endregion
+
+        public List<Constraint> Constraints
         {
             get { return constraints; }
         }
