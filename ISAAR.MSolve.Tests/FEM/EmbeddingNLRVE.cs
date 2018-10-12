@@ -1226,21 +1226,21 @@ namespace ISAAR.MSolve.Tests.FEM
             int nodeID;
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(hexa1 + 1, 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, hexa2 + 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, 1, hexa3 + 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-            model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
 
         }
 

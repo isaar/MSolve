@@ -248,12 +248,11 @@ namespace ISAAR.MSolve.Tests.FEM
             for (int k = 0; k < cnstrnd.GetLength(0); k++)
             {
                 pointID = cnstrnd[k];
-                model.NodesDictionary[pointID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[pointID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[pointID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[pointID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[pointID].Constraints.Add(DOFType.RotY);
-
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
             }
 
             // fortish korufhs

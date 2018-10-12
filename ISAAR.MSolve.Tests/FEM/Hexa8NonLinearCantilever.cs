@@ -189,9 +189,9 @@ namespace ISAAR.MSolve.Tests.FEM
             // constraint vashh opou z=-1
             for (int k = 1; k < 5; k++)
             {
-                model.NodesDictionary[k].Constraints.Add(DOFType.X);
-                model.NodesDictionary[k].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[k].Constraints.Add(DOFType.Z);
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.Z });
             }
 
             // fortish korufhs
