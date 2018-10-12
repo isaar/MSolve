@@ -19,12 +19,11 @@ using ISAAR.MSolve.Discretization.Providers;
 using System.IO;
 using System.Linq;
 
-namespace ISAAR.MSolve.Tests
+namespace ISAAR.MSolve.SamplesConsole
 {
-    public class CNT_4_4_NonlinearTests
+    public class CNTExamples
     {
-        [Fact]
-        public void CNT_4_4_DisplacementControl()
+        public static void CNT_4_4_DisplacementControl()
         {
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 16710.0;
@@ -36,8 +35,8 @@ namespace ISAAR.MSolve.Tests
             double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
-            
-            string workingDirectory = "..\\..\\..\\InputFiles"; 
+
+            string workingDirectory = @"..\..\..\Resources\Beam3DInputFiles";
             string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
             string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
             int increments = 20;
@@ -198,8 +197,7 @@ namespace ISAAR.MSolve.Tests
             Assert.Equal(-21.2328445476855, monitorDisplacement, 8);
         }
 
-        [Fact]
-        public void CNT_4_4_NewtonRaphson()
+        public static void CNT_4_4_NewtonRaphson()
         {
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 16710.0;
@@ -211,7 +209,7 @@ namespace ISAAR.MSolve.Tests
             double torsionalInertia = inertiaY / 2.0;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
-            string workingDirectory = "..\\..\\..\\InputFiles";
+            string workingDirectory = @"..\..\..\Resources\Beam3DInputFiles";
             string geometryFileName = "CNT-4-4-L=25-Geometry.inp";
             string connectivityFileName = "CNT-4-4-L=25-ConnMatr.inp";
             int increments = 100;
@@ -347,7 +345,7 @@ namespace ISAAR.MSolve.Tests
 
             // Skyline Solver
             SolverSkyline solver = new SolverSkyline(linearSystems[1]);
-            
+
             // Choose the provider of the problem -> here a structural problem
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 

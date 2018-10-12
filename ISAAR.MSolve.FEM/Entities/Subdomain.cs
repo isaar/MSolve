@@ -286,7 +286,7 @@ namespace ISAAR.MSolve.FEM.Entities
             int pos = 0;
             for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
             {
-                Node node = element.Nodes[i];
+                INode node = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element)[i]; //Node node = element.Nodes[i];
                 foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
                 {
                     Dictionary<DOFType, double> constrainedDOFs;
