@@ -6,9 +6,9 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Problems;
@@ -90,9 +90,9 @@ namespace ISAAR.MSolve.Tests.FEM
             }
 
             // Dirichlet BC
-            model.NodesDictionary[0].Constraints.Add(DOFType.Temperature);
-            model.NodesDictionary[3].Constraints.Add(DOFType.Temperature);
-            model.NodesDictionary[6].Constraints.Add(DOFType.Temperature);
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
+            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
+            model.NodesDictionary[6].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
 
             // Neumann BC
             double q = 50.0;
