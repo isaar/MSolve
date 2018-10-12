@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     public static class InterpolationUtilities
     {
         public static CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes, 
-            IVectorView shapeFunctionsAtNaturalPoint)
+            Vector shapeFunctionsAtNaturalPoint)
         {
             int numFuncs = shapeFunctionsAtNaturalPoint.Length;
             if (nodes.Count != numFuncs) throw new ArgumentException(
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         public static CartesianPoint3D TransformPointToGlobalCartesian(IReadOnlyList<Node3D> nodes,
-            IVectorView shapeFunctionsAtNaturalPoint)
+            Vector shapeFunctionsAtNaturalPoint)
         {
             int numFuncs = shapeFunctionsAtNaturalPoint.Length;
             if (nodes.Count != numFuncs) throw new ArgumentException(

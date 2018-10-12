@@ -14,7 +14,6 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Tests.Supportive_Classes;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests

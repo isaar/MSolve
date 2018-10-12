@@ -7,8 +7,6 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -155,33 +153,30 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		private Matrix2D CalculateConstitutiveMatrix(NURBSKirchhoffLoveShellElement element,Vector surfaceBasisVector1, Vector surfaceBasisVector2)
 		{
-			var auxMatrix1 = Matrix2by2.Create(surfaceBasisVector1.DotProduct(surfaceBasisVector1),
-				surfaceBasisVector1.DotProduct(surfaceBasisVector2),
-				surfaceBasisVector2.DotProduct(surfaceBasisVector1),
-				surfaceBasisVector2.DotProduct(surfaceBasisVector2));
-			var auxVector1= LinearAlgebra.Vectors.Vector.CreateFromArray(new double[2]{1,0});
+            var auxMatrix1 = new Matrix2D(2, 2);
+            auxMatrix1[0, 0] = surfaceBasisVector1.DotProduct(surfaceBasisVector1);
+            auxMatrix1[0, 1] = surfaceBasisVector1.DotProduct(surfaceBasisVector2);
+            auxMatrix1[1, 0] = surfaceBasisVector2.DotProduct(surfaceBasisVector1);
+			auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
+            (Matrix2D inverse, double det) = auxMatrix1.Invert2x2AndDeterminant();
 
-			var solver = new ConjugateGradient(100, 1e-9);
-			var (aa1, stats1) = solver.Solve(auxMatrix1, auxVector1);
-
-			auxVector1 = LinearAlgebra.Vectors.Vector.CreateFromArray(new double[2] { 0, 1 });
-			var (aa2, stats2) = solver.Solve(auxMatrix1, auxVector1);
 			var material =((IContinuumMaterial2D)element.Patch.Material);
 			var constitutiveMatrix = new Matrix2D(new double[3, 3]
 			{
-				{ aa1[0]*aa1[0],
-					material.PoissonRatio*aa1[0]*aa2[1]+(1-material.PoissonRatio)*aa1[1]*aa1[1],
-					aa1[0]*aa1[1]
+				{
+                    inverse[0,0]*inverse[0,0],
+					material.PoissonRatio*inverse[0,0]*inverse[1,1]+(1-material.PoissonRatio)*inverse[1,0]*inverse[1,0],
+					inverse[0,0]*inverse[1,0]
 				},
 				{
-					material.PoissonRatio*aa1[0]*aa2[1]+(1-material.PoissonRatio)*aa1[1]*aa1[1],
-					aa2[1]*aa2[1],
-					aa2[1]*aa1[1]
+					material.PoissonRatio*inverse[0,0]*inverse[1,1]+(1-material.PoissonRatio)*inverse[1,0]*inverse[1,0],
+					inverse[1,1]*inverse[1,1],
+					inverse[1,1]*inverse[1,0]
 				},
 				{
-					aa1[0]*aa1[1],
-					aa2[1]*aa1[1],
-					0.5*(1-material.PoissonRatio)*aa1[0]*aa2[1]+(1+material.PoissonRatio)*aa1[1]*aa1[1]
+					inverse[0,0]*inverse[1,0],
+					inverse[1,1]*inverse[1,0],
+					0.5*(1-material.PoissonRatio)*inverse[0,0]*inverse[1,1]+(1+material.PoissonRatio)*inverse[1,0]*inverse[1,0]
 				},
 			});
 			return constitutiveMatrix;
