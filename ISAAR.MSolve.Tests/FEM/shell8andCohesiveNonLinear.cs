@@ -176,9 +176,9 @@ namespace ISAAR.MSolve.Tests.FEM
             nodeID = 9;
             for (int j = 0; j < 8; j++)
             {
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
                 nodeID++;
             }
             //perioxh constraints ews edw
