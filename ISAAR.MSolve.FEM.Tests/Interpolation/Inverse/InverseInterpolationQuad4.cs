@@ -4,7 +4,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.Numerical.Commons;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
