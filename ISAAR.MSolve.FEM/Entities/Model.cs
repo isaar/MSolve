@@ -336,7 +336,11 @@ namespace ISAAR.MSolve.FEM.Entities
             EnumerateDOFs();
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
-            AssignLoads();//TODOMaria: Here is where the element loads are assembled
+
+            //TODOMaria: Here is where the element loads are assembled 
+            //TODOSerafeim: This should be done by the Analyzer
+            AssignLoads();
+
             BuildConstraintDisplacementDictionary();
         }
         #endregion

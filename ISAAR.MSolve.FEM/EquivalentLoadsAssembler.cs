@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+//TODO: The subdomain should be passed as an argument in the required method, instead of being composed.
 namespace ISAAR.MSolve.FEM
 {
     public class EquivalentLoadsAssembler : IEquivalentLoadsAssembler
