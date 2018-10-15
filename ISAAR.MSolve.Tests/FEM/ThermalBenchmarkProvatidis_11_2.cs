@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Providers;
+using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
@@ -90,9 +93,9 @@ namespace ISAAR.MSolve.Tests.FEM
             }
 
             // Dirichlet BC
-            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
-            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
-            model.NodesDictionary[6].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
+            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
+            model.NodesDictionary[6].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
 
             // Neumann BC
             double q = 50.0;
@@ -113,7 +116,13 @@ namespace ISAAR.MSolve.Tests.FEM
             var solver = new SolverSkyline(linearSystems[subdomainID]);
 
             var provider = new ProblemStructural(model, linearSystems);
+
             var childAnalyzer = new LinearAnalyzer(solver, linearSystems);
+            childAnalyzer.EquivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler>()
+            {
+                { subdomainID, new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) }
+            };
+
             var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
             childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] { });
