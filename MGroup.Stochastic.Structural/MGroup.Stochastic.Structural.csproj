@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Accord.Math" Version="3.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
