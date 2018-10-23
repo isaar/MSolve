@@ -288,9 +288,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="length">The number of entries to copy.</param>
         public void CopyFromVector(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length)
         {
-            //TODO: Perhaps a syntax closer to Array, 
+            //TODO: Perhaps a syntax closer to Array: 
             // e.g. Vector.Copy(sourceVector, sourceIndex, destinationVector, destinationIndex, length)
-            for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
+
+            if (sourceVector is Vector casted) Array.Copy(casted.data, sourceIndex, this.data, destinationIndex, length);
+            else
+            {
+                for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
+            }
         }
 
         /// <summary>
