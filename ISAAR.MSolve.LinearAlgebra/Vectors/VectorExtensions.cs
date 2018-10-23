@@ -32,5 +32,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="vector1"/> and <paramref name="vector2"/>
         ///     have different <see cref="Length"/>.</exception>
         public static void SubtractIntoThis(this Vector vector1, Vector vector2) => vector1.AxpyIntoThis(vector2, -1.0);
+
+        //TODO: remove this
+        public static Numerical.LinearAlgebra.Vector ToLegacyVector(this IVectorView vector)
+            => Vector.CreateFromVector(vector).ToLegacyVector();
     }
 }

@@ -80,6 +80,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     constraints.</exception>
         /// <exception cref="Exceptions.SparsityPatternModifiedException"> Thrown if a structural zero entry of a sparse vector 
         ///     format is written to.</exception>
-        void SetEntryRespectingPattern(int index, double value);
+        void Set(int index, double value);
     }
 }

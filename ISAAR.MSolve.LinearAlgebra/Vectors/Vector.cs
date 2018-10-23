@@ -680,9 +680,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.SetEntryRespectingPattern(int, double)"/>.
+        /// See <see cref="IVector.Set(int, double)"/>.
         /// </summary>
-        public void SetEntryRespectingPattern(int index, double value) => data[index] = value;
+        public void Set(int index, double value) => data[index] = value;
 
         /// <summary>
         /// Performs the operation: this[<paramref name="destinationIndex"/> + i] = <paramref name="subvector"/>[i], for
