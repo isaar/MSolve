@@ -28,6 +28,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         }
 
         [Fact]
+        private static void TestClear()
+        {
+            var zero = Matrix.CreateZero(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols);
+            var matrix = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
+            matrix.Clear();
+            comparer.AssertEqual(zero, matrix);
+        }
+
+        [Fact]
         private static void TestEquality()
         {
             // Equals(SkylineMatrix)

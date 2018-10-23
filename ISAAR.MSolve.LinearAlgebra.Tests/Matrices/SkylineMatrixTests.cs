@@ -23,6 +23,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         }
 
         [Fact]
+        private static void TestClear()
+        {
+            var zero = Matrix.CreateZero(SparsePosDef10by10.order, SparsePosDef10by10.order);
+            var skyline = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.order,
+                SparsePosDef10by10.skylineValues, SparsePosDef10by10.skylineDiagOffsets, true, true);
+            skyline.Clear();
+            comparer.AssertEqual(zero, skyline);
+        }
+
+        [Fact]
         private static void TestEquality()
         {
             var full = Matrix.CreateFromArray(SparsePosDef10by10.matrix);

@@ -26,6 +26,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient);
 
         /// <summary>
+        /// Sets all entries to 0. For sparse or block matrices: the indexing arrays will not be mutated. Therefore the sparsity  
+        /// pattern will be preserved. The non-zero entries will be set to 0, but they will still be stored explicitly. 
+        /// </summary>
+        void Clear();
+
+        /// <summary>
         /// Performs a binary operation on each pair of entries:  
         /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i,j]).
         /// The resulting matrix overwrites the entries of this.

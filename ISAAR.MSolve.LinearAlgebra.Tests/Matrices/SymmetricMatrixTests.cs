@@ -27,6 +27,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         }
 
         [Fact]
+        private static void TestClear()
+        {
+            var zero = Matrix.CreateZero(SymmPosDef10by10.order, SymmPosDef10by10.order);
+            var matrix = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.matrix);
+            matrix.Clear();
+            comparer.AssertEqual(zero, matrix);
+        }
+
+        [Fact]
         private static void TestMatrixVectorMultiplication()
         {
             // invertible

@@ -201,6 +201,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="IMatrix.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(values, 0, values.Length);
+
+        /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CsrMatrix"/>. 
         /// </summary>
         public Matrix CopyToFullMatrix()

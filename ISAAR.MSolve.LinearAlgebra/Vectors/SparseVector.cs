@@ -239,6 +239,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(values, 0, values.Length);
+
+        /// <summary>
         /// Initializes a new instance of <see cref="SparseVector"/> by deep copying the entries as this instance.
         /// </summary>
         public SparseVector Copy()

@@ -46,6 +46,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         }
 
         [Fact]
+        private static void TestClear()
+        {
+            var zero = Vector.CreateZero(TestVectors.vector1.Length);
+            var vector = Vector.CreateFromArray(TestVectors.vector1);
+            vector.Clear();
+            comparer.AssertEqual(zero, vector);
+        }
+
+        [Fact]
         private static void TestDotProduct()
         {
             var v1 = Vector.CreateFromArray(TestVectors.vector1);

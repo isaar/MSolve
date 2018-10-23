@@ -238,6 +238,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="IMatrix.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(values, 0, values.Length);
+
+        /// <summary>
         /// Initializes a new <see cref="SkylineMatrix"/> instance by copying the entries of this <see cref="SkylineMatrix"/>. 
         /// </summary>
         public SkylineMatrix Copy() => CreateFromArrays(NumColumns, values, diagOffsets, false, true);

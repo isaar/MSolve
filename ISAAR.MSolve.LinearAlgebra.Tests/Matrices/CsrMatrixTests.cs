@@ -15,6 +15,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
         [Fact]
+        private static void TestClear()
+        {
+            var zero = Matrix.CreateZero(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols);
+            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
+                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+                true);
+            csr.Clear();
+            comparer.AssertEqual(zero, csr);
+        }
+
+        [Fact]
         private static void TestEquality()
         {
             var full = Matrix.CreateFromArray(SparseRectangular10by5.matrix);

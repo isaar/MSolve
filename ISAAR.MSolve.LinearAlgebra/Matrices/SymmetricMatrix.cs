@@ -245,6 +245,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IMatrix.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(data, 0, data.Length);
+
         public SymmetricMatrix Copy()
         {
             double[] clone = new double[data.Length];

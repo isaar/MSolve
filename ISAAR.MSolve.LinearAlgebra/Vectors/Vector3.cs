@@ -188,6 +188,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.Clear"/>.
+        /// </summary>
+        public void Clear() //TODO: Is Array.Clear faster here?
+        {
+            data[0] = 0.0;
+            data[1] = 0.0;
+            data[2] = 0.0;
+        }
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Vector3"/> by deep copying the entries of this instance.
         /// </summary>
         public Vector3 Copy() => new Vector3(new double[] { data[0], data[1], data[2] });

@@ -228,6 +228,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="IMatrix.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(values, 0, values.Length);
+
+        /// <summary>
         /// See <see cref="ISparseMatrix.CountNonZeros"/>
         /// </summary>
         public int CountNonZeros() => values.Length;

@@ -250,6 +250,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(data, 0, Length);
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Vector"/> by copying the entries of this instance.
         /// </summary>
         public Vector Copy() => Vector.CreateFromArray(data, true); //TODO: Perhaps this should use BLAS

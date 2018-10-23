@@ -184,6 +184,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="IMatrix.Clear"/>.
+        /// </summary>
+        public void Clear() => Array.Clear(data, 0, data.Length);
+
+        /// <summary>
         /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = length(1) = 
         /// <see cref="Order"/>. 
         /// </summary>
