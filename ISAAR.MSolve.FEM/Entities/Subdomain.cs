@@ -239,6 +239,27 @@ namespace ISAAR.MSolve.FEM.Entities
             return localVector;
         }
 
+        //TODO: this should return Vector
+        public double[] GetLocalVectorFromGlobal_v2(Element element, LinearAlgebra.Vectors.IVectorView globalVector)
+        {
+            int localDOFs = 0;
+            foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
+            var localVector = new double[localDOFs];
+
+            int pos = 0;
+            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            {
+                Node node = element.Nodes[i];
+                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                {
+                    int dof = NodalDOFsDictionary[node.ID][dofType];
+                    if (dof != -1) localVector[pos] = globalVector[dof];
+                    pos++;
+                }
+            }
+            return localVector;
+        }
+
         public void AddLocalVectorToGlobal(Element element, double[] localVector, double[] globalVector)
         {
             int pos = 0;
@@ -254,6 +275,7 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
+
         public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
         {
             var forces = new Vector(TotalDOFs);
@@ -268,6 +290,21 @@ namespace ISAAR.MSolve.FEM.Entities
                 AddLocalVectorToGlobal(element, f, forces.Data);
             }
             return forces;
+        }
+
+        public LinearAlgebra.Vectors.IVector GetRHSFromSolution_v2(LinearAlgebra.Vectors.IVectorView solution, LinearAlgebra.Vectors.IVectorView dSolution)
+        {
+            var forces = new double[TotalDOFs]; //TODO: use Vector
+            foreach (Element element in elementsDictionary.Values)
+            {
+                double[] localSolution = GetLocalVectorFromGlobal_v2(element, solution);
+                double[] localdSolution = GetLocalVectorFromGlobal_v2(element, dSolution);
+                element.ElementType.CalculateStresses(element, localSolution, localdSolution);
+                if (element.ElementType.MaterialModified) element.Subdomain.MaterialsModified = true;
+                double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
+                AddLocalVectorToGlobal(element, f, forces);
+            }
+            return LinearAlgebra.Vectors.Vector.CreateFromArray(forces);
         }
 
         public void SaveMaterialState()
@@ -300,7 +337,30 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
+        public void SubdomainToGlobalVector_v2(LinearAlgebra.Vectors.IVectorView subdomainVector, LinearAlgebra.Vectors.IVector globalVector)
+        {
+            foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
+            {
+                Dictionary<DOFType, int> dofTypes = NodalDOFsDictionary[nodeID];
+                foreach (DOFType dofType in dofTypes.Keys)
+                {
+                    int localDOF = NodalDOFsDictionary[nodeID][dofType];
+                    int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
+                    if (localDOF > -1 && globalDOF > -1)
+                    {
+                        //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
+                        globalVector.Set(globalDOF, globalVector[globalDOF] + subdomainVector[localDOF]);
+                    }
+                }
+            }
+        }
+
         public void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubdomainToGlobalVectorMeanValue_v2(LinearAlgebra.Vectors.IVectorView globalVector, LinearAlgebra.Vectors.IVector subdomainVector)
         {
             throw new NotImplementedException();
         }
@@ -319,5 +379,22 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
+        public void SplitGlobalVectorToSubdomain_v2(LinearAlgebra.Vectors.IVectorView globalVector, LinearAlgebra.Vectors.IVector subdomainVector)
+        {
+            foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
+            {
+                Dictionary<DOFType, int> dofTypes = NodalDOFsDictionary[nodeID];
+                foreach (DOFType dofType in dofTypes.Keys)
+                {
+                    int localDOF = NodalDOFsDictionary[nodeID][dofType];
+                    int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
+                    if (localDOF > -1 && globalDOF > -1)
+                    {
+                        //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
+                        subdomainVector.Set(globalDOF, globalVector[globalDOF] + globalVector[localDOF]);
+                    }
+                }
+            }
+        }
     }
 }
