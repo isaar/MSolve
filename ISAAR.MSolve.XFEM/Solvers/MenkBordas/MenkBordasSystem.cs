@@ -202,10 +202,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // Assemble the rhs vector // TODO: just set the subvectors that change
             var rhs = Vector.CreateZero(dim.NumDofsAll);
-            rhs.CopyFromVector(0, bs, 0, dim.NumDofsStd);
+            rhs.CopySubvectorFrom(0, bs, 0, dim.NumDofsStd);
             foreach (var sub in subdomains)
             {
-                rhs.SetSubvector(be[sub], dim.SubdomainStarts[sub]);
+                rhs.CopySubvectorFrom(dim.SubdomainStarts[sub], be[sub], 0, be[sub].Length);
             }
 
             // Create the preconditioned enriched matrices

@@ -1,10 +1,12 @@
 ﻿using System;
 
+//TODO: Should IVector Copy() be defined in IVectorView? It doesn't mutate the original vector. However, the return type should
+//      still be IVector, since there wouldn't be a point in getting an immutable copy of an immutable class.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
     /// Operations specified by this interface modify the vector. Therefore it is possible that they may throw exceptions if they 
-    /// are used on sparse vector formats.
+    /// are used on sparse vector formats and the zero entries are overwritten.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public interface IVector: IVectorView
@@ -25,10 +27,68 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         void AxpyIntoThis(IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
+        /// Performs the following operation for <paramref name="length"/> consecutive entries starting from the provided 
+        /// indices: this[i] = <paramref name="sourceCoefficient"/> * <paramref name="sourceVector"/>[i] + this[i].
+        /// </summary>
+        /// <param name="destinationIndex">The index into this <see cref="IVector"/> where to start overwritting. Constraints:
+        ///     <paramref name="destinationIndex"/> + <paramref name="length"/> &lt;= this.<see cref="IIndexable1D.Length"/>.
+        ///     </param>
+        /// <param name="sourceVector">The other vector operand.</param>
+        /// <param name="sourceCoefficient">A scalar that multiplies each entry of <paramref name="sourceVector"/>.</param>
+        /// <param name="sourceIndex">The index into <paramref name="sourceVector"/> where to start operating. Constraints: 
+        ///     <paramref name="sourceIndex"/> + <paramref name="length"/> &lt;= 
+        ///     <paramref name="sourceVector"/>.<see cref="IIndexable1D.Length"/>.</param>
+        /// <param name="length">The number of entries to copy.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="length"/> and 
+        ///     <paramref name="destinationIndex"/> or <paramref name="sourceIndex"/> violate the described constraints.
+        ///     </exception>
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
+        ///     is not permitted by the vector storage format.</exception>
+        void AxpySubvectorIntoThis(int destinationIndex, IVectorView sourceVector, double sourceCoefficient, int sourceIndex,
+            int length);
+
+        /// <summary>
         /// Sets all entries to 0. For sparse or block vectors: the indexing arrays will not be mutated. Therefore the sparsity  
         /// pattern will be preserved. The non-zero entries will be set to 0, but they will still be stored explicitly. 
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Copies this <see cref="IVector"/> object. A new vector of the same type as this object is initialized and returned.
+        /// </summary>
+        /// <param name="copyIndexingData">If true, all data of this object will be copied. If false, only the array(s) 
+        ///     containing the values of the stored vector entries will be copied. The new vector will reference the same 
+        ///     indexing arrays as this one.</param>
+        IVector Copy(bool copyIndexingData = false);
+
+        /// <summary>
+        /// Copies all entries from <paramref name="sourceVector"/> to this  <see cref="IVector"/>.
+        /// </summary>
+        /// <param name="sourceVector">The vector containing the entries to be copied.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="sourceVector"/> has different 
+        ///     <see cref="IIndexable1D.Length"/> than this.</exception>
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
+        ///     is not permitted by the vector storage format.</exception>
+        void CopyFrom(IVectorView sourceVector);
+
+        /// <summary>
+        /// Copies <paramref name="length"/> consecutive entries from <paramref name="sourceVector"/> to this 
+        /// <see cref="IVector"/> starting from the provided indices.
+        /// </summary>
+        /// <param name="destinationIndex">The index into this <see cref="IVector"/> where to start copying to. Constraints:
+        ///     <paramref name="destinationIndex"/> + <paramref name="length"/> &lt;= this.<see cref="IIndexable1D.Length"/>.
+        ///     </param>
+        /// <param name="sourceVector">The vector containing the entries to be copied.</param>
+        /// <param name="sourceIndex">The index into <paramref name="sourceVector"/> where to start copying from. 
+        ///     Constraints: <paramref name="sourceIndex"/> + <paramref name="length"/> &lt;= 
+        ///     <paramref name="sourceVector"/>.<see cref="IIndexable1D.Length"/>.</param>
+        /// <param name="length">The number of entries to copy.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="length"/> and 
+        ///     <paramref name="destinationIndex"/> or <paramref name="sourceIndex"/> violate the described constraints.
+        ///     </exception>
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
+        ///     is not permitted by the vector storage format.</exception>
+        void CopySubvectorFrom(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length);
 
         /// <summary>
         /// Performs a binary operation on each pair of entries: 

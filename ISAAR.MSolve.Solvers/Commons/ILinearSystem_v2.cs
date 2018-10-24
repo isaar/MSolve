@@ -21,7 +21,8 @@ namespace ISAAR.MSolve.Solvers.Commons
     // so the clearing request will not go through). 
     // 3) Instead of using flags to determine the state of the matrix and vectors, it would be better to have solver, analyzer 
     // and provider observe the LinearSystem. When someone alters e.g. the matrix, all the others will be notified to manage 
-    // their own memory. This system also allows communicating and approving the clearing requests.
+    // their own memory. This system also allows communicating and approving the clearing requests. However it would be very 
+    // inefficient to alert all observers everytime a setter is called, therefore access to mutating methods should be controlled.
     // 4) To keep analyzers and providers non-generic, LinearSystem does not provide setters that operate on the interface vectors. 
     // Instead it must provide methods to initialize zero vectors (or scalar * ones()). Currently the vectors created inside the 
     // analyzer and provider are all of type Vector. However that is restricting, inefficient and will cause problems once 
@@ -48,6 +49,6 @@ namespace ISAAR.MSolve.Solvers.Commons
         //TODO: setters must be removed, since they force the implementation (or the solver) to cast
         IMatrix Matrix { get; set; }
         IVector RhsVector { get; set; }
-        IVector Solution { get; }
+        IVector Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
     }
 }

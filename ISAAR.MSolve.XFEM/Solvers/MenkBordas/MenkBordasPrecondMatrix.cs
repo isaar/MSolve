@@ -49,12 +49,12 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
                 // ye_all = Q^T * xc
                 Vector yeAll = LQ.QTimesVector(xc, true);
-                y.SetSubvector(yeAll, dim.NumDofsStd);
+                y.CopySubvectorFrom(dim.NumDofsStd, yeAll, 0, yeAll.Length);
 
                 // yc = Q * xe_all. Rows correspond to the continuity equations. 
                 //TODO: these entries are sliced twice.
                 Vector yc = LQ.QTimesVector(x.GetSubvector(dim.NumDofsStd, dim.EquationsStart), false); 
-                y.SetSubvector(yc, dim.EquationsStart);
+                y.CopySubvectorFrom(dim.EquationsStart, yc, 0, yc.Length);
             }
 
             foreach (var sub in dim.Subdomains)
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 ye.AddIntoThis(xe);
                 y.AddSubvector(ye, dim.SubdomainStarts[sub]);
             }
-            y.SetSubvector(ys, 0);
+            y.CopySubvectorFrom(0, ys, 0, ys.Length);
             return y;
         }
 
@@ -79,13 +79,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             // ys = Ps^T * xs
             Vector ys = Ps.PreconditionerTimesVector(x.GetSubvector(0, dim.NumDofsStd), transposePreconditioner);
-            y.SetSubvector(ys, 0);
+            y.CopySubvectorFrom(0, ys, 0, ys.Length);
 
             if (LQ != null) //TODO: something more explicit is needed
             {
                 // yc = inv(L) * xc
                 Vector yc = LQ.InverseLTimesVector(x.GetSubvector(dim.EquationsStart, dim.NumDofsAll), transposePreconditioner);
-                y.SetSubvector(yc, dim.EquationsStart);
+                y.CopySubvectorFrom(dim.EquationsStart, yc, 0, yc.Length);
             }
 
             if (transposePreconditioner)
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 {
                     // ye = Pe^T * xe = inv(Ue^T) * xe
                     Vector ye = Pe[sub].ForwardSubstitution(x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
-                    y.SetSubvector(ye, dim.SubdomainStarts[sub]);
+                    y.CopySubvectorFrom(dim.SubdomainStarts[sub], ye, 0, ye.Length);
                 }
             }
             else
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 {
                     // ye = Pe * xe = inv(Ue) * xe
                     Vector ye = Pe[sub].BackSubstitution(x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]));
-                    y.SetSubvector(ye, dim.SubdomainStarts[sub]);
+                    y.CopySubvectorFrom(dim.SubdomainStarts[sub], ye, 0, ye.Length);
                 }
             }
 

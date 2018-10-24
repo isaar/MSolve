@@ -73,14 +73,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var copy = Vector.CreateZero(length);
 
             // Copy the subvectors
-            copy.CopyFromVector(0, Vs, 0, numStdDofs);
+            copy.CopySubvectorFrom(0, Vs, 0, numStdDofs);
             int offset = numStdDofs;
             for (int i = 0; i < numSubdomains; ++i)
             {
-                copy.CopyFromVector(offset, Ve[i], 0, Ve[i].Length);
+                copy.CopySubvectorFrom(offset, Ve[i], 0, Ve[i].Length);
                 offset += Ve[i].Length;
             }
-            copy.CopyFromVector(offset, Vc, 0, numEquations);
+            copy.CopySubvectorFrom(offset, Vc, 0, numEquations);
 
             return copy;
         }

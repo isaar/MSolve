@@ -151,6 +151,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                 $"The matrix must be square, but was {matrix.NumRows}-by-{matrix.NumColumns}");
         }
 
+        public static void CheckSubvectorDimensions(IIndexable1D vector, int startIndex, int subvectorLength)
+        {
+            if (startIndex + vector.Length > vector.Length) throw new NonMatchingDimensionsException(
+                "The entries to access exceed the vector's length");
+        }
+
         public static void CheckSystemSolutionDimensions(IIndexable2D matrix, IVectorView rhsVector)
         {
             if (matrix.NumRows != rhsVector.Length)

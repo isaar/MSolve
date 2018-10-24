@@ -100,10 +100,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 ye.AddIntoThis(Kee[i].MultiplyRight(xe));
                 ye.AddIntoThis(B[i].MultiplyRight(xc, true));
                 yc.AddIntoThis(B[i].MultiplyRight(xe, false));
-                y.SetSubvector(ye, dim.SubdomainStarts[sub]);
+                y.CopySubvectorFrom(dim.SubdomainStarts[sub], ye, 0, ye.Length);
             }
-            y.SetSubvector(ys, 0);
-            y.SetSubvector(yc, dim.EquationsStart);
+            y.CopySubvectorFrom(0, ys, 0, ys.Length);
+            y.CopySubvectorFrom(dim.EquationsStart, yc, 0, yc.Length);
             return y;
         }
 

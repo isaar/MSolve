@@ -66,11 +66,12 @@ namespace ISAAR.MSolve.Analyzers
             a7 = delta * timeStep;
         }
 
-        public void ResetSolutionVectors()
-        {
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
-                subdomain.Solution.Clear();
-        }
+        //TODO: Remove this. The analyzer should not mess with the solution vector.
+        //public void ResetSolutionVectors()
+        //{
+        //    foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+        //        subdomain.Solution.Clear();
+        //}
 
         private void InitializeInternalVectors()
         {
@@ -281,8 +282,8 @@ namespace ISAAR.MSolve.Analyzers
             foreach (ILinearSystem_v2 subdomain in subdomains.Values)
             {
                 int id = subdomain.ID;
-                u[id].CopyFromVector(0, v[id], 0, u[id].Length);
-                v[id].CopyFromVector(0, subdomain.Solution, 0, v[id].Length);
+                u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;
+                v[id].CopyFrom(subdomain.Solution);
 
                 Vector vv = v2[id] + externalAccelerations[id];
 

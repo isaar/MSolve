@@ -250,9 +250,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>.
+        /// </summary>
+        public void AxpySubvectorIntoThis(int destinationIndex, IVectorView sourceVector, double sourceCoefficient,
+            int sourceIndex, int length)
+        {
+            Preconditions.CheckSubvectorDimensions(this, destinationIndex, length);
+            Preconditions.CheckSubvectorDimensions(sourceVector, sourceIndex, length);
+
+            if (sourceVector is Vector casted)
+            {
+                CBlas.Daxpy(Length, sourceCoefficient, ref casted.data[sourceIndex], 1, ref this.data[destinationIndex], 1);
+            }
+            else
+            {
+                for (int i = 0; i < Length; ++i) data[i + destinationIndex] += sourceCoefficient * sourceVector[i + sourceIndex];
+            }
+        }
+
+        /// <summary>
         /// See <see cref="IVector.Clear"/>.
         /// </summary>
         public void Clear() => Array.Clear(data, 0, Length);
+
+        /// <summary>
+        /// See <see cref="IVector.Copy(bool)"/>.
+        /// </summary>
+        IVector IVector.Copy(bool copyIndexingData) => Copy();
 
         /// <summary>
         /// Initializes a new instance of <see cref="Vector"/> by copying the entries of this instance.
@@ -284,18 +308,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Copies <paramref name="length"/> consecutive entries from <paramref name="sourceVector"/> to this 
-        /// <see cref="Vector"/> starting from the provided indices.
+        /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>
         /// </summary>
-        /// <param name="destinationIndex">The index into this <see cref="Vector"/> where to start copying to.</param>
-        /// <param name="sourceVector">The vector containing the entries to be copied.</param>
-        /// <param name="sourceIndex">The index into this <paramref name="sourceVector"/> where to start copying from.</param>
-        /// <param name="length">The number of entries to copy.</param>
-        public void CopyFromVector(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length)
+        public void CopyFrom(IVectorView sourceVector)
+        {
+            Preconditions.CheckVectorDimensions(this, sourceVector);
+            if (sourceVector is Vector casted) Array.Copy(casted.data, this.data, this.Length);
+            else
+            {
+                for (int i = 0; i < Length; ++i) data[i] = sourceVector[i];
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>
+        /// </summary>
+        public void CopySubvectorFrom(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length)
         {
             //TODO: Perhaps a syntax closer to Array: 
             // e.g. Vector.Copy(sourceVector, sourceIndex, destinationVector, destinationIndex, length)
 
+            Preconditions.CheckSubvectorDimensions(this, destinationIndex, length);
+            Preconditions.CheckSubvectorDimensions(sourceVector, sourceIndex, length);
             if (sourceVector is Vector casted) Array.Copy(casted.data, sourceIndex, this.data, destinationIndex, length);
             else
             {
@@ -693,23 +727,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// See <see cref="IVector.Set(int, double)"/>.
         /// </summary>
         public void Set(int index, double value) => data[index] = value;
-
-        /// <summary>
-        /// Performs the operation: this[<paramref name="destinationIndex"/> + i] = <paramref name="subvector"/>[i], for
-        /// 0 &lt;= i &lt; <paramref name="subvector"/>.<see cref="Length"/>.
-        /// </summary>
-        /// <param name="subvector">The vector that will be copied to a part of this <see cref="Vector"/> instance.</param>
-        /// <param name="destinationIndex">The index into this <see cref="Vector"/> instance, at which to start the vector 
-        ///     copying. Constraints: 0 &lt;= <paramref name="destinationIndex"/>, <paramref name="destinationIndex"/> + 
-        ///     <paramref name="subvector"/>.<see cref="Length"/> &lt;= this.<see cref="Length"/>.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if the <paramref name="destinationIndex"/> violates the 
-        ///     described constraint.</exception>
-        public void SetSubvector(Vector subvector, int destinationIndex) //TODO: this has common functionality with CopyFromVector
-        {
-            if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
-                "The entries to set exceed this vector's length");
-            Array.Copy(subvector.data, 0, this.data, destinationIndex, subvector.Length);
-        }
 
         /// <summary>
         /// Creates a new instance of the legacy vector class <see cref="Numerical.LinearAlgebra.Vector"/> with the same internal

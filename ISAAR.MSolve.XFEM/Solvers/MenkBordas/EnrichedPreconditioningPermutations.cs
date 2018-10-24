@@ -222,7 +222,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                     //TODO: The following could be done by multiply matrix * subVector1 into subVector2
                     Vector blockQ1x = blockQ1.MultiplyRight(x, false);
                     var Q1x = Vector.CreateZero(permutation.NumRows);
-                    Q1x.SetSubvector(blockQ1x, 0);
+                    Q1x.CopySubvectorFrom(0, blockQ1x, 0, blockQ1x.Length);
 
                     // P^T * (Q1*x)
                     return permutation.MultiplyRight(Q1x, true);

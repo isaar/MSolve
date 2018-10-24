@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.Analyzers
             foreach (ILinearSystem_v2 subdomain in linearSystems)
             {
                 Vector subdomainRHS = (Vector)(subdomain.RhsVector); //TODO: remove cast
-                subdomainRHS.CopyFromVector(0, rhs[subdomain.ID], 0, rhs[subdomain.ID].Length);
+                subdomainRHS.CopyFrom(rhs[subdomain.ID]);
                 //subdomainRHS.Multiply(step + 1);
             }
         }
@@ -275,11 +275,12 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
+        //TODO: Remove this method. Analyzers should not mess with the solution vector.
         private void CopySolutionToSubdomains()
         {
             foreach (ILinearSystem_v2 subdomain in linearSystems)
             {
-                ((Vector)(subdomain.Solution)).CopyFromVector(0, u[subdomain.ID], 0, u[subdomain.ID].Length); //TODO: remove cast
+                subdomain.Solution.CopyFrom(u[subdomain.ID]);
             }
         }
 
