@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
-using LegacyVector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
+using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: factorization should be done during Solve() to time correctly. Alternatively, an observer should record the durations.
 //TODO: investigate if it is possible to avoid casting the matrix provided by the analyzer/assembler into skyline. Perhaps the
@@ -20,14 +22,16 @@ namespace ISAAR.MSolve.Solvers.Skyline
     /// stored in Skyline format.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SkylineSolver: ISolver
+    public class SkylineSolver: ISolver_v2
     {
         private const string name = "SkylineSolver"; // for error messages
+        private readonly SkylineAssembler assembler = new SkylineAssembler();
+        private readonly FreeDofOrderer dofOrderer; //TODO: this should probably be accessed from the subdomain
         private readonly double factorizationPivotTolerance;
-        private readonly LinearSystem_v2<SkylineMatrix, LegacyVector> linearSystem;
+        private readonly LinearSystem_v2<SkylineMatrix, Vector> linearSystem;
         private CholeskySkyline factorizedMatrix;
 
-        public SkylineSolver(IReadOnlyList<LinearSystem_v2<SkylineMatrix, LegacyVector>> linearSystems, 
+        public SkylineSolver(IReadOnlyList<LinearSystem_v2<SkylineMatrix, Vector>> linearSystems, 
             double factorizationPivotTolerance = 1E-15)
         {
             if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
@@ -36,8 +40,14 @@ namespace ISAAR.MSolve.Solvers.Skyline
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
+        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        {
+            return assembler.BuildGlobalMatrix(subdomain.ΙElementsDictionary.Values, dofOrderer, elementMatrixProvider);
+        }
+
         public void Initialize()
         {
+            //TODO: perhaps I should order the dofs here.
         }
 
         /// <summary>
@@ -48,10 +58,10 @@ namespace ISAAR.MSolve.Solvers.Skyline
             if (linearSystem.IsMatrixModified)
             {
                 factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance);
-                linearSystem.IsMatrixModified = false;
+                linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
+                linearSystem.IsMatrixFactorized = true;
             }
-            Vector solution = factorizedMatrix.SolveLinearSystem(Vector.CreateFromLegacyVector(linearSystem.RhsVector));
-            linearSystem.Solution = solution.ToLegacyVector();
+            linearSystem.Solution = factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector);
         }
     }
 }

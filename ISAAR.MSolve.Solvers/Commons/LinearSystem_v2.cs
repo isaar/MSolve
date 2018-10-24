@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-//using ISAAR.MSolve.LinearAlgebra.Vectors
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: add state management
 namespace ISAAR.MSolve.Solvers.Commons
@@ -20,12 +19,23 @@ namespace ISAAR.MSolve.Solvers.Commons
         public int ID { get; }
 
         //TODO: this is error prone. This object should manage the state when clients read or modify the matrix.
+        public bool IsMatrixFactorized { get; set; }
         public bool IsMatrixModified { get; set; } = true;
 
-        IMatrix ILinearSystem_v2.Matrix { get => Matrix; }
+        IMatrix ILinearSystem_v2.Matrix
+        {
+            get => Matrix;
+            set => Matrix = (TMatrix)value;
+        }
+
         internal TMatrix Matrix { get; set; }
 
-        IVector ILinearSystem_v2.RhsVector { get => RhsVector; }
+        IVector ILinearSystem_v2.RhsVector
+        {
+            get => RhsVector;
+            set => RhsVector = (TVector)value; 
+        }
+
         internal TVector RhsVector { get; set; }
 
         IVector ILinearSystem_v2.Solution { get => Solution; }

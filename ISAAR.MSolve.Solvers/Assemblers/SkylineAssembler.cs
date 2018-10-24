@@ -5,9 +5,9 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
-using LegacyVector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 //TODO: The F = Ff - Kfc*Fc should not be done in the solver. The solver should only operate on the final linear systems.
 //      It could be done here or in the analyzer.
@@ -20,24 +20,17 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     /// Builds the global matrix of the linear system that will be solved. This matrix is in Skyline format.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SkylineAssembler: IGlobalMatrixAssembler
+    public class SkylineAssembler: IGlobalMatrixAssembler<SkylineMatrix>
     {
         private const string name = "SkylineAssembler"; // for error messages
-        private readonly LinearSystem_v2<SkylineMatrix, LegacyVector> linearSystem;
+        //private readonly LinearSystem_v2<SkylineMatrix, Vector> linearSystem;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sortColsOfEachRow">Sorting the columns of each row in the CSR storage format may increase performance 
-        ///     of the matrix vector multiplications. It is recommended to set it to true, especially for iterative linear 
-        ///     system solvers.</param>
-        public SkylineAssembler(IReadOnlyList<LinearSystem_v2<SkylineMatrix, LegacyVector>> linearSystems,
-            bool sortColsOfEachRow = true)
-        {
-            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
-                name + " can be used if there is only 1 subdomain.");
-            this.linearSystem = linearSystems[0];
-        }
+        //public SkylineAssembler(IReadOnlyList<LinearSystem_v2<SkylineMatrix, LegacyVector>> linearSystems)
+        //{
+        //    if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
+        //        name + " can be used if there is only 1 subdomain.");
+        //    this.linearSystem = linearSystems[0];
+        //}
 
         public (SkylineMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
             AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
@@ -62,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return (Kff.BuildSkylineMatrix(), Kfc);
         }
 
-        public void BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
+        public SkylineMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
@@ -77,7 +70,10 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 Kff.AddSubmatrixSymmetric(k, mapStandard);
             }
 
-            linearSystem.Matrix = Kff.BuildSkylineMatrix();
+            return Kff.BuildSkylineMatrix();
+
+            //linearSystem.Matrix = Kff.BuildSkylineMatrix();
+            //linearSystem.IsMatrixModified = true;
         }
 
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
