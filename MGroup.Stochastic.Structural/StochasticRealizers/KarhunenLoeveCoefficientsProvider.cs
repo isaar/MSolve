@@ -14,6 +14,23 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 {
     public class KarhunenLoeveCoefficientsProvider : IUncertainParameterRealizer
     {
+        public int MCsamples { get; }
+        public double[] EigenValues { get; }
+        public double[,] EigenModes { get; }
+        public double MeanValue { get; }
+        public bool MidpointMethod { get; }
+        public bool IsGaussian { get; }
+
+        public KarhunenLoeveCoefficientsProvider(int mcsamples, double[] eigenValues, double[,] eigenModes,
+            double meanValue, bool midpointMethod, bool isGaussian)
+        {
+            MCsamples = mcsamples;
+            EigenValues = eigenValues;
+            EigenModes = eigenModes;
+            MeanValue = meanValue;
+            MidpointMethod = midpointMethod;
+            IsGaussian = isGaussian;
+        }
         public static double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
         {
             double nominator = -Math.Abs(x - y) / correlationLength;
@@ -21,9 +38,9 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return correlationFunction;
         }
 
-        public double[] Realize(int iteration, double[] parameters)
+        public double[,] Realize(int iteration, double[] parameters)
         {
-            throw new NotImplementedException();
+            return  KarhunenLoeveFredholm1DSampleGenerator( MCsamples, EigenValues, EigenModes, MeanValue, MidpointMethod, IsGaussian);
         }
 
         public Tuple<double[], double[], double[,]> KarhunenLoeveFredholmWithFEM(int KarLoeveTerms, double[] domainBounds, double sigmaSquare, int partition, double correlationLength)
@@ -139,7 +156,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         }
 
-        public double[,] KarhunenLoeveFredholm1DSampleGenerator(int MCsamples, double[] eigenValues, double[,] eigenModes, double meanValue, bool midpointMethod, bool isGaussian)
+        public double[,] KarhunenLoeveFredholm1DSampleGenerator(int mcsamples, double[] eigenValues, double[,] eigenModes, double meanValue, bool midpointMethod, bool isGaussian)
         {
             if (midpointMethod == false) throw new ArgumentException("It is not supported at the moment");
             if (isGaussian == false) throw new ArgumentException("It is not supported at the moment");
