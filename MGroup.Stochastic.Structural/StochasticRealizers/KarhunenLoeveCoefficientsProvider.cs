@@ -101,8 +101,8 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             }
 
             // computing B matrix
-            double[] GaussLegendreCoordinates = KarhunenLoeveCoefficientsProvider.gauss_quad().Item1;
-            double[] GaussLegendreWeights = KarhunenLoeveCoefficientsProvider.gauss_quad().Item2;
+            double[] GaussLegendreCoordinates = gauss_quad().Item1;
+            double[] GaussLegendreWeights = gauss_quad().Item2;
             double[,] Bmatrix = new double[ndof, ndof];
             for (int i = 0; i < nfe; i++)
             {
@@ -112,7 +112,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
                 {
                     double xi_gl = GaussLegendreCoordinates[j];
                     double w_gl = GaussLegendreWeights[j];
-                    double[] NN = KarhunenLoeveCoefficientsProvider.LagrangianShapeFunctions(xi_gl);
+                    double[] NN = LagrangianShapeFunctions(xi_gl);
                     //Be=Be+NN'*NN*det_Je*w_gl(j)
                     Be[0, 0] = Be[0, 0] + NN[0] * NN[0] * det_Je * w_gl;
                     Be[1, 0] = Be[1, 0] + NN[0] * NN[1] * det_Je * w_gl;
@@ -139,12 +139,12 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
                     for (int k = 0; k < GaussLegendreOrder; k++)
                     {
                         double xi_gl_e = GaussLegendreCoordinates[k];
-                        double[] NNe = KarhunenLoeveCoefficientsProvider.LagrangianShapeFunctions(xi_gl_e);
+                        double[] NNe = LagrangianShapeFunctions(xi_gl_e);
                         double xpk = NNe[0] * xe[0] + NNe[1] * xe[1];
                         for (int l = 0; l < GaussLegendreOrder; l++)
                         {
                             double xi_gl_f = GaussLegendreCoordinates[l];
-                            double[] NNf = KarhunenLoeveCoefficientsProvider.LagrangianShapeFunctions(xi_gl_f);
+                            double[] NNf = LagrangianShapeFunctions(xi_gl_f);
                             double xpl = NNf[0] * xf[0] + NNf[1] * xf[1];
                             //element C matrix
                             Cef[0, 0] = Cef[0, 0] + GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[0] * NNf[0] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
