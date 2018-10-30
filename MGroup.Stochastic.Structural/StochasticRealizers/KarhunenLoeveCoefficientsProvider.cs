@@ -15,32 +15,46 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
     public class KarhunenLoeveCoefficientsProvider : IUncertainParameterRealizer
     {
         public int MCsamples { get; }
-        public double[] EigenValues { get; }
-        public double[,] EigenModes { get; }
+        public int Partition { get; }
         public double MeanValue { get; }
         public bool MidpointMethod { get; }
         public bool IsGaussian { get; }
+        public int KarLoeveTerms { get; }
+        public double[] DomainBounds { get; }
+        public double SigmaSquare { get; set; }
+        public double CorrelationLength { get; set; }
+    
 
-        public KarhunenLoeveCoefficientsProvider(int mcsamples, double[] eigenValues, double[,] eigenModes,
-            double meanValue, bool midpointMethod, bool isGaussian)
+        public KarhunenLoeveCoefficientsProvider(int mcsamples, int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
+            double[] domainBounds, double sigmaSquare, double correlationLength)
         {
             MCsamples = mcsamples;
-            EigenValues = eigenValues;
-            EigenModes = eigenModes;
+            Partition = partition;
             MeanValue = meanValue;
             MidpointMethod = midpointMethod;
             IsGaussian = isGaussian;
+            KarLoeveTerms = karLoeveTerms;
+            DomainBounds = domainBounds;
+            SigmaSquare = sigmaSquare;
+            CorrelationLength = correlationLength;
         }
-        public static double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
+
+        public double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
         {
+            //CorrelationLength = correlationLength;
+            //SigmaSquare = sigmaSquare;
             double nominator = -Math.Abs(x - y) / correlationLength;
             double correlationFunction = Math.Pow(Math.E, nominator) * sigmaSquare;
             return correlationFunction;
         }
 
-        public double[,] Realize(int iteration, double[] parameters)
+        public double Realize(int iteration, int elementID)
         {
-            return  KarhunenLoeveFredholm1DSampleGenerator( MCsamples, EigenValues, EigenModes, MeanValue, MidpointMethod, IsGaussian);
+            double[] xCoordinates = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item1;
+            double[] lambda = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item2;
+            double[,] eigenvectors = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item3;
+            double[,] eigenModesAtMidpoint = CalculateEigenmodesAtMidpoint(eigenvectors);
+            return KarhunenLoeveFredholm1DSampleGenerator(elementID, lambda, eigenModesAtMidpoint, MeanValue, MidpointMethod, IsGaussian);
         }
 
         public Tuple<double[], double[], double[,]> KarhunenLoeveFredholmWithFEM(int KarLoeveTerms, double[] domainBounds, double sigmaSquare, int partition, double correlationLength)
@@ -126,10 +140,10 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
                             double[] NNf = KarhunenLoeveCoefficientsProvider.LagrangianShapeFunctions(xi_gl_f);
                             double xpl = NNf[0] * xf[0] + NNf[1] * xf[1];
                             //element C matrix
-                            Cef[0, 0] = Cef[0, 0] + KarhunenLoeveCoefficientsProvider.GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[0] * NNf[0] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
-                            Cef[1, 0] = Cef[1, 0] + KarhunenLoeveCoefficientsProvider.GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[0] * NNf[1] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
-                            Cef[0, 1] = Cef[0, 1] + KarhunenLoeveCoefficientsProvider.GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[1] * NNf[0] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
-                            Cef[1, 1] = Cef[1, 1] + KarhunenLoeveCoefficientsProvider.GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[1] * NNf[1] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
+                            Cef[0, 0] = Cef[0, 0] + GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[0] * NNf[0] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
+                            Cef[1, 0] = Cef[1, 0] + GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[0] * NNf[1] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
+                            Cef[0, 1] = Cef[0, 1] + GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[1] * NNf[0] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
+                            Cef[1, 1] = Cef[1, 1] + GaussianKernelCovarianceFunction(xpk, xpl, sigmaSquare, correlationLength) * NNe[1] * NNf[1] * det_Je * det_Jf * GaussLegendreWeights[k] * GaussLegendreWeights[l];
                         }
                     }
                     Cmatrix[LM[i, 0], LM[j, 0]] = Cmatrix[LM[i, 0], LM[j, 0]] + Cef[0, 0];
@@ -156,38 +170,38 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         }
 
-        public double[,] KarhunenLoeveFredholm1DSampleGenerator(int mcsamples, double[] eigenValues, double[,] eigenModes, double meanValue, bool midpointMethod, bool isGaussian)
+        public double[,] CalculateEigenmodesAtMidpoint(double[,] eigenModes)
         {
-            if (midpointMethod == false) throw new ArgumentException("It is not supported at the moment");
-            if (isGaussian == false) throw new ArgumentException("It is not supported at the moment");
-            double[,] eigenModesAtMidpoint = new double[eigenModes.GetLength(0) - 1, eigenModes.GetLength(1)];
+            double[,] eigenmodesAtMidpoint = new double[eigenModes.GetLength(0) - 1, eigenModes.GetLength(1)];
             for (int j = 0; j < eigenModes.GetLength(1); j++)
             {
                 for (int i = 0; i < eigenModes.GetLength(0) - 1; i++)
                 {
-                    eigenModesAtMidpoint[i, j] = eigenModes[i, j] + eigenModes[i + 1, j];
+                    eigenmodesAtMidpoint[i, j] = eigenModes[i, j] + eigenModes[i + 1, j];
                 }
             }
-            double[,] fieldRealizations = new double[MCsamples, eigenModesAtMidpoint.GetLength(0)];
-            for (int k = 0; k < MCsamples; k++)
+            return eigenmodesAtMidpoint;
+        }
+        public double KarhunenLoeveFredholm1DSampleGenerator(int elementID, double[] eigenValues, double[,] eigenmodesAtMidpoint, double meanValue, bool midpointMethod, bool isGaussian)
+        {
+            if (midpointMethod == false) throw new ArgumentException("It is not supported at the moment");
+            if (isGaussian == false) throw new ArgumentException("It is not supported at the moment");
+            double fieldRealization = 0;
+            
+            double[] kse = new double[eigenmodesAtMidpoint.GetLength(1)];
+            for (int j = 0; j < eigenmodesAtMidpoint.GetLength(1); j++)
             {
-                double[] ksi = new double[eigenModesAtMidpoint.GetLength(1)];
-                for (int j = 0; j < eigenModesAtMidpoint.GetLength(1); j++)
-                {
-                    var KsiNormalDistribution = new NormalDistribution(0, 1);
-                    ksi[j] = KsiNormalDistribution.NextDouble();
-                }
-                for (int i = 0; i < eigenModesAtMidpoint.GetLength(0); i++)
-                {
-                    for (int j = 0; j < eigenModesAtMidpoint.GetLength(1); j++)
-                    {
-                        fieldRealizations[k, i] = fieldRealizations[k, i] + Math.Sqrt(eigenValues[j]) * eigenModesAtMidpoint[i, j] * ksi[j];
-                    }
-                    fieldRealizations[k, i] = meanValue + fieldRealizations[k, i];
-                }
+                var KsiNormalDistribution = new NormalDistribution(0, 1);
+                kse[j] = KsiNormalDistribution.NextDouble();
             }
-
-            return fieldRealizations;
+            
+            for (int j = 0; j < eigenmodesAtMidpoint.GetLength(1); j++)
+            {
+                fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtMidpoint[elementID, j] * kse[j];
+            }
+            fieldRealization = meanValue + fieldRealization;
+            
+            return fieldRealization;
         }
 
         private static double[] LagrangianShapeFunctions(double xi)
