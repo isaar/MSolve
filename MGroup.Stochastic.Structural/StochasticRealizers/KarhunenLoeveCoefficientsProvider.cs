@@ -23,7 +23,10 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         public double[] DomainBounds { get; }
         public double SigmaSquare { get; set; }
         public double CorrelationLength { get; set; }
-    
+        public double[] XCoordinates { get; set; }
+        public double[] Lambda { get; set; }
+        public double[,] Eigenvectors { get; set; }
+        public double[,] EigenModesAtMidpoint { get; set; }
 
         public KarhunenLoeveCoefficientsProvider(int mcsamples, int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
             double[] domainBounds, double sigmaSquare, double correlationLength)
@@ -37,6 +40,14 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             DomainBounds = domainBounds;
             SigmaSquare = sigmaSquare;
             CorrelationLength = correlationLength;
+            double[] xCoordinates = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item1;
+            double[] lambda = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item2;
+            double[,] eigenvectors = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item3;
+            double[,] eigenModesAtMidpoint = CalculateEigenmodesAtMidpoint(eigenvectors);
+            XCoordinates = xCoordinates;
+            Lambda = lambda;
+            Eigenvectors = eigenvectors;
+            EigenModesAtMidpoint = eigenModesAtMidpoint;
         }
 
         public double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
@@ -50,11 +61,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         public double Realize(int iteration, int elementID)
         {
-            double[] xCoordinates = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item1;
-            double[] lambda = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item2;
-            double[,] eigenvectors = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item3;
-            double[,] eigenModesAtMidpoint = CalculateEigenmodesAtMidpoint(eigenvectors);
-            return KarhunenLoeveFredholm1DSampleGenerator(elementID, lambda, eigenModesAtMidpoint, MeanValue, MidpointMethod, IsGaussian);
+            return KarhunenLoeveFredholm1DSampleGenerator(elementID, Lambda, EigenModesAtMidpoint, MeanValue, MidpointMethod, IsGaussian);
         }
 
         public Tuple<double[], double[], double[,]> KarhunenLoeveFredholmWithFEM(int KarLoeveTerms, double[] domainBounds, double sigmaSquare, int partition, double correlationLength)

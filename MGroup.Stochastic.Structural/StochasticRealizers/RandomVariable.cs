@@ -15,9 +15,9 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             Magnitude = magnitude;
         }
 
-        public double[] Realize(int iteration, double[] parameters)
+        public double Realize(int iteration, int parameters)
         {
-            return new[] { random.NextDouble() * Magnitude };
+            return random.NextDouble() * Magnitude ;
         }
     }
 }
