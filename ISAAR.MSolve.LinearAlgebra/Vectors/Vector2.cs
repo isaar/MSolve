@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// A vector with 2 entries. Optimized version of <see cref="Vector"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Vector2: IVectorView
+    public class Vector2: IVector
     {
         private readonly double[] data;
 
@@ -166,6 +166,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.AxpyIntoThis(IVectorView, double)"/>
+        /// </summary>
+        public void AxpyIntoThis(IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector2 casted) AxpyIntoThis(casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                data[0] += otherCoefficient * otherVector[0];
+                data[1] += otherCoefficient * otherVector[1];
+            }
+        }
+
+        /// <summary>
         /// Performs the operation: this[i] = <paramref name="otherCoefficient"/> * <paramref name="otherVector"/>[i] + this[i], 
         /// for 0 &lt;= i &lt; 2. The resulting vector overwrites the entries of this <see cref="Vector2"/> instance.
         /// </summary>
@@ -178,6 +192,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.AxpySubvectorIntoThis(int, IVectorView, double, int, int)"/>
+        /// </summary>
+        public void AxpySubvectorIntoThis(int destinationIndex, IVectorView sourceVector, double sourceCoefficient, 
+            int sourceIndex, int length)
+        {
+            Preconditions.CheckSubvectorDimensions(this, destinationIndex, length);
+            Preconditions.CheckSubvectorDimensions(sourceVector, sourceIndex, length);
+
+            if (sourceVector is Vector2 casted)
+            {
+                for (int i = 0; i < length; ++i) data[i + destinationIndex] += sourceCoefficient * casted.data[i + sourceIndex];
+            }
+            else
+            {
+                for (int i = 0; i < length; ++i) data[i + destinationIndex] += sourceCoefficient * sourceVector[i + sourceIndex];
+            }
+        }
+
+        /// <summary>
         /// See <see cref="IVector.Clear"/>.
         /// </summary>
         public void Clear() //TODO: Is Array.Clear faster here?
@@ -187,9 +220,52 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.Copy(bool)"/>
+        /// </summary>
+        public IVector Copy(bool copyIndexingData = false)
+            => Copy();
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Vector2"/> by deep copying the entries of this instance.
         /// </summary>
         public Vector2 Copy() => new Vector2(new double[] { data[0], data[1] });
+        
+
+        /// <summary>
+        /// See <see cref="IVector.CopyFrom(IVectorView)"/>
+        /// </summary>
+        public void CopyFrom(IVectorView sourceVector)
+        {
+            Preconditions.CheckVectorDimensions(this, sourceVector);
+            if (sourceVector is Vector2 casted)
+            {
+                data[0] = casted.data[0];
+                data[1] = casted.data[1];
+            }
+            else
+            {
+                data[0] = sourceVector[0];
+                data[1] = sourceVector[1];
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>
+        /// </summary>
+        public void CopySubvectorFrom(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length)
+        {
+            Preconditions.CheckSubvectorDimensions(this, destinationIndex, length);
+            Preconditions.CheckSubvectorDimensions(sourceVector, sourceIndex, length);
+
+            if (sourceVector is Vector2 casted)
+            {
+                for (int i = 0; i < length; ++i) data[i + destinationIndex] = casted.data[i + sourceIndex];
+            }
+            else
+            {
+                for (int i = 0; i < length; ++i) data[i + destinationIndex] = sourceVector[i + sourceIndex];
+            }
+        }
 
         /// <summary>
         /// See <see cref="IVectorView.CopyToArray"/>.
@@ -234,6 +310,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.DoEntrywiseIntoThis(IVectorView, Func{double, double, double})"/>
+        /// </summary>
+        public void DoEntrywiseIntoThis(IVectorView otherVector, Func<double, double, double> binaryOperation)
+        {
+            if (otherVector is Vector2 casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                data[0] = binaryOperation(data[0], otherVector[0]);
+                data[1] = binaryOperation(data[1], otherVector[1]);
+            }
+        }
+
+        /// <summary>
         /// Performs a binary operation on each pair of entries, for 0 &lt;= i &lt; 2: 
         /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
         /// The resulting vector overwrites the entries of this <see cref="Vector2"/> instance.
@@ -262,10 +352,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]), 
-        /// for 0 &lt;= i &lt; 2. The resulting vector overwrites the entries of this <see cref="Vector2"/> instance.
+        /// See <see cref="IVector.DoToAllEntriesIntoThis(Func{double, double})"/>
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             this.data[0] = unaryOperation(this.data[0]);
@@ -354,6 +442,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.LinearCombinationIntoThis(double, IVectorView, double)"/>
+        /// </summary>
+        public void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        {
+            if (otherVector is Vector2 casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                data[0] = thisCoefficient * data[0] * otherCoefficient * otherVector[0];
+                data[1] = thisCoefficient * data[1] * otherCoefficient * otherVector[1];
+            }
+        }
+
+        /// <summary>
         /// Performs the operation: this[i] = <paramref name="thisCoefficient"/> * this[i] + 
         ///     <paramref name="otherCoefficient"/> * <paramref name="otherVector"/>[i], 
         /// for 0 &lt;= i &lt; 2. The resulting vector overwrites the entries of this <see cref="Vector2"/> instance.
@@ -361,10 +463,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="thisCoefficient">A scalar that multiplies each entry of this vector.</param>
         /// <param name="otherVector">A vector with two entries.</param>
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
-        public void LinearCombinationIntoThis(double thisScalar, Vector2 otherVector, double otherScalar)
+        public void LinearCombinationIntoThis(double thisCoefficient, Vector2 otherVector, double otherCoefficient)
         {
-            this.data[0] = thisScalar * data[0] * otherScalar * otherVector.data[0];
-            this.data[1] = thisScalar * data[1] * otherScalar * otherVector.data[1];
+            this.data[0] = thisCoefficient * this.data[0] * otherCoefficient * otherVector.data[0];
+            this.data[1] = thisCoefficient * this.data[1] * otherCoefficient * otherVector.data[1];
         }
 
         /// <summary>
@@ -405,6 +507,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             data[0] *= scalar;
             data[1] *= scalar;
+        }
+
+        /// <summary>
+        /// See <see cref="IVector.Set(int, double)"/>
+        /// </summary>
+        public void Set(int index, double value)
+        {
+            data[index] = value;
         }
 
         /// <summary>

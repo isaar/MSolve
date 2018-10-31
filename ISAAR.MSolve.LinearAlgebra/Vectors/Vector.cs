@@ -264,7 +264,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             }
             else
             {
-                for (int i = 0; i < Length; ++i) data[i + destinationIndex] += sourceCoefficient * sourceVector[i + sourceIndex];
+                for (int i = 0; i < length; ++i) data[i + destinationIndex] += sourceCoefficient * sourceVector[i + sourceIndex];
             }
         }
 
@@ -308,7 +308,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>
+        /// See <see cref="IVector.CopyFrom(IVectorView)"/>
         /// </summary>
         public void CopyFrom(IVectorView sourceVector)
         {

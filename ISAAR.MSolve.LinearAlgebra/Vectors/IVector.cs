@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     <see cref="IIndexable1D.Length"/> than this.</exception>
         /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
         ///     is not permitted by the vector storage format.</exception> 
-        void DoEntrywiseIntoThis(IVectorView other, Func<double, double, double> binaryOperation);
+        void DoEntrywiseIntoThis(IVectorView otherVector, Func<double, double, double> binaryOperation);
 
         /// <summary>
         /// Performs a unary operation on each entry: this[i] = <paramref name="unaryOperation"/>(this[i]).
