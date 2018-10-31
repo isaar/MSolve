@@ -274,7 +274,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Axpy(IMatrixView, double)"/>.
         /// </summary>
-        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix casted) return Axpy(casted, otherCoefficient);
             else return otherMatrix.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
@@ -381,7 +381,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
         /// </summary>
-        public IMatrixView DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
+        public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
             if (matrix is Matrix casted) return DoEntrywise(casted, binaryOperation);
             else return matrix.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
@@ -444,7 +444,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
@@ -677,7 +677,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
         /// </summary>
-        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
             else return otherMatrix.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
@@ -886,7 +886,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Scale(double)"/>.
         /// </summary>
-        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+        IMatrix IMatrixView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
@@ -1029,7 +1029,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Transpose"/>.
         /// </summary>
-        IMatrixView IMatrixView.Transpose() => Transpose();
+        IMatrix IMatrixView.Transpose() => Transpose();
 
         /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance, that is transpose to this: result[i, j] = this[j, i]. The entries 

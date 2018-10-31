@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Axpy(IMatrixView, double)"/>.
         /// </summary>
-        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix3by3 casted) return Axpy(casted, otherCoefficient);
             else
@@ -330,7 +330,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="matrix">A matrix with 3 rows and 3 columns.</param>
         /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        public IMatrixView DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
+        public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
             if (matrix is Matrix3by3 casted) return DoEntrywise(casted, binaryOperation);
             else
@@ -426,7 +426,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= i, j &lt; 3:
@@ -539,7 +539,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
         /// </summary>
-        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix3by3 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
             else
@@ -794,7 +794,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Scale(double)"/>.
         /// </summary>
-        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+        IMatrix IMatrixView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= i, j &lt; 2:
@@ -848,7 +848,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Transpose"/>.
         /// </summary>
-        IMatrixView IMatrixView.Transpose() => Transpose();
+        IMatrix IMatrixView.Transpose() => Transpose();
 
         /// <summary>
         /// Initializes a new <see cref="Matrix3by3"/> instance, that is transpose to this: result[i, j] = this[j, i].  

@@ -193,7 +193,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.Axpy(IVectorView, double)"/>.
         /// </summary>
-        public IVectorView Axpy(IVectorView otherVector, double otherCoefficient)
+        public IVector Axpy(IVectorView otherVector, double otherCoefficient)
         {
             if (otherVector is Vector casted) return Axpy(casted, otherCoefficient);
             else return otherVector.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
@@ -276,7 +276,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVector.Copy(bool)"/>.
         /// </summary>
-        IVector IVector.Copy(bool copyIndexingData) => Copy();
+        public IVector Copy(bool copyIndexingData) => Copy();
 
         /// <summary>
         /// Initializes a new instance of <see cref="Vector"/> by copying the entries of this instance.
@@ -340,7 +340,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
-        public IVectorView DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
+        public IVector DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
             if (vector is Vector casted) return DoEntrywise(vector, binaryOperation);
             else return vector.DoEntrywise(this, binaryOperation);
@@ -394,7 +394,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IVector IVectorView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
 
         /// <summary>
         /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]), for 0 &lt;=
@@ -498,7 +498,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.LinearCombination(double, IVectorView, double)"/>.
         /// </summary>
-        public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        public IVector LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {
             if (otherVector is Vector casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
             else return otherVector.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
@@ -692,7 +692,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.Scale(double)"/>.
         /// </summary>
-        IVectorView IVectorView.Scale(double scalar) => Scale(scalar);
+        IVector IVectorView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= i &lt; this.<see cref="Length"/>: 

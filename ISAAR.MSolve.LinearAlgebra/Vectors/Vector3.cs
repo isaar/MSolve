@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.Axpy(IVectorView, double)"/>.
         /// </summary>
-        public IVectorView Axpy(IVectorView otherVector, double otherCoefficient)
+        public IVector Axpy(IVectorView otherVector, double otherCoefficient)
         {
             if (otherVector is Vector3 casted) return Axpy(casted, otherCoefficient);
             else
@@ -303,7 +303,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
-        public IVectorView DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
+        public IVector DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
             if (vector is Vector3 casted) return DoEntrywise(vector, binaryOperation);
             else
@@ -358,7 +358,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IVectorView IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
+        IVector IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
@@ -441,7 +441,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.LinearCombination(double, IVectorView, double)"/>.
         /// </summary>
-        public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        public IVector LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {
             if (otherVector is Vector3 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
             else
@@ -523,7 +523,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.Scale(double)"/>.
         /// </summary>
-        IVectorView IVectorView.Scale(double scalar) => Scale(scalar);
+        IVector IVectorView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// Performs the operation: result[i] = <paramref name="scalar"/> * this[i],

@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Axpy(IMatrixView, double)"/>.    
         /// </summary>
-        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is TriangularUpper casted) return Axpy(casted, otherCoefficient);
             else return DoEntrywise(otherMatrix, (x1, x2) => x1 + otherCoefficient * x2); //TODO: optimize this
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
         /// </summary>
-        public IMatrixView DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
+        public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
             return DenseStrategies.DoEntrywise(this, matrix, binaryOperation); //TODO: this can be optimized.
         }
@@ -247,7 +247,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        public IMatrixView DoToAllEntries(Func<double, double> unaryOperation)
+        public IMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             if (new ValueComparer(1e-10).AreEqual(unaryOperation(0.0), 0.0)) // The same sparsity pattern can be used.
             {
@@ -290,7 +290,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
         /// </summary>
-        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is TriangularUpper casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
             else return DoEntrywise(otherMatrix, (x1, x2) => thisCoefficient * x1 + otherCoefficient * x2); //TODO: optimize this
@@ -406,7 +406,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Scale(double)"/>.
         /// </summary>
-        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+        IMatrix IMatrixView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= j &lt; <see cref="Order"/>, 0 &lt;= i &lt;= j:
@@ -456,7 +456,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Transpose"/>.
         /// </summary>
-        public IMatrixView Transpose() => Transpose(true);
+        public IMatrix Transpose() => Transpose(true);
 
         /// <summary>
         /// Creates a new <see cref="TriangularLower"/> matrix, that is transpose to this: result[i, j] = this[j, i]. The  

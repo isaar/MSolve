@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Thrown if <paramref name="thisVector"/> and <paramref name="otherVector"/> have different 
         /// <see cref="IIndexable1D.Length"/>.
         /// </exception>
-        public static IVectorView Add(this IVectorView thisVector, IVectorView otherVector)
+        public static IVector Add(this IVectorView thisVector, IVectorView otherVector)
             => thisVector.Axpy(otherVector, 1.0);
 
         /// <summary>
@@ -68,6 +68,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public static void AddIntoThis(this Vector thisVector, Vector otherVector) 
             => thisVector.AxpyIntoThis(otherVector, 1.0);
 
+        // TODO: implement this in each concrete vector.
+        public static double Norm2(this IVectorView thisVector) => thisVector.DotProduct(thisVector);
+
         /// <summary>
         /// Performs the operation: 
         /// result[i] = <paramref name="thisVector"/>[i] - <paramref name="otherVector"/>[i], for 
@@ -85,7 +88,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Thrown if <paramref name="thisVector"/> and <paramref name="otherVector"/> have different 
         /// <see cref="IIndexable1D.Length"/>.
         /// </exception>
-        public static IVectorView Subtract(this IVectorView thisVector, IVectorView otherVector)
+        public static IVector Subtract(this IVectorView thisVector, IVectorView otherVector)
             => thisVector.Axpy(otherVector, -1.0);
 
         /// <summary>

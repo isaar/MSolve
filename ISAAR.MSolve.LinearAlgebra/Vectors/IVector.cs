@@ -1,7 +1,5 @@
 ﻿using System;
 
-//TODO: Should IVector Copy() be defined in IVectorView? It doesn't mutate the original vector. However, the return type should
-//      still be IVector, since there wouldn't be a point in getting an immutable copy of an immutable class.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -52,14 +50,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// pattern will be preserved. The non-zero entries will be set to 0, but they will still be stored explicitly. 
         /// </summary>
         void Clear();
-
-        /// <summary>
-        /// Copies this <see cref="IVector"/> object. A new vector of the same type as this object is initialized and returned.
-        /// </summary>
-        /// <param name="copyIndexingData">If true, all data of this object will be copied. If false, only the array(s) 
-        ///     containing the values of the stored vector entries will be copied. The new vector will reference the same 
-        ///     indexing arrays as this one.</param>
-        IVector Copy(bool copyIndexingData = false);
 
         /// <summary>
         /// Copies all entries from <paramref name="sourceVector"/> to this  <see cref="IVector"/>.

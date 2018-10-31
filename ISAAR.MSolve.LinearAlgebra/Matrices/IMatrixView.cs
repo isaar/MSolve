@@ -3,6 +3,8 @@ using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Perhaps Addition, Subtraction and Scaling must be done without using delegates, for performance
+//TODO: perhaps I should return IMatrixView instead of IMatrix. By returning IMatrixView I can have classes that only implement
+//      IMatrixView. On the other hand, I cannot mutate the returned type, so its usefulness is limited.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -24,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherMatrix"/> has different 
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient);
+        IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient);
 
 
         /// <summary>
@@ -37,14 +39,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="matrix"/> has different 
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        IMatrixView DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation);
+        IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation);
 
         /// <summary>
         /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i, j]).
         /// The resulting matrix is written in a new object and then returned.
         /// </summary>
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
-        IMatrixView DoToAllEntries(Func<double, double> unaryOperation);
+        IMatrix DoToAllEntries(Func<double, double> unaryOperation);
 
 
         /// <summary>
@@ -60,7 +62,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherMatrix"/> has different 
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient);
+        IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient);
 
         /// <summary>
         /// Performs the matrix-matrix multiplication: oper(<paramref name="other"/>) * oper(this).
@@ -105,7 +107,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// The resulting matrix is written in a new object and then returned.
         /// </summary>
         /// <param name="scalar">A scalar that multiplies each entry of this matrix.</param>
-        IMatrixView Scale(double scalar);
+        IMatrix Scale(double scalar);
 
         /// <summary>
         /// Returns a matrix that is transpose to this: result[i, j] = this[j, i]. The entries will be explicitly copied. Some
@@ -114,6 +116,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <see cref="MultiplyRight(IMatrixView, bool, bool)"/> and <see cref="MultiplyRight(IVectorView, bool)"/> are more 
         /// effient generally.
         /// </summary>
-        IMatrixView Transpose(); //TODO: perhaps this should default to not copying the entries, if possible.
+        IMatrix Transpose(); //TODO: perhaps this should default to not copying the entries, if possible.
     }
 }

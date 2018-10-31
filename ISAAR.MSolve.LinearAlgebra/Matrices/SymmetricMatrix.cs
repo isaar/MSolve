@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         #endregion
 
-        public IMatrixView Axpy(IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is SymmetricMatrix casted) return Axpy(casted, otherCoefficient);
             else return DoEntrywise(otherMatrix, (x1, x2) => x1 + otherCoefficient * x2); //TODO: optimize this
@@ -274,7 +274,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
-        public IMatrixView DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
+        public IMatrix DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SymmetricMatrix casted) return DoEntrywise(casted, binaryOperation);
             else return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: optimize this
@@ -316,7 +316,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Definiteness = DefiniteProperty.Unknown;
         }
 
-        IMatrixView IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
@@ -391,7 +391,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return factor;
         }
 
-        public IMatrixView LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
+        public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is SymmetricMatrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
             else return DoEntrywise(otherMatrix, (x1, x2) => thisCoefficient * x1 + otherCoefficient * x2); //TODO: optimize this
@@ -483,7 +483,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return finalize(aggregator);
         }
 
-        IMatrixView IMatrixView.Scale(double scalar) => Scale(scalar);
+        IMatrix IMatrixView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// result = scalar * this
@@ -512,7 +512,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else data[Find1DIndex(colIdx, rowIdx)] = value;
         }
 
-        public IMatrixView Transpose()
+        public IMatrix Transpose()
         {
             return Transpose(true);
         }

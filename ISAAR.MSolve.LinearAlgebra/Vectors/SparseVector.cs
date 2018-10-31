@@ -221,7 +221,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.Axpy(IVectorView, double)"/>.
         /// </summary>
-        public IVectorView Axpy(IVectorView otherVector, double otherCoefficient)
+        public IVector Axpy(IVectorView otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             if (otherVector is SparseVector otherSparse) // In case both matrices have the exact same index arrays
@@ -309,7 +309,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVector.Copy(bool)"/>.
         /// </summary>
-        IVector IVector.Copy(bool copyIndexingData) => Copy();
+        public IVector Copy(bool copyIndexingData) => Copy();
 
         /// <summary>
         /// Initializes a new instance of <see cref="SparseVector"/> by deep copying the entries as this instance.
@@ -383,7 +383,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
-        public IVectorView DoEntrywise(IVectorView otherVector, Func<double, double, double> binaryOperation)
+        public IVector DoEntrywise(IVectorView otherVector, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             if (otherVector is SparseVector otherSparse) // In case both matrices have the exact same index arrays
@@ -424,7 +424,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        public IVectorView DoToAllEntries(Func<double, double> unaryOperation)
+        public IVector DoToAllEntries(Func<double, double> unaryOperation)
         {
             // Only apply the operation on non zero entries
             double[] newValues = new double[values.Length];
@@ -501,7 +501,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <summary>
         /// See <see cref="IVectorView.LinearCombination(double, IVectorView, double)"/>.
         /// </summary>
-        public IVectorView LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
+        public IVector LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             if (otherVector is SparseVector otherSparse) // In case both matrices have the exact same index arrays
@@ -549,9 +549,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVectorView.Scale(double)"/>.
+        /// See <see cref="IVector.Scale(double)"/>.
         /// </summary>
-        IVectorView IVectorView.Scale(double scalar) => Scale(scalar);
+        IVector IVectorView.Scale(double scalar) => Scale(scalar);
 
         /// <summary>
         /// Performs the following operation for 0 &lt;= i &lt; this.<see cref="Length"/>: 
