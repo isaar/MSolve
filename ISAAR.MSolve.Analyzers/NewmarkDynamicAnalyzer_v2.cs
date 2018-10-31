@@ -16,15 +16,15 @@ namespace ISAAR.MSolve.Analyzers
     {
         private readonly double alpha, delta, timeStep, totalTime;
         private double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
-        private Dictionary<int, Vector> rhs = new Dictionary<int, Vector>();
-        private Dictionary<int, Vector> uu = new Dictionary<int, Vector>();
+        private Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();
+        private Dictionary<int, IVector> uu = new Dictionary<int, IVector>();
         private Dictionary<int, IVector> uum = new Dictionary<int, IVector>();
-        private Dictionary<int, Vector> uc = new Dictionary<int, Vector>();
+        private Dictionary<int, IVector> uc = new Dictionary<int, IVector>();
         private Dictionary<int, IVector> ucc = new Dictionary<int, IVector>();
-        private Dictionary<int, Vector> u = new Dictionary<int, Vector>();
-        private Dictionary<int, Vector> v = new Dictionary<int, Vector>();
-        private Dictionary<int, Vector> v1 = new Dictionary<int, Vector>();
-        private Dictionary<int, Vector> v2 = new Dictionary<int, Vector>();
+        private Dictionary<int, IVector> u = new Dictionary<int, IVector>();
+        private Dictionary<int, IVector> v = new Dictionary<int, IVector>();
+        private Dictionary<int, IVector> v1 = new Dictionary<int, IVector>();
+        private Dictionary<int, IVector> v2 = new Dictionary<int, IVector>();
         //private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
         //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
         private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages =
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.Analyzers
                 rhs.Add(subdomain.ID, Vector.CreateZero(dofs));
 
                 // Account for initial conditions coming from a previous solution
-                v[subdomain.ID] = Vector.CreateFromVector(subdomain.Solution);
+                v[subdomain.ID] = subdomain.Solution.Copy();
             }
         }
 
@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 provider.ProcessRHS(subdomain, coeffs);
                 int dofs = subdomain.RhsVector.Length;
-                rhs[subdomain.ID] = Vector.CreateFromVector(subdomain.RhsVector); //TODO: copying the vectors is wasteful.
+                rhs[subdomain.ID] = subdomain.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
             }
         }
 
@@ -285,10 +285,10 @@ namespace ISAAR.MSolve.Analyzers
                 u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;
                 v[id].CopyFrom(subdomain.Solution);
 
-                Vector vv = v2[id] + externalAccelerations[id];
+                IVector vv = v2[id].Add(externalAccelerations[id]);
 
                 // v2 = a0 * (v - u) - a2 * v1 - a3 * vv
-                v2[id] = v[id] - u[id];
+                v2[id] = v[id].Subtract(u[id]);
                 v2[id].LinearCombinationIntoThis(a0, v1[id], -a2);
                 v2[id].AxpyIntoThis(vv, -a3);
 
