@@ -13,9 +13,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
     /// </summary>
     public static class MinResBenchmarks
     {
-        private static void CheckSolution(Vector solutionExpected, Vector solutionComputed)
+        private static void CheckSolution(IVector solutionExpected, IVector solutionComputed)
         {
-            double error = (solutionComputed - solutionExpected).Norm2() / solutionExpected.Norm2();
+            double error = solutionComputed.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.WriteLine("Normalized solution error = |computed - expected| / |expected| = " + error);
         }
 
@@ -26,13 +26,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             var minres = new MinimumResidual(A.NumRows, 1e-10, 0, true, false);
 
             // Without preconditioning
-            (Vector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
+            (IVector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
             Console.Write(statsSimple);
             if (xSimple != null) CheckSolution(xExpected, xSimple);
             Console.WriteLine();
 
             // With preconditioning
-            (Vector xPrec, MinresStatistics statsPrec) = minres.Solve(A, b, M);
+            (IVector xPrec, MinresStatistics statsPrec) = minres.Solve(A, b, M);
             Console.Write(statsPrec);
             if (xPrec != null) CheckSolution(xExpected, xPrec);
             Console.WriteLine();
@@ -48,13 +48,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             var minres = new MinimumResidual(A.NumRows, 1e-10, 0, true, false);
 
             // Without preconditioning
-            (Vector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
+            (IVector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
             Console.Write(statsSimple);
             if (xSimple != null) CheckSolution(xExpected, xSimple);
             Console.WriteLine();
 
             // With preconditioning
-            (Vector xPrec, MinresStatistics statsPrec) = minres.Solve(A, b, M);
+            (IVector xPrec, MinresStatistics statsPrec) = minres.Solve(A, b, M);
             Console.Write(statsPrec);
             if (xPrec != null) CheckSolution(xExpected, xPrec);
             Console.WriteLine();
@@ -71,14 +71,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
 
             // Without preconditioning
             Console.WriteLine("Sparse pos-def system WITHOUT preconditioning:");
-            (Vector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
+            (IVector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
             Console.Write(statsSimple);
             if (xSimple != null) CheckSolution(xExpected, xSimple);
             Console.WriteLine();
 
             // With preconditioning
             Console.WriteLine("Sparse pos-def system WITH preconditioning:");
-            (Vector xPrec, MinresStatistics statsPrec) = minres.Solve(A, b, M);
+            (IVector xPrec, MinresStatistics statsPrec) = minres.Solve(A, b, M);
             Console.Write(statsPrec);
             if (xPrec != null) CheckSolution(xExpected, xPrec);
             Console.WriteLine();

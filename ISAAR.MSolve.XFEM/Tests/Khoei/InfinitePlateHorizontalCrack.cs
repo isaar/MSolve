@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             solver.Initialize();
             solver.Solve();
             dofOrderer = solver.DofOrderer;
-            return solver.Solution;
+            return (Vector)solver.Solution;
         }
 
         private PropagationResults Propagate(Vector solution)

@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
         /// See <see cref="IPreconditioner.SolveLinearSystem(Vector)"/>
         /// </summary>
         /// <param name="rhs"></param>
-        public Vector SolveLinearSystem(Vector rhs)
+        public IVector SolveLinearSystem(IVector rhs)
         {
             Preconditions.CheckSystemSolutionDimensions(Order, Order, rhs.Length);
             double[] solution = new double[Order];

@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 // Gather the solution
                 //TODO: isn't this computed in the solver as well?
                 Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
-                Vector freeDisplacements = solver.Solution;
+                Vector freeDisplacements = (Vector)(solver.Solution);
 
                 // Output field data
                 if (fieldOutput != null)

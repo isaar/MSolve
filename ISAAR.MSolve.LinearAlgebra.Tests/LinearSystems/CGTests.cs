@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             double tol = 1E-7;
             var pcg = new PreconditionedConjugateGradient(n, tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
-            (Vector xComputed, CGStatistics stats) = pcg.Solve(A, b, M);
+            (IVector xComputed, CGStatistics stats) = pcg.Solve(A, b, M);
             comparer.AssertEqual(xExpected, xComputed);
         }
 
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             double tol = 1E-7;
             var pcg = new PreconditionedConjugateGradient(n, tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
-            (Vector xComputed, CGStatistics stats) = pcg.Solve(A, b, M);
+            (IVector xComputed, CGStatistics stats) = pcg.Solve(A, b, M);
             comparer.AssertEqual(xExpected, xComputed);
         }
 
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             double residualTolerance = 1e-6;
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(20);
             var cg = new ConjugateGradient(A.NumRows, residualTolerance);
-            (Vector xComputed, CGStatistics stats) = cg.Solve(A, b);
+            (IVector xComputed, CGStatistics stats) = cg.Solve(A, b);
             Assert.False(comparer.AreEqual(xExpected, xComputed));
         }
     }

@@ -365,7 +365,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
         /// </summary>
-        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
             else throw new NotImplementedException();

@@ -730,7 +730,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
         /// </summary>
-        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             Preconditions.CheckMultiplicationDimensions(2, vector.Length);
             if (transposeThis)

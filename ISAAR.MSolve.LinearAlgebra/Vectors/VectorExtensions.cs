@@ -1,4 +1,6 @@
 ﻿//TODO: Move the operators here when C# supports extension operators
+using System;
+
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -69,7 +71,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             => thisVector.AxpyIntoThis(otherVector, 1.0);
 
         // TODO: implement this in each concrete vector.
-        public static double Norm2(this IVectorView thisVector) => thisVector.DotProduct(thisVector);
+        public static double Norm2(this IVectorView thisVector) => Math.Sqrt(thisVector.DotProduct(thisVector));
 
         /// <summary>
         /// Performs the operation: 

@@ -180,14 +180,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 Console.WriteLine($"Element {elementID++}: ");
 
                 Vector stdU = solver.DofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
-                    element, solver.Solution, constrainedDisplacements);
+                    element, (Vector)solver.Solution, constrainedDisplacements);
                 Console.WriteLine("Standard displacements: ");
                 writer.WriteToConsole(stdU);
                 Console.WriteLine();
 
                 if (element.CountEnrichedDofs() > 0)
                 {
-                    Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, solver.Solution);
+                    Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(
+                        element, (Vector)solver.Solution);
                     Console.WriteLine("Enriched displacements: ");
                     writer.WriteToConsole(enrU);
                     Console.WriteLine();
@@ -212,14 +213,15 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
                 Console.WriteLine($"Element {elementID++}: ");
 
                 Vector stdU = solver.DofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
-                    element, solver.Solution, constrainedDisplacements);
+                    element, (Vector)solver.Solution, constrainedDisplacements);
                 Console.WriteLine("Standard displacements: ");
                 writer.WriteToConsole(stdU);
                 Console.WriteLine();
 
                 if (element.CountEnrichedDofs() > 0)
                 {
-                    Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, solver.Solution);
+                    Vector enrU = solver.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(
+                        element, (Vector)solver.Solution);
                     Console.WriteLine("Enriched displacements: ");
                     writer.WriteToConsole(enrU);
                     Console.WriteLine();

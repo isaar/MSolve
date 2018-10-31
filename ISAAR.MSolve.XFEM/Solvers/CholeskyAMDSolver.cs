@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public IDofOrderer DofOrderer { get; private set; }
         public SolverLogger Logger { get; }
-        public Vector Solution { get; private set; }
+        public IVector Solution { get; private set; }
 
         public void Initialize()
         {

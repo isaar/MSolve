@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
@@ -336,7 +337,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
 
         private void PrintDisplacements(Model2D model, ISolver solver)
         {
-            double[,] nodalDisplacements = solver.DofOrderer.GatherNodalDisplacements(model, solver.Solution);
+            double[,] nodalDisplacements = solver.DofOrderer.GatherNodalDisplacements(model, (Vector)solver.Solution);
            
             Console.WriteLine("\n-------------------- Standard displacements ------------------");
             for (int i = 0; i < nodalDisplacements.GetLength(0); ++i)
@@ -347,7 +348,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             Console.WriteLine();
 
             Console.WriteLine("\n-------------------- Artificial displacements ------------------");
-            Console.WriteLine(solver.DofOrderer.GatherEnrichedNodalDisplacements(model, solver.Solution));
+            Console.WriteLine(solver.DofOrderer.GatherEnrichedNodalDisplacements(model, (Vector)solver.Solution));
         }
 
         private void PrintElementMatrices(Matrix kss, Matrix kes, Matrix kee, double scale)

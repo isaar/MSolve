@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             double residualTolerance = 1e-8;
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(20);
             var minres = new MinimumResidual(A.NumRows, residualTolerance, 0, false, false);
-            (Vector xComputed, MinresStatistics stats) = minres.Solve(A, b);
+            (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
         }
 
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
             var minres = new MinimumResidual(n, 1e-10, 0, false, false);
-            (Vector xComputed, MinresStatistics stats) = minres.Solve(A, b);
+            (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
         }
 
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
             var minres = new MinimumResidual(n, 1e-10, 0, false, false);
-            (Vector xComputed, MinresStatistics stats) = minres.Solve(A, b);
+            (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
 
         }

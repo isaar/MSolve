@@ -5,6 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: needs to throw exceptions or at least report indefinite, nonsymmetric and singular matrices.
+//TODO: initialization should be done by a vector factory, instead of new Vector(..)
 namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
 {
     /// <summary>
@@ -39,11 +40,11 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
         ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVector"/> violates the described 
         ///     constraint.</exception>
-        public (Vector solution, CGStatistics stats) Solve(IMatrixView matrix, Vector rhsVector)
+        public (IVector solution, CGStatistics stats) Solve(IMatrixView matrix, IVectorView rhsVector)
         {
             CheckInput(matrix, rhsVector);
             Vector sol = Vector.CreateZero(matrix.NumColumns); // Start from x = 0
-            Vector res = rhsVector.Copy(); // No need to do the multiplication A*0 = 0
+            IVector res = rhsVector.Copy(); // No need to do the multiplication A*0 = 0
             return SolveInternal(matrix, sol, res);
         }
 
@@ -60,31 +61,31 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
         ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumColumns"/>.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVector"/> or 
         ///     <paramref name="initialGuess"/> violate the described constraints.</exception>
-        public (Vector solution, CGStatistics stats) Solve(IMatrixView matrix, Vector rhsVector, Vector initialGuess)
+        public (IVector solution, CGStatistics stats) Solve(IMatrixView matrix, IVectorView rhsVector, IVectorView initialGuess)
         {
             CheckInput(matrix, rhsVector, initialGuess);
-            Vector sol = initialGuess.Copy(); // Should I copy this?
-            Vector res = rhsVector - matrix.MultiplyRight(sol);
+            IVector sol = initialGuess.Copy(); // Should I copy this?
+            IVector res = rhsVector.Subtract(matrix.MultiplyRight(sol));
             return SolveInternal(matrix, sol, res);
         }
 
-        private (Vector solution, CGStatistics stats) SolveInternal(IMatrixView matrix, Vector sol, Vector res)
+        private (IVector solution, CGStatistics stats) SolveInternal(IMatrixView matrix, IVector sol, IVector res)
         {
             //TODO: dot = norm * norm might be faster since I need the norm anyway. Does it reduce accuracy? Needs testing;
             
-            Vector dir = res.Copy();
-            double resDotCurrent = res * res;
+            IVector dir = res.Copy();
+            double resDotCurrent = res.DotProduct(res);
             double resNormInit = Math.Sqrt(resDotCurrent);
             double resNormRatio = 1.0;
             CGStatistics statistics;
 
             for (int i = 0; i < maxIterations; ++i)
             {
-                Vector matrixTimesDir = matrix.MultiplyRight(dir);
-                double step = resDotCurrent / (dir * matrixTimesDir);
+                IVector matrixTimesDir = matrix.MultiplyRight(dir);
+                double step = resDotCurrent / (dir.DotProduct(matrixTimesDir));
                 sol.AxpyIntoThis(dir, step);
                 res.AxpyIntoThis(matrixTimesDir , -step);
-                double resDotNext = res * res;
+                double resDotNext = res.DotProduct(res);
 
                 resNormRatio = Math.Sqrt(resDotNext) / resNormInit;
                 if (resNormRatio < residualTolerance) // resNormRatio is non negative
@@ -114,7 +115,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
             return (sol, statistics);
         }
 
-        private static void CheckInput(IMatrixView matrix, Vector rhs, Vector initialGuess)
+        private static void CheckInput(IMatrixView matrix, IVectorView rhs, IVectorView initialGuess)
         {
             if (matrix.NumColumns != initialGuess.Length) throw new NonMatchingDimensionsException(
                 $"The matrix is {matrix.NumRows}-by-{matrix.NumColumns}),"
@@ -122,7 +123,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
             CheckInput(matrix, rhs);
         }
 
-        private static void CheckInput(IMatrixView matrix, Vector rhs)
+        private static void CheckInput(IMatrixView matrix, IVectorView rhs)
         {
             if (matrix.NumRows != matrix.NumColumns) throw new NonMatchingDimensionsException(
                 "The matrix must be square, symmetric and positive definite.");

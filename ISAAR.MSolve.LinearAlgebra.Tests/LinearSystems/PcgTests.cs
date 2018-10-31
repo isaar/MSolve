@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
 
             double tol = 1E-7;
             var cg = new ConjugateGradient(n, tol);
-            (Vector xComputed, CGStatistics stats) = cg.Solve(A, b);
+            (IVector xComputed, CGStatistics stats) = cg.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
         }
 
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
 
             double tol = 1E-7;
             var cg = new ConjugateGradient(n, tol);
-            (Vector xComputed, CGStatistics stats) = cg.Solve(A, b);
+            (IVector xComputed, CGStatistics stats) = cg.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
         }
     }

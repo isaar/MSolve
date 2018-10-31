@@ -5,7 +5,8 @@ using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-// Needs Builder pattern
+//TODO: Needs Builder pattern
+//TODO: initialization should be done by a vector factory, instead of new Vector(..)
 namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
 {
     /// <summary>
@@ -45,11 +46,11 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
         ///     dimensions as A.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVector"/> violates the described 
         ///     constraint.</exception>
-        public (Vector solution, CGStatistics stats) Solve(IMatrixView matrix, Vector rhs, IPreconditioner preconditioner)
+        public (IVector solution, CGStatistics stats) Solve(IMatrixView matrix, IVectorView rhs, IPreconditioner preconditioner)
         {
             CheckInput(matrix, rhs);
             Vector sol = Vector.CreateZero(matrix.NumColumns); // Start from x = 0
-            Vector res = rhs.Copy(); // No need to do the multiplication A*0 = 0
+            IVector res = rhs.Copy(); // No need to do the multiplication A*0 = 0
             return SolveInternal(matrix, preconditioner, sol, res);
         }
 
@@ -67,29 +68,29 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
         ///     dimensions as A.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVector"/> violates the described 
         ///     constraint.</exception>
-        public (Vector solution, CGStatistics stats) Solve(IMatrixView matrix, Vector rhs, IPreconditioner preconditioner, 
-            Vector initialGuess)
+        public (IVector solution, CGStatistics stats) Solve(IMatrixView matrix, IVectorView rhs, IPreconditioner preconditioner, 
+            IVectorView initialGuess)
         {
             CheckInput(matrix, rhs, initialGuess);
-            Vector sol = initialGuess.Copy(); // Should I copy this?
-            Vector res = rhs - matrix.MultiplyRight(sol);
+            IVector sol = initialGuess.Copy(); // Should I copy this?
+            IVector res = rhs.Subtract(matrix.MultiplyRight(sol));
             return SolveInternal(matrix, preconditioner, sol, res);
         }
 
-        private (Vector solution, CGStatistics stats) SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, 
-            Vector sol, Vector res)
+        private (IVector solution, CGStatistics stats) SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, 
+            IVector sol, IVector res)
         {
-            Vector z = preconditioner.SolveLinearSystem(res);
-            Vector dir = z.Copy(); // TODO: Do I need to copy it?
-            double zrDotCurrent = z * res;
+            IVector z = preconditioner.SolveLinearSystem(res);
+            IVector dir = z.Copy(); // TODO: Do I need to copy it?
+            double zrDotCurrent = z.DotProduct(res);
             double resNormInit = res.Norm2(); // In basic CG, I could just take the sqrt(r*r), but here I have z*r.
             double resNormRatio = 1.0;
             CGStatistics statistics;
 
             for (int i = 0; i < maxIterations; ++i)
             {
-                Vector matrixTimesDir = matrix.MultiplyRight(dir);
-                double step = zrDotCurrent / (dir * matrixTimesDir);
+                IVector matrixTimesDir = matrix.MultiplyRight(dir);
+                double step = zrDotCurrent / (dir.DotProduct(matrixTimesDir));
                 sol.AxpyIntoThis(dir, step);
                 res.AxpyIntoThis(matrixTimesDir, - step);
 
@@ -105,7 +106,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
                 }
 
                 z = preconditioner.SolveLinearSystem(res); 
-                double zrDotNext = z * res; //Fletcher-Reeves formula. TODO: For variable preconditioning use Polak-Ribiere
+                double zrDotNext = z.DotProduct(res); //Fletcher-Reeves formula. TODO: For variable preconditioning use Polak-Ribiere
                 double beta = zrDotNext / zrDotCurrent;
                 dir = z.Axpy(dir, beta);
                 zrDotCurrent = zrDotNext;
@@ -118,7 +119,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
             return (sol, statistics);
         }
 
-        private static void CheckInput(IMatrixView matrix, Vector rhs, Vector initialGuess)
+        private static void CheckInput(IMatrixView matrix, IVectorView rhs, IVectorView initialGuess)
         {
             if (matrix.NumColumns != initialGuess.Length) throw new NonMatchingDimensionsException(
                 $"The matrix is {matrix.NumRows}-by-{matrix.NumColumns}),"
@@ -126,7 +127,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
             CheckInput(matrix, rhs);
         }
 
-        private static void CheckInput(IMatrixView matrix, Vector rhs)
+        private static void CheckInput(IMatrixView matrix, IVectorView rhs)
         {
             if (matrix.NumRows != matrix.NumColumns) throw new NonMatchingDimensionsException(
                 "The matrix must be square, symmetric and positive definite.");

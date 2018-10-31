@@ -18,9 +18,9 @@ namespace ISAAR.MSolve.Analyzers
         private double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
         private Dictionary<int, Vector> rhs = new Dictionary<int, Vector>();
         private Dictionary<int, Vector> uu = new Dictionary<int, Vector>();
-        private Dictionary<int, Vector> uum = new Dictionary<int, Vector>();
+        private Dictionary<int, IVector> uum = new Dictionary<int, IVector>();
         private Dictionary<int, Vector> uc = new Dictionary<int, Vector>();
-        private Dictionary<int, Vector> ucc = new Dictionary<int, Vector>();
+        private Dictionary<int, IVector> ucc = new Dictionary<int, IVector>();
         private Dictionary<int, Vector> u = new Dictionary<int, Vector>();
         private Dictionary<int, Vector> v = new Dictionary<int, Vector>();
         private Dictionary<int, Vector> v1 = new Dictionary<int, Vector>();
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.Analyzers
             childAnalyzer.Initialize();
         }
 
-        private Vector CalculateRHSImplicit(ILinearSystem_v2 subdomain, bool addRHS)
+        private IVector CalculateRHSImplicit(ILinearSystem_v2 subdomain, bool addRHS)
         {
             //TODO: instead of creating a new Vector and then trying to set ILinearSystem.RhsVector, clear it and operate on it.
 
@@ -199,7 +199,7 @@ namespace ISAAR.MSolve.Analyzers
             uum[id] = provider.MassMatrixVectorProduct(subdomain, uu[id]);
             ucc[id] = provider.DampingMatrixVectorProduct(subdomain, uc[id]);
 
-            Vector rhsResult = uum[id] + ucc[id];
+            IVector rhsResult = uum[id].Add(ucc[id]);
             if (addRHS) rhsResult.AddIntoThis(rhs[id]);
             return rhsResult;
         }
@@ -360,8 +360,8 @@ namespace ISAAR.MSolve.Analyzers
             ////result.Scale(-1d);
 
             // result = a0 * (M * u) + a1 * (C * u) 
-            Vector result = provider.MassMatrixVectorProduct(subdomain, currentSolution);
-            Vector temp = provider.DampingMatrixVectorProduct(subdomain, currentSolution);
+            IVector result = provider.MassMatrixVectorProduct(subdomain, currentSolution);
+            IVector temp = provider.DampingMatrixVectorProduct(subdomain, currentSolution);
             result.LinearCombinationIntoThis(a0, temp, a1);
             return result;
         }

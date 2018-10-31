@@ -175,10 +175,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             => matrixRight.MultiplyLeft(matrixLeft, false, false);
 
         public static Vector operator *(SymmetricMatrix matrixLeft, Vector vectorRight)
-            => matrixLeft.MultiplyRight(vectorRight, false);
+            => matrixLeft.MultiplyRight(vectorRight);
 
         public static Vector operator *(Vector vectorLeft, SymmetricMatrix matrixRight)
-            => matrixRight.MultiplyRight(vectorLeft, true);
+            => matrixRight.MultiplyRight(vectorLeft);
 
         #endregion
 
@@ -445,7 +445,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
-        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
             else throw new NotImplementedException();

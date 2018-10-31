@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
         /// doesn't have to define the dimensions of the linear system, which is useful when testing or benchmarking, at the 
         /// expense of little extra safety.
         /// </remarks>
-        public Vector SolveLinearSystem(Vector rhs)
+        public IVector SolveLinearSystem(IVector rhs)
         {
             if (copyRhs) return rhs.Copy();
             else return rhs;

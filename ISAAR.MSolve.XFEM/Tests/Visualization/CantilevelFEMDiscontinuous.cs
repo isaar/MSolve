@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Visualization
             var solver = new SkylineSolver(model);
             solver.Initialize();
             solver.Solve();
-            return (solver.Solution, solver.DofOrderer);
+            return ((Vector)solver.Solution, solver.DofOrderer);
         }
 
         private static void WriteOutput(Model2D model, Vector solution, IDofOrderer dofOrderer)

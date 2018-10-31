@@ -17,6 +17,6 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="rhsVector"/> is different than the number of rows of this <see cref="IPreconditioner"/>.
         ///     </exception>
-        Vector SolveLinearSystem(Vector rhsVector);
+        IVector SolveLinearSystem(IVector rhsVector); //TODO: input should be IVectorView
     }
 }

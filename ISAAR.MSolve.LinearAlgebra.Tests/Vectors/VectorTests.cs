@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
     /// </summary>
     public static class VectorTests
     {
-        private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
+        private static readonly MatrixComparer comparer = new MatrixComparer(1E-10);
 
         [Fact]
         private static void TestAddition()

@@ -155,7 +155,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 nnzUnorderedFactor = factorization.NumNonZeros;
             }
             Vector solutionExpected = unorderSolution.Reorder(permutationOldToNew, false);
-            double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
+            double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.WriteLine($"Normalized error compared to natural ordering = {error}");
             return nnzUnorderedFactor;
         }

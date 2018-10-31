@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems
     /// <see cref="ILinearTransformation{TVector}"/>
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class MatrixTransformation: ILinearTransformation<Vector>
+    public class MatrixTransformation: ILinearTransformation<IVector>
     {
         private readonly IMatrixView matrix;
 
@@ -21,6 +21,6 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems
         /// <summary>
         /// See <see cref="ILinearTransformation{TVector}.Multiply(TVector)"/>
         /// </summary>
-        public Vector Multiply(Vector vector) => matrix.MultiplyRight(vector, false);
+        public IVector Multiply(IVector vector) => matrix.MultiplyRight(vector, false);
     }
 }

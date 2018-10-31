@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public SolverLogger Logger { get; }
 
-        public Vector Solution { get; protected set; }
+        public IVector Solution { get; protected set; }
 
         public void Initialize()
         {
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Restart();
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
             var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
-            (Vector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCsrMatrix(true), rhs, preconditioner);
+            (IVector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCsrMatrix(true), rhs, preconditioner);
             //var cg = new ConjugateGradient(maxIterations, tolerance);
             //(Vector x, IterativeStatistics statistics) = cg.Solve(Kuu.BuildCSRMatrix(true), rhs);
             watch.Stop();

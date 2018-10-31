@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="IIndexable2D.NumColumns"/> of oper(this).</exception>
-        Vector MultiplyRight(IVectorView vector, bool transposeThis = false);
+        IVector MultiplyRight(IVectorView vector, bool transposeThis = false);
 
         /// <summary>
         /// Performs the following operation for all (i, j): result[i, j] = <paramref name="scalar"/> * this[i, j].

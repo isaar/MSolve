@@ -23,12 +23,12 @@ namespace ISAAR.MSolve.Solvers.PCG
         private const string name = "PcgSolver"; // for error messages
         private readonly IGlobalMatrixAssembler<IMatrix> assembler;
         private readonly FreeDofOrderer dofOrderer; //TODO: this should probably be accessed from the subdomain
-        private readonly LinearSystem_v2<IMatrix, Vector> linearSystem;
+        private readonly LinearSystem_v2<IMatrix, IVector> linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerBuilder preconditionerBuilder;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(IReadOnlyList<LinearSystem_v2<IMatrix, Vector>> linearSystems,
+        public PcgSolver(IReadOnlyList<LinearSystem_v2<IMatrix, IVector>> linearSystems,
             int maxIterations, double residualTolerance, IPreconditionerBuilder preconditionerBuilder,
             IGlobalMatrixAssembler<IMatrix> globalMatrixAssembler)
         {
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.Solvers.PCG
                 preconditioner = preconditionerBuilder.BuildPreconditioner(linearSystem.Matrix);
                 linearSystem.IsMatrixModified = false;
             }
-            (Vector solution, CGStatistics stats) = 
+            (IVector solution, CGStatistics stats) = 
                 pcgAlgorithm.Solve(linearSystem.Matrix, linearSystem.RhsVector, preconditioner);
             linearSystem.Solution = solution;
         }

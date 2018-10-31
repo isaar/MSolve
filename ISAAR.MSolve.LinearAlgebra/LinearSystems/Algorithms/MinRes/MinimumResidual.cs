@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: use invalid values as initial
 //TODO: remove Matlab/Fortran notation from comments
 //TODO: the orthogonalizer should not be private.
+//TODO: initialization should be done by a vector factory, instead of new Vector(..)
 namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
 {
     /// <summary>
@@ -66,7 +67,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
         ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
         ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
-        public (Vector solution, MinresStatistics stats) Solve(IMatrixView matrix, Vector rhsVector, double shift = 0.0)
+        public (IVector solution, MinresStatistics stats) Solve(IMatrixView matrix, IVector rhsVector, double shift = 0.0)
             => SolveInternal(new MatrixTransformation(matrix), rhsVector, null, shift);
 
         /// <summary>
@@ -81,7 +82,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
         /// <param name="preconditioner">A preconditioner matrix that has the same dimensions as A, but must be symmetric 
         ///     positive definite, contrary to A.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
-        public (Vector solution, MinresStatistics stats) Solve(IMatrixView matrix, Vector rhsVector, 
+        public (IVector solution, MinresStatistics stats) Solve(IMatrixView matrix, IVector rhsVector, 
             IPreconditioner preconditioner, double shift = 0.0)
             => SolveInternal(new MatrixTransformation(matrix), rhsVector, preconditioner, shift);
 
@@ -94,7 +95,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
         ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
         ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
-        public (Vector solution, MinresStatistics stats) Solve(ILinearTransformation<Vector> matrix, Vector rhsVector, 
+        public (IVector solution, MinresStatistics stats) Solve(ILinearTransformation<IVector> matrix, IVector rhsVector, 
             double shift = 0.0)
             => SolveInternal(matrix, rhsVector, null, shift);
 
@@ -110,11 +111,11 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
         /// <param name="preconditioner">A preconditioner matrix that has the same dimensions as A, but must be symmetric 
         ///     positive definite, contrary to A.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
-        public (Vector solution, MinresStatistics stats) Solve(ILinearTransformation<Vector> matrix, Vector rhsVector, 
+        public (IVector solution, MinresStatistics stats) Solve(ILinearTransformation<IVector> matrix, IVector rhsVector, 
             IPreconditioner preconditioner,  double shift = 0.0) 
             => SolveInternal(matrix, rhsVector, preconditioner, shift);
 
-        private (Vector solution, MinresStatistics stats) SolveInternal(ILinearTransformation<Vector> A, Vector b, 
+        private (IVector solution, MinresStatistics stats) SolveInternal(ILinearTransformation<IVector> A, IVector b, 
             IPreconditioner M, double shift)
         {
             /// Initialize.
@@ -135,12 +136,12 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
             /// v is really P' v1.
             /// -------------------------------------------------
 
-            Vector y;
+            IVector y;
             if (M == null) y = b.Copy();
             else y = M.SolveLinearSystem(b);
 
-            Vector r1 = b.Copy(); // initial guess x = 0 initial residual
-            double beta1 = b * y;
+            IVector r1 = b.Copy(); // initial guess x = 0 initial residual
+            double beta1 = b.DotProduct(y);
 
             /// If b = 0 exactly, stop with x = 0.            
 
@@ -174,9 +175,9 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
             double qrnorm = beta1, phibar = beta1, rhs1 = beta1, rhs2 = 0.0;
             double tnorm2 = 0.0, gmax = 0.0, gmin = double.MaxValue;
             double cs = -1.0, sn = 0.0;
-            var w = Vector.CreateZero(n);
-            var w2 = Vector.CreateZero(n);
-            Vector r2 = r1.Copy();
+            IVector w = Vector.CreateZero(n);
+            IVector w2 = Vector.CreateZero(n);
+            IVector r2 = r1.Copy();
 
 
             /// ------------------------------------------------- 
@@ -201,7 +202,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
                 /// -----------------------------------------------------------------
 
                 double s = 1.0 / beta;    // Normalize previous vector(in y).
-                Vector v = y; // No need to copy: y will point to another vector shortly after this
+                IVector v = y; // No need to copy: y will point to another vector shortly after this
                 v.ScaleIntoThis(s); // v = vk if P = I
                 orthogonalizer.StoreDirection(v); // Store old v for local reorthogonalization of new v, if it is enabled. 
 
@@ -210,7 +211,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
                 //WARNING: the following works if itn is initialized and updated as in the matlab script
                 if (itn >= 2) y.AxpyIntoThis(r1, - beta / oldb); // normalization is the division r1 by oldb 
 
-                double alfa = v * y;              // alphak
+                double alfa = v.DotProduct(y);              // alphak
                 y.AxpyIntoThis(r2, - alfa / beta); // normalization of r2/beta = v
 
                 // v will be normalized through y later. 
@@ -229,7 +230,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
                 }
 
                 oldb = beta; // oldb = betak
-                beta = r2 * y;  // beta = betak+1^2
+                beta = r2.DotProduct(y);  // beta = betak+1^2
                 CheckDefinitePreconditioner(M, beta);
                 beta = Math.Sqrt(beta);
                 tnorm2 += alfa * alfa + oldb * oldb + beta * beta;
@@ -267,7 +268,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
                 /// Update  x.
 
                 double denom = 1.0 / gamma;
-                Vector w1 = w2.Copy();
+                IVector w1 = w2.Copy();
                 w2 = w;
                 // Do efficiently: w = (v - oldeps * w1 - delta * w2) * denom 
                 w = v.Axpy(w1, - oldeps);
@@ -356,22 +357,22 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
             }
         }
 
-        private static void CheckSymmetricMatrix(ILinearTransformation<Vector> A, Vector y, Vector r1)
+        private static void CheckSymmetricMatrix(ILinearTransformation<IVector> A, IVector y, IVector r1)
         {
-            Vector w = A.Multiply(y);
-            Vector r2 = A.Multiply(w);
-            double s = w * w;
-            double t = y * r2;
+            IVector w = A.Multiply(y);
+            IVector r2 = A.Multiply(w);
+            double s = w.DotProduct(w);
+            double t = y.DotProduct(r2);
             double z = Math.Abs(s - t);
             double epsa = (s + eps) * Math.Pow(eps, 1.0/3.0);
             if (z > epsa) throw new AsymmetricMatrixException("The matrix or linear transformation A is not symmetric.");
         }
 
-        private static void CheckSymmetricPreconditioner(IPreconditioner M, Vector y, Vector r1)
+        private static void CheckSymmetricPreconditioner(IPreconditioner M, IVector y, IVector r1)
         {
-            Vector r2 = M.SolveLinearSystem(y);
-            double s = y * y;
-            double t = r1 * r2;
+            IVector r2 = M.SolveLinearSystem(y);
+            double s = y.DotProduct(y);
+            double t = r1.DotProduct(r2);
             double z = Math.Abs(s - t);
             double epsa = (s + eps) * Math.Pow(eps, 1.0 / 3.0);
             if (z > epsa) throw new AsymmetricMatrixException("The preconditioner M is not symmetric.");
@@ -380,18 +381,18 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
         /// <summary>
         /// Calculates (A - shift * I) * v = A*v - shift*v
         /// </summary>
-        private static Vector ShiftedMatrixVectorMult(ILinearTransformation<Vector> matrix, Vector vector, double shift)
+        private static IVector ShiftedMatrixVectorMult(ILinearTransformation<IVector> matrix, IVector vector, double shift)
         {
             if (shift == 0.0) return matrix.Multiply(vector);
             else
             {
-                Vector result = matrix.Multiply(vector);
+                IVector result = matrix.Multiply(vector);
                 result.AxpyIntoThis(vector, shift);
                 return result;
             }
         }
 
-        private static void WriteIterationData(ILinearTransformation<Vector> A, Vector b, double shift, Vector x, int iter,
+        private static void WriteIterationData(ILinearTransformation<IVector> A, IVector b, double shift, IVector x, int iter,
             int maxIterations, double test1, double test2, double Anorm, double Acond, double gbar, double qrnorm, 
             int istop, double epsx, double epsr)
         {
@@ -415,8 +416,8 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
                 if (debug)
                 {
                     // Print true Arnorm. This works only if no preconditioning
-                    Vector vv = b - ShiftedMatrixVectorMult(A, x, shift);   // vv = b - (A - shift * I) * x
-                    Vector ww = ShiftedMatrixVectorMult(A, vv, shift);      // ww = (A - shift * I) * vv = "Ar"
+                    IVector vv = b.Subtract(ShiftedMatrixVectorMult(A, x, shift));   // vv = b - (A - shift * I) * x
+                    IVector ww = ShiftedMatrixVectorMult(A, vv, shift);      // ww = (A - shift * I) * vv = "Ar"
                     double trueArnorm = ww.Norm2();
                     Console.WriteLine();
                     Console.WriteLine($"Arnorm = {Anorm}  - True |Ar| = {trueArnorm}");
@@ -427,21 +428,21 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
         private class LocalReorthogonalizer
         {
             private readonly int localSize;
-            private readonly LinkedList<Vector> store;
+            private readonly LinkedList<IVector> store;
 
             internal LocalReorthogonalizer(int order, int localSize)
             {
                 if ((localSize < 0) || (localSize > order)) throw new ArgumentException(
                     "The number of stored vectors must belong to [0, matrix.Order), but was " + localSize);
                 this.localSize = localSize;
-                this.store = new LinkedList<Vector>();
+                this.store = new LinkedList<IVector>();
             }
 
             /// <summary>
             /// If orthogonalization is enabled, store a new direction <paramref name="v"/>.
             /// </summary>
             /// <param name="v"></param>
-            internal void StoreDirection(Vector v)
+            internal void StoreDirection(IVector v)
             {
                 if (localSize > 0) store.AddLast(v);
                 if (store.Count > localSize) store.RemoveFirst();
@@ -452,13 +453,13 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
             /// </summary>
             /// <param name="v">The vector to reorthogonalize. It will be overwritten with the result. If there are no stored 
             ///     vectors, it will remain unchanged without being copied.</param>
-            internal void Reorthogonalize(Vector v)
+            internal void Reorthogonalize(IVector v)
             {
                 // reorthogonalize 1 by 1
                 foreach (var p in store)
                 {
                     // we don't have to normalize since it is explicitly done in the code and so we don't need to redo it
-                    v.AxpyIntoThis(p , - (v * p)); // orthogonalize to each stored vector
+                    v.AxpyIntoThis(p , - (v.DotProduct(p))); // orthogonalize to each stored vector
                 }
             }
         }

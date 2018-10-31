@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public IDofOrderer DofOrderer { get; protected set; }
         public SolverLogger Logger { get; }
-        public Vector Solution { get; protected set; }
+        public IVector Solution { get; protected set; }
 
         public void Dispose()
         {
@@ -425,7 +425,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhsNew);
-            double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
+            double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");
             if (error < tolerance)
             {

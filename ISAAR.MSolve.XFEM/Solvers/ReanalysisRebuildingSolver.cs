@@ -283,7 +283,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kuc);
             CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
-            double error = (Solution - solutionExpected).Norm2() / solutionExpected.Norm2();
+            double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");
             if (error < tolerance)
             {

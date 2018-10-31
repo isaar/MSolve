@@ -620,7 +620,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <remarks>
         /// <paramref name="transposeThis"/> does not affect the result, as a <see cref="SkylineMatrix"/> is symmetric.
         /// </remarks>
-        public Vector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
         {
             if (vector is Vector casted) return MultiplyRight(casted);
             else throw new NotImplementedException();

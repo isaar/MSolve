@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
         IDictionary<int, Vector> GetAccelerationsOfTimeStep(int timeStep);
         IDictionary<int, Vector> GetVelocitiesOfTimeStep(int timeStep);
         void GetRHSFromHistoryLoad(int timeStep);
-        Vector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
-        Vector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
+        IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
+        IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
     }
 }

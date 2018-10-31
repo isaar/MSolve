@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public SolverLogger Logger { get; }
 
-        public Vector Solution { get; protected set; }
+        public IVector Solution { get; protected set; }
 
         public virtual void Initialize() // Many solvers do not need to initialize state
         {
@@ -55,8 +55,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             Vector Fu = model.CalculateFreeForces(DofOrderer);
             Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
-            Vector Feff = Fu - globalUnconstrainedConstrained.MultiplyRight(uc);
-            return Feff;
+            Fu.SubtractIntoThis(globalUnconstrainedConstrained.MultiplyRight(uc));
+            return Fu;
         }
     }
 }
