@@ -29,18 +29,18 @@ namespace ISAAR.MSolve.Analyzers
         //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
         private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages =
             new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
-        private readonly IDictionary<int, ILinearSystem_v2> subdomains;
+        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly IImplicitIntegrationProvider_v2 provider;
         private IAnalyzer_v2 childAnalyzer;
         private IAnalyzer_v2 parentAnalyzer;
 
         public NewmarkDynamicAnalyzer_v2(IImplicitIntegrationProvider_v2 provider, IAnalyzer_v2 embeddedAnalyzer, 
-            IDictionary<int, ILinearSystem_v2> subdomains,
+            ISolver_v2 solver,
             double alpha, double delta, double timeStep, double totalTime)
         {
             this.provider = provider;
             this.childAnalyzer = embeddedAnalyzer;
-            this.subdomains = subdomains;
+            this.linearSystems = solver.LinearSystems;
             this.alpha = alpha;
             this.delta = delta;
             this.timeStep = timeStep;
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.Analyzers
             v2.Clear();
             rhs.Clear();
 
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
             {
                 int dofs = subdomain.RhsVector.Length;
                 uu.Add(subdomain.ID, Vector.CreateZero(dofs));
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
                 provider.CalculateEffectiveMatrix(subdomain, coeffs);
 
 
@@ -138,7 +138,7 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
             {
                 provider.ProcessRHS(subdomain, coeffs);
                 int dofs = subdomain.RhsVector.Length;
@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.Analyzers
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
             if (childAnalyzer == null) return;
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
                 if (resultStorages.ContainsKey(subdomain.ID))
                     if (resultStorages[subdomain.ID] != null)
                         foreach (var l in childAnalyzer.Logs[subdomain.ID])
@@ -206,7 +206,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void CalculateRHSImplicit()
         {
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
             {
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
@@ -279,7 +279,7 @@ namespace ISAAR.MSolve.Analyzers
             var externalVelocities = provider.GetVelocitiesOfTimeStep(timeStep);
             var externalAccelerations = provider.GetAccelerationsOfTimeStep(timeStep);
 
-            foreach (ILinearSystem_v2 subdomain in subdomains.Values)
+            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
             {
                 int id = subdomain.ID;
                 u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -30,15 +31,16 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private readonly double factorizationPivotTolerance;
         private readonly LinearSystem_v2<SkylineMatrix, Vector> linearSystem;
         private CholeskySkyline factorizedMatrix;
+        private LinearSystem_v2<SkylineMatrix, Vector> linearSystem_v2;
 
-        public SkylineSolver(IReadOnlyList<LinearSystem_v2<SkylineMatrix, Vector>> linearSystems, 
-            double factorizationPivotTolerance = 1E-15)
+        public SkylineSolver(int subdomainID, double factorizationPivotTolerance = 1E-15) //TODO: subdomainID should not be provided by the user or needed at all
         {
-            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
-                name + " can be used if there is only 1 subdomain.");
-            this.linearSystem = linearSystems[0];
+            this.linearSystem = new LinearSystem_v2<SkylineMatrix, Vector>(subdomainID);
+            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomainID, linearSystem } };
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
+
+        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {

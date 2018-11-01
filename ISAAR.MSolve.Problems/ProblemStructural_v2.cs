@@ -26,14 +26,14 @@ namespace ISAAR.MSolve.Problems
         private Dictionary<int, IMatrix> ms, cs, ks;
         private readonly IStructuralModel model;
         private readonly ISolver_v2 solver;
-        private IDictionary<int, ILinearSystem_v2> subdomains;
+        private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
         private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
 
-        public ProblemStructural_v2(IStructuralModel model, IDictionary<int, ILinearSystem_v2> subdomains, ISolver_v2 solver)
+        public ProblemStructural_v2(IStructuralModel model, ISolver_v2 solver)
         {
             this.model = model;
-            this.subdomains = subdomains;
+            this.linearSystems = solver.LinearSystems;
             this.solver = solver;
         }
 
@@ -207,7 +207,7 @@ namespace ISAAR.MSolve.Problems
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
-            foreach (var l in subdomains)
+            foreach (var l in linearSystems)
             {
                 l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
                 //l.Value.RhsVector.CopyFrom(0, l.Value.RhsVector.Length, Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces), 0);

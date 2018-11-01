@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
@@ -28,17 +29,18 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly IPreconditionerBuilder preconditionerBuilder;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(IReadOnlyList<LinearSystem_v2<IMatrix, IVector>> linearSystems,
+        public PcgSolver(LinearSystem_v2<IMatrix, IVector> linearSystem,
             int maxIterations, double residualTolerance, IPreconditionerBuilder preconditionerBuilder,
             IGlobalMatrixAssembler<IMatrix> globalMatrixAssembler)
         {
-            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
-                name + " can be used if there is only 1 subdomain.");
-            this.linearSystem = linearSystems[0];
-            pcgAlgorithm = new PreconditionedConjugateGradient(maxIterations, residualTolerance);
+            this.linearSystem = linearSystem;
+            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { linearSystem.ID, linearSystem } };
+            this.pcgAlgorithm = new PreconditionedConjugateGradient(maxIterations, residualTolerance);
             this.preconditionerBuilder = preconditionerBuilder;
             this.assembler = globalMatrixAssembler;
         }
+
+        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {

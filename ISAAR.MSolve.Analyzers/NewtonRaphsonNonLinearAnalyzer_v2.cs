@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly double tolerance = 1e-8;
         private double rhsNorm;
         private INonLinearParentAnalyzer_v2 parentAnalyzer = null;
-        private readonly ISolver solver;
+        private readonly ISolver_v2 solver;
         private readonly INonLinearProvider_v2 provider;
         private readonly Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();
         private readonly Dictionary<int, IVector> u = new Dictionary<int, IVector>();
@@ -33,14 +33,14 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public NewtonRaphsonNonLinearAnalyzer_v2(ISolver solver, ILinearSystem_v2[] linearSystems, 
+        public NewtonRaphsonNonLinearAnalyzer_v2(ISolver_v2 solver, 
             INonLinearSubdomainUpdater_v2[] subdomainUpdaters, ISubdomainGlobalMapping_v2[] mappings, 
             INonLinearProvider_v2 provider, int increments, int totalDOFs)
         {
             this.solver = solver;
             this.subdomainUpdaters = subdomainUpdaters;
             this.mappings = mappings;
-            this.linearSystems = linearSystems;
+            this.linearSystems = solver.LinearSystems.Values.ToArray();
             this.provider = provider;
             this.increments = increments;
             this.totalDOFs = totalDOFs;
