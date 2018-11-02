@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    derivatives[4, 1] = (x - 1) * (z + 1) / 8;
 		    derivatives[5, 1] = -(x + 1) * (z + 1) / 8;
 		    derivatives[6, 1] = (x + 1) * (z + 1) / 8;
-		    derivatives[6, 1] = -(x - 1) * (z + 1) / 8;
+		    derivatives[7, 1] = -(x - 1) * (z + 1) / 8;
 
 		    derivatives[0, 2] = -(x - 1) * (y - 1) / 8;
 		    derivatives[1, 2] = (x + 1) * (y - 1) / 8;
