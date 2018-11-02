@@ -42,9 +42,14 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        public IMatrix BuildGlobalMatrix_v2(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
             return assembler.BuildGlobalMatrix(subdomain.ΙElementsDictionary.Values, dofOrderer, elementMatrixProvider);
+        }
+
+        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        {
+            return assembler.BuildGlobalMatrix(subdomain, elementMatrixProvider);
         }
 
         public void Initialize()

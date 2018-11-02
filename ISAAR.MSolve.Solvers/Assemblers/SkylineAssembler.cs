@@ -6,6 +6,7 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
 
@@ -76,11 +77,56 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             //linearSystem.IsMatrixModified = true;
         }
 
+        public SkylineMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider) //TODO: remove this
+        {
+            Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
+            var K = new Numerical.LinearAlgebra.SkylineMatrix2D(CalculateRowIndex(subdomain));
+            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            {
+                var isEmbeddedElement = element.IElementType is IEmbeddedElement;
+                IMatrix2D ElementK = matrixProvider.Matrix(element);
+
+                var elementDOFTypes = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+                var matrixAssemblyNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+                int iElementMatrixRow = 0;
+                for (int i = 0; i < elementDOFTypes.Count; i++)
+                {
+                    INode nodeRow = matrixAssemblyNodes[i];
+                    foreach (DOFType dofTypeRow in elementDOFTypes[i])
+                    {
+                        int dofRow = nodalDOFsDictionary.ContainsKey(nodeRow.ID) == false && isEmbeddedElement ? -1 : nodalDOFsDictionary[nodeRow.ID][dofTypeRow];
+                        if (dofRow != -1)
+                        {
+                            int iElementMatrixColumn = 0;
+                            for (int j = 0; j < elementDOFTypes.Count; j++)
+                            {
+                                INode nodeColumn = matrixAssemblyNodes[j];
+                                foreach (DOFType dofTypeColumn in elementDOFTypes[j])
+                                {
+                                    int dofColumn = nodalDOFsDictionary.ContainsKey(nodeColumn.ID) == false && isEmbeddedElement ? -1 : nodalDOFsDictionary[nodeColumn.ID][dofTypeColumn];
+                                    if (dofColumn != -1)
+                                    {
+                                        int height = dofRow - dofColumn;
+                                        if (height >= 0)
+                                            K.Data[K.RowIndex[dofRow] + height] += ElementK[iElementMatrixRow, iElementMatrixColumn];
+                                    }
+                                    iElementMatrixColumn++;
+                                }
+                            }
+                        }
+                        iElementMatrixRow++;
+                    }
+                }
+            }
+
+            return SkylineMatrix.CreateFromArrays(K.Columns, K.Data, K.RowIndex, false);
+        }
+
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
         // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
         // though.
         private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<IElement> elements,
-            int numFreeDofs, DofTable<IDof> freeDofs)
+            int numFreeDofs, DofTable<IDof> freeDofs) 
         {
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
             foreach (IElement elementWrapper in elements)
@@ -113,6 +159,43 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 }
             }
             return SkylineBuilder.Create(numFreeDofs, colHeights);
+        }
+
+        //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
+        // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
+        // though.
+        private static int[] CalculateRowIndex(ISubdomain subdomain) //TODO: remove this
+        {
+            int order = subdomain.TotalDOFs;
+            int[] rowHeights = new int[order];
+            Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
+
+            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            {
+                int minDOF = Int32.MaxValue;
+                foreach (INode node in element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
+                {
+                    if ((nodalDOFsDictionary.ContainsKey(node.ID) == false) && (element.IElementType is IEmbeddedElement))
+                        continue;
+                    foreach (int dof in nodalDOFsDictionary[node.ID].Values)
+                        if (dof != -1) minDOF = Math.Min(dof, minDOF);
+                }
+                //foreach (Node node in element.NodesDictionary.Values.Where(e => e.EmbeddedInElement == null))
+                foreach (INode node in element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
+                {
+                    if ((nodalDOFsDictionary.ContainsKey(node.ID) == false) && (element.IElementType is IEmbeddedElement))
+                        continue;
+                    foreach (int dof in nodalDOFsDictionary[node.ID].Values)
+                        if (dof != -1) rowHeights[dof] = Math.Max(rowHeights[dof], dof - minDOF);
+                }
+            }
+
+            int[] rowIndex = new int[subdomain.TotalDOFs + 1];
+            rowIndex[0] = 0;
+            rowIndex[1] = 1;
+            for (int i = 1; i < subdomain.TotalDOFs; i++) rowIndex[i + 1] = rowIndex[i] + rowHeights[i] + 1;
+
+            return rowIndex;
         }
     }
 }

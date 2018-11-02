@@ -77,5 +77,10 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             //linearSystem.Matrix = Kff.BuildCsrMatrix(sortColsOfEachRow);
             //linearSystem.IsMatrixModified = true;
         }
+
+        public CsrMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider) //TODO: remove this
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

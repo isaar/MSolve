@@ -13,5 +13,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     {
         TMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
             IElementMatrixProvider matrixProvider);
+
+        TMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider);
     }
 }
