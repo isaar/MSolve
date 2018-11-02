@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Runtime;
+using Accord.Math;
 using Accord.Math.Decompositions;
 using ISAAR.MSolve.PreProcessor;
 using MGroup.Stochastic.Interfaces;
@@ -23,10 +24,10 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         public double[] DomainBounds { get; }
         public double SigmaSquare { get; set; }
         public double CorrelationLength { get; set; }
-        public double[] XCoordinates { get; set; }
+        public double[] Xcoordinates { get; set; }
         public double[] Lambda { get; set; }
         public double[,] Eigenvectors { get; set; }
-        public double[,] EigenModesAtMidpoint { get; set; }
+        public double[,] EigenModesAtPoint { get; set; }
 
         public KarhunenLoeveCoefficientsProvider(int mcsamples, int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
             double[] domainBounds, double sigmaSquare, double correlationLength)
@@ -43,11 +44,9 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             double[] xCoordinates = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item1;
             double[] lambda = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item2;
             double[,] eigenvectors = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item3;
-            double[,] eigenModesAtMidpoint = CalculateEigenmodesAtMidpoint(eigenvectors);
-            XCoordinates = xCoordinates;
+            Xcoordinates = xCoordinates;
             Lambda = lambda;
             Eigenvectors = eigenvectors;
-            EigenModesAtMidpoint = eigenModesAtMidpoint;
         }
 
         public double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
@@ -59,9 +58,11 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return correlationFunction;
         }
 
-        public double Realize(int iteration, int elementID)
+        public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
-            return KarhunenLoeveFredholm1DSampleGenerator(elementID, Lambda, EigenModesAtMidpoint, MeanValue, MidpointMethod, IsGaussian);
+            var stochasticDomainPoint = domainMapper.Map(parameters);
+            double[] eigenModesAtPoint = CalculateEigenmodesAtPoint(Xcoordinates, Eigenvectors, stochasticDomainPoint[0]);
+            return KarhunenLoeveFredholm1DSampleGenerator(stochasticDomainPoint, Lambda, eigenModesAtPoint, MeanValue, MidpointMethod, IsGaussian);
         }
 
         public Tuple<double[], double[], double[,]> KarhunenLoeveFredholmWithFEM(int KarLoeveTerms, double[] domainBounds, double sigmaSquare, int partition, double correlationLength)
@@ -177,34 +178,42 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         }
 
-        public double[,] CalculateEigenmodesAtMidpoint(double[,] eigenModes)
+        public double[] CalculateEigenmodesAtPoint(double[] xCoordinates, double[,] eigenModes, double stochasticDomainPoint)
         {
-            double[,] eigenmodesAtMidpoint = new double[eigenModes.GetLength(0) - 1, eigenModes.GetLength(1)];
+            List<double> xCoordinatesList = xCoordinates.ToList();
+            double firstXcoordinate = xCoordinatesList.OrderBy(item => Math.Abs(stochasticDomainPoint - item)).First();
+            int indexOfFirstEigenmodeValue = xCoordinatesList.IndexOf(firstXcoordinate);
+            List<double> list = xCoordinatesList;
+            list.Remove(firstXcoordinate);
+            double secondXcoordinate = list.OrderBy(item => Math.Abs(stochasticDomainPoint - item)).First();
+            int indexOfSecondEigenmodeValue = xCoordinatesList.IndexOf(secondXcoordinate);
+            double[] eigenmodesAtPoint = new double[eigenModes.GetLength(1)];
+
             for (int j = 0; j < eigenModes.GetLength(1); j++)
             {
-                for (int i = 0; i < eigenModes.GetLength(0) - 1; i++)
-                {
-                    eigenmodesAtMidpoint[i, j] = eigenModes[i, j] + eigenModes[i + 1, j];
-                }
+                    eigenmodesAtPoint[j] = (eigenModes[indexOfSecondEigenmodeValue + 1, j] - eigenModes[indexOfFirstEigenmodeValue, j]) /
+                                           (xCoordinates[indexOfSecondEigenmodeValue] - xCoordinates[indexOfFirstEigenmodeValue]) * 
+                    (stochasticDomainPoint-xCoordinates[indexOfFirstEigenmodeValue]);
             }
-            return eigenmodesAtMidpoint;
+            return eigenmodesAtPoint;
         }
-        public double KarhunenLoeveFredholm1DSampleGenerator(int elementID, double[] eigenValues, double[,] eigenmodesAtMidpoint, double meanValue, bool midpointMethod, bool isGaussian)
+
+        public double KarhunenLoeveFredholm1DSampleGenerator(double[] stochasticDomainPoint, double[] eigenValues, double[] eigenmodesAtPoint, double meanValue, bool midpointMethod, bool isGaussian)
         {
             if (midpointMethod == false) throw new ArgumentException("It is not supported at the moment");
             if (isGaussian == false) throw new ArgumentException("It is not supported at the moment");
             double fieldRealization = 0;
             
-            double[] kse = new double[eigenmodesAtMidpoint.GetLength(1)];
-            for (int j = 0; j < eigenmodesAtMidpoint.GetLength(1); j++)
+            double[] kse = new double[eigenmodesAtPoint.GetLength(1)];
+            for (int j = 0; j < eigenmodesAtPoint.GetLength(1); j++)
             {
-                var KsiNormalDistribution = new NormalDistribution(0, 1);
-                kse[j] = KsiNormalDistribution.NextDouble();
+                var KseNormalDistribution = new NormalDistribution(0, 1);
+                kse[j] = KseNormalDistribution.NextDouble();
             }
             
-            for (int j = 0; j < eigenmodesAtMidpoint.GetLength(1); j++)
+            for (int j = 0; j < eigenmodesAtPoint.GetLength(1); j++)
             {
-                fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtMidpoint[elementID, j] * kse[j];
+                fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtPoint[j] * kse[j];
             }
             fieldRealization = meanValue + fieldRealization;
             

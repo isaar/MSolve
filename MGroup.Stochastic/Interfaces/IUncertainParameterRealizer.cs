@@ -2,6 +2,6 @@
 {
     public interface IUncertainParameterRealizer
     {
-        double Realize(int iteration, int parameters);
+        double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters);
     }
 }
