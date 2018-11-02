@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Materials.Interfaces;
@@ -13,7 +14,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public abstract class Beam3DCorotationalAbstract : IFiniteElement
+    public abstract class Beam3DCorotationalAbstract : IFiniteElement, IEmbeddedElement
     {
         protected static readonly int NATURAL_DEFORMATION_COUNT = 6;
         protected static readonly int FREEDOM_DEGREE_COUNT = 12;
@@ -64,7 +65,9 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
-        
+
+        public IList<EmbeddedNode> EmbeddedNodes => throw new NotImplementedException();
+
         public abstract void SaveGeometryState();
         public abstract void UpdateState(double[] incrementalNodeDisplacements);
 
@@ -634,6 +637,16 @@ namespace ISAAR.MSolve.FEM.Elements
         public void ClearMaterialStresses()
         {
             material.ClearStresses();
+        }
+
+        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] GetLocalDOFValues(Element hostElement, double[] hostDOFValues)
+        {
+            throw new NotImplementedException();
         }
     }
 }

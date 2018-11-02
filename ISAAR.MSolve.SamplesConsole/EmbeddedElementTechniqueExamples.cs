@@ -25,9 +25,8 @@ namespace ISAAR.MSolve.SamplesConsole
             Model model = new Model();
             model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
 
-            // EPILOGH MONTELOU
+            // Choose model
             EmbeddedExamplesBuilder.ExampleWithEmbedded(model);
-
             model.ConnectDataStructures();
 
             // Choose linear equation system solver
@@ -65,7 +64,6 @@ namespace ISAAR.MSolve.SamplesConsole
             Console.WriteLine("Writing results for node 5");
             Console.WriteLine("Dof and Values for Displacement X, Y, Z");
             Console.WriteLine(childAnalyzer.Logs[1][0]);
-
         }
     }
 
