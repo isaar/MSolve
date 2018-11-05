@@ -13,20 +13,22 @@ namespace MGroup.Stochastic.Structural
     public class StructuralStochasticEvaluator : ISystemRealizer, ISystemResponseEvaluator
     {
         public double YoungModulus { get; }
+        public IStochasticDomainMapper DomainMapper;
         public RandomVariable StochasticRealization { get; }
         public ModelBuilder ModelBuilder { get; }
         private Model currentModel;
 
-        public StructuralStochasticEvaluator(double youngModulus)
+        public StructuralStochasticEvaluator(double youngModulus, IStochasticDomainMapper domainMapper)
         {
             YoungModulus = youngModulus;
+            DomainMapper = domainMapper;
             ModelBuilder = new ModelBuilder(); 
-            StochasticRealization = new RandomVariable(youngModulus);
+            StochasticRealization = new RandomVariable(youngModulus, domainMapper);
         }
 
         public void Realize(int iteration)
         {
-            currentModel = ModelBuilder.GetModel(StochasticRealization, iteration);
+            currentModel = ModelBuilder.GetModel(StochasticRealization, DomainMapper, iteration);
         }
 
         public double[] Evaluate(int iteration)

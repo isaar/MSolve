@@ -11,7 +11,7 @@ namespace MGroup.Stochastic.Structural.Example
 
             var domainMapper = new CantileverStochasticDomainMapper(new [] { 0d, 0d, 0d });
             var realizer = new GiannisStructuralStochasticRealizer(youngModulus, domainMapper);
-            var evaluator = new StructuralStochasticEvaluator(youngModulus);
+            var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
             var m = new MonteCarlo(iterations, realizer, evaluator);
             m.Evaluate();
         }

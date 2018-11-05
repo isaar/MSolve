@@ -49,6 +49,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             Eigenvectors = eigenvectors;
         }
 
+
         public double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
         {
             //CorrelationLength = correlationLength;

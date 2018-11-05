@@ -543,7 +543,7 @@ namespace ISAAR.MSolve.Tests
             double loadX = 500;
             double loadY = 300;
             double sectionArea = 1.5;
-            
+
             Model trussModel = new Model();
 
             trussModel.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
@@ -588,7 +588,7 @@ namespace ISAAR.MSolve.Tests
 
             LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-            
+
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();

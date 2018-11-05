@@ -9,13 +9,14 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
     {
         private Random random = new Random();
         public double Magnitude { get; }
-
-        public RandomVariable(double magnitude)
+        public IStochasticDomainMapper DomainMapper;
+        public RandomVariable(double magnitude, IStochasticDomainMapper domainMapper)
         {
             Magnitude = magnitude;
+            DomainMapper = domainMapper;
         }
 
-        public double Realize(int iteration, int parameters)
+        public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
             return random.NextDouble() * Magnitude ;
         }
