@@ -179,7 +179,10 @@ namespace ISAAR.MSolve.Analyzers
                     {
                         provider.Reset();
                         BuildMatrices();
-                        //solver.Initialize();
+
+                        // The next was used to force the SkylineSolver to factorize the matrix. 
+                        // The ISolver.Initialize() could potentially perform actions that must not be repeated or are too expesive.
+                        //solver.Initialize(); 
                     }
                 }
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);

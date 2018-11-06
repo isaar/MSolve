@@ -21,10 +21,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Tests
 {
-    public class Quad4LinearCantileverExample
+    public static class Quad4LinearCantileverExample
     {
         [Fact]
-        public void TestQuad4LinearCantileverExample()
+        private static void TestQuad4LinearCantileverExample()
         {
             Numerical.LinearAlgebra.VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 3.76;
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.Tests
         }
 
         [Fact]
-        public void TestQuad4LinearCantileverExample_v2()
+        private static void TestQuad4LinearCantileverExample_v2()
         {
             // Model & subdomains
             Model model = new Model();
@@ -162,11 +162,13 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
-            // Solver
-            var solver = new SkylineSolver(subdomainID);
             model.ConnectDataStructures(); //TODO: this should be hidden and handled by the analyzer at another phase
-            solver.LinearSystems[subdomainID].RhsVector =
-                Vector.CreateFromArray(model.Subdomains[subdomainID].Forces); //TODO: this should be hidden and handled by the analyzer at another phase
+
+            // Solver
+            var solver = new SkylineSolver(model);
+
+            //TODO: this should be hidden and handled by the analyzer at another phase
+            solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.Subdomains[subdomainID].Forces);
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
