@@ -149,20 +149,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <exception cref="AccessViolationException">Thrown if the unmanaged memory that holds the factorization data has been 
         ///     released.</exception>
         /// <exception cref="SuiteSparseException">Thrown if the call to SuiteSparse library fails.</exception>
-        public Vector BackSubstitution(Vector rhsVector) => SolveInternal(SystemType.BackSubstitution, rhsVector);
+        public Vector BackSubstitution(Vector rhsVector)
+        {
+            var solution = new double[rhsVector.Length];
+            SolveInternal(SystemType.BackSubstitution, rhsVector, solution);
+            return Vector.CreateFromArray(solution);
+        }
 
-        /// <summary>
-        /// Solves a series of linear systems L^T * x = b (or  D * L^T * x = b), where L is the lower triangular factor (and D  
-        /// the diagonal factor) of the Cholesky factorization: A = L * L^T (or A = L * D * L^T).
-        /// </summary>
-        /// <param name="rhsVectors">A matrix whose columns are the right hand side vectors b of the linear systems. Constraints:
-        ///     <paramref name="rhsVectors"/>.<see cref="IIndexable2D.NumRows"/> == this.<see cref="Order"/>.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVectors"/> violates the described 
-        ///     constraints.</exception>
-        /// <exception cref="AccessViolationException">Thrown if the unmanaged memory that holds the factorization data has been 
-        ///     released.</exception>
-        /// <exception cref="SuiteSparseException">Thrown if the call to SuiteSparse library fails.</exception>
-        public Matrix BackSubstitutions(Matrix rhsVectors) => SolveInternal(SystemType.BackSubstitution, rhsVectors);
+    /// <summary>
+    /// Solves a series of linear systems L^T * x = b (or  D * L^T * x = b), where L is the lower triangular factor (and D  
+    /// the diagonal factor) of the Cholesky factorization: A = L * L^T (or A = L * D * L^T).
+    /// </summary>
+    /// <param name="rhsVectors">A matrix whose columns are the right hand side vectors b of the linear systems. Constraints:
+    ///     <paramref name="rhsVectors"/>.<see cref="IIndexable2D.NumRows"/> == this.<see cref="Order"/>.</param>
+    /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVectors"/> violates the described 
+    ///     constraints.</exception>
+    /// <exception cref="AccessViolationException">Thrown if the unmanaged memory that holds the factorization data has been 
+    ///     released.</exception>
+    /// <exception cref="SuiteSparseException">Thrown if the call to SuiteSparse library fails.</exception>
+    public Matrix BackSubstitutions(Matrix rhsVectors) => SolveInternal(SystemType.BackSubstitution, rhsVectors);
 
         /// <summary>
         /// See <see cref="ITriangulation.CalcDeterminant"/>.
@@ -225,7 +230,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <exception cref="AccessViolationException">Thrown if the unmanaged memory that holds the factorization data has been 
         ///     released.</exception>
         /// <exception cref="SuiteSparseException">Thrown if the call to SuiteSparse library fails.</exception>
-        public Vector ForwardSubstitution(Vector rhsVector) => SolveInternal(SystemType.ForwardSubstitution, rhsVector);
+        public Vector ForwardSubstitution(Vector rhsVector)
+        {
+            var solution = new double[rhsVector.Length];
+            SolveInternal(SystemType.ForwardSubstitution, rhsVector, solution);
+            return Vector.CreateFromArray(solution);
+        }
 
         /// <summary>
         /// Solves a series of linear systems L * x = b (or L * D * x = b), where L is the lower triangular factor (and D  
@@ -241,17 +251,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public Matrix ForwardSubstitutions(Matrix rhsVectors) => SolveInternal(SystemType.ForwardSubstitution, rhsVectors);
 
         /// <summary>
+        /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
+        /// </summary>
+        /// <remarks>
         /// Solves the linear system L * L^T * x = b (or L * D * L^T * x = b), where L is the lower triangular factor (and D the 
         /// diagonal factor) of the Cholesky factorization: A = L * L^T (or A = L * D * L^T).
-        /// </summary>
-        /// <param name="rhsVector">The right hand side vector b of the linear system. Constraints:
-        ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == this.<see cref="Order"/>.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="rhsVector"/> violates the described 
-        ///     constraints.</exception>
+        /// </remarks>
+        /// 
         /// <exception cref="AccessViolationException">Thrown if the unmanaged memory that holds the factorization data has been 
         ///     released.</exception>
         /// <exception cref="SuiteSparseException">Thrown if the call to SuiteSparse library fails.</exception>
-        public Vector SolveLinearSystem(Vector rhsVector) => SolveInternal(SystemType.Regular, rhsVector);
+        public void SolveLinearSystem(Vector rhsVector, Vector solution)
+        {
+            Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
+            SolveInternal(SystemType.Regular, rhsVector, solution.InternalData);
+        }
 
         /// <summary>
         /// Solves a series of linear systems L * L^T * x = b (or L * D * L^T * x = b), where L is the lower triangular factor   
@@ -286,17 +300,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
         }
 
-        private Vector SolveInternal(SystemType system, Vector rhs)
+        private void SolveInternal(SystemType system, Vector rhs, double[] solution)
         {
             if (factorizedMatrix == IntPtr.Zero)
             {
                 throw new AccessViolationException("The factorized matrix has been freed from unmanaged memory");
             }
-            Preconditions.CheckSystemSolutionDimensions(Order, Order, rhs.Length);
-            double[] solution = new double[rhs.Length];
+            Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
+
             int status = SuiteSparseUtilities.Solve((int)system, Order, 1, factorizedMatrix, rhs.InternalData, solution, common);
             if (status != 1) throw new SuiteSparseException("System solution failed.");
-            return Vector.CreateFromArray(solution, false);
         }
 
         private Matrix SolveInternal(SystemType system, Matrix rhs)
@@ -305,7 +318,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             {
                 throw new AccessViolationException("The factorized matrix has been freed from unmanaged memory");
             }
-            Preconditions.CheckSystemSolutionDimensions(Order, Order, rhs.NumRows);
+            Preconditions.CheckSystemSolutionDimensions(Order, rhs.NumRows);
             double[] solution = new double[rhs.NumRows * rhs.NumColumns];
             int status = SuiteSparseUtilities.Solve((int)system, Order, rhs.NumColumns, factorizedMatrix, rhs.InternalData,
                 solution, common);

@@ -321,6 +321,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// Copies all entries from <paramref name="sourceVector"/> to this <see cref="IVector"/>.
+        /// </summary>
+        /// <param name="sourceVector">The vector containing the entries to be copied.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">
+        /// Thrown if <paramref name="sourceVector"/> has different <see cref="IIndexable1D.Length"/> than this.
+        /// </exception>
+        public void CopyFrom(Vector sourceVector)
+        {
+            Preconditions.CheckVectorDimensions(this, sourceVector);
+            Array.Copy(sourceVector.data, this.data, this.Length);
+        }
+
+        /// <summary>
         /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>
         /// </summary>
         public void CopySubvectorFrom(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length)

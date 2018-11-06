@@ -263,16 +263,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
 
         /// <summary>
-        /// See <see cref="ITriangulation.SolveLinearSystem(Vector)"/>.
+        /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
         /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
-        public Vector SolveLinearSystem(Vector rhs)
+        public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, solution.Length);
 
             //var e = DateTime.Now;
             //double[] result = new double[K.Rows];
-            double[] result = rhs.CopyToArray();
+            solution.CopyFrom(rhs);
 
             // RHS vector reduction
             int n;
@@ -287,14 +288,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                     for (int KK = KL; KK <= KU; KK++)
                     {
                         k--;
-                        C += values[KK] * result[k];
+                        C += values[KK] * solution[k];
                     }
-                    result[n] -= C;
+                    solution[n] -= C;
                 }
             }
 
             // Back substitution
-            for (n = 0; n < NumColumns; n++) result[n] /= values[diagOffsets[n]];
+            for (n = 0; n < NumColumns; n++) solution[n] /= values[diagOffsets[n]];
 
             n = NumColumns - 1;
             for (int l = 1; l < NumColumns; l++)
@@ -307,15 +308,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                     for (int KK = KL; KK <= KU; KK++)
                     {
                         k--;
-                        result[k] -= values[KK] * result[n];
+                        solution[k] -= values[KK] * solution[n];
                     }
                 }
                 n--;
             }
             //var x = new List<TimeSpan>();
             //x.Add(DateTime.Now - e);
-
-            return Vector.CreateFromArray(result, false);
         }
     }
 }

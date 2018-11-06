@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             throw new NotImplementedException();
         }
 
-        public Vector SolveLinearSystem(Vector rhs)
+        public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             throw new NotImplementedException();
         }

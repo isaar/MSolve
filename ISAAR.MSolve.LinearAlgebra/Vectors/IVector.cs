@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         void Clear();
 
         /// <summary>
-        /// Copies all entries from <paramref name="sourceVector"/> to this  <see cref="IVector"/>.
+        /// Copies all entries from <paramref name="sourceVector"/> to this <see cref="IVector"/>.
         /// </summary>
         /// <param name="sourceVector">The vector containing the entries to be copied.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="sourceVector"/> has different 

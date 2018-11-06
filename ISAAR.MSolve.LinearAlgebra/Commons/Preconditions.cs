@@ -168,11 +168,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        public static void CheckSystemSolutionDimensions(int matrixRows, int matrixColumns, int rhsVectorLength)
+        public static void CheckSystemSolutionDimensions(int matrixRows, int rhsVectorLength) //TODO: this should be deleted
         {
             if (matrixRows != rhsVectorLength)
             {
-                string message = $"Matrix has dimensions ({matrixRows}x{matrixColumns}), while the right hand side vector has"
+                string message = $"Matrix has {matrixRows} rows, while the right hand side vector has"
                     + $" dimensions ({rhsVectorLength}x1)";
                 throw new NonMatchingDimensionsException(message);
             }

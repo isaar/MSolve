@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
         /// <param name="rhs"></param>
         public IVector SolveLinearSystem(IVector rhs)
         {
-            Preconditions.CheckSystemSolutionDimensions(Order, Order, rhs.Length);
+            Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
             double[] solution = new double[Order];
             for (int i = 0; i < Order; ++i) solution[i] = inverseDiagonal[i] * rhs[i];
             return Vector.CreateFromArray(solution);

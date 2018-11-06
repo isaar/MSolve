@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             {
                 throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
-            Preconditions.CheckSystemSolutionDimensions(NumRows, NumColumns, rhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
 
             // Least squares: x = inv(A^T * A) * A^T * b = inv(R) * Q^T * b, where b is the right hand side vector. 
             // Step 1: c = Q^T * b. Q is m-by-m, b is m-by-1 => c is m-by-1

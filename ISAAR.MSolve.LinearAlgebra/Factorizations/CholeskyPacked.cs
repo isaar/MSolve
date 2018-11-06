@@ -127,24 +127,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
-        /// See <see cref="ITriangulation.SolveLinearSystem(Vector)"/>.
+        /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
         /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
-        public Vector SolveLinearSystem(Vector rhs)
+        public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             CheckOverwritten();
+            Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
+            Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
 
             // Call MKL
             int n = Order;
-            double[] b = rhs.CopyToArray();
+            solution.CopyFrom(rhs);
             int info = MklUtilities.DefaultInfo;
             int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int ldb = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dpptrs("U", ref n, ref nRhs, ref data[0], ref b[0], ref ldb, ref info);
+            Lapack.Dpptrs("U", ref n, ref nRhs, ref data[0], ref solution.InternalData[0], ref ldb, ref info);
 
             // Check MKL execution
-            if (info == 0) return Vector.CreateFromArray(b, false);
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            if (info != 0) throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         private void CheckOverwritten()

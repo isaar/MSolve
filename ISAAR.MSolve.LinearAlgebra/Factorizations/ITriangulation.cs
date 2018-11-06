@@ -20,10 +20,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 
         /// <summary>
         /// Solves the linear system A * x = b, where A is the original matrix (before the factorization), 
-        /// b = <paramref name="rhsVector"/> and x is the result of this method.
+        /// b = <paramref name="rhs"/> and x is the solution vector, which will overwrite the provided 
+        /// <paramref name="solution"/>.
         /// </summary>
-        /// <param name="rhsVector">A vector with <see cref="IIndexable1D.Length"/> equal to the 
-        ///     <see cref="Matrices.IIndexable2D.NumRows"/> of the original matrix A.</param>
-        Vector SolveLinearSystem(Vector rhsVector);
+        /// <param name="rhs">
+        /// The right hand side vector. Its <see cref="IIndexable1D.Length"/> must be equal to 
+        /// <see cref="Matrices.IIndexable2D.NumRows"/> of the original matrix A.
+        /// </param>
+        /// <param name="solution">
+        /// Output vector that will be overwritten with the solution of the linear system. Its <see cref="IIndexable1D.Length"/>  
+        /// must be equal to <see cref="Matrices.IIndexable2D.NumRows"/> of the original matrix A.
+        /// </param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">
+        /// Thrown if the length of <paramref name="rhs"/> or <paramref name="solution"/> are different than
+        /// <see cref="Matrices.IIndexable2D.NumRows"/> of the original matrix A.
+        /// </exception>
+        void SolveLinearSystem(Vector rhs, Vector solution);
     }
 }
