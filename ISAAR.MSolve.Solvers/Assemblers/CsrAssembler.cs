@@ -17,7 +17,6 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     public class CsrAssembler: IGlobalMatrixAssembler<CsrMatrix>
     {
         private const string name = "CsrAssembler"; // for error messages
-        private readonly LinearSystem_v2<CsrMatrix, Vector> linearSystem;
         private readonly bool sortColsOfEachRow;
 
         /// <summary>
@@ -26,12 +25,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         /// <param name="sortColsOfEachRow">Sorting the columns of each row in the CSR storage format may increase performance 
         ///     of the matrix vector multiplications. It is recommended to set it to true, especially for iterative linear 
         ///     system solvers.</param>
-        public CsrAssembler(IReadOnlyList<LinearSystem_v2<CsrMatrix, Vector>> linearSystems, 
-            bool sortColsOfEachRow = true)
+        public CsrAssembler(bool sortColsOfEachRow = true)
         {
-            if (linearSystems.Count != 1) throw new InvalidMatrixFormatException(
-                name + " can be used if there is only 1 subdomain.");
-            this.linearSystem = linearSystems[0];
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 

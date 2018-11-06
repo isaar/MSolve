@@ -22,22 +22,31 @@ namespace ISAAR.MSolve.Solvers.PCG
     public class PcgSolver: ISolver_v2
     {
         private const string name = "PcgSolver"; // for error messages
-        private readonly IGlobalMatrixAssembler<IMatrix> assembler;
+        private readonly CsrAssembler assembler = new CsrAssembler(true);
+        private readonly ISubdomain subdomain;
         private readonly FreeDofOrderer dofOrderer; //TODO: this should probably be accessed from the subdomain
-        private readonly LinearSystem_v2<IMatrix, IVector> linearSystem;
+        private readonly LinearSystem_v2<CsrMatrix, Vector> linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerBuilder preconditionerBuilder;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(LinearSystem_v2<IMatrix, IVector> linearSystem,
-            int maxIterations, double residualTolerance, IPreconditionerBuilder preconditionerBuilder,
-            IGlobalMatrixAssembler<IMatrix> globalMatrixAssembler)
+        public PcgSolver(IStructuralModel model, int maxIterations, double residualTolerance, 
+            IPreconditionerBuilder preconditionerBuilder)
         {
-            this.linearSystem = linearSystem;
+            if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
+                $"{name} can be used if there is only 1 subdomain");
+            this.subdomain = model.ISubdomainsDictionary.First().Value;
+            this.linearSystem = new LinearSystem_v2<CsrMatrix, Vector>(subdomain.ID);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { linearSystem.ID, linearSystem } };
+
+            //TODO: resolve this weird dependency. The (Newmark)Analyzer needs the initial solution (which may be != 0, if it 
+            // comes from a previous analysis) before the Solver has performed the first system solution. However, to initialize
+            // it we need the rhs vector which is created when the user calls Model.ConnectDataStructures(). The correct would be
+            // to only access the number of free dofs, but that also would be available after Model.ConnectDataStructures().
+            this.linearSystem.Solution = Vector.CreateZero(subdomain.Forces.Length);
+
             this.pcgAlgorithm = new PreconditionedConjugateGradient(maxIterations, residualTolerance);
             this.preconditionerBuilder = preconditionerBuilder;
-            this.assembler = globalMatrixAssembler;
         }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }

@@ -27,16 +27,26 @@ namespace ISAAR.MSolve.Solvers.Skyline
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly SkylineAssembler assembler = new SkylineAssembler();
+        private readonly ISubdomain subdomain;
         private readonly FreeDofOrderer dofOrderer; //TODO: this should probably be accessed from the subdomain
         private readonly double factorizationPivotTolerance;
         private readonly LinearSystem_v2<SkylineMatrix, Vector> linearSystem;
         private CholeskySkyline factorizedMatrix;
-        private LinearSystem_v2<SkylineMatrix, Vector> linearSystem_v2;
 
-        public SkylineSolver(int subdomainID, double factorizationPivotTolerance = 1E-15) //TODO: subdomainID should not be provided by the user or needed at all
+        public SkylineSolver(IStructuralModel model, double factorizationPivotTolerance = 1E-15) //TODO: subdomainID should not be provided by the user or needed at all
         {
-            this.linearSystem = new LinearSystem_v2<SkylineMatrix, Vector>(subdomainID);
-            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomainID, linearSystem } };
+            if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
+                $"{name} can be used if there is only 1 subdomain");
+            this.subdomain = model.ISubdomainsDictionary.First().Value;
+            this.linearSystem = new LinearSystem_v2<SkylineMatrix, Vector>(subdomain.ID);
+            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomain.ID, linearSystem } };
+
+            //TODO: resolve this weird dependency. The (Newmark)Analyzer needs the initial solution (which may be != 0, if it 
+            // comes from a previous analysis) before the Solver has performed the first system solution. However, to initialize
+            // it we need the rhs vector which is created when the user calls Model.ConnectDataStructures(). The correct would be
+            // to only access the number of free dofs, but that also would be available after Model.ConnectDataStructures().
+            this.linearSystem.Solution = Vector.CreateZero(subdomain.Forces.Length); 
+
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
