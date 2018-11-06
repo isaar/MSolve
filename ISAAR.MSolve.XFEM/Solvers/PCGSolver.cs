@@ -67,7 +67,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
             watch.Restart();
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
             var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
-            (IVector x, CGStatistics statistics) = pcg.Solve(Kuu.BuildCsrMatrix(true), rhs, preconditioner);
+            var x = Vector.CreateZero(Kuu.NumRows);
+            CGStatistics statistics = pcg.Solve(Kuu.BuildCsrMatrix(true), preconditioner, rhs, x, true);
             //var cg = new ConjugateGradient(maxIterations, tolerance);
             //(Vector x, IterativeStatistics statistics) = cg.Solve(Kuu.BuildCSRMatrix(true), rhs);
             watch.Stop();

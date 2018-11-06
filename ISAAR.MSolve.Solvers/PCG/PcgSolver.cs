@@ -61,9 +61,9 @@ namespace ISAAR.MSolve.Solvers.PCG
                 preconditioner = preconditionerBuilder.BuildPreconditioner(linearSystem.Matrix);
                 linearSystem.IsMatrixModified = false;
             }
-            (IVector solution, CGStatistics stats) = 
-                pcgAlgorithm.Solve(linearSystem.Matrix, linearSystem.RhsVector, preconditioner);
-            linearSystem.Solution = solution;
+
+            CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector, 
+                linearSystem.Solution, false); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
         }
     }
 }
