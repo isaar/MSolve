@@ -49,6 +49,8 @@ namespace ISAAR.MSolve.Analyzers
             InitializeInternalVectors();
         }
 
+        public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
+
         public int SetMaxIterations
         {
             set
@@ -169,6 +171,7 @@ namespace ISAAR.MSolve.Analyzers
                     solver.Solve();
                     errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
                     if (step == 0) firstError = errorNorm;
+                    if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
                     if (errorNorm < tolerance) break;
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
@@ -178,6 +181,7 @@ namespace ISAAR.MSolve.Analyzers
                         BuildMatrices();
                         solver.Initialize();
                     }
+
                 }
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
@@ -186,7 +190,7 @@ namespace ISAAR.MSolve.Analyzers
             //            ClearMaterialStresses();
             DateTime end = DateTime.Now;
 
-            StoreLogResults(start, end);
+            StoreLogResults(start, end); //TODO: the results should be exported at each Newton-Raphson iteration or at least at each equilibrium step.
         }
 
         private double CalculateInternalRHS(int currentIncrement, int step)

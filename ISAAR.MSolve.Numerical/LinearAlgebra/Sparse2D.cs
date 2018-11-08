@@ -75,7 +75,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 
         public void Multiply(IVector vIn, double[] vOut)
         {
-            if (Rows != vIn.Length) throw new ArgumentException("Matrix and vector size mismatch.");
+            if (Columns != vIn.Length) throw new ArgumentException("Matrix and vector size mismatch.");
             Array.Clear(vOut, 0, vOut.Length);
             List<double> d = data as List<double>;
 

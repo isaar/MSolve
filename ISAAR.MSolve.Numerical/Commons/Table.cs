@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 //TODO: Add slicing features
 //TODO: Perhaps a Table.Builder would be better, since EntryCount can be O(1)
@@ -21,15 +18,20 @@ namespace ISAAR.MSolve.Numerical.Commons
     /// <typeparam name="TValue"></typeparam>
     public class Table<TRow, TColumn, TValue> : ITable<TRow, TColumn, TValue>
     {
+        protected const int defaultInitialCapacity = 1; //There will be at least 1. TODO: perhaps get this from Dictionary class.
+        protected readonly int initialCapacityForEachDim;
         protected readonly Dictionary<TRow, Dictionary<TColumn, TValue>> data;
 
-        public Table()
+        public Table(int initialCapacityForEachDim = defaultInitialCapacity)
         {
-            this.data = new Dictionary<TRow, Dictionary<TColumn, TValue>>();
+            this.initialCapacityForEachDim = initialCapacityForEachDim;
+            this.data = new Dictionary<TRow, Dictionary<TColumn, TValue>>(initialCapacityForEachDim);
         }
 
-        protected Table(Dictionary<TRow, Dictionary<TColumn, TValue>> data)
+        protected Table(Dictionary<TRow, Dictionary<TColumn, TValue>> data,
+            int initialCapacityForEachDim = defaultInitialCapacity)
         {
+            this.initialCapacityForEachDim = initialCapacityForEachDim;
             this.data = data;
         }
 
@@ -38,27 +40,24 @@ namespace ISAAR.MSolve.Numerical.Commons
             get
             {
                 int count = 0;
-                foreach (var wholeRow in data)
-                {
-                    count += wholeRow.Value.Count;
-                }
+                foreach (var wholeRow in data) count += wholeRow.Value.Count;
                 return count;
             }
         }
 
         public TValue this[TRow row, TColumn col]
         {
-            get { return data[row][col]; }
+            get => data[row][col];
+
             set
             {
-                bool rowExists = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
-                if (!rowExists)
+                bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
+                if (!containsRow)
                 {
-                    wholeRow = new Dictionary<TColumn, TValue>();
+                    wholeRow = new Dictionary<TColumn, TValue>(initialCapacityForEachDim);
                     data.Add(row, wholeRow);
                 }
                 wholeRow[col] = value; // This allows changing the value after an entry has been added.
-
                 // The code below was used to prevent changes after an entry has been added, but that makes reordering difficult.
                 //if (wholeRow.ContainsKey(col))
                 //{
@@ -72,52 +71,28 @@ namespace ISAAR.MSolve.Numerical.Commons
         public bool Contains(TRow row, TColumn col)
         {
             bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
-            if (!containsRow) return false; 
+            if (!containsRow) return false;
             else return wholeRow.ContainsKey(col);
         }
 
-        //TODO: use named tuple
-        public IEnumerator<Tuple<TRow, TColumn, TValue>> GetEnumerator()
+        public IEnumerator<(TRow row, TColumn col, TValue val)> GetEnumerator()
         {
             foreach (var wholeRow in data)
             {
                 foreach (var colValPair in wholeRow.Value)
                 {
-                    yield return new Tuple<TRow, TColumn, TValue>(wholeRow.Key, colValPair.Key, colValPair.Value);
+                    yield return (wholeRow.Key, colValPair.Key, colValPair.Value);
                 }
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-        
-        public IEnumerable<TColumn> GetColumnsOfRow(TRow row)
-        {
-            return data[row].Keys;
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable<TRow> GetRows()
-        {
-            return data.Keys;
-        }
+        public IEnumerable<TColumn> GetColumnsOfRow(TRow row) => data[row].Keys;
 
-        public IEnumerable<TValue> GetValuesOfRow(TRow row)
-        {
-            return data[row].Values;
-        }
+        public IEnumerable<TRow> GetRows() => data.Keys;
 
-        public bool TryGetValue(TRow row, TColumn col, out TValue value)
-        {
-            bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
-            if (!containsRow)
-            {
-                value = default(TValue);
-                return false;
-            }
-            else return wholeRow.TryGetValue(col, out value);
-        }
+        public IEnumerable<TValue> GetValuesOfRow(TRow row) => data[row].Values;
 
         public override string ToString()
         {
@@ -132,6 +107,17 @@ namespace ISAAR.MSolve.Numerical.Commons
                 builder.Append('\n');
             }
             return builder.ToString();
+        }
+
+        public bool TryGetValue(TRow row, TColumn col, out TValue value)
+        {
+            bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
+            if (!containsRow)
+            {
+                value = default(TValue);
+                return false;
+            }
+            else return wholeRow.TryGetValue(col, out value);
         }
     }
 }

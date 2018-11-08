@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Numerical.Commons
     /// <typeparam name="TRow"></typeparam>
     /// <typeparam name="TColumn"></typeparam>
     /// <typeparam name="TValue"></typeparam>
-    public interface ITable<TRow, TColumn, TValue>: IEnumerable<Tuple<TRow, TColumn, TValue>>
+    public interface ITable<TRow, TColumn, TValue> : IEnumerable<(TRow row, TColumn col, TValue val)>
     {
         /// <summary>
         /// The total number of entries in this table. 
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.Numerical.Commons
 
         /// <summary>
         /// Returns true if the pair (<paramref name="row"/>, <paramref name="col"/>) has been associated with a value, which is  
-        /// also returned as an output parameter <paramref name="value"/>. Othrwise returns false instead of throwing any 
+        /// also returned as an output parameter <paramref name="value"/>. Otherwise returns false instead of throwing any 
         /// exception.
         /// </summary>
         /// <param name="row"></param>

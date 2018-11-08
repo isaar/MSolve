@@ -9,7 +9,7 @@ using ISAAR.MSolve.FEM.Elements;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
-    public class Hexa8TranslationTransformationVector : IEmbeddedDOFInHostTransformationVector
+    public class Hexa8LAndNLTranslationTransformationVector : IEmbeddedDOFInHostTransformationVector
     {
         private readonly DOFType[] translationOnlyDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 
@@ -22,8 +22,7 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         public double[][] GetTransformationVector(EmbeddedNode node)
         {
-            if (node.EmbeddedInElement.ElementType is Hexa8 == false)
-                throw new ArgumentException("Host element is not Hexa8.");
+            CheckElementType(node.EmbeddedInElement.ElementType);
 
             const int commonDofsPerNode = 3;
             const int hostDofsPerNode = 3;
@@ -39,6 +38,13 @@ namespace ISAAR.MSolve.FEM.Embedding
             }
             
             return transformation;
+        }
+
+        private void CheckElementType(IFiniteElement element)
+        {
+            bool validElement = element is Hexa8;
+            validElement |= element is Hexa8NonLinear;
+            if (!(validElement)) throw new ArgumentException("Host element is not Hexa8 or Hexa8NL.");
         }
     }
 }

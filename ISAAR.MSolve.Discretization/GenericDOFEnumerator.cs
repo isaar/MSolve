@@ -28,9 +28,15 @@ namespace ISAAR.MSolve.Discretization
 			return matrix;
 		}
 
-		public double[] GetTransformedVector(double[] vector)
+		public double[] GetTransformedDisplacementsVector(double[] vector)
 		{
 			return vector;
 		}
-	}
+
+        public double[] GetTransformedForcesVector(double[] vector)
+        { 
+              return vector; 
+        }
+
+    }
 }

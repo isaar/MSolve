@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement; // TODO: Probably solvers should not have dependencies from FEM, IGA, etc. Find a way to hide the embedding.
 
-namespace ISAAR.MSolve.Discretization
+namespace ISAAR.MSolve.Solvers.Assemblers
 {
     public static class GlobalMatrixAssemblerSkyline
     {
@@ -38,8 +39,7 @@ namespace ISAAR.MSolve.Discretization
                 rowIndex[i + 1] = rowIndex[i] + rowHeights[i] + 1;
             return rowIndex;
         }
-		
-        public static SkylineMatrix2D CalculateGlobalMatrix(ISubdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateFreeFreeGlobalMatrix(ISubdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider) //TODOMaria this is where the free-free matrix is calculated 
         {
             // TODO: should encapsulate DOF logic into a separate entity that will manage things if embedded or not (should return element matrix and globaldofs correspondence list
             var times = new Dictionary<string, TimeSpan>();
@@ -93,9 +93,9 @@ namespace ISAAR.MSolve.Discretization
             return K;
         }
 
-        public static SkylineMatrix2D CalculateGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateFreeFreeGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementProvider)
         {
-            return CalculateGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
+            return CalculateFreeFreeGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
         }
     }
 }
