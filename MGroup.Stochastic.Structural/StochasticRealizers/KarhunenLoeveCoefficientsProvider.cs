@@ -29,10 +29,9 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         public double[,] Eigenvectors { get; set; }
         public double[,] EigenModesAtPoint { get; set; }
 
-        public KarhunenLoeveCoefficientsProvider(int mcsamples, int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
+        public KarhunenLoeveCoefficientsProvider (int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
             double[] domainBounds, double sigmaSquare, double correlationLength)
         {
-            MCsamples = mcsamples;
             Partition = partition;
             MeanValue = meanValue;
             MidpointMethod = midpointMethod;
@@ -205,14 +204,14 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             if (isGaussian == false) throw new ArgumentException("It is not supported at the moment");
             double fieldRealization = 0;
             
-            double[] kse = new double[eigenmodesAtPoint.GetLength(1)];
-            for (int j = 0; j < eigenmodesAtPoint.GetLength(1); j++)
+            double[] kse = new double[eigenmodesAtPoint.GetLength(0)];
+            for (int j = 0; j < eigenmodesAtPoint.GetLength(0); j++)
             {
                 var KseNormalDistribution = new NormalDistribution(0, 1);
                 kse[j] = KseNormalDistribution.NextDouble();
             }
             
-            for (int j = 0; j < eigenmodesAtPoint.GetLength(1); j++)
+            for (int j = 0; j < eigenmodesAtPoint.GetLength(0); j++)
             {
                 fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtPoint[j] * kse[j];
             }

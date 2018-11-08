@@ -18,7 +18,11 @@ namespace MGroup.Stochastic.Structural
 
         public Model GetModel(IUncertainParameterRealizer stochasticRealizer, IStochasticDomainMapper domainMapper, int iteration)
         {
+
+
             var m = new Model();
+            m.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+
             m.NodesDictionary.Add(0, new Node() { ID = 0, X = 0.0, Y = 0, Z = 0 });
             m.NodesDictionary.Add(1, new Node() { ID = 1, X = 0.1, Y = 0, Z = 0 });
             m.NodesDictionary.Add(2, new Node() { ID = 2, X = 0.2, Y = 0, Z = 0 });
@@ -30,7 +34,8 @@ namespace MGroup.Stochastic.Structural
             m.NodesDictionary.Add(8, new Node() { ID = 8, X = 0.8, Y = 0, Z = 0 });
             m.NodesDictionary.Add(9, new Node() { ID = 9, X = 0.9, Y = 0, Z = 0 });
             m.NodesDictionary.Add(10, new Node() { ID = 10, X = 1, Y = 0, Z = 0 });
-            for (int i = 0; i < m.NodesDictionary.Count - 2; i++)
+
+            for (int i = 0; i < m.NodesDictionary.Count - 1; i++)
             {
                 var e = new Element()
                 {
@@ -46,9 +51,19 @@ namespace MGroup.Stochastic.Structural
                 e.AddNodes(new[] { m.NodesDictionary[i], m.NodesDictionary[i + 1] });
 
                 m.ElementsDictionary.Add(i, e);
+                m.SubdomainsDictionary[0].ElementsDictionary.Add(i, e);
             }
 
-            m.Loads.Add(new Load() { Amount = 10, DOF = DOFType.Z, Node = m.NodesDictionary[10] });
+            m.NodesDictionary[0].Constraints.Add(DOFType.X);
+            m.NodesDictionary[0].Constraints.Add(DOFType.Y);
+            m.NodesDictionary[0].Constraints.Add(DOFType.Z);
+            m.NodesDictionary[0].Constraints.Add(DOFType.RotX);
+            m.NodesDictionary[0].Constraints.Add(DOFType.RotY);
+            m.NodesDictionary[0].Constraints.Add(DOFType.RotZ);
+
+            m.Loads.Add(new Load() { Amount = 10, Node = m.NodesDictionary[10], DOF = DOFType.Z });
+
+            m.ConnectDataStructures();
 
             return m;
 

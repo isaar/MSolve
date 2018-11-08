@@ -34,7 +34,7 @@ namespace MGroup.Stochastic.Structural
             YoungModulus = youngModulus;
             DomainMapper= domainMapper;
             ModelBuilder = new GiannisModelBuilder();
-            StochasticRealization = new KarhunenLoeveCoefficientsProvider( mcsamples, partition, meanValue, midpointMethod, 
+            StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, meanValue, midpointMethod, 
             isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
         }
 

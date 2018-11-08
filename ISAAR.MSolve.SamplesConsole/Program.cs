@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ISAAR.MSolve.Analyzers;
+﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -10,6 +9,11 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
+using MGroup.Stochastic;
+using MGroup.Stochastic.Structural;
+using MGroup.Stochastic.Structural.Example;
+using System.Collections.Generic;
+
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -140,8 +144,35 @@ namespace ISAAR.MSolve.SamplesConsole
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
 
-        static void Main(string[] args)
+        //private static void Solve()
+        //{
+        //    const int iterations = 1000;
+        //    const double youngModulus = 2.1e8;
+
+        //    var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
+        //    var realizer = new GiannisStructuralStochasticRealizer(youngModulus, domainMapper);
+        //    var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
+        //    var m = new MonteCarlo(iterations, realizer, evaluator);
+        //    m.Evaluate();
+        //}
+
+        private static void Solve()
         {
+            VectorExtensions.AssignTotalAffinityCount();
+            const int iterations = 1000;
+            const double youngModulus = 2.1e8;
+
+            var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
+            //var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
+            var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
+            var m = new MonteCarlo(iterations, evaluator, evaluator);
+            m.Evaluate();
+        }
+
+
+        public static void Main(string[] args)
+        {
+            Solve(); 
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
             //FEM.Cantilever2D.Run();
