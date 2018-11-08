@@ -81,6 +81,7 @@ namespace ISAAR.MSolve.Analyzers
                     l.StoreResults(start, end, linearSystems[id].Solution.ToLegacyVector());
         }
 
+        public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
         public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
 
         #region IAnalyzer Members
@@ -172,6 +173,9 @@ namespace ISAAR.MSolve.Analyzers
                     solver.Solve();
                     errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
                     if (step == 0) firstError = errorNorm;
+
+                    if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements_v2(uPlusdu); 
+
                     if (errorNorm < tolerance) break;
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
@@ -192,6 +196,7 @@ namespace ISAAR.MSolve.Analyzers
             //            ClearMaterialStresses();
             DateTime end = DateTime.Now;
 
+            // TODO: Logging should be done at each iteration. And it should be done using pull observers
             StoreLogResults(start, end);
         }
 

@@ -281,6 +281,13 @@ namespace ISAAR.MSolve.FEM.Entities
             return elementNodalDisplacements;
         }
 
+        public double[] CalculateElementNodalDisplacements_v2(Element element, LinearAlgebra.Vectors.IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        {
+            double[] elementNodalDisplacements = GetLocalVectorFromGlobal_v2(element, globalDisplacementVector);
+            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            return elementNodalDisplacements;
+        }
+
         private double[] ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)//QUESTION: should we perhaps make it void??
         {
             int pos = 0;
@@ -332,12 +339,13 @@ namespace ISAAR.MSolve.FEM.Entities
             var localVector = new double[localDOFs];
 
             int pos = 0;
-            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            for (int i = 0; i < nodes.Count; i++)
             {
-                Node node = element.Nodes[i];
-                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                foreach (DOFType dofType in nodalDofs[i])
                 {
-                    int dof = NodalDOFsDictionary[node.ID][dofType];
+                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
                     if (dof != -1) localVector[pos] = globalVector[dof];
                     pos++;
                 }
@@ -386,10 +394,13 @@ namespace ISAAR.MSolve.FEM.Entities
             var forces = new double[TotalDOFs]; //TODO: use Vector
             foreach (Element element in elementsDictionary.Values)
             {
-                double[] localSolution = GetLocalVectorFromGlobal_v2(element, solution);
-                double[] localdSolution = GetLocalVectorFromGlobal_v2(element, dSolution);
+                //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
+                //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
+                double[] localSolution = CalculateElementNodalDisplacements_v2(element, solution);
+                double[] localdSolution = CalculateElementNodalDisplacements_v2(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
-                if (element.ElementType.MaterialModified) element.Subdomain.MaterialsModified = true;
+                if (element.ElementType.MaterialModified)
+                    element.Subdomain.MaterialsModified = true;
                 double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 AddLocalVectorToGlobal(element, f, forces);
             }

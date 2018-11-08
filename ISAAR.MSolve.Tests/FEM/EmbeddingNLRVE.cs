@@ -7,10 +7,10 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.Commons;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.PreProcessor.Embedding;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
@@ -27,7 +27,8 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void RunTest()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
-            IncrementalDisplacementsLog computedDisplacements = SolveModel();
+            //IncrementalDisplacementsLog computedDisplacements = SolveModel();
+            IncrementalDisplacementsLog computedDisplacements = SolveModel_v2();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
@@ -69,7 +70,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static IncrementalDisplacementsLog SolveModel()
         {
-            VectorExtensions.AssignTotalAffinityCount();
+            Numerical.LinearAlgebra.VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
 
@@ -105,6 +106,47 @@ namespace ISAAR.MSolve.Tests.FEM
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
+
+            return log1;
+        }
+
+        private static IncrementalDisplacementsLog SolveModel_v2()
+        {
+            Model model = new Model();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
+            Reference2RVEExample1000ddm_test_for_Msolve_release_version(model);
+
+            model.ConnectDataStructures();
+
+            // Solver
+            var solver = new SkylineSolver(model);
+
+            //TODO: this should be hidden and handled by the analyzer at another phase
+            solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
+
+            // Problem type
+            var provider = new ProblemStructural_v2(model, solver);
+
+            // Analyzers
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
+            int increments = 2;
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(solver, subdomainUpdaters, subdomainMappers,
+                provider, increments, model.TotalDOFs);
+            childAnalyzer.SetMaxIterations = 100;
+            childAnalyzer.SetIterationsForMatrixRebuild = 1;
+            var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
+
+            // Output
+            var watchDofs = new Dictionary<int, int[]>();
+            watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
+            var log1 = new IncrementalDisplacementsLog(watchDofs);
+            childAnalyzer.IncrementalDisplacementsLog = log1;
+
+            // Run the anlaysis 
+            parentAnalyzer.BuildMatrices(); //TODO: this should be hidden and handled by the (child?) analyzer
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
 
             return log1;
         }
