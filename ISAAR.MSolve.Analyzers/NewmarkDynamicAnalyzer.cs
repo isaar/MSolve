@@ -113,7 +113,7 @@ namespace ISAAR.MSolve.Analyzers
 
             // What is the point of the following code? Generally nonZeroCount should be queried from the matrix itself, but 
             // here it isn't even used anywhere. On the other hand, this code requires significant extra memory and calculations.
-            var m = (SkylineMatrix2D)subdomains[0].Matrix;//TODO: Subdomain matrices should not be retrieved like that.
+            var m = (SkylineMatrix2D)subdomains[0].Matrix;//TODO: Subdomain matrices should not be retrieved like that. If the user names the subdomain ID as 1, this will break.
             var x = new HashSet<double>();
             int nonZeroCount = 0;
             for (int i = 0; i < m.Data.Length; i++)

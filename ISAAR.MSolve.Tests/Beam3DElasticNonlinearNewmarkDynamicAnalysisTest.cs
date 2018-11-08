@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam3DElasticNonlinearNewmarkDynamicAnalysisTest
     {
-        //[Fact]
-        public void TestBeam3DElasticNonlinearNewmarkDynamicAnalysisExample()
+        [Fact]
+        private static void TestBeam3DElasticNonlinearNewmarkDynamicAnalysisExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
@@ -59,7 +59,8 @@ namespace ISAAR.MSolve.Tests
             Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            int subdomainID = 0;
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -103,7 +104,7 @@ namespace ISAAR.MSolve.Tests
 
                 // Add beam element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(element.ID, element);
                 iNode++;
             }
 
@@ -115,16 +116,16 @@ namespace ISAAR.MSolve.Tests
 
             // Choose linear equation system solver
             var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            linearSystems[subdomainID] = new SkylineLinearSystem(subdomainID, model.SubdomainsDictionary[subdomainID].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[subdomainID]);
 
             // Choose the provider of the problem -> here a structural problem
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            var linearSystemsArray = new[] { linearSystems[1] };
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
-            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+            var linearSystemsArray = new[] { linearSystems[subdomainID] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.SubdomainsDictionary[subdomainID]) };
             int increments = 10;
             int totalDOFs = model.TotalDOFs;
             int maximumIteration = 120;
@@ -140,7 +141,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(148.936792350562, linearSystems[1].Solution[7], 12);
+            Assert.Equal(148.936792350562, linearSystems[subdomainID].Solution[7], 12);
         }
     }
 }
