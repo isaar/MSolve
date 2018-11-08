@@ -16,8 +16,8 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+//using ISAAR.MSolve.LinearAlgebra.Matrices;
+//using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -107,84 +107,84 @@ namespace ISAAR.MSolve.Tests
             Assert.Equal(253.132375961535, linearSystems[1].Solution[0], 8);
         }
 
-        [Fact]
-        private static void TestQuad4LinearCantileverExample_v2()
-        {
-            // Model & subdomains
-            Model model = new Model();
-            int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
+        //[Fact]
+        //private static void TestQuad4LinearCantileverExample_v2()
+        //{
+        //    // Model & subdomains
+        //    Model model = new Model();
+        //    int subdomainID = 0;
+        //    model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
 
-            // Materials
-            double youngModulus = 3.76;
-            double poissonRatio = 0.3779;
-            double thickness = 1.0;
-            double nodalLoad = 500.0;
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
-            {
-                YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio
-            };
+        //    // Materials
+        //    double youngModulus = 3.76;
+        //    double poissonRatio = 0.3779;
+        //    double thickness = 1.0;
+        //    double nodalLoad = 500.0;
+        //    ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+        //    {
+        //        YoungModulus = youngModulus,
+        //        PoissonRatio = poissonRatio
+        //    };
 
-            // Nodes
-            var nodes = new Node2D[]
-            {
-                new Node2D(0, 0.0, 0.0),
-                new Node2D(1, 10.0, 0.0),
-                new Node2D(2, 10.0, 10.0),
-                new Node2D(3, 0.0, 10.0)
-            };
-            for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
+        //    // Nodes
+        //    var nodes = new Node2D[]
+        //    {
+        //        new Node2D(0, 0.0, 0.0),
+        //        new Node2D(1, 10.0, 0.0),
+        //        new Node2D(2, 10.0, 10.0),
+        //        new Node2D(3, 0.0, 10.0)
+        //    };
+        //    for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
 
 
-            // Elements
-            var factory = new ContinuumElement2DFactory(thickness, material, null);
-            ContinuumElement2D elementType = factory.CreateElement(CellType2D.Quad4, nodes);
+        //    // Elements
+        //    var factory = new ContinuumElement2DFactory(thickness, material, null);
+        //    ContinuumElement2D elementType = factory.CreateElement(CellType2D.Quad4, nodes);
 
-            var elementWrapper = new Element()
-            {
-                ID = 0,
-                ElementType = elementType,
-            };
-            elementWrapper.AddNodes(nodes);
-            model.ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
-            model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
+        //    var elementWrapper = new Element()
+        //    {
+        //        ID = 0,
+        //        ElementType = elementType,
+        //    };
+        //    elementWrapper.AddNodes(nodes);
+        //    model.ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
+        //    model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
 
-            //var a = quad.StiffnessMatrix(element);
+        //    //var a = quad.StiffnessMatrix(element);
 
-            // Prescribed displacements
-            model.NodesDictionary[0].Constraints.Add(DOFType.X);
-            model.NodesDictionary[0].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[3].Constraints.Add(DOFType.X);
-            model.NodesDictionary[3].Constraints.Add(DOFType.Y);
+        //    // Prescribed displacements
+        //    model.NodesDictionary[0].Constraints.Add(DOFType.X);
+        //    model.NodesDictionary[0].Constraints.Add(DOFType.Y);
+        //    model.NodesDictionary[3].Constraints.Add(DOFType.X);
+        //    model.NodesDictionary[3].Constraints.Add(DOFType.Y);
 
-            // Nodal loads
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
+        //    // Nodal loads
+        //    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
+        //    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
-            model.ConnectDataStructures(); //TODO: this should be hidden and handled by the analyzer at another phase
+        //    model.ConnectDataStructures(); //TODO: this should be hidden and handled by the analyzer at another phase
 
-            // Solver
-            var solver = new SkylineSolver(model);
+        //    // Solver
+        //    var solver = new SkylineSolver(model);
 
-            //TODO: this should be hidden and handled by the analyzer at another phase
-            solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.Subdomains[subdomainID].Forces);
+        //    //TODO: this should be hidden and handled by the analyzer at another phase
+        //    solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.Subdomains[subdomainID].Forces);
 
-            // Problem type
-            var provider = new ProblemStructural_v2(model, solver);
+        //    // Problem type
+        //    var provider = new ProblemStructural_v2(model, solver);
 
-            // Analyzers
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
-            var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
-            //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
+        //    // Analyzers
+        //    var childAnalyzer = new LinearAnalyzer_v2(solver);
+        //    var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
+        //    //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
 
-            // Run the anlaysis 
-            parentAnalyzer.BuildMatrices(); //TODO: this should be hidden and handled by the (child?) analyzer
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
+        //    // Run the anlaysis 
+        //    parentAnalyzer.BuildMatrices(); //TODO: this should be hidden and handled by the (child?) analyzer
+        //    parentAnalyzer.Initialize();
+        //    parentAnalyzer.Solve();
             
-            // Tests the result
-            Assert.Equal(253.132375961535, solver.LinearSystems[subdomainID].Solution[0], 8);
-        }
+        //    // Tests the result
+        //    Assert.Equal(253.132375961535, solver.LinearSystems[subdomainID].Solution[0], 8);
+        //}
     }
 }
