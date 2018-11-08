@@ -14,7 +14,7 @@
 //    /// Builds the global matrix of the linear system that will be solved. This matrix is in CSR format.
 //    /// Authors: Serafeim Bakalakos
 //    /// </summary>
-//    public class CsrAssembler: IGlobalMatrixAssembler<CsrMatrix>
+//    public class CsrAssembler : IGlobalMatrixAssembler<CsrMatrix>
 //    {
 //        private const string name = "CsrAssembler"; // for error messages
 //        private readonly bool sortColsOfEachRow;
@@ -53,7 +53,7 @@
 //            return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
 //        }
 
-//        public CsrMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer, 
+//        public CsrMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer,
 //            IElementMatrixProvider matrixProvider)
 //        {
 //            int numFreeDofs = dofOrderer.NumFreeDofs;
