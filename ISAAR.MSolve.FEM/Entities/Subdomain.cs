@@ -391,7 +391,7 @@ namespace ISAAR.MSolve.FEM.Entities
                     if (localDOF > -1 && globalDOF > -1)
                     {
                         //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-                        subdomainVector.Set(globalDOF, globalVector[globalDOF] + globalVector[localDOF]);
+                        subdomainVector.Set(localDOF, globalVector[globalDOF]);
                     }
                 }
             }
