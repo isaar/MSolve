@@ -21,10 +21,10 @@ namespace MGroup.Stochastic.Structural
         private Model currentModel;
         int karLoeveTerms = 2;
         double[] domainBounds = new double[2] { 0, 1.0 };
-        double sigmaSquare = 0.01;
+        double sigmaSquare = 0.1;
         double meanValue = 1;
         int partition = 11;
-        double correlationLength = 1.0;
+        double correlationLength = 10.0;
         bool isGaussian = true;
         int PCorder = 1;
         bool midpointMethod = true;
@@ -43,7 +43,7 @@ namespace MGroup.Stochastic.Structural
             YoungModulus = youngModulus;
             DomainMapper = domainMapper;
             ModelBuilder = new GiannisModelBuilder();
-            StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, meanValue, midpointMethod,
+            StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, youngModulus, midpointMethod,
                 isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
         }
 

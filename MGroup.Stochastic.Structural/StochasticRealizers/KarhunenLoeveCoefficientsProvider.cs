@@ -186,13 +186,14 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             int indexOfFirstEigenmodeValue = xCoordinatesList.IndexOf(firstXcoordinate);
             List<double> list = xCoordinatesList;
             list.Remove(firstXcoordinate);
+            xCoordinatesList = xCoordinates.ToList();
             double secondXcoordinate = list.OrderBy(item => Math.Abs(stochasticDomainPoint - item)).First();
             int indexOfSecondEigenmodeValue = xCoordinatesList.IndexOf(secondXcoordinate);
             double[] eigenmodesAtPoint = new double[eigenModes.GetLength(1)];
 
             for (int j = 0; j < eigenModes.GetLength(1); j++)
             {
-                    eigenmodesAtPoint[j] = (eigenModes[indexOfSecondEigenmodeValue + 1, j] - eigenModes[indexOfFirstEigenmodeValue, j]) /
+                    eigenmodesAtPoint[j] = (eigenModes[indexOfSecondEigenmodeValue, j] - eigenModes[indexOfFirstEigenmodeValue, j]) /
                                            (xCoordinates[indexOfSecondEigenmodeValue] - xCoordinates[indexOfFirstEigenmodeValue]) * 
                     (stochasticDomainPoint-xCoordinates[indexOfFirstEigenmodeValue]);
             }
@@ -216,7 +217,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             {
                 fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtPoint[j] * kse[j];
             }
-            fieldRealization = meanValue + fieldRealization;
+            fieldRealization = meanValue * (1 + fieldRealization);
             
             return fieldRealization;
         }

@@ -43,9 +43,9 @@ namespace MGroup.Stochastic.Structural
                     ElementType = new EulerBeam3D(stochasticRealizer.Realize(iteration, domainMapper, 
                         new []
                         {
-                            m.NodesDictionary[i + 1].X - m.NodesDictionary[i].X,
-                            m.NodesDictionary[i + 1].Y - m.NodesDictionary[i].Y,
-                            m.NodesDictionary[i + 1].Z - m.NodesDictionary[i].Z,
+                            (m.NodesDictionary[i + 1].X + m.NodesDictionary[i].X)/2,
+                            (m.NodesDictionary[i + 1].Y + m.NodesDictionary[i].Y)/2,
+                            (m.NodesDictionary[i + 1].Z + m.NodesDictionary[i].Z)/2,
                         }), 0.3)
                     {
                         Density = 7.85,
