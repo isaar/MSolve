@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 //TODO: Add slicing features
@@ -88,11 +89,21 @@ namespace ISAAR.MSolve.Numerical.Commons
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable<TColumn> GetColumnsOfRow(TRow row) => data[row].Keys;
+        public IEnumerable<TColumn> GetColumnsOfRow(TRow row)
+        {
+            bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
+            if (containsRow) return wholeRow.Keys;
+            else return Enumerable.Empty<TColumn>();
+        }
 
         public IEnumerable<TRow> GetRows() => data.Keys;
 
-        public IEnumerable<TValue> GetValuesOfRow(TRow row) => data[row].Values;
+        public IEnumerable<TValue> GetValuesOfRow(TRow row)
+        {
+            bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
+            if (containsRow) return wholeRow.Values;
+            else return Enumerable.Empty<TValue>();
+        }
 
         public override string ToString()
         {
