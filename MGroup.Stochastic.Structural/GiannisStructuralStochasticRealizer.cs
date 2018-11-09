@@ -32,6 +32,7 @@ namespace MGroup.Stochastic.Structural
         public GiannisStructuralStochasticRealizer(double youngModulus, IStochasticDomainMapper domainMapper)
         {
             YoungModulus = youngModulus;
+            meanValue = youngModulus;
             DomainMapper= domainMapper;
             ModelBuilder = new GiannisModelBuilder();
             StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, meanValue, midpointMethod, 
