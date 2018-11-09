@@ -47,6 +47,13 @@ namespace MGroup.Stochastic.Structural
                             m.NodesDictionary[i + 1].Y - m.NodesDictionary[i].Y,
                             m.NodesDictionary[i + 1].Z - m.NodesDictionary[i].Z,
                         }), 0.3)
+                    {
+                        Density = 7.85,
+                        SectionArea = 1,
+                        MomentOfInertiaY = 1,
+                        MomentOfInertiaZ = 1,
+                        MomentOfInertiaPolar = 1,
+                    }
                 };
                 e.AddNodes(new[] { m.NodesDictionary[i], m.NodesDictionary[i + 1] });
 

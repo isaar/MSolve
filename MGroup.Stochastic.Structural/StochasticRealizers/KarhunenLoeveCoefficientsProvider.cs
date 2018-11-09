@@ -62,7 +62,8 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         {
             var stochasticDomainPoint = domainMapper.Map(parameters);
             double[] eigenModesAtPoint = CalculateEigenmodesAtPoint(Xcoordinates, Eigenvectors, stochasticDomainPoint[0]);
-            return KarhunenLoeveFredholm1DSampleGenerator(stochasticDomainPoint, Lambda, eigenModesAtPoint, MeanValue, MidpointMethod, IsGaussian);
+            var value = KarhunenLoeveFredholm1DSampleGenerator(stochasticDomainPoint, Lambda, eigenModesAtPoint, MeanValue, MidpointMethod, IsGaussian);
+            return value;
         }
 
         public Tuple<double[], double[], double[,]> KarhunenLoeveFredholmWithFEM(int KarLoeveTerms, double[] domainBounds, double sigmaSquare, int partition, double correlationLength)
