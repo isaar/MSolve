@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
     /// </summary>
     public class ConjugateGradient
     {
-        private readonly int maxIterations;
+        private readonly MaxIterationsProvider maxIterationsProvider;
         private readonly double residualTolerance;
 
         /// <summary>
@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
         /// The algorithm will terminate when norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, 
         /// where x is the current solution vector and x0 the initial guess.
         /// </param>
-        public ConjugateGradient(int maxIterations, double residualTolerance)
+        public ConjugateGradient(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
         {
-            this.maxIterations = maxIterations;
+            this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;
         }
 
@@ -68,7 +68,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
         private CGStatistics SolveInternal(IMatrixView matrix, IVector sol, IVector res)
         {
             //TODO: dot = norm * norm might be faster since I need the norm anyway. Does it reduce accuracy? Needs testing;
-            
+
+            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
             IVector dir = res.Copy();
             double resDotCurrent = res.DotProduct(res);
             double resNormInit = Math.Sqrt(resDotCurrent);

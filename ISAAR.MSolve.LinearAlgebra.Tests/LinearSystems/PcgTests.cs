@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
+﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
 
             double tol = 1E-7;
-            var pcg = new PreconditionedConjugateGradient(n, tol);
+            var pcg = new PreconditionedConjugateGradient(new MaxIterationsProvider(n), tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
             Vector xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = pcg.Solve(A, M, b, xComputed, true);
@@ -41,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
 
             double tol = 1E-7;
-            var pcg = new PreconditionedConjugateGradient(n, tol);
+            var pcg = new PreconditionedConjugateGradient(new MaxIterationsProvider(n), tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
             Vector xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = pcg.Solve(A, M, b, xComputed, true);
@@ -53,7 +54,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         {
             double residualTolerance = 1e-6;
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(20);
-            var cg = new ConjugateGradient(A.NumRows, residualTolerance);
+            var cg = new ConjugateGradient(new MaxIterationsProvider(A.NumRows), residualTolerance);
             Vector xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             Assert.False(comparer.AreEqual(xExpected, xComputed));

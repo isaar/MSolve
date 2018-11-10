@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
     /// </summary>
     public class PreconditionedConjugateGradient
     {
-        private readonly int maxIterations;
+        private readonly MaxIterationsProvider maxIterationsProvider;
         private readonly double residualTolerance;
 
         /// <summary>
@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
         /// The algorithm will terminate when norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, 
         /// where x is the current solution vector and x0 the initial guess.
         /// </param>
-        public PreconditionedConjugateGradient(int maxIterations, double residualTolerance)
+        public PreconditionedConjugateGradient(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
         {
-            this.maxIterations = maxIterations;
+            this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;
         }
 
@@ -75,6 +75,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
 
         private CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVector sol, IVector res)
         {
+            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
             IVector z = preconditioner.SolveLinearSystem(res);
             IVector dir = z.Copy(); // TODO: Do I need to copy it?
             double zrDotCurrent = z.DotProduct(res);

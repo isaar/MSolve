@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
@@ -65,8 +66,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // PCG
             watch.Restart();
-            int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
-            var pcg = new PreconditionedConjugateGradient(maxIterations, tolerance);
+            //int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
+            var pcg = new PreconditionedConjugateGradient(new MaxIterationsProvider(maxIterationsOverOrder), tolerance);
             var x = Vector.CreateZero(Kuu.NumRows);
             CGStatistics statistics = pcg.Solve(Kuu.BuildCsrMatrix(true), preconditioner, rhs, x, true);
             //var cg = new ConjugateGradient(maxIterations, tolerance);
