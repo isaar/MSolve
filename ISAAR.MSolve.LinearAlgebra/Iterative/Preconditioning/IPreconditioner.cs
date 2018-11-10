@@ -5,6 +5,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
     /// <summary>
     /// Represents a matrix M such that inverse(M) is close to inverse(A) and inverse(M) * A has a smaller condition number 
     /// than A, where A is the original matrix of the linear system A*x=b.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public interface IPreconditioner
     {

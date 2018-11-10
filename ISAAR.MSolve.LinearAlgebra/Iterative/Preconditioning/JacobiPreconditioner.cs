@@ -1,11 +1,15 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: Use a dedicated DiagonalMatrix class, instead of passing in double[] or Vector. It will also implement the inverse and 
-//      multiplication routines.
-//TODO: Instead of demanding the caller to extract the diagonal, this class should read the matrix and only access its diagonal.
+//TODO: Use a dedicated DiagonalMatrix class, instead of passing in double[] or Vector. It will implement the inverse and 
+//      multiplication routines. It will also handle distributed matrices. E.g. IDiagonal IMatrixView.GetDiagonal() which will 
+//      then have an IDiagonalMatrix.Inverse(). The problem is how we will go from CSR to DiagonalMatrix. Perhaps it would be 
+//      better to use the DOK instead.
+//TODO: Alternative: instead of demanding the caller to extract the diagonal, this class should read the matrix and only access 
+//      its diagonal. I think this alternative is less flexible and more difficult to implement.
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
 {
     /// <summary>
@@ -17,18 +21,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
     /// </summary>
     public class JacobiPreconditioner: IPreconditioner
     {
-        public const double Tolerance = 1e-10;
+        public const double DefaultTolerance = 1e-10;
         private readonly double[] inverseDiagonal;
 
         /// <summary>
         /// Initializes a new instance of <see cref="JacobiPreconditioner"/> for the linear system's matrix whose main diagonal
         /// is provided in <paramref name="diagonal"/>.
         /// </summary>
-        /// <param name="diagonal">The main diagonal of the original matrix of the linear system. Constraints: 
-        ///     all its entries must be non-zero.</param>
+        /// <param name="diagonal">
+        /// The main diagonal of the original matrix of the linear system. Constraints: all its entries must be non-zero.
+        /// </param>
         /// <param name="tolerance">The value under which a diagonal entry will be considered as zero.</param>
         /// <exception cref="SingularMatrixException">If there is a zero diagonal entry.</exception>
-        public JacobiPreconditioner(double[] diagonal, double tolerance = Tolerance)
+        public JacobiPreconditioner(double[] diagonal, double tolerance = DefaultTolerance)
         {
             Order = diagonal.Length;
             inverseDiagonal = new double[Order];
@@ -55,6 +60,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
             double[] solution = new double[Order];
             for (int i = 0; i < Order; ++i) solution[i] = inverseDiagonal[i] * rhs[i];
             return Vector.CreateFromArray(solution);
+        }
+
+        /// <summary>
+        /// Creates instances of <see cref="JacobiPreconditioner"/>.
+        /// </summary>
+        public class Factory: IPreconditionerFactory
+        {
+            private readonly double tolerance;
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="JacobiPreconditioner.Factory"/> with the specified settings.
+            /// </summary>
+            /// <param name="tolerance">The value under which a diagonal entry will be considered as zero.</param>
+            public Factory(double tolerance = JacobiPreconditioner.DefaultTolerance) => this.tolerance = tolerance;
+
+            /// <summary>
+            /// See <see cref="IPreconditionerFactory.CreatePreconditionerFor(IMatrixView)"/>.
+            /// </summary>
+            public IPreconditioner CreatePreconditionerFor(IMatrixView matrix) 
+                => new JacobiPreconditioner(matrix.GetDiagonalAsArray(), tolerance);
         }
     }
 }

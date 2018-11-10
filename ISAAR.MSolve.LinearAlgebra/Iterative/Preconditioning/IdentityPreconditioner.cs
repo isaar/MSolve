@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
 {
@@ -15,8 +16,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
         /// <summary>
         /// Initializes a new instance of <see cref="IdentityPreconditioner"/> with the provided settings.
         /// </summary>
-        /// <param name="copyRhs">True to copy the rhs vector during <see cref="SolveLinearSystem(Vector)"/> and ensure it is 
-        ///     not overwritten by the iterative algorithm. False to avoid the overhead of copying the rhs vector.</param>
+        /// <param name="copyRhs">
+        /// True to copy the rhs vector during <see cref="SolveLinearSystem(Vector)"/> and ensure it is not overwritten by the 
+        /// iterative algorithm. False to avoid the overhead of copying the rhs vector.
+        /// </param>
         public IdentityPreconditioner(bool copyRhs = true)
         {
             this.copyRhs = copyRhs;
@@ -34,6 +37,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
         {
             if (copyRhs) return rhs.Copy();
             else return rhs;
+        }
+
+        /// <summary>
+        /// Creates instances of <see cref="IdentityPreconditioner"/>.
+        /// </summary>
+        public class Factory: IPreconditionerFactory
+        {
+            private readonly bool copyRhs;
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="IdentityPreconditioner.Factory"/> with the specified settings.
+            /// </summary>
+            /// <param name="copyRhs">
+            /// True to copy the rhs vector during <see cref="SolveLinearSystem(Vector)"/> and ensure it is not overwritten by the 
+            /// iterative algorithm. False to avoid the overhead of copying the rhs vector.
+            /// </param>
+            public Factory(bool copyRhs = true) => this.copyRhs = copyRhs;
+
+            /// <summary>
+            /// See <see cref="IPreconditionerFactory.CreatePreconditionerFor(IMatrixView)"/>.
+            /// </summary>
+            public IPreconditioner CreatePreconditionerFor(IMatrixView matrix) => new IdentityPreconditioner(copyRhs);
         }
     }
 }

@@ -19,6 +19,7 @@ using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.PCG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -167,7 +168,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             //var solver = new SkylineSolver(model);
-            var solver = new PcgSolver(model, 4, 1E-6, new JacobiPreconditionerBuilder());
+            var solver = new PcgSolver(model, 4, 1E-6, new JacobiPreconditioner.Factory());
 
             //TODO: this should be hidden and handled by the analyzer at another phase
             solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);

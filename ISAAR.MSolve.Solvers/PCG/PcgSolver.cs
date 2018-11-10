@@ -11,7 +11,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), convergence criteria(maxIterations & maxIterationsOverOrder)
-//and perhaps a builder for PcgSolver.
+//      and perhaps builder for PcgSolver.
 //TODO: perhaps the user should choose the PCG settings himself and pass it. In this case, this should be named IterativeSolver.
 //TODO: the maxIterations of PCG should be able to use the order of the matrix as a default value.
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
@@ -28,12 +28,12 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly ISubdomain subdomain;
         private readonly LinearSystem_v2<CsrMatrix, Vector> linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
-        private readonly IPreconditionerBuilder preconditionerBuilder;
+        private readonly IPreconditionerFactory preconditionerFactory;
         private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
         private IPreconditioner preconditioner;
 
         public PcgSolver(IStructuralModel model, int maxIterations, double residualTolerance,
-            IPreconditionerBuilder preconditionerBuilder)
+            IPreconditionerFactory preconditionerBuilder)
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             this.linearSystem.Solution = Vector.CreateZero(subdomain.Forces.Length);
 
             this.pcgAlgorithm = new PreconditionedConjugateGradient(maxIterations, residualTolerance);
-            this.preconditionerBuilder = preconditionerBuilder;
+            this.preconditionerFactory = preconditionerBuilder;
         }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         {
             if (linearSystem.IsMatrixModified)
             {
-                preconditioner = preconditionerBuilder.BuildPreconditioner(linearSystem.Matrix);
+                preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
                 linearSystem.IsMatrixModified = false;
             }
 
