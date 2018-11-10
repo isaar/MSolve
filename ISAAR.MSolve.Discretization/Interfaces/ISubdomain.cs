@@ -12,8 +12,9 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		bool MaterialsModified { get; set; }
 
 		Dictionary<int, IElement> ΙElementsDictionary { get; }
+		Dictionary<int, Dictionary<DOFType, double>> Constraints { get; }
 		Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary { get; }
-		Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; }
+        Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; }
 		
 		double[] Forces { get; }
 		void ResetMaterialsModifiedProperty();

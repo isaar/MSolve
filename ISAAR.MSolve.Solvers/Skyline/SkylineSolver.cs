@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private const string name = "SkylineSolver"; // for error messages
         private readonly SkylineAssembler assembler = new SkylineAssembler();
         private readonly ISubdomain subdomain;
-        private readonly FreeDofOrderer dofOrderer; //TODO: this should probably be accessed from the subdomain
         private readonly double factorizationPivotTolerance;
         private readonly LinearSystem_v2<SkylineMatrix, Vector> linearSystem;
+        private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
         private CholeskySkyline factorizedMatrix;
 
         public SkylineSolver(IStructuralModel model, double factorizationPivotTolerance = 1E-15) //TODO: subdomainID should not be provided by the user or needed at all
@@ -52,19 +52,21 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public IMatrix BuildGlobalMatrix_v2(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            return assembler.BuildGlobalMatrix(subdomain.ΙElementsDictionary.Values, dofOrderer, elementMatrixProvider);
+            if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithElementMajorFreeDofOrder(
+                subdomain.ΙElementsDictionary.Values, subdomain.Constraints);
+            return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
-        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        public IMatrix BuildGlobalMatrix_v2(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
             return assembler.BuildGlobalMatrix(subdomain, elementMatrixProvider);
         }
 
         public void Initialize()
         {
-            //TODO: perhaps I should order the dofs here.
+            // TODO: perhaps order dofs here
         }
 
         /// <summary>

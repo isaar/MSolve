@@ -33,48 +33,44 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //    this.linearSystem = linearSystems[0];
         //}
 
-        public (SkylineMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
-            AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
-        {
-            int numConstrainedDofs = dofOrderer.NumConstrainedDofs;
-            int numFreeDofs = dofOrderer.NumFreeDofs;
-            SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrderer.FreeDofs);
-            var Kfc = DokRowMajor.CreateEmpty(numFreeDofs, numConstrainedDofs);
+        //public (SkylineMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
+        //    AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
+        //{
+        //    int numConstrainedDofs = dofOrderer.NumConstrainedDofs;
+        //    int numFreeDofs = dofOrderer.NumFreeDofs;
+        //    SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrderer.FreeDofs);
+        //    var Kfc = DokRowMajor.CreateEmpty(numFreeDofs, numConstrainedDofs);
 
-            foreach (IElement elementWrapper in elements)
-            {
-                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
-                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                (IReadOnlyDictionary<int, int> mapStandard, IReadOnlyDictionary<int, int> mapConstrained) =
-                    dofOrderer.MapDofsElementToGlobal(element);
-                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
-                Kff.AddSubmatrixSymmetric(k, mapStandard);
-                Kfc.AddSubmatrix(k, mapStandard, mapConstrained);
-            }
+        //    foreach (IElement elementWrapper in elements)
+        //    {
+        //        ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
+        //        // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
+        //        (IReadOnlyDictionary<int, int> mapStandard, IReadOnlyDictionary<int, int> mapConstrained) =
+        //            dofOrderer.MapDofsElementToGlobal(element);
+        //        Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
+        //        Kff.AddSubmatrixSymmetric(k, mapStandard);
+        //        Kfc.AddSubmatrix(k, mapStandard, mapConstrained);
+        //    }
 
-            //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. dok.Build())
-            return (Kff.BuildSkylineMatrix(), Kfc);
-        }
+        //    //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. dok.Build())
+        //    return (Kff.BuildSkylineMatrix(), Kfc);
+        //}
 
-        public SkylineMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer,
+        public SkylineMatrix BuildGlobalMatrix(FreeDofOrderer_v2 dofOrderer, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
             SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrderer.FreeDofs);
 
-            foreach (IElement elementWrapper in elements)
+            foreach (IElement element in elements)
             {
-                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> mapStandard = dofOrderer.MapFreeDofsElementToGlobal(element);
-                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
-                Kff.AddSubmatrixSymmetric(k, mapStandard);
+                IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrderer.MapFreeDofsElementToGlobal(element);
+                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
+                Kff.AddSubmatrixSymmetric(k, elementToGlobalDofs);
             }
 
             return Kff.BuildSkylineMatrix();
-
-            //linearSystem.Matrix = Kff.BuildSkylineMatrix();
-            //linearSystem.IsMatrixModified = true;
         }
 
         public SkylineMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider) //TODO: remove this
@@ -126,32 +122,28 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
         // though.
         private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<IElement> elements,
-            int numFreeDofs, DofTable<IDof> freeDofs)
+            int numFreeDofs, DofTable_v2 freeDofs)
         {
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
-            foreach (IElement elementWrapper in elements)
+            foreach (IElement element in elements)
             {
-                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
                 //TODO: perhaps the 2 outer loops could be done at once to avoid a lot of dof indexing. Could I update minDof
                 //      and colHeights[] at once?
+
+                IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
 
                 // To determine the col height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0.0 entries in the element stiffness matrix.
                 int minDof = Int32.MaxValue;
-                foreach (var node in element.Nodes)
+                foreach (var node in elementNodes)
                 {
-                    foreach (int dof in freeDofs.GetValuesOfRow(node)) minDof = Math.Min(dof, minDof);
                     foreach (int dof in freeDofs.GetValuesOfRow(node)) minDof = Math.Min(dof, minDof);
                 }
 
                 // The height of each col is updated for all elements that engage the corresponding dof. 
                 // The max height is stored.
-                foreach (var node in element.Nodes)
+                foreach (var node in elementNodes)
                 {
-                    foreach (int dof in freeDofs.GetValuesOfRow(node))
-                    {
-                        colHeights[dof] = Math.Max(colHeights[dof], dof - minDof);
-                    }
                     foreach (int dof in freeDofs.GetValuesOfRow(node))
                     {
                         colHeights[dof] = Math.Max(colHeights[dof], dof - minDof);

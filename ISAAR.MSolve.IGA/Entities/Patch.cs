@@ -49,6 +49,8 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return elementsDictionary; }
         }
 
+        public Dictionary<int, Dictionary<DOFType, double>> Constraints => throw new NotImplementedException();
+
         public Dictionary<int, ControlPoint> ControlPointsDictionary
         {
             get { return controlPointsDictionary; }
@@ -562,7 +564,6 @@ namespace ISAAR.MSolve.IGA.Entities
                 if (!controlPointsDictionary.ContainsKey(controlPointID))
                     controlPointsDictionary.Add(controlPointID, controlPoints[controlPointID]);
         }
-
         #endregion
 
         public void ResetMaterialsModifiedProperty()

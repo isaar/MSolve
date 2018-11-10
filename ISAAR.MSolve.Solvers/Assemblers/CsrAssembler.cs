@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -53,29 +54,26 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
         }
 
-        public CsrMatrix BuildGlobalMatrix(IEnumerable<IElement> elements, FreeDofOrderer dofOrderer,
+        public CsrMatrix BuildGlobalMatrix(FreeDofOrderer_v2 dofOrderer, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
             var Kff = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
 
-            foreach (IElement elementWrapper in elements)
+            foreach (IElement element in elements)
             {
-                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 IReadOnlyDictionary<int, int> mapStandard = dofOrderer.MapFreeDofsElementToGlobal(element);
-                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
+                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
                 Kff.AddSubmatrixSymmetric(k, mapStandard);
             }
 
             return Kff.BuildCsrMatrix(sortColsOfEachRow);
-            //linearSystem.Matrix = Kff.BuildCsrMatrix(sortColsOfEachRow);
-            //linearSystem.IsMatrixModified = true;
         }
 
         public CsrMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider) //TODO: remove this
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.Solvers.PCG
         private const string name = "PcgSolver"; // for error messages
         private readonly CsrAssembler assembler = new CsrAssembler(true);
         private readonly ISubdomain subdomain;
-        private readonly FreeDofOrderer dofOrderer; //TODO: this should probably be accessed from the subdomain
         private readonly LinearSystem_v2<CsrMatrix, Vector> linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerBuilder preconditionerBuilder;
+        private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
         private IPreconditioner preconditioner;
 
         public PcgSolver(IStructuralModel model, int maxIterations, double residualTolerance,
@@ -53,11 +53,14 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            return assembler.BuildGlobalMatrix(subdomain.ΙElementsDictionary.Values, dofOrderer, elementMatrixProvider);
+            if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithElementMajorFreeDofOrder(
+                subdomain.ΙElementsDictionary.Values, subdomain.Constraints);
+            return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
         public void Initialize()
         {
+            // TODO: perhaps order dofs here
         }
 
         /// <summary>
