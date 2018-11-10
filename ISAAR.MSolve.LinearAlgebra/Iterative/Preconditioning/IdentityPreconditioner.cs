@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
 {
     /// <summary>
     /// Implements the null object pattern in the contect of preconditioning. Use this class if you want to pass an 

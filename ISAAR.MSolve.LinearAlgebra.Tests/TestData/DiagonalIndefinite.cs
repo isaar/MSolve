@@ -1,5 +1,5 @@
 ﻿using System;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 

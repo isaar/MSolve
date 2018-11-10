@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
@@ -10,6 +10,8 @@ using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 
+//TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), convergence criteria(maxIterations & maxIterationsOverOrder)
+//and perhaps a builder for PcgSolver.
 //TODO: perhaps the user should choose the PCG settings himself and pass it. In this case, this should be named IterativeSolver.
 //TODO: the maxIterations of PCG should be able to use the order of the matrix as a default value.
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.

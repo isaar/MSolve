@@ -1,13 +1,13 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Needs Builder pattern
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
 {
     /// <summary>
     /// Implements the Conjugate Gradient algorithm with preconditioning for solving linear systems with symmetric positive 

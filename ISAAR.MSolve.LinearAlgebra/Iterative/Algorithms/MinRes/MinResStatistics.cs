@@ -2,7 +2,7 @@
 using System.Text;
 
 //TODO: not too thrilled by this style of reporting. Design it in an OOP way with excpetions, etc.
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.MinRes
 {
     /// <summary>
     /// Data Transfer Object that collects information about the execution and convergence when solving a linear system with 

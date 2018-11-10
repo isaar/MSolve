@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
 {
     /// <summary>
     /// Represents a matrix M such that inverse(M) is close to inverse(A) and inverse(M) * A has a smaller condition number 

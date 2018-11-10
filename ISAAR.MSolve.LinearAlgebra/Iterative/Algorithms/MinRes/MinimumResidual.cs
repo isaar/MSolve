@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -12,7 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: remove Matlab/Fortran notation from comments
 //TODO: the orthogonalizer should not be private.
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.MinRes
 {
     /// <summary>
     /// Implements the MINRES algorithm for solving an n-by-n system of linear equations: A*x = b, where A is symmetric and b  

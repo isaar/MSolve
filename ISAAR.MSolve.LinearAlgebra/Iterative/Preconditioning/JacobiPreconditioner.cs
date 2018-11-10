@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Use a dedicated DiagonalMatrix class, instead of passing in double[] or Vector. It will also implement the inverse and 
 //      multiplication routines.
 //TODO: Instead of demanding the caller to extract the diagonal, this class should read the matrix and only access its diagonal.
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
 {
     /// <summary>
     /// Implements the Jacobi or diagonal preconditioner for a square matrix. If A is the original matrix, the Jacobi  

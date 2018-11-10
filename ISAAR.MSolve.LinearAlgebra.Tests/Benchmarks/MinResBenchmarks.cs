@@ -1,6 +1,6 @@
 ﻿using System;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.MinRes;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.MinRes;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Vectors;

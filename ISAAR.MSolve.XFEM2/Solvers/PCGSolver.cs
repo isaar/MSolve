@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Algorithms.CG;
-using ISAAR.MSolve.LinearAlgebra.LinearSystems.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;

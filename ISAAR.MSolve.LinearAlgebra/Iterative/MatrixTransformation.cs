@@ -1,7 +1,7 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.LinearSystems
+namespace ISAAR.MSolve.LinearAlgebra.Iterative
 {
     /// <summary>
     /// Wrapper for a matrix class, so that it can be used by iterative algorithms, which operate on 
