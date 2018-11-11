@@ -12,8 +12,6 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), avoid the first r=b-A*0 
-//      and perhaps a builder for PcgSolver.
-//TODO: perhaps the user should choose the PCG settings himself and pass it. In this case, this should be named IterativeSolver.
 //TODO: the maxIterations of PCG should be able to use the order of the matrix as a default value.
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
 namespace ISAAR.MSolve.Solvers.PCG
@@ -79,6 +77,39 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, false); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+        }
+
+        public class Builder
+        {
+            private MaxIterationsProvider maxIterationsProvider = new MaxIterationsProvider(1.0);
+
+            public Builder() { }
+
+            public int MaxIterations
+            {
+                set
+                {
+                    maxIterationsProvider = new MaxIterationsProvider(value);
+                }
+            }
+
+            public double MaxIterationsOverMatrixOrder
+            {
+                set
+                {
+                    maxIterationsProvider = new MaxIterationsProvider(value);
+                }
+            }
+
+            public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
+
+            public double ResidualTolerance { get; set; } = 1E-6;
+
+            public PcgSolver BuildSolver(IStructuralModel model)
+            {
+                return new PcgSolver(model, new PreconditionedConjugateGradient(maxIterationsProvider, ResidualTolerance),
+                    PreconditionerFactory);
+            }
         }
     }
 }

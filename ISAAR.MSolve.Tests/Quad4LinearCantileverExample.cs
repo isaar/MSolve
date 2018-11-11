@@ -170,8 +170,9 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             //var solver = new SkylineSolver(model);
-            var pcg = new PreconditionedConjugateGradient(new MaxIterationsProvider(4), 1E-6);
-            var solver = new PcgSolver(model, pcg, new JacobiPreconditioner.Factory());
+            var solverBuilder = new PcgSolver.Builder();
+            solverBuilder.MaxIterationsOverMatrixOrder = 0.5;
+            var solver = solverBuilder.BuildSolver(model);
 
             //TODO: this should be hidden and handled by the analyzer at another phase
             solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
