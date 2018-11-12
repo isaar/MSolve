@@ -21,7 +21,7 @@ namespace MGroup.Stochastic.Structural
         private Model currentModel;
         int karLoeveTerms = 4;
         double[] domainBounds = new double[2] { 0, 1 };
-        double sigmaSquare = 1;
+        double sigmaSquare = .01;
         double meanValue = 1;
         int partition = 21;
         double correlationLength = 1.0;
