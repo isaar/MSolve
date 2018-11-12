@@ -20,7 +20,7 @@ namespace MGroup.Stochastic.Structural
         public GiannisModelBuilder ModelBuilder { get; }
         private Model currentModel;
         int karLoeveTerms = 4;
-        double[] domainBounds = new double[2] { -0.5, .50 };
+        double[] domainBounds = new double[2] { 0, 1 };
         double sigmaSquare = 1;
         double meanValue = 1;
         int partition = 21;
