@@ -2,11 +2,13 @@
 using MGroup.Stochastic.Structural.StochasticRealizers;
 using System;
 using System.Collections.Generic;
+using Accord;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace MGroup.Stochastic.Structural
 {
@@ -67,7 +69,8 @@ namespace MGroup.Stochastic.Structural
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
-            return new[] { linearSystems[0].RHS[0] };
+            //return new[] { linearSystems[0].RHS[0] };
+            return new[] { linearSystems[0].Solution[56], linearSystems[0].Solution[58] };
         }
 
     }
