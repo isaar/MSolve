@@ -195,7 +195,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             {
                     eigenmodesAtPoint[j] = (eigenModes[indexOfSecondEigenmodeValue, j] - eigenModes[indexOfFirstEigenmodeValue, j]) /
                                            (xCoordinates[indexOfSecondEigenmodeValue] - xCoordinates[indexOfFirstEigenmodeValue]) * 
-                    (stochasticDomainPoint-xCoordinates[indexOfFirstEigenmodeValue]);
+                    (stochasticDomainPoint-xCoordinates[indexOfFirstEigenmodeValue]) + eigenModes[indexOfFirstEigenmodeValue,j];
             }
             return eigenmodesAtPoint;
         }
