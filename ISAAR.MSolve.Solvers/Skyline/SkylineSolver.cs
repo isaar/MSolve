@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private readonly SkylineAssembler assembler = new SkylineAssembler();
         private readonly ISubdomain subdomain;
         private readonly double factorizationPivotTolerance;
-        private readonly LinearSystem_v2<SkylineMatrix, Vector> linearSystem;
+        private readonly SkylineSystem linearSystem;
         private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
         private CholeskySkyline factorizedMatrix;
 
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.subdomain = model.ISubdomainsDictionary.First().Value;
-            this.linearSystem = new LinearSystem_v2<SkylineMatrix, Vector>(subdomain.ID);
+            this.linearSystem = new SkylineSystem(subdomain);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomain.ID, linearSystem } };
 
             //TODO: resolve this weird dependency. The (Newmark)Analyzer needs the initial solution (which may be != 0, if it 
@@ -81,6 +81,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
                 linearSystem.IsMatrixFactorized = true;
             }
             linearSystem.Solution = factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector);
+        }
+
+        private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>
+        {
+            private readonly ISubdomain subdomain;
+            internal SkylineSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
+            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
         }
     }
 }

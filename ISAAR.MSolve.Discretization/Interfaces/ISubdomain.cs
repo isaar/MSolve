@@ -8,8 +8,8 @@ namespace ISAAR.MSolve.Discretization.Interfaces
     public interface ISubdomain
     {
 		int ID { get; set; }
-		int TotalDOFs { get; set; }
-		bool MaterialsModified { get; set; }
+		int TotalDOFs { get; set; } //TODO: rename it to NumFreeDofs or even better expose a DofOrderer 
+        bool MaterialsModified { get; set; }
 
 		Dictionary<int, IElement> ΙElementsDictionary { get; }
 		Dictionary<int, Dictionary<DOFType, double>> Constraints { get; }

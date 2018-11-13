@@ -50,5 +50,8 @@ namespace ISAAR.MSolve.Solvers.Commons
         IMatrix Matrix { get; set; }
         IVector RhsVector { get; set; }
         IVector Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
+
+        IVector CreateZeroVector();
+        void SetSolutionToZero();
     }
 }

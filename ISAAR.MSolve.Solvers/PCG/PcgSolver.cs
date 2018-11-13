@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         private const string name = "PcgSolver"; // for error messages
         private readonly CsrAssembler assembler = new CsrAssembler(true);
         private readonly ISubdomain subdomain;
-        private readonly LinearSystem_v2<CsrMatrix, Vector> linearSystem;
+        private readonly CsrSystem linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
         private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.subdomain = model.ISubdomainsDictionary.First().Value;
-            this.linearSystem = new LinearSystem_v2<CsrMatrix, Vector>(subdomain.ID);
+            this.linearSystem = new CsrSystem(subdomain);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { linearSystem.ID, linearSystem } };
 
             //TODO: resolve this weird dependency. The (Newmark)Analyzer needs the initial solution (which may be != 0, if it 
@@ -110,6 +110,13 @@ namespace ISAAR.MSolve.Solvers.PCG
                 return new PcgSolver(model, new PreconditionedConjugateGradient(maxIterationsProvider, ResidualTolerance),
                     PreconditionerFactory);
             }
+        }
+
+        private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>
+        {
+            private readonly ISubdomain subdomain;
+            internal CsrSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
+            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
         }
     }
 }

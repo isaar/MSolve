@@ -7,11 +7,11 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: add state management
 namespace ISAAR.MSolve.Solvers.Commons
 {
-    public class LinearSystem_v2<TMatrix, TVector> : ILinearSystem_v2
+    public abstract class LinearSystem_v2<TMatrix, TVector> : ILinearSystem_v2
         where TMatrix : IMatrix
         where TVector : IVector
     {
-        public LinearSystem_v2(int id)
+        protected LinearSystem_v2(int id)
         {
             this.ID = id;
         }
@@ -21,6 +21,7 @@ namespace ISAAR.MSolve.Solvers.Commons
         //TODO: this is error prone. This object should manage the state when clients read or modify the matrix.
         public bool IsMatrixFactorized { get; set; }
         public bool IsMatrixModified { get; set; } = true;
+        public bool IsOrderModified { get; set; }
 
         IMatrix ILinearSystem_v2.Matrix
         {
@@ -40,5 +41,16 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         IVector ILinearSystem_v2.Solution { get => Solution; }
         internal TVector Solution { get; set; }
+
+        IVector ILinearSystem_v2.CreateZeroVector() => CreateZeroVector();
+
+        public void SetSolutionToZero()
+        {
+            // The order of the matrix might have been changed since the previous Solution vector had been created.
+            if (Solution.Length == Matrix.NumColumns) Solution.Clear();
+            else Solution = CreateZeroVector();
+        }
+
+        public abstract TVector CreateZeroVector();
     }
 }
