@@ -28,6 +28,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         public double[] Lambda { get; set; }
         public double[,] Eigenvectors { get; set; }
         public double[,] EigenModesAtPoint { get; set; }
+        private double[] Kse;
 
         public KarhunenLoeveCoefficientsProvider (int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
             double[] domainBounds, double sigmaSquare, double correlationLength)
@@ -58,10 +59,21 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return correlationFunction;
         }
 
+        public void ResetSampleGeneration()
+        {
+            Kse = new double[KarLoeveTerms];
+            for (int i = 0; i < KarLoeveTerms; i++)
+            {
+                var KseNormalDistribution = new NormalDistribution(0, 1);
+                Kse[i] = KseNormalDistribution.NextDouble();
+            }
+        }
+
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
             var stochasticDomainPoint = domainMapper.Map(parameters);
             double[] eigenModesAtPoint = CalculateEigenmodesAtPoint(Xcoordinates, Eigenvectors, stochasticDomainPoint[0]);
+            //ResetSampleGeneration();
             var value = KarhunenLoeveFredholm1DSampleGenerator(stochasticDomainPoint, Lambda, eigenModesAtPoint, MeanValue, MidpointMethod, IsGaussian);
             return value;
         }
@@ -205,20 +217,22 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             if (midpointMethod == false) throw new ArgumentException("It is not supported at the moment");
             if (isGaussian == false) throw new ArgumentException("It is not supported at the moment");
             double fieldRealization = 0;
-            
-            double[] kse = new double[eigenmodesAtPoint.GetLength(0)];
-            for (int j = 0; j < eigenmodesAtPoint.GetLength(0); j++)
+                      
+            for (int j = 0; j < eigenmodesAtPoint.Length; j++)
             {
-                var KseNormalDistribution = new NormalDistribution(0, 1);
-                kse[j] = KseNormalDistribution.NextDouble();
+                fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtPoint[j] * Kse[j];
             }
-            
-            for (int j = 0; j < eigenmodesAtPoint.GetLength(0); j++)
+
+            if (fieldRealization >= .9)
             {
-                fieldRealization = fieldRealization + Math.Sqrt(eigenValues[j]) * eigenmodesAtPoint[j] * kse[j];
+                fieldRealization = .9;
             }
+            else if (fieldRealization <= -.9)
+            {
+                fieldRealization = -.9;
+            }
+
             fieldRealization = meanValue * (1 + fieldRealization);
-            
             return fieldRealization;
         }
 
