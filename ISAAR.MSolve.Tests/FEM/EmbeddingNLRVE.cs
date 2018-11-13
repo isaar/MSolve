@@ -24,6 +24,14 @@ namespace ISAAR.MSolve.Tests.FEM
         private const int subdomainID = 1;
 
         [Fact]
+        private static void RunTest()
+        {
+            IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
+            IncrementalDisplacementsLog computedDisplacements = SolveModel();
+            Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
+        }
+
+        [Fact]
         private static void RunTest_v2()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();

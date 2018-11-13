@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return log1;
         }
 
-        public static void ShellPlateBuilder(Model model, double load_value)
+        private static void ShellPlateBuilder(Model model, double load_value)
         {
             // proelefsi: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
             ShellElasticMaterial material1 = new ShellElasticMaterial()

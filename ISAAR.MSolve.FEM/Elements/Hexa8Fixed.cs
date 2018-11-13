@@ -11,11 +11,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-
 //TODO: get rid of Hexa8.cs
 
 namespace ISAAR.MSolve.FEM.Elements

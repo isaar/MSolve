@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -41,7 +42,8 @@ namespace ISAAR.MSolve.Solvers.Ordering
             int dofCounter = 0;
             foreach (IElement element in elements)
             {
-                IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+                //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
+                IList<INode> elementNodes = element.INodes;
                 IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element);
                 for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
                 {
@@ -49,9 +51,13 @@ namespace ISAAR.MSolve.Solvers.Ordering
                         out Dictionary<DOFType, double> constraintsOfNode);
                     for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
                     {
-                        DOFType dof = elementDofs[nodeIdx][dofIdx];
-                        bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dof) : false;
-                        if (!isDofConstrained) freeDofs[elementNodes[nodeIdx], dof] = dofCounter++;
+                        DOFType dofType = elementDofs[nodeIdx][dofIdx];
+                        bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dofType) : false;
+                        if (!isDofConstrained)
+                        {
+                            bool isNewDof = freeDofs.TryAdd(elementNodes[nodeIdx], dofType, dofCounter);
+                            if (isNewDof) ++dofCounter;
+                        }
                     }
                 }
             }
@@ -115,7 +121,9 @@ namespace ISAAR.MSolve.Solvers.Ordering
         public IReadOnlyDictionary<int, int> MapFreeDofsElementToGlobal(IElement element)
         {
             IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element);
+            //IList<INode> elementNodes = element.INodes;
+            //IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element);
+            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
 
             var dofMap = new Dictionary<int, int>();
             int elementDofIdx = 0;

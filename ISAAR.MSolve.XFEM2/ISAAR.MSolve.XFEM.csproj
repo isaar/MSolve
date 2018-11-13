@@ -18,7 +18,6 @@
     <PackageReference Include="Triangle" Version="0.0.6-Beta3" />
   </ItemGroup>
     <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />

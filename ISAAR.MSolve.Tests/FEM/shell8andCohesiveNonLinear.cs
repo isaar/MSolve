@@ -23,7 +23,14 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void RunTest()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
-            //IncrementalDisplacementsLog computedDisplacements = SolveModel();
+            IncrementalDisplacementsLog computedDisplacements = SolveModel();
+            Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
+        }
+
+        [Fact]
+        private static void RunTest_v2()
+        {
+            IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
             IncrementalDisplacementsLog computedDisplacements = SolveModel_v2();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
@@ -147,7 +154,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return log1;
         }
 
-        public static void ShellAndCohesiveRAM_11tlkShellPaktwsh(Model model)
+        private static void ShellAndCohesiveRAM_11tlkShellPaktwsh(Model model)
         {
             //PROELEFSI: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
             // allaxame to cohesive element

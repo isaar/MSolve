@@ -14,8 +14,8 @@
     <Compile Remove="Elements\Quad4NL.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ISAAR.MSolve.Geometry\ISAAR.MSolve.Geometry.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Geometry\ISAAR.MSolve.Geometry.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
