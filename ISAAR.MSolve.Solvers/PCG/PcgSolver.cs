@@ -12,7 +12,6 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), avoid the first r=b-A*0 
-//TODO: the maxIterations of PCG should be able to use the order of the matrix as a default value.
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
 namespace ISAAR.MSolve.Solvers.PCG
 {
@@ -40,12 +39,6 @@ namespace ISAAR.MSolve.Solvers.PCG
             this.linearSystem = new CsrSystem(subdomain);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { linearSystem.ID, linearSystem } };
 
-            //TODO: resolve this weird dependency. The (Newmark)Analyzer needs the initial solution (which may be != 0, if it 
-            // comes from a previous analysis) before the Solver has performed the first system solution. However, to initialize
-            // it we need the rhs vector which is created when the user calls Model.ConnectDataStructures(). The correct would be
-            // to only access the number of free dofs, but that also would be available after Model.ConnectDataStructures().
-            this.linearSystem.Solution = Vector.CreateZero(subdomain.Forces.Length);
-
             this.pcgAlgorithm = pcgAlgorithm;
             this.preconditionerFactory = preconditionerFactory;
         }
@@ -69,6 +62,16 @@ namespace ISAAR.MSolve.Solvers.PCG
         /// </summary>
         public void Solve()
         {
+            //TODO: resolve this weird dependency: NewmarkAnalyzer_v2.InitializeInternalVectors() needs the initial solution 
+            // (which may be != 0, if it comes from a previous analysis) before the Solver has performed the first system 
+            // solution. However, to initialize it we need the rhs vector which is created when the user calls 
+            // Model.ConnectDataStructures(). It would be better to only access the number of free dofs, but that also would be 
+            // available after Model.ConnectDataStructures().
+
+            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
+            else linearSystem.Solution.Clear(); // In iterative algorithms we initialize the solution vector to 0.
+
             if (linearSystem.IsMatrixModified)
             {
                 preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
@@ -76,8 +79,11 @@ namespace ISAAR.MSolve.Solvers.PCG
             }
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
-                linearSystem.Solution, false); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+                linearSystem.Solution, true); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
         }
+
+        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
+        private bool HasSubdomainDofsChanged() => subdomain.TotalDOFs == linearSystem.Solution.Length;
 
         public class Builder
         {

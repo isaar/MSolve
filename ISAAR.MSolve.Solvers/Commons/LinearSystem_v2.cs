@@ -44,12 +44,18 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         IVector ILinearSystem_v2.CreateZeroVector() => CreateZeroVector();
 
-        public void SetSolutionToZero()
-        {
-            // The order of the matrix might have been changed since the previous Solution vector had been created.
-            if (Solution.Length == Matrix.NumColumns) Solution.Clear();
-            else Solution = CreateZeroVector();
-        }
+        ////TODO: this should probably be delegated to concrete classes, since it needs the current number of dofs, 
+        ////      like CreateZeroVector(). Or it could be delegated to the solver.
+        ////TODO: Checking the matrix columns may not be the best solution. In general, we need to check if the dofs have been  
+        ////      changed (e.g.XFEM). If the dofs have been changed, but their number remains the same, we could still use the 
+        ////      same memory.
+        ////TODO: Take care of the case that this is called before a Solution vector has been assigned.
+        //public void SetSolutionToZero() 
+        //{ 
+        //    // The order of the matrix might have been changed since the previous Solution vector had been created.
+        //    if (Solution.Length == Matrix.NumColumns) Solution.Clear();
+        //    else Solution = CreateZeroVector();
+        //}
 
         public abstract TVector CreateZeroVector();
     }

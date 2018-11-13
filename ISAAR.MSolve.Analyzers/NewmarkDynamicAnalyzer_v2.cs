@@ -98,8 +98,10 @@ namespace ISAAR.MSolve.Analyzers
                 v2.Add(subdomain.ID, Vector.CreateZero(dofs));
                 rhs.Add(subdomain.ID, Vector.CreateZero(dofs));
 
-                // Account for initial conditions coming from a previous solution
-                v[subdomain.ID] = subdomain.Solution.Copy();
+                // Account for initial conditions coming from a previous solution. 
+                //TODO: This does't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
+                if (subdomain.Solution != null) v[subdomain.ID] = subdomain.Solution.Copy();
+                else v[subdomain.ID] = Vector.CreateZero(dofs);
             }
         }
 

@@ -127,15 +127,15 @@ namespace ISAAR.MSolve.Analyzers
         private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRHS.Clear(); //TODO: Is it necessary to clear it? It will be overwritten by subdomain vectors in this method
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 //TODO: directly copy into subdomain.RhsVector and then scale that.
-                IVector r = subdomain.RhsVector.Copy();
+                IVector r = linearSystem.RhsVector.Copy();
                 r.ScaleIntoThis(1 / (double)increments);
-                rhs[subdomain.ID] = r;
+                rhs[linearSystem.ID] = r;
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index;
-                mappings[subdomainIdx].SubdomainToGlobalVector(subdomain.RhsVector, globalRHS);
+                    First(x => x.System.ID == linearSystem.ID).Index;
+                mappings[subdomainIdx].SubdomainToGlobalVector(linearSystem.RhsVector, globalRHS);
             }
             rhsNorm = provider.RHSNorm(globalRHS);
         }

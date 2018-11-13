@@ -40,13 +40,6 @@ namespace ISAAR.MSolve.Solvers.Skyline
             this.subdomain = model.ISubdomainsDictionary.First().Value;
             this.linearSystem = new SkylineSystem(subdomain);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomain.ID, linearSystem } };
-
-            //TODO: resolve this weird dependency. The (Newmark)Analyzer needs the initial solution (which may be != 0, if it 
-            // comes from a previous analysis) before the Solver has performed the first system solution. However, to initialize
-            // it we need the rhs vector which is created when the user calls Model.ConnectDataStructures(). The correct would be
-            // to only access the number of free dofs, but that also would be available after Model.ConnectDataStructures().
-            this.linearSystem.Solution = Vector.CreateZero(subdomain.Forces.Length);
-
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
@@ -59,10 +52,10 @@ namespace ISAAR.MSolve.Solvers.Skyline
             return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
-        public IMatrix BuildGlobalMatrix_v2(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
-        {
-            return assembler.BuildGlobalMatrix(subdomain, elementMatrixProvider);
-        }
+        //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        //{
+        //    return assembler.BuildGlobalMatrix(subdomain, elementMatrixProvider);
+        //}
 
         public void Initialize()
         {
@@ -74,14 +67,31 @@ namespace ISAAR.MSolve.Solvers.Skyline
         /// </summary>
         public void Solve()
         {
+            //TODO: resolve this weird dependency: NewmarkAnalyzer_v2.InitializeInternalVectors() needs the initial solution 
+            // (which may be != 0, if it comes from a previous analysis) before the Solver has performed the first system 
+            // solution. However, to initialize it we need the rhs vector which is created when the user calls 
+            // Model.ConnectDataStructures(). It would be better to only access the number of free dofs, but that also would be 
+            // available after Model.ConnectDataStructures().
+
+            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
+            //else linearSystem.Solution.Clear(); // no need to waste computational time on this
+
             if (linearSystem.IsMatrixModified)
             {
                 factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance);
                 linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
                 linearSystem.IsMatrixFactorized = true;
             }
-            linearSystem.Solution = factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector);
+
+            factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
+
+        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
+        /// <summary>
+        /// The number of dofs might have been changed since the previous Solution vector had been created.
+        /// </summary>
+        private bool HasSubdomainDofsChanged() => subdomain.TotalDOFs == linearSystem.Solution.Length;
 
         private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>
         {

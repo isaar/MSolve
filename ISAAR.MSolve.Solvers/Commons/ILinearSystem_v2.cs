@@ -51,7 +51,13 @@ namespace ISAAR.MSolve.Solvers.Commons
         IVector RhsVector { get; set; }
         IVector Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
 
+        /// <summary>
+        /// The freedom degrees must be ordered before this method can be called. Attention when the freedom degrees change 
+        /// during the analysis (e.g. adaptive FEM, XFEM). 
+        /// </summary>
         IVector CreateZeroVector();
-        void SetSolutionToZero();
+
+        // This should probably be handled by the solver only. Analyzers and providers should not mess with the solution vector.
+        //void SetSolutionToZero();
     }
 }
