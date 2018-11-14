@@ -1,25 +1,25 @@
-﻿using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Materials.Interfaces;
-using System;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+﻿using System;
+using MGroup.Stochastic.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 
-namespace ISAAR.MSolve.Analyzers
+namespace MGroup.Stochastic.Structural.StochasticRealizers
 {
-    public class SpectralRepresentation2DRandomField : IStochasticCoefficientsProvider
+    public class SpectralRepresentation2DRandomFieldGenerator : IUncertainParameterRealizer
     {
+        private const double tolerance = 1e-10;
         private readonly double XDirectionCorrelationLengthParameter;
         private readonly double YDirectionCorrelationLengthParameter;
-        private readonly double spectrumStandardDeviation, cutoffError, frequencyIncrement, tolerance;
+        private readonly double spectrumStandardDeviation, cutoffError, frequencyIncrement;
         private readonly int nPhi, frequencyIntervals, nptsVRF;
         private double kupper, period;
         private int frequencyCounter, frequencyCounterY;
         private double[] randomVariables = new double[0];
         private double[,] phi1, phi2;
+        private bool ResetGeneration = true;
+        private int PreviousIteration = -1;
 
-        public SpectralRepresentation2DRandomField(double XDirectionCorrelationLengthParameter, double YDirectionCorrelationLengthParameter, double spectrumStandardDeviation, double cutoffError,
-            double frequencyIncrement = 0.1, int frequencyIntervals = 256, double tolerance = 1e-10)
+        public SpectralRepresentation2DRandomFieldGenerator(double XDirectionCorrelationLengthParameter, double YDirectionCorrelationLengthParameter, double spectrumStandardDeviation, double cutoffError,
+            double frequencyIncrement = 0.1, int frequencyIntervals = 256)
         {
             this.XDirectionCorrelationLengthParameter = XDirectionCorrelationLengthParameter;
             this.YDirectionCorrelationLengthParameter = YDirectionCorrelationLengthParameter;
@@ -27,7 +27,6 @@ namespace ISAAR.MSolve.Analyzers
             this.cutoffError = cutoffError;
             this.frequencyIncrement = frequencyIncrement;
             this.frequencyIntervals = frequencyIntervals;
-            this.tolerance = tolerance;
             Calculate();
         }
 
@@ -91,8 +90,11 @@ namespace ISAAR.MSolve.Analyzers
             period = 2d * Math.PI / dk;
         }
 
-        public double GetCoefficient(double meanValue, double[] coordinate)
+        public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
+            ResetGeneration = (PreviousIteration != iteration);
+            if (ResetGeneration) ResetSampleGeneration();
+            double[] stochasticDomainPoint = domainMapper.Map(parameters);
             var dk = kupper / (double)frequencyIntervals;
             double randomCoefficient = 0;
             for (int i = 0; i < frequencyIntervals; i++)
@@ -100,9 +102,9 @@ namespace ISAAR.MSolve.Analyzers
                 for (int j = 0; j < frequencyIntervals; j++)
                 {
                     randomCoefficient += Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                         (Math.Cos((dk / 2 + i * dk) * coordinate[0] + (dk / 2 + j * dk) * coordinate[1] + phi1[i, j])) +
+                                         (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) +
                                           Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                          (Math.Cos((dk / 2 + i * dk) * coordinate[0] - (dk / 2 + j * dk) * coordinate[1] + phi2[i, j])));
+                                          (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
                 }
 
             }
@@ -111,8 +113,9 @@ namespace ISAAR.MSolve.Analyzers
 
         }
 
-        public double[] GetDerivative(double[] coordinate)
+        public double[] GetDerivative(IStochasticDomainMapper domainMapper, double[] parameters)
         {
+            double[] stochasticDomainPoint = domainMapper.Map(parameters);
             var dk = kupper / (double)frequencyIntervals;
             double[] derivative = { 0, 0 };
             for (int i = 0; i < frequencyIntervals; i++)
@@ -120,13 +123,13 @@ namespace ISAAR.MSolve.Analyzers
                 for (int j = 0; j < frequencyIntervals; j++)
                 {
                     derivative[0] += -(dk / 2 + i * dk) * Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] + (dk / 2 + j * dk) * coordinate[1] + phi1[i, j])) +
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) +
                                                                           Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] - (dk / 2 + j * dk) * coordinate[1] + phi2[i, j])));
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
                     derivative[1] += -(dk / 2 + j * dk) * Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] + (dk / 2 + j * dk) * coordinate[1] + phi1[i, j])) -
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) -
                                                                           Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] - (dk / 2 + j * dk) * coordinate[1] + phi2[i, j])));
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
                 }
 
             }
@@ -135,27 +138,19 @@ namespace ISAAR.MSolve.Analyzers
 
         }
 
-        public double[] RandomVariables
+        public void ResetSampleGeneration()
         {
-            get
+            phi1 = new double[frequencyIntervals, frequencyIntervals];
+            phi2 = new double[frequencyIntervals, frequencyIntervals];
+            var Phi = new ContinuousUniformDistribution(0d, 2d * Math.PI);
+            for (int i = 0; i < frequencyIntervals; i++)
             {
-                return randomVariables;
-            }
-            set
-            {
-                phi1 = new double[frequencyIntervals, frequencyIntervals];
-                phi2 = new double[frequencyIntervals, frequencyIntervals];
-                var Phi = new ContinuousUniformDistribution(0d, 2d * Math.PI);
-                for (int i = 0; i < frequencyIntervals; i++)
+                for (int j = 0; j < frequencyIntervals; j++)
                 {
-                    for (int j = 0; j < frequencyIntervals; j++)
-                    {
-                        phi1[i, j] = Phi.NextDouble();
-                        phi2[i, j] = Phi.NextDouble();
-                    }
+                    phi1[i, j] = Phi.NextDouble();
+                    phi2[i, j] = Phi.NextDouble();
                 }
-                randomVariables = value;
             }
         }
-    }
+    }    
 }

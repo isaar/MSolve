@@ -29,6 +29,8 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         public double[,] Eigenvectors { get; set; }
         public double[,] EigenModesAtPoint { get; set; }
         private double[] Kse;
+        private bool ResetGeneration = true;
+        private int PreviousIteration = -1;
 
         public KarhunenLoeveCoefficientsProvider (int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
             double[] domainBounds, double sigmaSquare, double correlationLength)
@@ -59,8 +61,8 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return correlationFunction;
         }
 
-        public void ResetSampleGeneration()
-        {
+        private void ResetSampleGeneration()
+        {            
             Kse = new double[KarLoeveTerms];
             for (int i = 0; i < KarLoeveTerms; i++)
             {
@@ -71,10 +73,12 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
+            ResetGeneration = (PreviousIteration != iteration);
+            if (ResetGeneration) ResetSampleGeneration();
             var stochasticDomainPoint = domainMapper.Map(parameters);
             double[] eigenModesAtPoint = CalculateEigenmodesAtPoint(Xcoordinates, Eigenvectors, stochasticDomainPoint[0]);
-            //ResetSampleGeneration();
             var value = KarhunenLoeveFredholm1DSampleGenerator(stochasticDomainPoint, Lambda, eigenModesAtPoint, MeanValue, MidpointMethod, IsGaussian);
+            PreviousIteration = iteration;
             return value;
         }
 

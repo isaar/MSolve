@@ -17,8 +17,8 @@ namespace MGroup.Stochastic.Structural
         public double YoungModulus { get; }
         public IStochasticDomainMapper DomainMapper;
         //public RandomVariable StochasticRealization { get; }
-        //public KarhunenLoeveCoefficientsProvider StochasticRealization { get; }
-        public SpectralRepresentation1DRandomFieldGenerator StochasticRealization { get; }
+        public KarhunenLoeveCoefficientsProvider StochasticRealization { get; }
+        //public SpectralRepresentation1DRandomFieldGenerator StochasticRealization { get; }
         //public ModelBuilder ModelBuilder { get; }
         public GiannisModelBuilder ModelBuilder { get; }
         private Model currentModel;
@@ -45,14 +45,13 @@ namespace MGroup.Stochastic.Structural
             YoungModulus = youngModulus;
             DomainMapper = domainMapper;
             ModelBuilder = new GiannisModelBuilder();
-            //StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, youngModulus, midpointMethod,
-            //    isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
-            StochasticRealization = new SpectralRepresentation1DRandomFieldGenerator(10, 0.1, youngModulus, .05, 0.1, 256);
+            StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, youngModulus, midpointMethod,
+                isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
+            //StochasticRealization = new SpectralRepresentation1DRandomFieldGenerator(10, 0.1, youngModulus, .05, 0.1, 256);
         }
 
         public void Realize(int iteration)
         {
-            StochasticRealization.ResetSampleGeneration();
             currentModel = ModelBuilder.GetModel(StochasticRealization, DomainMapper, iteration);
         }
 

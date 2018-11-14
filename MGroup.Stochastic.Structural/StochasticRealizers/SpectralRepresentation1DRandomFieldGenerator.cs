@@ -1,11 +1,4 @@
-﻿using ISAAR.MSolve.FEM.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Materials.Interfaces;
+﻿using System;
 using MGroup.Stochastic.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 
@@ -20,15 +13,17 @@ namespace ISAAR.MSolve.Analyzers
         private double[] sffTarget, omegas;
         private double wu, period;
         private int nptsSff, frequencyCounter;
-        private double[] randomVariables = new double[0];
         private double[] phi;
         public double MeanValue;
+        private bool ResetGeneration = true;
+        private int PreviousIteration = -1;
+        public double SpectrumStandardDeviation { get; private set; }
 
         public SpectralRepresentation1DRandomFieldGenerator(double b, double spectrumStandardDeviation, double meanValue, double cutoffError,
             double frequencyIncrement = 0.1, int frequencyIntervals = 256)
         {
             this.b = b;
-            this.spectrumStandardDeviation = spectrumStandardDeviation;
+            SpectrumStandardDeviation = spectrumStandardDeviation;
             MeanValue = meanValue;
             this.cutoffError = cutoffError;
             this.frequencyIncrement = frequencyIncrement;
@@ -36,7 +31,6 @@ namespace ISAAR.MSolve.Analyzers
             Calculate();
         }
 
-        public double SpectrumStandardDeviation { get { return spectrumStandardDeviation; } }
         public double[] SffTarget { get { return sffTarget; } }
         public double[] Omegas { get { return omegas; } }
         public double Wu { get { return wu; } }
@@ -92,6 +86,8 @@ namespace ISAAR.MSolve.Analyzers
 
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
+            ResetGeneration = (PreviousIteration != iteration);
+            if (ResetGeneration) ResetSampleGeneration();
             double[] stochasticDomainPoint = domainMapper.Map(parameters);
             var dw = wu / (double)frequencyIntervals;
             int i = 0;
@@ -113,6 +109,7 @@ namespace ISAAR.MSolve.Analyzers
                 randomCoefficient = -.9;
             }
 
+            PreviousIteration = iteration;
             return MeanValue / (1 + randomCoefficient);
         }
 
@@ -125,25 +122,5 @@ namespace ISAAR.MSolve.Analyzers
                 phi[i] = Phi.NextDouble();
             }
         }
-
-        //public double[] RandomVariables
-        //{
-        //    get
-        //    {
-
-        //        return randomVariables;
-        //    }
-        //    set
-        //    {
-        //        phi = new double[frequencyIntervals];
-        //        var Phi = new ContinuousUniformDistribution(0d, 2d * Math.PI);
-        //        for (int i = 0; i < frequencyIntervals; i++)
-        //        {
-        //            phi[i] = Phi.NextDouble();
-        //        }
-        //        //changedVariables = true;
-        //        randomVariables = value;
-        //    }
-        //}
     }
 }
