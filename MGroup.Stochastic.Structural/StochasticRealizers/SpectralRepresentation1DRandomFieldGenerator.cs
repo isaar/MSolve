@@ -23,6 +23,8 @@ namespace ISAAR.MSolve.Analyzers
         private double[] randomVariables = new double[0];
         private double[] phi;
         public double MeanValue;
+        private bool ResetGeneration = true;
+        private int PreviousIteration = -1;
 
         public SpectralRepresentation1DRandomFieldGenerator(double b, double spectrumStandardDeviation, double meanValue, double cutoffError,
             double frequencyIncrement = 0.1, int frequencyIntervals = 256)
@@ -92,6 +94,8 @@ namespace ISAAR.MSolve.Analyzers
 
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
+            ResetGeneration = (PreviousIteration != iteration);
+            if (ResetGeneration) ResetSampleGeneration();
             double[] stochasticDomainPoint = domainMapper.Map(parameters);
             var dw = wu / (double)frequencyIntervals;
             int i = 0;
@@ -113,6 +117,7 @@ namespace ISAAR.MSolve.Analyzers
                 randomCoefficient = -.9;
             }
 
+            PreviousIteration = iteration;
             return MeanValue / (1 + randomCoefficient);
         }
 
