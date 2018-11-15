@@ -170,7 +170,6 @@ namespace ISAAR.MSolve.Tests
             model.ConnectDataStructures(); //TODO: this should be hidden and handled by the analyzer at another phase
 
             // Solver
-            //var solver = new SkylineSolver(model);
             var solverBuilder = new PcgSolver.Builder();
             solverBuilder.MaxIterationsOverMatrixOrder = 0.5;
             var solver = solverBuilder.BuildSolver(model);

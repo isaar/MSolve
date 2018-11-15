@@ -127,8 +127,9 @@ namespace ISAAR.MSolve.Tests.FEM
             model.ConnectDataStructures();
 
             // Solver
-            var solver = new SkylineSolver(model);
-            solver.DofOrderer = new NodeMajorDofOrderer();
+            var solverBuilder = new SkylineSolver.Builder();
+            solverBuilder.DofOrderer = new NodeMajorDofOrderer();
+            SkylineSolver solver = solverBuilder.BuildSolver(model);
 
             //TODO: this should be hidden and handled by the analyzer at another phase
             solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
