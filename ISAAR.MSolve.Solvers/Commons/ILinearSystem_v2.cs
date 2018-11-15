@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Solvers.Commons
         //TODO: setters must be removed, since they force the implementation (or the solver) to cast
         IMatrix Matrix { get; set; }
         IVector RhsVector { get; set; }
-        IVector Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
+        IVectorView Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
 
         /// <summary>
         /// The freedom degrees must be ordered before this method can be called. Attention when the freedom degrees change 

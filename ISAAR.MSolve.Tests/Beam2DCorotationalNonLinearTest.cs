@@ -16,6 +16,7 @@ using Xunit;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.Discretization.Providers;
+using ISAAR.MSolve.Logging;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -236,11 +237,17 @@ namespace ISAAR.MSolve.Tests
             // Choose parent analyzer -> Parent: Static
             var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
 
+            // Request output
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
+
+            // Run the analysis
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(146.5587362562, solver.LinearSystems[subdomainID].Solution[4], 3);
+            // Check output
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            Assert.Equal(146.5587362562, log.DOFValues[4], 3);
         }
 
         [Fact]

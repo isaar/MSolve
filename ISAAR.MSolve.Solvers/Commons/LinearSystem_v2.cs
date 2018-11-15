@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         internal TVector RhsVector { get; set; }
 
-        IVector ILinearSystem_v2.Solution { get => Solution; }
+        IVectorView ILinearSystem_v2.Solution { get => Solution; }
         internal TVector Solution { get; set; }
 
         IVector ILinearSystem_v2.CreateZeroVector() => CreateZeroVector();

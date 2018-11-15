@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             foreach (int id in logs.Keys)
                 foreach (var l in logs[id])
-                    l.StoreResults(start, end, linearSystems[id].Solution.ToLegacyVector());
+                    l.StoreResults(start, end, u[id].ToLegacyVector());
         }
 
         public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
@@ -127,15 +127,15 @@ namespace ISAAR.MSolve.Analyzers
         private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRHS.Clear(); //TODO: Is it necessary to clear it? It will be overwritten by subdomain vectors in this method
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 subdomain in linearSystems)
             {
                 //TODO: directly copy into subdomain.RhsVector and then scale that.
-                IVector r = linearSystem.RhsVector.Copy();
+                IVector r = subdomain.RhsVector.Copy();
                 r.ScaleIntoThis(1 / (double)increments);
-                rhs[linearSystem.ID] = r;
+                rhs[subdomain.ID] = r;
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == linearSystem.ID).Index;
-                mappings[subdomainIdx].SubdomainToGlobalVector(linearSystem.RhsVector, globalRHS);
+                    First(x => x.System.ID == subdomain.ID).Index;
+                mappings[subdomainIdx].SubdomainToGlobalVector(subdomain.RhsVector, globalRHS);
             }
             rhsNorm = provider.RHSNorm(globalRHS);
         }
@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.Analyzers
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
-            CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
+            //CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
             //            ClearMaterialStresses();
             DateTime end = DateTime.Now;
 
@@ -282,13 +282,15 @@ namespace ISAAR.MSolve.Analyzers
         }
 
         //TODO: Remove this method. Analyzers should not mess with the solution vector.
-        private void CopySolutionToSubdomains()
-        {
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
-            {
-                subdomain.Solution.CopyFrom(u[subdomain.ID]);
-            }
-        }
+        //This method's purpose is to write the final u vector to the linearSystem.Solution, so that StoreLogResults() can 
+        //write it to the loggers. It would be faster and more clear to have StoreLogResults() directly access u.
+        //private void CopySolutionToSubdomains()
+        //{
+        //    foreach (ILinearSystem_v2 subdomain in linearSystems)
+        //    {
+        //        subdomain.Solution.CopyFrom(u[subdomain.ID]);
+        //    }
+        //}
 
         //private void ClearMaterialStresses()
         //{

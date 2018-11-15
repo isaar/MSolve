@@ -14,6 +14,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Logging;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -139,11 +140,18 @@ namespace ISAAR.MSolve.Tests
             var childAnalyzer = new LinearAnalyzer_v2(solver);
             var parentAnalyzer = new NewmarkDynamicAnalyzer_v2(provider, childAnalyzer, solver, 0.25, 0.5, 0.28, 3.36);
 
+            // Request output
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0, 1 });
+
+            // Run the analysis
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
-            Assert.Equal(2.2840249264795207, solver.LinearSystems[subdomainID].Solution[0], 8);
-            Assert.Equal(2.4351921891904156, solver.LinearSystems[subdomainID].Solution[1], 8);
+
+            //Check output
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            Assert.Equal(2.2840249264795207, log.DOFValues[0], 8);
+            Assert.Equal(2.4351921891904156, log.DOFValues[1], 8);
         }
     }
 }

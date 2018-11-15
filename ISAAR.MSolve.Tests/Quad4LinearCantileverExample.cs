@@ -22,6 +22,7 @@ using ISAAR.MSolve.Solvers.PCG;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.Logging;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -185,13 +186,17 @@ namespace ISAAR.MSolve.Tests
             var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
             //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
 
+            // Request output
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0 });
+
             // Run the anlaysis 
             parentAnalyzer.BuildMatrices(); //TODO: this should be hidden and handled by the (child?) analyzer
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            // Tests the result
-            Assert.Equal(253.132375961535, solver.LinearSystems[subdomainID].Solution[0], 8);
+            // Check output
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            Assert.Equal(253.132375961535, log.DOFValues[0], 8);
         }
     }
 }
