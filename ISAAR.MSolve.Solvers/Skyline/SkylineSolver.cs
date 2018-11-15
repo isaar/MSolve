@@ -58,20 +58,12 @@ namespace ISAAR.MSolve.Solvers.Skyline
             if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithNodeMajorFreeDofOrder(
                 subdomain.ΙElementsDictionary.Values, subdomain.Nodes, subdomain.Constraints);
 
-            Console.WriteLine("Existing global dof enumeration:");
-            foreach (int nodeID in subdomain.NodalDOFsDictionary.Keys)
-            {
-                Console.WriteLine($"Node {nodeID}:");
-                var nodeDofs = subdomain.NodalDOFsDictionary[nodeID];
-                foreach (var dofPair in nodeDofs)
-                {
-                    Console.WriteLine($"\t Dof type = {dofPair.Key} - Global index = {dofPair.Value}" );
-                }
-            }
+            //Console.WriteLine("Existing global dof enumeration:");
+            //Utilities.PrintDofOrder(subdomain);
 
-            Console.WriteLine();
-            Console.WriteLine("Using dof orderer:");
-            Console.WriteLine(dofOrderer.FreeDofs.ToString());
+            //Console.WriteLine();
+            //Console.WriteLine("Using dof orderer:");
+            //Console.WriteLine(dofOrderer.FreeDofs.ToString());
 
             // END DEBUG
 

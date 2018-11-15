@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, IncrementalDisplacementsLog computedDisplacements)
         {
-            var comparer = new ValueComparer(1E-13);
+            var comparer = new ValueComparer(1E-10);
             for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
             {
                 foreach (int dof in expectedDisplacements[iter].Keys)
