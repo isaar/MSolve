@@ -57,6 +57,8 @@ namespace ISAAR.MSolve.Solvers.Commons
         /// </summary>
         IVector CreateZeroVector();
 
+        void GetRhsFromSubdomain();
+
         // This should probably be handled by the solver only. Analyzers and providers should not mess with the solution vector.
         //void SetSolutionToZero();
     }

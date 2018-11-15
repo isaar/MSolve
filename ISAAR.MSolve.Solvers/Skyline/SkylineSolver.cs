@@ -98,6 +98,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             private readonly ISubdomain subdomain;
             internal SkylineSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
             public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
+            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
         }
     }
 }

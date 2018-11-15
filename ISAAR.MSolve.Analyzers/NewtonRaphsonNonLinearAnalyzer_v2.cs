@@ -9,6 +9,9 @@ using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 
+//TODO: The number of total dofs (across all subdomains) is set during contruction. This would not work with XFEM or adaptive FEM
+//      where the total dofs change from one iteration to the next. It is also a bad design to ask the user for it. The solution
+//      is to let the LinearSystem create zero vectors, which could be distributed in the case of multiple subdomains.
 namespace ISAAR.MSolve.Analyzers
 {
     public class NewtonRaphsonNonLinearAnalyzer_v2 : IAnalyzer_v2
@@ -29,7 +32,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, IVector> u = new Dictionary<int, IVector>();
         private readonly Dictionary<int, IVector> du = new Dictionary<int, IVector>();
         private readonly Dictionary<int, IVector> uPlusdu = new Dictionary<int, IVector>();
-        private IVector globalRHS; //TODO: This was originally readonly 
+        private Vector globalRHS; //TODO: This was originally readonly 
         private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
@@ -108,18 +111,21 @@ namespace ISAAR.MSolve.Analyzers
             du.Clear();
             uPlusdu.Clear();
 
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                int numSudomainDofs = subdomain.RhsVector.Length;
-                IVector r = subdomain.RhsVector.Copy();
+                int numSudomainDofs = linearSystem.RhsVector.Length;
+                IVector r = linearSystem.RhsVector.Copy();
                 r.ScaleIntoThis(1 / (double)increments);
-                rhs.Add(subdomain.ID, r);
-                u.Add(subdomain.ID, Vector.CreateZero(numSudomainDofs));
-                du.Add(subdomain.ID, Vector.CreateZero(numSudomainDofs));
-                uPlusdu.Add(subdomain.ID, Vector.CreateZero(numSudomainDofs));
+                rhs.Add(linearSystem.ID, r);
+                u.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                du.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                uPlusdu.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                //u.Add(linearSystem.ID, Vector.CreateZero(numSudomainDofs));
+                //du.Add(linearSystem.ID, Vector.CreateZero(numSudomainDofs));
+                //uPlusdu.Add(linearSystem.ID, Vector.CreateZero(numSudomainDofs));
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index;
-                mappings[subdomainIdx].SubdomainToGlobalVector(subdomain.RhsVector, globalRHS);
+                    First(x => x.System.ID == linearSystem.ID).Index;
+                mappings[subdomainIdx].SubdomainToGlobalVector(linearSystem.RhsVector, globalRHS);
             }
             rhsNorm = provider.RHSNorm(globalRHS);
         }
@@ -127,15 +133,15 @@ namespace ISAAR.MSolve.Analyzers
         private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRHS.Clear(); //TODO: Is it necessary to clear it? It will be overwritten by subdomain vectors in this method
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                //TODO: directly copy into subdomain.RhsVector and then scale that.
-                IVector r = subdomain.RhsVector.Copy();
+                //TODO: directly copy into linearSystem.RhsVector and then scale that.
+                IVector r = linearSystem.RhsVector.Copy();
                 r.ScaleIntoThis(1 / (double)increments);
-                rhs[subdomain.ID] = r;
+                rhs[linearSystem.ID] = r;
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index;
-                mappings[subdomainIdx].SubdomainToGlobalVector(subdomain.RhsVector, globalRHS);
+                    First(x => x.System.ID == linearSystem.ID).Index;
+                mappings[subdomainIdx].SubdomainToGlobalVector(linearSystem.RhsVector, globalRHS);
             }
             rhsNorm = provider.RHSNorm(globalRHS);
         }
@@ -147,9 +153,9 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateRHS(int step)
         {
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                subdomain.RhsVector.CopyFrom(rhs[subdomain.ID]);
+                linearSystem.RhsVector.CopyFrom(rhs[linearSystem.ID]);
                 //subdomainRHS.Multiply(step + 1);
             }
         }
@@ -203,81 +209,81 @@ namespace ISAAR.MSolve.Analyzers
         private double CalculateInternalRHS(int currentIncrement, int step)
         {
             globalRHS.Clear(); //TODO: Is it necessary to clear it? It will be overwritten by subdomain vectors in this method
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 if (currentIncrement == 0 && step == 0)
                 {
                     //TODO: instead of Clear() and then AddIntoThis(), use only CopyFromVector()
-                    du[subdomain.ID].Clear();
-                    uPlusdu[subdomain.ID].Clear();
-                    du[subdomain.ID].AddIntoThis(subdomain.Solution);
-                    uPlusdu[subdomain.ID].AddIntoThis(subdomain.Solution);
-                    du[subdomain.ID].SubtractIntoThis(u[subdomain.ID]);
+                    du[linearSystem.ID].Clear();
+                    uPlusdu[linearSystem.ID].Clear();
+                    du[linearSystem.ID].AddIntoThis(linearSystem.Solution);
+                    uPlusdu[linearSystem.ID].AddIntoThis(linearSystem.Solution);
+                    du[linearSystem.ID].SubtractIntoThis(u[linearSystem.ID]);
                 }
                 else
                 {
 
-                    du[subdomain.ID].AddIntoThis(subdomain.Solution);
+                    du[linearSystem.ID].AddIntoThis(linearSystem.Solution);
                     //TODO: instead of Clear() and then AddIntoThis(), use only CopyFromVector()
-                    uPlusdu[subdomain.ID].Clear();
-                    uPlusdu[subdomain.ID].AddIntoThis(u[subdomain.ID]);
-                    uPlusdu[subdomain.ID].AddIntoThis(du[subdomain.ID]);
+                    uPlusdu[linearSystem.ID].Clear();
+                    uPlusdu[linearSystem.ID].AddIntoThis(u[linearSystem.ID]);
+                    uPlusdu[linearSystem.ID].AddIntoThis(du[linearSystem.ID]);
                 }
                 //Vector<double> internalRHS = (Vector<double>)subdomain.GetRHSFromSolution(u[subdomain.ID], du[subdomain.ID]);
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index;
+                    First(x => x.System.ID == linearSystem.ID).Index;
 
                 //TODO: remove cast
-                IVector internalRHS = subdomainUpdaters[subdomainIdx].GetRHSFromSolution(uPlusdu[subdomain.ID], du[subdomain.ID]);//TODOMaria this calculates the internal forces
-                provider.ProcessInternalRHS(subdomain, internalRHS, uPlusdu[subdomain.ID]);//TODOMaria this does nothing
+                IVector internalRHS = subdomainUpdaters[subdomainIdx].GetRHSFromSolution(uPlusdu[linearSystem.ID], du[linearSystem.ID]);//TODOMaria this calculates the internal forces
+                provider.ProcessInternalRHS(linearSystem, internalRHS, uPlusdu[linearSystem.ID]);//TODOMaria this does nothing
                 //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
                 {
-                    IVector otherRhsComponents = parentAnalyzer.GetOtherRHSComponents(subdomain, uPlusdu[subdomain.ID]);
-                    internalRHS.AddIntoThis((Vector)otherRhsComponents);//TODOMaria this does nothing for the static problem
+                    IVector otherRhsComponents = parentAnalyzer.GetOtherRHSComponents(linearSystem, uPlusdu[linearSystem.ID]);
+                    internalRHS.AddIntoThis(otherRhsComponents);//TODOMaria this does nothing for the static problem
                 }
 
                 //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
 
-                subdomain.RhsVector.Clear(); //TODO: we can copy rhs[subdomain.ID] and then scale it instead of clearing and adding.
+                linearSystem.RhsVector.Clear(); //TODO: we can copy rhs[subdomain.ID] and then scale it instead of clearing and adding.
 
                 //TODO: the next line adds a vector to itself many times. This is called multiplication and is much faster.
-                for (int j = 0; j <= currentIncrement; j++) subdomain.RhsVector.AddIntoThis(rhs[subdomain.ID]);//TODOMaria this adds the external forces 
-                subdomain.RhsVector.SubtractIntoThis(internalRHS);
+                for (int j = 0; j <= currentIncrement; j++) linearSystem.RhsVector.AddIntoThis(rhs[linearSystem.ID]);//TODOMaria this adds the external forces 
+                linearSystem.RhsVector.SubtractIntoThis(internalRHS);
 
                 subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index; //TODO: this is already computed. Remove it
-                mappings[subdomainIdx].SubdomainToGlobalVector(subdomain.RhsVector, globalRHS);
+                    First(x => x.System.ID == linearSystem.ID).Index; //TODO: this is already computed. Remove it
+                mappings[subdomainIdx].SubdomainToGlobalVector(linearSystem.RhsVector, globalRHS);
             }
             return provider.RHSNorm(globalRHS);
         }
 
         private void ClearIncrementalSolutionVector()
         {
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
-                du[subdomain.ID].Clear();
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+                du[linearSystem.ID].Clear();
         }
 
         private void SplitResidualForcesToSubdomains()
         {
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                subdomain.RhsVector.Clear(); //TODO: why clear it if it is going to be overwritten immediately afterwards?
+                linearSystem.RhsVector.Clear(); //TODO: why clear it if it is going to be overwritten immediately afterwards?
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index;
-                mappings[subdomainIdx].SplitGlobalVectorToSubdomain(globalRHS, subdomain.RhsVector);
+                    First(x => x.System.ID == linearSystem.ID).Index;
+                mappings[subdomainIdx].SplitGlobalVectorToSubdomain(globalRHS, linearSystem.RhsVector);
             }
         }
 
         private void SaveMaterialStateAndUpdateSolution()
         {
-            foreach (ILinearSystem_v2 subdomain in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 int subdomainIdx = linearSystems.Select((v, i) => new { System = v, Index = i }).
-                    First(x => x.System.ID == subdomain.ID).Index;
+                    First(x => x.System.ID == linearSystem.ID).Index;
                 subdomainUpdaters[subdomainIdx].UpdateState();
-                u[subdomain.ID].AddIntoThis(du[subdomain.ID]);
+                u[linearSystem.ID].AddIntoThis(du[linearSystem.ID]);
             }
         }
 

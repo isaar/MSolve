@@ -58,5 +58,6 @@ namespace ISAAR.MSolve.Solvers.Commons
         //}
 
         public abstract TVector CreateZeroVector();
+        public abstract void GetRhsFromSubdomain();
     }
 }

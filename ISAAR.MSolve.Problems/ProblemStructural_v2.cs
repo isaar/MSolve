@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Problems
         {
             ks = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
             var stiffnessProvider = new ElementStructuralStiffnessProvider();
-            foreach (Subdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
             {
                 ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
             }
@@ -117,9 +117,13 @@ namespace ISAAR.MSolve.Problems
         #region IAnalyzerProvider Members
         public void Reset()
         {
-            foreach (Subdomain subdomain in model.ISubdomainsDictionary.Values)
-                foreach (var element in subdomain.ElementsDictionary.Values)
-                    element.ElementType.ClearMaterialState();
+            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+            {
+                foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+                {
+                    ((IFiniteElement)element.IElementType).ClearMaterialState();
+                }
+            }
 
             cs = null;
             ks = null;
@@ -129,15 +133,15 @@ namespace ISAAR.MSolve.Problems
 
         #region IImplicitIntegrationProvider Members
 
-        public void CalculateEffectiveMatrix(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
+        public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
         {
-            subdomain.Matrix = this.Ks[subdomain.ID];
-            if (subdomain.IsMatrixFactorized) BuildKs();
+            linearSystem.Matrix = this.Ks[linearSystem.ID];
+            if (linearSystem.IsMatrixFactorized) BuildKs();
 
-            subdomain.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[subdomain.ID], coefficients.Mass);
-            subdomain.Matrix.AxpyIntoThis(Cs[subdomain.ID], coefficients.Damping);
+            linearSystem.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[linearSystem.ID], coefficients.Mass);
+            linearSystem.Matrix.AxpyIntoThis(Cs[linearSystem.ID], coefficients.Damping);
 
-            subdomain.IsMatrixModified = true;
+            linearSystem.IsMatrixModified = true;
         }
 
         public void ProcessRHS(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
@@ -145,11 +149,13 @@ namespace ISAAR.MSolve.Problems
             // Method intentionally left empty.
         }
 
-        public IDictionary<int, Vector> GetAccelerationsOfTimeStep(int timeStep)
+        public IDictionary<int, IVector> GetAccelerationsOfTimeStep(int timeStep)
         {
-            var d = new Dictionary<int, Vector>();
-            foreach (Subdomain subdomain in model.ISubdomainsDictionary.Values)
-                d.Add(subdomain.ID, Vector.CreateZero(subdomain.TotalDOFs));
+            var d = new Dictionary<int, IVector>();
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                d.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+            }
 
             if (model.MassAccelerationHistoryLoads.Count > 0)
             {
@@ -167,7 +173,7 @@ namespace ISAAR.MSolve.Problems
                             {
                                 if (dofPair.Key == l.DOF && dofPair.Value != -1)
                                 {
-                                    d[subdomain.ID][dofPair.Value] = l.Amount;
+                                    d[subdomain.ID].Set(dofPair.Value, l.Amount);
                                 }
                             }
                         }
@@ -186,31 +192,38 @@ namespace ISAAR.MSolve.Problems
             return d;
         }
 
-        public IDictionary<int, Vector> GetVelocitiesOfTimeStep(int timeStep)
+        public IDictionary<int, IVector> GetVelocitiesOfTimeStep(int timeStep)
         {
-            var d = new Dictionary<int, Vector>();
-            foreach (Subdomain subdomain in model.ISubdomainsDictionary.Values)
-                d.Add(subdomain.ID, Vector.CreateZero(subdomain.TotalDOFs));
+            var d = new Dictionary<int, IVector>();
+
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                d.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+            }
 
             return d;
         }
 
         public void GetRHSFromHistoryLoad(int timeStep)
         {
-            foreach (Subdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values) 
             {
-                //TODO: use a Vector and call Clear()
-                for (int i = 0; i < subdomain.Forces.Length; i++) subdomain.Forces[i] = 0;
+                Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
             }
-
 
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
             foreach (var l in linearSystems)
             {
-                l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
-                //l.Value.RhsVector.CopyFrom(0, l.Value.RhsVector.Length, Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces), 0);
+                // This causes a redundant(?) copy and forces the provider to go through each subdomain.
+                //l.Value.RhsVector.CopyFrom(Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces, false));
+
+                // This also violates the assumption that providers do not know the concrete type of the linear system vectors.
+                //l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
+
+                //This works fine in this case, but what if we want a vector other than Subdomain.Forces?
+                l.Value.GetRhsFromSubdomain();
             }
         }
 
@@ -235,14 +248,9 @@ namespace ISAAR.MSolve.Problems
 
         #region INonLinearProvider Members
 
-        public double RHSNorm(IVectorView rhs)
-        {
-            return rhs.Norm2();
-        }
+        public double RHSNorm(IVectorView rhs) => rhs.Norm2();
 
-        public void ProcessInternalRHS(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution)
-        {
-        }
+        public void ProcessInternalRHS(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution) {}
 
         #endregion
     }

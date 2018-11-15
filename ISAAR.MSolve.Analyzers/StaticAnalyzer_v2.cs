@@ -80,9 +80,11 @@ namespace ISAAR.MSolve.Analyzers
 
         #region INonLinearParentAnalyzer Members
 
-        public IVector GetOtherRHSComponents(ILinearSystem_v2 subdomain, IVector currentSolution)
+        public IVector GetOtherRHSComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
         {
-            return Vector.CreateZero(subdomain.RhsVector.Length);
+            //TODO: use a ZeroVector class that avoid doing useless operations or refactor this method. E.g. let this method 
+            // alter the child analyzer's rhs vector, instead of the opposite (which is currently done).
+            return linearSystem.CreateZeroVector();
         }
 
         #endregion

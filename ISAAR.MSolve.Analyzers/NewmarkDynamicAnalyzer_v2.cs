@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Analyzers
             a7 = delta * timeStep;
         }
 
-        //TODO: Remove this. The analyzer should not mess with the solution vector.
+        //TODO: Remove this. The analyzer should not mess with the solution vector. It is not called by anything either way.
         //public void ResetSolutionVectors()
         //{
         //    foreach (ILinearSystem_v2 subdomain in subdomains.Values)
@@ -85,23 +85,22 @@ namespace ISAAR.MSolve.Analyzers
             v2.Clear();
             rhs.Clear();
 
-            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                int dofs = subdomain.RhsVector.Length;
-                uu.Add(subdomain.ID, Vector.CreateZero(dofs));
-                uum.Add(subdomain.ID, Vector.CreateZero(dofs));
-                uc.Add(subdomain.ID, Vector.CreateZero(dofs));
-                ucc.Add(subdomain.ID, Vector.CreateZero(dofs));
-                u.Add(subdomain.ID, Vector.CreateZero(dofs));
-                v.Add(subdomain.ID, Vector.CreateZero(dofs));
-                v1.Add(subdomain.ID, Vector.CreateZero(dofs));
-                v2.Add(subdomain.ID, Vector.CreateZero(dofs));
-                rhs.Add(subdomain.ID, Vector.CreateZero(dofs));
+                uu.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                uum.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                uc.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                ucc.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                u.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                v.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                v1.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                v2.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                rhs.Add(linearSystem.ID, linearSystem.CreateZeroVector());
 
                 // Account for initial conditions coming from a previous solution. 
                 //TODO: This does't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
-                if (subdomain.Solution != null) v[subdomain.ID] = subdomain.Solution.Copy();
-                else v[subdomain.ID] = Vector.CreateZero(dofs);
+                if (linearSystem.Solution != null) v[linearSystem.ID] = linearSystem.Solution.Copy();
+                else v[linearSystem.ID] = linearSystem.CreateZeroVector();
             }
         }
 
@@ -113,8 +112,8 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
-                provider.CalculateEffectiveMatrix(subdomain, coeffs);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+                provider.CalculateEffectiveMatrix(linearSystem, coeffs);
 
 
             //TODO: Remove the following comments and commented-out code. 
@@ -140,22 +139,22 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                provider.ProcessRHS(subdomain, coeffs);
-                int dofs = subdomain.RhsVector.Length;
-                rhs[subdomain.ID] = subdomain.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
+                provider.ProcessRHS(linearSystem, coeffs);
+                int dofs = linearSystem.RhsVector.Length;
+                rhs[linearSystem.ID] = linearSystem.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
             }
         }
 
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
             if (childAnalyzer == null) return;
-            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
-                if (resultStorages.ContainsKey(subdomain.ID))
-                    if (resultStorages[subdomain.ID] != null)
-                        foreach (var l in childAnalyzer.Logs[subdomain.ID])
-                            resultStorages[subdomain.ID].StoreResults(start, end, l);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+                if (resultStorages.ContainsKey(linearSystem.ID))
+                    if (resultStorages[linearSystem.ID] != null)
+                        foreach (var l in childAnalyzer.Logs[linearSystem.ID])
+                            resultStorages[linearSystem.ID].StoreResults(start, end, l);
         }
 
         #region IAnalyzer Members
@@ -184,11 +183,11 @@ namespace ISAAR.MSolve.Analyzers
             childAnalyzer.Initialize();
         }
 
-        private IVector CalculateRHSImplicit(ILinearSystem_v2 subdomain, bool addRHS)
+        private IVector CalculateRHSImplicit(ILinearSystem_v2 linearSystem, bool addRHS)
         {
             //TODO: instead of creating a new Vector and then trying to set ILinearSystem.RhsVector, clear it and operate on it.
 
-            int id = subdomain.ID;
+            int id = linearSystem.ID;
 
             // uu = a0 * v + a2 * v1 + a3 * v2
             uu[id] = v[id].LinearCombination(a0, v1[id], a2);
@@ -198,8 +197,8 @@ namespace ISAAR.MSolve.Analyzers
             uc[id] = v[id].LinearCombination(a1, v1[id], a4);
             uc[id].AxpyIntoThis(v2[id], a5);
 
-            uum[id] = provider.MassMatrixVectorProduct(subdomain, uu[id]);
-            ucc[id] = provider.DampingMatrixVectorProduct(subdomain, uc[id]);
+            uum[id] = provider.MassMatrixVectorProduct(linearSystem, uu[id]);
+            ucc[id] = provider.DampingMatrixVectorProduct(linearSystem, uc[id]);
 
             IVector rhsResult = uum[id].Add(ucc[id]);
             if (addRHS) rhsResult.AddIntoThis(rhs[id]);
@@ -208,13 +207,13 @@ namespace ISAAR.MSolve.Analyzers
 
         private void CalculateRHSImplicit()
         {
-            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
                 //    subdomain.RHS[i] = rhs[id].Data[i];
 
-                subdomain.RhsVector = CalculateRHSImplicit(subdomain, true);
+                linearSystem.RhsVector = CalculateRHSImplicit(linearSystem, true);
 
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
@@ -272,8 +271,6 @@ namespace ISAAR.MSolve.Analyzers
                 UpdateVelocityAndAcceleration(i);
                 UpdateResultStorages(start, end);
             }
-
-            //childAnalyzer.Solve();
         }
 
         private void UpdateVelocityAndAcceleration(int timeStep)
@@ -281,11 +278,11 @@ namespace ISAAR.MSolve.Analyzers
             var externalVelocities = provider.GetVelocitiesOfTimeStep(timeStep);
             var externalAccelerations = provider.GetAccelerationsOfTimeStep(timeStep);
 
-            foreach (ILinearSystem_v2 subdomain in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                int id = subdomain.ID;
+                int id = linearSystem.ID;
                 u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;
-                v[id].CopyFrom(subdomain.Solution);
+                v[id].CopyFrom(linearSystem.Solution);
 
                 IVector vv = v2[id].Add(externalAccelerations[id]);
 
@@ -311,7 +308,7 @@ namespace ISAAR.MSolve.Analyzers
 
         #region INonLinearParentAnalyzer Members
 
-        public IVector GetOtherRHSComponents(ILinearSystem_v2 subdomain, IVector currentSolution)
+        public IVector GetOtherRHSComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
         {
             //// u[id]: old solution
             //// v[id]: current solution
@@ -362,8 +359,8 @@ namespace ISAAR.MSolve.Analyzers
             ////result.Scale(-1d);
 
             // result = a0 * (M * u) + a1 * (C * u) 
-            IVector result = provider.MassMatrixVectorProduct(subdomain, currentSolution);
-            IVector temp = provider.DampingMatrixVectorProduct(subdomain, currentSolution);
+            IVector result = provider.MassMatrixVectorProduct(linearSystem, currentSolution);
+            IVector temp = provider.DampingMatrixVectorProduct(linearSystem, currentSolution);
             result.LinearCombinationIntoThis(a0, temp, a1);
             return result;
         }

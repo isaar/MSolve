@@ -123,6 +123,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             private readonly ISubdomain subdomain;
             internal CsrSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
             public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
+            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
         }
     }
 }
