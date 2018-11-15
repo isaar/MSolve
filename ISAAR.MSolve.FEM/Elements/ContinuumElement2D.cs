@@ -232,9 +232,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
         // Perhaps this should be more minimalistic
         // TODO: Either keep this or the GetNodlDofs() logic, but through a DofEnumerator and caching the dofs.
-        public DofTable<IDof> GetNodalDofsTable() 
+        public DofTable_v2<IDof> GetNodalDofsTable() 
         {
-            var dofTable = new DofTable<IDof>();
+            var dofTable = new DofTable_v2<IDof>();
             int dofCounter = 0;
             foreach (var node in Nodes)
             {

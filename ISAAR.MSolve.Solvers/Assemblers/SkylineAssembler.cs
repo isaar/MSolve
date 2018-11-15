@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //    return (Kff.BuildSkylineMatrix(), Kfc);
         //}
 
-        public SkylineMatrix BuildGlobalMatrix(FreeDofOrderer_v2 dofOrderer, IEnumerable<IElement> elements, 
+        public SkylineMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;
@@ -122,7 +122,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
         // though.
         private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<IElement> elements,
-            int numFreeDofs, DofTable_v2 freeDofs)
+            int numFreeDofs, DofTable freeDofs)
         {
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
             foreach (IElement element in elements)

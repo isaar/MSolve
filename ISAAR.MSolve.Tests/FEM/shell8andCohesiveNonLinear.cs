@@ -10,6 +10,7 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
@@ -123,6 +124,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Solver
             var solver = new SkylineSolver(model);
+            solver.DofOrderer = new NodeMajorDofOrderer();
 
             //TODO: this should be hidden and handled by the analyzer at another phase
             solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);

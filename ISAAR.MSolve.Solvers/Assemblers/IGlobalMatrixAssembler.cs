@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     public interface IGlobalMatrixAssembler<TMatrix>
         where TMatrix : IMatrix
     {
-        TMatrix BuildGlobalMatrix(FreeDofOrderer_v2 dofOrderer, IEnumerable<IElement> elements,
+        TMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements,
             IElementMatrixProvider matrixProvider);
 
         TMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider);

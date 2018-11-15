@@ -32,7 +32,6 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private readonly ISubdomain subdomain;
         private readonly double factorizationPivotTolerance;
         private readonly SkylineSystem linearSystem;
-        private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
         private CholeskySkyline factorizedMatrix;
 
         public SkylineSolver(IStructuralModel model, double factorizationPivotTolerance = 1E-15) //TODO: subdomainID should not be provided by the user or needed at all
@@ -45,18 +44,15 @@ namespace ISAAR.MSolve.Solvers.Skyline
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
+        public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
+
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            //if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithElementMajorFreeDofOrder(
-            //    subdomain.ΙElementsDictionary.Values, subdomain.Constraints);
-
-
+            if (!DofOrderer.AreDofsOrdered) DofOrderer.OrderDofs(subdomain);
 
             // DEBUG
-            if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithNodeMajorFreeDofOrder(
-                subdomain.ΙElementsDictionary.Values, subdomain.Nodes, subdomain.Constraints);
 
             //Console.WriteLine("Existing global dof enumeration:");
             //Utilities.PrintDofOrder(subdomain);
@@ -67,7 +63,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
             // END DEBUG
 
-            return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            return assembler.BuildGlobalMatrix(DofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)

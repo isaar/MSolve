@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
         }
 
-        public CsrMatrix BuildGlobalMatrix(FreeDofOrderer_v2 dofOrderer, IEnumerable<IElement> elements, 
+        public CsrMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrderer.NumFreeDofs;

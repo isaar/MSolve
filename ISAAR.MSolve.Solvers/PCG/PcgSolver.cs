@@ -24,14 +24,14 @@ namespace ISAAR.MSolve.Solvers.PCG
         private const string name = "PcgSolver"; // for error messages
         private readonly CsrAssembler assembler = new CsrAssembler(true);
         private readonly ISubdomain subdomain;
+        private readonly IDofOrderer dofOrderer;
         private readonly CsrSystem linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
-        private FreeDofOrderer_v2 dofOrderer; //TODO: this should probably be accessed from the subdomain
         private IPreconditioner preconditioner;
 
         public PcgSolver(IStructuralModel model, PreconditionedConjugateGradient pcgAlgorithm, 
-            IPreconditionerFactory preconditionerFactory)
+            IPreconditionerFactory preconditionerFactory, IDofOrderer dofOrderer)
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
@@ -41,14 +41,15 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             this.pcgAlgorithm = pcgAlgorithm;
             this.preconditionerFactory = preconditionerFactory;
+            this.dofOrderer = dofOrderer;
         }
+
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithElementMajorFreeDofOrder(
-                subdomain.ΙElementsDictionary.Values, subdomain.Constraints);
+            if (!dofOrderer.AreDofsOrdered) dofOrderer.OrderDofs(subdomain);
             return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
@@ -91,6 +92,8 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             public Builder() { }
 
+            public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
+
             public int MaxIterations
             {
                 set
@@ -114,7 +117,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             public PcgSolver BuildSolver(IStructuralModel model)
             {
                 return new PcgSolver(model, new PreconditionedConjugateGradient(maxIterationsProvider, ResidualTolerance),
-                    PreconditionerFactory);
+                    PreconditionerFactory, DofOrderer);
             }
         }
 

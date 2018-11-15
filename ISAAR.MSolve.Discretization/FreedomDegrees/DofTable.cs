@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
@@ -8,24 +11,24 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
     /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TDof">A freedom degree type.</typeparam>
-    public class DofTable<TDof>: Table<IDiscretePoint, TDof, int> where TDof: IDof
+    public class DofTable: Table<INode, DOFType, int>
     {
         public DofTable(): base()
         { }
 
-        private DofTable(Dictionary<IDiscretePoint, Dictionary<TDof, int>> data): base(data)
+        private DofTable(Dictionary<INode, Dictionary<DOFType, int>> data): base(data)
         { }
 
         //TODO: this would be nice to have in Table too.
-        public DofTable<TDof> DeepCopy()
+        public DofTable DeepCopy()
         {
-            var dataCopy = new Dictionary<IDiscretePoint, Dictionary<TDof, int>>();
+            var dataCopy = new Dictionary<INode, Dictionary<DOFType, int>>();
             foreach (var wholeRow in this.data)
             {
                 // IDof and int are immutable, thus I can just copy the nested dictionary.
-                dataCopy.Add(wholeRow.Key, new Dictionary<TDof, int>(wholeRow.Value));
+                dataCopy.Add(wholeRow.Key, new Dictionary<DOFType, int>(wholeRow.Value));
             }
-            return new DofTable<TDof>(dataCopy);
+            return new DofTable(dataCopy);
         }
 
         /// <summary>
@@ -48,7 +51,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
             foreach (var nodeRow in data.Values)
             {
-                var dofIDs = new List<KeyValuePair<TDof, int>>(nodeRow);
+                var dofIDs = new List<KeyValuePair<DOFType, int>>(nodeRow);
                 foreach (var dofIDPair in dofIDs)
                 {
                     nodeRow[dofIDPair.Key] = permutationOldToNew[dofIDPair.Value];
@@ -60,6 +63,35 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 //    nodeRow[dofID.Key] = permutationOldToNew[dofID.Value];
                 //}
             }
+        }
+
+        public void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes)
+        {
+            int dofIdx = -1;
+            foreach (INode node in sortedNodes)
+            {
+                bool isNodeContained = data.TryGetValue(node, out Dictionary<DOFType, int> dofsOfNode);
+                if (isNodeContained)
+                {
+                    // We cannot not update the dictionary during iterating it, thus we copy its Key collection to a list first.
+                    foreach (DOFType dofType in dofsOfNode.Keys.ToList()) dofsOfNode[dofType] = ++dofIdx;
+                }
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (var nodeData in data.OrderBy(entry => entry.Key.ID))
+            {
+                builder.AppendLine($"Node {nodeData.Key.ID}:");
+                foreach (var dofPair in nodeData.Value)
+                {
+                    builder.Append("\t");
+                    builder.AppendLine($"Dof type = {dofPair.Key} - Global index = {dofPair.Value}");
+                }
+            }
+            return builder.ToString();
         }
     }
 }
