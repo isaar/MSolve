@@ -66,7 +66,9 @@ namespace ISAAR.MSolve.FEM.Elements
             set { dofEnumerator = value; }
         }
 
-        public IList<EmbeddedNode> EmbeddedNodes => throw new NotImplementedException();
+        //public IList<EmbeddedNode> EmbeddedNodes => throw new NotImplementedException();
+        private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
+        public IList<EmbeddedNode> EmbeddedNodes { get { return embeddedNodes; } }
 
         public abstract void SaveGeometryState();
         public abstract void UpdateState(double[] incrementalNodeDisplacements);
@@ -497,7 +499,7 @@ namespace ISAAR.MSolve.FEM.Elements
             var rotationMatrixBlock = this.CalculateBlockRotationMatrix();
             var localStiffnessMatrix = this.CalculateLocalStiffnessMatrix();
             var s = rotationMatrixBlock * localStiffnessMatrix.ToMatrix2D() * rotationMatrixBlock.Transpose();
-            return new SymmetricMatrix2D(s);
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D(s));
         }      
         
         public IMatrix2D MassMatrix(IElement element)
@@ -566,7 +568,7 @@ namespace ISAAR.MSolve.FEM.Elements
             massMatrix[11, 7] = -(11.0 * L / 210.0) * fullMass;
             massMatrix[10, 8] = (11.0 * L / 210.0) * fullMass;
 
-            return massMatrix;
+            return dofEnumerator.GetTransformedMatrix(massMatrix);
         }
 
         public IMatrix2D DampingMatrix(IElement element)
@@ -575,7 +577,7 @@ namespace ISAAR.MSolve.FEM.Elements
             var m = MassMatrix(element);
             var lc = m as ILinearlyCombinable;
             lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
-            return m;
+            return dofEnumerator.GetTransformedMatrix(m);
         }
 
         public void ResetMaterialModified()
@@ -585,7 +587,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
-            UpdateState(localdDisplacements);
+            UpdateState(dofEnumerator.GetTransformedDisplacementsVector(localdDisplacements));
             //TODO: Should calculate strains and update material as well
             //material.UpdateMaterial(strains);
             //TODO: Should calculate stresses as well
@@ -595,7 +597,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             var internalForces = this.CalculateForcesInGlobalSystem();
-            return internalForces.Data;
+            return dofEnumerator.GetTransformedForcesVector(internalForces.Data);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
