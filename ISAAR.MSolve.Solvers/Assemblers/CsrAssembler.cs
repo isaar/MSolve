@@ -63,9 +63,9 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> mapStandard = dofOrderer.MapFreeDofsElementToGlobal(element);
+                IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrderer.MapFreeDofsElementToGlobal(element);
                 Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
-                Kff.AddSubmatrixSymmetric(k, mapStandard);
+                Kff.AddSubmatrixSymmetric(k, elementToGlobalDofs);
             }
 
             return Kff.BuildCsrMatrix(sortColsOfEachRow);

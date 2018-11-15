@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.Tests.FEM
         }
 
         [Fact]
-        private static void RunTest_v2()
+        public static void RunTest_v2()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
             IncrementalDisplacementsLog computedDisplacements = SolveModel_v2();
@@ -123,9 +123,11 @@ namespace ISAAR.MSolve.Tests.FEM
             model.ConnectDataStructures();
 
             // Solver
-            var solverBuilder = new SkylineSolver.Builder();
+            //var solverBuilder = new SkylineSolver.Builder();
+            var solverBuilder = new Solvers.Dense.DenseMatrixSolver.Builder();
             solverBuilder.DofOrderer = new NodeMajorDofOrderer();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            //solverBuilder.DofOrderer = new SimpleDofOrderer();
+            var solver = solverBuilder.BuildSolver(model);
 
             //TODO: this should be hidden and handled by the analyzer at another phase
             solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
