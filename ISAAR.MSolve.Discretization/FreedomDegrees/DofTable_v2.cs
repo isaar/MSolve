@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.Commons;
 
@@ -61,6 +63,35 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 //    nodeRow[dofID.Key] = permutationOldToNew[dofID.Value];
                 //}
             }
+        }
+
+        public void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes)
+        {
+            int dofIdx = -1;
+            foreach (INode node in sortedNodes)
+            {
+                bool isNodeContained = data.TryGetValue(node, out Dictionary<DOFType, int> dofsOfNode);
+                if (isNodeContained)
+                {
+                    // We cannot not update the dictionary during iterating it, thus we copy its Key collection to a list first.
+                    foreach (DOFType dofType in dofsOfNode.Keys.ToList()) dofsOfNode[dofType] = ++dofIdx;
+                }
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (var nodeData in data.OrderBy(entry => entry.Key.ID))
+            {
+                builder.AppendLine($"Node {nodeData.Key.ID}:");
+                foreach (var dofPair in nodeData.Value)
+                {
+                    builder.Append("\t");
+                    builder.AppendLine($"Dof type = {dofPair.Key} - Global index = {dofPair.Value}");
+                }
+            }
+            return builder.ToString();
         }
     }
 }

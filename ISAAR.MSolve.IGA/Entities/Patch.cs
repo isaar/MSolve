@@ -61,6 +61,8 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return controlPointsDictionary.Values.ToList<ControlPoint>(); }
         }
 
+        IReadOnlyList<INode> ISubdomain.Nodes => controlPointsDictionary.Values.ToList<INode>();
+
         public Dictionary<int, Dictionary<DOFType,int>> ControlPointDOFsDictionary
         {
             get { return controlPointDOFsDictionary; }

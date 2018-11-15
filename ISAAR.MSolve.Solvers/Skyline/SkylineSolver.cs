@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -47,8 +49,32 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithElementMajorFreeDofOrder(
-                subdomain.ΙElementsDictionary.Values, subdomain.Constraints);
+            //if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithElementMajorFreeDofOrder(
+            //    subdomain.ΙElementsDictionary.Values, subdomain.Constraints);
+
+
+
+            // DEBUG
+            if (dofOrderer == null) dofOrderer = FreeDofOrderer_v2.CreateWithNodeMajorFreeDofOrder(
+                subdomain.ΙElementsDictionary.Values, subdomain.Nodes, subdomain.Constraints);
+
+            Console.WriteLine("Existing global dof enumeration:");
+            foreach (int nodeID in subdomain.NodalDOFsDictionary.Keys)
+            {
+                Console.WriteLine($"Node {nodeID}:");
+                var nodeDofs = subdomain.NodalDOFsDictionary[nodeID];
+                foreach (var dofPair in nodeDofs)
+                {
+                    Console.WriteLine($"\t Dof type = {dofPair.Key} - Global index = {dofPair.Value}" );
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Using dof orderer:");
+            Console.WriteLine(dofOrderer.FreeDofs.ToString());
+
+            // END DEBUG
+
             return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 

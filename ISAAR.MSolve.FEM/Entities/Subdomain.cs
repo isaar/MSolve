@@ -53,6 +53,8 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return nodesDictionary.Values.ToList<Node>(); }
         }
 
+        IReadOnlyList<INode> ISubdomain.Nodes => nodesDictionary.Values.ToList<INode>();
+
         public Dictionary<int, Dictionary<DOFType, double>> Constraints => constraintsDictionary;
 
         public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary

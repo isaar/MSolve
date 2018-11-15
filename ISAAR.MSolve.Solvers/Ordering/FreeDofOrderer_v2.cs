@@ -68,10 +68,11 @@ namespace ISAAR.MSolve.Solvers.Ordering
         /// The node major ordering is decent for direct solvers, at least as a starting point for reordering algorithms. 
         /// </summary>
         public static FreeDofOrderer_v2 CreateWithNodeMajorFreeDofOrder(IEnumerable<IElement> elements,
-            IReadOnlyList<INode> sortedNodes, Dictionary<int, Dictionary<DOFType, double>> constraints)
+            IReadOnlyList<INode> sortedNodes, Dictionary<int, Dictionary<DOFType, double>> constraints) //TODO: make the IList<Node>, IReadOnlyList<INode>
         {
+            //TODO: perhaps it there are faster ways to do this. Compare with Subdomain.EnumerateDOFs(). 
             var orderer = CreateWithElementMajorFreeDofOrder(elements, constraints);
-            ReorderFreeDofsNodeMajor(orderer.FreeDofs, sortedNodes);
+            orderer.FreeDofs.ReorderNodeMajor(sortedNodes);
             return orderer;
         }
 
@@ -139,23 +140,6 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 }
             }
             return dofMap;
-        }
-
-        /// <summary>
-        /// Perhaps this should be called directly, instead of using a dedicated static factory method.
-        /// </summary>
-        /// <param name="freeDofs"></param>
-        /// <param name="sortedNodes"></param>
-        private static void ReorderFreeDofsNodeMajor(DofTable_v2 freeDofs, IReadOnlyList<INode> sortedNodes)
-        {
-            int dofCounter = 0;
-            foreach (var node in sortedNodes)
-            {
-                foreach (var dof in freeDofs.GetColumnsOfRow(node))
-                {
-                    freeDofs[node, dof] = dofCounter++;
-                }
-            }
         }
     }
 }

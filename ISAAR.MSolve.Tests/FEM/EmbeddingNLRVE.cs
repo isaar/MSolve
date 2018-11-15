@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Tests.FEM
         }
 
         [Fact]
-        private static void RunTest_v2()
+        public static void RunTest_v2()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
             IncrementalDisplacementsLog computedDisplacements = SolveModel_v2();
