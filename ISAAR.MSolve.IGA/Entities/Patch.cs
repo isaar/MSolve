@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
@@ -72,6 +73,8 @@ namespace ISAAR.MSolve.IGA.Entities
         {
             get { return globalControlPointsDOFsDictionary; }
         }
+
+        public IDofOrdering DofOrdering { get; set; }
 
 		public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
 		{

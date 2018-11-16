@@ -2,6 +2,7 @@
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Solvers.Interfaces
 {
@@ -14,7 +15,7 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 
         //TODO: I think this needs to be called only once (by the analyzer), not every time the matrix must be factorized.
         void Initialize();
-
+        void OrderDofs();
         void Solve();
     }
 }

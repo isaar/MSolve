@@ -8,6 +8,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System.Globalization;
 using System.IO;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
@@ -56,6 +57,8 @@ namespace ISAAR.MSolve.FEM.Entities
         IReadOnlyList<INode> ISubdomain.Nodes => nodesDictionary.Values.ToList<INode>();
 
         public Dictionary<int, Dictionary<DOFType, double>> Constraints => constraintsDictionary;
+
+        public IDofOrdering DofOrdering { get; set; }
 
         public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
         {

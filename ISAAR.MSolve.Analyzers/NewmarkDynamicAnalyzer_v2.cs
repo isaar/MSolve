@@ -29,18 +29,21 @@ namespace ISAAR.MSolve.Analyzers
         //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
         private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages =
             new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
+        private readonly ISolver_v2 solver;
         private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly IImplicitIntegrationProvider_v2 provider;
         private IAnalyzer_v2 childAnalyzer;
         private IAnalyzer_v2 parentAnalyzer;
+        private bool areDofsOrdered = false;
 
         public NewmarkDynamicAnalyzer_v2(IImplicitIntegrationProvider_v2 provider, IAnalyzer_v2 embeddedAnalyzer,
             ISolver_v2 solver,
             double alpha, double delta, double timeStep, double totalTime)
         {
+            this.solver = solver;
+            this.linearSystems = solver.LinearSystems;
             this.provider = provider;
             this.childAnalyzer = embeddedAnalyzer;
-            this.linearSystems = solver.LinearSystems;
             this.alpha = alpha;
             this.delta = delta;
             this.timeStep = timeStep;
@@ -301,6 +304,16 @@ namespace ISAAR.MSolve.Analyzers
         public void BuildMatrices()
         {
             InitializeCoefficients();
+
+            //TODO: Dof ordering should be handled separately from matrix building. It should be done in Initialize() (for this
+            //      analyzer), which should be called before BuildMatrices(). Actually BuildMatrices() should not be called by
+            //      the user.
+            if (!areDofsOrdered)
+            {
+                solver.OrderDofs();
+                areDofsOrdered = true;
+            }
+
             InitializeMatrices();
         }
 

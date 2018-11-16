@@ -50,15 +50,14 @@ namespace ISAAR.MSolve.Solvers.PCG
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
-        {
-            if (dofOrdering == null) dofOrdering = dofOrderer.OrderDofs(subdomain);
-            return assembler.BuildGlobalMatrix(dofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
-        }
+            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
 
         public void Initialize()
         {
             // TODO: perhaps order dofs here
         }
+
+        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(subdomain);
 
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.

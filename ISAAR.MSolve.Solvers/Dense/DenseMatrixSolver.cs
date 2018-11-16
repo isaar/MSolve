@@ -23,7 +23,6 @@ namespace ISAAR.MSolve.Solvers.Dense
         private readonly ISubdomain subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly DenseSystem linearSystem;
-        private IDofOrdering dofOrdering;
         private CholeskyFull factorizedMatrix;
 
         public DenseMatrixSolver(IStructuralModel model, IDofOrderer dofOrderer)
@@ -41,8 +40,6 @@ namespace ISAAR.MSolve.Solvers.Dense
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            if (dofOrdering == null) dofOrdering = dofOrderer.OrderDofs(subdomain);
-
             // DEBUG
             var writer = new FullMatrixWriter();
             writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
@@ -91,7 +88,8 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             // END DEBUG
 
-            return assembler.BuildGlobalMatrix(dofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, 
+                elementMatrixProvider);
         }
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
@@ -103,6 +101,8 @@ namespace ISAAR.MSolve.Solvers.Dense
         {
             // TODO: perhaps order dofs here
         }
+
+        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(subdomain);
 
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.

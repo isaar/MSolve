@@ -36,7 +36,6 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
         private readonly SkylineSystem linearSystem;
-        private IDofOrdering dofOrdering;
         private CholeskySkyline factorizedMatrix;
 
         public SkylineSolver(IStructuralModel model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
@@ -54,10 +53,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
-        {
-            if (dofOrdering == null) dofOrdering = dofOrderer.OrderDofs(subdomain);
-            return assembler.BuildGlobalMatrix(dofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
-        }
+            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         //{
@@ -68,6 +64,8 @@ namespace ISAAR.MSolve.Solvers.Skyline
         {
             // TODO: perhaps order dofs here
         }
+
+        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(subdomain);
 
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
