@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -54,16 +55,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
         }
 
-        public CsrMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements, 
+        public CsrMatrix BuildGlobalMatrix(IDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
-            int numFreeDofs = dofOrderer.NumFreeDofs;
+            int numFreeDofs = dofOrdering.NumFreeDofs;
             var Kff = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
 
             foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrderer.MapFreeDofsElementToGlobal(element);
+                IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToGlobal(element);
                 Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
                 Kff.AddSubmatrixSymmetric(k, elementToGlobalDofs);
             }

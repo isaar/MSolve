@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -10,16 +11,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 {
     public class DenseMatrixAssembler
     {
-        public IMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements, 
+        public IMatrix BuildGlobalMatrix(IDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider elementMatrixProvider)
         {
-            int numFreeDofs = dofOrderer.NumFreeDofs;
+            int numFreeDofs = dofOrdering.NumFreeDofs;
             var Kff = Matrix.CreateZero(numFreeDofs, numFreeDofs);
 
             foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> mapStandard = dofOrderer.MapFreeDofsElementToGlobal(element);
+                IReadOnlyDictionary<int, int> mapStandard = dofOrdering.MapFreeDofsElementToGlobal(element);
                 IMatrix2D elementK = elementMatrixProvider.Matrix(element);
                 AddElementToGlobalMatrix(Kff, elementK, mapStandard, mapStandard);
             }

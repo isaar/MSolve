@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
@@ -28,6 +29,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly CsrSystem linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
+        private IDofOrdering dofOrdering;
         private IPreconditioner preconditioner;
 
         public PcgSolver(IStructuralModel model, PreconditionedConjugateGradient pcgAlgorithm, 
@@ -49,8 +51,8 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            if (!dofOrderer.AreDofsOrdered) dofOrderer.OrderDofs(subdomain);
-            return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            if (dofOrdering == null) dofOrdering = dofOrderer.OrderDofs(subdomain);
+            return assembler.BuildGlobalMatrix(dofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
         public void Initialize()
@@ -96,18 +98,12 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             public int MaxIterations
             {
-                set
-                {
-                    maxIterationsProvider = new MaxIterationsProvider(value);
-                }
+                set => maxIterationsProvider = new MaxIterationsProvider(value);
             }
 
             public double MaxIterationsOverMatrixOrder
             {
-                set
-                {
-                    maxIterationsProvider = new MaxIterationsProvider(value);
-                }
+                set => maxIterationsProvider = new MaxIterationsProvider(value);
             }
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();

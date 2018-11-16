@@ -11,15 +11,9 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SimpleDofOrderer: FreeDofOrdererBase
+    public class SimpleDofOrderer: IDofOrderer
     {
-        public override void OrderDofs(ISubdomain subdomain)
-        {
-            (NumFreeDofs, FreeDofs) = OrderFreeDofsAtFirstOccurence(subdomain);
-            AreDofsOrdered = true;
-        }
-
-        internal static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsAtFirstOccurence(ISubdomain subdomain)
+        public IDofOrdering OrderDofs(ISubdomain subdomain)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
@@ -44,7 +38,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     }
                 }
             }
-            return (dofCounter, freeDofs);
+            return new FreeDofOrdering(dofCounter, freeDofs);
         }
     }
 }

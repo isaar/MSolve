@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
@@ -35,6 +36,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
         private readonly SkylineSystem linearSystem;
+        private IDofOrdering dofOrdering;
         private CholeskySkyline factorizedMatrix;
 
         public SkylineSolver(IStructuralModel model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
@@ -53,27 +55,8 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            if (!dofOrderer.AreDofsOrdered) dofOrderer.OrderDofs(subdomain);
-
-            // DEBUG
-
-            //Console.WriteLine("Existing global dof enumeration:");
-            //Utilities.PrintDofOrder(subdomain);
-
-            //Console.WriteLine();
-            //Console.WriteLine("Using dof orderer:");
-            //Console.WriteLine(dofOrderer.FreeDofs.ToString());
-
-            //Console.WriteLine();
-            //Console.WriteLine("Global matrix");
-            //SkylineMatrix matrix = assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
-            //var writer = new FullMatrixWriter();
-            //writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
-            //writer.WriteToConsole(matrix);
-
-            // END DEBUG
-
-            return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            if (dofOrdering == null) dofOrdering = dofOrderer.OrderDofs(subdomain);
+            return assembler.BuildGlobalMatrix(dofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)

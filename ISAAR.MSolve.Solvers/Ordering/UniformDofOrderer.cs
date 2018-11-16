@@ -13,19 +13,18 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// <see cref="NodeMajorDofOrderer"/>. Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformDofOrderer: FreeDofOrdererBase
+    public class UniformDofOrderer: IDofOrderer
     {
         private readonly IReadOnlyList<DOFType> dofsPerNode;
 
         public UniformDofOrderer(IReadOnlyList<DOFType> dofsPerNode)
         {
             this.dofsPerNode = dofsPerNode;
-            AreDofsOrdered = true;
         }
 
-        public override void OrderDofs(ISubdomain subdomain)
+        public IDofOrdering OrderDofs(ISubdomain subdomain)
         {
-            FreeDofs = new DofTable();
+            var freeDofs = new DofTable();
             int dofCounter = 0;
             foreach (INode node in subdomain.Nodes)
             {
@@ -34,10 +33,10 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 foreach (DOFType dof in dofsPerNode)
                 {
                     bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dof) : false;
-                    if (!isDofConstrained) FreeDofs[node, dof] = dofCounter++;
+                    if (!isDofConstrained) freeDofs[node, dof] = dofCounter++;
                 }
             }
-            NumFreeDofs = dofCounter;
+            return new FreeDofOrdering(dofCounter, freeDofs);
         }
     }
 }

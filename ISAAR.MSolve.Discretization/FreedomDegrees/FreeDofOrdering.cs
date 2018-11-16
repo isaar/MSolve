@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Solvers.Ordering
+namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
-    public abstract class FreeDofOrdererBase: IDofOrderer
+    public class FreeDofOrdering: IDofOrdering
     {
-        public bool AreDofsOrdered { get; protected set; } = false;
-        public DofTable FreeDofs { get; protected set; }
-        public int NumFreeDofs { get; protected set; } = -1;
+        public FreeDofOrdering(int numFreeDofs, DofTable freeDofs)
+        {
+            this.NumFreeDofs = numFreeDofs;
+            this.FreeDofs = freeDofs;
+        }
+
+        public DofTable FreeDofs { get; }
+        public int NumFreeDofs { get; }
 
         public IVector ExtractVectorElementFromGlobal(IElement element, IVectorView globalVector)
         {
@@ -55,7 +59,5 @@ namespace ISAAR.MSolve.Solvers.Ordering
             }
             return dofMap;
         }
-
-        public abstract void OrderDofs(ISubdomain subdomain);
     }
 }

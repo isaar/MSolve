@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
@@ -20,6 +23,7 @@ namespace ISAAR.MSolve.Solvers.Dense
         private readonly ISubdomain subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly DenseSystem linearSystem;
+        private IDofOrdering dofOrdering;
         private CholeskyFull factorizedMatrix;
 
         public DenseMatrixSolver(IStructuralModel model, IDofOrderer dofOrderer)
@@ -37,9 +41,39 @@ namespace ISAAR.MSolve.Solvers.Dense
 
         public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         {
-            if (!dofOrderer.AreDofsOrdered) dofOrderer.OrderDofs(subdomain);
+            if (dofOrdering == null) dofOrdering = dofOrderer.OrderDofs(subdomain);
 
             // DEBUG
+            var writer = new FullMatrixWriter();
+            writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
+
+            var dofOrderingSimple = (new SimpleDofOrderer()).OrderDofs(subdomain);
+            Matrix simpleOrderK = (Matrix)assembler.BuildGlobalMatrix(
+                dofOrderingSimple, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+
+            Console.WriteLine();
+            Console.WriteLine("Global matrix with simple ordering");
+            writer.WriteToConsole(simpleOrderK);
+
+            var dofOrderingNodeMajor = (new NodeMajorDofOrderer()).OrderDofs(subdomain);
+            Matrix nodeMajorK = (Matrix)assembler.BuildGlobalMatrix(
+                dofOrderingNodeMajor, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+
+            Console.WriteLine();
+            Console.WriteLine("Global matrix with node major ordering");
+            writer.WriteToConsole(nodeMajorK);
+
+            var permutationNodeMajorToSimple = new int[dofOrderingNodeMajor.NumFreeDofs];
+            foreach ((INode node, DOFType dofType, int nodeMajorIdx) in dofOrderingNodeMajor.FreeDofs)
+            {
+                permutationNodeMajorToSimple[nodeMajorIdx] = dofOrderingSimple.FreeDofs[node, dofType];
+            }
+
+            Matrix reorderedK = nodeMajorK.Reorder(permutationNodeMajorToSimple, true);
+
+            Console.WriteLine();
+            Console.WriteLine("Global matrix with node major ordering, reordered to simple");
+            writer.WriteToConsole(reorderedK);
 
             //Console.WriteLine("Existing global dof enumeration:");
             //Utilities.PrintDofOrder(subdomain);
@@ -57,7 +91,7 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             // END DEBUG
 
-            return assembler.BuildGlobalMatrix(dofOrderer, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            return assembler.BuildGlobalMatrix(dofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
         }
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)

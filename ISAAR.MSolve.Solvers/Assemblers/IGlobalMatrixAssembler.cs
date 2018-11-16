@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -11,7 +12,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     public interface IGlobalMatrixAssembler<TMatrix>
         where TMatrix : IMatrix
     {
-        TMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements,
+        TMatrix BuildGlobalMatrix(IDofOrdering dofOrdering, IEnumerable<IElement> elements,
             IElementMatrixProvider matrixProvider);
 
         TMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider);

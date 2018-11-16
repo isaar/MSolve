@@ -56,16 +56,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //    return (Kff.BuildSkylineMatrix(), Kfc);
         //}
 
-        public SkylineMatrix BuildGlobalMatrix(IDofOrderer dofOrderer, IEnumerable<IElement> elements, 
+        public SkylineMatrix BuildGlobalMatrix(IDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
-            int numFreeDofs = dofOrderer.NumFreeDofs;
-            SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrderer.FreeDofs);
+            int numFreeDofs = dofOrdering.NumFreeDofs;
+            SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrdering.FreeDofs);
 
             foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrderer.MapFreeDofsElementToGlobal(element);
+                IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToGlobal(element);
                 Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
                 Kff.AddSubmatrixSymmetric(k, elementToGlobalDofs);
             }
