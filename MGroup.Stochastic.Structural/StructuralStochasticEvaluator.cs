@@ -2,11 +2,13 @@
 using MGroup.Stochastic.Structural.StochasticRealizers;
 using System;
 using System.Collections.Generic;
+using Accord;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace MGroup.Stochastic.Structural
 {
@@ -16,19 +18,19 @@ namespace MGroup.Stochastic.Structural
         public IStochasticDomainMapper DomainMapper;
         //public RandomVariable StochasticRealization { get; }
         public KarhunenLoeveCoefficientsProvider StochasticRealization { get; }
+        //public SpectralRepresentation1DRandomFieldGenerator StochasticRealization { get; }
         //public ModelBuilder ModelBuilder { get; }
         public GiannisModelBuilder ModelBuilder { get; }
         private Model currentModel;
-        int karLoeveTerms = 2;
-        double[] domainBounds = new double[2] { 0, 1.0 };
-        double sigmaSquare = 0.1;
+        int karLoeveTerms = 4;
+        double[] domainBounds = new double[2] { 0, 1 };
+        double sigmaSquare = .01;
         double meanValue = 1;
-        int partition = 11;
-        double correlationLength = .50;
+        int partition = 21;
+        double correlationLength = 1.0;
         bool isGaussian = true;
         int PCorder = 1;
         bool midpointMethod = true;
-        int mcsamples = 5;
 
         //public StructuralStochasticEvaluator(double youngModulus, IStochasticDomainMapper domainMapper)
         //{
@@ -45,6 +47,7 @@ namespace MGroup.Stochastic.Structural
             ModelBuilder = new GiannisModelBuilder();
             StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, youngModulus, midpointMethod,
                 isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
+            //StochasticRealization = new SpectralRepresentation1DRandomFieldGenerator(10, 0.1, youngModulus, .05, 0.1, 256);
         }
 
         public void Realize(int iteration)
@@ -68,7 +71,8 @@ namespace MGroup.Stochastic.Structural
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
-            return new[] { linearSystems[0].RHS[0] };
+            //return new[] { linearSystems[0].RHS[0] };
+            return new[] { linearSystems[0].Solution[56], linearSystems[0].Solution[58] };
         }
 
     }
