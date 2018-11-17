@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class SimpleDofOrderer: IDofOrderer
     {
-        public IDofOrdering OrderDofs(ISubdomain subdomain)
+        public IDofOrdering OrderDofs(ISubdomain_v2 subdomain)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;

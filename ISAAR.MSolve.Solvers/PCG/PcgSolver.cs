@@ -24,15 +24,14 @@ namespace ISAAR.MSolve.Solvers.PCG
     {
         private const string name = "PcgSolver"; // for error messages
         private readonly CsrAssembler assembler = new CsrAssembler(true);
-        private readonly ISubdomain subdomain;
+        private readonly ISubdomain_v2 subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly CsrSystem linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
-        private IDofOrdering dofOrdering;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(IStructuralModel model, PreconditionedConjugateGradient pcgAlgorithm, 
+        public PcgSolver(IStructuralModel_v2 model, PreconditionedConjugateGradient pcgAlgorithm, 
             IPreconditionerFactory preconditionerFactory, IDofOrderer dofOrderer)
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
@@ -49,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
 
         public void Initialize()
@@ -85,7 +84,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         }
 
         //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        private bool HasSubdomainDofsChanged() => subdomain.TotalDOFs == linearSystem.Solution.Length;
+        private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
@@ -109,7 +108,7 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             public double ResidualTolerance { get; set; } = 1E-6;
 
-            public PcgSolver BuildSolver(IStructuralModel model)
+            public PcgSolver BuildSolver(IStructuralModel_v2 model)
             {
                 return new PcgSolver(model, new PreconditionedConjugateGradient(maxIterationsProvider, ResidualTolerance),
                     PreconditionerFactory, DofOrderer);
@@ -118,9 +117,9 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>
         {
-            private readonly ISubdomain subdomain;
-            internal CsrSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
-            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
+            private readonly ISubdomain_v2 subdomain;
+            internal CsrSystem(ISubdomain_v2 subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
+            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
         }
     }

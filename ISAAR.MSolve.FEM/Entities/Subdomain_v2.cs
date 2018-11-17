@@ -10,7 +10,7 @@ using VectorOLD = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Subdomain : ISubdomain
+    public class Subdomain_v2 : ISubdomain_v2
     {
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
@@ -51,6 +51,12 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             get { return nodesDictionary.Values.ToList<Node>(); }
         }
+
+        IReadOnlyList<INode> ISubdomain_v2.Nodes => nodesDictionary.Values.ToList<INode>();
+
+        public Dictionary<int, Dictionary<DOFType, double>> Constraints => constraintsDictionary;
+
+        public IDofOrdering DofOrdering { get; set; }
 
         public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
         {
@@ -260,7 +266,7 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        public double[] CalculateElementIcrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public double[] CalculateElementIncrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
@@ -268,15 +274,28 @@ namespace ISAAR.MSolve.FEM.Entities
             elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
             var incrementalNodalDisplacements = new double[localDOFs];
             elementNodalDisplacements.CopyTo(incrementalNodalDisplacements, 0);
-            var icrementalElementNodalDisplacementsVector = new VectorOLD(incrementalNodalDisplacements);
             
-            return icrementalElementNodalDisplacementsVector.Data;
+            return incrementalNodalDisplacements;
         }
 
         public double[] CalculateElementNodalDisplacements(Element element, IVectorOLD globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             double[] elementNodalDisplacements = GetLocalVectorFromGlobal(element, globalDisplacementVector);
             elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            return elementNodalDisplacements;
+        }
+
+        public double[] CalculateElementNodalDisplacements_v2(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        {
+            double[] elementNodalDisplacements = GetLocalVectorFromGlobal_v2(element, globalDisplacementVector);
+            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            return elementNodalDisplacements;
+        }
+
+        public double[] CalculateElementNodalDisplacements_v3(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        {
+            double[] elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+            ApplyConstraintDisplacements_v2(element, elementNodalDisplacements);
             return elementNodalDisplacements;
         }
 
@@ -301,12 +320,55 @@ namespace ISAAR.MSolve.FEM.Entities
             return elementNodalDisplacements;
         }
 
+        private void ApplyConstraintDisplacements_v2(Element element, double[] elementNodalDisplacements)
+        {
+            int pos = 0;
+            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            {
+                INode node = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element)[i]; //Node node = element.Nodes[i];
+                bool isConstrainedNode = constraintsDictionary.TryGetValue(node.ID, 
+                    out Dictionary<DOFType, double> constrainedDOFs);
+                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                {
+                    bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
+                    if (isConstrainedNode && isConstrainedDof)
+                    {
+                        Debug.Assert(elementNodalDisplacements[pos] == 0);
+                        elementNodalDisplacements[pos] = constraintDisplacement;
+                    }
+                    pos++;
+                }
+            }
+        }
+
         public double[] GetLocalVectorFromGlobal(Element element, IVectorOLD globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
                                                                                        //TODOMaria: Change visibility to private
         {
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
             var localVector = new double[localDOFs];//TODOMaria: here is where I have to check if the dof is constrained
+
+            int pos = 0;
+            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                foreach (DOFType dofType in nodalDofs[i])
+                {
+                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
+                    if (dof != -1) localVector[pos] = globalVector[dof];
+                    pos++;
+                }
+            }
+            return localVector;
+        }
+
+        //TODO: this should return Vector
+        public double[] GetLocalVectorFromGlobal_v2(Element element, IVectorView globalVector)
+        {
+            int localDOFs = 0;
+            foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
+            var localVector = new double[localDOFs];
 
             int pos = 0;
             IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
@@ -339,21 +401,38 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        public IVectorOLD GetRHSFromSolution(IVectorOLD solution, IVectorOLD dSolution)
+        public IVector GetRHSFromSolution_v2(IVectorView solution, IVectorView dSolution)
         {
-           
-            var forces = new VectorOLD(TotalDOFs);
+            var forces = new double[TotalDOFs]; //TODO: use Vector
             foreach (Element element in elementsDictionary.Values)
             {
                 //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
                 //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
-                double[] localSolution = CalculateElementNodalDisplacements(element, solution);
-                double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution);
+                double[] localSolution = CalculateElementNodalDisplacements_v2(element, solution);
+                double[] localdSolution = CalculateElementNodalDisplacements_v2(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
                 double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-                AddLocalVectorToGlobal(element, f, forces.Data);
+                AddLocalVectorToGlobal(element, f, forces);
+            }
+            return Vector.CreateFromArray(forces);
+        }
+
+        public IVector GetRHSFromSolution_v3(IVectorView solution, IVectorView dSolution)
+        {
+            var forces = Vector.CreateZero(TotalDOFs); //TODO: use Vector
+            foreach (Element element in elementsDictionary.Values)
+            {
+                //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
+                //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
+                double[] localSolution = CalculateElementNodalDisplacements_v3(element, solution);
+                double[] localdSolution = CalculateElementNodalDisplacements_v3(element, dSolution);
+                element.ElementType.CalculateStresses(element, localSolution, localdSolution);
+                if (element.ElementType.MaterialModified)
+                    element.Subdomain.MaterialsModified = true;
+                var f = Vector.CreateFromArray(element.ElementType.CalculateForces(element, localSolution, localdSolution));
+                DofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }
             return forces;
         }
@@ -388,12 +467,7 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        public void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SplitGlobalVectorToSubdomain(double[] vIn, double[] vOut)
+        public void SubdomainToGlobalVector_v2(IVectorView subdomainVector, IVector globalVector)
         {
             foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
             {
@@ -402,9 +476,47 @@ namespace ISAAR.MSolve.FEM.Entities
                 {
                     int localDOF = NodalDOFsDictionary[nodeID][dofType];
                     int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1) vOut[localDOF] = vIn[globalDOF];
+                    if (localDOF > -1 && globalDOF > -1)
+                    {
+                        //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
+                        globalVector.Set(globalDOF, globalVector[globalDOF] + subdomainVector[localDOF]);
+                    }
                 }
             }
         }
+
+        public void SubdomainToGlobalVector_v3(IVectorView subdomainVector, IVector globalVector)
+            => DofOrdering.AddVectorSubdomainToGlobal(this, subdomainVector, globalVector);
+
+        public void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubdomainToGlobalVectorMeanValue_v2(IVectorView globalVector, IVector subdomainVector)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SplitGlobalVectorToSubdomain_v2(IVectorView globalVector, IVector subdomainVector)
+        {
+            foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
+            {
+                Dictionary<DOFType, int> dofTypes = NodalDOFsDictionary[nodeID];
+                foreach (DOFType dofType in dofTypes.Keys)
+                {
+                    int localDOF = NodalDOFsDictionary[nodeID][dofType];
+                    int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
+                    if (localDOF > -1 && globalDOF > -1)
+                    {
+                        //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
+                        subdomainVector.Set(localDOF, globalVector[globalDOF]);
+                    }
+                }
+            }
+        }
+
+        public void SplitGlobalVectorToSubdomain_v3(IVectorView globalVector, IVector subdomainVector) 
+            => DofOrdering.ExtractVectorSubdomainFromGlobal(this, globalVector, subdomainVector);
     }
 }

@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public void AddVectorSubdomainToGlobal(ISubdomain subdomain, IVectorView subdomainVector, IVector globalVector)
+        public void AddVectorSubdomainToGlobal(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector)
         {
             foreach (INode node in subdomain.Nodes)
             {
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         }
 
         //TODO: this needs refactoring: DofTable for the global dofs, perhaps remove the global dofs from the subdomain, ...
-        public void ExtractVectorSubdomainFromGlobal(ISubdomain subdomain, IVectorView globalVector, IVector subdomainVector)
+        public void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector, IVector subdomainVector)
         {
             foreach (INode node in subdomain.Nodes)
             {

@@ -84,9 +84,9 @@ namespace ISAAR.MSolve.Tests
         [Fact]
         private static void TestBatheImplicitAnalysisExample_v2()
         {
-            Model model = new Model();
+            var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(0, new Subdomain_v2() { ID = subdomainID });
 
             var n = new Node() { ID = 0 };
             var e = new Element() { ID = 0 };

@@ -20,12 +20,12 @@ namespace ISAAR.MSolve.Solvers.Dense
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly DenseMatrixAssembler assembler = new DenseMatrixAssembler();
-        private readonly ISubdomain subdomain;
+        private readonly ISubdomain_v2 subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly DenseSystem linearSystem;
         private CholeskyFull factorizedMatrix;
 
-        public DenseMatrixSolver(IStructuralModel model, IDofOrderer dofOrderer)
+        public DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer)
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Solvers.Dense
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
         {
             // DEBUG
             var writer = new FullMatrixWriter();
@@ -133,7 +133,7 @@ namespace ISAAR.MSolve.Solvers.Dense
         /// <summary>
         /// The number of dofs might have been changed since the previous Solution vector had been created.
         /// </summary>
-        private bool HasSubdomainDofsChanged() => subdomain.TotalDOFs == linearSystem.Solution.Length;
+        private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
@@ -141,15 +141,15 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
 
-            public DenseMatrixSolver BuildSolver(IStructuralModel model)
+            public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
                 => new DenseMatrixSolver(model, DofOrderer);
         }
 
         private class DenseSystem : LinearSystem_v2<Matrix, Vector>
         {
-            private readonly ISubdomain subdomain;
-            internal DenseSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
-            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
+            private readonly ISubdomain_v2 subdomain;
+            internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
+            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
         }
     }

@@ -32,13 +32,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly SkylineAssembler assembler = new SkylineAssembler();
-        private readonly ISubdomain subdomain;
+        private readonly ISubdomain_v2 subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
         private readonly SkylineSystem linearSystem;
         private CholeskySkyline factorizedMatrix;
 
-        public SkylineSolver(IStructuralModel model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
+        public SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
+        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         /// <summary>
         /// The number of dofs might have been changed since the previous Solution vector had been created.
         /// </summary>
-        private bool HasSubdomainDofsChanged() => subdomain.TotalDOFs == linearSystem.Solution.Length;
+        private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
@@ -106,15 +106,15 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            public SkylineSolver BuildSolver(IStructuralModel model) 
+            public SkylineSolver BuildSolver(IStructuralModel_v2 model) 
                 => new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
         }
 
         private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>
         {
-            private readonly ISubdomain subdomain;
-            internal SkylineSystem(ISubdomain subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
-            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.TotalDOFs);
+            private readonly ISubdomain_v2 subdomain;
+            internal SkylineSystem(ISubdomain_v2 subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
+            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
         }
     }

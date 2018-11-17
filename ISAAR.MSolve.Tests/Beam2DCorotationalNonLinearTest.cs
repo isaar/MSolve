@@ -164,11 +164,11 @@ namespace ISAAR.MSolve.Tests
             nodes.Add(node3);
 
             // Model creation
-            Model model = new Model();
+            var model = new Model_v2();
 
             // Add a single subdomain to the model
             int subdomainID = 1;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2() { ID = subdomainID });
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)

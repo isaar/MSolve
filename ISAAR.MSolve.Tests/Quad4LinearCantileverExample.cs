@@ -116,9 +116,9 @@ namespace ISAAR.MSolve.Tests
         private static void TestQuad4LinearCantileverExample_v2()
         {
             // Model & subdomains
-            Model model = new Model();
+            var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2() { ID = subdomainID });
 
             // Materials
             double youngModulus = 3.76;

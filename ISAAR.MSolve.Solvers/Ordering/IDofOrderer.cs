@@ -5,6 +5,6 @@ namespace ISAAR.MSolve.Solvers.Ordering
 {
     public interface IDofOrderer
     {
-        IDofOrdering OrderDofs(ISubdomain subdomain);
+        IDofOrdering OrderDofs(ISubdomain_v2 subdomain);
     }
 }

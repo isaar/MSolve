@@ -50,8 +50,6 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, Dictionary<DOFType, double>> Constraints => throw new NotImplementedException();
-
         public Dictionary<int, ControlPoint> ControlPointsDictionary
         {
             get { return controlPointsDictionary; }
@@ -62,8 +60,6 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return controlPointsDictionary.Values.ToList<ControlPoint>(); }
         }
 
-        IReadOnlyList<INode> ISubdomain.Nodes => controlPointsDictionary.Values.ToList<INode>();
-
         public Dictionary<int, Dictionary<DOFType,int>> ControlPointDOFsDictionary
         {
             get { return controlPointDOFsDictionary; }
@@ -73,8 +69,6 @@ namespace ISAAR.MSolve.IGA.Entities
         {
             get { return globalControlPointsDOFsDictionary; }
         }
-
-        public IDofOrdering DofOrdering { get; set; }
 
 		public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
 		{

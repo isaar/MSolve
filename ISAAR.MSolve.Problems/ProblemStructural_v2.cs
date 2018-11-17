@@ -24,13 +24,13 @@ namespace ISAAR.MSolve.Problems
     public class ProblemStructural_v2 : IImplicitIntegrationProvider_v2, IStaticProvider_v2, INonLinearProvider_v2
     {
         private Dictionary<int, IMatrix> ms, cs, ks;
-        private readonly IStructuralModel model;
+        private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
         private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
 
-        public ProblemStructural_v2(IStructuralModel model, ISolver_v2 solver)
+        public ProblemStructural_v2(IStructuralModel_v2 model, ISolver_v2 solver)
         {
             this.model = model;
             this.linearSystems = solver.LinearSystems;
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Problems
         {
             ks = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
             var stiffnessProvider = new ElementStructuralStiffnessProvider();
-            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
             {
                 ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
             }
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.Problems
 
         private void RebuildKs()
         {
-            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
             {
                 if (subdomain.MaterialsModified)
                 {
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.Problems
         {
             ms = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
             var massProvider = new ElementStructuralMassProvider();
-            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
             {
                 ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
             }
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.Problems
         {
             cs = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
             var dampingProvider = new ElementStructuralDampingProvider();
-            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
             {
                 cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
             }
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.Problems
         #region IAnalyzerProvider Members
         public void Reset()
         {
-            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
             {
                 foreach (IElement element in subdomain.ΙElementsDictionary.Values)
                 {
@@ -163,7 +163,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (IMassAccelerationHistoryLoad l in model.MassAccelerationHistoryLoads)
                     m.Add(new MassAccelerationLoad() { Amount = l[timeStep], DOF = l.DOF });
 
-                foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values)
+                foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
                 {
                     foreach (var nodeInfo in subdomain.GlobalNodalDOFsDictionary)
                     {
@@ -206,7 +206,7 @@ namespace ISAAR.MSolve.Problems
 
         public void GetRHSFromHistoryLoad(int timeStep)
         {
-            foreach (ISubdomain subdomain in model.ISubdomainsDictionary.Values) 
+            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values) 
             {
                 Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
             }

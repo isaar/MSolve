@@ -9,9 +9,9 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class SubdomainGlobalMapping_v2 : ISubdomainGlobalMapping_v2
     {
-        private readonly Subdomain subdomain;
+        private readonly Subdomain_v2 subdomain;
 
-        public SubdomainGlobalMapping_v2(Subdomain subdomain)
+        public SubdomainGlobalMapping_v2(Subdomain_v2 subdomain)
         {
             this.subdomain = subdomain;
         }

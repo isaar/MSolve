@@ -63,6 +63,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         //public IFiniteElementMaterial MaterialType { get; set; }
         public Subdomain Subdomain { get; set; }
+        public Subdomain_v2 Subdomain_v2 { get; set; }
         public int[] DOFs { get; set; }
 
         public void AddNode(Node node)
