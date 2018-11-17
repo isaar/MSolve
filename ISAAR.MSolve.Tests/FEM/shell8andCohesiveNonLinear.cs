@@ -32,6 +32,7 @@ namespace ISAAR.MSolve.Tests.FEM
         public static void RunTest_v2()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
+            //IncrementalDisplacementsLog computedDisplacements = SolveModel();
             IncrementalDisplacementsLog computedDisplacements = SolveModel_v2();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
@@ -123,10 +124,10 @@ namespace ISAAR.MSolve.Tests.FEM
             model.ConnectDataStructures();
 
             // Solver
-            //var solverBuilder = new SkylineSolver.Builder();
-            var solverBuilder = new Solvers.Dense.DenseMatrixSolver.Builder();
-            solverBuilder.DofOrderer = new NodeMajorDofOrderer();
-            //solverBuilder.DofOrderer = new SimpleDofOrderer();
+            var solverBuilder = new SkylineSolver.Builder();
+            //var solverBuilder = new Solvers.Dense.DenseMatrixSolver.Builder();
+            //solverBuilder.DofOrderer = new NodeMajorDofOrderer();
+            solverBuilder.DofOrderer = new SimpleDofOrderer();
             var solver = solverBuilder.BuildSolver(model);
 
             //TODO: this should be hidden and handled by the analyzer at another phase

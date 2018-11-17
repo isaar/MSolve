@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                IReadOnlyDictionary<int, int> mapStandard = dofOrdering.MapFreeDofsElementToGlobal(element);
+                IReadOnlyDictionary<int, int> mapStandard = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 IMatrix2D elementK = elementMatrixProvider.Matrix(element);
                 AddElementToGlobalMatrix(Kff, elementK, mapStandard, mapStandard);
             }

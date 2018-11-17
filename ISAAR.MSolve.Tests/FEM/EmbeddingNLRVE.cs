@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            solverBuilder.DofOrderer = new NodeMajorDofOrderer();
+            //solverBuilder.DofOrderer = new NodeMajorDofOrderer();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
             //TODO: this should be hidden and handled by the analyzer at another phase
