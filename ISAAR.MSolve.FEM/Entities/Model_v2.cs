@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.Commons;
 using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Entities
@@ -249,7 +251,7 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
             {
                 subdomain.EnumerateDOFs();
-                subdomain.AssignGlobalNodalDOFsFromModel(nodalDOFsDictionary);
+                subdomain.AssignGlobalNodalDOFsFromModel_v2(nodalDOFsDictionary);
             }
         }
 
@@ -272,14 +274,41 @@ namespace ISAAR.MSolve.FEM.Entities
         private void AssignNodalLoads()
         {
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
-                Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
+            {
+                subdomain.NodalLoads = new Table<Node, DOFType, double>();
+            }
+
             foreach (Load load in loads)
+            {
+                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary_v2.Count;
                 foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary_v2.Values)
                 {
-                    int dof = subdomain.NodalDOFsDictionary[load.Node.ID][load.DOF];
-                    if (dof >= 0)
-                        subdomain.Forces[dof] = load.Amount / load.Node.SubdomainsDictionary_v2.Count;
+                    bool wasNotContained = subdomain.NodalLoads.TryAdd(load.Node, load.DOF, amountPerSubdomain);
+                    Debug.Assert(wasNotContained, $"Duplicate load at node {load.Node.ID}, dof {load.DOF}");
                 }
+            }
+
+            //TODO: this should be done by the subdomain when the analyzer decides.
+            foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
+            {
+                Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
+                foreach ((Node node, DOFType dofType, double amount) in subdomain.NodalLoads)
+                {
+                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
+                    subdomain.Forces[subdomainDofIdx] = amount;
+                }
+            }
+
+
+            //foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
+            //    Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
+            //foreach (Load load in loads)
+            //    foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary_v2.Values)
+            //    {
+            //        int dof = subdomain.NodalDOFsDictionary[load.Node.ID][load.DOF];
+            //        if (dof >= 0)
+            //            subdomain.Forces[dof] = load.Amount / load.Node.SubdomainsDictionary_v2.Count;
+            //    }
         }
 
         ////TODO: each subdomain should have a list of its loads, which has been created by dividing the global loads. Then the 
@@ -302,7 +331,7 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (ElementMassAccelerationLoad load in elementMassAccelerationLoads)
                 load.Element.Subdomain.AddLocalVectorToGlobal(load.Element,
                     load.Element.ElementType.CalculateAccelerationForces(load.Element, massAccelerationLoads),
-                    load.Element.Subdomain.Forces);
+                    load.Element.Subdomain_v2.Forces);
         }
 
         private void AssignMassAccelerationLoads()
@@ -310,10 +339,18 @@ namespace ISAAR.MSolve.FEM.Entities
             if (massAccelerationLoads.Count < 1) return;
 
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
+            {
                 foreach (Element element in subdomain.ElementsDictionary.Values)
-                    subdomain.AddLocalVectorToGlobal(element,
-                        element.ElementType.CalculateAccelerationForces(element, massAccelerationLoads),
-                        subdomain.Forces);
+                {
+                    // subdomain.AddLocalVectorToGlobal(element,
+                    //     element.ElementType.CalculateAccelerationForces(element, massAccelerationLoads),
+                    //     subdomain.Forces);
+                    subdomain.DofOrdering.AddVectorElementToSubdomain(element,
+                        Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(element, massAccelerationLoads)),
+                        Vector.CreateFromArray(subdomain.Forces));
+                }
+            }
+                
         }
 
         public void AssignLoads()
@@ -329,12 +366,21 @@ namespace ISAAR.MSolve.FEM.Entities
             {
                 List<MassAccelerationLoad> m = new List<MassAccelerationLoad>(massAccelerationHistoryLoads.Count);
                 foreach (IMassAccelerationHistoryLoad l in massAccelerationHistoryLoads)
+                {
                     m.Add(new MassAccelerationLoad() { Amount = l[timeStep], DOF = l.DOF });
+                }
 
                 foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
+                {
                     foreach (Element element in subdomain.ElementsDictionary.Values)
-                        subdomain.AddLocalVectorToGlobal(element,
-                            element.ElementType.CalculateAccelerationForces(element, m), subdomain.Forces);
+                    {
+                        //subdomain.AddLocalVectorToGlobal(element,
+                        //    element.ElementType.CalculateAccelerationForces(element, m), subdomain.Forces);
+                        subdomain.DofOrdering.AddVectorElementToSubdomain(element,
+                            Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(element, m)),
+                            Vector.CreateFromArray(subdomain.Forces));
+                    }
+                }
             }
 
             foreach (ElementMassAccelerationHistoryLoad load in elementMassAccelerationHistoryLoads)
@@ -342,13 +388,14 @@ namespace ISAAR.MSolve.FEM.Entities
                 MassAccelerationLoad hl = new MassAccelerationLoad() { Amount = load.HistoryLoad[timeStep] * 564000000, DOF = load.HistoryLoad.DOF };
                 load.Element.Subdomain.AddLocalVectorToGlobal(load.Element,
                     load.Element.ElementType.CalculateAccelerationForces(load.Element, (new MassAccelerationLoad[] { hl }).ToList()),
-                    load.Element.Subdomain.Forces);
+                    load.Element.Subdomain_v2.Forces);
             }
         }
 
         public void ConnectDataStructures()
         {
             BuildInterconnectionData();
+            BuildConstraintDisplacementDictionary();
             EnumerateDOFs();
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
@@ -356,8 +403,6 @@ namespace ISAAR.MSolve.FEM.Entities
             //TODOMaria: Here is where the element loads are assembled
             //TODOSerafeim: This should be called by the analyzer, which defines when the dofs are ordered and when the global vectors/matrices are built.
             AssignLoads();
-
-            BuildConstraintDisplacementDictionary();
         }
         #endregion
 

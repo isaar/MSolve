@@ -17,6 +17,7 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -168,7 +169,8 @@ namespace ISAAR.MSolve.Tests
 
             // Add a single subdomain to the model
             int subdomainID = 1;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(subdomainID,
+                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(subdomain)));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)

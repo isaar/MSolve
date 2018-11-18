@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface ISubdomain_v2
     {
-        int ID { get; set; }
+        int ID { get; }
         bool MaterialsModified { get; set; }
 
         Dictionary<int, IElement> ΙElementsDictionary { get; }
@@ -19,7 +19,11 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// ordering, whenever the crack propagates or the mesh is refined respectively.
         /// </summary>
         IDofOrdering DofOrdering { get; set; }
-        Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; }
+
+        // Why do I need this and Model.NodalDOFsDictionary? Even if there were more than one subdomains, there would not be a 
+        // global vector (and obviously global matrix). Ideally all vectors should be on subdomain level, so that they can be 
+        // processed parallely (e.g. in a distributed environment).
+        Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; } 
 
         double[] Forces { get; }
         void ResetMaterialsModifiedProperty();

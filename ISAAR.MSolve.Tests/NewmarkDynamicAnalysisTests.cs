@@ -15,6 +15,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -86,7 +87,8 @@ namespace ISAAR.MSolve.Tests
         {
             var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(subdomainID,
+                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(subdomain)));
 
             var n = new Node() { ID = 0 };
             var e = new Element() { ID = 0 };

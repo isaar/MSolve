@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Analyzers
         public IVector GetRHSFromSolution(IVectorView solution, IVectorView dSolution) //TODO leave 
         {
             //return this.subdomain.GetRHSFromSolution_v2(solution, dSolution);
-            return subdomain.GetRHSFromSolution_v3(solution, dSolution);
+            return subdomain.GetRHSFromSolution(solution, dSolution);
         }
 
         public void ResetState()

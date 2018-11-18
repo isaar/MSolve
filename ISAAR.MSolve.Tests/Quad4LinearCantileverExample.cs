@@ -23,6 +23,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -118,7 +119,8 @@ namespace ISAAR.MSolve.Tests
             // Model & subdomains
             var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(subdomainID,
+                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(subdomain)));
 
             // Materials
             double youngModulus = 3.76;

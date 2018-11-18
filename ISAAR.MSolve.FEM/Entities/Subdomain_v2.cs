@@ -5,6 +5,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.Commons;
 using IVectorOLD = ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces.IVector;
 using VectorOLD = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
@@ -12,13 +13,23 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Subdomain_v2 : ISubdomain_v2
     {
+        //TODO: remove these and let the solver's dof orderer do the job.
+        public delegate IDofOrdering OrderDofs(ISubdomain_v2 subdomain);
+        private readonly OrderDofs dofOrderer;
+
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
-        private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        //private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> globalNodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
         private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();
         private double[] forces;
+
+        public Subdomain_v2(int id, OrderDofs dofOrderer)
+        {
+            this.ID = id;
+            this.dofOrderer = dofOrderer;
+        }
 
         #region Properties
         //public IList<EmbeddedNode> EmbeddedNodes
@@ -42,10 +53,14 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
+        //TODO: Ideally this is set by the Model, Cluster and should not be modified during the analysis.
+        public Table<Node, DOFType, double> NodalLoads { get; set; }
+
         public Dictionary<int, Node> NodesDictionary
         {
             get { return nodesDictionary; }
         }
+
 
         public IList<Node> Nodes
         {
@@ -58,10 +73,10 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public IDofOrdering DofOrdering { get; set; }
 
-        public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
-        {
-            get { return nodalDOFsDictionary; }
-        }
+        //public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
+        //{
+        //    get { return nodalDOFsDictionary; }
+        //}
 
         public Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary
         {
@@ -89,92 +104,39 @@ namespace ISAAR.MSolve.FEM.Entities
         //    }
         //}
 
-        public int ID { get; set; }
-        public int TotalDOFs { get; set; }
+        public int ID { get; }
         #endregion
 
         #region Data inteconnection routines
         public void EnumerateDOFs()
         {
-            TotalDOFs = 0;
-            Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>();
-            foreach (Element element in elementsDictionary.Values)
-            {
-                for (int i = 0; i < element.Nodes.Count; i++)
-                {
-                    if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
-                        nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<DOFType>());
-                    nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
-                }
-            }
-
-            foreach (Node node in nodesDictionary.Values)
-            {
-                //List<DOFType> dofTypes = new List<DOFType>();
-                //foreach (Element element in node.ElementsDictionary.Values)
-                //{
-                //    if (elementsDictionary.ContainsKey(element.ID))
-                //    {
-                //        foreach (DOFType dof in element.ElementType.DOFTypes)
-                //            dofTypes.Add(dof);
-                //    }
-                //}
-
-                Dictionary<DOFType, int> dofsDictionary = new Dictionary<DOFType, int>();
-                //foreach (DOFType dofType in dofTypes.Distinct<DOFType>())
-                foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
-                {
-                    int dofID = 0;
-                    #region removeMaria
-                    //foreach (DOFType constraint in node.Constraints)
-                    //{
-                    //    if (constraint == dofType)
-                    //    {
-                    //        dofID = -1;
-                    //        break;
-                    //    }
-                    //}
-                    #endregion
-
-                    foreach (var constraint in node.Constraints)
-                    {
-                        if (constraint.DOF == dofType)
-                        {
-                            dofID = -1;
-                            break;
-                        }
-                    }
-
-                    //var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
-                    ////if (node.EmbeddedInElement != null && node.EmbeddedInElement.ElementType.GetDOFTypes(null)
-                    ////    .SelectMany(d => d).Count(d => d == dofType) > 0)
-                    ////    dofID = -1;
-                    //if (embeddedNode != null && embeddedNode.EmbeddedInElement.ElementType.DOFEnumerator.GetDOFTypes(null)
-                    //    .SelectMany(d => d).Count(d => d == dofType) > 0)
-                    //    dofID = -1;
-
-                    if (dofID == 0)
-                    {
-                        dofID = TotalDOFs;
-                        TotalDOFs++;
-                    }
-                    dofsDictionary.Add(dofType, dofID);
-                }
-
-                nodalDOFsDictionary.Add(node.ID, dofsDictionary);
-            }
-            forces = new double[TotalDOFs];
+            DofOrdering = dofOrderer(this);
+            forces = new double[DofOrdering.NumFreeDofs];
         }
 
-        public void AssignGlobalNodalDOFsFromModel(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
+        //public void AssignGlobalNodalDOFsFromModel(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
+        //{
+        //    foreach (int nodeID in nodalDOFsDictionary.Keys)
+        //    {
+        //        Dictionary<DOFType, int> dofTypes = nodalDOFsDictionary[nodeID];
+        //        Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType, int>(dofTypes.Count);
+        //        foreach (DOFType dofType in dofTypes.Keys)
+        //            globalDOFTypes.Add(dofType, glodalDOFsDictionary[nodeID][dofType]);
+        //        globalNodalDOFsDictionary.Add(nodeID, globalDOFTypes);
+        //    }
+        //}
+
+        public void AssignGlobalNodalDOFsFromModel_v2(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
         {
-            foreach (int nodeID in nodalDOFsDictionary.Keys)
+            foreach (Node node in DofOrdering.FreeDofs.GetRows())
             {
-                Dictionary<DOFType, int> dofTypes = nodalDOFsDictionary[nodeID];
-                Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType, int>(dofTypes.Count);
-                foreach (DOFType dofType in dofTypes.Keys)
-                    globalDOFTypes.Add(dofType, glodalDOFsDictionary[nodeID][dofType]);
-                globalNodalDOFsDictionary.Add(nodeID, globalDOFTypes);
+                IEnumerable<DOFType> subdomainDofsOfNode = DofOrdering.FreeDofs.GetColumnsOfRow(node);
+                var globalDofsOfNode = new Dictionary<DOFType, int>();
+                foreach (DOFType dofType in subdomainDofsOfNode)
+                {
+                    globalDofsOfNode.Add(dofType, glodalDOFsDictionary[node.ID][dofType]);
+                }
+                globalNodalDOFsDictionary.Add(node.ID, globalDofsOfNode);
             }
         }
 
@@ -271,56 +233,21 @@ namespace ISAAR.MSolve.FEM.Entities
             int localDOFs = 0;
             foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
             var elementNodalDisplacements = new double[localDOFs];
-            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
+            ApplyConstraintDisplacements(element, elementNodalDisplacements);
             var incrementalNodalDisplacements = new double[localDOFs];
             elementNodalDisplacements.CopyTo(incrementalNodalDisplacements, 0);
             
             return incrementalNodalDisplacements;
         }
 
-        public double[] CalculateElementNodalDisplacements(Element element, IVectorOLD globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
-        {
-            double[] elementNodalDisplacements = GetLocalVectorFromGlobal(element, globalDisplacementVector);
-            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
-            return elementNodalDisplacements;
-        }
-
-        public double[] CalculateElementNodalDisplacements_v2(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
-        {
-            double[] elementNodalDisplacements = GetLocalVectorFromGlobal_v2(element, globalDisplacementVector);
-            elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
-            return elementNodalDisplacements;
-        }
-
-        public double[] CalculateElementNodalDisplacements_v3(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public double[] CalculateElementNodalDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             double[] elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
-            ApplyConstraintDisplacements_v2(element, elementNodalDisplacements);
+            ApplyConstraintDisplacements(element, elementNodalDisplacements);
             return elementNodalDisplacements;
         }
 
-        private double[] ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)//QUESTION: should we perhaps make it void??
-        {
-            int pos = 0;
-            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
-            {
-                INode node = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element)[i]; //Node node = element.Nodes[i];
-                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
-                {
-                    Dictionary<DOFType, double> constrainedDOFs;
-                    double constraintDisplacement;
-                    if (constraintsDictionary.TryGetValue(node.ID, out constrainedDOFs) && constrainedDOFs.TryGetValue(dofType, out constraintDisplacement))
-                    {
-                        Debug.Assert(elementNodalDisplacements[pos] == 0);
-                        elementNodalDisplacements[pos] = constraintDisplacement;
-                    }
-                    pos++;
-                }
-            }
-            return elementNodalDisplacements;
-        }
-
-        private void ApplyConstraintDisplacements_v2(Element element, double[] elementNodalDisplacements)
+        private void ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)
         {
             int pos = 0;
             for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
@@ -341,93 +268,53 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        public double[] GetLocalVectorFromGlobal(Element element, IVectorOLD globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
-                                                                                       //TODOMaria: Change visibility to private
+        ////TODO: this should return Vector
+        //public double[] GetLocalVectorFromGlobal(Element element, IVectorView globalVector) //TODOMaria: here is where the element displacements are assigned to zero if they are restrained
+        //{                                                                                   //TODOMaria: Change visibility to private
+        //    int localDOFs = 0;
+        //    foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
+        //    var localVector = new double[localDOFs]; //TODOMaria: here is where I have to check if the dof is constrained
+
+        //    int pos = 0;
+        //    IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+        //    IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+        //    for (int i = 0; i < nodes.Count; i++)
+        //    {
+        //        foreach (DOFType dofType in nodalDofs[i])
+        //        {
+        //            int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
+        //            if (dof != -1) localVector[pos] = globalVector[dof];
+        //            pos++;
+        //        }
+        //    }
+        //    return localVector;
+        //}
+
+        //public void AddLocalVectorToGlobal(Element element, double[] localVector, double[] globalVector)
+        //{
+        //    int pos = 0;
+        //    IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+        //    IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+        //    for (int i = 0; i < nodes.Count; i++)
+        //    {
+        //        foreach (DOFType dofType in nodalDofs[i])
+        //        {
+        //            int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
+        //            if (dof != -1) globalVector[dof] += localVector[pos];
+        //            pos++;
+        //        }
+        //    }
+        //}
+
+        public IVector GetRHSFromSolution(IVectorView solution, IVectorView dSolution)
         {
-            int localDOFs = 0;
-            foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
-            var localVector = new double[localDOFs];//TODOMaria: here is where I have to check if the dof is constrained
-
-            int pos = 0;
-            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
-            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                foreach (DOFType dofType in nodalDofs[i])
-                {
-                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
-                    if (dof != -1) localVector[pos] = globalVector[dof];
-                    pos++;
-                }
-            }
-            return localVector;
-        }
-
-        //TODO: this should return Vector
-        public double[] GetLocalVectorFromGlobal_v2(Element element, IVectorView globalVector)
-        {
-            int localDOFs = 0;
-            foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
-            var localVector = new double[localDOFs];
-
-            int pos = 0;
-            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
-            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                foreach (DOFType dofType in nodalDofs[i])
-                {
-                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
-                    if (dof != -1) localVector[pos] = globalVector[dof];
-                    pos++;
-                }
-            }
-            return localVector;
-        }
-
-        public void AddLocalVectorToGlobal(Element element, double[] localVector, double[] globalVector)
-        {
-            int pos = 0;
-            IList<IList<DOFType>> nodalDofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
-            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                foreach (DOFType dofType in nodalDofs[i])
-                {
-                    int dof = NodalDOFsDictionary[nodes[i].ID][dofType];
-                    if (dof != -1) globalVector[dof] += localVector[pos];
-                    pos++;
-                }
-            }
-        }
-
-        public IVector GetRHSFromSolution_v2(IVectorView solution, IVectorView dSolution)
-        {
-            var forces = new double[TotalDOFs]; //TODO: use Vector
+            var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
             foreach (Element element in elementsDictionary.Values)
             {
                 //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
                 //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
-                double[] localSolution = CalculateElementNodalDisplacements_v2(element, solution);
-                double[] localdSolution = CalculateElementNodalDisplacements_v2(element, dSolution);
-                element.ElementType.CalculateStresses(element, localSolution, localdSolution);
-                if (element.ElementType.MaterialModified)
-                    element.Subdomain.MaterialsModified = true;
-                double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-                AddLocalVectorToGlobal(element, f, forces);
-            }
-            return Vector.CreateFromArray(forces);
-        }
-
-        public IVector GetRHSFromSolution_v3(IVectorView solution, IVectorView dSolution)
-        {
-            var forces = Vector.CreateZero(TotalDOFs); //TODO: use Vector
-            foreach (Element element in elementsDictionary.Values)
-            {
-                //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
-                //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
-                double[] localSolution = CalculateElementNodalDisplacements_v3(element, solution);
-                double[] localdSolution = CalculateElementNodalDisplacements_v3(element, dSolution);
+                double[] localSolution = CalculateElementNodalDisplacements(element, solution);
+                double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
@@ -452,71 +339,5 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             foreach (Element element in elementsDictionary.Values) element.ElementType.ClearMaterialStresses();
         }
-
-        public void SubdomainToGlobalVector(double[] vIn, double[] vOut)
-        {
-            foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1) vOut[globalDOF] += vIn[localDOF];
-                }
-            }
-        }
-
-        public void SubdomainToGlobalVector_v2(IVectorView subdomainVector, IVector globalVector)
-        {
-            foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1)
-                    {
-                        //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-                        globalVector.Set(globalDOF, globalVector[globalDOF] + subdomainVector[localDOF]);
-                    }
-                }
-            }
-        }
-
-        public void SubdomainToGlobalVector_v3(IVectorView subdomainVector, IVector globalVector)
-            => DofOrdering.AddVectorSubdomainToGlobal(this, subdomainVector, globalVector);
-
-        public void SubdomainToGlobalVectorMeanValue(double[] vIn, double[] vOut)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SubdomainToGlobalVectorMeanValue_v2(IVectorView globalVector, IVector subdomainVector)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SplitGlobalVectorToSubdomain_v2(IVectorView globalVector, IVector subdomainVector)
-        {
-            foreach (int nodeID in GlobalNodalDOFsDictionary.Keys)
-            {
-                Dictionary<DOFType, int> dofTypes = NodalDOFsDictionary[nodeID];
-                foreach (DOFType dofType in dofTypes.Keys)
-                {
-                    int localDOF = NodalDOFsDictionary[nodeID][dofType];
-                    int globalDOF = GlobalNodalDOFsDictionary[nodeID][dofType];
-                    if (localDOF > -1 && globalDOF > -1)
-                    {
-                        //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-                        subdomainVector.Set(localDOF, globalVector[globalDOF]);
-                    }
-                }
-            }
-        }
-
-        public void SplitGlobalVectorToSubdomain_v3(IVectorView globalVector, IVector subdomainVector) 
-            => DofOrdering.ExtractVectorSubdomainFromGlobal(this, globalVector, subdomainVector);
     }
 }
