@@ -10,6 +10,7 @@ using System.Text;
 //      as an array instead of Dictionary, in order to speed up things.
 //TODO: Many of the methods will be called multiple times with the same row. Provide accessors for a TableRow object to let the
 //      client avoid looking up the row all the time.
+//TODO: cache the last row looked up (and its Dictionary<TColumn, TValue>) to improve performance for consecutive look ups 
 namespace ISAAR.MSolve.Numerical.Commons
 {
     /// <summary>
@@ -108,6 +109,22 @@ namespace ISAAR.MSolve.Numerical.Commons
             else return Enumerable.Empty<TValue>();
         }
 
+        public void ModifyValues(Func<TValue, TValue> unaryOperation)
+        {
+            //TODO: perhaps I should create a new table and replace the existing one once finished.
+
+            foreach (Dictionary<TColumn, TValue> rowData in data.Values)
+            {
+                // Create a temporary collection for iterating, while modifying the actual one
+                var rowDataAsList = new List<KeyValuePair<TColumn, TValue>>(rowData);
+                
+                foreach (var colValPair in rowDataAsList)
+                {
+                    rowData[colValPair.Key] = unaryOperation(colValPair.Value);
+                }
+            }
+        }
+
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
@@ -154,6 +171,13 @@ namespace ISAAR.MSolve.Numerical.Commons
                 wholeRow.Add(col, value);
                 return true;
             }
+        }
+
+        public bool TryGetDataOfRow(TRow row, out IReadOnlyDictionary<TColumn, TValue> columnValuePairs)
+        {
+            bool exists = data.TryGetValue(row, out Dictionary<TColumn, TValue> rowData);
+            columnValuePairs = rowData;
+            return exists;
         }
 
         public bool TryGetValue(TRow row, TColumn col, out TValue value)

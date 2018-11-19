@@ -165,19 +165,27 @@ namespace ISAAR.MSolve.Problems
 
                 foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
                 {
-                    foreach (var nodeInfo in subdomain.GlobalNodalDOFsDictionary)
+                    foreach ((INode node, DOFType dofType, int globalDofIdx) in subdomain.GlobalFreeDofs)
                     {
-                        foreach (var dofPair in nodeInfo.Value)
+                        foreach (var l in m)
                         {
-                            foreach (var l in m)
-                            {
-                                if (dofPair.Key == l.DOF && dofPair.Value != -1)
-                                {
-                                    d[subdomain.ID].Set(dofPair.Value, l.Amount);
-                                }
-                            }
+                            if (dofType == l.DOF) d[subdomain.ID].Set(globalDofIdx, l.Amount);
                         }
                     }
+
+                    //foreach (var nodeInfo in subdomain.GlobalNodalDOFsDictionary)
+                    //{
+                    //    foreach (var dofPair in nodeInfo.Value)
+                    //    {
+                    //        foreach (var l in m)
+                    //        {
+                    //            if (dofPair.Key == l.DOF && dofPair.Value != -1)
+                    //            {
+                    //                d[subdomain.ID].Set(dofPair.Value, l.Amount);
+                    //            }
+                    //        }
+                    //    }
+                    //}
                 }
             }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
@@ -11,7 +12,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         bool MaterialsModified { get; set; }
 
         Dictionary<int, IElement> ΙElementsDictionary { get; }
-        Dictionary<int, Dictionary<DOFType, double>> Constraints { get; }
+        Table<INode, DOFType, double> Constraints { get; }
         IReadOnlyList<INode> Nodes { get; }
 
         /// <summary>
@@ -20,12 +21,14 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// </summary>
         IDofOrdering DofOrdering { get; set; }
 
-        // Why do I need this and Model.NodalDOFsDictionary? Even if there were more than one subdomains, there would not be a 
-        // global vector (and obviously global matrix). Ideally all vectors should be on subdomain level, so that they can be 
-        // processed parallely (e.g. in a distributed environment).
-        Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; } 
+        //TODO: Make this DofTable (stored by Subdomain or its DofOrdering) or just an int array that stores the permutation
+        //      subdomain to global. The latter is probably more efficient.
+        //TODO: Why do I need this and Model.NodalDOFsDictionary? Even if there were more than one subdomains, there would not 
+        //      be a global vector (and obviously global matrix). Ideally all vectors should be on subdomain level, so that 
+        //      they can be processed parallely (e.g. in a distributed environment).
+        DofTable GlobalFreeDofs { get; } 
 
-        double[] Forces { get; }
+        double[] Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
         void ResetMaterialsModifiedProperty();
     }
 }

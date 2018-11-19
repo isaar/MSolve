@@ -24,8 +24,8 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element);
                 for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
                 {
-                    bool isNodeConstrained = subdomain.Constraints.TryGetValue(elementNodes[nodeIdx].ID,
-                        out Dictionary<DOFType, double> constraintsOfNode);
+                    bool isNodeConstrained = subdomain.Constraints.TryGetDataOfRow(elementNodes[nodeIdx],
+                        out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
                     for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
                     {
                         DOFType dofType = elementDofs[nodeIdx][dofIdx];

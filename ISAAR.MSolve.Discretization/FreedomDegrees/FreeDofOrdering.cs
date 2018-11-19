@@ -47,10 +47,12 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 foreach (DOFType dofType in FreeDofs.GetColumnsOfRow(node))
                 {
                     bool isFreeDof = FreeDofs.TryGetValue(node, dofType, out int subdomainDofIdx);
-                    int globalDofIdx = subdomain.GlobalNodalDOFsDictionary[node.ID][dofType];
                     if (isFreeDof)
                     {
-                        Debug.Assert(globalDofIdx > -1);
+                        //int globalDofIdx = subdomain.GlobalNodalDOFsDictionary[node.ID][dofType];
+                        //Debug.Assert(globalDofIdx > -1);
+
+                        int globalDofIdx = subdomain.GlobalFreeDofs[node, dofType];
 
                         //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
                         globalVector.Set(globalDofIdx, globalVector[globalDofIdx] + subdomainVector[subdomainDofIdx]);
@@ -90,11 +92,15 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 foreach (DOFType dofType in FreeDofs.GetColumnsOfRow(node))
                 {
                     bool isFreeDof = FreeDofs.TryGetValue(node, dofType, out int subdomainDodIdx);
-                    int globalDofIdx = subdomain.GlobalNodalDOFsDictionary[node.ID][dofType];
+                    
                     if (isFreeDof)
                     {
-                        Debug.Assert(globalDofIdx > -1);
-                        
+                        //int globalDofIdx = subdomain.GlobalNodalDOFsDictionary[node.ID][dofType];
+                        //Debug.Assert(globalDofIdx > -1);
+
+                        int globalDofIdx = subdomain.GlobalFreeDofs[node, dofType];
+
+
                         //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
                         subdomainVector.Set(subdomainDodIdx, globalVector[globalDofIdx]);
                     }

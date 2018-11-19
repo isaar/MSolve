@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.FEM.Entities
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         //private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
-        private readonly Dictionary<int, Dictionary<DOFType, int>> globalNodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
-        private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();
+        //private readonly Dictionary<int, Dictionary<DOFType, int>> globalNodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        //private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();
         private double[] forces;
 
         public Subdomain_v2(int id, OrderDofs dofOrderer)
@@ -69,7 +69,8 @@ namespace ISAAR.MSolve.FEM.Entities
 
         IReadOnlyList<INode> ISubdomain_v2.Nodes => nodesDictionary.Values.ToList<INode>();
 
-        public Dictionary<int, Dictionary<DOFType, double>> Constraints => constraintsDictionary;
+        //public Dictionary<int, Dictionary<DOFType, double>> Constraints => constraintsDictionary;
+        public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
 
         public IDofOrdering DofOrdering { get; set; }
 
@@ -78,10 +79,12 @@ namespace ISAAR.MSolve.FEM.Entities
         //    get { return nodalDOFsDictionary; }
         //}
 
-        public Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary
-        {
-            get { return globalNodalDOFsDictionary; }
-        }
+        //public Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary
+        //{
+        //    get { return globalNodalDOFsDictionary; }
+        //}
+
+        public DofTable GlobalFreeDofs { get; private set; }
 
         public double[] Forces
         {
@@ -128,16 +131,22 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void AssignGlobalNodalDOFsFromModel_v2(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
         {
-            foreach (Node node in DofOrdering.FreeDofs.GetRows())
+            GlobalFreeDofs = new DofTable();
+            foreach ((INode node, DOFType dofType, int subdomainDOfIdx) in DofOrdering.FreeDofs)
             {
-                IEnumerable<DOFType> subdomainDofsOfNode = DofOrdering.FreeDofs.GetColumnsOfRow(node);
-                var globalDofsOfNode = new Dictionary<DOFType, int>();
-                foreach (DOFType dofType in subdomainDofsOfNode)
-                {
-                    globalDofsOfNode.Add(dofType, glodalDOFsDictionary[node.ID][dofType]);
-                }
-                globalNodalDOFsDictionary.Add(node.ID, globalDofsOfNode);
+                GlobalFreeDofs[node, dofType] = glodalDOFsDictionary[node.ID][dofType];
             }
+
+            //foreach (Node node in DofOrdering.FreeDofs.GetRows())
+            //{
+            //    IEnumerable<DOFType> subdomainDofsOfNode = DofOrdering.FreeDofs.GetColumnsOfRow(node);
+            //    var globalDofsOfNode = new Dictionary<DOFType, int>();
+            //    foreach (DOFType dofType in subdomainDofsOfNode)
+            //    {
+            //        globalDofsOfNode.Add(dofType, glodalDOFsDictionary[node.ID][dofType]);
+            //    }
+            //    globalNodalDOFsDictionary.Add(node.ID, globalDofsOfNode);
+            //}
         }
 
         public void BuildNodesDictionary()
@@ -163,15 +172,22 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void BuildConstraintDisplacementDictionary()
         {
-            foreach (Node node in nodesDictionary.Values)
+            //TODO: constraints should not be saved inside the nodes, just have a Table stored by Model.
+            foreach (Node node in Nodes)
             {
                 if (node.Constraints == null) continue;
-                constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
-                foreach (Constraint constraint in node.Constraints)
-                {
-                    constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
-                }
+                foreach (Constraint constraint in node.Constraints) Constraints[node, constraint.DOF] = constraint.Amount;
             }
+
+            //foreach (Node node in nodesDictionary.Values)
+            //{
+            //    if (node.Constraints == null) continue;
+            //    constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
+            //    foreach (Constraint constraint in node.Constraints)
+            //    {
+            //        constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
+            //    }
+            //}
         }
 
         #endregion
@@ -217,15 +233,17 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void ScaleConstraints(double scalingFactor)
         {
-            var nodeIds = constraintsDictionary.Keys.ToList();
-            foreach (var nodeId in nodeIds)
-            {
-                var dofs = constraintsDictionary[nodeId].Keys.ToList();
-                foreach (DOFType dof in dofs)
-                {
-                    constraintsDictionary[nodeId][dof] = constraintsDictionary[nodeId][dof] * scalingFactor;
-                }
-            }
+            Constraints.ModifyValues((u) => scalingFactor * u);
+
+            //var nodeIds = constraintsDictionary.Keys.ToList();
+            //foreach (var nodeId in nodeIds)
+            //{
+            //    var dofs = constraintsDictionary[nodeId].Keys.ToList();
+            //    foreach (DOFType dof in dofs)
+            //    {
+            //        constraintsDictionary[nodeId][dof] = constraintsDictionary[nodeId][dof] * scalingFactor;
+            //    }
+            //}
         }
 
         public double[] CalculateElementIncrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
@@ -249,22 +267,30 @@ namespace ISAAR.MSolve.FEM.Entities
 
         private void ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)
         {
-            int pos = 0;
-            for (int i = 0; i < element.ElementType.DOFEnumerator.GetDOFTypes(element).Count; i++)
+            int elementDofIdx = 0;
+            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> dofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+            for (int i = 0; i < nodes.Count; ++i)
             {
-                INode node = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element)[i]; //Node node = element.Nodes[i];
-                bool isConstrainedNode = constraintsDictionary.TryGetValue(node.ID, 
-                    out Dictionary<DOFType, double> constrainedDOFs);
-                foreach (DOFType dofType in element.ElementType.DOFEnumerator.GetDOFTypes(element)[i])
+                //bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
+                //    out Dictionary<DOFType, double> constrainedDOFs);
+                bool isConstrainedNode = Constraints.TryGetDataOfRow(nodes[i], 
+                    out IReadOnlyDictionary<DOFType, double> constrainedDOFs);
+                if (isConstrainedNode)
                 {
-                    bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
-                    if (isConstrainedNode && isConstrainedDof)
+                    foreach (DOFType dofType in dofs[i])
                     {
-                        Debug.Assert(elementNodalDisplacements[pos] == 0);
-                        elementNodalDisplacements[pos] = constraintDisplacement;
+                        bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
+                        //if (isConstrainedNode && isConstrainedDof)
+                        if (isConstrainedDof)
+                        {
+                            Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
+                            elementNodalDisplacements[elementDofIdx] = constraintDisplacement;
+                        }
+                        ++elementDofIdx;
                     }
-                    pos++;
                 }
+                else elementDofIdx += dofs[i].Count;
             }
         }
 
@@ -317,7 +343,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
-                    element.Subdomain.MaterialsModified = true;
+                    element.Subdomain_v2.MaterialsModified = true;
                 var f = Vector.CreateFromArray(element.ElementType.CalculateForces(element, localSolution, localdSolution));
                 DofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }

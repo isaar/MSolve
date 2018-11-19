@@ -28,8 +28,8 @@ namespace ISAAR.MSolve.Solvers.Ordering
             int dofCounter = 0;
             foreach (INode node in subdomain.Nodes)
             {
-                bool isNodeConstrained = subdomain.Constraints.TryGetValue(node.ID, 
-                    out Dictionary<DOFType, double> constraintsOfNode);
+                bool isNodeConstrained = subdomain.Constraints.TryGetDataOfRow(node, 
+                    out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
                 foreach (DOFType dof in dofsPerNode)
                 {
                     bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dof) : false;

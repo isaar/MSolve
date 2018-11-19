@@ -159,8 +159,8 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             foreach (var e in elementsDictionary.Values.Where(x => x.ElementType is IEmbeddedElement))
             {
-                var subs = ((IEmbeddedElement)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain).Distinct();
-                foreach (var s in subs.Where(x => x.ID != e.Subdomain.ID))
+                var subs = ((IEmbeddedElement)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain_v2).Distinct();
+                foreach (var s in subs.Where(x => x.ID != e.Subdomain_v2.ID))
                     s.ElementsDictionary.Add(e.ID, e);
             }
         }
