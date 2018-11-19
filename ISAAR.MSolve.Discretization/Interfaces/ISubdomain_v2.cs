@@ -21,13 +21,6 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// </summary>
         IDofOrdering DofOrdering { get; set; }
 
-        //TODO: Make this DofTable (stored by Subdomain or its DofOrdering) or just an int array that stores the permutation
-        //      subdomain to global. The latter is probably more efficient.
-        //TODO: Why do I need this and Model.NodalDOFsDictionary? Even if there were more than one subdomains, there would not 
-        //      be a global vector (and obviously global matrix). Ideally all vectors should be on subdomain level, so that 
-        //      they can be processed parallely (e.g. in a distributed environment).
-        DofTable GlobalFreeDofs { get; } 
-
         double[] Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
         void ResetMaterialsModifiedProperty();
     }

@@ -251,7 +251,7 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
             {
                 subdomain.EnumerateDOFs();
-                subdomain.AssignGlobalNodalDOFsFromModel_v2(nodalDOFsDictionary);
+                //subdomain.AssignGlobalNodalDOFsFromModel_v2(nodalDOFsDictionary); //This is done in subdomain.EnumerateDOFs();
             }
         }
 

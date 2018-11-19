@@ -20,6 +20,7 @@ namespace ISAAR.MSolve.Solvers.Dense
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly DenseMatrixAssembler assembler = new DenseMatrixAssembler();
+        private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly DenseSystem linearSystem;
@@ -29,6 +30,7 @@ namespace ISAAR.MSolve.Solvers.Dense
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
+            this.model = model;
             this.subdomain = model.ISubdomainsDictionary.First().Value;
             this.linearSystem = new DenseSystem(subdomain);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomain.ID, linearSystem } };
@@ -44,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Dense
             var writer = new FullMatrixWriter();
             writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
 
-            var dofOrderingSimple = (new SimpleDofOrderer()).OrderDofs(subdomain);
+            var dofOrderingSimple = (new SimpleDofOrderer()).OrderDofs(model, subdomain);
             Matrix simpleOrderK = (Matrix)assembler.BuildGlobalMatrix(
                 dofOrderingSimple, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
 
@@ -52,7 +54,7 @@ namespace ISAAR.MSolve.Solvers.Dense
             Console.WriteLine("Global matrix with simple ordering");
             writer.WriteToConsole(simpleOrderK);
 
-            var dofOrderingNodeMajor = (new NodeMajorDofOrderer()).OrderDofs(subdomain);
+            var dofOrderingNodeMajor = (new NodeMajorDofOrderer()).OrderDofs(model, subdomain);
             Matrix nodeMajorK = (Matrix)assembler.BuildGlobalMatrix(
                 dofOrderingNodeMajor, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
 
@@ -102,7 +104,7 @@ namespace ISAAR.MSolve.Solvers.Dense
             // TODO: perhaps order dofs here
         }
 
-        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(subdomain);
+        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
 
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.

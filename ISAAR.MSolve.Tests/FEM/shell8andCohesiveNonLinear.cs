@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             var model = new Model_v2();
             model.SubdomainsDictionary.Add(subdomainID,
-                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(subdomain)));
+                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
             ShellAndCohesiveRAM_11tlkShellPaktwsh(model);
 
             model.ConnectDataStructures();

@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.FEM.Entities
         //    get { return globalNodalDOFsDictionary; }
         //}
 
-        public DofTable GlobalFreeDofs { get; private set; }
+        //public DofTable GlobalFreeDofs { get; private set; }
 
         public double[] Forces
         {
@@ -117,6 +117,7 @@ namespace ISAAR.MSolve.FEM.Entities
             forces = new double[DofOrdering.NumFreeDofs];
         }
 
+        //This is done in EnumerateDOFs()
         //public void AssignGlobalNodalDOFsFromModel(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
         //{
         //    foreach (int nodeID in nodalDOFsDictionary.Keys)
@@ -129,25 +130,25 @@ namespace ISAAR.MSolve.FEM.Entities
         //    }
         //}
 
-        public void AssignGlobalNodalDOFsFromModel_v2(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
-        {
-            GlobalFreeDofs = new DofTable();
-            foreach ((INode node, DOFType dofType, int subdomainDOfIdx) in DofOrdering.FreeDofs)
-            {
-                GlobalFreeDofs[node, dofType] = glodalDOFsDictionary[node.ID][dofType];
-            }
-
-            //foreach (Node node in DofOrdering.FreeDofs.GetRows())
+        //public void AssignGlobalNodalDOFsFromModel_v2(Dictionary<int, Dictionary<DOFType, int>> glodalDOFsDictionary)
+        //{
+            //GlobalFreeDofs = new DofTable();
+            //foreach ((INode node, DOFType dofType, int subdomainDOfIdx) in DofOrdering.FreeDofs)
             //{
-            //    IEnumerable<DOFType> subdomainDofsOfNode = DofOrdering.FreeDofs.GetColumnsOfRow(node);
-            //    var globalDofsOfNode = new Dictionary<DOFType, int>();
-            //    foreach (DOFType dofType in subdomainDofsOfNode)
-            //    {
-            //        globalDofsOfNode.Add(dofType, glodalDOFsDictionary[node.ID][dofType]);
-            //    }
-            //    globalNodalDOFsDictionary.Add(node.ID, globalDofsOfNode);
+            //    GlobalFreeDofs[node, dofType] = glodalDOFsDictionary[node.ID][dofType];
             //}
-        }
+
+            ////foreach (Node node in DofOrdering.FreeDofs.GetRows())
+            ////{
+            ////    IEnumerable<DOFType> subdomainDofsOfNode = DofOrdering.FreeDofs.GetColumnsOfRow(node);
+            ////    var globalDofsOfNode = new Dictionary<DOFType, int>();
+            ////    foreach (DOFType dofType in subdomainDofsOfNode)
+            ////    {
+            ////        globalDofsOfNode.Add(dofType, glodalDOFsDictionary[node.ID][dofType]);
+            ////    }
+            ////    globalNodalDOFsDictionary.Add(node.ID, globalDofsOfNode);
+            ////}
+        //}
 
         public void BuildNodesDictionary()
         {

@@ -170,7 +170,7 @@ namespace ISAAR.MSolve.Tests
             // Add a single subdomain to the model
             int subdomainID = 1;
             model.SubdomainsDictionary.Add(subdomainID,
-                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(subdomain)));
+                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)

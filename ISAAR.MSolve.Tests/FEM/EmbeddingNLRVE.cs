@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             var model = new Model_v2();
             model.SubdomainsDictionary.Add(subdomainID, 
-                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(subdomain)));
+                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
             Reference2RVEExample1000ddm_test_for_Msolve_release_version_v2(model);
 
             model.ConnectDataStructures();

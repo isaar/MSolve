@@ -15,9 +15,9 @@ namespace ISAAR.MSolve.Solvers.Ordering
     {
         private readonly SimpleDofOrderer embeddedOrderer = new SimpleDofOrderer();
 
-        public IDofOrdering OrderDofs(ISubdomain_v2 subdomain)
+        public IDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
         {
-            IDofOrdering ordering = embeddedOrderer.OrderDofs(subdomain);
+            IDofOrdering ordering = embeddedOrderer.OrderDofs(model, subdomain);
             ordering.FreeDofs.ReorderNodeMajor(subdomain.Nodes);
             return ordering;
         }

@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class NodeMajorDofOrdererAlternative: IDofOrderer
     {
-        public IDofOrdering OrderDofs(ISubdomain_v2 subdomain)
+        public IDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
         {
             int totalDOFs = 0;
             Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set isntead of List
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 }
             }
 
-            return new FreeDofOrdering(totalDOFs, freeDofs);
+            return new FreeDofOrdering(totalDOFs, freeDofs, model.NodalDOFsDictionary);
         }
     }
 }

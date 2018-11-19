@@ -24,6 +24,7 @@ namespace ISAAR.MSolve.Solvers.PCG
     {
         private const string name = "PcgSolver"; // for error messages
         private readonly CsrAssembler assembler = new CsrAssembler(true);
+        private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly IDofOrderer dofOrderer;
         private readonly CsrSystem linearSystem;
@@ -36,6 +37,7 @@ namespace ISAAR.MSolve.Solvers.PCG
         {
             if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
+            this.model = model;
             this.subdomain = model.ISubdomainsDictionary.First().Value;
             this.linearSystem = new CsrSystem(subdomain);
             this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { linearSystem.ID, linearSystem } };
@@ -56,7 +58,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             // TODO: perhaps order dofs here
         }
 
-        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(subdomain);
+        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
 
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.

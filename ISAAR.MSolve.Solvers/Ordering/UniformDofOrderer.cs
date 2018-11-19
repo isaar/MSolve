@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
             this.dofsPerNode = dofsPerNode;
         }
 
-        public IDofOrdering OrderDofs(ISubdomain_v2 subdomain)
+        public IDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     if (!isDofConstrained) freeDofs[node, dof] = dofCounter++;
                 }
             }
-            return new FreeDofOrdering(dofCounter, freeDofs);
+            return new FreeDofOrdering(dofCounter, freeDofs, model.NodalDOFsDictionary);
         }
     }
 }
