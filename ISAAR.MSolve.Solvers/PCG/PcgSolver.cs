@@ -35,23 +35,22 @@ namespace ISAAR.MSolve.Solvers.PCG
         public PcgSolver(IStructuralModel_v2 model, PreconditionedConjugateGradient pcgAlgorithm, 
             IPreconditionerFactory preconditionerFactory, IDofOrderer dofOrderer)
         {
-            if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
+            if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.model = model;
-            this.subdomain = model.ISubdomainsDictionary.First().Value;
+            this.subdomain = model.Subdomains[0];
             this.linearSystem = new CsrSystem(subdomain);
-            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { linearSystem.ID, linearSystem } };
+            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
 
             this.pcgAlgorithm = pcgAlgorithm;
             this.preconditionerFactory = preconditionerFactory;
             this.dofOrderer = dofOrderer;
         }
 
-
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
-            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
 
         public void Initialize()
         {

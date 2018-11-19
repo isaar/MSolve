@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model_v2 : IStructuralModel_v2
     {
-        public const int constrainedDofIdx = -1;
+        //public const int constrainedDofIdx = -1;
         private int totalDOFs = 0;
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         //private readonly IList<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
@@ -48,17 +48,6 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return subdomainsDictionary; }
         }
 
-        public Dictionary<int, ISubdomain_v2> ISubdomainsDictionary
-        {
-            get
-            {
-                var a = new Dictionary<int, ISubdomain_v2>();
-                foreach (var subdomain in subdomainsDictionary.Values)
-                    a.Add(subdomain.ID, subdomain);
-                return a;
-            }
-        }
-
         public Dictionary<int, Cluster> ClustersDictionary
         {
             get { return clustersDictionary; }
@@ -73,6 +62,8 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             get { return elementsDictionary.Values.ToList<Element>(); }
         }
+
+        IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => subdomainsDictionary.Values.ToList();
 
         public IList<Subdomain_v2> Subdomains
         {
@@ -137,7 +128,7 @@ namespace ISAAR.MSolve.FEM.Entities
         private void BuildSubdomainOfEachElement()
         {
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
-                foreach (Element element in subdomain.ElementsDictionary.Values)
+                foreach (Element element in subdomain.Elements)
                     element.Subdomain_v2 = subdomain;
         }
 
@@ -152,7 +143,7 @@ namespace ISAAR.MSolve.FEM.Entities
             //BuildNonConformingNodes();
 
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
-                subdomain.BuildNodesDictionary();
+                subdomain.BuildNodesList();
         }
 
         private void DuplicateInterSubdomainEmbeddedElements()
@@ -161,7 +152,7 @@ namespace ISAAR.MSolve.FEM.Entities
             {
                 var subs = ((IEmbeddedElement)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain_v2).Distinct();
                 foreach (var s in subs.Where(x => x.ID != e.Subdomain_v2.ID))
-                    s.ElementsDictionary.Add(e.ID, e);
+                    s.Elements.Add(e);
             }
         }
 
@@ -251,7 +242,6 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
             {
                 subdomain.EnumerateDOFs();
-                //subdomain.AssignGlobalNodalDOFsFromModel_v2(nodalDOFsDictionary); //This is done in subdomain.EnumerateDOFs();
             }
         }
 
@@ -298,33 +288,7 @@ namespace ISAAR.MSolve.FEM.Entities
                     subdomain.Forces[subdomainDofIdx] = amount;
                 }
             }
-
-
-            //foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
-            //    Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
-            //foreach (Load load in loads)
-            //    foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary_v2.Values)
-            //    {
-            //        int dof = subdomain.NodalDOFsDictionary[load.Node.ID][load.DOF];
-            //        if (dof >= 0)
-            //            subdomain.Forces[dof] = load.Amount / load.Node.SubdomainsDictionary_v2.Count;
-            //    }
         }
-
-        ////TODO: each subdomain should have a list of its loads, which has been created by dividing the global loads. Then the 
-        ////      subdomain can manage its own loads (e.g. incrementally apply them)
-        //private void AssignNodalLoads_v2()
-        //{
-        //    foreach (Subdomain subdomain in subdomainsDictionary.Values)
-        //        Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
-        //    foreach (Load load in loads)
-        //        foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
-        //        {
-        //            bool isDofFree = subdomain.DofOrdering.FreeDofs.TryGetValue(load.Node, load.DOF, out int dofIdx);
-        //            Debug.Assert(isDofFree, $"Node {load.Node} - dof {load.DOF} is constrained but has an applied load");
-        //            if (isDofFree) subdomain.Forces[dofIdx] = load.Amount / load.Node.SubdomainsDictionary.Count;
-        //        }
-        //}
 
         private void AssignElementMassLoads()
         {
@@ -340,7 +304,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
             {
-                foreach (Element element in subdomain.ElementsDictionary.Values)
+                foreach (Element element in subdomain.Elements)
                 {
                     // subdomain.AddLocalVectorToGlobal(element,
                     //     element.ElementType.CalculateAccelerationForces(element, massAccelerationLoads),
@@ -372,7 +336,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
                 foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
                 {
-                    foreach (Element element in subdomain.ElementsDictionary.Values)
+                    foreach (Element element in subdomain.Elements)
                     {
                         //subdomain.AddLocalVectorToGlobal(element,
                         //    element.ElementType.CalculateAccelerationForces(element, m), subdomain.Forces);

@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Problems
         private Dictionary<int, IMatrix> ms, cs, ks;
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
-        private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
+        private IReadOnlyList<ILinearSystem_v2> linearSystems;
         private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
         private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
 
@@ -72,9 +72,9 @@ namespace ISAAR.MSolve.Problems
 
         private void BuildKs()
         {
-            ks = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
+            ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             var stiffnessProvider = new ElementStructuralStiffnessProvider();
-            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
             }
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.Problems
 
         private void RebuildKs()
         {
-            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
@@ -94,9 +94,9 @@ namespace ISAAR.MSolve.Problems
 
         private void BuildMs()
         {
-            ms = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
+            ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             var massProvider = new ElementStructuralMassProvider();
-            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
             }
@@ -106,9 +106,9 @@ namespace ISAAR.MSolve.Problems
         //      instead of building and assembling element k, m matrices.
         private void BuildCs()
         {
-            cs = new Dictionary<int, IMatrix>(model.ISubdomainsDictionary.Count);
+            cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             var dampingProvider = new ElementStructuralDampingProvider();
-            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
             }
@@ -117,9 +117,9 @@ namespace ISAAR.MSolve.Problems
         #region IAnalyzerProvider Members
         public void Reset()
         {
-            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+                foreach (IElement element in subdomain.Elements)
                 {
                     ((IFiniteElement)element.IElementType).ClearMaterialState();
                 }
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.Problems
         public IDictionary<int, IVector> GetAccelerationsOfTimeStep(int timeStep)
         {
             var d = new Dictionary<int, IVector>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 d.Add(linearSystem.ID, linearSystem.CreateZeroVector());
             }
@@ -163,7 +163,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (IMassAccelerationHistoryLoad l in model.MassAccelerationHistoryLoads)
                     m.Add(new MassAccelerationLoad() { Amount = l[timeStep], DOF = l.DOF });
 
-                foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values)
+                foreach (ISubdomain_v2 subdomain in model.Subdomains)
                 {
                     foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.DofOrdering.FreeDofs)
                     {
@@ -205,7 +205,7 @@ namespace ISAAR.MSolve.Problems
         {
             var d = new Dictionary<int, IVector>();
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 d.Add(linearSystem.ID, linearSystem.CreateZeroVector());
             }
@@ -215,7 +215,7 @@ namespace ISAAR.MSolve.Problems
 
         public void GetRHSFromHistoryLoad(int timeStep)
         {
-            foreach (ISubdomain_v2 subdomain in model.ISubdomainsDictionary.Values) 
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) 
             {
                 Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
             }
@@ -232,7 +232,7 @@ namespace ISAAR.MSolve.Problems
                 //l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
 
                 //This works fine in this case, but what if we want a vector other than Subdomain.Forces?
-                l.Value.GetRhsFromSubdomain();
+                l.GetRhsFromSubdomain();
             }
         }
 

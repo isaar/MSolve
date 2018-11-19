@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return facesDictionary; }
         }
 
-		public Dictionary<int, IElement> ΙElementsDictionary
+		Dictionary<int, IElement> ISubdomain.ElementsDictionary
 		{
 			get
 			{

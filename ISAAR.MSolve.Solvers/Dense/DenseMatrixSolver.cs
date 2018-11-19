@@ -28,17 +28,17 @@ namespace ISAAR.MSolve.Solvers.Dense
 
         public DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer)
         {
-            if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
+            if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.model = model;
-            this.subdomain = model.ISubdomainsDictionary.First().Value;
+            this.subdomain = model.Subdomains[0];
             this.linearSystem = new DenseSystem(subdomain);
-            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomain.ID, linearSystem } };
+            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
 
             this.dofOrderer = dofOrderer;
         }
 
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
         {
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             var dofOrderingSimple = (new SimpleDofOrderer()).OrderDofs(model, subdomain);
             Matrix simpleOrderK = (Matrix)assembler.BuildGlobalMatrix(
-                dofOrderingSimple, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+                dofOrderingSimple, subdomain.Elements, elementMatrixProvider);
 
             Console.WriteLine();
             Console.WriteLine("Global matrix with simple ordering");
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             var dofOrderingNodeMajor = (new NodeMajorDofOrderer()).OrderDofs(model, subdomain);
             Matrix nodeMajorK = (Matrix)assembler.BuildGlobalMatrix(
-                dofOrderingNodeMajor, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+                dofOrderingNodeMajor, subdomain.Elements, elementMatrixProvider);
 
             Console.WriteLine();
             Console.WriteLine("Global matrix with node major ordering");
@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             // END DEBUG
 
-            return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, 
+            return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, 
                 elementMatrixProvider);
         }
 

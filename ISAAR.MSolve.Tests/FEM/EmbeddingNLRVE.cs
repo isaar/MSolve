@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Tests.FEM
 {
     public static class EmbeddingNLRVE
     {
-        private const int subdomainID = 1;
+        private const int subdomainID = 0;
 
         [Fact]
         private static void RunTest()
@@ -468,7 +468,6 @@ namespace ISAAR.MSolve.Tests.FEM
 
         //    //Perioxh Eisagwgh elements
         //    int elementCounter = 0;
-        //    int subdomainID = 1;
 
         //    ElasticMaterial3D_v2 material1 = new ElasticMaterial3D_v2()
         //    {
@@ -591,7 +590,6 @@ namespace ISAAR.MSolve.Tests.FEM
 
             //Perioxh Eisagwgh elements
             int elementCounter = 0;
-            int subdomainID = 1;
 
             ElasticMaterial3D material1 = new ElasticMaterial3D()
             {
@@ -714,7 +712,6 @@ namespace ISAAR.MSolve.Tests.FEM
 
             //Perioxh Eisagwgh elements
             int elementCounter = 0;
-            int subdomainID = 1;
 
             ElasticMaterial3D material1 = new ElasticMaterial3D()
             {
@@ -752,7 +749,7 @@ namespace ISAAR.MSolve.Tests.FEM
                             e1.NodesDictionary.Add(globalNodeIDforlocalNode_i[j], model.NodesDictionary[globalNodeIDforlocalNode_i[j]]);
                         }
                         model.ElementsDictionary.Add(e1.ID, e1);
-                        model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e1.ID, e1);
+                        model.SubdomainsDictionary[subdomainID].Elements.Add(e1);
                         elementCounter++;
                     }
                 }
@@ -871,7 +868,7 @@ namespace ISAAR.MSolve.Tests.FEM
         //    int[] midsurfaceNodeIDforlocalShellNode_i = new int[8];
         //    Element e2;
         //    int ElementID;
-        //    int subdomainID = 1;
+ 
 
         //    for (int j = 0; j < 8; j++) // paxos idio gia ola telements
         //    {
@@ -1139,7 +1136,6 @@ namespace ISAAR.MSolve.Tests.FEM
             int[] midsurfaceNodeIDforlocalShellNode_i = new int[8];
             Element e2;
             int ElementID;
-            int subdomainID = 1;
 
             for (int j = 0; j < 8; j++) // paxos idio gia ola telements
             {
@@ -1407,7 +1403,6 @@ namespace ISAAR.MSolve.Tests.FEM
             int[] midsurfaceNodeIDforlocalShellNode_i = new int[8];
             Element e2;
             int ElementID;
-            int subdomainID = 1;
 
             for (int j = 0; j < 8; j++) // paxos idio gia ola telements
             {
@@ -1450,7 +1445,7 @@ namespace ISAAR.MSolve.Tests.FEM
                     e2.NodesDictionary.Add(renumbering.GetNewNodeNumbering(midsurfaceNodeIDforlocalShellNode_i[j1] + PreviousNodesNumberValue), model.NodesDictionary[renumbering.GetNewNodeNumbering(midsurfaceNodeIDforlocalShellNode_i[j1] + PreviousNodesNumberValue)]);
                 }
                 model.ElementsDictionary.Add(e2.ID, e2);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e2.ID, e2);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e2);
                 eswterikosElementCounter++;
             }
             int arithmosShellElements = eswterikosElementCounter;
@@ -1522,7 +1517,7 @@ namespace ISAAR.MSolve.Tests.FEM
                         model.NodesDictionary[renumbering.GetNewNodeNumbering(midsurfaceNodeIDforlocalCohesiveNode_i[j1] + PreviousNodesNumberValue + arithmosShmeiwnShellMidsurface)]);
                 }
                 model.ElementsDictionary.Add(e2.ID, e2);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e2.ID, e2);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e2);
                 eswterikosElementCounter++;
             }
             // orismos elements katw strwshs ews edw
@@ -1580,7 +1575,7 @@ namespace ISAAR.MSolve.Tests.FEM
                         model.NodesDictionary[renumbering.GetNewNodeNumbering(midsurfaceNodeIDforlocalCohesiveNode_i[j1] + PreviousNodesNumberValue + 2 * arithmosShmeiwnShellMidsurface)]);
                 }
                 model.ElementsDictionary.Add(e2.ID, e2);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e2.ID, e2);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e2);
                 eswterikosElementCounter++;
             }
             // orismos elements anw strwshs ews edw

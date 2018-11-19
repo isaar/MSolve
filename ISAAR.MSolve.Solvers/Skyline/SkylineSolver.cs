@@ -41,21 +41,21 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
         {
-            if (model.ISubdomainsDictionary.Count != 1) throw new InvalidSolverException(
+            if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.model = model;
-            this.subdomain = model.ISubdomainsDictionary.First().Value;
+            this.subdomain = model.Subdomains[0];
             this.linearSystem = new SkylineSystem(subdomain);
-            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>(1) { { subdomain.ID, linearSystem } };
+            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
 
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.dofOrderer = dofOrderer;
         }
 
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
-            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.ΙElementsDictionary.Values, elementMatrixProvider);
+            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
 
         //public IMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementMatrixProvider)
         //{

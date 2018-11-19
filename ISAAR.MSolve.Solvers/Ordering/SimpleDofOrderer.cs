@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
-            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            foreach (IElement element in subdomain.Elements)
             {
                 //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
                 IList<INode> elementNodes = element.INodes;

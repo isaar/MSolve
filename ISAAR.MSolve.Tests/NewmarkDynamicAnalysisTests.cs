@@ -87,8 +87,8 @@ namespace ISAAR.MSolve.Tests
         {
             var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID,
-                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID,
+                (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
 
             var n = new Node() { ID = 0 };
             var e = new Element() { ID = 0 };
@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.Tests
             e.ElementType = m.Object;
             model.NodesDictionary.Add(0, n);
             model.ElementsDictionary.Add(0, e);
-            model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(0, e);
+            model.SubdomainsDictionary[subdomainID].Elements.Add(e);
             model.Loads.Add(new Load() { Amount = 10, Node = n, DOF = DOFType.Y });
             var lX = new Mock<IMassAccelerationHistoryLoad>();
             lX.SetupGet(x => x.DOF).Returns(DOFType.X);

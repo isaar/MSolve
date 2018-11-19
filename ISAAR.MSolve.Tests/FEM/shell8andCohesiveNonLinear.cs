@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Tests.FEM
 {
     public static class Shell8andCohesiveNonLinear
     {
-        private const int subdomainID = 1;
+        private const int subdomainID = 0;
 
         [Fact]
         private static void RunTest()
@@ -507,9 +507,8 @@ namespace ISAAR.MSolve.Tests.FEM
             e1.NodesDictionary.Add(4, model.NodesDictionary[4]);
             e1.NodesDictionary.Add(7, model.NodesDictionary[7]);
 
-            int subdomainID = 1; // tha mporei kai na dinetai sto hexabuilder opws sto MakeBeamBuilding
             model.ElementsDictionary.Add(e1.ID, e1);
-            model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e1.ID, e1);
+            model.SubdomainsDictionary[subdomainID].Elements.Add(e1);
             //eisagwgh shell ews edw
 
             // eisagwgh tou cohesive element
@@ -534,7 +533,7 @@ namespace ISAAR.MSolve.Tests.FEM
             }
 
             model.ElementsDictionary.Add(e2.ID, e2);
-            model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e2.ID, e2);
+            model.SubdomainsDictionary[subdomainID].Elements.Add(e2);
             // eisagwgh cohesive ews edw
 
             // perioxh loads

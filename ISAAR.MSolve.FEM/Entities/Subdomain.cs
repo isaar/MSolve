@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, IElement> ΙElementsDictionary
+        Dictionary<int, IElement> ISubdomain.ElementsDictionary
         {
             get
             {

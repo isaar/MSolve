@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		int TotalDOFs { get; set; } //TODO: rename it to NumFreeDofs or even better expose a DofOrderer 
         bool MaterialsModified { get; set; }
 
-		Dictionary<int, IElement> ΙElementsDictionary { get; }
+		Dictionary<int, IElement> ElementsDictionary { get; }
         Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary { get; }
         Dictionary<int, Dictionary<DOFType, int>> GlobalNodalDOFsDictionary { get; }
 		

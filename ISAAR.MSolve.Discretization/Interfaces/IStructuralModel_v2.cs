@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface IStructuralModel_v2
     {
-		Dictionary<int, ISubdomain_v2> ISubdomainsDictionary { get; }
+		IReadOnlyList<ISubdomain_v2> Subdomains { get; }
 	    IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; }
         Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary { get; } //TODO: this should not be managed by the model
 

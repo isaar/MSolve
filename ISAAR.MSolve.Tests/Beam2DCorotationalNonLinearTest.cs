@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.Tests
             var model = new Model_v2();
 
             // Add a single subdomain to the model
-            int subdomainID = 1;
+            int subdomainID = 0;
             model.SubdomainsDictionary.Add(subdomainID,
                 new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
 
@@ -211,7 +211,7 @@ namespace ISAAR.MSolve.Tests
 
                 // Add beam element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(element.ID, element);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element);
                 iNode++;
             }
 

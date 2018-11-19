@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages =
             new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
         private readonly ISolver_v2 solver;
-        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
+        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly IImplicitIntegrationProvider_v2 provider;
         private IAnalyzer_v2 childAnalyzer;
         private IAnalyzer_v2 parentAnalyzer;
@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.Analyzers
             v2.Clear();
             rhs.Clear();
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 uu.Add(linearSystem.ID, linearSystem.CreateZeroVector());
                 uum.Add(linearSystem.ID, linearSystem.CreateZeroVector());
@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
                 provider.CalculateEffectiveMatrix(linearSystem, coeffs);
 
 
@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 provider.ProcessRHS(linearSystem, coeffs);
                 int dofs = linearSystem.RhsVector.Length;
@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.Analyzers
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
             if (childAnalyzer == null) return;
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
                 if (resultStorages.ContainsKey(linearSystem.ID))
                     if (resultStorages[linearSystem.ID] != null)
                         foreach (var l in childAnalyzer.Logs[linearSystem.ID])
@@ -210,7 +210,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void CalculateRHSImplicit()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 //int id = subdomain.ID;
                 //for (int i = 0; i < subdomain.RHS.Length; i++)
@@ -281,7 +281,7 @@ namespace ISAAR.MSolve.Analyzers
             var externalVelocities = provider.GetVelocitiesOfTimeStep(timeStep);
             var externalAccelerations = provider.GetAccelerationsOfTimeStep(timeStep);
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 int id = linearSystem.ID;
                 u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;

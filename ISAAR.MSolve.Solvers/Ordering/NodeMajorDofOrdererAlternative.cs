@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
         {
             int totalDOFs = 0;
             Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set isntead of List
-            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            foreach (IElement element in subdomain.Elements)
             {
                 for (int i = 0; i < element.INodes.Count; i++)
                 {

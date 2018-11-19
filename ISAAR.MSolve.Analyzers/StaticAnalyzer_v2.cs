@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class StaticAnalyzer_v2 : IAnalyzer_v2, INonLinearParentAnalyzer_v2
     {
-        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
+        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly ISolver_v2 solver;
         private readonly IStaticProvider_v2 provider;
         private IAnalyzer_v2 childAnalyzer;
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void InitalizeMatrices()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values) provider.CalculateMatrix(linearSystem);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems) provider.CalculateMatrix(linearSystem);
 
             //provider.CalculateMatrices();
             //subdomain.Matrix = provider.Ks[subdomain.ID];

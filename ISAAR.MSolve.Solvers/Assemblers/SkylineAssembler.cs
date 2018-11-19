@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         {
             Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
             var K = new Numerical.LinearAlgebra.SkylineMatrix2D(CalculateRowIndex(subdomain));
-            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            foreach (IElement element in subdomain.ElementsDictionary.Values)
             {
                 var isEmbeddedElement = element.IElementType is FEM.Interfaces.IEmbeddedElement;
                 IMatrix2D ElementK = matrixProvider.Matrix(element);
@@ -162,7 +162,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             int[] rowHeights = new int[order];
             Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
 
-            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            foreach (IElement element in subdomain.ElementsDictionary.Values)
             {
                 int minDOF = Int32.MaxValue;
                 foreach (INode node in element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))

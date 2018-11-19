@@ -8,12 +8,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface ISubdomain_v2
     {
-        int ID { get; }
-        bool MaterialsModified { get; set; }
-
-        Dictionary<int, IElement> ΙElementsDictionary { get; }
         Table<INode, DOFType, double> Constraints { get; }
-        IReadOnlyList<INode> Nodes { get; }
 
         /// <summary>
         /// This should be set when the analyzer decides. E.g. an XFEM or adaptive FEM analyzer would need to create a new dof 
@@ -21,7 +16,16 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// </summary>
         IDofOrdering DofOrdering { get; set; }
 
+        IReadOnlyList<IElement> Elements { get; } //TODO: perhaps this should be a set
+
         double[] Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
+
+        int ID { get; }
+
+        bool MaterialsModified { get; set; }
+
+        IReadOnlyList<INode> Nodes { get; } //TODO: perhaps this should be a set
+
         void ResetMaterialsModifiedProperty();
     }
 }

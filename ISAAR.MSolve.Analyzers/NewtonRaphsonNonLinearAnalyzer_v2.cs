@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class NewtonRaphsonNonLinearAnalyzer_v2 : IAnalyzer_v2
     {
-        private readonly ILinearSystem_v2[] linearSystems;
+        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly INonLinearSubdomainUpdater_v2[] subdomainUpdaters;
         private readonly ISubdomainGlobalMapping_v2[] mappings;
         private readonly int increments;
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Analyzers
             this.solver = solver;
             this.subdomainUpdaters = subdomainUpdaters;
             this.mappings = mappings;
-            this.linearSystems = solver.LinearSystems.Values.ToArray();
+            this.linearSystems = solver.LinearSystems;
             this.provider = provider;
             this.increments = increments;
             this.totalDOFs = totalDOFs;

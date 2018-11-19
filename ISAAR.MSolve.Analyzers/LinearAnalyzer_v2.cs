@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Analyzers
     public class LinearAnalyzer_v2 : IAnalyzer_v2
     {
         private IAnalyzer_v2 parentAnalyzer = null;
-        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
+        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly Dictionary<int, ILogFactory> logFactories = new Dictionary<int, ILogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
