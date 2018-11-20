@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <see cref="AddSubmatrixSymmetric(IIndexable2D, IReadOnlyDictionary{int, int})"/>.
         /// </summary>
         /// <param name="subMatrix">The matrix to add to this <see cref="ISymmetricMatrixBuilder"/>.</param>
-        /// <param name="subRowsToGlobalRows">Mapping: row indicides of <paramref name="subMatrix"/> to row indices of 
+        /// <param name="subRowsToGlobalRows">Mapping: row indices of <paramref name="subMatrix"/> to row indices of 
         ///     this <see cref="ISymmetricMatrixBuilder"/>.</param>
         /// <param name="subColsToGlobalCols">Mapping: column indicides of <paramref name="subMatrix"/> to column indices of 
         ///     this <see cref="ISymmetricMatrixBuilder"/>.</param>
@@ -39,10 +39,31 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// </summary>
         /// <param name="subMatrix">The matrix to add to this <see cref="ISymmetricMatrixBuilder"/>. It must be symmetric, but 
         ///     this will not be checked explicitly.</param>
-        /// <param name="subIndicesToGlobalIndices">Mapping: row/column indicides of <paramref name="subMatrix"/> to row/column 
+        /// <param name="subIndicesToGlobalIndices">Mapping: row/column indices of <paramref name="subMatrix"/> to row/column 
         ///     indices of this <see cref="ISymmetricMatrixBuilder"/>. The latter must be symmetrically placed around this
         ///     <see cref="ISymmetricMatrixBuilder"/>'s diagonal, though this will not be checked explicitly.</param>
         void AddSubmatrixSymmetric(IIndexable2D subMatrix, IReadOnlyDictionary<int, int> subIndicesToGlobalIndices);
+
+        /// <summary>
+        /// Adds the entries of a symmetric <paramref name="subMatrix"/> to the corresponding entries of this matrix. The 
+        /// mapping between the rows and columns of the two matrices is given by the pair (<paramref name="subMatrixIndices"/>,
+        /// <paramref name="globalIndices"/>) and the resulting "global" row/column indices must be symmetrically placed around  
+        /// this <see cref="ISymmetricMatrixBuilder"/>'s diagonal.
+        /// </summary>
+        /// <param name="subMatrix">
+        /// The matrix to add to this <see cref="ISymmetricMatrixBuilder"/>. It must be symmetric, but this will not be checked 
+        /// explicitly.
+        /// </param>
+        /// <param name="subMatrixIndices">
+        /// The row/column indices of the entries of <paramref name="subMatrix"/> that will be added to the global matrix. 
+        /// <paramref name="subMatrixIndices"/>[i] corresponds to <paramref name="globalIndices"/>[i].
+        /// </param>
+        /// <param name="globalIndices">
+        /// The row/column indices of the entries of the gobal matrix that will be modified. They must be symmetrically placed 
+        /// around this <see cref="ISymmetricMatrixBuilder"/>'s diagonal, though this will not be checked explicitly.
+        /// <paramref name="globalIndices"/>[i] corresponds to <paramref name="globalIndices"/>[i]. 
+        /// </param>
+        void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subMatrixIndices, int[] globalIndices);
 
         /// <summary>
         /// Adds the entries of <paramref name="subMatrix"/> to the corresponding lower triangular entries of this matrix. The  
@@ -55,7 +76,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <param name="subMatrix">The matrix to add to this <see cref="ISymmetricMatrixBuilder"/>.</param>
         /// <param name="subRowsToGlobalRows">Mapping: row indicides of <paramref name="subMatrix"/> to row indices of 
         ///     this <see cref="ISymmetricMatrixBuilder"/>.</param>
-        /// <param name="subColsToGlobalCols">Mapping: column indicides of <paramref name="subMatrix"/> to column indices of 
+        /// <param name="subColsToGlobalCols">Mapping: column indices of <paramref name="subMatrix"/> to column indices of 
         ///     this <see cref="ISymmetricMatrixBuilder"/>.</param> 
         void AddSubmatrixToLowerTriangle(IIndexable2D subMatrix,
             IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols);
@@ -71,7 +92,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <param name="subMatrix">The matrix to add to this <see cref="ISymmetricMatrixBuilder"/>.</param>
         /// <param name="subRowsToGlobalRows">Mapping: row indicides of <paramref name="subMatrix"/> to row indices of 
         ///     this <see cref="ISymmetricMatrixBuilder"/>.</param>
-        /// <param name="subColsToGlobalCols">Mapping: column indicides of <paramref name="subMatrix"/> to column indices of 
+        /// <param name="subColsToGlobalCols">Mapping: column indices of <paramref name="subMatrix"/> to column indices of 
         ///     this <see cref="ISymmetricMatrixBuilder"/>.</param> 
         void AddSubmatrixToUpperTriangle(IIndexable2D subMatrix,
             IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using ISAAR.MSolve.LinearAlgebra.Commons;
@@ -220,6 +221,36 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 {
                     int subRow = rowPair.Key;
                     int globalRow = rowPair.Value;
+                    if (globalRow <= globalCol)
+                    {
+                        double subValue = subMatrix[subRow, subCol];
+                        if (columns[globalCol].TryGetValue(globalRow, out double oldGlobalValue))
+                        {
+                            columns[globalCol][globalRow] = subValue + oldGlobalValue;
+                        }
+                        else columns[globalCol][globalRow] = subValue;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrixSymmetric(IIndexable2D, int[], int[])"/>.
+        /// </summary>
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subMatrixIndices, int[] globalIndices)
+        {
+            Debug.Assert(subMatrix.NumRows == subMatrix.NumColumns);
+            Debug.Assert(globalIndices.Length == subMatrixIndices.Length);
+
+            int numRelevantRows = subMatrixIndices.Length;
+            for (int j = 0; j < numRelevantRows; ++j)
+            {
+                int subCol = subMatrixIndices[j];
+                int globalCol = globalIndices[j];
+                for (int i = 0; i < numRelevantRows; ++i)
+                {
+                    int subRow = subMatrixIndices[i];
+                    int globalRow = globalIndices[i];
                     if (globalRow <= globalCol)
                     {
                         double subValue = subMatrix[subRow, subCol];
@@ -633,7 +664,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
         /// <param name="globalDofs">The entries in the global matrix where element matrix entries will be added to. Specificaly,
         ///     pairs of (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
-        private void AddSubmatrixSymmetric(IIndexable2D elementMatrix, int[] elementDofs, int[] globalDofs) //TODO: this should be reworked
+        private void AddSubmatrixSymmetricOLD(IIndexable2D elementMatrix, int[] elementDofs, int[] globalDofs) //TODO: this should be reworked
         {
             int n = elementDofs.Length;
             for (int j = 0; j < n; ++j)

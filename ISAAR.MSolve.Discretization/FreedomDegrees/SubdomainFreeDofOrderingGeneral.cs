@@ -8,9 +8,9 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: implement a version that caches the element dof maps and uses them.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
-    public class SubdomainFreeDofOrdering: ISubdomainFreeDofOrdering
+    public class SubdomainFreeDofOrderingGeneral: ISubdomainFreeDofOrdering
     {
-        public SubdomainFreeDofOrdering(int numFreeDofs, DofTable subdomainFreeDofs, DofTable globalFreeDofs)
+        public SubdomainFreeDofOrderingGeneral(int numFreeDofs, DofTable subdomainFreeDofs, DofTable globalFreeDofs)
         {
             this.NumFreeDofs = numFreeDofs;
             this.FreeDofs = subdomainFreeDofs;
@@ -70,12 +70,37 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return elementVector;
         }
 
-        public IReadOnlyDictionary<int, int> MapFreeDofsElementToSubdomain(IElement element)
+        //public IReadOnlyDictionary<int, int> MapFreeDofsElementToSubdomain(IElement element)
+        //{
+        //    IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+        //    IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+
+        //    var dofMap = new Dictionary<int, int>();
+        //    int elementDofIdx = 0;
+        //    for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
+        //    {
+        //        for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
+        //        {
+        //            bool isFree = FreeDofs.TryGetValue(elementNodes[nodeIdx], elementDofs[nodeIdx][dofIdx],
+        //                out int subdomainDofIdx);
+        //            if (isFree) dofMap[elementDofIdx] = subdomainDofIdx;
+        //            ++elementDofIdx; // This must be incremented for constrained dofs as well
+        //        }
+        //    }
+        //    return dofMap;
+        //}
+
+        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element)
         {
             IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
 
-            var dofMap = new Dictionary<int, int>();
+            // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing
+            int allElementDofs = 0;
+            for (int i = 0; i < elementNodes.Count; ++i) allElementDofs += elementDofs[i].Count;
+            var elementDofIndices = new List<int>(allElementDofs);
+            var subdomainDofIndices = new List<int>(allElementDofs);
+
             int elementDofIdx = 0;
             for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
             {
@@ -83,11 +108,15 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 {
                     bool isFree = FreeDofs.TryGetValue(elementNodes[nodeIdx], elementDofs[nodeIdx][dofIdx],
                         out int subdomainDofIdx);
-                    if (isFree) dofMap[elementDofIdx] = subdomainDofIdx;
+                    if (isFree)
+                    {
+                        elementDofIndices.Add(elementDofIdx);
+                        subdomainDofIndices.Add(subdomainDofIdx);
+                    }
                     ++elementDofIdx; // This must be incremented for constrained dofs as well
                 }
             }
-            return dofMap;
+            return (elementDofIndices.ToArray(), subdomainDofIndices.ToArray());
         }
     }
 }

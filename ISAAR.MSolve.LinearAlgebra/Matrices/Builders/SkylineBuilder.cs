@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
@@ -155,6 +156,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                     {
                         int offset = diagOffsets[globalCol] + globalCol - globalRow;
                         values[offset] += subMatrix[rowPair.Key, subCol];
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrixSymmetric(IIndexable2D, int[], int[])"/>.
+        /// </summary>
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subMatrixIndices, int[] globalIndices)
+        {
+            Debug.Assert(subMatrix.NumRows == subMatrix.NumColumns);
+            Debug.Assert(globalIndices.Length == subMatrixIndices.Length);
+
+            int numRelevantRows = subMatrixIndices.Length;
+            for (int j = 0; j < numRelevantRows; ++j)
+            {
+                int subCol = subMatrixIndices[j];
+                int globalCol = globalIndices[j];
+                for (int i = 0; i < numRelevantRows; ++i)
+                {
+                    int globalRow = globalIndices[i];
+
+                    int height = globalCol - globalRow;
+                    if (height >= 0) // Only process the superdiagonal entries
+                    {
+                        int offset = diagOffsets[globalCol] + globalCol - globalRow;
+                        values[offset] += subMatrix[subMatrixIndices[i], subCol];
                     }
                 }
             }

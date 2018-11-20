@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
@@ -162,6 +163,42 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 {
                     int subCol = colPair.Key;
                     int globalCol = colPair.Value;
+
+                    if (globalCol > globalRow)
+                    {
+                        double subValue = subMatrix[subRow, subCol];
+                        rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue); // default value = 0.0
+                        double newGlobalValue = oldGlobalValue + subValue;
+                        rows[globalRow][globalCol] = newGlobalValue;
+                        rows[globalCol][globalRow] = newGlobalValue;
+                    }
+                    else if (globalCol == globalRow)
+                    {
+                        double subValue = subMatrix[subRow, subCol];
+                        rows[globalRow].TryGetValue(globalCol, out double oldGlobalValue); // default value = 0.0
+                        rows[globalRow][globalCol] = oldGlobalValue + subValue;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="IGeneralMatrixBuilder.AddSubmatrixSymmetric(IIndexable2D, int[], int[])"/>.
+        /// </summary>
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subMatrixIndices, int[] globalIndices)
+        {
+            Debug.Assert(subMatrix.NumRows == subMatrix.NumColumns);
+            Debug.Assert(globalIndices.Length == subMatrixIndices.Length);
+
+            int numRelevantRows = subMatrixIndices.Length;
+            for (int i = 0; i < numRelevantRows; ++i)
+            {
+                int subRow = subMatrixIndices[i];
+                int globalRow = globalIndices[i];
+                for (int j = 0; j < numRelevantRows; ++j)
+                {
+                    int subCol = subMatrixIndices[j];
+                    int globalCol = globalIndices[j];
 
                     if (globalCol > globalRow)
                     {
@@ -372,7 +409,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
         /// <param name="globalDofs">The entries in the global matrix where element matrix entries will be added to. Specificaly,
         ///     pairs of (elementDofs[i], elementDofs[j]) will be added to (globalDofs[i], globalDofs[j]).</param>
-        private void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subDofs, int[] globalDofs) //TODO: this should be reworked
+        private void AddSubmatrixSymmetricOLD(IIndexable2D subMatrix, int[] subDofs, int[] globalDofs) //TODO: this should be reworked
         {
             int n = subDofs.Length;
             for (int i = 0; i < n; ++i)

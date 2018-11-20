@@ -31,6 +31,6 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         //TODOMaria: here is where the element displacements are assigned to zero if they are restrained
         double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector); 
 
-        IReadOnlyDictionary<int, int> MapFreeDofsElementToSubdomain(IElement element);
+        (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element);
     }
 }
