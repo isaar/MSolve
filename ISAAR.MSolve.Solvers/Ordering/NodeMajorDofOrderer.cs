@@ -29,8 +29,10 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
                     SimpleDofOrderer.OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
                 subdomainFreeDofs.ReorderNodeMajor(subdomain.Nodes);
+                //ISubdomainFreeDofOrdering subdomainOrdering =
+                //    new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
                 ISubdomainFreeDofOrdering subdomainOrdering =
-                    new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
+                    new SubdomainFreeDofOrderingCaching(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
                 subdomainOrderings.Add(subdomain, subdomainOrdering);
             }
 
