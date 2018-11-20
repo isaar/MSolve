@@ -90,20 +90,21 @@ namespace ISAAR.MSolve.Analyzers
 
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                uu.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                uum.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                uc.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                ucc.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                u.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                v.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                v1.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                v2.Add(linearSystem.ID, linearSystem.CreateZeroVector());
-                rhs.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                int id = linearSystem.Subdomain.ID;
+                uu.Add(id, linearSystem.CreateZeroVector());
+                uum.Add(id, linearSystem.CreateZeroVector());
+                uc.Add(id, linearSystem.CreateZeroVector());
+                ucc.Add(id, linearSystem.CreateZeroVector());
+                u.Add(id, linearSystem.CreateZeroVector());
+                v.Add(id, linearSystem.CreateZeroVector());
+                v1.Add(id, linearSystem.CreateZeroVector());
+                v2.Add(id, linearSystem.CreateZeroVector());
+                rhs.Add(id, linearSystem.CreateZeroVector());
 
                 // Account for initial conditions coming from a previous solution. 
                 //TODO: This does't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
-                if (linearSystem.Solution != null) v[linearSystem.ID] = linearSystem.Solution.Copy();
-                else v[linearSystem.ID] = linearSystem.CreateZeroVector();
+                if (linearSystem.Solution != null) v[id] = linearSystem.Solution.Copy();
+                else v[id] = linearSystem.CreateZeroVector();
             }
         }
 
@@ -146,7 +147,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 provider.ProcessRHS(linearSystem, coeffs);
                 int dofs = linearSystem.RhsVector.Length;
-                rhs[linearSystem.ID] = linearSystem.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
+                rhs[linearSystem.Subdomain.ID] = linearSystem.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
             }
         }
 
@@ -154,10 +155,14 @@ namespace ISAAR.MSolve.Analyzers
         {
             if (childAnalyzer == null) return;
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
-                if (resultStorages.ContainsKey(linearSystem.ID))
-                    if (resultStorages[linearSystem.ID] != null)
-                        foreach (var l in childAnalyzer.Logs[linearSystem.ID])
-                            resultStorages[linearSystem.ID].StoreResults(start, end, l);
+            {
+                int id = linearSystem.Subdomain.ID;
+                if (resultStorages.ContainsKey(id))
+                    if (resultStorages[id] != null)
+                        foreach (var l in childAnalyzer.Logs[id])
+                            resultStorages[id].StoreResults(start, end, l);
+            }
+                
         }
 
         #region IAnalyzer Members
@@ -190,7 +195,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             //TODO: instead of creating a new Vector and then trying to set ILinearSystem.RhsVector, clear it and operate on it.
 
-            int id = linearSystem.ID;
+            int id = linearSystem.Subdomain.ID;
 
             // uu = a0 * v + a2 * v1 + a3 * v2
             uu[id] = v[id].LinearCombination(a0, v1[id], a2);
@@ -283,7 +288,7 @@ namespace ISAAR.MSolve.Analyzers
 
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                int id = linearSystem.ID;
+                int id = linearSystem.Subdomain.ID;
                 u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;
                 v[id].CopyFrom(linearSystem.Solution);
 

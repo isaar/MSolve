@@ -48,6 +48,9 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
+        public void AddVectorSubdomainToGlobalMeanValue(ISubdomain_v2 subdomain, IVectorView subdomainVector, 
+            IVector globalVector) => throw new NotImplementedException();
+
         public void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector, IVector subdomainVector)
         {
             ISubdomainFreeDofOrdering subdomainOrdering = SubdomainDofOrderings[subdomain];

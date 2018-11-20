@@ -135,11 +135,12 @@ namespace ISAAR.MSolve.Problems
 
         public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
         {
-            linearSystem.Matrix = this.Ks[linearSystem.ID];
+            int id = linearSystem.Subdomain.ID;
+            linearSystem.Matrix = this.Ks[id];
             if (linearSystem.IsMatrixFactorized) BuildKs();
 
-            linearSystem.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[linearSystem.ID], coefficients.Mass);
-            linearSystem.Matrix.AxpyIntoThis(Cs[linearSystem.ID], coefficients.Damping);
+            linearSystem.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
+            linearSystem.Matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
 
             linearSystem.IsMatrixModified = true;
         }
@@ -154,7 +155,7 @@ namespace ISAAR.MSolve.Problems
             var d = new Dictionary<int, IVector>();
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                d.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                d.Add(linearSystem.Subdomain.ID, linearSystem.CreateZeroVector());
             }
 
             if (model.MassAccelerationHistoryLoads.Count > 0)
@@ -207,7 +208,7 @@ namespace ISAAR.MSolve.Problems
 
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
-                d.Add(linearSystem.ID, linearSystem.CreateZeroVector());
+                d.Add(linearSystem.Subdomain.ID, linearSystem.CreateZeroVector());
             }
 
             return d;
@@ -237,20 +238,20 @@ namespace ISAAR.MSolve.Problems
         }
 
         public IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Ms[linearSystem.ID].MultiplyRight(lhsVector);
+            => this.Ms[linearSystem.Subdomain.ID].MultiplyRight(lhsVector);
 
         public IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Cs[linearSystem.ID].MultiplyRight(lhsVector);
+            => this.Cs[linearSystem.Subdomain.ID].MultiplyRight(lhsVector);
 
         #endregion
 
         #region IStaticProvider Members
 
-        public void CalculateMatrix(ILinearSystem_v2 subdomain)
+        public void CalculateMatrix(ILinearSystem_v2 linearSystem)
         {
             if (ks == null) BuildKs();
-            subdomain.Matrix = this.ks[subdomain.ID];
-            subdomain.IsMatrixModified = true;
+            linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
+            linearSystem.IsMatrixModified = true;
         }
 
         #endregion

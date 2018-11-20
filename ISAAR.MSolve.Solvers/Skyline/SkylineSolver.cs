@@ -115,10 +115,9 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>
         {
-            private readonly ISubdomain_v2 subdomain;
-            internal SkylineSystem(ISubdomain_v2 subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
-            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
+            internal SkylineSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
+            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
+            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(Subdomain.Forces, false);
         }
     }
 }

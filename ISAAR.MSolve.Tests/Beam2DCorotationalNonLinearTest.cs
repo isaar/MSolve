@@ -231,11 +231,11 @@ namespace ISAAR.MSolve.Tests
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
-            var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
+            //var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
             int increments = 10;
-            int totalDOFs = model.TotalDOFs;
-            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(solver, subdomainUpdaters, subdomainMappers,
-                provider, increments, totalDOFs);
+            //int totalDOFs = model.TotalDOFs;
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(model, solver, subdomainUpdaters,
+                provider, increments);
 
             // Choose parent analyzer -> Parent: Static
             var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);

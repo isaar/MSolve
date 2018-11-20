@@ -20,6 +20,8 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
         void AddVectorSubdomainToGlobal(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector);
 
+        void AddVectorSubdomainToGlobalMeanValue(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector);
+
         void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector, IVector subdomainVector);
 
         int[] MapFreeDofsSubdomainToGlobal(ISubdomain_v2 subdomain);

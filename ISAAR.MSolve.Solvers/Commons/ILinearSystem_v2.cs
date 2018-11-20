@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 //using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -39,7 +40,8 @@ namespace ISAAR.MSolve.Solvers.Commons
     // Distributing them to and assembling them from subdomains should be hidden from the analyzers/providers as well.
     public interface ILinearSystem_v2
     {
-        int ID { get; } //TODO: delete this once subdomains have been abstracted.
+        ISubdomain_v2 Subdomain { get; } //TODO: delete this once subdomains have been abstracted.
+        //int ID { get; } //TODO: delete this once subdomains have been abstracted.
 
         //TODO: this is error prone. The implementation should manage the state, by restricting access to the matrix.
         //When  a mutating method is called, observers (analyzers, solvers, providers) are notified  

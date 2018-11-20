@@ -139,12 +139,12 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Analyzers
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
-            var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
+            //var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
             int increments = 2;
-            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(solver, subdomainUpdaters, subdomainMappers,
-                provider, increments, model.TotalDOFs);
-            childAnalyzer.SetMaxIterations = 100;
-            childAnalyzer.SetIterationsForMatrixRebuild = 1;
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(model, solver, subdomainUpdaters,
+                provider, increments);
+            childAnalyzer.MaxIterations = 100;
+            childAnalyzer.NumIterationsForMatrixRebuild = 1;
             var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
 
             // Output

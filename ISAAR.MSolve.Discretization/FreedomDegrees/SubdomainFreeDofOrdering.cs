@@ -47,16 +47,6 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public void AddVectorSubdomainToGlobal(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector)
-        {
-            for (int i = 0; i < NumFreeDofs; ++i)
-            {
-                int globalIdx = FreeDofMapSubdomainToGlobal[i];
-                globalVector.Set(globalIdx, subdomainVector[i] + globalVector[globalIdx]);
-                //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-            }
-        }
-
         public double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector)
         {
             IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
@@ -78,16 +68,6 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 }
             }
             return elementVector;
-        }
-
-        //TODO: this needs refactoring: DofTable for the global dofs, perhaps remove the global dofs from the subdomain, ...
-        public void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector, IVector subdomainVector)
-        {
-            for (int i = 0; i < NumFreeDofs; ++i)
-            {
-                //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-                subdomainVector.Set(i, globalVector[FreeDofMapSubdomainToGlobal[i]]);
-            }
         }
 
         public IReadOnlyDictionary<int, int> MapFreeDofsElementToSubdomain(IElement element)

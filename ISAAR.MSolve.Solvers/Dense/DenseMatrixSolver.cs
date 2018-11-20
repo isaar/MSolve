@@ -43,36 +43,36 @@ namespace ISAAR.MSolve.Solvers.Dense
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
         {
             // DEBUG
-            var writer = new FullMatrixWriter();
-            writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
+            //var writer = new FullMatrixWriter();
+            //writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
 
-            var dofOrderingSimple = (new SimpleDofOrderer()).OrderDofs(model, subdomain);
-            Matrix simpleOrderK = (Matrix)assembler.BuildGlobalMatrix(
-                dofOrderingSimple, subdomain.Elements, elementMatrixProvider);
+            //var dofOrderingSimple = (new SimpleDofOrderer()).OrderDofs(model, subdomain);
+            //Matrix simpleOrderK = (Matrix)assembler.BuildGlobalMatrix(
+            //    dofOrderingSimple, subdomain.Elements, elementMatrixProvider);
 
-            Console.WriteLine();
-            Console.WriteLine("Global matrix with simple ordering");
-            writer.WriteToConsole(simpleOrderK);
+            //Console.WriteLine();
+            //Console.WriteLine("Global matrix with simple ordering");
+            //writer.WriteToConsole(simpleOrderK);
 
-            var dofOrderingNodeMajor = (new NodeMajorDofOrderer()).OrderDofs(model, subdomain);
-            Matrix nodeMajorK = (Matrix)assembler.BuildGlobalMatrix(
-                dofOrderingNodeMajor, subdomain.Elements, elementMatrixProvider);
+            //var dofOrderingNodeMajor = (new NodeMajorDofOrderer()).OrderDofs(model, subdomain);
+            //Matrix nodeMajorK = (Matrix)assembler.BuildGlobalMatrix(
+            //    dofOrderingNodeMajor, subdomain.Elements, elementMatrixProvider);
 
-            Console.WriteLine();
-            Console.WriteLine("Global matrix with node major ordering");
-            writer.WriteToConsole(nodeMajorK);
+            //Console.WriteLine();
+            //Console.WriteLine("Global matrix with node major ordering");
+            //writer.WriteToConsole(nodeMajorK);
 
-            var permutationNodeMajorToSimple = new int[dofOrderingNodeMajor.NumFreeDofs];
-            foreach ((INode node, DOFType dofType, int nodeMajorIdx) in dofOrderingNodeMajor.FreeDofs)
-            {
-                permutationNodeMajorToSimple[nodeMajorIdx] = dofOrderingSimple.FreeDofs[node, dofType];
-            }
+            //var permutationNodeMajorToSimple = new int[dofOrderingNodeMajor.NumFreeDofs];
+            //foreach ((INode node, DOFType dofType, int nodeMajorIdx) in dofOrderingNodeMajor.FreeDofs)
+            //{
+            //    permutationNodeMajorToSimple[nodeMajorIdx] = dofOrderingSimple.FreeDofs[node, dofType];
+            //}
 
-            Matrix reorderedK = nodeMajorK.Reorder(permutationNodeMajorToSimple, true);
+            //Matrix reorderedK = nodeMajorK.Reorder(permutationNodeMajorToSimple, true);
 
-            Console.WriteLine();
-            Console.WriteLine("Global matrix with node major ordering, reordered to simple");
-            writer.WriteToConsole(reorderedK);
+            //Console.WriteLine();
+            //Console.WriteLine("Global matrix with node major ordering, reordered to simple");
+            //writer.WriteToConsole(reorderedK);
 
             //Console.WriteLine("Existing global dof enumeration:");
             //Utilities.PrintDofOrder(subdomain);
@@ -150,10 +150,9 @@ namespace ISAAR.MSolve.Solvers.Dense
 
         private class DenseSystem : LinearSystem_v2<Matrix, Vector>
         {
-            private readonly ISubdomain_v2 subdomain;
-            internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain.ID) => this.subdomain = subdomain;
-            public override Vector CreateZeroVector() => Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(subdomain.Forces, false);
+            internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
+            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
+            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(Subdomain.Forces, false);
         }
     }
 }

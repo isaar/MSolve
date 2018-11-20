@@ -26,16 +26,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         //TODO: What should it contain for constrained dofs?
         void AddVectorElementToSubdomain(IElement element, IVectorView elementVector, IVector subdomainVector);
 
-        //TODO: Perhaps this method does not belong to IDofOrdering, but to a class that handles Cluster level logic. 
-        void AddVectorSubdomainToGlobal(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector);
-
         //TODO: This method belongs to a global vector assembler. There, it should use the element-subdomain dof map from IDofOrdering
         //TODO: What should it contain for constrained dofs?
         //TODOMaria: here is where the element displacements are assigned to zero if they are restrained
         double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector); 
-
-        //TODO: Perhaps this method does not belong to IDofOrdering, but to a class that handles Cluster level logic. 
-        void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector, IVector subdomainVector);
 
         IReadOnlyDictionary<int, int> MapFreeDofsElementToSubdomain(IElement element);
     }

@@ -15,13 +15,6 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class NodeMajorDofOrdererAlternative: IDofOrderer
     {
-        public ISubdomainFreeDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
-        {
-            (int numFreeDofs, DofTable freeDofs) = OrderFreeDofsOfElementSet(subdomain.Elements, 
-                subdomain.Nodes, subdomain.Constraints);
-            return new SubdomainFreeDofOrdering(numFreeDofs, freeDofs, model.GlobalDofOrdering.GlobalFreeDofs);
-        }
-
         public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
         {
             //TODO: move this to the end

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -11,12 +12,13 @@ namespace ISAAR.MSolve.Solvers.Commons
         where TMatrix : IMatrix
         where TVector : IVector
     {
-        protected LinearSystem_v2(int id)
+        protected LinearSystem_v2(ISubdomain_v2 subdomain)
         {
-            this.ID = id;
+            this.Subdomain = subdomain;
         }
 
-        public int ID { get; }
+        //public int ID => Subdomain.ID;
+        public ISubdomain_v2 Subdomain { get; }
 
         //TODO: this is error prone. This object should manage the state when clients read or modify the matrix.
         public bool IsMatrixFactorized { get; set; }
