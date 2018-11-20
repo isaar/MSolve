@@ -1040,19 +1040,22 @@ namespace ISAAR.MSolve.Tests
             var material = new ElasticMaterial2D(StressState2D.PlaneStress);
             material.YoungModulus = 3e7;
             material.PoissonRatio = 0.2;
+
+            double thickness = 0.3;
             #endregion
 
             #region elements
-            var element0 = new Element { ID = 0, ElementType = new Quad4(material) };
+
+            var element0 = new Element { ID = 0, ElementType = new Quad4(material) { Thickness = thickness } };
             element0.AddNodes(new[] { node0, node1, node4, node3 });
 
-            var element1 = new Element { ID = 1, ElementType = new Quad4(material) };
+            var element1 = new Element { ID = 1, ElementType = new Quad4(material) { Thickness = thickness } };
             element1.AddNodes(new[] { node1, node2, node5, node4 });
 
-            var element2 = new Element { ID = 2, ElementType = new Quad4(material) };
+            var element2 = new Element { ID = 2, ElementType = new Quad4(material) { Thickness = thickness } };
             element2.AddNodes(new[] { node3, node4, node7, node6 });
 
-            var element3 = new Element { ID = 3, ElementType = new Quad4(material) };
+            var element3 = new Element { ID = 3, ElementType = new Quad4(material) { Thickness = thickness } };
             element3.AddNodes(new[] { node4, node5, node8, node7 });
             #endregion
 

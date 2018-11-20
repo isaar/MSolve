@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
 
             // Loads
-            string accelerogramPath = workingDirectory + "\\elcentro_NS.dat";
+            string accelerogramPath = workingDirectory + "\\elcentro_NS.txt";
             Dictionary<DOFType, double> magnifications = new Dictionary<DOFType, double>
             {
                 { DOFType.X, 1.0 }
