@@ -57,7 +57,8 @@ namespace ISAAR.MSolve.Solvers.PCG
             // TODO: perhaps order dofs here
         }
 
-        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
+        public void OrderDofs() { }
+        //public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
 
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.

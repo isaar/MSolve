@@ -13,16 +13,11 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Subdomain_v2 : ISubdomain_v2
     {
-        //TODO: remove these and let the solver's dof orderer do the job.
-        public delegate IDofOrdering OrderDofs(ISubdomain_v2 subdomain);
-        private readonly OrderDofs dofOrderer;
-
         private readonly List<Node> nodes = new List<Node>();
 
-        public Subdomain_v2(int id, OrderDofs dofOrderer)
+        public Subdomain_v2(int id)
         {
             this.ID = id;
-            this.dofOrderer = dofOrderer;
         }
 
         public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
@@ -37,9 +32,9 @@ namespace ISAAR.MSolve.FEM.Entities
         IReadOnlyList<INode> ISubdomain_v2.Nodes => nodes;
         public IReadOnlyList<Node> Nodes => nodes;
 
-        public IDofOrdering DofOrdering { get; set; }
+        public ISubdomainFreeDofOrdering DofOrdering { get; set; }
 
-        public double[] Forces { get; private set; }
+        public double[] Forces { get; set; } //TODO: this doesn't belong here
 
         public bool MaterialsModified { get; set; }
         //public bool MaterialsModified
@@ -125,8 +120,8 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void EnumerateDOFs()
         {
-            DofOrdering = dofOrderer(this);
-            Forces = new double[DofOrdering.NumFreeDofs];
+            //DofOrdering = dofOrderer(this);
+            //Forces = new double[DofOrdering.NumFreeDofs];
         }
 
         public int[] GetCornerNodes()

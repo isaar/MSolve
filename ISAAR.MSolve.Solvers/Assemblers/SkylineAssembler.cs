@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //    return (Kff.BuildSkylineMatrix(), Kfc);
         //}
 
-        public SkylineMatrix BuildGlobalMatrix(IDofOrdering dofOrdering, IEnumerable<IElement> elements, 
+        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;

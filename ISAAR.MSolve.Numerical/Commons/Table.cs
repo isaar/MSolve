@@ -73,6 +73,8 @@ namespace ISAAR.MSolve.Numerical.Commons
             }
         }
 
+        public void Clear() => data.Clear();
+
         public bool Contains(TRow row, TColumn col)
         {
             bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);

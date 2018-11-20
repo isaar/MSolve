@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 {
     public class DenseMatrixAssembler
     {
-        public IMatrix BuildGlobalMatrix(IDofOrdering dofOrdering, IEnumerable<IElement> elements, 
+        public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider elementMatrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;

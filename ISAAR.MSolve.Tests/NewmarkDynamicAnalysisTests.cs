@@ -87,8 +87,8 @@ namespace ISAAR.MSolve.Tests
         {
             var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID,
-                (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
+            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             var n = new Node() { ID = 0 };
             var e = new Element() { ID = 0 };

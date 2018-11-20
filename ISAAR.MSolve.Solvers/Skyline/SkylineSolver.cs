@@ -67,7 +67,8 @@ namespace ISAAR.MSolve.Solvers.Skyline
             // TODO: perhaps order dofs here
         }
 
-        public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
+        public void OrderDofs() { }
+        //public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
 
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.

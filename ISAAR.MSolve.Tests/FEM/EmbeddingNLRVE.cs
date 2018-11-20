@@ -122,8 +122,8 @@ namespace ISAAR.MSolve.Tests.FEM
         private static IncrementalDisplacementsLog SolveModel_v2()
         {
             var model = new Model_v2();
-            model.SubdomainsDictionary.Add(subdomainID, 
-                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
+            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
             Reference2RVEExample1000ddm_test_for_Msolve_release_version_v2(model);
 
             model.ConnectDataStructures();

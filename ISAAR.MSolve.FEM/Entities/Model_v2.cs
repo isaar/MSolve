@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -12,6 +13,10 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model_v2 : IStructuralModel_v2
     {
+        //TODO: remove these and let the solver's dof orderer do the job.
+        public delegate IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model);
+        public OrderDofs dofOrderer;
+
         //public const int constrainedDofIdx = -1;
         private int totalDOFs = 0;
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
@@ -19,8 +24,8 @@ namespace ISAAR.MSolve.FEM.Entities
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Subdomain_v2> subdomainsDictionary = new Dictionary<int, Subdomain_v2>();
         private readonly Dictionary<int, Cluster> clustersDictionary = new Dictionary<int, Cluster>();
-        private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
-        private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();//TODOMaria: maybe it's useless in model class
+        //private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        //private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();//TODOMaria: maybe it's useless in model class
         private readonly IList<Load> loads = new List<Load>();
         private readonly IList<ElementMassAccelerationLoad> elementMassAccelerationLoads = new List<ElementMassAccelerationLoad>();
         private readonly IList<MassAccelerationLoad> massAccelerationLoads = new List<MassAccelerationLoad>();
@@ -53,18 +58,19 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return clustersDictionary; }
         }
 
+        IReadOnlyList<INode> IStructuralModel_v2.Nodes => nodesDictionary.Values.ToList();
         public IList<Node> Nodes
         {
-            get { return nodesDictionary.Values.ToList<Node>(); }
+            get { return nodesDictionary.Values.ToList(); }
         }
 
+        IReadOnlyList<IElement> IStructuralModel_v2.Elements => elementsDictionary.Values.ToList();
         public IList<Element> Elements
         {
-            get { return elementsDictionary.Values.ToList<Element>(); }
+            get { return elementsDictionary.Values.ToList(); }
         }
 
         IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => subdomainsDictionary.Values.ToList();
-
         public IList<Subdomain_v2> Subdomains
         {
             get { return subdomainsDictionary.Values.ToList(); }
@@ -72,13 +78,15 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public IList<Cluster> Clusters
         {
-            get { return clustersDictionary.Values.ToList<Cluster>(); }
+            get { return clustersDictionary.Values.ToList(); }
         }
 
-        public Dictionary<int, Dictionary<DOFType, double>> Constraints
-        {
-            get { return this.constraintsDictionary; }
-        }
+        public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
+
+        //public Dictionary<int, Dictionary<DOFType, double>> Constraints
+        //{
+        //    get { return this.constraintsDictionary; }
+        //}
 
         public IList<Load> Loads
         {
@@ -105,10 +113,12 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return elementMassAccelerationHistoryLoads; }
         }
 
-        public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
-        {
-            get { return nodalDOFsDictionary; }
-        }
+        public IGlobalFreeDofOrdering GlobalDofOrdering { get; private set; }
+
+        //public Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary
+        //{
+        //    get { return nodalDOFsDictionary; }
+        //}
 
         public int TotalDOFs
         {
@@ -173,88 +183,101 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        private void EnumerateGlobalDOFs()
-        {
-            totalDOFs = 0;
-            Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>();
-            foreach (Element element in elementsDictionary.Values)
-            {
-                for (int i = 0; i < element.Nodes.Count; i++)
-                {
-                    if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
-                        nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<DOFType>());
-                    nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
-                }
-            }
+        //private void EnumerateGlobalDOFs()
+        //{
+        //    totalDOFs = 0;
+        //    Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>();
+        //    foreach (Element element in elementsDictionary.Values)
+        //    {
+        //        for (int i = 0; i < element.Nodes.Count; i++)
+        //        {
+        //            if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
+        //                nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<DOFType>());
+        //            nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
+        //        }
+        //    }
 
-            foreach (Node node in nodesDictionary.Values)
-            {
-                Dictionary<DOFType, int> dofsDictionary = new Dictionary<DOFType, int>();
-                foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
-                {
-                    int dofID = 0;
-                    #region removeMaria
-                    //foreach (DOFType constraint in node.Constraints)
-                    //{
-                    //    if (constraint == dofType)
-                    //    {
-                    //        dofID = -1;
-                    //        break;
-                    //    }
-                    //}
-                    #endregion
+        //    foreach (Node node in nodesDictionary.Values)
+        //    {
+        //        Dictionary<DOFType, int> dofsDictionary = new Dictionary<DOFType, int>();
+        //        foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct())
+        //        {
+        //            int dofID = 0;
+        //            #region removeMaria
+        //            //foreach (DOFType constraint in node.Constraints)
+        //            //{
+        //            //    if (constraint == dofType)
+        //            //    {
+        //            //        dofID = -1;
+        //            //        break;
+        //            //    }
+        //            //}
+        //            #endregion
 
-                    foreach (var constraint in node.Constraints)
-                    {
-                        if (constraint.DOF == dofType)
-                        {
-                            dofID = -1;
-                            break;
-                        }
-                    }
+        //            foreach (var constraint in node.Constraints)
+        //            {
+        //                if (constraint.DOF == dofType)
+        //                {
+        //                    dofID = -1;
+        //                    break;
+        //                }
+        //            }
 
-                    //// TODO: this is not applicable! Embedded nodes have to do with the embedded element and not with the host
-                    //// User should define which DOFs would be dependent on the host element. For our case
-                    //// we should select between translational and translational + rotational
-                    //var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
-                    ////if (node.EmbeddedInElement != null && node.EmbeddedInElement.ElementType.GetDOFTypes(null)
-                    ////    .SelectMany(d => d).Count(d => d == dofType) > 0)
-                    ////    dofID = -1;
-                    //if (embeddedNode != null && embeddedNode.EmbeddedInElement.ElementType.DOFEnumerator.GetDOFTypes(null)
-                    //    .SelectMany(d => d).Count(d => d == dofType) > 0)
-                    //    dofID = -1;
+        //            //// TODO: this is not applicable! Embedded nodes have to do with the embedded element and not with the host
+        //            //// User should define which DOFs would be dependent on the host element. For our case
+        //            //// we should select between translational and translational + rotational
+        //            //var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
+        //            ////if (node.EmbeddedInElement != null && node.EmbeddedInElement.ElementType.GetDOFTypes(null)
+        //            ////    .SelectMany(d => d).Count(d => d == dofType) > 0)
+        //            ////    dofID = -1;
+        //            //if (embeddedNode != null && embeddedNode.EmbeddedInElement.ElementType.DOFEnumerator.GetDOFTypes(null)
+        //            //    .SelectMany(d => d).Count(d => d == dofType) > 0)
+        //            //    dofID = -1;
 
-                    if (dofID == 0)
-                    {
-                        dofID = totalDOFs;
-                        totalDOFs++;
-                    }
-                    dofsDictionary.Add(dofType, dofID);
-                }
+        //            if (dofID == 0)
+        //            {
+        //                dofID = totalDOFs;
+        //                totalDOFs++;
+        //            }
+        //            dofsDictionary.Add(dofType, dofID);
+        //        }
 
-                nodalDOFsDictionary.Add(node.ID, dofsDictionary);
-            }
-        }
+        //        nodalDOFsDictionary.Add(node.ID, dofsDictionary);
+        //    }
+        //}
 
         private void EnumerateDOFs()
         {
-            EnumerateGlobalDOFs();
-            foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
+            GlobalDofOrdering = dofOrderer(this);
+            foreach (Subdomain_v2 subdomain in Subdomains)
             {
-                subdomain.EnumerateDOFs();
+                subdomain.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[subdomain];
+                subdomain.Forces = new double[subdomain.DofOrdering.NumFreeDofs];
             }
+
+            //EnumerateGlobalDOFs();
+            //foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
+            //{
+            //    subdomain.EnumerateDOFs();
+            //}
         }
 
         private void BuildConstraintDisplacementDictionary()
         {
+            //foreach (Node node in nodesDictionary.Values)
+            //{
+            //    if (node.Constraints == null) continue;
+            //    constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
+            //    foreach (Constraint constraint in node.Constraints)
+            //    {
+            //        constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
+            //    }
+            //}
+
             foreach (Node node in nodesDictionary.Values)
             {
                 if (node.Constraints == null) continue;
-                constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
-                foreach (Constraint constraint in node.Constraints)
-                {
-                    constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
-                }
+                foreach (Constraint constraint in node.Constraints) Constraints[node, constraint.DOF] = constraint.Amount;
             }
 
             foreach (Subdomain_v2 subdomain in subdomainsDictionary.Values)
@@ -370,6 +393,7 @@ namespace ISAAR.MSolve.FEM.Entities
         }
         #endregion
 
+        //What is the purpose of this method? If someone wanted to clear the Model, they could just create a new one.
         public void Clear()
         {
             loads.Clear();
@@ -377,8 +401,10 @@ namespace ISAAR.MSolve.FEM.Entities
             subdomainsDictionary.Clear();
             elementsDictionary.Clear();
             nodesDictionary.Clear();
-            nodalDOFsDictionary.Clear();
-            constraintsDictionary.Clear();
+            //nodalDOFsDictionary.Clear();
+            GlobalDofOrdering = null;
+            //constraintsDictionary.Clear();
+            Constraints.Clear();
             elementMassAccelerationHistoryLoads.Clear();
             elementMassAccelerationLoads.Clear();
             massAccelerationHistoryLoads.Clear();

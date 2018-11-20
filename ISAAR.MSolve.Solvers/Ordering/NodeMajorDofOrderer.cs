@@ -15,11 +15,34 @@ namespace ISAAR.MSolve.Solvers.Ordering
     {
         private readonly SimpleDofOrderer embeddedOrderer = new SimpleDofOrderer();
 
-        public IDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
+        public ISubdomainFreeDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
         {
-            IDofOrdering ordering = embeddedOrderer.OrderDofs(model, subdomain);
+            ISubdomainFreeDofOrdering ordering = embeddedOrderer.OrderDofs(model, subdomain);
             ordering.FreeDofs.ReorderNodeMajor(subdomain.Nodes);
             return ordering;
+        }
+
+        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
+        {
+            //TODO: move this to the end
+            (int numGlobalFreeDofs, DofTable globalFreeDofs) =
+                   SimpleDofOrderer.OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
+            globalFreeDofs.ReorderNodeMajor(model.Nodes);
+
+            // Order subdomain dofs
+            var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
+                    SimpleDofOrderer.OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
+                subdomainFreeDofs.ReorderNodeMajor(subdomain.Nodes);
+                ISubdomainFreeDofOrdering subdomainOrdering =
+                    new SubdomainFreeDofOrdering(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
+                subdomainOrderings.Add(subdomain, subdomainOrdering);
+            }
+
+            // Order global dofs
+            return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
         }
     }
 }

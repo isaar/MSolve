@@ -119,8 +119,8 @@ namespace ISAAR.MSolve.Tests
             // Model & subdomains
             var model = new Model_v2();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID,
-                new Subdomain_v2(subdomainID, (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model, subdomain)));
+            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             // Materials
             double youngModulus = 3.76;

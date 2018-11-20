@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Solvers.Ordering
 {
@@ -14,11 +15,40 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class NodeMajorDofOrdererAlternative: IDofOrderer
     {
-        public IDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
+        public ISubdomainFreeDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
+        {
+            (int numFreeDofs, DofTable freeDofs) = OrderFreeDofsOfElementSet(subdomain.Elements, 
+                subdomain.Nodes, subdomain.Constraints);
+            return new SubdomainFreeDofOrdering(numFreeDofs, freeDofs, model.GlobalDofOrdering.GlobalFreeDofs);
+        }
+
+        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
+        {
+            //TODO: move this to the end
+            (int numGlobalFreeDofs, DofTable globalFreeDofs) =
+                   OrderFreeDofsOfElementSet(model.Elements, model.Nodes, model.Constraints);
+
+            // Order subdomain dofs
+            var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
+                    OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Nodes, subdomain.Constraints);
+                ISubdomainFreeDofOrdering subdomainOrdering =
+                    new SubdomainFreeDofOrdering(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
+                subdomainOrderings.Add(subdomain, subdomainOrdering);
+            }
+
+            // Order global dofs
+            return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
+        }
+
+        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
+            IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
         {
             int totalDOFs = 0;
             Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set isntead of List
-            foreach (IElement element in subdomain.Elements)
+            foreach (IElement element in elements)
             {
                 for (int i = 0; i < element.INodes.Count; i++)
                 {
@@ -29,7 +59,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
             }
 
             var freeDofs = new DofTable();
-            foreach (INode node in subdomain.Nodes)
+            foreach (INode node in sortedNodes)
             {
                 //List<DOFType> dofTypes = new List<DOFType>();
                 //foreach (Element element in node.ElementsDictionary.Values)
@@ -83,7 +113,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 }
             }
 
-            return new FreeDofOrdering(totalDOFs, freeDofs, model.NodalDOFsDictionary);
+            return (totalDOFs, freeDofs);
         }
     }
 }

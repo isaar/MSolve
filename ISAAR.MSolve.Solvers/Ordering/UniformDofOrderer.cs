@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Solvers.Ordering
 {
@@ -22,13 +23,41 @@ namespace ISAAR.MSolve.Solvers.Ordering
             this.dofsPerNode = dofsPerNode;
         }
 
-        public IDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
+        public ISubdomainFreeDofOrdering OrderDofs(IStructuralModel_v2 model, ISubdomain_v2 subdomain)
+        {
+            (int numFreeDofs, DofTable freeDofs) = OrderFreeDofsOfNodeSet(subdomain.Nodes, subdomain.Constraints);
+            return new SubdomainFreeDofOrdering(numFreeDofs, freeDofs, model.GlobalDofOrdering.GlobalFreeDofs);
+        }
+
+        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
+        {
+            //TODO: move this to the end
+            (int numGlobalFreeDofs, DofTable globalFreeDofs) =
+                   OrderFreeDofsOfNodeSet(model.Nodes, model.Constraints);
+
+            // Order subdomain dofs
+            var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
+                    OrderFreeDofsOfNodeSet(subdomain.Nodes, subdomain.Constraints);
+                ISubdomainFreeDofOrdering subdomainOrdering =
+                    new SubdomainFreeDofOrdering(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
+                subdomainOrderings.Add(subdomain, subdomainOrdering);
+            }
+
+            // Order global dofs
+            return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
+        }
+
+        private (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfNodeSet(IEnumerable<INode> sortedNodes,
+            Table<INode, DOFType, double> constraints)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
-            foreach (INode node in subdomain.Nodes)
+            foreach (INode node in sortedNodes)
             {
-                bool isNodeConstrained = subdomain.Constraints.TryGetDataOfRow(node, 
+                bool isNodeConstrained = constraints.TryGetDataOfRow(node,
                     out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
                 foreach (DOFType dof in dofsPerNode)
                 {
@@ -36,7 +65,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     if (!isDofConstrained) freeDofs[node, dof] = dofCounter++;
                 }
             }
-            return new FreeDofOrdering(dofCounter, freeDofs, model.NodalDOFsDictionary);
+            return (dofCounter, freeDofs);
         }
     }
 }

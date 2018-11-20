@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      stiffness matrix.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
-    public interface IDofOrdering
+    public interface ISubdomainFreeDofOrdering
     {
         //TODO: Why do I need this and Model.NodalDOFsDictionary? Even if there were more than one subdomains, there would not 
         //      be a global vector (and obviously global matrix). Ideally all vectors should be on subdomain level, so that 
