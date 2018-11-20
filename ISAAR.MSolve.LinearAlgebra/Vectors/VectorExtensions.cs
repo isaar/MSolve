@@ -70,6 +70,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public static void AddIntoThis(this Vector thisVector, Vector otherVector) 
             => thisVector.AxpyIntoThis(otherVector, 1.0);
 
+        /// <summary>
+        /// Performs the following operation for <paramref name="length"/> consecutive entries starting from the provided 
+        /// indices: this[i] = this[i] + <paramref name="sourceVector"/>[i].
+        /// </summary>
+        /// <param name="destinationIndex">The index into this <see cref="IVector"/> where to start overwritting. Constraints:
+        ///     <paramref name="destinationIndex"/> + <paramref name="length"/> &lt;= this.<see cref="IIndexable1D.Length"/>.
+        ///     </param>
+        /// <param name="sourceVector">The other vector operand.</param>
+        /// <param name="sourceIndex">The index into <paramref name="sourceVector"/> where to start operating. Constraints: 
+        ///     <paramref name="sourceIndex"/> + <paramref name="length"/> &lt;= 
+        ///     <paramref name="sourceVector"/>.<see cref="IIndexable1D.Length"/>.</param>
+        /// <param name="length">The number of entries to copy.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="length"/> and 
+        ///     <paramref name="destinationIndex"/> or <paramref name="sourceIndex"/> violate the described constraints.
+        ///     </exception>
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
+        ///     is not permitted by the vector storage format.</exception>
+        public static void AddSubvectorIntoThis(this IVector destinationVector, int destinationIndex, IVectorView sourceVector,
+            int sourceIndex, int length) 
+            => destinationVector.AxpySubvectorIntoThis(destinationIndex, sourceVector, 1.0, sourceIndex, length);
+
         // TODO: implement this in each concrete vector.
         public static double Norm2(this IVectorView thisVector) => Math.Sqrt(thisVector.DotProduct(thisVector));
 
@@ -132,6 +153,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </exception>
         public static void SubtractIntoThis(this Vector thisVector, Vector otherVector) 
             => thisVector.AxpyIntoThis(otherVector, -1.0);
+
+        /// <summary>
+        /// Performs the following operation for <paramref name="length"/> consecutive entries starting from the provided 
+        /// indices: this[i] = this[i] - <paramref name="sourceVector"/>[i].
+        /// </summary>
+        /// <param name="destinationIndex">The index into this <see cref="IVector"/> where to start overwritting. Constraints:
+        ///     <paramref name="destinationIndex"/> + <paramref name="length"/> &lt;= this.<see cref="IIndexable1D.Length"/>.
+        ///     </param>
+        /// <param name="sourceVector">The other vector operand.</param>
+        /// <param name="sourceIndex">The index into <paramref name="sourceVector"/> where to start operating. Constraints: 
+        ///     <paramref name="sourceIndex"/> + <paramref name="length"/> &lt;= 
+        ///     <paramref name="sourceVector"/>.<see cref="IIndexable1D.Length"/>.</param>
+        /// <param name="length">The number of entries to copy.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="length"/> and 
+        ///     <paramref name="destinationIndex"/> or <paramref name="sourceIndex"/> violate the described constraints.
+        ///     </exception>
+        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
+        ///     is not permitted by the vector storage format.</exception>
+        public static void SubtractSubvectorIntoThis(this IVector destinationVector, int destinationIndex,
+            IVectorView sourceVector, int sourceIndex, int length)
+            => destinationVector.AxpySubvectorIntoThis(destinationIndex, sourceVector, -1.0, sourceIndex, length);
 
         //TODO: remove this
         public static Numerical.LinearAlgebra.Vector ToLegacyVector(this IVectorView vector)

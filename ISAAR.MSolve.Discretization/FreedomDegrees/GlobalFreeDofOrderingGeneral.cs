@@ -4,8 +4,6 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: perhaps I should store the subdomain orderings as well.
-//TODO: implement a global ordering optimized for the case where there is only 1 subdomain.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
     public class GlobalFreeDofOrderingGeneral: IGlobalFreeDofOrdering
@@ -63,7 +61,6 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        //TODO: the returned array should be readonly.
         public int[] MapFreeDofsSubdomainToGlobal(ISubdomain_v2 subdomain) => subdomainToGlobalDofMaps[subdomain];
     }
 }
