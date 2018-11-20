@@ -3,7 +3,6 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
 //using ISAAR.MSolve.PreProcessor;
@@ -15,6 +14,7 @@ using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using System.Collections.Generic;
 using Xunit;
+using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Tests.FEM
 {

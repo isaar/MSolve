@@ -1788,7 +1788,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				Assert.True(Utilities.AreValuesEqual(displacementVectorExpected.At(i, 0), linearSystems[0].Solution[i], 1e-2));
 		}
 
-		//[Fact]
+		[Fact]
 		public void TSplinesShellsBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
