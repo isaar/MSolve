@@ -166,9 +166,10 @@ namespace ISAAR.MSolve.Problems
 
                 foreach (ISubdomain_v2 subdomain in model.Subdomains)
                 {
+                    int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
                     foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.DofOrdering.FreeDofs)
                     {
-                        int globalDofIdx = subdomain.DofOrdering.FreeDofMapSubdomainToGlobal[subdomainDofIdx];
+                        int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                         foreach (var l in m)
                         {
                             if (dofType == l.DOF) d[subdomain.ID].Set(globalDofIdx, l.Amount);

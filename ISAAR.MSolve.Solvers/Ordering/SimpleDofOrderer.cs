@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -12,28 +13,13 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SimpleDofOrderer: IDofOrderer
+    public class SimpleDofOrderer: DofOrdererBase
     {
-        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
-        {
-            //TODO: move this to the end
-            (int numGlobalFreeDofs, DofTable globalFreeDofs) =
-                   OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
+        protected override (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+            => OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
 
-            // Order subdomain dofs
-            var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
-                    OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
-                ISubdomainFreeDofOrdering subdomainOrdering = 
-                    new SubdomainFreeDofOrderingCaching(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
-                subdomainOrderings.Add(subdomain, subdomainOrdering);
-            }
-
-            // Order global dofs
-            return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
-        }
+        protected override (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+            => OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
 
         internal static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements, 
             Table<INode, DOFType, double> constraints)

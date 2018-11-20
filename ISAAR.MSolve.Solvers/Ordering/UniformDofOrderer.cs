@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// <see cref="NodeMajorDofOrderer"/>. Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformDofOrderer: IDofOrderer
+    public class UniformDofOrderer: DofOrdererBase
     {
         private readonly IReadOnlyList<DOFType> dofsPerNode;
 
@@ -23,26 +23,11 @@ namespace ISAAR.MSolve.Solvers.Ordering
             this.dofsPerNode = dofsPerNode;
         }
 
-        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
-        {
-            //TODO: move this to the end
-            (int numGlobalFreeDofs, DofTable globalFreeDofs) =
-                   OrderFreeDofsOfNodeSet(model.Nodes, model.Constraints);
+        protected override (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+            => OrderFreeDofsOfNodeSet(model.Nodes, model.Constraints);
 
-            // Order subdomain dofs
-            var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
-                    OrderFreeDofsOfNodeSet(subdomain.Nodes, subdomain.Constraints);
-                ISubdomainFreeDofOrdering subdomainOrdering =
-                    new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
-                subdomainOrderings.Add(subdomain, subdomainOrdering);
-            }
-
-            // Order global dofs
-            return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
-        }
+        protected override (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+            => OrderFreeDofsOfNodeSet(subdomain.Nodes, subdomain.Constraints);
 
         private (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfNodeSet(IEnumerable<INode> sortedNodes,
             Table<INode, DOFType, double> constraints)

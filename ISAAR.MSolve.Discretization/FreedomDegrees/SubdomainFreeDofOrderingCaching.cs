@@ -13,19 +13,12 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         private readonly Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
             elementDofsCache = new Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
 
-        public SubdomainFreeDofOrderingCaching(int numFreeDofs, DofTable subdomainFreeDofs, DofTable globalFreeDofs)
+        public SubdomainFreeDofOrderingCaching(int numFreeDofs, DofTable subdomainFreeDofs)
         {
             this.NumFreeDofs = numFreeDofs;
             this.FreeDofs = subdomainFreeDofs;
-
-            FreeDofMapSubdomainToGlobal = new int[numFreeDofs];
-            foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomainFreeDofs)
-            {
-                FreeDofMapSubdomainToGlobal[subdomainDofIdx] = globalFreeDofs[node, dofType];
-            }
         }
 
-        public int[] FreeDofMapSubdomainToGlobal { get; }
         public DofTable FreeDofs { get; }
         public int NumFreeDofs { get; }
 

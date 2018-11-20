@@ -11,33 +11,22 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// numbered, then the dofs of the second node, etc. Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class NodeMajorDofOrderer: IDofOrderer
+    public class NodeMajorDofOrderer: DofOrdererBase
     {
-        private readonly SimpleDofOrderer embeddedOrderer = new SimpleDofOrderer();
-
-        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
+        protected override (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
         {
-            //TODO: move this to the end
-            (int numGlobalFreeDofs, DofTable globalFreeDofs) =
-                   SimpleDofOrderer.OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
+            (int numGlobalFreeDofs, DofTable globalFreeDofs) = 
+                SimpleDofOrderer.OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
             globalFreeDofs.ReorderNodeMajor(model.Nodes);
+            return (numGlobalFreeDofs, globalFreeDofs);
+        }
 
-            // Order subdomain dofs
-            var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
+        protected override (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+        {
+            (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) =
                     SimpleDofOrderer.OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
-                subdomainFreeDofs.ReorderNodeMajor(subdomain.Nodes);
-                //ISubdomainFreeDofOrdering subdomainOrdering =
-                //    new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
-                ISubdomainFreeDofOrdering subdomainOrdering =
-                    new SubdomainFreeDofOrderingCaching(numSubdomainFreeDofs, subdomainFreeDofs, globalFreeDofs);
-                subdomainOrderings.Add(subdomain, subdomainOrdering);
-            }
-
-            // Order global dofs
-            return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
+            subdomainFreeDofs.ReorderNodeMajor(subdomain.Nodes);
+            return (numSubdomainFreeDofs, subdomainFreeDofs);
         }
     }
 }
