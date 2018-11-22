@@ -37,13 +37,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         {
             ISubdomainFreeDofOrdering subdomainOrdering = SubdomainDofOrderings[subdomain];
             int[] subdomainToGlobalDofs = subdomainToGlobalDofMaps[subdomain];
-
-            for (int i = 0; i < subdomainOrdering.NumFreeDofs; ++i)
-            {
-                int globalIdx = subdomainToGlobalDofs[i];
-                globalVector.Set(globalIdx, subdomainVector[i] + globalVector[globalIdx]);
-                //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-            }
+            globalVector.AddNonContiguouslyFrom(subdomainToGlobalDofs, subdomainVector);
         }
 
         public void AddVectorSubdomainToGlobalMeanValue(ISubdomain_v2 subdomain, IVectorView subdomainVector, 
@@ -53,12 +47,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         {
             ISubdomainFreeDofOrdering subdomainOrdering = SubdomainDofOrderings[subdomain];
             int[] subdomainToGlobalDofs = subdomainToGlobalDofMaps[subdomain];
-
-            for (int i = 0; i < subdomainOrdering.NumFreeDofs; ++i)
-            {
-                //TODO: add a Vector.SetSubvector and Vector.AddSubvector for incontiguous entries
-                subdomainVector.Set(i, globalVector[subdomainToGlobalDofs[i]]);
-            }
+            subdomainVector.CopyNonContiguouslyFrom(globalVector, subdomainToGlobalDofs);
         }
 
         public int[] MapFreeDofsSubdomainToGlobal(ISubdomain_v2 subdomain) => subdomainToGlobalDofMaps[subdomain];

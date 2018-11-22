@@ -10,18 +10,18 @@ namespace ISAAR.MSolve.Solvers.Ordering
     public abstract class DofOrdererBase: IDofOrderer
     {
         public bool CacheElementToSubdomainDofMaps { get; set; } = true;
-        public bool ReuseDataIfSingleSubdomain { get; set; } = true;
+        public bool DoOptimizationsIfSingleSubdomain { get; set; } = true;
 
         public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
         {
-            if (ReuseDataIfSingleSubdomain && (model.Subdomains.Count == 1))
+            if (DoOptimizationsIfSingleSubdomain && (model.Subdomains.Count == 1))
             {
                 ISubdomain_v2 subdomain = model.Subdomains.First();
 
                 // Order subdomain dofs
                 (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = OrderSubdomainDofs(subdomain);
                 ISubdomainFreeDofOrdering subdomainOrdering;
-                if (ReuseDataIfSingleSubdomain) subdomainOrdering = new SubdomainFreeDofOrderingCaching(
+                if (CacheElementToSubdomainDofMaps) subdomainOrdering = new SubdomainFreeDofOrderingCaching(
                     numSubdomainFreeDofs, subdomainFreeDofs);
                 else subdomainOrdering = new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs);
 
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 {
                     (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = OrderSubdomainDofs(subdomain);
                     ISubdomainFreeDofOrdering subdomainOrdering;
-                    if (ReuseDataIfSingleSubdomain) subdomainOrdering = new SubdomainFreeDofOrderingCaching(
+                    if (CacheElementToSubdomainDofMaps) subdomainOrdering = new SubdomainFreeDofOrderingCaching(
                         numSubdomainFreeDofs, subdomainFreeDofs);
                     else subdomainOrdering = new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs);
                     subdomainOrderings.Add(subdomain, subdomainOrdering);

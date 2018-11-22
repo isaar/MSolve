@@ -25,18 +25,16 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public void AddVectorElementToSubdomain(IElement element, IVectorView elementVector, IVector subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-            for (int i = 0; i < elementDofIndices.Length; ++i)
-            {
-                int elementDofIdx = elementDofIndices[i];
-                int subdomainDofIdx = subdomainDofIndices[i];
-                subdomainVector.Set(subdomainDofIdx, subdomainVector[subdomainDofIdx] + elementVector[elementDofIdx]);
-            }
+            subdomainVector.AddNonContiguouslyFrom(subdomainDofIndices, elementVector, elementDofIndices);
         }
 
         public double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-            double[] elementVector = new double[numAllDofs]; // The vector entry will be 0.0 at all constrained dofs.
+
+            //TODO: use elementVector.CopySubvectorFromNonContiguous(elementDofIndices, subdomainVector, subdomainDofIndices);
+
+            double[] elementVector = new double[numAllDofs];
             for (int i = 0; i < elementDofIndices.Length; ++i)
             {
                 int elementDofIdx = elementDofIndices[i];
