@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
+                Matrix k = matrixProvider.Matrix(element).LegacyToNewMatrix();
                 Kff.AddSubmatrixSymmetric(k, elementDofIndices, subdomainDofIndices);
             }
 

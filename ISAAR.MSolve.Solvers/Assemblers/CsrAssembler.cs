@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (IReadOnlyDictionary<int, int> mapStandard, IReadOnlyDictionary<int, int> mapConstrained) =
                     dofOrderer.MapDofsElementToGlobal(element);
-                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(elementWrapper));
+                Matrix k = matrixProvider.Matrix(elementWrapper).LegacyToNewMatrix();
                 Kff.AddSubmatrixSymmetric(k, mapStandard);
                 Kfc.AddSubmatrix(k, mapStandard, mapConstrained);
             }
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                Matrix k = Conversions.MatrixOldToNew(matrixProvider.Matrix(element));
+                Matrix k = matrixProvider.Matrix(element).LegacyToNewMatrix();
                 Kff.AddSubmatrixSymmetric(k, elementDofIndices, subdomainDofIndices);
             }
 
