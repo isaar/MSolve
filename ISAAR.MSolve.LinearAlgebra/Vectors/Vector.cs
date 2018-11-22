@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
@@ -7,9 +8,8 @@ using ISAAR.MSolve.LinearAlgebra.Reduction;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
-//TODO: have an AxpyToSubvector.
-//TODO: GetSubvector, SetSubvector, AddSubvector, etc. Group them together and have a common naming/param convention.
 //TODO: remove legacy vector conversions
+//TODO: add complete error checking for CopyNonContiguouslyFrom and AddNonContiguouslyFrom. Also update the documentation.
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -156,6 +156,43 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     have different <see cref="Length"/>.</exception>
         public static double operator *(Vector vector1, Vector vector2) => vector1.DotProduct(vector2); //TODO: Perhaps call BLAS directly
         #endregion
+
+        /// <summary>
+        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView, int[])"/>
+        /// </summary>
+        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
+        {
+            if (thisIndices.Length != otherIndices.Length) throw new NonMatchingDimensionsException(
+                "thisIndices and otherIndices must have the same length.");
+            if (otherVector is Vector casted)
+            {
+                for (int i = 0; i < thisIndices.Length; ++i)
+                {
+                    this.data[thisIndices[i]] += casted.data[otherIndices[i]];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < thisIndices.Length; ++i) data[thisIndices[i]] += otherVector[otherIndices[i]];
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView)"/>
+        /// </summary>
+        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector)
+        {
+            if (thisIndices.Length != otherVector.Length) throw new NonMatchingDimensionsException(
+                "thisIndices and otherVector must have the same length.");
+            if (otherVector is Vector casted)
+            {
+                for (int i = 0; i < casted.Length; ++i) this.data[thisIndices[i]] += casted.data[i];
+            }
+            else
+            {
+                for (int i = 0; i < otherVector.Length; ++i) data[thisIndices[i]] += otherVector[i];
+            }
+        }
 
         /// <summary>
         /// Performs the operation: this[<paramref name="destinationIndex"/> + i] = this[<paramref name="destinationIndex"/> + i]
@@ -331,6 +368,43 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             Preconditions.CheckVectorDimensions(this, sourceVector);
             Array.Copy(sourceVector.data, this.data, this.Length);
+        }
+
+        /// <summary>
+        /// See <see cref="IVector.CopyNonContiguouslyFrom(int[], IVectorView, int[])"/>
+        /// </summary>
+        public void CopyNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
+        {
+            if (thisIndices.Length != otherIndices.Length) throw new NonMatchingDimensionsException(
+                "thisIndices and otherIndices must have the same length.");
+            if (otherVector is Vector casted)
+            {
+                for (int i = 0; i < thisIndices.Length; ++i)
+                {
+                    this.data[thisIndices[i]] = casted.data[otherIndices[i]];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < thisIndices.Length; ++i) data[thisIndices[i]] = otherVector[otherIndices[i]];
+            }
+        }
+
+        /// <summary>
+        /// See <see cref="IVector.CopyNonContiguouslyFrom(IVectorView, int[])"/>
+        /// </summary>
+        public void CopyNonContiguouslyFrom(IVectorView otherVector, int[] otherIndices)
+        {
+            if (otherIndices.Length != this.Length) throw new NonMatchingDimensionsException(
+                "otherIndices and this vector must have the same length.");
+            if (otherVector is Vector casted)
+            {
+                for (int i = 0; i < this.Length; ++i) this.data[i] = casted.data[otherIndices[i]];
+            }
+            else
+            {
+                for (int i = 0; i < this.Length; ++i) data[i] = otherVector[otherIndices[i]];
+            }
         }
 
         /// <summary>

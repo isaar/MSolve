@@ -141,6 +141,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView, int[])"/>
+        /// </summary>
+        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
+            => DenseStrategies.AddNonContiguouslyFrom(this, thisIndices, otherVector, otherIndices);
+
+        /// <summary>
+        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView)"/>
+        /// </summary>
+        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector)
+            => DenseStrategies.AddNonContiguouslyFrom(this, thisIndices, otherVector);
+
+        /// <summary>
         /// See <see cref="IVectorView.Axpy(IVectorView, double)"/>.
         /// </summary>
         public IVector Axpy(IVectorView otherVector, double otherCoefficient)
@@ -261,6 +273,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 data[2] = sourceVector[2];
             }
         }
+
+        /// <summary>
+        /// See <see cref="IVector.CopyNonContiguouslyFrom(int[], IVectorView, int[])"/>
+        /// </summary>
+        public void CopyNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
+            => DenseStrategies.CopyNonContiguouslyFrom(this, thisIndices, otherVector, otherIndices);
+
+        /// <summary>
+        /// See <see cref="IVector.CopyNonContiguouslyFrom(IVectorView, int[])"/>
+        /// </summary>
+        public void CopyNonContiguouslyFrom(IVectorView otherVector, int[] otherIndices)
+            => DenseStrategies.CopyNonContiguouslyFrom(this, otherVector, otherIndices);
 
         /// <summary>
         /// See <see cref="IVector.CopySubvectorFrom(int, IVectorView, int, int)"/>

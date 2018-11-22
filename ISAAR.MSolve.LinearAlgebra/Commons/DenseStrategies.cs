@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: use default interface implementations instead of this, when they become available.
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
@@ -11,6 +13,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
     /// </summary>
     internal static class DenseStrategies
     {
+        internal static void AddNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector, 
+            int[] otherIndices)
+        {
+            Debug.Assert(thisIndices.Length == otherIndices.Length);
+            for (int i = 0; i < thisIndices.Length; ++i)
+            {
+                int thisIdx = thisIndices[i];
+                thisVector.Set(thisIdx, thisVector[thisIdx] + otherVector[otherIndices[i]]);
+            }
+        }
+
+        internal static void AddNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector)
+        {
+            for (int i = 0; i < otherVector.Length; ++i) thisVector.Set(thisIndices[i], otherVector[i]);
+        }
+
         internal static bool AreEqual(IIndexable2D matrix1, IIndexable2D matrix2, double tolerance = 1e-13)
         {
             if ((matrix1.NumRows != matrix2.NumRows) || (matrix1.NumColumns != matrix2.NumColumns)) return false;
@@ -23,6 +41,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                 }
             }
             return true;
+        }
+
+        internal static void CopyNonContiguouslyFrom(IVector thisVector, IVectorView otherVector, int[] otherIndices)
+        {
+            for (int i = 0; i < thisVector.Length; ++i) thisVector.Set(i, otherVector[otherIndices[i]]);
+        }
+
+        internal static void CopyNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector, 
+            int[] otherIndices)
+        {
+            Debug.Assert(thisIndices.Length == otherIndices.Length);
+            for (int i = 0; i < thisIndices.Length; ++i) thisVector.Set(thisIndices[i], otherVector[otherIndices[i]]);
         }
 
         internal static double[,] CopyToArray2D(IIndexable2D matrix)
