@@ -94,21 +94,20 @@ namespace ISAAR.MSolve.FEM.Entities
             ////    EmbeddedNodes.Add(e);
         }
 
-        public double[] CalculateElementIncrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        //TODO: This belongs in EquivalentLoadsAssembler
+        //TODO: the constraintScalingFactor parameter is not used.
+        public Vector CalculateElementIncrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            int localDOFs = 0;
-            foreach (IList<DOFType> dofs in element.ElementType.DOFEnumerator.GetDOFTypes(element)) localDOFs += dofs.Count;
-            var elementNodalDisplacements = new double[localDOFs];
+            int numElementDofs = DofOrdering.CountElementDofs(element);
+            var elementNodalDisplacements = Vector.CreateZero(numElementDofs);
             ApplyConstraintDisplacements(element, elementNodalDisplacements);
-            var incrementalNodalDisplacements = new double[localDOFs];
-            elementNodalDisplacements.CopyTo(incrementalNodalDisplacements, 0);
-
-            return incrementalNodalDisplacements;
+            return elementNodalDisplacements;
         }
 
-        public double[] CalculateElementNodalDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public Vector CalculateElementNodalDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            double[] elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+            var elementNodalDisplacements = Vector.CreateZero(DofOrdering.CountElementDofs(element));
+            DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector, elementNodalDisplacements);
             ApplyConstraintDisplacements(element, elementNodalDisplacements);
             return elementNodalDisplacements;
         }
@@ -170,8 +169,10 @@ namespace ISAAR.MSolve.FEM.Entities
             {
                 //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
                 //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
-                double[] localSolution = CalculateElementNodalDisplacements(element, solution);
-                double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution);
+
+                //TODO: ElementType should operate with Vector instead of double[]. Then the ToRawArray() calls can be removed
+                double[] localSolution = CalculateElementNodalDisplacements(element, solution).ToRawArray();
+                double[] localdSolution = CalculateElementNodalDisplacements(element, dSolution).ToRawArray();
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
                     element.Subdomain_v2.MaterialsModified = true;
@@ -194,7 +195,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void ScaleConstraints(double scalingFactor) => Constraints.ModifyValues((u) => scalingFactor * u);
 
-        private void ApplyConstraintDisplacements(Element element, double[] elementNodalDisplacements)
+        private void ApplyConstraintDisplacements(Element element, Vector elementNodalDisplacements)
         {
             int elementDofIdx = 0;
             IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);

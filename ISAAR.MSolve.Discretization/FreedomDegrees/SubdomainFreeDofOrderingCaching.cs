@@ -28,20 +28,26 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             subdomainVector.AddNonContiguouslyFrom(subdomainDofIndices, elementVector, elementDofIndices);
         }
 
-        public double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector)
+        public int CountElementDofs(IElement element)
+        {
+            (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
+            return numAllDofs;
+        }
+
+        public void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
 
-            //TODO: use elementVector.CopySubvectorFromNonContiguous(elementDofIndices, subdomainVector, subdomainDofIndices);
+            elementVector.CopyNonContiguouslyFrom(elementDofIndices, subdomainVector, subdomainDofIndices);
 
-            double[] elementVector = new double[numAllDofs];
-            for (int i = 0; i < elementDofIndices.Length; ++i)
-            {
-                int elementDofIdx = elementDofIndices[i];
-                int subdomainDofIdx = subdomainDofIndices[i];
-                elementVector[elementDofIdx] = subdomainVector[subdomainDofIdx];
-            }
-            return elementVector;
+            //double[] elementVector = new double[numAllDofs];
+            //for (int i = 0; i < elementDofIndices.Length; ++i)
+            //{
+            //    int elementDofIdx = elementDofIndices[i];
+            //    int subdomainDofIdx = subdomainDofIndices[i];
+            //    elementVector[elementDofIdx] = subdomainVector[subdomainDofIdx];
+            //}
+            //return elementVector;
         }
 
         public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element)

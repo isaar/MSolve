@@ -20,10 +20,11 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         //TODO: What should it contain for constrained dofs?
         void AddVectorElementToSubdomain(IElement element, IVectorView elementVector, IVector subdomainVector);
 
-        //TODO: Return or modify an IVector instead
+        int CountElementDofs(IElement element);
+
         //TODO: What should it contain for constrained dofs?
         //TODOMaria: here is where the element displacements are assigned to zero if they are constrained
-        double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector); 
+        void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector); 
 
         (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element);
     }

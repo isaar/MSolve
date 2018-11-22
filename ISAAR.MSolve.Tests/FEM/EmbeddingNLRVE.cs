@@ -43,7 +43,8 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, IncrementalDisplacementsLog computedDisplacements)
         {
-            var comparer = new ValueComparer(1E-10);
+            var comparer = new ValueComparer(1E-10); // for node major dof order and skyline solver
+            //var comparer = new ValueComparer(1E-1); // for other solvers. It may require adjusting after visual inspection
             for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
             {
                 foreach (int dof in expectedDisplacements[iter].Keys)
@@ -122,6 +123,7 @@ namespace ISAAR.MSolve.Tests.FEM
         private static IncrementalDisplacementsLog SolveModel_v2()
         {
             var model = new Model_v2();
+            //model.dofOrderer = (subdomain) => (new SimpleDofOrderer()).OrderDofs(model);
             model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
             Reference2RVEExample1000ddm_test_for_Msolve_release_version_v2(model);

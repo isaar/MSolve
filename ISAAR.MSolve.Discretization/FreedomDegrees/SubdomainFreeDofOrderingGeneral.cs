@@ -39,14 +39,22 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector)
+        public int CountElementDofs(IElement element)
         {
             IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
             int numElementDofs = 0;
             for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
+            return numElementDofs;
+        }
 
-            double[] elementVector = new double[numElementDofs];
+        public void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector)
+        {
+            IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+            //int numElementDofs = 0;
+            //for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
+
             int elementDofIdx = 0;
             for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
             {
@@ -54,12 +62,11 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 {
                     bool isFree = FreeDofs.TryGetValue(elementNodes[nodeIdx], elementDofs[nodeIdx][dofIdx],
                         out int subdomainDofIdx);
-                    if (isFree) elementVector[elementDofIdx] = subdomainVector[subdomainDofIdx];
+                    if (isFree) elementVector.Set(elementDofIdx, subdomainVector[subdomainDofIdx]);
                     // Else, the quantity of interest is 0.0 at all constrained dofs.
                     ++elementDofIdx; // This must be incremented for constrained dofs as well
                 }
             }
-            return elementVector;
         }
 
         public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element)
