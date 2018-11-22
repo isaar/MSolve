@@ -17,6 +17,11 @@ namespace ISAAR.MSolve.Analyzers
             this.subdomain = subdomain;
         }
 
+        public void ScaleConstraints(double scalingFactor)
+        {
+            this.subdomain.ScaleConstraints(scalingFactor);
+        }
+
         public IVector GetRHSFromSolution(IVectorView solution, IVectorView dSolution) //TODO leave 
         {
             return subdomain.GetRHSFromSolution(solution, dSolution);

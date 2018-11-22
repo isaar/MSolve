@@ -1,25 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Interfaces;
+using System.Collections;
+using System.Linq;
+using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Solvers.Commons;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class NewtonRaphsonNonLinearAnalyzer_v2 : IAnalyzer_v2
+    public class DisplacementControlNonLinearAnalyzer_v2 : IAnalyzer_v2
     {
         private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly INonLinearSubdomainUpdater_v2[] subdomainUpdaters;
+        private readonly IEquivalentLoadsAssembler_v2[] equivalentLoadsAssemblers;
         private readonly int increments;
-        private int maxIterations = 1000;
-        private int numIterationsForMatrixRebuild = 1;
-        private readonly double tolerance = 1e-8;
+        private int maxiterations = 1000;
+        private int stepsForMatrixRebuild = 1;
+        private readonly double tolerance = 1e-3;
         private double rhsNorm;
         private INonLinearParentAnalyzer_v2 parentAnalyzer = null;
         private readonly IStructuralModel_v2 model;
@@ -33,26 +37,27 @@ namespace ISAAR.MSolve.Analyzers
         private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
         private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public NewtonRaphsonNonLinearAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver,
-            INonLinearSubdomainUpdater_v2[] subdomainUpdaters,
-            INonLinearProvider_v2 provider, int increments)
+        public DisplacementControlNonLinearAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver,
+            INonLinearProvider_v2 provider, INonLinearSubdomainUpdater_v2[] subdomainUpdaters,
+            IEquivalentLoadsAssembler_v2[] equivalentLoadsAssemblers,  int increments)
         {
             this.model = model;
             this.solver = solver;
             this.provider = provider;
             this.subdomainUpdaters = subdomainUpdaters;
+            this.equivalentLoadsAssemblers = equivalentLoadsAssemblers;
             this.linearSystems = solver.LinearSystems;
             this.increments = increments;
 
-            //InitializeInternalVectors(); // I transfered that to Initialize()
+            //InitializeInternalVectors();
         }
 
         public int MaxIterations
         {
             set
             {
-                if (value > 0) maxIterations = value;
-                else throw new ArgumentException("Max iterations number cannot be negative or zero");
+                if (value > 0) { this.maxiterations = value; }
+                else { throw new Exception("Max iterations number cannot be negative or zero"); }
             }
         }
 
@@ -61,8 +66,8 @@ namespace ISAAR.MSolve.Analyzers
         {
             set
             {
-                if (value > 0) numIterationsForMatrixRebuild = value;
-                else throw new ArgumentException("Iterations number for matrix rebuild cannot be negative or zero");
+                if (value > 0) { this.stepsForMatrixRebuild = value; }
+                else { throw new Exception("Iterations number for matrix rebuild cannot be negative or zero"); }
             }
         }
 
@@ -80,7 +85,6 @@ namespace ISAAR.MSolve.Analyzers
                     l.StoreResults(start, end, u[id].ToLegacyVector());
         }
 
-        public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
         public Dictionary<int, LinearAnalyzerLogFactory> LogFactories => logFactories;
 
         #region IAnalyzer Members
@@ -89,14 +93,14 @@ namespace ISAAR.MSolve.Analyzers
 
         public IAnalyzer_v2 ParentAnalyzer
         {
-            get => parentAnalyzer; 
+            get => parentAnalyzer;
             set => parentAnalyzer = (INonLinearParentAnalyzer_v2)value; //TODO: remove this cast. Right it only serves as a check
         }
 
         public IAnalyzer_v2 ChildAnalyzer
         {
             get => null;
-            set => throw new InvalidOperationException("Newton-Raphson analyzer cannot contain an embedded analyzer.");
+            set => throw new InvalidOperationException("Displacement control analyzer cannot contain an embedded analyzer.");
         }
 
         public void InitializeInternalVectors()//TODOMaria: this is probably where the initial internal nodal vector is calculated
@@ -110,7 +114,7 @@ namespace ISAAR.MSolve.Analyzers
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 int id = linearSystem.Subdomain.ID;
-                //int numSudomainDofs = linearSystem.RhsVector.Length;
+                int idx = FindSubdomainIdx(linearSystems, linearSystem);
 
                 IVector r = linearSystem.RhsVector.Copy();
                 r.ScaleIntoThis(1 / (double)increments);
@@ -119,6 +123,7 @@ namespace ISAAR.MSolve.Analyzers
                 du.Add(id, linearSystem.CreateZeroVector());
                 uPlusdu.Add(id, linearSystem.CreateZeroVector());
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRHS);
+                subdomainUpdaters[idx].ScaleConstraints(1 / (double)increments);
             }
             rhsNorm = provider.RHSNorm(globalRHS);
         }
@@ -145,12 +150,12 @@ namespace ISAAR.MSolve.Analyzers
             solver.Initialize();
         }
 
-        private void UpdateRHS(int step)
+        private void UpdateRHS(int iteration)
         {
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 linearSystem.RhsVector.CopyFrom(rhs[linearSystem.Subdomain.ID]);
-                //subdomainRHS.Multiply(step + 1);
+                //subdomainRHS.Multiply(iteration + 1);
             }
         }
 
@@ -158,30 +163,27 @@ namespace ISAAR.MSolve.Analyzers
         {
             InitializeLogs();
 
-            DateTime start = DateTime.Now;
-            UpdateInternalVectors();//TODOMaria this divides the externally applied load by the number of increments and scatters it to all subdomains and stores it in the class subdomain dictionary and total external load vector
+            DateTime start = DateTime.Now;           
+            UpdateInternalVectors();
             for (int increment = 0; increment < increments; increment++)
             {
                 double errorNorm = 0;
-                ClearIncrementalSolutionVector();//TODOMaria this sets du to 0
-                UpdateRHS(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
+                ClearIncrementalSolutionVector();
+                UpdateRHS(increment);
+                ScaleSubdomainConstraints(increment);
 
                 double firstError = 0;
-                int step = 0;
-                for (step = 0; step < maxIterations; step++)
+                int iteration = 0;
+                for (iteration = 0; iteration < maxiterations; iteration++)
                 {
+                    AddEquivalentNodalLoadsToRHS(increment, iteration);
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                    Console.WriteLine($"Increment {increment}, iteration {step}: norm2(error) = {errorNorm}");
-
-                    if (step == 0) firstError = errorNorm;
-
-                    if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements_v2(uPlusdu); 
-
+                    errorNorm = CalculateInternalRHS(increment, iteration);
+                    if (iteration == 0) firstError = errorNorm;
                     if (errorNorm < tolerance) break;
 
-                    SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                    if ((step + 1) % numIterationsForMatrixRebuild == 0)
+                    SplitResidualForcesToSubdomains();
+                    if ((iteration + 1) % stepsForMatrixRebuild == 0)
                     {
                         provider.Reset();
                         BuildMatrices();
@@ -191,14 +193,11 @@ namespace ISAAR.MSolve.Analyzers
                         //solver.Initialize(); 
                     }
                 }
-                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
+                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
-            //CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
-            //            ClearMaterialStresses();
+            //CopySolutionToSubdomains(); //TODO: this might have been necessary for the user to get output, but it is bad design
             DateTime end = DateTime.Now;
-
-            // TODO: Logging should be done at each iteration. And it should be done using pull observers
             StoreLogResults(start, end);
         }
 
@@ -254,6 +253,37 @@ namespace ISAAR.MSolve.Analyzers
             return provider.RHSNorm(globalRHS);
         }
 
+        private void AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)
+        {
+            if (iteration != 0)
+                return;
+
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            {
+                int id = linearSystem.Subdomain.ID;
+                int idx = FindSubdomainIdx(linearSystems, linearSystem);
+
+                double scalingFactor = 1; //((double)currentIncrement + 2) / (currentIncrement + 1); //2; //
+                IVector equivalentNodalLoads = equivalentLoadsAssemblers[idx].GetEquivalentNodalLoads(u[id], scalingFactor);
+                linearSystem.RhsVector.SubtractIntoThis(equivalentNodalLoads);
+
+                model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRHS);
+            }
+        }
+
+        private void ScaleSubdomainConstraints(int currentIncrement)
+        {
+            if (currentIncrement == 0)
+                return;
+
+            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            {
+                int idx = FindSubdomainIdx(linearSystems, linearSystem);
+                double scalingFactor = 1; // ((double)currentIncrement + 2) / (currentIncrement + 1);
+                subdomainUpdaters[idx].ScaleConstraints(scalingFactor);
+            }
+        }
+
         private void ClearIncrementalSolutionVector()
         {
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
@@ -266,7 +296,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 int id = linearSystem.Subdomain.ID;
                 linearSystem.RhsVector.Clear(); //TODO: why clear it if it is going to be overwritten immediately afterwards?
-                model.GlobalDofOrdering.ExtractVectorSubdomainFromGlobal(linearSystem.Subdomain, globalRHS, 
+                model.GlobalDofOrdering.ExtractVectorSubdomainFromGlobal(linearSystem.Subdomain, globalRHS,
                     linearSystem.RhsVector);
             }
         }
@@ -280,12 +310,6 @@ namespace ISAAR.MSolve.Analyzers
                 subdomainUpdaters[subdomainIdx].UpdateState();
                 u[id].AddIntoThis(du[id]);
             }
-        }
-
-        private int FindSubdomainIdx(IReadOnlyList<ILinearSystem_v2> allLinearSystems, ILinearSystem_v2 wantedlinearSystem)
-        {
-            return linearSystems.Select((v, i) => 
-                new { System = v, Index = i }).First(x => x.System.Subdomain.ID == wantedlinearSystem.Subdomain.ID).Index;
         }
 
         //TODO: Remove this method. Analyzers should not mess with the solution vector.
@@ -305,10 +329,16 @@ namespace ISAAR.MSolve.Analyzers
         //        subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index].ResetState();
         //}
 
+        private int FindSubdomainIdx(IReadOnlyList<ILinearSystem_v2> allLinearSystems, ILinearSystem_v2 wantedlinearSystem)
+        {
+            return linearSystems.Select((v, i) =>
+                new { System = v, Index = i }).First(x => x.System.Subdomain.ID == wantedlinearSystem.Subdomain.ID).Index;
+        }
+
         public void BuildMatrices()
         {
             if (parentAnalyzer == null)
-                throw new InvalidOperationException("This Newton-Raphson nonlinear analyzer has no parent.");
+                throw new InvalidOperationException("This Newton-Raphson non-linear analyzer has no parent.");
 
             parentAnalyzer.BuildMatrices();
             //solver.Initialize();
