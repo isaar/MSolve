@@ -1793,7 +1793,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
-			string filename = "..\\..\\..\\IGA\\InputFiles\\tspline.iga";
+			string filename = "..\\..\\..\\InputFiles\\tspline-surface.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 			modelReader.CreateTSplineShellsModelFromFile();
 
