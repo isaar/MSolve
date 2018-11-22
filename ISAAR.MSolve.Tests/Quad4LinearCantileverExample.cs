@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.Tests
             var solver = solverBuilder.BuildSolver(model);
 
             //TODO: this should be hidden and handled by the analyzer at another phase
-            solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
+            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);

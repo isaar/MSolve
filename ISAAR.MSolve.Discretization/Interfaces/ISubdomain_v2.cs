@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
         IReadOnlyList<IElement> Elements { get; } //TODO: perhaps this should be a set
 
-        double[] Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
+        Vector Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
 
         int ID { get; }
 

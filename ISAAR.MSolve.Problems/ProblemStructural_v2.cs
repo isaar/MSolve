@@ -217,10 +217,7 @@ namespace ISAAR.MSolve.Problems
 
         public void GetRHSFromHistoryLoad(int timeStep)
         {
-            foreach (ISubdomain_v2 subdomain in model.Subdomains) 
-            {
-                Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
-            }
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear();
 
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);

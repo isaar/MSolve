@@ -225,7 +225,7 @@ namespace ISAAR.MSolve.Tests
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
-            solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
+            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
@@ -457,7 +457,7 @@ namespace ISAAR.MSolve.Tests
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
-            solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(model.SubdomainsDictionary[subdomainID].Forces);
+            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);

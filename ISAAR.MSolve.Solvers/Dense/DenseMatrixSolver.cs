@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.Solvers.Dense
         {
             internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
             public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
-            public override void GetRhsFromSubdomain() => RhsVector = Vector.CreateFromArray(Subdomain.Forces, false);
+            public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
         }
     }
 }

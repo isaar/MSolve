@@ -38,6 +38,12 @@ namespace ISAAR.MSolve.Solvers.Commons
     // 8) What about auxiliary global vectors in analyzers/providers? Instantiation should be done with abstract factory pattern 
     // (LinearSystem could be the factory itself, but that violates SRP). The vector length could also be accessed from there. 
     // Distributing them to and assembling them from subdomains should be hidden from the analyzers/providers as well.
+    // 9) An alternative to prohibition of setting the rhs vector would be to check the validity of the new value in the setters.
+    // As an example, the linear system initializes a vector f, giving it a GUID. The analyzer performs various operations on it
+    // and then sets linearSystem.RhsVector = f. Then the setter will check the GUID, cast the vector, set the concrete object,
+    // and notify observers that a value has been set. Instead of a GUID, the linear system can keep track of the vectors it has
+    // created and use that registry to accept setting its rhs vector. A similar logic can be used for operations between
+    // matrices with the same sparsity pattern.
     public interface ILinearSystem_v2
     {
         ISubdomain_v2 Subdomain { get; } //TODO: delete this once subdomains have been abstracted.
@@ -59,6 +65,7 @@ namespace ISAAR.MSolve.Solvers.Commons
         /// </summary>
         IVector CreateZeroVector();
 
+        //TODO: not sure about this one. Its current usecase should be refactored anyway
         void GetRhsFromSubdomain();
 
         // This should probably be handled by the solver only. Analyzers and providers should not mess with the solution vector.
