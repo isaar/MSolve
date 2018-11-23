@@ -5,92 +5,38 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
     public class StaticAnalyzer_v2 : IAnalyzer_v2, INonLinearParentAnalyzer_v2
     {
         private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
-        private readonly ISolver_v2 solver;
+        private readonly IStructuralModel_v2 model;
         private readonly IStaticProvider_v2 provider;
-        private IAnalyzer_v2 childAnalyzer;
-        private IAnalyzer_v2 parentAnalyzer = null;
-        private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
-        private bool areDofsOrdered = false;
+        private readonly ISolver_v2 solver;
 
-        public StaticAnalyzer_v2(ISolver_v2 solver, IStaticProvider_v2 provider, IAnalyzer_v2 embeddedAnalyzer)
+        public StaticAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
+            IAnalyzer_v2 embeddedAnalyzer)
         {
-            this.solver = solver;
+            this.model = model;
             this.linearSystems = solver.LinearSystems;
+            this.solver = solver;
             this.provider = provider;
-            this.childAnalyzer = embeddedAnalyzer;
-            this.childAnalyzer.ParentAnalyzer = this;
+            this.ChildAnalyzer = embeddedAnalyzer;
+            this.ChildAnalyzer.ParentAnalyzer = this;
         }
 
-        private void InitalizeMatrices()
-        {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems) provider.CalculateMatrix(linearSystem);
+        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-            //provider.CalculateMatrices();
-            //subdomain.Matrix = provider.Ks[subdomain.ID];
-        }
-
-        #region IAnalyzer Members
-
-        public Dictionary<int, IAnalyzerLog[]> Logs { get { return logs; } }
-
-        public IAnalyzer_v2 ParentAnalyzer
-        {
-            get { return parentAnalyzer; }
-            set { parentAnalyzer = value; }
-        }
-
-        public IAnalyzer_v2 ChildAnalyzer
-        {
-            get { return childAnalyzer; }
-            set { childAnalyzer = value; }
-        }
-
-        public void Initialize()
-        {
-            if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-            //InitalizeMatrices();
-            childAnalyzer.Initialize();
-        }
-
-        public void Solve()
-        {
-            if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-            childAnalyzer.Solve();
-        }
+        public IAnalyzer_v2 ChildAnalyzer { get; set; }
+        public IAnalyzer_v2 ParentAnalyzer { get; set; } = null;
 
         public void BuildMatrices()
         {
-            //TODO: Dof ordering should be handled separately from matrix building. It should be done in Initialize() (for this
-            //      analyzer), which should be called before BuildMatrices(). Actually BuildMatrices() should not be called by
-            //      the user.
-            if (!areDofsOrdered)
-            {
-                solver.OrderDofs();
-                areDofsOrdered = true;
-            }
-
-            InitalizeMatrices();
-            //int rows = subdomains[1].Matrix.Rows;
-            //double[,] data = new double[rows, rows];
-            //for (int i = 0; i < rows; i++)
-            //    for (int j = 0; j < rows; j++)
-            //        data[i, j] = subdomains[1].Matrix[i, j];
-
-            //var m = new Matrix2D<double>(data);
-            //var w = new double[rows];
-            //var v = new double[rows, rows];
-            //m.SVD(w, v);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems) provider.CalculateMatrix(linearSystem);
+            //subdomain.Matrix = provider.Ks[subdomain.ID]; // setting is done by the assembler to avoid casting
         }
-
-        #endregion
-
-        #region INonLinearParentAnalyzer Members
 
         public IVector GetOtherRHSComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
         {
@@ -99,6 +45,26 @@ namespace ISAAR.MSolve.Analyzers
             return linearSystem.CreateZeroVector();
         }
 
-        #endregion
+        public void Initialize()
+        {
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+            //InitalizeMatrices();
+
+            model.ConnectDataStructures();
+            model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model);
+            model.AssignLoads();
+
+            //TODO: this should be done elsewhere. It makes sense to assign the RHS vector when the stiffness matrix is assigned
+            foreach (ILinearSystem_v2 linearSystem in linearSystems) linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+
+            ChildAnalyzer.Initialize();
+        }
+
+        public void Solve()
+        {
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+            BuildMatrices(); //TODO: this should be called by the child analyzer
+            ChildAnalyzer.Solve();
+        }
     }
 }

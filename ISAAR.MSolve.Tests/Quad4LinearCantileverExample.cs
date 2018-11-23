@@ -119,7 +119,6 @@ namespace ISAAR.MSolve.Tests
             // Model & subdomains
             var model = new Model_v2();
             int subdomainID = 0;
-            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             // Materials
@@ -169,29 +168,23 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
-            model.ConnectDataStructures(); //TODO: this should be hidden and handled by the analyzer at another phase
-
             // Solver
             var solverBuilder = new PcgSolver.Builder();
             solverBuilder.MaxIterationsOverMatrixOrder = 0.5;
             var solver = solverBuilder.BuildSolver(model);
-
-            //TODO: this should be hidden and handled by the analyzer at another phase
-            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
             var childAnalyzer = new LinearAnalyzer_v2(solver);
-            var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
             //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
 
             // Request output
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0 });
 
             // Run the anlaysis 
-            parentAnalyzer.BuildMatrices(); //TODO: this should be hidden and handled by the (child?) analyzer
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 

@@ -8,6 +8,7 @@ using ISAAR.MSolve.Logging.Interfaces;
 using System.Diagnostics;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 //TODO: Optimization: I could avoid initialization and GC of some vectors by reusing existing ones.
 namespace ISAAR.MSolve.Analyzers
@@ -16,6 +17,10 @@ namespace ISAAR.MSolve.Analyzers
     {
         private readonly double alpha, delta, timeStep, totalTime;
         private double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
+        private readonly IStructuralModel_v2 model;
+        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
+        private readonly ISolver_v2 solver;
+        private readonly IImplicitIntegrationProvider_v2 provider;
         private Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();
         private Dictionary<int, IVector> uu = new Dictionary<int, IVector>();
         private Dictionary<int, IVector> uum = new Dictionary<int, IVector>();
@@ -25,39 +30,35 @@ namespace ISAAR.MSolve.Analyzers
         private Dictionary<int, IVector> v = new Dictionary<int, IVector>();
         private Dictionary<int, IVector> v1 = new Dictionary<int, IVector>();
         private Dictionary<int, IVector> v2 = new Dictionary<int, IVector>();
-        //private readonly Dictionary<int, IImplicitIntegrationAnalyzerLog> resultStorages =
-        //    new Dictionary<int, IImplicitIntegrationAnalyzerLog>();
-        private readonly Dictionary<int, ImplicitIntegrationAnalyzerLog> resultStorages =
-            new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
-        private readonly ISolver_v2 solver;
-        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
-        private readonly IImplicitIntegrationProvider_v2 provider;
-        private IAnalyzer_v2 childAnalyzer;
-        private IAnalyzer_v2 parentAnalyzer;
-        private bool areDofsOrdered = false;
 
-        public NewmarkDynamicAnalyzer_v2(IImplicitIntegrationProvider_v2 provider, IAnalyzer_v2 embeddedAnalyzer,
-            ISolver_v2 solver,
-            double alpha, double delta, double timeStep, double totalTime)
+        public NewmarkDynamicAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, IImplicitIntegrationProvider_v2 provider,
+            IAnalyzer_v2 embeddedAnalyzer, double alpha, double delta, double timeStep, double totalTime)
         {
-            this.solver = solver;
+            this.model = model;
             this.linearSystems = solver.LinearSystems;
+            this.solver = solver;
             this.provider = provider;
-            this.childAnalyzer = embeddedAnalyzer;
+            this.ChildAnalyzer = embeddedAnalyzer;
             this.alpha = alpha;
             this.delta = delta;
             this.timeStep = timeStep;
             this.totalTime = totalTime;
-            this.childAnalyzer.ParentAnalyzer = this;
+            this.ChildAnalyzer.ParentAnalyzer = this;
         }
 
-        public Dictionary<int, ImplicitIntegrationAnalyzerLog> ResultStorages { get { return resultStorages; } }
+        public Dictionary<int, IAnalyzerLog[]> Logs => null; //TODO: that can't be right
+        public Dictionary<int, ImplicitIntegrationAnalyzerLog> ResultStorages { get; }
+            = new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
+
+        public IAnalyzer_v2 ChildAnalyzer { get; set; }
+        public IAnalyzer_v2 ParentAnalyzer { get; set; }
+
 
         private void InitializeCoefficients()
         {
-            if (delta < 0.5) throw new InvalidOperationException("Newmark delta has to be bigger than 0.5.");
+            if (delta < 0.5) throw new ArgumentException("Newmark delta has to be bigger than 0.5.");
             double aLimit = 0.25 * Math.Pow(0.5 + delta, 2);
-            if (alpha < aLimit) throw new InvalidOperationException("Newmark alpha has to be bigger than " + aLimit.ToString() + ".");
+            if (alpha < aLimit) throw new ArgumentException($"Newmark alpha has to be bigger than {aLimit}.");
 
             a0 = 1 / (alpha * timeStep * timeStep);
             a1 = delta / (alpha * timeStep);
@@ -68,13 +69,6 @@ namespace ISAAR.MSolve.Analyzers
             a6 = timeStep * (1 - delta);
             a7 = delta * timeStep;
         }
-
-        //TODO: Remove this. The analyzer should not mess with the solution vector. It is not called by anything either way.
-        //public void ResetSolutionVectors()
-        //{
-        //    foreach (ILinearSystem_v2 subdomain in subdomains.Values)
-        //        subdomain.Solution.Clear();
-        //}
 
         private void InitializeInternalVectors()
         {
@@ -102,7 +96,7 @@ namespace ISAAR.MSolve.Analyzers
                 rhs.Add(id, linearSystem.CreateZeroVector());
 
                 // Account for initial conditions coming from a previous solution. 
-                //TODO: This does't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
+                //TODO: This doesn't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
                 if (linearSystem.Solution != null) v[id] = linearSystem.Solution.Copy();
                 else v[id] = linearSystem.CreateZeroVector();
             }
@@ -116,32 +110,14 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
-                provider.CalculateEffectiveMatrix(linearSystem, coeffs);
-
-
-            //TODO: Remove the following comments and commented-out code. 
-            // What is the point of the following code? Generally nonZeroCount should be queried from the matrix itself, but 
-            // here it isn't even used anywhere. On the other hand, this code requires significant extra memory and calculations.
-            // var m = (SkylineMatrix2D)subdomains[0].Matrix;//TODO: Subdomain matrices should not be retrieved like that.
-            //var x = new HashSet<double>();
-            //int nonZeroCount = 0;
-            //for (int i = 0; i < m.Data.Length; i++)
-            //{
-            //    nonZeroCount += m.Data[i] != 0 ? 1 : 0;
-            //    if (x.Contains(m.Data[i]) == false)
-            //        x.Add(m.Data[i]);
-            //}
-            //nonZeroCount += 0;
+            foreach (ILinearSystem_v2 linearSystem in linearSystems) provider.CalculateEffectiveMatrix(linearSystem, coeffs);
         }
 
         private void InitializeRHSs()
         {
             ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients
             {
-                Mass = a0,
-                Damping = a1,
-                Stiffness = 1
+                Mass = a0, Damping = a1, Stiffness = 1
             };
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
@@ -153,42 +129,33 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
-            if (childAnalyzer == null) return;
+            if (ChildAnalyzer == null) return; //TODO: shouldn't it throw an exception?
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 int id = linearSystem.Subdomain.ID;
-                if (resultStorages.ContainsKey(id))
-                    if (resultStorages[id] != null)
-                        foreach (var l in childAnalyzer.Logs[id])
-                            resultStorages[id].StoreResults(start, end, l);
+                if (ResultStorages.ContainsKey(id))
+                    if (ResultStorages[id] != null)
+                        foreach (var l in ChildAnalyzer.Logs[id])
+                            ResultStorages[id].StoreResults(start, end, l);
             }
-                
-        }
-
-        #region IAnalyzer Members
-
-        public Dictionary<int, IAnalyzerLog[]> Logs { get { return null; } }
-
-        public IAnalyzer_v2 ParentAnalyzer
-        {
-            get { return parentAnalyzer; }
-            set { parentAnalyzer = value; }
-        }
-
-        public IAnalyzer_v2 ChildAnalyzer
-        {
-            get { return childAnalyzer; }
-            set { childAnalyzer = value; }
         }
 
         public void Initialize()
         {
-            if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+
+            model.ConnectDataStructures();
+            model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model);
+            model.AssignLoads();
+
+            //TODO: this should be done elsewhere. It makes sense to assign the RHS vector when the stiffness matrix is assigned
+            foreach (ILinearSystem_v2 linearSystem in linearSystems) linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+
             //InitializeCoefficients();
             InitializeInternalVectors();
             //InitializeMatrices();
             InitializeRHSs();
-            childAnalyzer.Initialize();
+            ChildAnalyzer.Initialize();
         }
 
         private IVector CalculateRHSImplicit(ILinearSystem_v2 linearSystem, bool addRHS)
@@ -263,8 +230,10 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Solve()
         {
-            if (childAnalyzer == null) throw new InvalidOperationException(
+            if (ChildAnalyzer == null) throw new InvalidOperationException(
                 "NewmarkDynamicAnalyzer analyzer must contain an embedded analyzer.");
+
+            BuildMatrices(); //TODO: this should be called by the child analyzer
 
             for (int i = 0; i < (int)(totalTime / timeStep); i++)
             {
@@ -274,7 +243,7 @@ namespace ISAAR.MSolve.Analyzers
                 // ProcessRHS
                 CalculateRHSImplicit();
                 DateTime start = DateTime.Now;
-                childAnalyzer.Solve();
+                ChildAnalyzer.Solve();
                 DateTime end = DateTime.Now;
                 UpdateVelocityAndAcceleration(i);
                 UpdateResultStorages(start, end);
@@ -310,21 +279,8 @@ namespace ISAAR.MSolve.Analyzers
         {
             InitializeCoefficients();
 
-            //TODO: Dof ordering should be handled separately from matrix building. It should be done in Initialize() (for this
-            //      analyzer), which should be called before BuildMatrices(). Actually BuildMatrices() should not be called by
-            //      the user.
-            if (!areDofsOrdered)
-            {
-                solver.OrderDofs();
-                areDofsOrdered = true;
-            }
-
             InitializeMatrices();
         }
-
-        #endregion
-
-        #region INonLinearParentAnalyzer Members
 
         public IVector GetOtherRHSComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
         {
@@ -382,7 +338,5 @@ namespace ISAAR.MSolve.Analyzers
             result.LinearCombinationIntoThis(a0, temp, a1);
             return result;
         }
-
-        #endregion
     }
 }

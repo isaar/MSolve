@@ -26,7 +26,6 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly CsrAssembler assembler = new CsrAssembler(true);
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
-        private readonly IDofOrderer dofOrderer;
         private readonly CsrSystem linearSystem;
         private readonly PreconditionedConjugateGradient pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
@@ -44,21 +43,17 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             this.pcgAlgorithm = pcgAlgorithm;
             this.preconditionerFactory = preconditionerFactory;
-            this.dofOrderer = dofOrderer;
+            this.DofOrderer = dofOrderer;
         }
+
+        public IDofOrderer DofOrderer { get; }
 
         public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
 
-        public void Initialize()
-        {
-            // TODO: perhaps order dofs here
-        }
-
-        public void OrderDofs() { }
-        //public void OrderDofs() => subdomain.DofOrdering = dofOrderer.OrderDofs(model, subdomain);
+        public void Initialize() { }
 
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.

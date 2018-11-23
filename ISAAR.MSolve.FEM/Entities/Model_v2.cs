@@ -15,14 +15,9 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model_v2 : IStructuralModel_v2
     {
-        //TODO: remove these and let the solver's dof orderer do the job.
-        public delegate IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model);
-        public OrderDofs dofOrderer;
+        private IGlobalFreeDofOrdering globalDofOrdering;
 
-        //public IList<EmbeddedNode> EmbeddedNodes
-        //{
-        //    get { return embeddedNodes; }
-        //}
+        //public IList<EmbeddedNode> EmbeddedNodes { get; } = new List<EmbeddedNode>();
 
         public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
         public Dictionary<int, Cluster> ClustersDictionary { get; } = new Dictionary<int, Cluster>();
@@ -46,7 +41,22 @@ namespace ISAAR.MSolve.FEM.Entities
         public Dictionary<int, Subdomain_v2> SubdomainsDictionary { get; } = new Dictionary<int, Subdomain_v2>();
 
         public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
-        public IGlobalFreeDofOrdering GlobalDofOrdering { get; private set; }
+
+        public IGlobalFreeDofOrdering GlobalDofOrdering
+        {
+            get => globalDofOrdering;
+            set
+            {
+                globalDofOrdering = value;
+                foreach (Subdomain_v2 subdomain in Subdomains)
+                {
+                    subdomain.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[subdomain];
+                    subdomain.Forces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
+                }
+                //EnumerateSubdomainLagranges();
+                //EnumerateDOFMultiplicity();
+            }
+        }
 
         public void AssignLoads()
         {
@@ -83,7 +93,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 ISubdomain_v2 subdomain = element.Subdomain_v2;
                 var accelerationForces = Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(
                     load.Element, (new MassAccelerationLoad[] { hl }).ToList()));
-                GlobalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
+                globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
                     subdomain.Forces);
             }
         }
@@ -96,7 +106,7 @@ namespace ISAAR.MSolve.FEM.Entities
             SubdomainsDictionary.Clear();
             ElementsDictionary.Clear();
             NodesDictionary.Clear();
-            GlobalDofOrdering = null;
+            globalDofOrdering = null;
             Constraints.Clear();
             ElementMassAccelerationHistoryLoads.Clear();
             ElementMassAccelerationLoads.Clear();
@@ -108,11 +118,10 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             BuildInterconnectionData();
             AssignConstraints();
-            EnumerateDOFs();
+            //EnumerateDOFs();
 
-            //TODOMaria: Here is where the element loads are assembled
             //TODOSerafeim: This should be called by the analyzer, which defines when the dofs are ordered and when the global vectors/matrices are built.
-            AssignLoads();
+            //AssignLoads();
         }
 
         //TODO: constraints should not be saved inside the nodes. As it is right now (22/11/2018) the same constraint 
@@ -137,7 +146,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 ISubdomain_v2 subdomain = load.Element.Subdomain_v2;
                 var accelerationForces = Vector.CreateFromArray(
                     load.Element.ElementType.CalculateAccelerationForces(load.Element, MassAccelerationLoads));
-                GlobalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
+                globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
                     accelerationForces, subdomain.Forces);
             }
         }
@@ -214,16 +223,6 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        private void DuplicateInterSubdomainEmbeddedElements()
-        {
-            foreach (var e in ElementsDictionary.Values.Where(x => x.ElementType is IEmbeddedElement))
-            {
-                var subs = ((IEmbeddedElement)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain_v2).Distinct();
-                foreach (var s in subs.Where(x => x.ID != e.Subdomain_v2.ID))
-                    s.Elements.Add(e);
-            }
-        }
-
         private void BuildNonConformingNodes()
         {
             List<int> subIDs = new List<int>();
@@ -241,16 +240,14 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        private void EnumerateDOFs()
+        private void DuplicateInterSubdomainEmbeddedElements()
         {
-            GlobalDofOrdering = dofOrderer(this);
-            foreach (Subdomain_v2 subdomain in Subdomains)
+            foreach (var e in ElementsDictionary.Values.Where(x => x.ElementType is IEmbeddedElement))
             {
-                subdomain.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[subdomain];
-                subdomain.Forces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
+                var subs = ((IEmbeddedElement)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain_v2).Distinct();
+                foreach (var s in subs.Where(x => x.ID != e.Subdomain_v2.ID))
+                    s.Elements.Add(e);
             }
-            //EnumerateSubdomainLagranges();
-            //EnumerateDOFMultiplicity();
         }
 
         //private void EnumerateGlobalDOFs()

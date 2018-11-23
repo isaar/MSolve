@@ -87,7 +87,6 @@ namespace ISAAR.MSolve.Tests
         {
             var model = new Model_v2();
             int subdomainID = 0;
-            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             var n = new Node() { ID = 0 };
@@ -113,7 +112,6 @@ namespace ISAAR.MSolve.Tests
             lY.SetupGet(x => x[It.IsInRange(1, 100, Range.Inclusive)]).Returns(0);
             model.MassAccelerationHistoryLoads.Add(lX.Object);
             model.MassAccelerationHistoryLoads.Add(lY.Object);
-            model.ConnectDataStructures();
             m.Setup(x => x.CalculateAccelerationForces(It.IsAny<Element>(), It.IsAny<IList<MassAccelerationLoad>>()))
                 .Returns<Element, IList<MassAccelerationLoad>>((element, loads) =>
                 {
@@ -142,13 +140,12 @@ namespace ISAAR.MSolve.Tests
 
             // Analyzers
             var childAnalyzer = new LinearAnalyzer_v2(solver);
-            var parentAnalyzer = new NewmarkDynamicAnalyzer_v2(provider, childAnalyzer, solver, 0.25, 0.5, 0.28, 3.36);
+            var parentAnalyzer = new NewmarkDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, 0.25, 0.5, 0.28, 3.36);
 
             // Request output
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0, 1 });
 
             // Run the analysis
-            parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 

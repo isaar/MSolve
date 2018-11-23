@@ -8,6 +8,8 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 {
     public interface ISolver_v2
     {
+        IDofOrderer DofOrderer { get; }
+
         IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
 
         //TODO: Ideally the provider/analyzer will not even have to pass the subdomain.
@@ -15,7 +17,6 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 
         //TODO: I think this needs to be called only once (by the analyzer), not every time the matrix must be factorized.
         void Initialize();
-        void OrderDofs();
         void Solve();
     }
 }

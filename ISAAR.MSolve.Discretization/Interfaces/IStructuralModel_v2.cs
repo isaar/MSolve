@@ -11,13 +11,13 @@ namespace ISAAR.MSolve.Discretization.Interfaces
     {
         Table<INode, DOFType, double> Constraints { get; }
         IReadOnlyList<IElement> Elements { get; }
-        IGlobalFreeDofOrdering GlobalDofOrdering { get; } //TODO: this should not be managed by the model
+        IGlobalFreeDofOrdering GlobalDofOrdering { get; set; } //TODO: this should not be managed by the model
         IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; }
         IReadOnlyList<INode> Nodes { get; }
-        //Dictionary<int, Dictionary<DOFType, int>> NodalDOFsDictionary { get; } 
         IReadOnlyList<ISubdomain_v2> Subdomains { get; }
 
-        void AssignLoads();
+        void AssignLoads(); //TODOMaria: Here is where the element loads are assembled
         void AssignMassAccelerationHistoryLoads(int timeStep);
-	}
+        void ConnectDataStructures();
+    }
 }

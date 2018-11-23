@@ -170,7 +170,6 @@ namespace ISAAR.MSolve.Tests
             var model = new Model_v2();
 
             // Add a single subdomain to the model
-            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             // Add nodes to the nodes dictonary of the model
@@ -220,12 +219,12 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
-            model.ConnectDataStructures();
+            //model.ConnectDataStructures();
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
-            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
+            //solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
@@ -239,13 +238,13 @@ namespace ISAAR.MSolve.Tests
                 provider, increments);
 
             // Choose parent analyzer -> Parent: Static
-            var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
 
             // Run the analysis
-            parentAnalyzer.BuildMatrices();
+            //parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
@@ -400,7 +399,6 @@ namespace ISAAR.MSolve.Tests
 
             // Model creation
             Model_v2 model = new Model_v2();
-            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
 
             // Add a single subdomain to the model
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
@@ -451,13 +449,9 @@ namespace ISAAR.MSolve.Tests
                 iNode++;
             }
 
-            // Needed in order to make all the required data structures
-            model.ConnectDataStructures();
-
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
-            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
@@ -466,30 +460,24 @@ namespace ISAAR.MSolve.Tests
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
             //var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
             int numIncrements = 10;
-            //int totalDOFs = model.TotalDOFs;
             var equivalentLoadsAssemblers = new[] { new EquivalentLoadsAssembler_v2(
                 model.SubdomainsDictionary[subdomainID], new ElementStructuralStiffnessProvider()) };
             var childAnalyzer = new DisplacementControlNonLinearAnalyzer_v2(model, solver, provider, subdomainUpdaters,
                 equivalentLoadsAssemblers, numIncrements);
 
             // Choose parent analyzer -> Parent: Static
-            var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 3 });
 
             // Run the analysis
-            parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
             DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(-72.090605787610343, log.DOFValues[3], 8);
-
-            //double displacement = linearSystems[1].Solution[3];
-
-            //Assert.Equal(-72.090605787610343, displacement, 8);
         }
     }
 }

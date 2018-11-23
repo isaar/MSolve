@@ -119,12 +119,9 @@ namespace ISAAR.MSolve.Tests.FEM
         private static IncrementalDisplacementsLog SolveModel_v2()
         {
             var model = new Model_v2();
-            model.dofOrderer = (subdomain) => (new NodeMajorDofOrderer()).OrderDofs(model);
             //model.dofOrderer = (subdomain) => (new SimpleDofOrderer()).OrderDofs(model);
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
             ShellAndCohesiveRAM_11tlkShellPaktwsh(model);
-
-            model.ConnectDataStructures();
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
@@ -132,9 +129,6 @@ namespace ISAAR.MSolve.Tests.FEM
             solverBuilder.DofOrderer = new NodeMajorDofOrderer();
             //solverBuilder.DofOrderer = new SimpleDofOrderer();
             var solver = solverBuilder.BuildSolver(model);
-
-            //TODO: this should be hidden and handled by the analyzer at another phase
-            solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
@@ -147,7 +141,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 provider, increments);
             childAnalyzer.MaxIterations = 100;
             childAnalyzer.NumIterationsForMatrixRebuild = 1;
-            var parentAnalyzer = new StaticAnalyzer_v2(solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Output
             var watchDofs = new Dictionary<int, int[]>();
@@ -156,7 +150,6 @@ namespace ISAAR.MSolve.Tests.FEM
             childAnalyzer.IncrementalDisplacementsLog = log1;
 
             // Run the anlaysis 
-            parentAnalyzer.BuildMatrices(); //TODO: this should be hidden and handled by the (child?) analyzer
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
