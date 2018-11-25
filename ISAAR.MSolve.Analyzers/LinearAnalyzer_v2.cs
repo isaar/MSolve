@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class LinearAnalyzer_v2 : IAnalyzer_v2
+    public class LinearAnalyzer_v2 : IChildAnalyzer
     {
         private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly ISolver_v2 solver;
@@ -25,13 +25,7 @@ namespace ISAAR.MSolve.Analyzers
         public Dictionary<int, ILogFactory> LogFactories { get; } = new Dictionary<int, ILogFactory>();
         public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-        public IAnalyzer_v2 ChildAnalyzer
-        {
-            get => null;
-            set => throw new InvalidOperationException("Linear analyzer cannot contain an embedded analyzer.");
-        }
-
-        public IAnalyzer_v2 ParentAnalyzer { get; set; }
+        public IParentAnalyzer ParentAnalyzer { get; set; }
 
         public void BuildMatrices()
         {

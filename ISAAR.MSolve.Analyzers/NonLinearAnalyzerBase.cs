@@ -13,7 +13,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 //      loads and constraints.
 namespace ISAAR.MSolve.Analyzers
 {
-    public abstract class NonLinearAnalyzerBase : IAnalyzer_v2
+    public abstract class NonLinearAnalyzerBase : IChildAnalyzer
     {
         //TODO: this should be passed in the constructor by the implementing class and used in Solve().
         //protected readonly double residualTolerance; 
@@ -53,15 +53,9 @@ namespace ISAAR.MSolve.Analyzers
         public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get; } = new Dictionary<int, LinearAnalyzerLogFactory>();
         public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-        public IAnalyzer_v2 ChildAnalyzer
-        {
-            get => null;
-            set => throw new InvalidOperationException("Newton-Raphson analyzer cannot contain an embedded analyzer.");
-        }
-
         public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
 
-        public IAnalyzer_v2 ParentAnalyzer
+        public IParentAnalyzer ParentAnalyzer
         {
             get => parentAnalyzer;
             set => parentAnalyzer = (INonLinearParentAnalyzer_v2)value; //TODO: remove this cast. Now it only serves as a check

@@ -13,7 +13,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 //TODO: Optimization: I could avoid initialization and GC of some vectors by reusing existing ones.
 namespace ISAAR.MSolve.Analyzers
 {
-    public class NewmarkDynamicAnalyzer_v2 : IAnalyzer_v2, INonLinearParentAnalyzer_v2
+    public class NewmarkDynamicAnalyzer_v2 : INonLinearParentAnalyzer_v2
     {
         private readonly double alpha, delta, timeStep, totalTime;
         private readonly double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Analyzers
         private Dictionary<int, IVector> v2 = new Dictionary<int, IVector>();
 
         private NewmarkDynamicAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, IImplicitIntegrationProvider_v2 provider,
-            IAnalyzer_v2 childAnalyzer, double timeStep, double totalTime, double alpha, double delta)
+            IChildAnalyzer childAnalyzer, double timeStep, double totalTime, double alpha, double delta)
         {
             this.model = model;
             this.linearSystems = solver.LinearSystems;
@@ -61,8 +61,7 @@ namespace ISAAR.MSolve.Analyzers
         public Dictionary<int, ImplicitIntegrationAnalyzerLog> ResultStorages { get; }
             = new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
 
-        public IAnalyzer_v2 ChildAnalyzer { get; set; }
-        public IAnalyzer_v2 ParentAnalyzer { get; set; }
+        public IChildAnalyzer ChildAnalyzer { get; }
 
         public void BuildMatrices()
         {
@@ -344,14 +343,14 @@ namespace ISAAR.MSolve.Analyzers
         public class Builder
         {
             private readonly double timeStep, totalTime; //TODO: perhaps totalTime should be numTimeSteps
-            private readonly IAnalyzer_v2 childAnalyzer;
+            private readonly IChildAnalyzer childAnalyzer;
             private readonly IStructuralModel_v2 model;
             private readonly ISolver_v2 solver;
             private readonly IImplicitIntegrationProvider_v2 provider;
             private double alpha = 0.25, delta = 0.5;
 
             public Builder(IStructuralModel_v2 model, ISolver_v2 solver, IImplicitIntegrationProvider_v2 provider,
-            IAnalyzer_v2 childAnalyzer, double timeStep, double totalTime)
+                IChildAnalyzer childAnalyzer, double timeStep, double totalTime)
             {
                 this.model = model;
                 this.solver = solver;
@@ -373,9 +372,7 @@ namespace ISAAR.MSolve.Analyzers
             }
 
             public NewmarkDynamicAnalyzer_v2 Build()
-            {
-                return new NewmarkDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, timeStep, totalTime, alpha, delta);
-            }
+                => new NewmarkDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, timeStep, totalTime, alpha, delta);
         }
     }
 }

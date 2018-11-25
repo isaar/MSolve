@@ -9,7 +9,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class StaticAnalyzer_v2 : IAnalyzer_v2, INonLinearParentAnalyzer_v2
+    public class StaticAnalyzer_v2 : INonLinearParentAnalyzer_v2
     {
         private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly IStructuralModel_v2 model;
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISolver_v2 solver;
 
         public StaticAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
-            IAnalyzer_v2 childAnalyzer)
+            IChildAnalyzer childAnalyzer)
         {
             this.model = model;
             this.linearSystems = solver.LinearSystems;
@@ -29,8 +29,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-        public IAnalyzer_v2 ChildAnalyzer { get; set; }
-        public IAnalyzer_v2 ParentAnalyzer { get; set; } = null;
+        public IChildAnalyzer ChildAnalyzer { get; }
 
         public void BuildMatrices()
         {
