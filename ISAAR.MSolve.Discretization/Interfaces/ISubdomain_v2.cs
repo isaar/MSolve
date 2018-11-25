@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
 
+//TODO: tidy up the methods that concern material state
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface ISubdomain_v2
@@ -27,6 +28,16 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
         IReadOnlyList<INode> Nodes { get; } //TODO: perhaps this should be a set
 
+        Vector CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor); //TODO: this should be done by a dedicated class instead of the subdomain
+
+        void ClearMaterialStresses();
+
+        IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution); //TODO: this should be done by a dedicated class instead of the subdomain
+
         void ResetMaterialsModifiedProperty();
+
+        void ScaleConstraints(double scalingFactor); //TODO: this should be done by a dedicated class instead of the subdomain
+
+        void SaveMaterialState();
     }
 }

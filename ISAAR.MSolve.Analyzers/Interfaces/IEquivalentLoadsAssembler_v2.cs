@@ -4,7 +4,8 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: this and its concrete implementations should be in Analyzers project
-namespace ISAAR.MSolve.FEM.Interfaces
+//TODO: delete the original one in FEM.Interfaces
+namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IEquivalentLoadsAssembler_v2
     {

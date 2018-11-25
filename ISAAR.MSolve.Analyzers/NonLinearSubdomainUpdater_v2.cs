@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using System;
@@ -10,9 +11,9 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class NonLinearSubdomainUpdater_v2 : INonLinearSubdomainUpdater_v2
     {
-        private readonly Subdomain_v2 subdomain;
+        private readonly ISubdomain_v2 subdomain;
 
-        public NonLinearSubdomainUpdater_v2(Subdomain_v2 subdomain)
+        public NonLinearSubdomainUpdater_v2(ISubdomain_v2 subdomain)
         {
             this.subdomain = subdomain;
         }
@@ -22,9 +23,9 @@ namespace ISAAR.MSolve.Analyzers
             this.subdomain.ScaleConstraints(scalingFactor);
         }
 
-        public IVector GetRHSFromSolution(IVectorView solution, IVectorView dSolution) //TODO leave 
+        public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
         {
-            return subdomain.GetRHSFromSolution(solution, dSolution);
+            return subdomain.GetRhsFromSolution(solution, dSolution);
         }
 
         public void ResetState()

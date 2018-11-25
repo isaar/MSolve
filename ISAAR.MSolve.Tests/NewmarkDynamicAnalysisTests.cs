@@ -140,7 +140,10 @@ namespace ISAAR.MSolve.Tests
 
             // Analyzers
             var childAnalyzer = new LinearAnalyzer_v2(solver);
-            var parentAnalyzer = new NewmarkDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, 0.25, 0.5, 0.28, 3.36);
+
+            var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model, solver, provider, childAnalyzer, 0.28, 3.36);
+            parentAnalyzerBuilder.SetNewmarkParameters(0.25, 0.5);
+            NewmarkDynamicAnalyzer_v2 parentAnalyzer = parentAnalyzerBuilder.Build();
 
             // Request output
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0, 1 });

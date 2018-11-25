@@ -17,13 +17,13 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISolver_v2 solver;
 
         public StaticAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
-            IAnalyzer_v2 embeddedAnalyzer)
+            IAnalyzer_v2 childAnalyzer)
         {
             this.model = model;
             this.linearSystems = solver.LinearSystems;
             this.solver = solver;
             this.provider = provider;
-            this.ChildAnalyzer = embeddedAnalyzer;
+            this.ChildAnalyzer = childAnalyzer;
             this.ChildAnalyzer.ParentAnalyzer = this;
         }
 
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Analyzers
             //subdomain.Matrix = provider.Ks[subdomain.ID]; // setting is done by the assembler to avoid casting
         }
 
-        public IVector GetOtherRHSComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
+        public IVector GetOtherRhsComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
         {
             //TODO: use a ZeroVector class that avoid doing useless operations or refactor this method. E.g. let this method 
             // alter the child analyzer's rhs vector, instead of the opposite (which is currently done).

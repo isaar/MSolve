@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.Analyzers
                 int idx = FindSubdomainIdx(linearSystems, linearSystem);
 
                 IVector r = linearSystem.RhsVector.Copy();
-                r.ScaleIntoThis(1 / (double)increments);
+                r.ScaleIntoThis(1 / (double)increments); //TODO: Do we increment the loads in DC?
                 rhs.Add(id, r);
                 u.Add(id, linearSystem.CreateZeroVector());
                 du.Add(id, linearSystem.CreateZeroVector());
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.Analyzers
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRHS);
                 subdomainUpdaters[idx].ScaleConstraints(1 / (double)increments);
             }
-            rhsNorm = provider.RHSNorm(globalRHS);
+            rhsNorm = provider.CalculateRhsNorm(globalRHS);
         }
 
         private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
@@ -137,11 +137,11 @@ namespace ISAAR.MSolve.Analyzers
 
                 //TODO: directly copy into linearSystem.RhsVector and then scale that.
                 IVector r = linearSystem.RhsVector.Copy();
-                r.ScaleIntoThis(1 / (double)increments);
+                r.ScaleIntoThis(1 / (double)increments); //TODO: Do we increment the loads in DC?
                 rhs[id] = r;
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRHS);
             }
-            rhsNorm = provider.RHSNorm(globalRHS);
+            rhsNorm = provider.CalculateRhsNorm(globalRHS);
         }
 
         public void Initialize()
@@ -230,13 +230,13 @@ namespace ISAAR.MSolve.Analyzers
                 int subdomainIdx = FindSubdomainIdx(linearSystems, linearSystem);
 
                 //TODO: remove cast
-                IVector internalRHS = subdomainUpdaters[subdomainIdx].GetRHSFromSolution(uPlusdu[id], du[id]);//TODOMaria this calculates the internal forces
-                provider.ProcessInternalRHS(linearSystem, internalRHS, uPlusdu[id]);//TODOMaria this does nothing
+                IVector internalRHS = subdomainUpdaters[subdomainIdx].GetRhsFromSolution(uPlusdu[id], du[id]);//TODOMaria this calculates the internal forces
+                provider.ProcessInternalRhs(linearSystem, internalRHS, uPlusdu[id]);//TODOMaria this does nothing
                 //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
                 {
-                    IVector otherRhsComponents = parentAnalyzer.GetOtherRHSComponents(linearSystem, uPlusdu[id]);
+                    IVector otherRhsComponents = parentAnalyzer.GetOtherRhsComponents(linearSystem, uPlusdu[id]);
                     internalRHS.AddIntoThis(otherRhsComponents);//TODOMaria this does nothing for the static problem
                 }
 
@@ -250,7 +250,7 @@ namespace ISAAR.MSolve.Analyzers
 
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRHS);
             }
-            return provider.RHSNorm(globalRHS);
+            return provider.CalculateRhsNorm(globalRHS);
         }
 
         private void AddEquivalentNodalLoadsToRHS(int currentIncrement, int iteration)

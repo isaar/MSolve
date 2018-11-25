@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -8,14 +9,14 @@ using System.Collections.Generic;
 using System.Text;
 
 //TODO: time logging must be refactored
-namespace ISAAR.MSolve.FEM
+namespace ISAAR.MSolve.Analyzers
 {
     public class EquivalentLoadsAssembler_v2 : IEquivalentLoadsAssembler_v2
     {
-        private Subdomain_v2 subdomain;
+        private ISubdomain_v2 subdomain;
         private IElementMatrixProvider elementProvider;
 
-        public EquivalentLoadsAssembler_v2(Subdomain_v2 subdomain, IElementMatrixProvider elementProvider)
+        public EquivalentLoadsAssembler_v2(ISubdomain_v2 subdomain, IElementMatrixProvider elementProvider)
         {
             this.subdomain = subdomain;
             this.elementProvider = elementProvider;

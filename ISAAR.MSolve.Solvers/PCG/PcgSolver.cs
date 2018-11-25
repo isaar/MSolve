@@ -60,12 +60,6 @@ namespace ISAAR.MSolve.Solvers.PCG
         /// </summary>
         public void Solve()
         {
-            //TODO: resolve this weird dependency: NewmarkAnalyzer_v2.InitializeInternalVectors() needs the initial solution 
-            // (which may be != 0, if it comes from a previous analysis) before the Solver has performed the first system 
-            // solution. However, to initialize it we need the rhs vector which is created when the user calls 
-            // Model.ConnectDataStructures(). It would be better to only access the number of free dofs, but that also would be 
-            // available after Model.ConnectDataStructures().
-
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
             else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             else linearSystem.Solution.Clear(); // In iterative algorithms we initialize the solution vector to 0.

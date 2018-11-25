@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         //TODO: This belongs in EquivalentLoadsAssembler
         //TODO: the constraintScalingFactor parameter is not used.
-        public Vector CalculateElementIncrementalConstraintDisplacements(Element element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public Vector CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             var elementNodalDisplacements = Vector.CreateZero(DofOrdering.CountElementDofs(element));
             ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
@@ -162,7 +162,7 @@ namespace ISAAR.MSolve.FEM.Entities
             return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
         }
 
-        public IVector GetRHSFromSolution(IVectorView solution, IVectorView dSolution)
+        public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
         {
             var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
             foreach (Element element in Elements)
@@ -201,12 +201,12 @@ namespace ISAAR.MSolve.FEM.Entities
         //      by various analyzer classes and as such does not need rewriting for IGA, XFEM or other problem types. Also it 
         //      can perform optimizations, such as using a prescribed displacements vector and element constrained dof maps,
         //      similarly to how free displacements are handled by ISubdomainFreeDofOrdering
-        private static void ApplyConstraintDisplacements(Element element, Vector elementNodalDisplacements,
+        private static void ApplyConstraintDisplacements(IElement element, Vector elementNodalDisplacements,
             Table<INode, DOFType, double> constraints)
         {
             int elementDofIdx = 0;
-            IList<INode> nodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> dofs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> nodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> dofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 //bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 

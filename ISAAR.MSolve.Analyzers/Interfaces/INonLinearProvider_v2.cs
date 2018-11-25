@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface INonLinearProvider_v2 : IAnalyzerProvider
     {
-        double RHSNorm(IVectorView rhs); //TODO: Why is this done by the provider?
-        void ProcessInternalRHS(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution); //TODO: this does nothing
+        double CalculateRhsNorm(IVectorView rhs);
+        void ProcessInternalRhs(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution); //TODO: this does nothing
     }
 }

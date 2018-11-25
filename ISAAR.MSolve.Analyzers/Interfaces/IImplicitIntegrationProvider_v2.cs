@@ -8,10 +8,10 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
     public interface IImplicitIntegrationProvider_v2 : IAnalyzerProvider
     {
         void CalculateEffectiveMatrix(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients);
-        void ProcessRHS(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients);
+        void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients);
         IDictionary<int, IVector> GetAccelerationsOfTimeStep(int timeStep);
         IDictionary<int, IVector> GetVelocitiesOfTimeStep(int timeStep);
-        void GetRHSFromHistoryLoad(int timeStep);
+        void GetRhsFromHistoryLoad(int timeStep);
         IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
         IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
     }

@@ -13,70 +13,59 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class LinearAnalyzer_v2 : IAnalyzer_v2
     {
-        private IAnalyzer_v2 parentAnalyzer = null;
         private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
-        private readonly Dictionary<int, ILogFactory> logFactories = new Dictionary<int, ILogFactory>();
-        private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
+        private readonly ISolver_v2 solver;
 
         public LinearAnalyzer_v2(ISolver_v2 solver)
         {
-            this.Solver = solver;
+            this.solver = solver;
             this.linearSystems = solver.LinearSystems;
         }
 
-        private void InitializeLogs()
-        {
-            logs.Clear();
-            foreach (int id in logFactories.Keys) logs.Add(id, logFactories[id].CreateLogs());
-        }
-
-        private void StoreLogResults(DateTime start, DateTime end)
-        {
-            foreach (int id in logs.Keys)
-                foreach (var l in logs[id])
-                    l.StoreResults(start, end, linearSystems[id].Solution.ToLegacyVector());
-        }
-
-        public Dictionary<int, ILogFactory> LogFactories { get { return logFactories; } }
-        public ISolver_v2 Solver { get; }
-
-        #region IAnalyzer Members
-
-        public Dictionary<int, IAnalyzerLog[]> Logs { get { return logs; } }
-        public IAnalyzer_v2 ParentAnalyzer
-        {
-            get { return parentAnalyzer; }
-            set { parentAnalyzer = value; }
-        }
+        public Dictionary<int, ILogFactory> LogFactories { get; } = new Dictionary<int, ILogFactory>();
+        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
         public IAnalyzer_v2 ChildAnalyzer
         {
-            get { return null; }
-            set { throw new InvalidOperationException("Linear analyzer cannot contain an embedded analyzer."); }
+            get => null;
+            set => throw new InvalidOperationException("Linear analyzer cannot contain an embedded analyzer.");
+        }
+
+        public IAnalyzer_v2 ParentAnalyzer { get; set; }
+
+        public void BuildMatrices()
+        {
+            if (ParentAnalyzer == null) throw new InvalidOperationException("This linear analyzer has no parent.");
+
+            ParentAnalyzer.BuildMatrices();
+            //solver.Initialize();
         }
 
         public void Initialize()
         {
             InitializeLogs();
-            Solver.Initialize();
+            solver.Initialize();
         }
 
         public void Solve()
         {
             DateTime start = DateTime.Now;
-            Solver.Solve();
+            solver.Solve();
             DateTime end = DateTime.Now;
             StoreLogResults(start, end);
         }
 
-        public void BuildMatrices()
+        private void InitializeLogs()
         {
-            if (parentAnalyzer == null) throw new InvalidOperationException("This linear analyzer has no parent.");
-
-            parentAnalyzer.BuildMatrices();
-            //solver.Initialize();
+            Logs.Clear();
+            foreach (int id in LogFactories.Keys) Logs.Add(id, LogFactories[id].CreateLogs());
         }
 
-        #endregion
+        private void StoreLogResults(DateTime start, DateTime end)
+        {
+            foreach (int id in Logs.Keys)
+                foreach (var l in Logs[id])
+                    l.StoreResults(start, end, linearSystems[id].Solution.ToLegacyVector());
+        }
     }
 }

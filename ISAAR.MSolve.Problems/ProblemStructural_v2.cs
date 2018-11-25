@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.Problems
             linearSystem.IsMatrixModified = true;
         }
 
-        public void ProcessRHS(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
+        public void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
         {
             // Method intentionally left empty.
         }
@@ -215,7 +215,7 @@ namespace ISAAR.MSolve.Problems
             return d;
         }
 
-        public void GetRHSFromHistoryLoad(int timeStep)
+        public void GetRhsFromHistoryLoad(int timeStep)
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear();
 
@@ -256,9 +256,9 @@ namespace ISAAR.MSolve.Problems
 
         #region INonLinearProvider Members
 
-        public double RHSNorm(IVectorView rhs) => rhs.Norm2();
+        public double CalculateRhsNorm(IVectorView rhs) => rhs.Norm2();
 
-        public void ProcessInternalRHS(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution) {}
+        public void ProcessInternalRhs(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution) {}
 
         #endregion
     }

@@ -134,13 +134,13 @@ namespace ISAAR.MSolve.Tests.FEM
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
-            //var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
             int increments = 2;
-            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(model, solver, subdomainUpdaters,
-                provider, increments);
-            childAnalyzer.MaxIterations = 100;
-            childAnalyzer.NumIterationsForMatrixRebuild = 1;
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
+            childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Output

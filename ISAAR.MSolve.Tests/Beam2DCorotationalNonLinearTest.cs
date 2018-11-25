@@ -230,12 +230,10 @@ namespace ISAAR.MSolve.Tests
             var provider = new ProblemStructural_v2(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
-            //var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
             int increments = 10;
-            //int totalDOFs = model.TotalDOFs;
-            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer_v2(model, solver, subdomainUpdaters,
-                provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
@@ -458,12 +456,12 @@ namespace ISAAR.MSolve.Tests
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
-            //var subdomainMappers = new[] { new SubdomainGlobalMapping_v2(model.SubdomainsDictionary[subdomainID]) };
             int numIncrements = 10;
             var equivalentLoadsAssemblers = new[] { new EquivalentLoadsAssembler_v2(
                 model.SubdomainsDictionary[subdomainID], new ElementStructuralStiffnessProvider()) };
-            var childAnalyzer = new DisplacementControlNonLinearAnalyzer_v2(model, solver, provider, subdomainUpdaters,
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider,
                 equivalentLoadsAssemblers, numIncrements);
+            var childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
