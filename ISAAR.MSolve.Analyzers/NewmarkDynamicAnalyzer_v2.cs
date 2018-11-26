@@ -11,12 +11,13 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Discretization.Interfaces;
 
 //TODO: Optimization: I could avoid initialization and GC of some vectors by reusing existing ones.
+//TODO: Use a base class for implicit time integration methods (perhaps to together with explicit)
 namespace ISAAR.MSolve.Analyzers
 {
     public class NewmarkDynamicAnalyzer_v2 : INonLinearParentAnalyzer_v2
     {
-        private readonly double alpha, delta, timeStep, totalTime;
-        private readonly double a0, a1, a2, a3, a4, a5, a6, a7;//, a2a0, a3a0, a4a1, a5a1;
+        private readonly double beta, gamma, timeStep, totalTime;
+        private readonly double a0, a1, a2, a3, a4, a5, a6, a7;
         private readonly IStructuralModel_v2 model;
         private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
         private readonly ISolver_v2 solver;
@@ -39,8 +40,8 @@ namespace ISAAR.MSolve.Analyzers
             this.solver = solver;
             this.provider = provider;
             this.ChildAnalyzer = childAnalyzer;
-            this.alpha = alpha;
-            this.delta = delta;
+            this.beta = alpha;
+            this.gamma = delta;
             this.timeStep = timeStep;
             this.totalTime = totalTime;
             this.ChildAnalyzer.ParentAnalyzer = this;
@@ -57,7 +58,7 @@ namespace ISAAR.MSolve.Analyzers
             a7 = delta * timeStep;
         }
 
-        public Dictionary<int, IAnalyzerLog[]> Logs => null; //TODO: that can't be right
+        public Dictionary<int, IAnalyzerLog[]> Logs => null; //TODO: this can't be right
         public Dictionary<int, ImplicitIntegrationAnalyzerLog> ResultStorages { get; }
             = new Dictionary<int, ImplicitIntegrationAnalyzerLog>();
 
@@ -135,8 +136,6 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Initialize()
         {
-            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-
             model.ConnectDataStructures();
             model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model);
             model.AssignLoads();
@@ -153,9 +152,6 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Solve()
         {
-            if (ChildAnalyzer == null) throw new InvalidOperationException(
-                "NewmarkDynamicAnalyzer analyzer must contain an embedded analyzer.");
-
             BuildMatrices(); //TODO: this should be called by the child analyzer
             int numTimeSteps = (int)(totalTime / timeStep);
             for (int i = 0; i < numTimeSteps; ++i)
@@ -304,7 +300,6 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
-            if (ChildAnalyzer == null) return; //TODO: shouldn't it throw an exception?
             foreach (ILinearSystem_v2 linearSystem in linearSystems)
             {
                 int id = linearSystem.Subdomain.ID;
@@ -347,7 +342,7 @@ namespace ISAAR.MSolve.Analyzers
             private readonly IStructuralModel_v2 model;
             private readonly ISolver_v2 solver;
             private readonly IImplicitIntegrationProvider_v2 provider;
-            private double alpha = 0.25, delta = 0.5;
+            private double beta = 0.25, gamma = 0.5; // constant acceleration is the default
 
             public Builder(IStructuralModel_v2 model, ISolver_v2 solver, IImplicitIntegrationProvider_v2 provider,
                 IChildAnalyzer childAnalyzer, double timeStep, double totalTime)
@@ -361,18 +356,77 @@ namespace ISAAR.MSolve.Analyzers
                 this.totalTime = totalTime;
             }
 
-            public void SetNewmarkParameters(double alpha, double delta)
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="beta">
+            /// Used in the intepolation between the accelerations of the previous and current time step, in order to obtain the 
+            /// current displacements. Also called alpha by Bathe.
+            /// </param>
+            /// <param name="gamma">
+            /// Used in the intepolation between the accelerations of the previous and current time step, in order to obtain the 
+            /// current velocities. Also called delta by Bathe.
+            /// </param>
+            /// <param name="allowConditionallyStable">
+            /// If set to true, the user must make sure that the time step chosen is lower than the critical step size 
+            /// corresponding to these particular <paramref name="beta"/>, <paramref name="gamma"/> parameters.
+            /// </param>
+            public void SetNewmarkParameters(double beta, double gamma, bool allowConditionallyStable = false)
             {
-                if (delta < 0.5) throw new ArgumentException("Newmark delta has to be bigger than 0.5.");
-                double aLimit = 0.25 * Math.Pow(0.5 + delta, 2);
-                if (alpha < aLimit) throw new ArgumentException($"Newmark alpha has to be bigger than {aLimit}.");
+                if (!allowConditionallyStable)
+                {
+                    if (gamma < 0.5) throw new ArgumentException(
+                        "Newmark delta has to be bigger than 0.5 to ensure unconditional stability.");
+                    if (beta < 0.25) throw new ArgumentException(
+                        "Newmark alpha has to be bigger than 0.25 to ensure unconditional stability.");
 
-                this.delta = delta;
-                this.alpha = alpha;
+                    // No idea where Bathe got this from.
+                    //double bLimit = 0.25 * Math.Pow(0.5 + delta, 2);
+                    //if (beta < bLimit) throw new ArgumentException(
+                    //$"Newmark beta has to be bigger than {bLimit} to ensure unconditional stability.");
+                }
+                if (gamma < 0.5) throw new ArgumentException("Newmark delta has to be bigger than 0.5.");
+                double aLimit = 0.25 * Math.Pow(0.5 + gamma, 2);
+                if (beta < aLimit) throw new ArgumentException($"Newmark alpha has to be bigger than {aLimit}.");
+
+                this.gamma = gamma;
+                this.beta = beta;
+            }
+
+            /// <summary>
+            /// Central diffences: gamma = 1/2, beta = 0. Newmark results in central diffences, a conditionally stable explicit 
+            /// method. To ensure stability, the time step must be &lt;= the critical step size = 2 / w,  where w is the maximum 
+            /// natural radian frequency. It would be more efficient to use an explicit dynamic analyzer. 
+            /// </summary>
+            public void SetNewmarkParametersForCentralDifferences()
+            {
+                gamma = 0.5;
+                beta = 0.0;
+            }
+
+            /// <summary>
+            /// Constant acceleration (also called average acceleration or trapezoid rule): gamma = 1/2, beta = 1/4. 
+            /// This is the most common scheme and is unconditionally stable. In this analyzer, it is used as the default.
+            /// </summary>
+            public void SetNewmarkParametersForConstantAcceleration()
+            {
+                gamma = 0.5;
+                beta = 0.25;
+            }
+
+            /// <summary>
+            /// Linear acceleration: gamma = 1/2, beta = 1/6. This is more accurate than the default constant acceleration, 
+            /// but it conditionally stable. To ensure stability, the time step must be &lt;= the critical step size = 3.464 / w 
+            /// = 0.551 * T, where w is the maximum natural radian frequency and T is the minimum natural period.
+            /// </summary>
+            public void SetNewmarkParametersForLinearAcceleration()
+            {
+                gamma = 0.5;
+                beta = 1.0 / 6.0;
             }
 
             public NewmarkDynamicAnalyzer_v2 Build()
-                => new NewmarkDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, timeStep, totalTime, alpha, delta);
+                => new NewmarkDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, timeStep, totalTime, beta, gamma);
         }
     }
 }
