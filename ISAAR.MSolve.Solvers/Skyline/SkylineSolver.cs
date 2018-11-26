@@ -85,6 +85,20 @@ namespace ISAAR.MSolve.Solvers.Skyline
         /// </summary>
         private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
+        //TODO: Copied from Stavroulakis code. Find out what the purpose of this is
+        //private void DestroyAccuracy(ILinearSystem_v2 linearSystem)
+        //{
+        //    if (AccuracyDigits < 1) return;
+
+        //    for (int i = 0; i < linearSystem.RhsVector.Length; i++)
+        //    {
+        //        //ScientificDouble s = ScientificDouble.GetScientificDouble(subdomain.RHS[i]);
+        //        //s.ReduceAccuracy(AccuracyDigits);
+        //        //linearSystem.RhsVector[i] = ScientificDouble.GetDouble(s);
+        //        linearSystem.RhsVector[i] = Double.Parse(String.Format("{0:" + stringFormat + "}", linearSystem.RhsVector[i]));
+        //    }
+        //}
+
         public class Builder
         {
             public Builder() { }
