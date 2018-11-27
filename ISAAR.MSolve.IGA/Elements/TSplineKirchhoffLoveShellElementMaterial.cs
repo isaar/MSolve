@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
@@ -24,7 +26,22 @@ namespace ISAAR.MSolve.IGA.Elements
 		protected DOFType[][] dofTypes;
 		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 		private DynamicMaterial dynamicProperties;
-		private readonly IReadOnlyList<IShellMaterial> materialsAtGaussPoints;
+		private IReadOnlyList<IShellMaterial> materialsAtGaussPoints;
+
+		private Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>
+			materialsAtThicknessGP =
+				new Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>();
+		public TSplineKirchhoffLoveShellElementMaterial(IShellMaterial shellMaterial)
+		{
+			foreach (var medianSurfaceGP in thicknessIntegrationPoints.Keys)
+			{
+				materialsAtThicknessGP.Add(medianSurfaceGP, new Dictionary<GaussLegendrePoint3D, IShellMaterial>());
+				foreach (var point in thicknessIntegrationPoints[medianSurfaceGP])
+				{
+					materialsAtThicknessGP[medianSurfaceGP].Add(point, shellMaterial.Clone());
+				}
+			}
+		}
 
 		public IElementDOFEnumerator DOFEnumerator
 		{
@@ -53,8 +70,19 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
 		{
-			throw new NotImplementedException();
+			//return UpdateForces(element);
+			return null;
 		}
+
+		//private double[] UpdateForces(Element element)
+		//{
+		//	var shellElement = (TSplineKirchhoffLoveShellElement)element;
+		//	IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
+		//	Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
+
+		//	ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
+
+		//}
 
 		public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
 		{
@@ -143,21 +171,21 @@ namespace ISAAR.MSolve.IGA.Elements
 				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
 				var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
 
-				Matrix2D constitutiveMatrix = CalculateConstitutiveMatrix(shellElement, surfaceBasisVector1,surfaceBasisVector2);
-
 				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
-
 				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
 
+
+				Matrix2D constitutiveMatrix = CalculateConstitutiveMatrix(shellElement, surfaceBasisVector1,surfaceBasisVector2);
 				var membraneStiffness = materialsAtGaussPoints[j].YoungModulus * shellElement.Patch.Thickness /
 										   (1 - Math.Pow(materialsAtGaussPoints[j].PoissonRatio, 2));
-
-				var Kmembrane = Bmembrane.Transpose() * constitutiveMatrix * Bmembrane * membraneStiffness * J1 *
-								gaussPoints[j].WeightFactor;
-
 				var bendingStiffness = materialsAtGaussPoints[j].YoungModulus * Math.Pow(shellElement.Patch.Thickness, 3) /
 										  12 / (1 - Math.Pow(materialsAtGaussPoints[j].PoissonRatio, 2));
 
+				//TODO: gauss integration through section
+
+
+				var Kmembrane = Bmembrane.Transpose() * constitutiveMatrix * Bmembrane * membraneStiffness * J1 *
+				                gaussPoints[j].WeightFactor;
 				var Kbending = Bbending.Transpose() * constitutiveMatrix * Bbending * bendingStiffness * J1 *
 							   gaussPoints[j].WeightFactor;
 
@@ -364,21 +392,41 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-        private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElement element)
+
+		const int thicknessIntegrationDegree = 2;
+		Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>> thicknessIntegrationPoints= new Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>>();
+		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElement element)
         {
             GaussQuadrature gauss = new GaussQuadrature();
-	        const int thicknessIntegrationDegree = 2;
-	        return gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta,thicknessIntegrationDegree, new List<Knot>
+	        var medianSurfaceGP= gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, new List<Knot>
 	        {
-		        new Knot() {ID = 0, Ksi = -1, Heta = -1, Zeta = -Thickness / 2},
-		        new Knot() {ID = 1, Ksi = -1, Heta = -1, Zeta = Thickness / 2},
-		        new Knot() {ID = 2, Ksi = -1, Heta = 1, Zeta = -Thickness / 2},
-		        new Knot() {ID = 3, Ksi = -1, Heta = 1, Zeta = Thickness / 2},
-		        new Knot() {ID = 4, Ksi = 1, Heta = -1, Zeta = -Thickness / 2},
-		        new Knot() {ID = 5, Ksi = 1, Heta = -1, Zeta = Thickness / 2},
-		        new Knot() {ID = 6, Ksi = 1, Heta = 1, Zeta = -Thickness / 2},
-		        new Knot() {ID = 7, Ksi = 1, Heta = 1, Zeta = Thickness / 2}
+		        new Knot() {ID = 0, Ksi = -1, Heta = -1, Zeta = 0},
+		        new Knot() {ID = 1, Ksi = -1, Heta = 1, Zeta = 0},
+		        new Knot() {ID = 2, Ksi = 1, Heta = -1, Zeta = 0},
+		        new Knot() {ID = 3, Ksi = 1, Heta = 1, Zeta = 0},
 	        });
+
+	        foreach (var point in medianSurfaceGP)
+	        {
+				thicknessIntegrationPoints.Add(point, gauss.CalculateElementGaussPoints(thicknessIntegrationDegree,
+					new List<Knot>
+					{
+						new Knot() {ID = 0, Ksi = point.Ksi, Heta = point.Heta, Zeta = -Thickness / 2},
+						new Knot() {ID = 1, Ksi = point.Ksi, Heta = point.Heta, Zeta = Thickness / 2},
+					}).ToList());
+	        }
+
+	        //new Knot() { ID = 0, Ksi = -1, Heta = -1, Zeta = -Thickness / 2 },
+	        //new Knot() { ID = 1, Ksi = -1, Heta = -1, Zeta = Thickness / 2 },
+	        //new Knot() { ID = 2, Ksi = -1, Heta = 1, Zeta = -Thickness / 2 },
+	        //new Knot() { ID = 3, Ksi = -1, Heta = 1, Zeta = Thickness / 2 },
+	        //new Knot() { ID = 4, Ksi = 1, Heta = -1, Zeta = -Thickness / 2 },
+	        //new Knot() { ID = 5, Ksi = 1, Heta = -1, Zeta = Thickness / 2 },
+	        //new Knot() { ID = 6, Ksi = 1, Heta = 1, Zeta = -Thickness / 2 },
+	        //new Knot() { ID = 7, Ksi = 1, Heta = 1, Zeta = Thickness / 2 }
+
+
+	        return medianSurfaceGP;
         }
 	}
 }
