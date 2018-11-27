@@ -11,6 +11,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
@@ -20,9 +21,11 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         protected readonly static DOFType[] controlPointDOFTypes = new  DOFType[] {DOFType.X, DOFType.Y , DOFType.Z };
         protected DOFType[][] dofTypes;
         protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+	    private IReadOnlyList<IContinuumMaterial2D> materialsAtGaussPoints;
+	    private DynamicMaterial dynamicProperties;
 
 
-        public IElementDOFEnumerator DOFEnumerator
+		public IElementDOFEnumerator DOFEnumerator
         {
             get
             {
@@ -119,7 +122,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
                 Matrix2D B = B1 * B2;
 
-                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ((IContinuumMaterial3D)nurbsElement.Patch.Material).ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
+                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * materialsAtGaussPoints[j].ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
 
                 for (int m = 0; m < nurbsElement.ControlPoints.Count * 3; m++)
                 {
