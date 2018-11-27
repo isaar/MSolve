@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.CG;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;

@@ -30,27 +30,27 @@ namespace ISAAR.MSolve.Analyzers
                 UpdateRhs(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
 
                 double firstError = 0;
-                int step = 0;
-                for (step = 0; step < maxIterationsPerIncrement; step++)
+                int iteration = 0;
+                for (iteration = 0; iteration < maxIterationsPerIncrement; iteration++)
                 {
                     solver.Solve();
-                    errorNorm = globalRhsNorm != 0 ? CalculateInternalRhs(increment, step) / globalRhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                    Console.WriteLine($"Increment {increment}, iteration {step}: norm2(error) = {errorNorm}");
+                    errorNorm = globalRhsNorm != 0 ? CalculateInternalRhs(increment, iteration) / globalRhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    Console.WriteLine($"Increment {increment}, iteration {iteration}: norm2(error) = {errorNorm}");
 
-                    if (step == 0) firstError = errorNorm;
+                    if (iteration == 0) firstError = errorNorm;
 
                     if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements_v2(uPlusdu);
 
                     if (errorNorm < residualTolerance) break;
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                    if ((step + 1) % numIterationsForMatrixRebuild == 0)
+                    if ((iteration + 1) % numIterationsForMatrixRebuild == 0) // Matrix rebuilding should be handled in another way. E.g. in modified NR, it must be done at each increment.
                     {
                         provider.Reset();
                         BuildMatrices();
                     }
                 }
-                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
+                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
             //            ClearMaterialStresses();

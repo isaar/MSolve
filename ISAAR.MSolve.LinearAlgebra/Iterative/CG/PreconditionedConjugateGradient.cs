@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Needs Builder pattern
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
 {
     /// <summary>
     /// Implements the Conjugate Gradient algorithm with preconditioning for solving linear systems with symmetric positive 

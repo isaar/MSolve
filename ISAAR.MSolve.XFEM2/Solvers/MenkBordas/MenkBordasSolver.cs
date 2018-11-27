@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.MinRes;
+using ISAAR.MSolve.LinearAlgebra.Iterative.MinRes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;

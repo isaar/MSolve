@@ -1,4 +1,4 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.MinRes;
+﻿using ISAAR.MSolve.LinearAlgebra.Iterative.MinRes;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;

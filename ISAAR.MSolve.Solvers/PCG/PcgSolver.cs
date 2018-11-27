@@ -3,7 +3,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.CG;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -14,6 +14,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), avoid the first r=b-A*0 
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
+//TODO: perhaps the internal vectors of PCG can be cleared and reused.
 namespace ISAAR.MSolve.Solvers.PCG
 {
     /// <summary>

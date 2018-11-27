@@ -5,7 +5,7 @@
 //TODO: Needs a better name
 //TODO: Each algorithm/author outputs something different. Once enough have been implemented/ported, find an appropriate design
 //      to unify them. 
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
 {
     /// <summary>
     /// Data Transfer Object that collects information about the execution and convergence when solving a linear system with 

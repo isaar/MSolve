@@ -20,7 +20,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.PCG;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.CG;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;

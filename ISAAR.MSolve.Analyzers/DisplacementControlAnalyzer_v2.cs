@@ -9,6 +9,9 @@ using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
+    /// <summary>
+    /// This only works if there are no nodal loads or any loading condition other than prescribed displacements.
+    /// </summary>
     public class DisplacementControlAnalyzer_v2: NonLinearAnalyzerBase
     {
         private readonly IEquivalentLoadsAssembler_v2[] equivalentLoadsAssemblers;
@@ -89,6 +92,7 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
+        // This does nothing at all, as it is written right now
         private void ScaleSubdomainConstraints(int currentIncrement)
         {
             if (currentIncrement == 0)

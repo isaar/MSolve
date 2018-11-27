@@ -1,5 +1,5 @@
 ﻿using System;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.MinRes;
+using ISAAR.MSolve.LinearAlgebra.Iterative.MinRes;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;

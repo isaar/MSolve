@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: needs to throw exceptions or at least report indefinite, nonsymmetric and singular matrices.
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.Algorithms.CG
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
 {
     /// <summary>
     /// Implements the Conjugate Gradient algorithm for solving linear systems with symmetric positive definite matrices.
