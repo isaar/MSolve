@@ -72,7 +72,6 @@ namespace ISAAR.MSolve.IGA.Elements
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
-			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
 			Vector ElementNodalForces = new Vector(shellElement.ControlPointsDictionary.Count * 3);
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
 

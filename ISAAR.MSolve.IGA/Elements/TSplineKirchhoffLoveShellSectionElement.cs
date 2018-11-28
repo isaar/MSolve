@@ -51,7 +51,49 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
 		{
-			throw new NotImplementedException();
+			var shellElement = (TSplineKirchhoffLoveShellElement)element;
+			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
+			Vector ElementNodalForces = new Vector(shellElement.ControlPointsDictionary.Count * 3);
+			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
+			
+			for (int j = 0; j < gaussPoints.Count; j++)
+			{
+				var jacobianMatrix = CalculateJacobian(shellElement, tsplines, j);
+
+				var hessianMatrix = CalculateHessian(shellElement, tsplines, j);
+
+				var surfaceBasisVector1 = CalculateSurfaceBasisVector1(jacobianMatrix, 0);
+
+				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
+
+				var surfaceBasisVector3 = surfaceBasisVector1 ^ surfaceBasisVector2;
+				var J1 = surfaceBasisVector3.Norm;
+				surfaceBasisVector3.Multiply(1 / J1);
+
+				var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
+				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
+				var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
+
+				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
+				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
+
+				
+				var MembraneForces = materialsAtGaussPoints[j].MembraneForces;
+				var BendingMoments = materialsAtGaussPoints[j].Moments;
+
+
+				var Fmembrane = Bmembrane.Transpose() * new Vector( MembraneForces);
+				Fmembrane.Scale(J1 * gaussPoints[j].WeightFactor);
+
+				var Fbending = Bbending.Transpose() * new Vector( BendingMoments);
+				Fbending.Scale(J1 * gaussPoints[j].WeightFactor);
+
+				ElementNodalForces.Add(Fmembrane);
+				ElementNodalForces.Add(Fbending);
+
+			}
+
+			return ElementNodalForces.Data;
 		}
 
 		public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
@@ -81,7 +123,44 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
 		{
-			throw new NotImplementedException();
+			var shellElement = (TSplineKirchhoffLoveShellElement)element;
+			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
+			//Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
+
+			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
+
+			for (int j = 0; j < gaussPoints.Count; j++)
+			{
+				var jacobianMatrix = CalculateJacobian(shellElement, tsplines, j);
+
+				var hessianMatrix = CalculateHessian(shellElement, tsplines, j);
+
+				var surfaceBasisVector1 = CalculateSurfaceBasisVector1(jacobianMatrix, 0);
+
+				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
+
+				var surfaceBasisVector3 = surfaceBasisVector1 ^ surfaceBasisVector2;
+				var J1 = surfaceBasisVector3.Norm;
+				surfaceBasisVector3.Multiply(1 / J1);
+
+				var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
+				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
+				var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
+
+				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
+				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2,
+					surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2,
+					surfaceBasisVectorDerivative12, shellElement);
+
+				var membraneStrain = Bmembrane.Transpose() * new Vector(localDisplacements);
+				var bendingStrain = Bbending.Transpose() * (new Vector(localDisplacements));
+
+				materialsAtGaussPoints[j].UpdateMaterial(membraneStrain.Data,bendingStrain.Data);
+
+
+			}
+			return new Tuple<double[], double[]>(new double[0], new double[0]);
+
 		}
 
 		public void ClearMaterialState()
