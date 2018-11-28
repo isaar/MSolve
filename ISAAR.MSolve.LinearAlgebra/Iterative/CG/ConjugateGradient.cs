@@ -9,7 +9,9 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
 {
     /// <summary>
-    /// Implements the Conjugate Gradient algorithm for solving linear systems with symmetric positive definite matrices.
+    /// Implements the Conjugate Gradient algorithm for solving linear systems with a positive definite matrix.
+    /// The implementation is based on the algorithm presented in section B2 of 
+    /// "An Introduction to the Conjugate Gradient Method Without the Agonizing Pain", Jonathan Richard Shewchuk, 1994
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class ConjugateGradient
@@ -59,13 +61,85 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             Preconditions.CheckSystemSolutionDimensions(matrix, rhs);
             Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, solution.Length);
 
-            IVector res;
-            if (initialGuessIsZero) res = rhs.Copy();
-            else res = rhs.Subtract(matrix.MultiplyRight(solution));
-            return SolveInternal(matrix, solution, res);
+            // r = b - A * x
+            IVector residual;
+            if (initialGuessIsZero) residual = rhs.Copy();
+            else residual = rhs.Subtract(matrix.MultiplyRight(solution));
+
+            return SolveInternal(matrix, rhs, solution, residual);
         }
 
-        private CGStatistics SolveInternal(IMatrixView matrix, IVector sol, IVector res)
+        private CGStatistics SolveInternal(IMatrixView matrix, IVectorView rhs, IVector solution, IVector residual)
+        {
+            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
+
+            // d = r
+            IVector direction = residual.Copy();
+
+            // δnew = r * r
+            double dotResidualNew = residual.DotProduct(residual);
+
+            // This is only used as output
+            double normResidualInitial = Math.Sqrt(dotResidualNew);
+
+            // ε^2 * δ0 = ε^2 * (r*r)
+            // This is more efficient than normalizing and computing square roots. However the order is important, since 
+            // tolerance ^2 could be very small and risk precision loss
+            double limitDotResidual = residualTolerance * (residualTolerance * dotResidualNew);
+
+            for (int iteration = 0; iteration < maxIterations; ++iteration)
+            {
+                // q = A * d
+                IVector matrixTimesDirection = matrix.MultiplyRight(direction);
+
+                // α = δnew / (d * q)
+                double stepSize = dotResidualNew / (direction.DotProduct(matrixTimesDirection));
+
+                // x = x + α * d
+                solution.AxpyIntoThis(direction, stepSize);
+
+                // δold = δnew
+                double dotResidualOld = dotResidualNew;
+
+                // r = r - α * q
+                residual.AxpyIntoThis(matrixTimesDirection, -stepSize);
+
+                // δnew = r * r
+                dotResidualNew = residual.DotProduct(residual);
+
+                // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
+                // CG has convergenced if δnew <= ε ^ 2 * δ0
+                if (dotResidualNew <= limitDotResidual)
+                {
+                    return new CGStatistics
+                    {
+                        AlgorithmName = "Conjugate Gradient",
+                        HasConverged = true,
+                        NumIterationsRequired = iteration + 1,
+                        NormRatio = Math.Sqrt(dotResidualNew) / normResidualInitial
+                    };
+                }
+
+                // β = δnew / δold
+                double beta = dotResidualNew / dotResidualOld;
+
+                // d = r + β * d
+                //TODO: benchmark the two options to find out which is faster
+                //direction = residual.Axpy(direction, beta); //This allocates a new vector d, copies r and GCs the existing d.
+                direction.LinearCombinationIntoThis(beta, residual, 1.0); //This performs additions instead of copying and needless multiplications.
+            }
+
+            // We reached the max iterations before CG converged
+            return new CGStatistics
+            {
+                AlgorithmName = "Conjugate Gradient",
+                HasConverged = false,
+                NumIterationsRequired = maxIterations,
+                NormRatio = Math.Sqrt(dotResidualNew) / normResidualInitial
+            };
+        }
+
+        private CGStatistics SolveInternalOLD(IMatrixView matrix, IVector sol, IVector res)
         {
             //TODO: dot = norm * norm might be faster since I need the norm anyway. Does it reduce accuracy? Needs testing;
 
@@ -80,7 +154,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                 IVector matrixTimesDir = matrix.MultiplyRight(dir);
                 double step = resDotCurrent / (dir.DotProduct(matrixTimesDir));
                 sol.AxpyIntoThis(dir, step);
-                res.AxpyIntoThis(matrixTimesDir , -step);
+                res.AxpyIntoThis(matrixTimesDir, -step);
                 double resDotNext = res.DotProduct(res);
 
                 resNormRatio = Math.Sqrt(resDotNext) / resNormInit;
@@ -90,7 +164,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                     {
                         AlgorithmName = "Conjugate Gradient",
                         HasConverged = true,
-                        IterationsRequired = i + 1,
+                        NumIterationsRequired = i + 1,
                         NormRatio = resNormRatio
                     };
                 }
@@ -104,7 +178,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             {
                 AlgorithmName = "Conjugate Gradient",
                 HasConverged = false,
-                IterationsRequired = maxIterations,
+                NumIterationsRequired = maxIterations,
                 NormRatio = resNormRatio
             };
         }

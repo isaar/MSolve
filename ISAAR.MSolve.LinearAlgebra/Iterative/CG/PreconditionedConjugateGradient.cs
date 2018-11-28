@@ -18,6 +18,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
     {
         private readonly MaxIterationsProvider maxIterationsProvider;
         private readonly double residualTolerance;
+        //private readonly Func<IVector> zeroVectorInitializer;
 
         /// <summary>
         /// Initializes a new instance of <see cref="PreconditionedConjugateGradient"/> with the specified convergence criteria. 
@@ -32,6 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         {
             this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;
+            //this.zeroVectorInitializer = zeroVectorInitializer;
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         /// Thrown if <paramref name="rhs"/> or <paramref name="solution"/> violate the described constraints.
         /// </exception>
         public CGStatistics Solve(IMatrixView matrix, IPreconditioner preconditioner, IVectorView rhs,  IVector solution,
-            bool initialGuessIsZero) //TODO: find a better way to handle the case x0=0
+            bool initialGuessIsZero, Func<IVector> zeroVectorInitializer) //TODO: find a better way to handle the case x0=0
         {
             Preconditions.CheckSystemSolutionDimensions(matrix, rhs);
             Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, solution.Length);
@@ -70,10 +72,89 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             IVector res;
             if (initialGuessIsZero) res = rhs.Copy();
             else res = rhs.Subtract(matrix.MultiplyRight(solution));
-            return SolveInternal(matrix, preconditioner, solution, res);
+            return SolveInternal(matrix, preconditioner, solution, res, zeroVectorInitializer);
         }
 
-        private CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVector sol, IVector res)
+        private CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVector solution, IVector residual,
+            Func<IVector> zeroVectorInitializer)
+        {
+            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
+
+            // In contrast to the source algorithm, we initialize s here. At each iteration it will be overwritten, 
+            // thus avoiding allocating deallocating a new vector.
+            IVector preconditionedResidual = zeroVectorInitializer();
+
+            // d = inv(M) * r
+            IVector direction = zeroVectorInitializer();
+            preconditioner.SolveLinearSystem(residual, direction);
+
+            // δnew = r * d
+            double dotPreconditionedResidualNew = residual.DotProduct(direction);
+
+            // This is only used as output
+            double normResidualInitial = Math.Sqrt(dotPreconditionedResidualNew);
+
+            // ε^2 * δ0 = ε^2 * (r*r)
+            // This is more efficient than normalizing and computing square roots. However the order is important, since 
+            // tolerance ^2 could be very small and risk precision loss
+            double limitDotResidual = residualTolerance * (residualTolerance * dotPreconditionedResidualNew);
+
+            for (int iteration = 0; iteration < maxIterations; ++iteration)
+            {
+                // q = A * d
+                IVector matrixTimesDirection = matrix.MultiplyRight(direction);
+
+                // α = δnew / (d * q)
+                double stepSize = dotPreconditionedResidualNew / (direction.DotProduct(matrixTimesDirection));
+
+                // x = x + α * d
+                solution.AxpyIntoThis(direction, stepSize);
+
+                // δold = δnew
+                double dotPreconditionedResidualOld = dotPreconditionedResidualNew;
+
+                // r = r - α * q
+                residual.AxpyIntoThis(matrixTimesDirection, -stepSize);
+
+                // s = inv(M) * r
+                preconditioner.SolveLinearSystem(residual, preconditionedResidual);
+
+                // δnew = r * s
+                dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
+
+                // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
+                // CG has convergenced if δnew <= ε ^ 2 * δ0
+                if (dotPreconditionedResidualNew <= limitDotResidual)
+                {
+                    return new CGStatistics
+                    {
+                        AlgorithmName = "Conjugate Gradient",
+                        HasConverged = true,
+                        NumIterationsRequired = iteration + 1,
+                        NormRatio = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                    };
+                }
+
+                // β = δnew / δold
+                double beta = dotPreconditionedResidualNew / dotPreconditionedResidualOld;
+
+                // d = s + β * d
+                //TODO: benchmark the two options to find out which is faster
+                //direction = preconditionedResidual.Axpy(direction, beta); //This allocates a new vector d, copies r and GCs the existing d.
+                direction.LinearCombinationIntoThis(beta, preconditionedResidual, 1.0); //This performs additions instead of copying and needless multiplications.
+            }
+
+            // We reached the max iterations before CG converged
+            return new CGStatistics
+            {
+                AlgorithmName = "Conjugate Gradient",
+                HasConverged = false,
+                NumIterationsRequired = maxIterations,
+                NormRatio = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+            };
+        }
+
+        private CGStatistics SolveInternalOLD(IMatrixView matrix, IPreconditioner preconditioner, IVector sol, IVector res)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
             IVector z = res.Copy();
@@ -96,7 +177,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                     return new CGStatistics
                     {
                         AlgorithmName = "Preconditioned Conjugate Gradient",
-                        HasConverged = true, IterationsRequired = i + 1, NormRatio = resNormRatio
+                        HasConverged = true, NumIterationsRequired = i + 1, NormRatio = resNormRatio
                     };
                 }
 
@@ -110,7 +191,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             return new CGStatistics
             {
                 AlgorithmName = "Preconditioned Conjugate Gradient",
-                HasConverged = false, IterationsRequired = maxIterations, NormRatio = resNormRatio
+                HasConverged = false, NumIterationsRequired = maxIterations, NormRatio = resNormRatio
             };
         }
 

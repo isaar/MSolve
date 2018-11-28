@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         /// <summary>
         /// The number of iterations that were run before the algorithm terminated. 
         /// </summary>
-        public int IterationsRequired { get; set; }
+        public int NumIterationsRequired { get; set; }
 
         /// <summary>
         /// The value of norm2(b-A*x) / norm2(b-A*x0), where x is the solution vector after the final iteration of the algorithm
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             sb.Append(AlgorithmName);
             string converged = HasConverged ? " converged successfully." : " failed to converge.";
             sb.Append(converged);
-            sb.Append($" A total of {IterationsRequired} iterations were run and");
+            sb.Append($" A total of {NumIterationsRequired} iterations were run and");
             sb.Append($" norm2(rhs - matrix * xSolution) / norm2(rhs - matrix * xInit) = {NormRatio}.");
             return sb.ToString();
         }
