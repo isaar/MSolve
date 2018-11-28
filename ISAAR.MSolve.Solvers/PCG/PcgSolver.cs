@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -72,7 +73,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             }
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
-                linearSystem.Solution, true); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+                linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
         }
 
         //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.

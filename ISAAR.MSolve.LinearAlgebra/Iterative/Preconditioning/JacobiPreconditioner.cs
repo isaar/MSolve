@@ -53,13 +53,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
         /// <summary>
         /// See <see cref="IPreconditioner.SolveLinearSystem(Vector)"/>
         /// </summary>
-        /// <param name="rhs"></param>
-        public IVector SolveLinearSystem(IVector rhs)
+        public void SolveLinearSystem(IVectorView rhsVector, IVector lhsVector)
         {
-            Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
-            double[] solution = new double[Order];
-            for (int i = 0; i < Order; ++i) solution[i] = inverseDiagonal[i] * rhs[i];
-            return Vector.CreateFromArray(solution);
+            Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
+            for (int i = 0; i < Order; ++i) lhsVector.Set(i, inverseDiagonal[i] * rhsVector[i]);
         }
 
         /// <summary>

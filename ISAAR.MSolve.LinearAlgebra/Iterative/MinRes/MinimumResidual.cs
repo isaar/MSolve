@@ -32,6 +32,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
         private readonly int numStoredOrthogonalDirections;
         private readonly bool printIterations;
         private readonly double residualTolerance;
+        private readonly Func<IVector> zeroVectorInitializer;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MinimumResidual"/> with the specified settings and convergence criteria.
@@ -48,14 +49,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
         /// <param name="printIterations">If true, the current solution vector x, the estimated condition number of the matrix A
         ///     and other statistics will be written to the console at each iteration of the algorithm, which will hinder 
         ///     performance.</param>
-        public MinimumResidual(int maxIterations, double residualTolerance, int numStoredOrthogonalDirections = 0, 
-            bool checkMatrixSymmetricity = false, bool printIterations = false)
+        public MinimumResidual(int maxIterations, double residualTolerance, Func<IVector> zeroVectorInitializer,
+            int numStoredOrthogonalDirections = 0, bool checkMatrixSymmetricity = false, bool printIterations = false)
         {
             this.maxIterations = maxIterations;
             this.residualTolerance = residualTolerance;
             this.numStoredOrthogonalDirections = numStoredOrthogonalDirections;
             this.checkMatrixSymmetricity = checkMatrixSymmetricity;
             this.printIterations = printIterations;
+            this.zeroVectorInitializer = zeroVectorInitializer;
         }
 
         /// <summary>
@@ -138,8 +140,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
 
             IVector y;
             if (M == null) y = b.Copy();
-            else y = M.SolveLinearSystem(b);
-
+            else
+            {
+                y = zeroVectorInitializer();
+                M.SolveLinearSystem(b, y);
+            }
+                
             IVector r1 = b.Copy(); // initial guess x = 0 initial residual
             double beta1 = b.DotProduct(y);
 
@@ -226,7 +232,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
                 else
                 {
                     r2 = y;
-                    y = M.SolveLinearSystem(r2);
+                    M.SolveLinearSystem(r2, y);
                 }
 
                 oldb = beta; // oldb = betak
@@ -368,9 +374,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
             if (z > epsa) throw new AsymmetricMatrixException("The matrix or linear transformation A is not symmetric.");
         }
 
-        private static void CheckSymmetricPreconditioner(IPreconditioner M, IVector y, IVector r1)
+        private void CheckSymmetricPreconditioner(IPreconditioner M, IVector y, IVector r1)
         {
-            IVector r2 = M.SolveLinearSystem(y);
+            IVector r2 = zeroVectorInitializer();
+            M.SolveLinearSystem(y, r2);
             double s = y.DotProduct(y);
             double t = r1.DotProduct(r2);
             double z = Math.Abs(s - t);

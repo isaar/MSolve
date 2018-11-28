@@ -76,7 +76,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         private CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVector sol, IVector res)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
-            IVector z = preconditioner.SolveLinearSystem(res);
+            IVector z = res.Copy();
+            preconditioner.SolveLinearSystem(res, z);
             IVector dir = z.Copy(); // TODO: Do I need to copy it?
             double zrDotCurrent = z.DotProduct(res);
             double resNormInit = res.Norm2(); // In basic CG, I could just take the sqrt(r*r), but here I have z*r.
@@ -99,7 +100,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                     };
                 }
 
-                z = preconditioner.SolveLinearSystem(res); 
+                preconditioner.SolveLinearSystem(res, z); 
                 double zrDotNext = z.DotProduct(res); //Fletcher-Reeves formula. TODO: For variable preconditioning use Polak-Ribiere
                 double beta = zrDotNext / zrDotCurrent;
                 dir = z.Axpy(dir, beta);

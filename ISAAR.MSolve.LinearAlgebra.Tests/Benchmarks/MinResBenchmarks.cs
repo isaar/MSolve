@@ -23,7 +23,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
         {
             Console.WriteLine("Dense pos-def system WITHOUT preconditioning:");
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(2000);
-            var minres = new MinimumResidual(A.NumRows, 1e-10, 0, true, false);
+            var minres = new MinimumResidual(A.NumRows, 1e-10, () => Vector.CreateZero(b.Length),
+                0, true, false);
 
             // Without preconditioning
             (IVector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
@@ -45,7 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             var b = Vector.CreateFromArray(SymmPosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
-            var minres = new MinimumResidual(A.NumRows, 1e-10, 0, true, false);
+            var minres = new MinimumResidual(A.NumRows, 1e-10, () => Vector.CreateZero(b.Length), 0, true, false);
 
             // Without preconditioning
             (IVector xSimple, MinresStatistics statsSimple) = minres.Solve(A, b);
@@ -67,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
-            var minres = new MinimumResidual(A.NumRows, 1e-10, 0, true, false);
+            var minres = new MinimumResidual(A.NumRows, 1e-10, () => Vector.CreateZero(b.Length), 0, true, false);
 
             // Without preconditioning
             Console.WriteLine("Sparse pos-def system WITHOUT preconditioning:");

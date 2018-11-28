@@ -207,8 +207,8 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             /// Use an iterative algorithm to solve the symmetric indefinite system
             watch.Restart();
-            var minres = new MinimumResidual(maxIterations, tolerance, 0, false, false);
             IVector precRhs = precMatrix.PreconditionerTimesVector(rhs, true);
+            var minres = new MinimumResidual(maxIterations, tolerance, () => Vector.CreateZero(precRhs.Length), 0, false, false);
             (IVector precSolution, MinresStatistics stats) = minres.Solve(precMatrix, precRhs);
             Solution = precMatrix.PreconditionerTimesVector(precSolution, false);
             watch.Stop();

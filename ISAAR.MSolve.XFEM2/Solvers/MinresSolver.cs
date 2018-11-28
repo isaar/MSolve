@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Without preconditioning
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
-            var minres = new MinimumResidual(maxIterations, tolerance, reorthoSize, false, false);
+            var minres = new MinimumResidual(maxIterations, tolerance, () => Vector.CreateZero(rhs.Length), reorthoSize, false, false);
             (IVector x, MinresStatistics statistics) = minres.Solve(Kuu.BuildCsrMatrix(true), rhs);
 
             // With preconditioning

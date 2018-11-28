@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var pcg = new PreconditionedConjugateGradient(new MaxIterationsProvider(n), tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
             Vector xComputed = Vector.CreateZero(A.NumRows);
-            CGStatistics stats = pcg.Solve(A, M, b, xComputed, true);
+            CGStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
             comparer.AssertEqual(xExpected, xComputed);
         }
 
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var pcg = new PreconditionedConjugateGradient(new MaxIterationsProvider(n), tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
             Vector xComputed = Vector.CreateZero(A.NumRows);
-            CGStatistics stats = pcg.Solve(A, M, b, xComputed, true);
+            CGStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
             comparer.AssertEqual(xExpected, xComputed);
         }
 
