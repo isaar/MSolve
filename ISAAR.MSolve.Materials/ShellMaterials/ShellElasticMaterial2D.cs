@@ -37,10 +37,10 @@ namespace ISAAR.MSolve.Materials
 				this.CalculateConstitutiveMatrix(new Vector(TangentVectorV1), new Vector(TangentVectorV2));
 			}
 
-			for (int l = 0; l < 6; l++)
+			for (int l = 0; l < 3; l++)
 			{
 				CartesianStresses[l] = 0;
-				for (int m = 0; m < 6; m++)
+				for (int m = 0; m < 3; m++)
 				{
 					CartesianStresses[l] += CartesianConstitutiveMatrix[l, m] * cartesianStrains[m];
 				}
