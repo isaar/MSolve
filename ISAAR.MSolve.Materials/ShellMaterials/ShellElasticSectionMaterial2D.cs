@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Materials
 
 		public double[] MembraneForces { get; }
 		public double[] Moments { get; }
-		public Matrix2D MembraneConstitutiveMatrix { get; private set; }
+		public IMatrix2D MembraneConstitutiveMatrix { get; private set; }
 		public IMatrix2D BendingConstitutiveMatrix { get; private set; }
 		public IMatrix2D CouplingConstitutiveMatrix { get; private set; }
 		
