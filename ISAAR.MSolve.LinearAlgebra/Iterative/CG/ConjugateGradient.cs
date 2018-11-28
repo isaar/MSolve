@@ -1,6 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -17,7 +18,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
     public class ConjugateGradient
     {
         private readonly MaxIterationsProvider maxIterationsProvider;
+        private readonly IResidualConvergence residualConvergence = new SimpleConvergence();
+        private readonly IResidualCorrection residualCorrection = new PeriodicResidualCorrection();
         private readonly double residualTolerance;
+
 
         /// <summary>
         /// Initializes a new instance of <see cref="ConjugateGradient"/> with the specified convergence criteria. 
@@ -76,16 +80,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             // d = r
             IVector direction = residual.Copy();
 
-            // δnew = r * r
+            // δnew = δ0 = r * r
             double dotResidualNew = residual.DotProduct(residual);
 
             // This is only used as output
             double normResidualInitial = Math.Sqrt(dotResidualNew);
 
-            // ε^2 * δ0 = ε^2 * (r*r)
-            // This is more efficient than normalizing and computing square roots. However the order is important, since 
-            // tolerance ^2 could be very small and risk precision loss
-            double limitDotResidual = residualTolerance * (residualTolerance * dotResidualNew);
+            // Initialize the strategy objects
+            residualCorrection.Initialize(matrix, rhs);
+            residualConvergence.Initialize(matrix, rhs, residualTolerance, dotResidualNew);
 
             for (int iteration = 0; iteration < maxIterations; ++iteration)
             {
@@ -101,15 +104,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                 // δold = δnew
                 double dotResidualOld = dotResidualNew;
 
-                // r = r - α * q
-                residual.AxpyIntoThis(matrixTimesDirection, -stepSize);
+                // Normally the residual vector is updated as: r = r - α * q. However corrections might need to be applied.
+                bool isResidualCorrected = residualCorrection.UpdateResidual(iteration, solution, residual,
+                    (r) => r.AxpyIntoThis(matrixTimesDirection, -stepSize));
 
                 // δnew = r * r
                 dotResidualNew = residual.DotProduct(residual);
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
-                // CG has convergenced if δnew <= ε ^ 2 * δ0
-                if (dotResidualNew <= limitDotResidual)
+                // During the convergence check, it may be necessary to correct the residual vector (if it hasn't already been
+                // corrected) and its dot product.
+                bool hasConverged = residualConvergence.HasConverged(solution, residual, ref dotResidualNew, isResidualCorrected,
+                    r => r.DotProduct(r));
+                if (hasConverged)
                 {
                     return new CGStatistics
                     {
@@ -138,7 +145,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                 NormRatio = Math.Sqrt(dotResidualNew) / normResidualInitial
             };
         }
-
+        
         private CGStatistics SolveInternalOLD(IMatrixView matrix, IVector sol, IVector res)
         {
             //TODO: dot = norm * norm might be faster since I need the norm anyway. Does it reduce accuracy? Needs testing;

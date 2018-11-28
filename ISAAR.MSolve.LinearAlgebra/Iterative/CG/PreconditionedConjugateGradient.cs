@@ -2,6 +2,7 @@
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -18,7 +19,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
     {
         private readonly MaxIterationsProvider maxIterationsProvider;
         private readonly double residualTolerance;
-        //private readonly Func<IVector> zeroVectorInitializer;
+        private readonly IResidualConvergence residualConvergence = new SimpleConvergence();
+        private readonly IResidualCorrection residualCorrection = new NoResidualCorrection();
 
         /// <summary>
         /// Initializes a new instance of <see cref="PreconditionedConjugateGradient"/> with the specified convergence criteria. 
@@ -33,7 +35,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         {
             this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;
-            //this.zeroVectorInitializer = zeroVectorInitializer;
         }
 
         /// <summary>
@@ -72,11 +73,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             IVector res;
             if (initialGuessIsZero) res = rhs.Copy();
             else res = rhs.Subtract(matrix.MultiplyRight(solution));
-            return SolveInternal(matrix, preconditioner, solution, res, zeroVectorInitializer);
+            return SolveInternal(matrix, preconditioner, rhs, solution, res, zeroVectorInitializer);
         }
 
-        private CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVector solution, IVector residual,
-            Func<IVector> zeroVectorInitializer)
+        private CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVectorView rhs, 
+            IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
 
@@ -88,16 +89,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
             IVector direction = zeroVectorInitializer();
             preconditioner.SolveLinearSystem(residual, direction);
 
-            // δnew = r * d
+            // δnew = δ0 = r * d
             double dotPreconditionedResidualNew = residual.DotProduct(direction);
 
             // This is only used as output
             double normResidualInitial = Math.Sqrt(dotPreconditionedResidualNew);
 
-            // ε^2 * δ0 = ε^2 * (r*r)
-            // This is more efficient than normalizing and computing square roots. However the order is important, since 
-            // tolerance ^2 could be very small and risk precision loss
-            double limitDotResidual = residualTolerance * (residualTolerance * dotPreconditionedResidualNew);
+            // Initialize the strategy objects
+            residualCorrection.Initialize(matrix, rhs);
+            residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
 
             for (int iteration = 0; iteration < maxIterations; ++iteration)
             {
@@ -113,18 +113,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
                 // δold = δnew
                 double dotPreconditionedResidualOld = dotPreconditionedResidualNew;
 
-                // r = r - α * q
-                residual.AxpyIntoThis(matrixTimesDirection, -stepSize);
+                // Normally the residual vector is updated as: r = r - α * q. However corrections might need to be applied.
+                bool isResidualCorrected = residualCorrection.UpdateResidual(iteration, solution, residual,
+                    (r) => r.AxpyIntoThis(matrixTimesDirection, -stepSize));
 
                 // s = inv(M) * r
                 preconditioner.SolveLinearSystem(residual, preconditionedResidual);
 
-                // δnew = r * s
+                // Fletcher-Reeves formula: δnew = r * s 
+                //TODO: For variable preconditioning use Polak-Ribiere
                 dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
-                // CG has convergenced if δnew <= ε ^ 2 * δ0
-                if (dotPreconditionedResidualNew <= limitDotResidual)
+                // During the convergence check, it may be necessary to correct the residual vector (if it hasn't already been
+                // corrected) and its dot product.
+                bool hasConverged = residualConvergence.HasConverged(solution, residual, ref dotPreconditionedResidualNew,
+                    isResidualCorrected, r => r.DotProduct(preconditionedResidual));
+                if (hasConverged)
                 {
                     return new CGStatistics
                     {
