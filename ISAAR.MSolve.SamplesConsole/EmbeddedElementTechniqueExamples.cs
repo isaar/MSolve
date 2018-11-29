@@ -51,10 +51,10 @@ namespace ISAAR.MSolve.SamplesConsole
             // Choose parent analyzer -> Parent: Static
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
-            childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
-            model.NodalDOFsDictionary[12][DOFType.X],
-            model.NodalDOFsDictionary[12][DOFType.Y],
-            model.NodalDOFsDictionary[12][DOFType.Z]});
+            childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] {
+            model.NodalDOFsDictionary[5][DOFType.X],
+            model.NodalDOFsDictionary[5][DOFType.Y],
+            model.NodalDOFsDictionary[5][DOFType.Z]});
 
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
@@ -63,142 +63,90 @@ namespace ISAAR.MSolve.SamplesConsole
             //Console.WriteLine("checkPoint1 reached");
             Console.WriteLine("Writing results for node 5");
             Console.WriteLine("Dof and Values for Displacement X, Y, Z");
-            Console.WriteLine(childAnalyzer.Logs[1][0]);
+            Console.WriteLine(childAnalyzer.Logs[0][0]);
         }
     }
 
     public static class EmbeddedExamplesBuilder
     {
-        public static void HexaElementsOnly(Model model)
+        public static void HostElementsBuilder(Model model)
         {
-            int startX = 0;
-            int startY = 0;
-            int startZ = 0;
+            // Nodes Geometry
+            model.NodesDictionary.Add(1, new Node() { ID = 1, X = 10.00, Y = 2.50, Z = 2.50 });
+            model.NodesDictionary.Add(2, new Node() { ID = 2, X = 0.00, Y = 2.50, Z = 2.50 });
+            model.NodesDictionary.Add(3, new Node() { ID = 3, X = 0.00, Y = -2.50, Z = 2.50 });
+            model.NodesDictionary.Add(4, new Node() { ID = 4, X = 10.00, Y = -2.50, Z = 2.50 });
+            model.NodesDictionary.Add(5, new Node() { ID = 5, X = 10.00, Y = 2.50, Z = -2.50 });
+            model.NodesDictionary.Add(6, new Node() { ID = 6, X = 0.00, Y = 2.50, Z = -2.50 });
+            model.NodesDictionary.Add(7, new Node() { ID = 7, X = 0.00, Y = -2.50, Z = -2.50 });
+            model.NodesDictionary.Add(8, new Node() { ID = 8, X = 10.00, Y = -2.50, Z = -2.50 });
 
-            int nodeID = 1;
-            for (int l = 0; l < 3; l++)
-            {
-                for (int k = 0; k < 2; k++)
-                {
-                    for (int j = 0; j < 2; j++)
-                    {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + j * 1, Y = startY + k * 1, Z = startZ + l * 1 });
+            // Boundary Conditions
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.Z });
 
-                        nodeID++;
-                    }
-                }
-            }
-            nodeID = 1;
-            for (int j = 0; j < 2; j++)
+            // Create Material
+            ElasticMaterial3D solidMaterial = new ElasticMaterial3D()
             {
-                for (int k = 0; k < 2; k++)
-                {
-                    model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                    model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                    model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                    nodeID++;
-                }
-            }
-
-            ElasticMaterial3D material1 = new ElasticMaterial3D()
-            {
-                YoungModulus = 2.1e5,
-                PoissonRatio = 0.35,
+                YoungModulus = 3.76,
+                PoissonRatio = 0.3779,
             };
 
-            // first element definition
-            Element e1;
-            int ID2 = 1;
-            e1 = new Element()
+            // Hexa8NL element definition
+            Element hexa8NLelement = new Element()
             {
                 ID = 1,
-                ElementType = new Hexa8NonLinear(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
+                ElementType = new Hexa8NonLinear(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
             };
-            ID2 = 1;
-            for (int j = 0; j < 2; j++)
-            {
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 1, model.NodesDictionary[4 * (ID2 - 1) + 1]); // na allaxthei h arithmisi swsth seira
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 2, model.NodesDictionary[4 * (ID2 - 1) + 2]);
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 4, model.NodesDictionary[4 * (ID2 - 1) + 4]);
-                e1.NodesDictionary.Add(4 * (ID2 - 1) + 3, model.NodesDictionary[4 * (ID2 - 1) + 3]);
-                ID2++;
-            }
-            
-            int subdomainID = 1; // tha mporei kai na dinetai sto hexabuilder opws sto MakeBeamBuilding
-            model.ElementsDictionary.Add(e1.ID, e1);
-            model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e1.ID, e1);
 
-            // second element definition
-            Element e2 = new Element()
-            {
-                ID = 2,
-                ElementType = new Hexa8NonLinear(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
-            };
-            ID2 = 1;
-            for (int j = 0; j < 2; j++)
-            {
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 5, model.NodesDictionary[4 * (ID2 - 1) + 5]);
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 6, model.NodesDictionary[4 * (ID2 - 1) + 6]);
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 8, model.NodesDictionary[4 * (ID2 - 1) + 8]);
-                e2.NodesDictionary.Add(4 * (ID2 - 1) + 7, model.NodesDictionary[4 * (ID2 - 1) + 7]);
-                ID2++;
-            }
-            model.ElementsDictionary.Add(e2.ID, e2);
+            // Add nodes to the created element
+            hexa8NLelement.AddNode(model.NodesDictionary[1]);
+            hexa8NLelement.AddNode(model.NodesDictionary[2]);
+            hexa8NLelement.AddNode(model.NodesDictionary[3]);
+            hexa8NLelement.AddNode(model.NodesDictionary[4]);
+            hexa8NLelement.AddNode(model.NodesDictionary[5]);
+            hexa8NLelement.AddNode(model.NodesDictionary[6]);
+            hexa8NLelement.AddNode(model.NodesDictionary[7]);
+            hexa8NLelement.AddNode(model.NodesDictionary[8]);
 
-            //model.Loads.Add()
-            ID2 = 9;
-            //apait 1
-            DOFType doftype1;
-            doftype1 = new DOFType();
-            
-            // apait 2
-            Load load1;
+            // Add Hexa element to the element and subdomains dictionary of the model
+            model.ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
+            model.SubdomainsDictionary[1].ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
 
-            for (int j = 0; j < 4; j++)
-            {
-                load1 = new Load()
-                {
-                    Node = model.NodesDictionary[ID2],
-                    //DOF = doftype1,
-                    DOF = DOFType.Z,
-                    Amount = 500 //3*500// 2*500 //3*500 //250 //500
-
-                };
-                model.Loads.Add(load1);
-                ID2++;
-            }
+            // Add nodal load values at the top nodes of the model
+            model.Loads.Add(new Load() { Amount = 100, Node = model.NodesDictionary[5], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = 100, Node = model.NodesDictionary[8], DOF = DOFType.Z });
         }
 
-        public static void BeamElementOnly(Model model)
+        public static void EmbeddedElementsBuilder(Model model)
         {
-            // define mechanical properties properties
-            double youngModulus = 16710.0;
-            double poissonRatio = 0.034;
-            double nodalLoad = 50.0;
-            double area = 5.594673861218848e-003;
-            double inertiaY = 2.490804749753243e-006;
-            double inertiaZ = 2.490804749753243e-006;
-            double torsionalInertia = inertiaY / 2.0;
+            // define mechanical properties
+            double youngModulus = 1.0;
+            double shearModulus = 1.0;
+            double poissonRatio = (youngModulus / (2 * shearModulus)) - 1;
+            double area = 1776.65;  // CNT(20,20)-LinearEBE-TBT-L = 10nm
+            double inertiaY = 1058.55;
+            double inertiaZ = 1058.55;
+            double torsionalInertia = 496.38;
             double effectiveAreaY = area;
             double effectiveAreaZ = area;
 
-            // geometry
-            model.NodesDictionary.Add(13, new Node() { ID = 13, X = 0.5, Y = 0.5, Z = 0.5 });
-            model.NodesDictionary.Add(14, new Node() { ID = 14, X = 0.5, Y = 0.5, Z = 1.5 });
-
-            // constraints
-            model.NodesDictionary[13].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[13].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[13].Constraints.Add(new Constraint { DOF = DOFType.Z });
-            model.NodesDictionary[13].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-            model.NodesDictionary[13].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-            model.NodesDictionary[13].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
-            model.NodesDictionary[14].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-            model.NodesDictionary[14].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-            model.NodesDictionary[14].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
-
+            // Geometry
+            model.NodesDictionary.Add(9, new Node() { ID = 9, X = 0.00, Y = 0.00, Z = 0.00 });
+            model.NodesDictionary.Add(10, new Node() { ID = 10, X = 10.00, Y = 0.00, Z = 0.00 });
+            
             // Create new 3D material
-            ElasticMaterial3D material_1 = new ElasticMaterial3D
+            ElasticMaterial3D beamMaterial = new ElasticMaterial3D
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
@@ -208,31 +156,23 @@ namespace ISAAR.MSolve.SamplesConsole
             var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
             // element nodes
             IList<Node> elementNodes = new List<Node>();
-            elementNodes.Add(model.NodesDictionary[13]);
-            elementNodes.Add(model.NodesDictionary[14]);
-            var beam_1 = new Beam3DCorotationalQuaternion(elementNodes, material_1, 7.85, beamSection);
-            var element = new Element { ID = 3, ElementType = beam_1 };
-            int subdomainID = 1;
+            elementNodes.Add(model.NodesDictionary[9]);
+            elementNodes.Add(model.NodesDictionary[10]);
+            var beam = new Beam3DCorotationalQuaternion(elementNodes, beamMaterial, 7.85, beamSection);
+            var beamElement = new Element { ID = 2, ElementType = beam };
             
-            element.NodesDictionary.Add(13, model.NodesDictionary[13]);
-            element.NodesDictionary.Add(14, model.NodesDictionary[14]);
+            beamElement.NodesDictionary.Add(9, model.NodesDictionary[9]);
+            beamElement.NodesDictionary.Add(10, model.NodesDictionary[10]);
 
-            model.ElementsDictionary.Add(element.ID, element);
-            model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(element.ID, element);
-
-            // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[14], DOF = DOFType.Z });
+            model.ElementsDictionary.Add(beamElement.ID, beamElement);
+            model.SubdomainsDictionary[1].ElementsDictionary.Add(beamElement.ID, beamElement);
         }
 
         public static void ExampleWithEmbedded(Model model)
         {
-            HexaElementsOnly(model);
-            BeamElementOnly(model);
-            model.Loads.RemoveAt(4);
-            model.NodesDictionary[13].Constraints.Remove(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[13].Constraints.Remove(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[13].Constraints.Remove(new Constraint { DOF = DOFType.Z });
-            var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key < 3).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key >= 3).Select(kv => kv.Value));
+            HostElementsBuilder(model);
+            EmbeddedElementsBuilder(model);
+            var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key == 1).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key == 2).Select(kv => kv.Value), true);
         }
     }
 }
