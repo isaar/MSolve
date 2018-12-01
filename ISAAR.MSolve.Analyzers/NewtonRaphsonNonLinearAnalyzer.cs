@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISubdomainGlobalMapping[] mappings;
         private readonly int increments;
         private readonly int totalDOFs;
-        private int maxSteps = 1000;
+        private int iterations = 1000;
         private int stepsForMatrixRebuild = 1;
         private readonly double tolerance = 1e-8;
         private double rhsNorm;
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             set
             {
-                if (value > 0) { this.maxSteps = value; }
+                if (value > 0) { this.iterations = value; }
                 else { throw new Exception("Iterations number cannot be negative or zero"); }
             }
         }
@@ -165,17 +165,17 @@ namespace ISAAR.MSolve.Analyzers
                 UpdateRHS(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
 
                 double firstError = 0;
-                int step = 0;
-                for (step = 0; step < maxSteps; step++)
+                int iteration = 0;
+                for (iteration = 0; iteration < iterations; iteration++)
                 {
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                    if (step == 0) firstError = errorNorm;
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    if (iteration == 0) firstError = errorNorm;
                     if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
                     if (errorNorm < tolerance) break;
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                    if ((step + 1) % stepsForMatrixRebuild == 0)
+                    if ((iteration + 1) % stepsForMatrixRebuild == 0)
                     {
                         provider.Reset();
                         BuildMatrices();
@@ -183,7 +183,7 @@ namespace ISAAR.MSolve.Analyzers
                     }
 
                 }
-                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
+                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
             CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains
