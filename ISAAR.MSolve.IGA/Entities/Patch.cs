@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
@@ -289,7 +290,13 @@ namespace ISAAR.MSolve.IGA.Entities
             }
         }
 
-        public void BuildEdgesDictionary()
+		internal void CreateNurbsShell()
+		{
+			BuildEdgesDictionary();
+			CreateNURBSShells();
+		}
+
+		public void BuildEdgesDictionary()
         {
             if (this.NumberOfDimensions==2)
             {
@@ -670,7 +677,89 @@ namespace ISAAR.MSolve.IGA.Entities
             #endregion
         }
 
-        private void CreatePatchData3D()
+		private void CreateNURBSShells()
+		{
+			#region Knots
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+
+			List<Knot> knots = new List<Knot>();
+
+			int id = 0;
+			for (int i = 0; i < singleKnotValuesKsi.Length; i++)
+			{
+				for (int j = 0; j < singleKnotValuesHeta.Length; j++)
+				{
+					knots.Add(new Knot() { ID = id, Ksi = singleKnotValuesKsi[i], Heta = singleKnotValuesHeta[j], Zeta = 0.0 });
+					id++;
+				}
+			}
+			#endregion
+
+			#region Elements
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+
+			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
+			int numberOfElementsHeta = singleKnotValuesHeta.Length - 1;
+			if (numberOfElementsKsi * numberOfElementsHeta == 0)
+			{
+				throw new NullReferenceException("Number of Elements should be defined before Element Connectivity");
+			}
+
+			for (int i = 0; i < numberOfElementsKsi; i++)
+			{
+				for (int j = 0; j < numberOfElementsHeta; j++)
+				{
+					IList<Knot> knotsOfElement = new List<Knot>();
+					knotsOfElement.Add(knots[i * singleKnotValuesHeta.Length + j]);
+					knotsOfElement.Add(knots[i * singleKnotValuesHeta.Length + j + 1]);
+					knotsOfElement.Add(knots[(i + 1) * singleKnotValuesHeta.Length + j]);
+					knotsOfElement.Add(knots[(i + 1) * singleKnotValuesHeta.Length + j + 1]);
+
+					int multiplicityElementKsi = 0;
+					if (multiplicityKsi[i + 1] - this.DegreeKsi > 0)
+					{
+						multiplicityElementKsi = (int)multiplicityKsi[i + 1] - this.DegreeKsi;
+					}
+
+					int multiplicityElementHeta = 0;
+					if (multiplicityHeta[j + 1] - this.DegreeHeta > 0)
+					{
+						multiplicityElementHeta = (int)multiplicityHeta[j + 1] - this.DegreeHeta;
+					}
+
+					int nurbsSupportKsi = this.DegreeKsi + 1;
+					int nurbsSupportHeta = this.DegreeHeta + 1;
+
+					IList<ControlPoint> elementControlPoints = new List<ControlPoint>();
+
+					for (int k = 0; k < nurbsSupportKsi; k++)
+					{
+						for (int l = 0; l < nurbsSupportHeta; l++)
+						{
+							int controlPointID = (i + multiplicityElementKsi) * this.NumberOfControlPointsHeta +
+								(j + multiplicityElementHeta) + k * this.NumberOfControlPointsHeta + l;
+							elementControlPoints.Add(this.controlPointsDictionary[controlPointID]);
+						}
+					}
+					int elementID = i * numberOfElementsHeta + j;
+					Element element = new NURBSKirchhoffLoveShellElement()
+					{
+						ID = elementID,
+						Patch = this,
+						ElementType = new NURBSKirchhoffLoveShellElement()
+					};
+					element.AddKnots(knotsOfElement);
+					element.AddControlPoints(elementControlPoints);
+					this.elementsDictionary.Add(elementID, element);
+					//this.PatchesDictionary[1].ElementsDictionary.Add(element.ID, element);
+				}
+			}
+			#endregion
+		}
+
+		private void CreatePatchData3D()
         {
             CreateNURBSElements3D();
             BuildEdgesDictionary();
