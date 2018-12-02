@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam2DNewmarkDynamicAanalysisTest
     {
-        //[Fact]
+        [Fact]
         public void LinearElasticBeam2DNewmarkDynamicAnalysisTest()
         {
             VectorExtensions.AssignTotalAffinityCount();
