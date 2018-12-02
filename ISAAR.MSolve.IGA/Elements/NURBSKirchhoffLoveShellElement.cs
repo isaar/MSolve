@@ -128,9 +128,9 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				Matrix2D constitutiveMatrix = CalculateConstitutiveMatrix(shellElement, surfaceBasisVector1, surfaceBasisVector2);
 
-				var Bmembrane = CalculateMembraneDeformationMatrix(nurbs, j, surfaceBasisVector1, surfaceBasisVector2);
+				 var Bmembrane = CalculateMembraneDeformationMatrix(nurbs, j, surfaceBasisVector1, surfaceBasisVector2,shellElement);
 
-				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, nurbs, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12);
+				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, nurbs, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
 
 				double membraneStiffness = ((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).YoungModulus * shellElement.Patch.Thickness /
 				                           (1 - Math.Pow(((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).PoissonRatio, 2));
@@ -184,10 +184,10 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, NURBS2D nurbs, int j,
 			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
-			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12)
+			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, NURBSKirchhoffLoveShellElement element)
 		{
-			Matrix2D Bbending = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int column = 0; column < ControlPoints.Count * 3; column+=3)
+			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				#region BI1
 
@@ -272,10 +272,10 @@ namespace ISAAR.MSolve.IGA.Elements
 		}
 
 		private Matrix2D CalculateMembraneDeformationMatrix(NURBS2D nurbs, int j, Vector surfaceBasisVector1,
-			Vector surfaceBasisVector2)
+			Vector surfaceBasisVector2, NURBSKirchhoffLoveShellElement element)
 		{
-			Matrix2D dRIa = new Matrix2D(3, ControlPoints.Count );
-			for (int i = 0; i < ControlPoints.Count ; i++)
+			Matrix2D dRIa = new Matrix2D(3, element.ControlPoints.Count );
+			for (int i = 0; i < element.ControlPoints.Count ; i++)
 			{
 				for (int m = 0; m < 3; m++)
 				{
@@ -284,8 +284,8 @@ namespace ISAAR.MSolve.IGA.Elements
 				}
 			}
 
-			Matrix2D Bmembrane = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int column = 0; column < ControlPoints.Count * 3; column+=3)
+			Matrix2D Bmembrane = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				Bmembrane[0, column] = nurbs.NurbsDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[0];
 				Bmembrane[0, column + 1] = nurbs.NurbsDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[1];
