@@ -932,68 +932,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 		}
 		#endregion
-
-
-		//[Fact]
-		public void IsogeometricCantileverShell()
-		{
-			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
-			model.PatchesDictionary.Add(0,Element.Patch);
-			ElementControlPoints().ForEach(e=>model.ControlPointsDictionary.Add(e.ID,e));
-			model.ElementsDictionary.Add(Element.ID,Element);
-			model.PatchesDictionary[0].ElementsDictionary.Add(Element.ID,Element);
-			ElementControlPoints().ForEach(e => model.PatchesDictionary[0].ControlPointsDictionary.Add(e.ID, e));
-
-			model.Loads.Add(new Load()
-			{
-				Amount = -1,
-				ControlPoint = model.ControlPoints[9],
-				DOF = DOFType.Z
-			});
-			model.Loads.Add(new Load()
-			{
-				Amount = -1,
-				ControlPoint = model.ControlPoints[10],
-				DOF = DOFType.Z
-			});
-			model.Loads.Add(new Load()
-			{
-				Amount = -1,
-				ControlPoint = model.ControlPoints[11],
-				DOF = DOFType.Z
-			});
-
-			for (int i = 0; i < 6; i++)
-			{
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
-			}
-
-			model.ConnectDataStructures();
-
-			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
-
-			parentAnalyzer.BuildMatrices();
-			parentAnalyzer.Initialize();
-			parentAnalyzer.Solve();
-
-			var expectedSolution = new double[18]
-			{
-				0.0, 0.0, -7499.999986865148, 0.0, 0.0, -7499.99998660616, 0.0, 0.0, -7499.999986347174, 0.0, 0.0,
-				-14999.999980230163, 0.0, 0.0, -14999.999980050825, 0.0, 0.0, -14999.999979871487
-			};
-			for (int i = 0; i < expectedSolution.Length; i++)
-				Assert.Equal(expectedSolution[i], linearSystems[0].Solution[i], 7);
-		}
-
+		
 		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
