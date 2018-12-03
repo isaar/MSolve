@@ -12,7 +12,10 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
         IDictionary<int, IVector> GetAccelerationsOfTimeStep(int timeStep);
         IDictionary<int, IVector> GetVelocitiesOfTimeStep(int timeStep);
         void GetRhsFromHistoryLoad(int timeStep);
-        IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
+
+        //TODO: what about thermal? There is no mass matrix there. Either define these as 1st order matrix coeff, 2nd order ...
+        //      or let the provider call them instead of the analyzer.
+        IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector); 
         IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector);
     }
 }

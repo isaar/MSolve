@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: needs to throw exceptions or at least report indefinite, nonsymmetric and singular matrices.
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 {
     /// <summary>
     /// Implements the Conjugate Gradient algorithm for solving linear systems with a positive definite matrix.
@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
     /// "An Introduction to the Conjugate Gradient Method Without the Agonizing Pain", Jonathan Richard Shewchuk, 1994
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ConjugateGradient
+    public class CG
     {
         private readonly MaxIterationsProvider maxIterationsProvider;
         private readonly IResidualConvergence residualConvergence = new SimpleConvergence();
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
 
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ConjugateGradient"/> with the specified convergence criteria. 
+        /// Initializes a new instance of <see cref="CG"/> with the specified convergence criteria. 
         /// If any criterion is met the algorithm will temrinate.
         /// </summary>
         /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         /// The algorithm will terminate when norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, 
         /// where x is the current solution vector and x0 the initial guess.
         /// </param>
-        public ConjugateGradient(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
+        public CG(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
         {
             this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;

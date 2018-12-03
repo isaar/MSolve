@@ -12,7 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: remove Matlab/Fortran notation from comments
 //TODO: the orthogonalizer should not be private.
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
 {
     /// <summary>
     /// Implements the MINRES algorithm for solving an n-by-n system of linear equations: A*x = b, where A is symmetric and b  
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
     /// is ported from, see http://web.stanford.edu/group/SOL/software/minres/.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class MinimumResidual
+    public class MinRes
     {
         private const double eps = double.Epsilon; // TODO: replace it in the code, when all else has been successfully ported
 
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
         private readonly Func<IVector> zeroVectorInitializer;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MinimumResidual"/> with the specified settings and convergence criteria.
+        /// Initializes a new instance of <see cref="MinRes"/> with the specified settings and convergence criteria.
         /// </summary>
         /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
         /// <param name="residualTolerance">If norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, the 
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinRes
         /// <param name="printIterations">If true, the current solution vector x, the estimated condition number of the matrix A
         ///     and other statistics will be written to the console at each iteration of the algorithm, which will hinder 
         ///     performance.</param>
-        public MinimumResidual(int maxIterations, double residualTolerance, Func<IVector> zeroVectorInitializer,
+        public MinRes(int maxIterations, double residualTolerance, Func<IVector> zeroVectorInitializer,
             int numStoredOrthogonalDirections = 0, bool checkMatrixSymmetricity = false, bool printIterations = false)
         {
             this.maxIterations = maxIterations;

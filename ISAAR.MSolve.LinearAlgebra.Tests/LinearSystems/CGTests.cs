@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
-using ISAAR.MSolve.LinearAlgebra.Iterative.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -9,7 +9,7 @@ using Xunit;
 namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
 {
     /// <summary>
-    /// Tests for <see cref="PreconditionedConjugateGradient"/>.
+    /// Tests for <see cref="PCG"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public static class CGTests
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
 
             double tol = 1E-7;
-            var cg = new ConjugateGradient(new MaxIterationsProvider(n), tol);
+            var cg = new CG(new MaxIterationsProvider(n), tol);
             var xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             comparer.AssertEqual(xExpected, xComputed);
@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
 
             double tol = 1E-7;
-            var cg = new ConjugateGradient(new MaxIterationsProvider(n), tol);
+            var cg = new CG(new MaxIterationsProvider(n), tol);
             var xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             comparer.AssertEqual(xExpected, xComputed);

@@ -60,6 +60,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void AssignLoads()
         {
+            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values) subdomain.Forces.Clear();
             AssignNodalLoads();
             AssignElementMassLoads();
             AssignMassAccelerationLoads();
@@ -186,7 +187,6 @@ namespace ISAAR.MSolve.FEM.Entities
             //TODO: this should be done by the subdomain when the analyzer decides.
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
             {
-                subdomain.Forces.Clear();
                 foreach ((Node node, DOFType dofType, double amount) in subdomain.NodalLoads)
                 {
                     int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];

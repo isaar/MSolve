@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.LinearAlgebra.Iterative.MinRes;
+using ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -208,7 +208,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             /// Use an iterative algorithm to solve the symmetric indefinite system
             watch.Restart();
             IVector precRhs = precMatrix.PreconditionerTimesVector(rhs, true);
-            var minres = new MinimumResidual(maxIterations, tolerance, () => Vector.CreateZero(precRhs.Length), 0, false, false);
+            var minres = new MinRes(maxIterations, tolerance, () => Vector.CreateZero(precRhs.Length), 0, false, false);
             (IVector precSolution, MinresStatistics stats) = minres.Solve(precMatrix, precRhs);
             Solution = precMatrix.PreconditionerTimesVector(precSolution, false);
             watch.Stop();

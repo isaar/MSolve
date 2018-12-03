@@ -8,14 +8,14 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Needs Builder pattern
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 {
     /// <summary>
     /// Implements the Conjugate Gradient algorithm with preconditioning for solving linear systems with symmetric positive 
     /// definite matrices.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class PreconditionedConjugateGradient
+    public class PCG
     {
         private readonly MaxIterationsProvider maxIterationsProvider;
         private readonly double residualTolerance;
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         private readonly IResidualCorrection residualCorrection = new NoResidualCorrection();
 
         /// <summary>
-        /// Initializes a new instance of <see cref="PreconditionedConjugateGradient"/> with the specified convergence criteria. 
+        /// Initializes a new instance of <see cref="PCG"/> with the specified convergence criteria. 
         /// If any criterion is met the algorithm will temrinate.
         /// </summary>
         /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.CG
         /// The algorithm will terminate when norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, 
         /// where x is the current solution vector and x0 the initial guess.
         /// </param>
-        public PreconditionedConjugateGradient(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
+        public PCG(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
         {
             this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;

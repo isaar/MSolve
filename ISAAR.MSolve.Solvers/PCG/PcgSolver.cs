@@ -4,7 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
-using ISAAR.MSolve.LinearAlgebra.Iterative.CG;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -29,11 +29,11 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly CsrSystem linearSystem;
-        private readonly PreconditionedConjugateGradient pcgAlgorithm;
+        private readonly LinearAlgebra.Iterative.ConjugateGradient.PCG pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(IStructuralModel_v2 model, PreconditionedConjugateGradient pcgAlgorithm, 
+        public PcgSolver(IStructuralModel_v2 model, LinearAlgebra.Iterative.ConjugateGradient.PCG pcgAlgorithm, 
             IPreconditionerFactory preconditionerFactory, IDofOrderer dofOrderer)
         {
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model)
             {
-                return new PcgSolver(model, new PreconditionedConjugateGradient(maxIterationsProvider, ResidualTolerance),
+                return new PcgSolver(model, new LinearAlgebra.Iterative.ConjugateGradient.PCG(maxIterationsProvider, ResidualTolerance),
                     PreconditionerFactory, DofOrderer);
             }
         }

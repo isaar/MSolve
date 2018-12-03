@@ -1,5 +1,5 @@
 ﻿using System;
-using ISAAR.MSolve.LinearAlgebra.Iterative.MinRes;
+using ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Without preconditioning
             int maxIterations = (int)Math.Ceiling(Kuu.NumColumns * maxIterationsOverOrder);
-            var minres = new MinimumResidual(maxIterations, tolerance, () => Vector.CreateZero(rhs.Length), reorthoSize, false, false);
+            var minres = new MinRes(maxIterations, tolerance, () => Vector.CreateZero(rhs.Length), reorthoSize, false, false);
             (IVector x, MinresStatistics statistics) = minres.Solve(Kuu.BuildCsrMatrix(true), rhs);
 
             // With preconditioning

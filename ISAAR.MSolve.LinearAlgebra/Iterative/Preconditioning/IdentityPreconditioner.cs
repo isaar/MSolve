@@ -34,8 +34,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning
         /// </summary>
         public class Factory: IPreconditionerFactory
         {
-            private readonly bool copyRhs;
-
             /// <summary>
             /// Initializes a new instance of <see cref="IdentityPreconditioner.Factory"/>.
             /// </summary>
