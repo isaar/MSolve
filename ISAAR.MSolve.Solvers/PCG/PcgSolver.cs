@@ -6,12 +6,14 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
+using PcgAlgorithm = ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient.PCG;
 
 //TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), avoid the first r=b-A*0 
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
@@ -29,12 +31,12 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly CsrSystem linearSystem;
-        private readonly LinearAlgebra.Iterative.ConjugateGradient.PCG pcgAlgorithm;
+        private readonly PcgAlgorithm pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
         private IPreconditioner preconditioner;
 
-        public PcgSolver(IStructuralModel_v2 model, LinearAlgebra.Iterative.ConjugateGradient.PCG pcgAlgorithm, 
-            IPreconditionerFactory preconditionerFactory, IDofOrderer dofOrderer)
+        public PcgSolver(IStructuralModel_v2 model, PcgAlgorithm pcgAlgorithm, IPreconditionerFactory preconditionerFactory, 
+            IDofOrderer dofOrderer)
         {
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
@@ -81,21 +83,11 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         public class Builder
         {
-            private MaxIterationsProvider maxIterationsProvider = new MaxIterationsProvider(1.0);
-
             public Builder() { }
 
             public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
 
-            public int MaxIterations
-            {
-                set => maxIterationsProvider = new MaxIterationsProvider(value);
-            }
-
-            public double MaxIterationsOverMatrixOrder
-            {
-                set => maxIterationsProvider = new MaxIterationsProvider(value);
-            }
+            public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
 
@@ -103,8 +95,8 @@ namespace ISAAR.MSolve.Solvers.PCG
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model)
             {
-                return new PcgSolver(model, new LinearAlgebra.Iterative.ConjugateGradient.PCG(maxIterationsProvider, ResidualTolerance),
-                    PreconditionerFactory, DofOrderer);
+                return new PcgSolver(model, new PcgAlgorithm(MaxIterationsProvider, ResidualTolerance), PreconditionerFactory, 
+                    DofOrderer);
             }
         }
 

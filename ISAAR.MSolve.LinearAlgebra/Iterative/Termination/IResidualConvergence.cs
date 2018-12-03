@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: perhaps I should name the Func<>
 //TODO: perhaps instead of having Initialize() to set the internal state, I should use a factory interface that creates
 //      immutable IResidualCorrection objects.
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
 {
     /// <summary>
     /// Checks if the residual vector has reached the required tolerance. It may also correct the residual vector and its

@@ -2,6 +2,7 @@
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -17,7 +18,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// </summary>
     public class CG
     {
-        private readonly MaxIterationsProvider maxIterationsProvider;
+        private readonly IMaxIterationsProvider maxIterationsProvider;
         private readonly IResidualConvergence residualConvergence = new SimpleConvergence();
         private readonly IResidualCorrection residualCorrection = new PeriodicResidualCorrection();
         private readonly double residualTolerance;
@@ -32,7 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// The algorithm will terminate when norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, 
         /// where x is the current solution vector and x0 the initial guess.
         /// </param>
-        public CG(MaxIterationsProvider maxIterationsProvider, double residualTolerance)
+        public CG(IMaxIterationsProvider maxIterationsProvider, double residualTolerance)
         {
             this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;

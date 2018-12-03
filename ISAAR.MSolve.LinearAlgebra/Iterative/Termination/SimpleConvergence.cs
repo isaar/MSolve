@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
 {
     /// <summary>
     /// Checks if the residual vector has reached the required tolerance, without performing corrections.

@@ -1,6 +1,7 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -26,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
 
             double tol = 1E-7;
-            var pcg = new PCG(new MaxIterationsProvider(n), tol);
+            var pcg = new PCG(new FixedMaxIterationsProvider(n), tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
             Vector xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
@@ -42,7 +43,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
 
             double tol = 1E-7;
-            var pcg = new PCG(new MaxIterationsProvider(n), tol);
+            var pcg = new PCG(new FixedMaxIterationsProvider(n), tol);
             var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
             Vector xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
@@ -54,7 +55,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         {
             double residualTolerance = 1e-6;
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(20);
-            var cg = new CG(new MaxIterationsProvider(A.NumRows), residualTolerance);
+            var cg = new CG(new PercentageMaxIterationsProvider(1.0), residualTolerance);
             Vector xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             Assert.False(comparer.AreEqual(xExpected, xComputed));

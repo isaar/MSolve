@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
 
             double tol = 1E-7;
-            var cg = new CG(new MaxIterationsProvider(n), tol);
+            var cg = new CG(new FixedMaxIterationsProvider(n), tol);
             var xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             comparer.AssertEqual(xExpected, xComputed);
@@ -40,7 +41,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
 
             double tol = 1E-7;
-            var cg = new CG(new MaxIterationsProvider(n), tol);
+            var cg = new CG(new FixedMaxIterationsProvider(n), tol);
             var xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             comparer.AssertEqual(xExpected, xComputed);

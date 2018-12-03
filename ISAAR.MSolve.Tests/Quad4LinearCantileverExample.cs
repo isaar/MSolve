@@ -24,6 +24,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -170,7 +171,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new PcgSolver.Builder();
-            solverBuilder.MaxIterationsOverMatrixOrder = 0.5;
+            solverBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(0.5);
             var solver = solverBuilder.BuildSolver(model);
 
             // Problem type

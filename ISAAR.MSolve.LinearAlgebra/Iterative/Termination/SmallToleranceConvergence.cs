@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: once the problem with small tolerance has occured once, can we assume that it will always happen? Then we could avoid
 //      the regular calculation of the residual and only use r = b - A*x.
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
 {
     /// <summary>
     /// Checks if the residual vector has reached the required tolerance. In addition corrects the residual vector, in order to
