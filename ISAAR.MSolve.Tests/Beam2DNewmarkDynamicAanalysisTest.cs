@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Tests
             Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -87,14 +87,14 @@ namespace ISAAR.MSolve.Tests
 
             // Add Hexa element to the element and subdomains dictionary of the model
             model.ElementsDictionary.Add(element.ID, element);
-            model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+            model.SubdomainsDictionary[0].ElementsDictionary.Add(element.ID, element);
 
             // define loads
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[totalNodes], DOF = DOFType.Y });
             model.ConnectDataStructures();
             var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
+            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
             // Choose child analyzer -> Child: Linear or NewtonRaphsonNonLinearAnalyzer
             LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
-            Assert.Equal(2.2840249264795207, linearSystems[1].Solution[1], 8);
+            Assert.Equal(2.2840249264795207, linearSystems[0].Solution[1], 8);
         }
     }
 }
