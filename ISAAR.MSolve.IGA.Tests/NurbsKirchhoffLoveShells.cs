@@ -12,7 +12,10 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
+using MathNet.Numerics.Data.Matlab;
+using MathNet.Numerics.LinearAlgebra;
 using Xunit;
+using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
@@ -207,6 +210,75 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 			for (int i = 0; i < expectedSolution.Length; i++)
 				Utilities.AreValuesEqual(expectedSolution[i], linearSystems[0].Solution[i], 7);
+		}
+
+
+		[Fact]
+		public void IsogeometricSquareShell()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			string filename = "..\\..\\..\\InputFiles\\SquareShell.txt";
+			IsogeometricShellReader modelReader = new IsogeometricShellReader(model, filename);
+			modelReader.CreateShellModelFromFile();
+
+
+			Matrix<double> loadVector = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "LoadVector");
+
+
+			for (int i = 0; i < loadVector.ColumnCount; i+=3)
+			{
+				var indexCP = i / 3;
+				model.Loads.Add(new Load()
+				{
+					Amount = loadVector.At(0,i),
+					ControlPoint = model.ControlPoints[indexCP],
+					DOF = DOFType.X
+				});
+				model.Loads.Add(new Load()
+				{
+					Amount = loadVector.At(0, i+1),
+					ControlPoint = model.ControlPoints[indexCP],
+					DOF = DOFType.Y
+				});
+				model.Loads.Add(new Load()
+				{
+					Amount = loadVector.At(0, i+2),
+					ControlPoint = model.ControlPoints[indexCP],
+					DOF = DOFType.Z
+				});
+
+			}
+
+			foreach (var edge in model.PatchesDictionary[0].EdgesDictionary.Values)
+			{
+				foreach (var controlPoint in edge.ControlPointsDictionary.Values)
+				{
+					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				}
+			}
+
+			model.ConnectDataStructures();
+
+			// Solvers
+			var linearSystems = new Dictionary<int, ILinearSystem>();
+			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			parentAnalyzer.BuildMatrices();
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+			Matrix<double> solutionVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "SolutionVector");
+
+			for (int i = 0; i < solutionVectorExpected.ColumnCount; i++)
+				Assert.True(Utilities.AreValuesEqual(solutionVectorExpected.At(0, i), linearSystems[0].Solution[i], 1e-9));
+
 		}
 
 	}
