@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.Solvers
         {
             if (ps.Count == 0) return false;
 
-            ps.RemoveAt(ps.Count - 1);
+            ps.RemoveAt(ps.Count - 1); // Why remove the last one?
             qs.RemoveAt(qs.Count - 1);
             var xx = x;
             xx.Clear();

@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// </summary>
         /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
         /// <param name="residualTolerance">
-        /// The algorithm will terminate when norm2(b-A*x) / norm2(b-A*x0) &lt;= <paramref name="residualTolerance"/>, 
+        /// The algorithm will terminate when norm2(r) / norm2(r0) &lt;= <paramref name="residualTolerance"/>, 
         /// where x is the current solution vector and x0 the initial guess.
         /// </param>
         public CG(IMaxIterationsProvider maxIterationsProvider, double residualTolerance)
