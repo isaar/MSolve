@@ -7,16 +7,16 @@ using System.Text;
 
 namespace ISAAR.MSolve.Logging
 {
-    public class IncrementalDisplacementsLog: IAnalyzerLog
+    public class TotalDisplacementsLog: IAnalyzerLog
     {
         private readonly Dictionary<int, int[]> watchDofs;
         private readonly List<Dictionary<int, Dictionary<int, double>>> dofDisplacementsPerIter;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="IncrementalDisplacementsLog"/>.
+        /// Initializes a new instance of <see cref="TotalDisplacementsLog"/>.
         /// </summary>
         /// <param name="watchDofs">Which freedom degrees to track for each subdomain.</param>
-        public IncrementalDisplacementsLog(Dictionary<int, int[]> watchDofs)
+        public TotalDisplacementsLog(Dictionary<int, int[]> watchDofs)
         {
             this.watchDofs = watchDofs;
             this.dofDisplacementsPerIter = new List<Dictionary<int, Dictionary<int, double>>>();
