@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Tests
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
-                // Create new Beam3D section and element
+                // Create new Beam2D section and element
                 var beamSection = new BeamSection2D(area, inertia);
                 var beam = new Beam2DCorotational(elementNodes, material, 7.85, beamSection);
 
