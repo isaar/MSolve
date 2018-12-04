@@ -21,7 +21,6 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         protected readonly static DOFType[] controlPointDOFTypes = new  DOFType[] {DOFType.X, DOFType.Y , DOFType.Z };
         protected DOFType[][] dofTypes;
         protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
-	    private IReadOnlyList<IContinuumMaterial2D> materialsAtGaussPoints;
 	    private DynamicMaterial dynamicProperties;
 
 
@@ -104,7 +103,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         {
 	        var nurbsElement = (NURBSElement3D)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
-            Matrix2D stiffnessMatrixElement = new Matrix2D(nurbsElement.ControlPointsDictionary.Count * 3, nurbsElement.ControlPointsDictionary.Count * 3);
+			Matrix2D stiffnessMatrixElement = new Matrix2D(nurbsElement.ControlPointsDictionary.Count * 3, nurbsElement.ControlPointsDictionary.Count * 3);
 
             NURBS3D nurbs = new NURBS3D(nurbsElement, nurbsElement.ControlPoints);
 
@@ -122,7 +121,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
                 Matrix2D B = B1 * B2;
 
-                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * materialsAtGaussPoints[j].ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
+                Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ((IContinuumMaterial3D)nurbsElement.Patch.Material).ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
 
                 for (int m = 0; m < nurbsElement.ControlPoints.Count * 3; m++)
                 {
