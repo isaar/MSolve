@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             public Vector QTimesVector(Vector x, bool transposeQ)
             {
-                return Q.MultiplyRight(x, transposeQ);
+                return Q.Multiply(x, transposeQ);
             }
         }
     }

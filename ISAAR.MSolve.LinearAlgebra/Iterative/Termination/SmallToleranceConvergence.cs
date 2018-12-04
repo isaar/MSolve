@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
             {
                 // Exact residual: r = b - A * x
                 residualVector.CopyFrom(rhs);
-                residualVector.SubtractIntoThis(matrix.MultiplyRight(solutionVector));
+                residualVector.SubtractIntoThis(matrix.Multiply(solutionVector));
                 //residualVector = rhs.Subtract(matrix.MultiplyRight(solutionVector)); //This allocates a new vector r, copies b and GCs the existing r.
 
                 // Recalculate the dot product of the residual vector, as the iterative algorithm would.

@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             for (int iteration = 0; iteration < maxIterations; ++iteration)
             {
                 // q = A * d
-                matrixTimesDirection = matrix.MultiplyRight(direction); //TODO: this allocates a new vector and GCs the existing one
+                matrixTimesDirection = matrix.Multiply(direction); //TODO: this allocates a new vector and GCs the existing one
 
                 // α = δnew / (d * q)
                 double stepSize = dotPreconditionedResidualNew / direction.DotProduct(matrixTimesDirection);

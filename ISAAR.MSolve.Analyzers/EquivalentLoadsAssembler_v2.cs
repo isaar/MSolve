@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Analyzers
 
                 //var equivalentNodalForces = new double[localSolution.Length];
                 //ElementK.Multiply(new Vector(localdSolution), equivalentNodalForces);
-                var elementEquivalentForces = elementK.MultiplyRight(localdSolution);
+                var elementEquivalentForces = elementK.Multiply(localdSolution);
 
                 //subdomain.AddLocalVectorToGlobal(element, equivalentNodalForces, subdomainEquivalentNodalForces);
                 subdomain.DofOrdering.AddVectorElementToSubdomain(element, elementEquivalentForces, subdomainEquivalentForces);

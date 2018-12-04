@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
             {
                 // Calculate the exact residual: r = b - A * x
                 residual.CopyFrom(rhs);
-                residual.SubtractIntoThis(matrix.MultiplyRight(solution));
+                residual.SubtractIntoThis(matrix.Multiply(solution));
                 //residual = rhs.Subtract(matrix.MultiplyRight(solution)); //This allocates a new vector r, copies b and GCs the existing r.
 
                 return true;

@@ -384,7 +384,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             // MKL functions are way faster than managed code. Just don't sort the CSR.
             bool buildCSR = (!avoidBuilding) && CsrMatrix.UseMKL; 
-            if (buildCSR) return BuildCsrMatrix(false).MultiplyRight(vector); 
+            if (buildCSR) return BuildCsrMatrix(false).Multiply(vector); 
 
             Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
             var result = new double[this.NumRows];

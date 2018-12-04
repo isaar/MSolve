@@ -363,11 +363,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
+            if (vector is Vector casted) return Multiply(casted, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -381,7 +381,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than <see cref="Order"/> of this matrix.</exception>
-        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
+        public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans: CBLAS_TRANSPOSE.CblasNoTrans;
             Preconditions.CheckMultiplicationDimensions(Order, vector.Length);

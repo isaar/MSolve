@@ -100,7 +100,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="IIndexable2D.NumColumns"/> of oper(this).</exception>
-        IVector MultiplyRight(IVectorView vector, bool transposeThis = false);
+        IVector Multiply(IVectorView vector, bool transposeThis = false);
+
+        //void Multiply(IVectorView lhsVector, IVector rhsVector, bool transposeThis);
 
         /// <summary>
         /// Performs the following operation for all (i, j): result[i, j] = <paramref name="scalar"/> * this[i, j].
@@ -113,7 +115,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Returns a matrix that is transpose to this: result[i, j] = this[j, i]. The entries will be explicitly copied. Some
         /// implementations of <see cref="IMatrixView"/> may offer more efficient transpositions, that do not copy the entries.
         /// If the transposed matrix will be used only for multiplications, <see cref="MultiplyLeft(IMatrixView, bool, bool)"/>,
-        /// <see cref="MultiplyRight(IMatrixView, bool, bool)"/> and <see cref="MultiplyRight(IVectorView, bool)"/> are more 
+        /// <see cref="MultiplyRight(IMatrixView, bool, bool)"/> and <see cref="Multiply(IVectorView, bool)"/> are more 
         /// effient generally.
         /// </summary>
         IMatrix Transpose(); //TODO: perhaps this should default to not copying the entries, if possible.

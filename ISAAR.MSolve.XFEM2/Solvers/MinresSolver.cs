@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //(Vector x, MinresStatistics statistics) = minres.Solve(Kuu.BuildCSRMatrix(true), rhs, preconditioner);
 
             #region Debugging
-            double relres = rhs.Subtract(Kuu.BuildCsrMatrix(true).MultiplyRight(x)).Norm2() / rhs.Norm2();
+            double relres = rhs.Subtract(Kuu.BuildCsrMatrix(true).Multiply(x)).Norm2() / rhs.Norm2();
             //var writer = new MatlabWriter();
             //string directory = @"C:\Users\Serafeim\Desktop\GRACM\Minres_debugging\";
             //writer.WriteSparseMatrix(Kuu, directory + "matrix.txt");

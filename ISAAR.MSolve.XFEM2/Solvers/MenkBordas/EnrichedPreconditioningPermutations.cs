@@ -220,7 +220,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 {
                     // Q1 * x = [blockQ1 * x ; 0] = upper block vector
                     //TODO: The following could be done by multiply matrix * subVector1 into subVector2
-                    Vector blockQ1x = blockQ1.MultiplyRight(x, false);
+                    Vector blockQ1x = blockQ1.Multiply(x, false);
                     var Q1x = Vector.CreateZero(permutation.NumRows);
                     Q1x.CopySubvectorFrom(0, blockQ1x, 0, blockQ1x.Length);
 
@@ -234,7 +234,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
                     // (P^T * Q1)^T = Q1^T * P*x = Q1^T * block(Px) = dense vector
                     Vector blockPx = Px.GetSubvector(0, blockQ1.NumRows);
-                    return blockQ1.MultiplyRight(blockPx, true);
+                    return blockQ1.Multiply(blockPx, true);
                 }
             }
         }

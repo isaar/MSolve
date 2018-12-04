@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             Vector Fu = model.CalculateFreeForces(DofOrderer);
             Vector uc = model.CalculateConstrainedDisplacements(DofOrderer);
-            Fu.SubtractIntoThis(globalUnconstrainedConstrained.MultiplyRight(uc));
+            Fu.SubtractIntoThis(globalUnconstrainedConstrained.Multiply(uc));
             return Fu;
         }
     }

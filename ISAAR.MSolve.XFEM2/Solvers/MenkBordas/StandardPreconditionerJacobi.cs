@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
             // y = Ps^T * Kss * Ps * x = D * Kss * D * x
             Vector y = invDiagonalRoot.MultiplyEntrywise(x);
-            y = Kss.MultiplyRight(y, false);
+            y = Kss.Multiply(y, false);
             return y = invDiagonalRoot.MultiplyEntrywise(y);
 
             //TODO: perhaps I can do D^2 * Kss * x

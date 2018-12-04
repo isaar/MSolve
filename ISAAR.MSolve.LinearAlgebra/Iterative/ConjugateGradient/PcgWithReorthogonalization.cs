@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             preconditioner.SolveLinearSystem(residual, direction);
 
             // q = A * d
-            IVector matrixTimesDirection = matrix.MultiplyRight(direction);
+            IVector matrixTimesDirection = matrix.Multiply(direction);
             double directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
             // Update the direction vectors cache
@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 UpdateDirectionVector(preconditionedResidual, direction);
 
                 // q = A * d
-                matrixTimesDirection = matrix.MultiplyRight(direction); //TODO: this allocates a new vector and GCs the existing one
+                matrixTimesDirection = matrix.Multiply(direction); //TODO: this allocates a new vector and GCs the existing one
                 directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
                 // Update the direction vectors cache

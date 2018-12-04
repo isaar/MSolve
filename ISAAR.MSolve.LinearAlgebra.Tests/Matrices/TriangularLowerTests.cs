@@ -42,14 +42,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             var A1 = TriangularLower.CreateFromArray(LowerInvertible10by10.matrix);
             var x1 = Vector.CreateFromArray(LowerInvertible10by10.lhs);
             var b1Expected = Vector.CreateFromArray(LowerInvertible10by10.rhs);
-            Vector b1Computed = A1.MultiplyRight(x1);
+            Vector b1Computed = A1.Multiply(x1);
             comparer.AssertEqual(b1Expected, b1Computed);
 
             // singular
             var A2 = TriangularLower.CreateFromArray(LowerSingular10by10.matrix);
             var x2 = Vector.CreateFromArray(LowerSingular10by10.lhs);
             var b2Expected = Vector.CreateFromArray(LowerSingular10by10.rhs);
-            Vector b2Computed = A2.MultiplyRight(x1);
+            Vector b2Computed = A2.Multiply(x1);
             comparer.AssertEqual(b2Expected, b2Computed);
         }
 

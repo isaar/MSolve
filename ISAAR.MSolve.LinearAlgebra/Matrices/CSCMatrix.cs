@@ -122,7 +122,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrixRight"/>.<see cref="NumRows"/> is 
         ///     different than <paramref name="vectorLeft"/>.<see cref="Vector.Length"/>.</exception>
         public static Vector operator *(Vector vectorLeft, CscMatrix matrixRight)
-            => matrixRight.MultiplyRight(vectorLeft, true);
+            => matrixRight.Multiply(vectorLeft, true);
         #endregion
 
         /// <summary>
@@ -619,11 +619,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
+            if (vector is Vector) return Multiply((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -637,7 +637,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
-        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
+        public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             if (transposeThis)
             {

@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 
             IVector res;
             if (initialGuessIsZero) res = rhs.Copy();
-            else res = rhs.Subtract(matrix.MultiplyRight(solution));
+            else res = rhs.Subtract(matrix.Multiply(solution));
             return SolveInternal(matrix, preconditioner, rhs, solution, res, zeroVectorInitializer);
         }
 

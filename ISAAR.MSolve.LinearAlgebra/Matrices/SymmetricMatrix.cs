@@ -175,10 +175,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             => matrixRight.MultiplyLeft(matrixLeft, false, false);
 
         public static Vector operator *(SymmetricMatrix matrixLeft, Vector vectorRight)
-            => matrixLeft.MultiplyRight(vectorRight);
+            => matrixLeft.Multiply(vectorRight);
 
         public static Vector operator *(Vector vectorLeft, SymmetricMatrix matrixRight)
-            => matrixRight.MultiplyRight(vectorLeft);
+            => matrixRight.Multiply(vectorLeft);
 
         #endregion
 
@@ -445,9 +445,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return DenseStrategies.Multiply(this, other, transposeThis, transposeOther);
         }
 
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector) return MultiplyRight((Vector)vector, transposeThis);
+            if (vector is Vector) return Multiply((Vector)vector, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -456,7 +456,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with length equal to <see cref="NumColumns"/>.</param>
         /// <returns></returns>
-        public Vector MultiplyRight(Vector vector)
+        public Vector Multiply(Vector vector)
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
             double[] result = new double[NumRows];

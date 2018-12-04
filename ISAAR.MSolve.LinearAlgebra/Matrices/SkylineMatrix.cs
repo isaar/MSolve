@@ -655,14 +655,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
         /// <remarks>
         /// <paramref name="transposeThis"/> does not affect the result, as a <see cref="SkylineMatrix"/> is symmetric.
         /// </remarks>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return MultiplyRight(casted);
+            if (vector is Vector casted) return Multiply(casted);
             else throw new NotImplementedException();
         }
 
@@ -673,7 +673,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     this.<see cref="NumColumns"/>.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of this.</exception>
-        public Vector MultiplyRight(Vector vector)
+        public Vector Multiply(Vector vector)
         {
             int n = vector.Length;
             Preconditions.CheckMultiplicationDimensions(NumColumns, n);

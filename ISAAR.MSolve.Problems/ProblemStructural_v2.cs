@@ -236,10 +236,10 @@ namespace ISAAR.MSolve.Problems
         }
 
         public IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Ms[linearSystem.Subdomain.ID].MultiplyRight(lhsVector);
+            => this.Ms[linearSystem.Subdomain.ID].Multiply(lhsVector);
 
         public IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Cs[linearSystem.Subdomain.ID].MultiplyRight(lhsVector);
+            => this.Cs[linearSystem.Subdomain.ID].Multiply(lhsVector);
 
         #endregion
 

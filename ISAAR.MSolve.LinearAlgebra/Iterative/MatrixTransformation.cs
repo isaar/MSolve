@@ -21,6 +21,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative
         /// <summary>
         /// See <see cref="ILinearTransformation{TVector}.Multiply(TVector)"/>
         /// </summary>
-        public IVector Multiply(IVector vector) => matrix.MultiplyRight(vector, false);
+        public IVector Multiply(IVector vector) => matrix.Multiply(vector, false);
     }
 }

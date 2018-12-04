@@ -95,18 +95,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
                 true);
             var x5 = Vector.CreateFromArray(SparseRectangular10by5.lhs5);
             var b10Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs10);
-            Vector b10Computed = A.MultiplyRight(x5, false);
+            Vector b10Computed = A.Multiply(x5, false);
             comparer.AssertEqual(b10Expected, b10Computed);
 
             // MultiplyRight() - transposed
             var x10 = Vector.CreateFromArray(SparseRectangular10by5.lhs10);
             var b5Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs5);
-            Vector b5Computed = A.MultiplyRight(x10, true);
+            Vector b5Computed = A.Multiply(x10, true);
             comparer.AssertEqual(b5Expected, b5Computed);
 
             // MultiplyVectorSection()
             var x15 = Vector.CreateWithValue(5, 1000.0).Append(x5);
-            var b20Expected = Vector.CreateWithValue(10, 10.0).Append(A.MultiplyRight(x5, false));
+            var b20Expected = Vector.CreateWithValue(10, 10.0).Append(A.Multiply(x5, false));
             var b20Computed = Vector.CreateWithValue(20, 10.0);
             A.MultiplyVectorSection(x15, 5, b20Computed, 10);
             comparer.AssertEqual(b20Expected, b20Computed);

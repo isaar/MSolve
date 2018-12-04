@@ -62,10 +62,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 var xe = ((Vector)x).GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
 
                 // ys += Ps^T * Kse * inv(Ue) * xe
-                ys.AddIntoThis(Ps.PreconditionerTimesVector(Kse[sub].MultiplyRight(Pe[sub].BackSubstitution(xe)), true));
+                ys.AddIntoThis(Ps.PreconditionerTimesVector(Kse[sub].Multiply(Pe[sub].BackSubstitution(xe)), true));
 
                 // ye = inv(Ue^T) * Kes * Ps * xs + I * xe
-                Vector ye = Pe[sub].ForwardSubstitution(Kes[sub].MultiplyRight(Ps.PreconditionerTimesVector(xs, false)));
+                Vector ye = Pe[sub].ForwardSubstitution(Kes[sub].Multiply(Ps.PreconditionerTimesVector(xs, false)));
                 ye.AddIntoThis(xe);
                 y.AddSubvector(ye, dim.SubdomainStarts[sub]);
             }

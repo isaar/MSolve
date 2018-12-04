@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="vectorRight">The <see cref="Vector3"/> operand on the right. It can be considered as a column 
         ///     vector.</param>
         public static Vector3 operator *(Matrix3by3 matrixLeft, Vector3 vectorRight)
-            => matrixLeft.MultiplyRight(vectorRight, false);
+            => matrixLeft.Multiply(vectorRight, false);
 
         /// <summary>
         /// Performs the matrix-vector multiplication: result = <paramref name="vectorLeft"/> * <paramref name="matrixRight"/>.
@@ -176,7 +176,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="vectorLeft">The <see cref="Vector3"/> operand on the left. It can be considered as a row vector.</param>
         /// <param name="matrixRight">The <see cref="Matrix3by3"/> operand on the right.</param>
         public static Vector3 operator *(Vector3 vectorLeft, Matrix3by3 matrixRight)
-            => matrixRight.MultiplyRight(vectorLeft, true);
+            => matrixRight.Multiply(vectorLeft, true);
         #endregion
 
         /// <summary>
@@ -728,9 +728,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
             Preconditions.CheckMultiplicationDimensions(2, vector.Length);
             if (transposeThis)
@@ -760,7 +760,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="vector">A vector with 3 entries.</param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
-        public Vector3 MultiplyRight(Vector3 vector, bool transposeThis = false)
+        public Vector3 Multiply(Vector3 vector, bool transposeThis = false)
         {
             if (transposeThis)
             {

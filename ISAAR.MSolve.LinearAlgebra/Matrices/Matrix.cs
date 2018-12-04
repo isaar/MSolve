@@ -226,7 +226,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrixLeft"/>.<see cref="NumColumns"/> is 
         ///     different than <paramref name="vectorRight"/>.<see cref="Vector.Length"/>.</exception>
         public static Vector operator *(Matrix matrixLeft, Vector vectorRight)
-            => matrixLeft.MultiplyRight(vectorRight, false);
+            => matrixLeft.Multiply(vectorRight, false);
 
         /// <summary>
         /// Performs the matrix-vector multiplication: result = <paramref name="vectorLeft"/> * <paramref name="matrixRight"/>.
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrixRight"/>.<see cref="NumRows"/> is 
         ///     different than <paramref name="vectorLeft"/>.<see cref="Vector.Length"/>.</exception>
         public static Vector operator *(Vector vectorLeft, Matrix matrixRight)
-            => matrixRight.MultiplyRight(vectorLeft, true);
+            => matrixRight.Multiply(vectorLeft, true);
         #endregion
 
         /// <summary>
@@ -810,11 +810,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
+            if (vector is Vector casted) return Multiply(casted, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -828,7 +828,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
-        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
+        public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             int leftRows, leftCols;
             CBLAS_TRANSPOSE transpose;
@@ -853,6 +853,31 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 0.0, ref result[0], 1);
             return Vector.CreateFromArray(result, false);
         }
+
+        //public void Multiply(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
+        //{
+        //    int leftRows, leftCols;
+        //    CBLAS_TRANSPOSE transpose;
+        //    if (transposeThis)
+        //    {
+        //        transpose = CBLAS_TRANSPOSE.CblasTrans;
+        //        leftRows = NumColumns;
+        //        leftCols = NumRows;
+        //    }
+        //    else
+        //    {
+        //        transpose = CBLAS_TRANSPOSE.CblasNoTrans;
+        //        leftRows = NumRows;
+        //        leftCols = NumColumns;
+        //    }
+
+        //    Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
+        //    Preconditions.CheckSystemSolutionDimensions(this, rhsVector);
+        //    CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
+        //        1.0, ref data[0], NumRows,
+        //        ref lhsVector.InternalData[0], 1,
+        //        0.0, ref rhsVector.InternalData[0], 1);
+        //}
 
         /// <summary>
         /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.

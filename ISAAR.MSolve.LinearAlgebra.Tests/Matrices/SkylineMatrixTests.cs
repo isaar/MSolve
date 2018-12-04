@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
                 SparsePosDef10by10.skylineValues, SparsePosDef10by10.skylineDiagOffsets, true, true);
             var x = Vector.CreateFromArray(SparsePosDef10by10.lhs);
             var bExpected = Vector.CreateFromArray(SparsePosDef10by10.rhs);
-            IVector bComputed = A.MultiplyRight(x, false);
+            IVector bComputed = A.Multiply(x, false);
             comparer.AssertEqual(bExpected, bComputed);
         }
     }

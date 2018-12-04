@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             // r = b - A * x
             IVector residual;
             if (initialGuessIsZero) residual = rhs.Copy();
-            else residual = rhs.Subtract(matrix.MultiplyRight(solution));
+            else residual = rhs.Subtract(matrix.Multiply(solution));
 
             return SolveInternal(matrix, rhs, solution, residual);
         }
@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             for (int iteration = 0; iteration < maxIterations; ++iteration)
             {
                 // q = A * d
-                IVector matrixTimesDirection = matrix.MultiplyRight(direction);
+                IVector matrixTimesDirection = matrix.Multiply(direction);
 
                 // α = δnew / (d * q)
                 double stepSize = dotResidualNew / (direction.DotProduct(matrixTimesDirection));
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 
             for (int i = 0; i < maxIterations; ++i)
             {
-                IVector matrixTimesDir = matrix.MultiplyRight(dir);
+                IVector matrixTimesDir = matrix.Multiply(dir);
                 double step = resDotCurrent / (dir.DotProduct(matrixTimesDir));
                 sol.AxpyIntoThis(dir, step);
                 res.AxpyIntoThis(matrixTimesDir, -step);
