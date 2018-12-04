@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -14,21 +15,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// "Seismic soil-structure interaction with finite elements and the method of substructures", George Stavroulakis, 2014
     /// Authors: Serafeim Bakalakos, George Stavroulakis 
     /// </summary>
-    public class PcgWithReorthogonalization: PcgBase
+    public class PcgWithReorthogonalization: PcgAlgorithmBase
     {
         //TODO: this could be abstracted to use a cyclic cache.
         private readonly PcgReorthogonalizationCache reorthoCache = new PcgReorthogonalizationCache();
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="PcgWithReorthogonalization"/> with the specified settings.
-        /// </summary>
-        /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
-        /// <param name="residualTolerance">
-        /// The algorithm will terminate when sqrt(r*inv(M)*r) / sqrt(r0*inv(M)*r0) &lt;= <paramref name="residualTolerance"/>, 
-        /// where x is the current solution vector and x0 the initial guess.
-        /// </param>
-        public PcgWithReorthogonalization(IMaxIterationsProvider maxIterationsProvider, double residualTolerance) :
-            base(maxIterationsProvider, residualTolerance)
+        private PcgWithReorthogonalization(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
+            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection) :
+            base(residualTolerance, maxIterationsProvider, residualConvergence, residualCorrection)
         {
         }
 
@@ -174,6 +168,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 double beta = preconditionedResidual.DotProduct(reorthoCache.MatrixTimesDirections[i])
                     / reorthoCache.DirectionsTimesMatrixTimesDirections[i];
                 direction.AxpyIntoThis(reorthoCache.Directions[i], -beta);
+            }
+        }
+
+        /// <summary>
+        /// Constructs <see cref="PcgWithReorthogonalization"/> instances, allows the user to specify some or all of the 
+        /// required parameters and provides defaults for the rest.
+        /// Author: Serafeim Bakalakos
+        /// </summary>
+        public class Builder: PcgBuilderBase
+        {
+            /// <summary>
+            /// Creates a new instance of <see cref="PcgWithReorthogonalization"/>.
+            /// </summary>
+            public PcgWithReorthogonalization Build()
+            {
+                return new PcgWithReorthogonalization(ResidualTolerance, MaxIterationsProvider, ResidualConvergence,
+                    ResidualCorrection);
             }
         }
     }

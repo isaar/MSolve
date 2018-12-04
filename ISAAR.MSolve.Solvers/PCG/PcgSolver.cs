@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
-using PcgAlgorithm = ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient.PCG;
 
 //TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), avoid the first r=b-A*0 
 //TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
@@ -83,21 +77,16 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         public class Builder
         {
-            public Builder() { }
+            private readonly PcgAlgorithm pcg;
+
+            public Builder(PcgAlgorithm pcg) => this.pcg = pcg;
 
             public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
-
-            public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
-
+        
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
 
-            public double ResidualTolerance { get; set; } = 1E-6;
-
             public PcgSolver BuildSolver(IStructuralModel_v2 model)
-            {
-                return new PcgSolver(model, new PcgAlgorithm(MaxIterationsProvider, ResidualTolerance), PreconditionerFactory, 
-                    DofOrderer);
-            }
+                => new PcgSolver(model, pcg, PreconditionerFactory, DofOrderer);
         }
 
         private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>

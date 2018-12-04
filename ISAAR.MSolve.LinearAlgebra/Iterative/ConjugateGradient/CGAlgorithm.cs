@@ -16,27 +16,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// "An Introduction to the Conjugate Gradient Method Without the Agonizing Pain", Jonathan Richard Shewchuk, 1994
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CG
+    public class CGAlgorithm
     {
         private readonly IMaxIterationsProvider maxIterationsProvider;
-        private readonly IResidualConvergence residualConvergence = new SimpleConvergence();
-        private readonly IResidualCorrection residualCorrection = new PeriodicResidualCorrection();
+        private readonly IResidualConvergence residualConvergence;
+        private readonly IResidualCorrection residualCorrection;
         private readonly double residualTolerance;
 
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="CG"/> with the specified convergence criteria. 
-        /// If any criterion is met the algorithm will temrinate.
-        /// </summary>
-        /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
-        /// <param name="residualTolerance">
-        /// The algorithm will terminate when norm2(r) / norm2(r0) &lt;= <paramref name="residualTolerance"/>, 
-        /// where x is the current solution vector and x0 the initial guess.
-        /// </param>
-        public CG(IMaxIterationsProvider maxIterationsProvider, double residualTolerance)
+        private CGAlgorithm(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
+            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection)
         {
-            this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;
+            this.maxIterationsProvider = maxIterationsProvider;
+            this.residualConvergence = residualConvergence;
+            this.residualCorrection = residualCorrection;
         }
 
         /// <summary>
@@ -189,6 +182,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 NumIterationsRequired = maxIterations,
                 NormRatio = resNormRatio
             };
+        }
+
+        /// <summary>
+        /// Constructs <see cref="CGAlgorithm"/> instances, allows the user to specify some or all of the required parameters and 
+        /// provides defaults for the rest.
+        /// Author: Serafeim Bakalakos
+        /// </summary>
+        public class Builder
+        {
+            /// <summary>
+            /// Specifies how to calculate the maximum iterations that the CG algorithm will run for.
+            /// </summary>
+            public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
+
+            /// <summary>
+            /// Specifies how the CG algorithm will check that convergence has been reached.
+            /// </summary>
+            public IResidualConvergence ResidualConvergence { get; set; } = new SimpleConvergence();
+
+            /// <summary>
+            /// Specifies how often the residual vector will be corrected by an exact (but costly) calculation.
+            /// </summary>
+            public IResidualCorrection ResidualCorrection { get; set; } = new NoResidualCorrection();
+
+            /// <summary>
+            /// The CG algorithm will converge when norm2(r) / norm2(r0) &lt;= <paramref name="ResidualTolerance"/>, 
+            /// where r = A*x is the current residual vector and r0 = A*x0 the initial residual vector.
+            /// </summary>
+            public double ResidualTolerance { get; set; } = 1E-10;
+
+            /// <summary>
+            /// Creates a new instance of <see cref="CGAlgorithm"/>.
+            /// </summary>
+            public CGAlgorithm Build()
+                => new CGAlgorithm(ResidualTolerance, MaxIterationsProvider, ResidualConvergence, ResidualCorrection);
         }
     }
 }

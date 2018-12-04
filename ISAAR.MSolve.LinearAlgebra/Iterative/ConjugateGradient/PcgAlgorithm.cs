@@ -1,5 +1,6 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -13,21 +14,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// "An Introduction to the Conjugate Gradient Method Without the Agonizing Pain", Jonathan Richard Shewchuk, 1994
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class PCG : PcgBase
+    public class PcgAlgorithm : PcgAlgorithmBase
     {
-        private readonly IPcgBetaParameterCalculation betaCalculation = new FletcherReevesBeta();
+        private readonly IPcgBetaParameterCalculation betaCalculation;
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="PCG"/> with the specified settings.
-        /// </summary>
-        /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
-        /// <param name="residualTolerance">
-        /// The algorithm will terminate when sqrt(r*inv(M)*r) / sqrt(r0*inv(M)*r0) &lt;= <paramref name="residualTolerance"/>, 
-        /// where x is the current solution vector and x0 the initial guess.
-        /// </param>
-        public PCG(IMaxIterationsProvider maxIterationsProvider, double residualTolerance): 
-            base(maxIterationsProvider, residualTolerance)
+        private PcgAlgorithm(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
+            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection, 
+            IPcgBetaParameterCalculation betaCalculation) : 
+            base(residualTolerance, maxIterationsProvider, residualConvergence, residualCorrection)
         {
+            this.betaCalculation = betaCalculation;
         }
 
         protected override CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVectorView rhs, 
@@ -119,45 +115,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             };
         }
 
-        private CGStatistics SolveInternalOLD(IMatrixView matrix, IPreconditioner preconditioner, IVector sol, IVector res)
+        /// <summary>
+        /// Constructs <see cref="PcgAlgorithm"/> instances, allows the user to specify some or all of the required parameters 
+        /// and provides defaults for the rest.
+        /// Author: Serafeim Bakalakos
+        /// </summary>
+        public class Builder : PcgBuilderBase
         {
-            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
-            IVector z = res.Copy();
-            preconditioner.SolveLinearSystem(res, z);
-            IVector dir = z.Copy(); // TODO: Do I need to copy it?
-            double zrDotCurrent = z.DotProduct(res);
-            double resNormInit = res.Norm2(); // In basic CG, I could just take the sqrt(r*r), but here I have z*r.
-            double resNormRatio = 1.0;
+            /// <summary>
+            /// Specifies how to calculate the beta parameter of PCG, which is used to update the direction vector. 
+            /// </summary>
+            public IPcgBetaParameterCalculation BetaCalculation { get; set; } = new FletcherReevesBeta();
 
-            for (int i = 0; i < maxIterations; ++i)
+            /// <summary>
+            /// Creates a new instance of <see cref="PcgAlgorithm"/>.
+            /// </summary>
+            public PcgAlgorithm Build()
             {
-                IVector matrixTimesDir = matrix.MultiplyRight(dir);
-                double step = zrDotCurrent / (dir.DotProduct(matrixTimesDir));
-                sol.AxpyIntoThis(dir, step);
-                res.AxpyIntoThis(matrixTimesDir, - step);
-
-                resNormRatio = Math.Sqrt(res.Norm2()) / resNormInit;
-                if (resNormRatio < residualTolerance) // resNormRatio is non negative
-                {
-                    return new CGStatistics
-                    {
-                        AlgorithmName = "Preconditioned Conjugate Gradient",
-                        HasConverged = true, NumIterationsRequired = i + 1, NormRatio = resNormRatio
-                    };
-                }
-
-                preconditioner.SolveLinearSystem(res, z); 
-                double zrDotNext = z.DotProduct(res); //Fletcher-Reeves formula. TODO: For variable preconditioning use Polak-Ribiere
-                double beta = zrDotNext / zrDotCurrent;
-                dir = z.Axpy(dir, beta);
-                zrDotCurrent = zrDotNext;
+                return new PcgAlgorithm(ResidualTolerance, MaxIterationsProvider, ResidualConvergence, ResidualCorrection, 
+                    BetaCalculation);
             }
-
-            return new CGStatistics
-            {
-                AlgorithmName = "Preconditioned Conjugate Gradient",
-                HasConverged = false, NumIterationsRequired = maxIterations, NormRatio = resNormRatio
-            };
         }
     }
 }

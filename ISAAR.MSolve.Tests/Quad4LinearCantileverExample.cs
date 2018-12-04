@@ -170,8 +170,10 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
             // Solver
-            var solverBuilder = new PcgSolver.Builder();
-            solverBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(0.5);
+            var pcgBuilder = new PcgAlgorithm.Builder();
+            pcgBuilder.ResidualTolerance = 1E-6;
+            pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(0.5);
+            var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
             var solver = solverBuilder.BuildSolver(model);
 
             // Problem type

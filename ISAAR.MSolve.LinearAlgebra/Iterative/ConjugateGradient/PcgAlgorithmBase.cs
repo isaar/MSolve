@@ -13,25 +13,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// Base abstract class for Preconditioned Conjugate Gradient implementations.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public abstract class PcgBase
+    public abstract class PcgAlgorithmBase
     {
         protected readonly IMaxIterationsProvider maxIterationsProvider;
         protected readonly double residualTolerance;
-        protected readonly IResidualConvergence residualConvergence = new SimpleConvergence();
-        protected readonly IResidualCorrection residualCorrection = new NoResidualCorrection();
+        protected readonly IResidualConvergence residualConvergence;
+        protected readonly IResidualCorrection residualCorrection;
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="PcgBase"/> with the specified settings. 
-        /// </summary>
-        /// <param name="maxIterations">The maximum number of iterations before the algorithm terminates.</param>
-        /// <param name="residualTolerance">
-        /// The algorithm will terminate when sqrt(r*inv(M)*r) / sqrt(r0*inv(M)*r0) &lt;= <paramref name="residualTolerance"/>, 
-        /// where x is the current solution vector and x0 the initial guess.
-        /// </param>
-        protected PcgBase(IMaxIterationsProvider maxIterationsProvider, double residualTolerance)
+        protected PcgAlgorithmBase(double residualTolerance, IMaxIterationsProvider maxIterationsProvider, 
+            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection)
         {
-            this.maxIterationsProvider = maxIterationsProvider;
             this.residualTolerance = residualTolerance;
+            this.maxIterationsProvider = maxIterationsProvider;
+            this.residualConvergence = residualConvergence;
+            this.residualCorrection = residualCorrection;
         }
 
         /// <summary>

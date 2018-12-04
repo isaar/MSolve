@@ -10,7 +10,7 @@ using Xunit;
 namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
 {
     /// <summary>
-    /// Tests for <see cref="PCG"/>.
+    /// Tests for <see cref="PcgAlgorithm"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public static class CGTests
@@ -20,13 +20,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestDenseSystem()
         {
-            int n = SymmPosDef10by10.order;
             var A = Matrix.CreateFromArray(SymmPosDef10by10.matrix);
             var b = Vector.CreateFromArray(SymmPosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
 
-            double tol = 1E-7;
-            var cg = new CG(new FixedMaxIterationsProvider(n), tol);
+            var builder = new CGAlgorithm.Builder();
+            builder.ResidualTolerance = 1E-7;
+            builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
+            var cg = builder.Build();
             var xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             comparer.AssertEqual(xExpected, xComputed);
@@ -35,13 +36,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestSparseSystem()
         {
-            int n = SparsePosDef10by10.order;
             var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
 
-            double tol = 1E-7;
-            var cg = new CG(new FixedMaxIterationsProvider(n), tol);
+            var builder = new CGAlgorithm.Builder();
+            builder.ResidualTolerance = 1E-7;
+            builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
+            var cg = builder.Build();
             var xComputed = Vector.CreateZero(A.NumRows);
             CGStatistics stats = cg.Solve(A, b, xComputed, true);
             comparer.AssertEqual(xExpected, xComputed);
