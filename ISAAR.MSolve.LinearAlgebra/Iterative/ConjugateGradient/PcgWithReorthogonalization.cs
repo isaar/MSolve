@@ -97,8 +97,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             double normResidualInitial = Math.Sqrt(dotPreconditionedResidualNew);
 
             // Initialize the strategy objects
-            residualCorrection.Initialize(matrix, rhs);
             residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
+            residualCorrection.Initialize(matrix, rhs);
 
             //TODO: Find proof that this correct. Why is it better than the default formula α = (r * s) / (d * q)?
             // α = (d * r) / (d * q) = (d * r) / (d * (A * d)) 
@@ -120,8 +120,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 // δold = δnew
                 double dotPreconditionedResidualOld = dotPreconditionedResidualNew;
 
-                // Fletcher-Reeves formula: δnew = r * s 
-                //TODO: For variable preconditioning use Polak-Ribiere
+                // δnew = r * s 
                 dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.

@@ -15,6 +15,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// </summary>
     public class PCG : PcgBase
     {
+        private readonly IPcgBetaParameterCalculation betaCalculation = new FletcherReevesBeta();
+
         /// <summary>
         /// Initializes a new instance of <see cref="PCG"/> with the specified settings.
         /// </summary>
@@ -48,6 +50,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             double normResidualInitial = Math.Sqrt(dotPreconditionedResidualNew);
 
             // Initialize the strategy objects
+            betaCalculation.Initialize(residual);
             residualCorrection.Initialize(matrix, rhs);
             residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
 
@@ -76,8 +79,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 // δold = δnew
                 double dotPreconditionedResidualOld = dotPreconditionedResidualNew;
 
-                // Fletcher-Reeves formula: δnew = r * s 
-                //TODO: For variable preconditioning use Polak-Ribiere
+                // δnew = r * s 
                 dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
@@ -96,8 +98,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                     };
                 }
 
-                // β = δnew / δold
-                double beta = dotPreconditionedResidualNew / dotPreconditionedResidualOld;
+                // The default Fletcher-Reeves formula is: β = δnew / δold = (sNew * rNew) / (sOld * rOld)
+                // However we could use a different one, e.g. for variable preconditioning Polak-Ribiere is usually better.
+                double beta = betaCalculation.CalculateBeta(residual, preconditionedResidual, 
+                    dotPreconditionedResidualNew, dotPreconditionedResidualOld);
 
                 // d = s + β * d
                 //TODO: benchmark the two options to find out which is faster

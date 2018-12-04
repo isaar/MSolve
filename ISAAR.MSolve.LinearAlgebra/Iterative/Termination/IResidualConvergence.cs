@@ -4,6 +4,8 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: This strategy can modify(correct) r, r*r (CG), s*r (PCG). However that s was computed by preconditioning the uncorrected
+//      r. If r is corrected, should s also be corrected? This is costly, but s will be used extensively afterwards.
 //TODO: perhaps I should name the Func<>
 //TODO: perhaps instead of having Initialize() to set the internal state, I should use a factory interface that creates
 //      immutable IResidualCorrection objects.
@@ -49,7 +51,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         /// <param name="matrix">The linear system's matrix.</param>
         /// <param name="rhsVector">The linear system's right hand side vector.</param>
         /// <param name="residualTolerance">
-        /// The max allowable value of norm2(r)/norm2(b-A*x0) to consider that the iterative algorithm has converged.
+        /// The max allowable value of the residual vector's normalized dot product, to consider that the iterative algorithm 
+        /// has converged.
         /// </param>
         /// <param name="initialResidualDotProduct">
         /// The initial dot product of the residual vector, with a vector specified by the iterative algorithm.
