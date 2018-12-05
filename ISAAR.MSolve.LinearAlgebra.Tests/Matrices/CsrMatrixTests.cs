@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         [Fact]
         private static void TestMatrixVectorMultiplication()
         {
-            // MultiplyRight() - untransposed
+            // MultiplyRight() - untransposed - rows > cols
             var A = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
                 SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
                 true);
@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             Vector b10Computed = A.Multiply(x5, false);
             comparer.AssertEqual(b10Expected, b10Computed);
 
-            // MultiplyRight() - transposed
+            // MultiplyRight() - transposed - rows > cols
             var x10 = Vector.CreateFromArray(SparseRectangular10by5.lhs10);
             var b5Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs5);
             Vector b5Computed = A.Multiply(x10, true);
@@ -110,6 +110,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             var b20Computed = Vector.CreateWithValue(20, 10.0);
             A.MultiplyVectorSection(x15, 5, b20Computed, 10);
             comparer.AssertEqual(b20Expected, b20Computed);
+
+            // MultiplyRight() - untransposed - rows < cols
+            var B = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numCols, SparseRectangular10by5.numRows,
+                SparseRectangular10by5.cscValues, SparseRectangular10by5.cscRowIndices, SparseRectangular10by5.cscColOffsets,
+                true);
+            var y10 = Vector.CreateFromArray(SparseRectangular10by5.lhs10);
+            var c5Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs5);
+            Vector c5Computed = B.Multiply(y10, false);
+            comparer.AssertEqual(c5Expected, c5Computed);
+
+            // MultiplyRight() - transposed - rows < cols
+            var y5 = Vector.CreateFromArray(SparseRectangular10by5.lhs5);
+            var c10Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs10);
+            Vector c10Computed = B.Multiply(y5, true);
+            comparer.AssertEqual(c10Expected, c10Computed);
         }
 
         [Fact]

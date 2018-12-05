@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -22,6 +23,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class SkylineMatrix: IMatrix, ISparseMatrix, ISymmetricMatrix
     {
+        private static readonly ISparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
+
         /// <summary>
         /// Contains the non zero superdiagonal entries of the matrix in column major order, starting from the diagonal and going
         /// upwards. Its length is nnz.
@@ -715,40 +718,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector)
         {
-            int n = lhsVector.Length;
             Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
-            double[] result = rhsVector.InternalData;
-            // A*x = (L+D)*x + U*x
-            // (L+D)*x is easy, since the non zero entries of row i left of the diagonal are stored contiguously in column i and
-            // we can easily take its dot product with the vector.
-            // U*x is trickier, since we cannot access contiguously the non zero entries of row i. Instead think of it as
-            // U*x = linear combination of columns of U (accessed contiguously) with the entries of vector as coefficients. Then 
-            // we can deal with them while we process the next columns (i, n-1]. This way the matrix is only indexed once, but 
-            // not the result vector entry result[i].
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                int diagOffset = diagOffsets[j];
-                int columnTop = j - diagOffsets[j + 1] + diagOffset + 1;
-                double linearCombinationCoeff = lhsVector[j];
-                // Dot product of the (L+D) part of the row * vector
-                double dotLower = values[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
-                for (int i = j - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
-                {
-                    double aij = values[diagOffset + j - i]; // Thus the matrix is only indexed once
-
-                    // Contribution of the L part of the row, which is identical to the stored column j.
-                    // Thus A[j,i]=A[i,j] and sum(A[i,j]*x[j]) = sum(A[i,j]*x[i])
-                    dotLower += aij * lhsVector[i];
-
-                    // Contribution of the U part of the column: result += coefficient * column j of U. This will update all rows
-                    // [columnTop, j) of the result vector need to be updated to account for the current column j. 
-                    result[i] += aij * linearCombinationCoeff;
-                }
-                // Column j alters rows [0,j) of the result vector, thus this should be the 1st time result[j] is written.
-                Debug.Assert(result[j] == 0);
-                result[j] = dotLower; // contribution of the (L+D) part of the row. 
-            }
+            sparseBlas.SkylineTimesVector(NumColumns, values, diagOffsets, lhsVector.InternalData, rhsVector.InternalData);
         }
 
         /// <summary>

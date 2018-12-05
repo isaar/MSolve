@@ -4,6 +4,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -22,6 +23,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix: IMatrix, ISliceable2D
     {
+        private static readonly IBlasProvider blas = new MklBlasProvider();
+
         private readonly double[] data;
 
         private Matrix(double[] data, int numRows, int numColumns)
@@ -871,27 +874,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
-            int leftRows, leftCols;
-            CBLAS_TRANSPOSE transpose;
             if (transposeThis)
             {
-                transpose = CBLAS_TRANSPOSE.CblasTrans;
-                leftRows = NumColumns;
-                leftCols = NumRows;
+                Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
+                blas.FullColMajorTransposeTimesVector(NumRows, NumColumns, data, lhsVector.InternalData, rhsVector.InternalData);
             }
             else
             {
-                transpose = CBLAS_TRANSPOSE.CblasNoTrans;
-                leftRows = NumRows;
-                leftCols = NumColumns;
+                Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
+                blas.FullColMajorTimesVector(NumRows, NumColumns, data, lhsVector.InternalData, rhsVector.InternalData);
             }
-
-            Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
-            Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
-            CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
-                1.0, ref data[0], NumRows,
-                ref lhsVector.InternalData[0], 1,
-                0.0, ref rhsVector.InternalData[0], 1);
         }
 
         /// <summary>

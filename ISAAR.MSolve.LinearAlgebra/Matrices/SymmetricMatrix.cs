@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 
 //TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
@@ -21,6 +22,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class SymmetricMatrix: IMatrix, ISymmetricMatrix
     {
+        private static readonly IBlasProvider blas = new MklBlasProvider();
+
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
         /// A[i,j] = data[i + j*(j+1)/2] for 0 &lt;= i &lt;= j &lt; n.
@@ -496,8 +499,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVector.Length);
-            CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
-                1.0, ref data[0], ref lhsVector.InternalData[0], 1, 0.0, ref rhsVector.InternalData[0], 1);
+            blas.SymmColMajorTimesVector(Order, data, lhsVector.InternalData, rhsVector.InternalData);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

@@ -4,6 +4,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -24,8 +25,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// use <see cref="Builders.DokColMajor"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CscMatrix: IMatrix, ISparseMatrix //TODO: Use MKL with descriptors
+    public class CscMatrix: IMatrix, ISparseMatrix
     {
+        private static readonly ISparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
+
         private readonly double[] values;
         private readonly int[] rowIndices;
         private readonly int[] colOffsets;
@@ -682,38 +685,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             if (transposeThis)
             {
-                // A^T * x = sum{row of A^T * x} = sum{col of A * x}
                 Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
                 Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
-                double[] result = rhsVector.InternalData;
-                for (int j = 0; j < NumColumns; ++j)
-                {
-                    double dot = 0.0;
-                    int colStart = colOffsets[j]; //inclusive
-                    int colEnd = colOffsets[j + 1]; //exclusive
-                    for (int k = colStart; k < colEnd; ++k)
-                    {
-                        dot += values[k] * lhsVector[rowIndices[k]];
-                    }
-                    result[j] = dot;
-                }
+                sparseBlas.CscTransposeTimesVector(NumColumns, values, colOffsets, rowIndices, lhsVector.InternalData, 
+                    rhsVector.InternalData);
             }
             else
             {
                 Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
                 Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
                 // A * x = linear combination of columns of A, with the entries of x as coefficients
-                double[] result = rhsVector.InternalData;
-                for (int j = 0; j < NumColumns; ++j)
-                {
-                    double scalar = lhsVector[j];
-                    int colStart = colOffsets[j]; //inclusive
-                    int colEnd = colOffsets[j + 1]; //exclusive
-                    for (int k = colStart; k < colEnd; ++k)
-                    {
-                        result[rowIndices[k]] += scalar * values[k];
-                    }
-                }
+                sparseBlas.CscTimesVector(NumColumns, values, colOffsets, rowIndices, lhsVector.InternalData,
+                    rhsVector.InternalData);
             }
         }
 

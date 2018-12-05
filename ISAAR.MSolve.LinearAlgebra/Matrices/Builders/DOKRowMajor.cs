@@ -4,6 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: sorting the Dictionaries with Linq seems to take a lot of time.
@@ -383,7 +384,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public Vector MultiplyRight(Vector vector, bool avoidBuilding = false)
         {
             // MKL functions are way faster than managed code. Just don't sort the CSR.
-            bool buildCSR = (!avoidBuilding) && CsrMatrix.UseMKL; 
+            bool buildCSR = (!avoidBuilding) && (CsrMatrix.SparseBlasProvider is MklSparseBlasProvider); 
             if (buildCSR) return BuildCsrMatrix(false).Multiply(vector); 
 
             Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);

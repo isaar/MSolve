@@ -4,6 +4,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -26,13 +27,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// use <see cref="Builders.DokRowMajor"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CsrMatrix: IMatrix, ISparseMatrix //TODO: Use MKL with descriptors
+    public class CsrMatrix: IMatrix, ISparseMatrix
     {
         /// <summary>
-        /// If true, Intel MKL will be used whenever possible to speed up operations. If false, C# implementations will 
-        /// be executed for all operations.
+        /// Determines which implementations of Sparse BLAS operations (e.g. matrix-vector multiplication) will be used.
         /// </summary>
-        public static bool UseMKL { get; set; } = true;
+        public static ISparseBlasProvider SparseBlasProvider { get; set; } = new MklSparseBlasProvider();
 
         private readonly double[] values;
         private readonly int[] colIndices;
@@ -688,90 +688,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
-            if (UseMKL)
+            if (transposeThis)
             {
-                if (transposeThis)
-                {
-                    Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
-                    Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
-                    int m = NumRows;
-
-                    // MKL overwrites memory equal to the number of matrix rows. If the rhs vector is shorter than that, the 
-                    // remaining entries are overwritten with 0. However, this messes up the managed vector objects, since 
-                    // important data is overwritten (why doesn't it throw access violation exception?). For now I am going to 
-                    // use a temp array and then copy the relevant part.
-                    //TODO: Try using the MKL inspector-executor routines, instead of the deprecated dcsrgemv().
-                    if (rhsVector.Length < m)
-                    {
-                        var temp = new double[m];
-                        SpBlas.MklCspblasDcsrgemv("T", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                            ref lhsVector.InternalData[0], ref temp[0]);
-                        Array.Copy(temp, rhsVector.InternalData, rhsVector.Length);
-                    }
-                    else
-                    {
-                        SpBlas.MklCspblasDcsrgemv("T", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                            ref lhsVector.InternalData[0], ref rhsVector.InternalData[0]);
-                    }
-                }
-                else
-                {
-                    Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
-                    Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
-                    int m = NumRows;
-                    SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                        ref lhsVector.InternalData[0], ref rhsVector.InternalData[0]);
-                    //TODO: Is the same problem present here? There could be a problem with the lhs. Add tests for all 4 combinations (m<>n, transposed).
-                    //if (rhsVector.Length < m)
-                    //{
-                    //    var temp = new double[m];
-                    //    SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                    //    ref lhsVector.InternalData[0], ref temp[0]);
-                    //    Array.Copy(temp, rhsVector.InternalData, rhsVector.Length);
-                    //}
-                    //else
-                    //{
-                    //    SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                    //    ref lhsVector.InternalData[0], ref rhsVector.InternalData[0]);
-                    //}
-                }
+                Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
+                SparseBlasProvider.CsrTransposeTimesVector(NumRows, values, rowOffsets, colIndices, lhsVector.InternalData,
+                        rhsVector.InternalData);
             }
             else
             {
-                if (transposeThis)
-                {
-                    Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
-                    Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
-                    // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
-                    double[] result = rhsVector.InternalData;
-                    for (int i = 0; i < NumRows; ++i)
-                    {
-                        double scalar = lhsVector[i];
-                        int rowStart = rowOffsets[i]; //inclusive
-                        int rowEnd = rowOffsets[i + 1]; //exclusive
-                        for (int k = rowStart; k < rowEnd; ++k)
-                        {
-                            result[colIndices[k]] += scalar * values[k];
-                        }
-                    }
-                }
-                else
-                {
-                    Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
-                    Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
-                    double[] result = rhsVector.InternalData;
-                    for (int i = 0; i < NumRows; ++i)
-                    {
-                        double dot = 0.0;
-                        int rowStart = rowOffsets[i]; //inclusive
-                        int rowEnd = rowOffsets[i + 1]; //exclusive
-                        for (int k = rowStart; k < rowEnd; ++k)
-                        {
-                            dot += values[k] * lhsVector[colIndices[k]];
-                        }
-                        result[i] = dot;
-                    }
-                }
+                Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
+                SparseBlasProvider.CsrTimesVector(NumRows, values, rowOffsets, colIndices, lhsVector.InternalData,
+                        rhsVector.InternalData);
             }
         }
 

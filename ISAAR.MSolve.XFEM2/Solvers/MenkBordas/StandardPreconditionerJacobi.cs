@@ -1,6 +1,7 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using System;
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         private StandardPreconditionerJacobi(DokRowMajor Kss)
         {
-            CsrMatrix.UseMKL = true; //TODO: this should be done elsewhere
+            CsrMatrix.SparseBlasProvider = new MklSparseBlasProvider(); //TODO: this should be done elsewhere
             this.Kss = Kss.BuildCsrMatrix(true);
             this.order = Kss.NumColumns;
 

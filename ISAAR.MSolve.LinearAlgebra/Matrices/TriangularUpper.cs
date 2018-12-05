@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -20,6 +21,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class TriangularUpper: IMatrix
     {
+        private static readonly IBlasProvider blas = new MklBlasProvider();
+
         /// <summary>
         /// Packed storage, column major order: U[i, j] = data[i + j*(2*n-j-1)/2] for 0 &lt;= j &lt;= i &lt; n.
         /// Although not used here, lower triangular would be: L[i, j] = data[i + j*(j+1)/2] for 0 &lt;= i &lt;= j &lt; n.
@@ -424,13 +427,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
-            CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
             Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
-
-            Array.Copy(lhsVector.InternalData, rhsVector.InternalData, Order);
-            CBlas.Dtpmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, transpose, CBLAS_DIAG.CblasNonUnit, Order,
-                ref data[0], ref rhsVector.InternalData[0], 1);
+            if (transposeThis)
+            {
+                blas.UpperColMajorTransposeTimesVector(NumRows, data, lhsVector.InternalData, rhsVector.InternalData);
+            }
+            else blas.UpperColMajorTimesVector(NumRows, data, lhsVector.InternalData, rhsVector.InternalData);
         }
 
         /// <summary>
