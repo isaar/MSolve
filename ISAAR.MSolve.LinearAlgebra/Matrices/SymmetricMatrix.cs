@@ -422,10 +422,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     }
                 }
             }
-            else
-            {
-                throw new SymmetricPatternModifiedException("This operation is legal only if the other matrix is also symmetric.");
-            }
+            else throw new SymmetricPatternModifiedException(
+                "This operation is legal only if the other matrix is also symmetric.");
         }
 
         public void LinearCombinationIntoThis(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
@@ -447,7 +445,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector) return Multiply((Vector)vector, transposeThis);
+            if (vector is Vector dense) return Multiply(dense, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -458,11 +456,48 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <returns></returns>
         public Vector Multiply(Vector vector)
         {
-            Preconditions.CheckMultiplicationDimensions(this.NumColumns, vector.Length);
-            double[] result = new double[NumRows];
+            //TODO: this performs redundant dimension checks
+            var result = Vector.CreateZero(Order);
+            MultiplyIntoResult(vector, result);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = this * <paramref name="vector"/>.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = A * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == this.<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = A * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == this.<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector)
+        {
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVector.Length);
             CBlas.Dspmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, Order,
-                1.0, ref data[0], ref vector.InternalData[0], 1, 0.0, ref result[0], 1);
-            return Vector.CreateFromArray(result, false);
+                1.0, ref data[0], ref lhsVector.InternalData[0], 1, 0.0, ref rhsVector.InternalData[0], 1);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

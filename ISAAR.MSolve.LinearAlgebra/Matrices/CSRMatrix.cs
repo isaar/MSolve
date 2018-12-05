@@ -647,61 +647,131 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
         public Vector Multiply(Vector vector, bool transposeThis = false)
         {
+            //TODO: this performs redundant dimension checks, including checking the transposeThis flag.
+            var result = Vector.CreateZero(transposeThis ? NumColumns : NumRows);
+            MultiplyIntoResult(vector, result, transposeThis);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = oper(A) * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
+        {
             if (UseMKL)
             {
                 if (transposeThis)
                 {
-                    Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
+                    Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
+                    Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
                     int m = NumRows;
-                    double[] result = new double[NumColumns];
-                    SpBlas.MklCspblasDcsrgemv("T", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                        ref vector.InternalData[0], ref result[0]);
-                    return Vector.CreateFromArray(result);
+
+                    // MKL overwrites memory equal to the number of matrix rows. If the rhs vector is shorter than that, the 
+                    // remaining entries are overwritten with 0. However, this messes up the managed vector objects, since 
+                    // important data is overwritten (why doesn't it throw access violation exception?). For now I am going to 
+                    // use a temp array and then copy the relevant part.
+                    //TODO: Try using the MKL inspector-executor routines, instead of the deprecated dcsrgemv().
+                    if (rhsVector.Length < m)
+                    {
+                        var temp = new double[m];
+                        SpBlas.MklCspblasDcsrgemv("T", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
+                            ref lhsVector.InternalData[0], ref temp[0]);
+                        Array.Copy(temp, rhsVector.InternalData, rhsVector.Length);
+                    }
+                    else
+                    {
+                        SpBlas.MklCspblasDcsrgemv("T", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
+                            ref lhsVector.InternalData[0], ref rhsVector.InternalData[0]);
+                    }
                 }
                 else
                 {
-                    Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
+                    Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+                    Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
                     int m = NumRows;
-                    double[] result = new double[NumRows];
                     SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
-                        ref vector.InternalData[0], ref result[0]);
-                    return Vector.CreateFromArray(result);
+                        ref lhsVector.InternalData[0], ref rhsVector.InternalData[0]);
+                    //TODO: Is the same problem present here? There could be a problem with the lhs. Add tests for all 4 combinations (m<>n, transposed).
+                    //if (rhsVector.Length < m)
+                    //{
+                    //    var temp = new double[m];
+                    //    SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
+                    //    ref lhsVector.InternalData[0], ref temp[0]);
+                    //    Array.Copy(temp, rhsVector.InternalData, rhsVector.Length);
+                    //}
+                    //else
+                    //{
+                    //    SpBlas.MklCspblasDcsrgemv("N", ref m, ref values[0], ref rowOffsets[0], ref colIndices[0],
+                    //    ref lhsVector.InternalData[0], ref rhsVector.InternalData[0]);
+                    //}
                 }
-            }
-
-            if (transposeThis)
-            {
-                Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
-                // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
-                double[] result = new double[NumColumns];
-                for (int i = 0; i < NumRows; ++i)
-                {
-                    double scalar = vector[i];
-                    int rowStart = rowOffsets[i]; //inclusive
-                    int rowEnd = rowOffsets[i + 1]; //exclusive
-                    for (int k = rowStart; k < rowEnd; ++k)
-                    {
-                        result[colIndices[k]] += scalar * values[k];
-                    }
-                }
-                return Vector.CreateFromArray(result, false);
             }
             else
             {
-                Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
-                double[] result = new double[NumRows];
-                for (int i = 0; i < NumRows; ++i)
+                if (transposeThis)
                 {
-                    double dot = 0.0;
-                    int rowStart = rowOffsets[i]; //inclusive
-                    int rowEnd = rowOffsets[i + 1]; //exclusive
-                    for (int k = rowStart; k < rowEnd; ++k)
+                    Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
+                    Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
+                    // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
+                    double[] result = rhsVector.InternalData;
+                    for (int i = 0; i < NumRows; ++i)
                     {
-                        dot += values[k] * vector[colIndices[k]];
+                        double scalar = lhsVector[i];
+                        int rowStart = rowOffsets[i]; //inclusive
+                        int rowEnd = rowOffsets[i + 1]; //exclusive
+                        for (int k = rowStart; k < rowEnd; ++k)
+                        {
+                            result[colIndices[k]] += scalar * values[k];
+                        }
                     }
-                    result[i] = dot;
                 }
-                return Vector.CreateFromArray(result, false);
+                else
+                {
+                    Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+                    Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
+                    double[] result = rhsVector.InternalData;
+                    for (int i = 0; i < NumRows; ++i)
+                    {
+                        double dot = 0.0;
+                        int rowStart = rowOffsets[i]; //inclusive
+                        int rowEnd = rowOffsets[i + 1]; //exclusive
+                        for (int k = rowStart; k < rowEnd; ++k)
+                        {
+                            dot += values[k] * lhsVector[colIndices[k]];
+                        }
+                        result[i] = dot;
+                    }
+                }
             }
         }
 

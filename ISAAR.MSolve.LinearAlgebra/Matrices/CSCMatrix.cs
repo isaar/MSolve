@@ -623,7 +623,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector) return Multiply((Vector)vector, transposeThis);
+            if (vector is Vector dense) return Multiply(dense, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -639,11 +639,53 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
         public Vector Multiply(Vector vector, bool transposeThis = false)
         {
+            //TODO: this performs redundant dimension checks, including checking the transposeThis flag.
+            var result = Vector.CreateZero(transposeThis ? NumColumns : NumRows);
+            MultiplyIntoResult(vector, result, transposeThis);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = oper(A) * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
+        {
             if (transposeThis)
             {
                 // A^T * x = sum{row of A^T * x} = sum{col of A * x}
-                Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
-                double[] result = new double[NumColumns];
+                Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
+                double[] result = rhsVector.InternalData;
                 for (int j = 0; j < NumColumns; ++j)
                 {
                     double dot = 0.0;
@@ -651,20 +693,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     int colEnd = colOffsets[j + 1]; //exclusive
                     for (int k = colStart; k < colEnd; ++k)
                     {
-                        dot += values[k] * vector[rowIndices[k]];
+                        dot += values[k] * lhsVector[rowIndices[k]];
                     }
                     result[j] = dot;
                 }
-                return Vector.CreateFromArray(result, false);
             }
             else
             {
-                Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
+                Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
                 // A * x = linear combination of columns of A, with the entries of x as coefficients
-                double[] result = new double[NumRows];
+                double[] result = rhsVector.InternalData;
                 for (int j = 0; j < NumColumns; ++j)
                 {
-                    double scalar = vector[j];
+                    double scalar = lhsVector[j];
                     int colStart = colOffsets[j]; //inclusive
                     int colEnd = colOffsets[j + 1]; //exclusive
                     for (int k = colStart; k < colEnd; ++k)
@@ -672,7 +714,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                         result[rowIndices[k]] += scalar * values[k];
                     }
                 }
-                return Vector.CreateFromArray(result, false);
             }
         }
 

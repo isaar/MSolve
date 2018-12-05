@@ -675,9 +675,50 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of this.</exception>
         public Vector Multiply(Vector vector)
         {
-            int n = vector.Length;
-            Preconditions.CheckMultiplicationDimensions(NumColumns, n);
-            double[] result = new double[n];
+            //TODO: this performs redundant dimension checks
+            var result = Vector.CreateZero(NumColumns);
+            MultiplyIntoResult(vector, result);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = this * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = A * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == this.<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = A * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == this.<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector)
+        {
+            int n = lhsVector.Length;
+            Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
+            double[] result = rhsVector.InternalData;
             // A*x = (L+D)*x + U*x
             // (L+D)*x is easy, since the non zero entries of row i left of the diagonal are stored contiguously in column i and
             // we can easily take its dot product with the vector.
@@ -689,7 +730,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 int diagOffset = diagOffsets[j];
                 int columnTop = j - diagOffsets[j + 1] + diagOffset + 1;
-                double linearCombinationCoeff = vector[j];
+                double linearCombinationCoeff = lhsVector[j];
                 // Dot product of the (L+D) part of the row * vector
                 double dotLower = values[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
                 for (int i = j - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
@@ -698,7 +739,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
                     // Contribution of the L part of the row, which is identical to the stored column j.
                     // Thus A[j,i]=A[i,j] and sum(A[i,j]*x[j]) = sum(A[i,j]*x[i])
-                    dotLower += aij * vector[i];
+                    dotLower += aij * lhsVector[i];
 
                     // Contribution of the U part of the column: result += coefficient * column j of U. This will update all rows
                     // [columnTop, j) of the result vector need to be updated to account for the current column j. 
@@ -708,7 +749,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Debug.Assert(result[j] == 0);
                 result[j] = dotLower; // contribution of the (L+D) part of the row. 
             }
-            return Vector.CreateFromArray(result, false);
         }
 
         /// <summary>

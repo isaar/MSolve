@@ -361,7 +361,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return Multiply(casted, transposeThis);
+            if (vector is Vector dense) return Multiply(dense, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -377,12 +377,54 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     <paramref name="vector"/> is different than <see cref="Order"/> of this matrix.</exception>
         public Vector Multiply(Vector vector, bool transposeThis = false)
         {
+            //TODO: this performs redundant dimension checks
+            var result = Vector.CreateZero(Order);
+            MultiplyIntoResult(vector, result);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = oper(A) * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
+        {
             CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
-            Preconditions.CheckMultiplicationDimensions(Order, vector.Length);
-            double[] result = vector.CopyToArray();
+            Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
+
+            Array.Copy(lhsVector.InternalData, rhsVector.InternalData, Order);
             CBlas.Dtpmv(CBLAS_LAYOUT.CblasRowMajor, CBLAS_UPLO.CblasLower, transpose, CBLAS_DIAG.CblasNonUnit, Order,
-                ref data[0], ref result[0], 1);
-            return Vector.CreateFromArray(result, false);
+                ref data[0], ref rhsVector.InternalData[0], 1);
         }
 
         /// <summary>

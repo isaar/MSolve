@@ -276,7 +276,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) return Axpy(casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) return Axpy(dense, otherCoefficient);
             else return otherMatrix.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
         }
 
@@ -305,7 +305,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) AxpyIntoThis(casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) AxpyIntoThis(dense, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -383,7 +383,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (matrix is Matrix casted) return DoEntrywise(casted, binaryOperation);
+            if (matrix is Matrix dense) return DoEntrywise(dense, binaryOperation);
             else return matrix.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
         }
 
@@ -410,7 +410,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (matrix is Matrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (matrix is Matrix dense) DoEntrywiseIntoThis(dense, binaryOperation);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, matrix);
@@ -472,11 +472,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-            if (other is Matrix casted)
+            if (other is Matrix dense)
             {
                 //Check each dimension, rather than the lengths of the internal buffers
-                if (!Preconditions.AreSameMatrixDimensions(this, casted)) return false;
-                double[] otherData = casted.data;
+                if (!Preconditions.AreSameMatrixDimensions(this, dense)) return false;
+                double[] otherData = dense.data;
                 var comparer = new ValueComparer(tolerance);
                 for (int i = 0; i < this.data.Length; ++i)
                 {
@@ -679,7 +679,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) return LinearCombination(thisCoefficient, dense, otherCoefficient);
             else return otherMatrix.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
         }
 
@@ -710,7 +710,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) LinearCombinationIntoThis(thisCoefficient, dense, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -814,7 +814,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return Multiply(casted, transposeThis);
+            if (vector is Vector dense) return Multiply(dense, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -829,6 +829,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
         public Vector Multiply(Vector vector, bool transposeThis = false)
+        {
+            //TODO: this performs redundant dimension checks, including checking the transposeThis flag.
+            var result = Vector.CreateZero(transposeThis ? NumColumns : NumRows);
+            MultiplyIntoResult(vector, result, transposeThis);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = oper(A) * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
             int leftRows, leftCols;
             CBLAS_TRANSPOSE transpose;
@@ -845,39 +886,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 leftCols = NumColumns;
             }
 
-            Preconditions.CheckMultiplicationDimensions(leftCols, vector.Length);
-            double[] result = new double[leftRows];
+            Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
             CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
                 1.0, ref data[0], NumRows,
-                ref vector.InternalData[0], 1,
-                0.0, ref result[0], 1);
-            return Vector.CreateFromArray(result, false);
+                ref lhsVector.InternalData[0], 1,
+                0.0, ref rhsVector.InternalData[0], 1);
         }
-
-        //public void Multiply(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
-        //{
-        //    int leftRows, leftCols;
-        //    CBLAS_TRANSPOSE transpose;
-        //    if (transposeThis)
-        //    {
-        //        transpose = CBLAS_TRANSPOSE.CblasTrans;
-        //        leftRows = NumColumns;
-        //        leftCols = NumRows;
-        //    }
-        //    else
-        //    {
-        //        transpose = CBLAS_TRANSPOSE.CblasNoTrans;
-        //        leftRows = NumRows;
-        //        leftCols = NumColumns;
-        //    }
-
-        //    Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
-        //    Preconditions.CheckSystemSolutionDimensions(this, rhsVector);
-        //    CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
-        //        1.0, ref data[0], NumRows,
-        //        ref lhsVector.InternalData[0], 1,
-        //        0.0, ref rhsVector.InternalData[0], 1);
-        //}
 
         /// <summary>
         /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.
