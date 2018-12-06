@@ -405,6 +405,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public int CountNonZeros() => values.Length;
 
         /// <summary>
+        /// See <see cref="IVectorView.CreateZeroVectorWithSameFormat"/>
+        /// </summary>
+        public IVector CreateZeroVectorWithSameFormat() => new SparseVector(Length, new double[indices.Length], indices);
+
+        /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView otherVector, Func<double, double, double> binaryOperation)

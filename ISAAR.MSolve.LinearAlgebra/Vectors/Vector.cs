@@ -425,6 +425,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVectorView.CreateZeroVectorWithSameFormat"/>
+        /// </summary>
+        public IVector CreateZeroVectorWithSameFormat() => new Vector(new double[Length]);
+
+        /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)

@@ -36,6 +36,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         IVector Copy(bool copyIndexingData = false);
 
         /// <summary>
+        /// Initializes a new instance of the same type as this vector, with the exact same storage format and zero entries.
+        /// </summary>
+        IVector CreateZeroVectorWithSameFormat();
+
+        /// <summary>
         /// Returns an array with the entries of the vector. This is a deep copy operation. For vectors that do not explicitly 
         /// store zeros, the copy may be much larger than the original vector. 
         /// </summary>
