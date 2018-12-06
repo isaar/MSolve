@@ -136,13 +136,23 @@ namespace ISAAR.MSolve.Problems
         public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
         {
             int id = linearSystem.Subdomain.ID;
-            linearSystem.Matrix = this.Ks[id];
+
             if (linearSystem.IsMatrixFactorized) BuildKs();
+            IMatrix matrix = this.Ks[id];
 
-            linearSystem.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
-            linearSystem.Matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
+            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
+            matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
+            linearSystem.SetMatrix(this.Ks[id]);
 
-            linearSystem.IsMatrixModified = true;
+
+            //int id = linearSystem.Subdomain.ID;
+            //linearSystem.Matrix = this.Ks[id];
+            //if (linearSystem.IsMatrixFactorized) BuildKs();
+
+            //linearSystem.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
+            //linearSystem.Matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
+
+            //linearSystem.IsMatrixModified = true;
         }
 
         public void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
@@ -248,8 +258,11 @@ namespace ISAAR.MSolve.Problems
         public void CalculateMatrix(ILinearSystem_v2 linearSystem)
         {
             if (ks == null) BuildKs();
-            linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
-            linearSystem.IsMatrixModified = true;
+            linearSystem.SetMatrix(this.ks[linearSystem.Subdomain.ID]);
+
+            //if (ks == null) BuildKs();
+            //linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
+            //linearSystem.IsMatrixModified = true;
         }
 
         #endregion

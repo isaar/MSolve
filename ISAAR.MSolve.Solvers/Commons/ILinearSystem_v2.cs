@@ -49,13 +49,15 @@ namespace ISAAR.MSolve.Solvers.Commons
         ISubdomain_v2 Subdomain { get; } //TODO: delete this once subdomains have been abstracted.
         //int ID { get; } //TODO: delete this once subdomains have been abstracted.
 
-        //TODO: this is error prone. The implementation should manage the state, by restricting access to the matrix.
-        //When  a mutating method is called, observers (analyzers, solvers, providers) are notified  
+        HashSet<ISystemMatrixObserver> MatrixObservers { get; }
+
+        //TODO: these are error prone. The implementation should manage the state, by restricting access to the matrix.
+        //When a mutating method is called, observers (analyzers, solvers, providers) are notified  
         bool IsMatrixFactorized { get; set; }
-        bool IsMatrixModified { get; set; }
+        //bool IsMatrixModified { get; set; }
 
         //TODO: setters must be removed, since they force the implementation (or the solver) to cast
-        IMatrix Matrix { get; set; }
+        IMatrixView Matrix { get; }
         IVector RhsVector { get; set; }
         IVectorView Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
 
@@ -67,6 +69,8 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         //TODO: not sure about this one. Its current usecase should be refactored anyway
         void GetRhsFromSubdomain();
+
+        void SetMatrix(IMatrixView matrix);
 
         // This should probably be handled by the solver only. Analyzers and providers should not mess with the solution vector.
         //void SetSolutionToZero();

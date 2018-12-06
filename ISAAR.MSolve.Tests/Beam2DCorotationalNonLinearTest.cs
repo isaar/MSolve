@@ -218,13 +218,9 @@ namespace ISAAR.MSolve.Tests
             // Add nodal load values at the top nodes of the model
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
-            // Needed in order to make all the required data structures
-            //model.ConnectDataStructures();
-
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
-            //solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
@@ -232,7 +228,6 @@ namespace ISAAR.MSolve.Tests
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
             var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
@@ -242,7 +237,6 @@ namespace ISAAR.MSolve.Tests
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
 
             // Run the analysis
-            //parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 

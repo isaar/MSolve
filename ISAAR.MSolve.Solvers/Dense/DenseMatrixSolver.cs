@@ -23,6 +23,8 @@ namespace ISAAR.MSolve.Solvers.Dense
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly DenseSystem linearSystem;
+
+        private bool mustFactorize = true;
         private CholeskyFull factorizedMatrix;
 
         public DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer)
@@ -30,9 +32,11 @@ namespace ISAAR.MSolve.Solvers.Dense
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.model = model;
-            this.subdomain = model.Subdomains[0];
-            this.linearSystem = new DenseSystem(subdomain);
-            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            subdomain = model.Subdomains[0];
+
+            linearSystem = new DenseSystem(subdomain);
+            LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            linearSystem.MatrixObservers.Add(this);
 
             this.DofOrderer = dofOrderer;
         }
@@ -97,6 +101,12 @@ namespace ISAAR.MSolve.Solvers.Dense
 
         public void Initialize() {}
 
+        public void OnMatrixSetting()
+        {
+            mustFactorize = true;
+            factorizedMatrix = null;
+        }
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
@@ -107,12 +117,20 @@ namespace ISAAR.MSolve.Solvers.Dense
             else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this
 
-            if (linearSystem.IsMatrixModified)
+            if (mustFactorize)
             {
+                //TODO: the solver should inform the rest of the observers that the matrix has been overwritten by the factorization.
                 factorizedMatrix = linearSystem.Matrix.FactorCholesky();
-                linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
+                mustFactorize = false;
                 linearSystem.IsMatrixFactorized = true;
             }
+
+            //if (linearSystem.IsMatrixModified)
+            //{
+            //    factorizedMatrix = linearSystem.Matrix.FactorCholesky();
+            //    linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
+            //    linearSystem.IsMatrixFactorized = true;
+            //}
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }

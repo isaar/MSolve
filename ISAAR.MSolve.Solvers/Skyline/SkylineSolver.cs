@@ -36,6 +36,8 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
         private readonly SkylineSystem linearSystem;
+
+        private bool mustFactorize = true;
         private CholeskySkyline factorizedMatrix;
 
         public SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
@@ -43,9 +45,11 @@ namespace ISAAR.MSolve.Solvers.Skyline
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.model = model;
-            this.subdomain = model.Subdomains[0];
-            this.linearSystem = new SkylineSystem(subdomain);
-            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            subdomain = model.Subdomains[0];
+
+            linearSystem = new SkylineSystem(subdomain);
+            LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            linearSystem.MatrixObservers.Add(this);
 
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.DofOrderer = dofOrderer;
@@ -60,6 +64,12 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public void Initialize() { }
 
+        public void OnMatrixSetting()
+        {
+            mustFactorize = true;
+            factorizedMatrix = null;
+        }
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
@@ -69,12 +79,20 @@ namespace ISAAR.MSolve.Solvers.Skyline
             else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this
 
-            if (linearSystem.IsMatrixModified)
+            if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance);
-                linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
+                //TODO: the solver should inform the rest of the observers that the matrix has been overwritten by the factorization.
+                factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance); 
+                mustFactorize = false;
                 linearSystem.IsMatrixFactorized = true;
             }
+
+            //if (linearSystem.IsMatrixModified)
+            //{
+            //    factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance);
+            //    linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
+            //    linearSystem.IsMatrixFactorized = true;
+            //}
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }

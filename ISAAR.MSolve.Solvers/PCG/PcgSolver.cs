@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
@@ -27,6 +28,8 @@ namespace ISAAR.MSolve.Solvers.PCG
         private readonly CsrSystem linearSystem;
         private readonly PcgAlgorithm pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
+
+        private bool mustUpdatePreconditioner = true;
         private IPreconditioner preconditioner;
 
         public PcgSolver(IStructuralModel_v2 model, PcgAlgorithm pcgAlgorithm, IPreconditionerFactory preconditionerFactory, 
@@ -35,9 +38,12 @@ namespace ISAAR.MSolve.Solvers.PCG
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
             this.model = model;
-            this.subdomain = model.Subdomains[0];
-            this.linearSystem = new CsrSystem(subdomain);
-            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            subdomain = model.Subdomains[0];
+
+            linearSystem = new CsrSystem(subdomain);
+            LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            linearSystem.MatrixObservers.Add(this);
+
 
             this.pcgAlgorithm = pcgAlgorithm;
             this.preconditionerFactory = preconditionerFactory;
@@ -53,6 +59,12 @@ namespace ISAAR.MSolve.Solvers.PCG
 
         public void Initialize() { }
 
+        public void OnMatrixSetting()
+        {
+            mustUpdatePreconditioner = true;
+            preconditioner = null;
+        }
+
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.
         /// </summary>
@@ -62,11 +74,18 @@ namespace ISAAR.MSolve.Solvers.PCG
             else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             else linearSystem.Solution.Clear(); // In iterative algorithms we initialize the solution vector to 0.
 
-            if (linearSystem.IsMatrixModified)
+            if (mustUpdatePreconditioner)
             {
                 preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
-                linearSystem.IsMatrixModified = false;
+                mustUpdatePreconditioner = false;
+                linearSystem.IsMatrixFactorized = true;
             }
+
+            //if (linearSystem.IsMatrixModified)
+            //{
+            //    preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
+            //    linearSystem.IsMatrixModified = false;
+            //}
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0

@@ -130,9 +130,8 @@ namespace ISAAR.MSolve.Tests
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
-            solver.LinearSystems[subdomainID].Matrix =
-                SkylineMatrix.CreateFromArrays(2, new double[] { 6, 4, -2 }, new int[] { 0, 1, 3 }, true); // K = [6 -2; -2 4]
-            solver.LinearSystems[subdomainID].IsMatrixModified = true;
+            solver.LinearSystems[subdomainID].SetMatrix(
+                SkylineMatrix.CreateFromArrays(2, new double[] { 6, 4, -2 }, new int[] { 0, 1, 3 }, true)); // K = [6 -2; -2 4]
             solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(new double[] { 0, 10 });
 
             // Problem type
