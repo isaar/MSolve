@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         public CGStatistics Solve(IMatrixView matrix, IPreconditioner preconditioner, IVectorView rhs, IVector solution,
             bool initialGuessIsZero, Func<IVector> zeroVectorInitializer) //TODO: find a better way to handle the case x0=0
         {
-            return Solve(new ExplicitMatrixTransformation_v2(matrix), preconditioner, rhs, solution, initialGuessIsZero, 
+            return Solve(new ExplicitMatrixTransformation(matrix), preconditioner, rhs, solution, initialGuessIsZero, 
                 zeroVectorInitializer);
         }
 
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// <exception cref="NonMatchingDimensionsException">
         /// Thrown if <paramref name="rhs"/> or <paramref name="solution"/> violate the described constraints.
         /// </exception>
-        public CGStatistics Solve(ILinearTransformation_v2 matrix, IPreconditioner preconditioner, IVectorView rhs,
+        public CGStatistics Solve(ILinearTransformation matrix, IPreconditioner preconditioner, IVectorView rhs,
             IVector solution, bool initialGuessIsZero, Func<IVector> zeroVectorInitializer) //TODO: find a better way to handle the case x0=0
         {
             Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, solution.Length);
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             return SolveInternal(matrix, preconditioner, rhs, solution, res, zeroVectorInitializer);
         }
 
-        protected abstract CGStatistics SolveInternal(ILinearTransformation_v2 matrix, IPreconditioner preconditioner,
+        protected abstract CGStatistics SolveInternal(ILinearTransformation matrix, IPreconditioner preconditioner,
             IVectorView rhs, IVector solution, IVector residual, Func<IVector> zeroVectorInitializer);
     }
 }

@@ -12,6 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: remove Matlab/Fortran notation from comments
 //TODO: the orthogonalizer should not be private.
 //TODO: initialization should be done by a vector factory, instead of new Vector(..)
+//TODO: many vectors are continuously allocated and then GCed. This can now be fixed.
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
 {
     /// <summary>
@@ -32,7 +33,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         private readonly int numStoredOrthogonalDirections;
         private readonly bool printIterations;
         private readonly double residualTolerance;
-        private readonly Func<IVector> zeroVectorInitializer;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MinRes"/> with the specified settings and convergence criteria.
@@ -49,15 +49,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         /// <param name="printIterations">If true, the current solution vector x, the estimated condition number of the matrix A
         ///     and other statistics will be written to the console at each iteration of the algorithm, which will hinder 
         ///     performance.</param>
-        public MinRes(int maxIterations, double residualTolerance, Func<IVector> zeroVectorInitializer,
-            int numStoredOrthogonalDirections = 0, bool checkMatrixSymmetricity = false, bool printIterations = false)
+        public MinRes(int maxIterations, double residualTolerance, int numStoredOrthogonalDirections = 0,
+             bool checkMatrixSymmetricity = false, bool printIterations = false)
         {
             this.maxIterations = maxIterations;
             this.residualTolerance = residualTolerance;
             this.numStoredOrthogonalDirections = numStoredOrthogonalDirections;
             this.checkMatrixSymmetricity = checkMatrixSymmetricity;
             this.printIterations = printIterations;
-            this.zeroVectorInitializer = zeroVectorInitializer;
         }
 
         /// <summary>
@@ -70,7 +69,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
         public (IVector solution, MinresStatistics stats) Solve(IMatrixView matrix, IVector rhsVector, double shift = 0.0)
-            => SolveInternal(new MatrixTransformation(matrix), rhsVector, null, shift);
+            => SolveInternal(new ExplicitMatrixTransformation(matrix), rhsVector, null, shift);
 
         /// <summary>
         /// Solves the linear system (A - s*I) * x = b preconditioned by the matrix <paramref name="preconditioner"/>, 
@@ -86,7 +85,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
         public (IVector solution, MinresStatistics stats) Solve(IMatrixView matrix, IVector rhsVector, 
             IPreconditioner preconditioner, double shift = 0.0)
-            => SolveInternal(new MatrixTransformation(matrix), rhsVector, preconditioner, shift);
+            => SolveInternal(new ExplicitMatrixTransformation(matrix), rhsVector, preconditioner, shift);
 
         /// <summary>
         /// Solves the linear system (A - s*I) * x = b, where A = <paramref name="matrix"/>, b = <paramref name="rhsVector"/> 
@@ -97,7 +96,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         ///     <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> == 
         ///     <paramref name="matrix"/>.<see cref="IIndexable2D.NumRows"/>.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
-        public (IVector solution, MinresStatistics stats) Solve(ILinearTransformation<IVector> matrix, IVector rhsVector, 
+        public (IVector solution, MinresStatistics stats) Solve(ILinearTransformation matrix, IVector rhsVector, 
             double shift = 0.0)
             => SolveInternal(matrix, rhsVector, null, shift);
 
@@ -113,11 +112,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         /// <param name="preconditioner">A preconditioner matrix that has the same dimensions as A, but must be symmetric 
         ///     positive definite, contrary to A.</param>
         /// <param name="shift">A scalar parameter that controls the deviation of (A - s*I) * x = b from A * x = b.</param>
-        public (IVector solution, MinresStatistics stats) Solve(ILinearTransformation<IVector> matrix, IVector rhsVector, 
+        public (IVector solution, MinresStatistics stats) Solve(ILinearTransformation matrix, IVector rhsVector, 
             IPreconditioner preconditioner,  double shift = 0.0) 
             => SolveInternal(matrix, rhsVector, preconditioner, shift);
 
-        private (IVector solution, MinresStatistics stats) SolveInternal(ILinearTransformation<IVector> A, IVector b, 
+        private (IVector solution, MinresStatistics stats) SolveInternal(ILinearTransformation A, IVector b, 
             IPreconditioner M, double shift)
         {
             /// Initialize.
@@ -142,7 +141,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
             if (M == null) y = b.Copy();
             else
             {
-                y = zeroVectorInitializer();
+                y = b.CreateZeroVectorWithSameFormat();
                 M.SolveLinearSystem(b, y);
             }
                 
@@ -208,11 +207,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
                 /// -----------------------------------------------------------------
 
                 double s = 1.0 / beta;    // Normalize previous vector(in y).
-                IVector v = y; // No need to copy: y will point to another vector shortly after this
+                IVector v = y.Copy();
                 v.ScaleIntoThis(s); // v = vk if P = I
                 orthogonalizer.StoreDirection(v); // Store old v for local reorthogonalization of new v, if it is enabled. 
 
-                y = ShiftedMatrixVectorMult(A, v, shift); // shift is 0 otherwise solving A - shift*I
+                ShiftedMatrixVectorMult(A, v, y, shift); // shift is 0 otherwise solving A - shift*I
 
                 //WARNING: the following works if itn is initialized and updated as in the matlab script
                 if (itn >= 2) y.AxpyIntoThis(r1, - beta / oldb); // normalization is the division r1 by oldb 
@@ -363,10 +362,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
             }
         }
 
-        private static void CheckSymmetricMatrix(ILinearTransformation<IVector> A, IVector y, IVector r1)
+        private static void CheckSymmetricMatrix(ILinearTransformation A, IVector y, IVector r1)
         {
-            IVector w = A.Multiply(y);
-            IVector r2 = A.Multiply(w);
+            IVector w = y.CreateZeroVectorWithSameFormat();
+            A.Multiply(y, w);
+            IVector r2 = y.CreateZeroVectorWithSameFormat();
+            A.Multiply(w, r2);
             double s = w.DotProduct(w);
             double t = y.DotProduct(r2);
             double z = Math.Abs(s - t);
@@ -376,7 +377,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
 
         private void CheckSymmetricPreconditioner(IPreconditioner M, IVector y, IVector r1)
         {
-            IVector r2 = zeroVectorInitializer();
+            IVector r2 = y.CreateZeroVectorWithSameFormat();
             M.SolveLinearSystem(y, r2);
             double s = y.DotProduct(y);
             double t = r1.DotProduct(r2);
@@ -388,18 +389,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
         /// <summary>
         /// Calculates (A - shift * I) * v = A*v - shift*v
         /// </summary>
-        private static IVector ShiftedMatrixVectorMult(ILinearTransformation<IVector> matrix, IVector vector, double shift)
+        private static void ShiftedMatrixVectorMult(ILinearTransformation matrix, IVectorView x, IVector y, double shift)
         {
-            if (shift == 0.0) return matrix.Multiply(vector);
+            //TODO: this should just be implemented as a wrapping LinearTransformation
+            if (shift == 0.0) matrix.Multiply(x, y);
             else
             {
-                IVector result = matrix.Multiply(vector);
-                result.AxpyIntoThis(vector, shift);
-                return result;
+                matrix.Multiply(x, y);
+                y.AxpyIntoThis(x, -shift);
             }
         }
 
-        private static void WriteIterationData(ILinearTransformation<IVector> A, IVector b, double shift, IVector x, int iter,
+        private static void WriteIterationData(ILinearTransformation A, IVector b, double shift, IVector x, int iter,
             int maxIterations, double test1, double test2, double Anorm, double Acond, double gbar, double qrnorm, 
             int istop, double epsx, double epsr)
         {
@@ -422,9 +423,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
                 bool debug = false;
                 if (debug)
                 {
-                    // Print true Arnorm. This works only if no preconditioning
-                    IVector vv = b.Subtract(ShiftedMatrixVectorMult(A, x, shift));   // vv = b - (A - shift * I) * x
-                    IVector ww = ShiftedMatrixVectorMult(A, vv, shift);      // ww = (A - shift * I) * vv = "Ar"
+                    // Print true Arnorm. This works only if there is no preconditioning
+
+                    // vv = b - (A - shift * I) * x
+                    IVector vv = b.CreateZeroVectorWithSameFormat();
+                    ShiftedMatrixVectorMult(A, x, vv, shift);
+                    vv.LinearCombinationIntoThis(-1.0, b, 1.0);
+
+                    // ww = (A - shift * I) * vv = "Ar"
+                    IVector ww = b.CreateZeroVectorWithSameFormat();
+                    ShiftedMatrixVectorMult(A, vv, ww, shift);
                     double trueArnorm = ww.Norm2();
                     Console.WriteLine();
                     Console.WriteLine($"Arnorm = {Anorm}  - True |Ar| = {trueArnorm}");

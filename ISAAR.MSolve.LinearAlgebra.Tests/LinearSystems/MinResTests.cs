@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var comparer = new MatrixComparer(1E-4);
             double residualTolerance = 1e-8;
             (Matrix A, Vector b, Vector xExpected, IPreconditioner M) = DiagonalIndefinite.BuildIndefiniteSystem(20);
-            var minres = new MinRes(A.NumRows, residualTolerance, () => Vector.CreateZero(b.Length), 0, false, false);
+            var minres = new MinRes(A.NumRows, residualTolerance, 0, false, false);
             (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
         }
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
-            var minres = new MinRes(n, 1e-10, () => Vector.CreateZero(b.Length), 0, false, false);
+            var minres = new MinRes(n, 1e-10, 0, false, false);
             (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
         }
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
             var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
             var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
-            var minres = new MinRes(n, 1e-10, () => Vector.CreateZero(b.Length), 0, false, false);
+            var minres = new MinRes(n, 1e-10, 0, false, false);
             (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
 

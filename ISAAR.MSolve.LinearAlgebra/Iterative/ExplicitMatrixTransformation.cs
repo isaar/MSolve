@@ -10,31 +10,31 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative
 {
     /// <summary>
     /// Wrapper for a matrix class so that it can be used by iterative algorithms, which operate on 
-    /// <see cref="ILinearTransformation_v2"/>
+    /// <see cref="ILinearTransformation"/>
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ExplicitMatrixTransformation_v2 : ILinearTransformation_v2
+    public class ExplicitMatrixTransformation : ILinearTransformation
     {
         private readonly IMatrixView matrix;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ExplicitMatrixTransformation_v2"/> that wraps the provided <paramref name="matrix"/>.
+        /// Initializes a new instance of <see cref="ExplicitMatrixTransformation"/> that wraps the provided <paramref name="matrix"/>.
         /// </summary>
         /// <param name="matrix">The matrix that will be multiplied with vectors during the iterative algorithms.</param>
-        public ExplicitMatrixTransformation_v2(IMatrixView matrix) => this.matrix = matrix;
+        public ExplicitMatrixTransformation(IMatrixView matrix) => this.matrix = matrix;
 
         /// <summary>
-        /// See <see cref="ILinearTransformation_v2.NumColumns"/>
+        /// See <see cref="ILinearTransformation.NumColumns"/>
         /// </summary>
         public int NumColumns => matrix.NumColumns;
 
         /// <summary>
-        /// See <see cref="ILinearTransformation_v2.NumRows"/>
+        /// See <see cref="ILinearTransformation.NumRows"/>
         /// </summary>
         public int NumRows => matrix.NumRows;
 
         /// <summary>
-        /// See <see cref="ILinearTransformation_v2.Multiply(IVectorView, IVector)"/>
+        /// See <see cref="ILinearTransformation.Multiply(IVectorView, IVector)"/>
         /// </summary>
         public void Multiply(IVectorView lhsVector, IVector rhsVector) => matrix.MultiplyIntoResult(lhsVector, rhsVector, false);
     }

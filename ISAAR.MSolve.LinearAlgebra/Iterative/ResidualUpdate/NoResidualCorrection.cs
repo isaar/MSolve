@@ -11,9 +11,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
     public class NoResidualCorrection : IResidualCorrection
     {
         /// <summary>
-        /// See <see cref="IResidualCorrection.Initialize(ILinearTransformation_v2, IVectorView)"/>.
+        /// See <see cref="IResidualCorrection.Initialize(ILinearTransformation, IVectorView)"/>.
         /// </summary>
-        public void Initialize(ILinearTransformation_v2 matrix, IVectorView rhs)
+        public void Initialize(ILinearTransformation matrix, IVectorView rhs)
         {
             // do nothing
         }

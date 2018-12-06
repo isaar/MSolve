@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         /// <param name="initialResidualDotProduct">
         /// The initial dot product of the residual vector, with a vector specified by the iterative algorithm.
         /// </param>
-        void Initialize(ILinearTransformation_v2 matrix, IVectorView rhsVector, double residualTolerance, 
+        void Initialize(ILinearTransformation matrix, IVectorView rhsVector, double residualTolerance, 
             double initialResidualDotProduct);
     }
 }

@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             }
         }
 
-        protected override CGStatistics SolveInternal(ILinearTransformation_v2 matrix, IPreconditioner preconditioner,
+        protected override CGStatistics SolveInternal(ILinearTransformation matrix, IPreconditioner preconditioner,
             IVectorView rhs, IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);

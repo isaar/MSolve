@@ -10,6 +10,6 @@
         /// Returns the max number of iterations appropriate for the specified <paramref name="matrix"/> of the linear system.
         /// </summary>
         /// <param name="matrix">The linear system's matrix. Must be square matrix.</param>
-        int GetMaxIterationsForMatrix(ILinearTransformation_v2 matrix);
+        int GetMaxIterationsForMatrix(ILinearTransformation matrix);
     }
 }

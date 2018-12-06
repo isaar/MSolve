@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// Thrown if <paramref name="rhs"/> or <paramref name="solution"/> violate the described constraints.
         /// </exception>
         public CGStatistics Solve(IMatrixView matrix, IVectorView rhs, IVector solution, bool initialGuessIsZero) //TODO: find a better way to handle the case x0=0
-            => Solve(new ExplicitMatrixTransformation_v2(matrix), rhs, solution, initialGuessIsZero);
+            => Solve(new ExplicitMatrixTransformation(matrix), rhs, solution, initialGuessIsZero);
 
         /// <summary>
         /// Solves the linear system A * x = b, where A = <paramref name="matrix"/> and b = <paramref name="rhs"/>.
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// <exception cref="NonMatchingDimensionsException">
         /// Thrown if <paramref name="rhs"/> or <paramref name="solution"/> violate the described constraints.
         /// </exception>
-        public CGStatistics Solve(ILinearTransformation_v2 matrix, IVectorView rhs, IVector solution, bool initialGuessIsZero) //TODO: find a better way to handle the case x0=0
+        public CGStatistics Solve(ILinearTransformation matrix, IVectorView rhs, IVector solution, bool initialGuessIsZero) //TODO: find a better way to handle the case x0=0
         {
             //TODO: these will also be checked by the matrix vector multiplication.
             Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, solution.Length);
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             return SolveInternal(matrix, rhs, solution, residual);
         }
 
-        private CGStatistics SolveInternal(ILinearTransformation_v2 matrix, IVectorView rhs, IVector solution, IVector residual)
+        private CGStatistics SolveInternal(ILinearTransformation matrix, IVectorView rhs, IVector solution, IVector residual)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
 

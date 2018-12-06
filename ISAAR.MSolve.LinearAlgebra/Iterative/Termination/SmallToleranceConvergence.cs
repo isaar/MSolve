@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
     public class SmallToleranceConvergence: IResidualConvergence
     {
         private double limitDotResidual;
-        private ILinearTransformation_v2 matrix;
+        private ILinearTransformation matrix;
         private IVectorView rhs;
 
         /// <summary>
@@ -43,9 +43,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         }
 
         /// <summary>
-        /// See <see cref="IResidualConvergence.Initialize(ILinearTransformation_v2, IVectorView, double, double)"/>.
+        /// See <see cref="IResidualConvergence.Initialize(ILinearTransformation, IVectorView, double, double)"/>.
         /// </summary>
-        public void Initialize(ILinearTransformation_v2 matrix, IVectorView rhsVector, double residualTolerance,
+        public void Initialize(ILinearTransformation matrix, IVectorView rhsVector, double residualTolerance,
             double initialResidualDotProduct)
         {
             this.matrix = matrix;

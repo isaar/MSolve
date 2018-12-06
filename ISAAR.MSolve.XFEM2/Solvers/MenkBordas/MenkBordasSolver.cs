@@ -208,7 +208,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             /// Use an iterative algorithm to solve the symmetric indefinite system
             watch.Restart();
             IVector precRhs = precMatrix.PreconditionerTimesVector(rhs, true);
-            var minres = new MinRes(maxIterations, tolerance, () => Vector.CreateZero(precRhs.Length), 0, false, false);
+            var minres = new MinRes(maxIterations, tolerance, 0, false, false);
             (IVector precSolution, MinresStatistics stats) = minres.Solve(precMatrix, precRhs);
             Solution = precMatrix.PreconditionerTimesVector(precSolution, false);
             watch.Stop();
@@ -255,8 +255,9 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             Matrix denseK = K.CopyToDense();
 
             Vector yExpected = denseK * x;
-            Vector yComputed = K.Multiply(x);
-            double error = (yComputed - yExpected).Norm2() / yExpected.Norm2();
+            IVector yComputed = yExpected.CreateZeroVectorWithSameFormat();
+            K.Multiply(x, yComputed);
+            double error = yComputed.Subtract(yExpected).Norm2() / yExpected.Norm2();
         }
 
         //private static void CheckPrecondMultiplication(MenkBordasSystem sys)

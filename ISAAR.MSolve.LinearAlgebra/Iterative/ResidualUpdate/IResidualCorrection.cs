@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
         /// </summary>
         /// <param name="matrix">The linear system's matrix.</param>
         /// <param name="rhs">The linear system's right hand side vector.</param>
-        void Initialize(ILinearTransformation_v2 matrix, IVectorView rhs);
+        void Initialize(ILinearTransformation matrix, IVectorView rhs);
 
         /// <summary>
         /// Updates the residual vector and returns true if a correction was necessary. Correcting the residual vector means

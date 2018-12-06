@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 
@@ -14,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
     /// An object of this class is responsible for the necessary multiplications used in the Menk-Bordas preconditioning method.
     /// It is not responsible for managing its fields, which are injected during construction.
     /// </summary>
-    class MenkBordasPrecondMatrix : ILinearTransformation<IVector>
+    class MenkBordasPrecondMatrix : ILinearTransformation
     {
         private readonly MenkBordasSystem.Dimensions dim;
         private readonly IReadOnlyDictionary<XSubdomain2D, CsrMatrix> Kes;
@@ -35,9 +32,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.LQ = LQ;
         }
 
-        public IVector Multiply(IVector x)
+        public int NumColumns => dim.NumDofsAll;
+
+        public int NumRows => dim.NumDofsAll;
+
+        public void Multiply(IVectorView x, IVector y)
         {
-            var y = Vector.CreateZero(dim.NumDofsAll);
+            y = Vector.CreateZero(dim.NumDofsAll);
             var xs = ((Vector)x).GetSubvector(0, dim.NumDofsStd);
 
             // ys = Ps^T * Kss * Ps * xs
@@ -67,10 +68,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 // ye = inv(Ue^T) * Kes * Ps * xs + I * xe
                 Vector ye = Pe[sub].ForwardSubstitution(Kes[sub].Multiply(Ps.PreconditionerTimesVector(xs, false)));
                 ye.AddIntoThis(xe);
-                y.AddSubvector(ye, dim.SubdomainStarts[sub]);
+                //y.AddSubvector(ye, dim.SubdomainStarts[sub]);
+                y.AddSubvectorIntoThis(dim.SubdomainStarts[sub], ye, 0, ye.Length);
             }
             y.CopySubvectorFrom(0, ys, 0, ys.Length);
-            return y;
         }
 
         public IVector PreconditionerTimesVector(IVector x, bool transposePreconditioner)

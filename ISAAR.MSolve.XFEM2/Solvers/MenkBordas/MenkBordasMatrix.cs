@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: remove MenkBordasVector, MenkBordasCG, MenkBordasMINRES
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasMatrix: ILinearTransformation<Vector>
+    class MenkBordasMatrix: ILinearTransformation
     {
         public readonly MenkBordasSystem.Dimensions dim;
         public readonly CsrMatrix Kss;
@@ -30,6 +30,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.Kse = Kse;
             this.B = B;
         }
+
+        public int NumColumns => dim.NumDofsAll;
+
+        public int NumRows => dim.NumDofsAll;
 
         public Matrix CopyToDense()
         {
@@ -83,9 +87,11 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return K;
         }
 
-        public Vector Multiply(Vector x)
+        public void Multiply(IVectorView x, IVector y)
+            => Multiply((Vector)x, (Vector)y);
+
+        public Vector Multiply(Vector x, Vector y)
         {
-            var y = Vector.CreateZero(dim.NumDofsAll);
             var xs = x.GetSubvector(0, dim.NumDofsStd);
             var xc = x.GetSubvector(dim.EquationsStart, dim.NumDofsAll);
             Vector ys = Kss.Multiply(xs); // Rows correspond to global standard dofs

@@ -13,14 +13,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
     /// </summary>
     public class PeriodicResidualCorrection: IResidualCorrection
     {
-        private ILinearTransformation_v2 matrix;
+        private ILinearTransformation matrix;
         private int numIterationsBeforeCorrection; 
         private IVectorView rhs;
 
         /// <summary>
-        /// See <see cref="IResidualCorrection.Initialize(ILinearTransformation_v2, IVectorView)"/>.
+        /// See <see cref="IResidualCorrection.Initialize(ILinearTransformation, IVectorView)"/>.
         /// </summary>
-        public void Initialize(ILinearTransformation_v2 matrix, IVectorView rhs)
+        public void Initialize(ILinearTransformation matrix, IVectorView rhs)
         {
             this.matrix = matrix;
             this.rhs = rhs;
