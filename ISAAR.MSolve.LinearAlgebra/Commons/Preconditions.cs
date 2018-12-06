@@ -3,6 +3,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: These should be Debug only
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
@@ -149,6 +150,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         {
             if (matrix.NumRows != matrix.NumColumns) throw new NonMatchingDimensionsException(
                 $"The matrix must be square, but was {matrix.NumRows}-by-{matrix.NumColumns}");
+        }
+
+        public static void CheckSquare(int numRows, int numColumns)
+        {
+            if (numRows != numColumns) throw new NonMatchingDimensionsException(
+                $"The matrix must be square, but was {numRows}-by-{numColumns}");
         }
 
         public static void CheckSubvectorDimensions(IIndexable1D vector, int startIndex, int subvectorLength)

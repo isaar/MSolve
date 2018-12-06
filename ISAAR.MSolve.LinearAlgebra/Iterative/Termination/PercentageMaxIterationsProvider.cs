@@ -1,6 +1,5 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
 {
@@ -29,11 +28,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         }
 
         /// <summary>
-        /// See <see cref="IMaxIterationsProvider.GetMaxIterationsForMatrix(IIndexable2D)"/>
+        /// See <see cref="IMaxIterationsProvider.GetMaxIterationsForMatrix(ILinearTransformation_v2)"/>
         /// </summary>
-        public int GetMaxIterationsForMatrix(IIndexable2D matrix)
+        public int GetMaxIterationsForMatrix(ILinearTransformation_v2 matrix)
         {
-            Preconditions.CheckSquare(matrix);
+            Preconditions.CheckSquare(matrix.NumRows, matrix.NumColumns);
             if (maxIterationsOverMatrixOrder == 1.0) return matrix.NumRows;
             else return (int)Math.Ceiling(maxIterationsOverMatrixOrder * matrix.NumRows);
         }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: once the problem with small tolerance has occured once, can we assume that it will always happen? Then we could avoid
@@ -18,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
     public class SmallToleranceConvergence: IResidualConvergence
     {
         private double limitDotResidual;
-        private IMatrixView matrix;
+        private ILinearTransformation_v2 matrix;
         private IVectorView rhs;
 
         /// <summary>
@@ -34,9 +32,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
             if (withinTolerance && (!isResidualCorrected)) // The residual may already have been corrected
             {
                 // Exact residual: r = b - A * x
-                residualVector.CopyFrom(rhs);
-                residualVector.SubtractIntoThis(matrix.Multiply(solutionVector));
-                //residualVector = rhs.Subtract(matrix.MultiplyRight(solutionVector)); //This allocates a new vector r, copies b and GCs the existing r.
+                ExactResidual.Calculate(matrix, rhs, solutionVector, residualVector);
 
                 // Recalculate the dot product of the residual vector, as the iterative algorithm would.
                 residualDotProduct = residualDotCalculation(residualVector);
@@ -47,9 +43,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         }
 
         /// <summary>
-        /// See <see cref="IResidualConvergence.Initialize(IMatrixView, IVectorView, double, double)"/>.
+        /// See <see cref="IResidualConvergence.Initialize(ILinearTransformation_v2, IVectorView, double, double)"/>.
         /// </summary>
-        public void Initialize(IMatrixView matrix, IVectorView rhsVector, double residualTolerance,
+        public void Initialize(ILinearTransformation_v2 matrix, IVectorView rhsVector, double residualTolerance,
             double initialResidualDotProduct)
         {
             this.matrix = matrix;

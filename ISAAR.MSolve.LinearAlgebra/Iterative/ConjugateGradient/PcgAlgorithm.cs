@@ -2,7 +2,6 @@
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Needs Builder pattern
@@ -26,8 +25,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             this.betaCalculation = betaCalculation;
         }
 
-        protected override CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVectorView rhs, 
-            IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
+        protected override CGStatistics SolveInternal(ILinearTransformation_v2 matrix, IPreconditioner preconditioner,
+            IVectorView rhs, IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
 
@@ -50,14 +49,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             residualCorrection.Initialize(matrix, rhs);
             residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
 
-            //TODO: Also allocate memory once here, instead of allocating/deallocating it continuously.
-            // Declare the vector q = A*d.  
-            IVector matrixTimesDirection;
+            // Allocate memory for other vectors, which will be reused during each iteration
+            IVector matrixTimesDirection = rhs.CreateZeroVectorWithSameFormat();
 
             for (int iteration = 0; iteration < maxIterations; ++iteration)
             {
                 // q = A * d
-                matrixTimesDirection = matrix.Multiply(direction); //TODO: this allocates a new vector and GCs the existing one
+                matrix.Multiply(direction, matrixTimesDirection);
 
                 // α = δnew / (d * q)
                 double stepSize = dotPreconditionedResidualNew / direction.DotProduct(matrixTimesDirection);

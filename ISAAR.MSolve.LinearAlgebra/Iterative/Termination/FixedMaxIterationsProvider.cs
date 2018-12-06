@@ -1,5 +1,4 @@
 ﻿using System;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
 {
@@ -23,8 +22,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         }
 
         /// <summary>
-        /// See <see cref="IMaxIterationsProvider.GetMaxIterationsForMatrix(IIndexable2D)"/>.
+        /// See <see cref="IMaxIterationsProvider.GetMaxIterationsForMatrix(ILinearTransformation_v2)"/>.
         /// </summary>
-        public int GetMaxIterationsForMatrix(IIndexable2D matrix) => maxIterations;
+        public int GetMaxIterationsForMatrix(ILinearTransformation_v2 matrix) => maxIterations;
     }
 }

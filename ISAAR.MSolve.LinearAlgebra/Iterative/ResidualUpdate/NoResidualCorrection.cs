@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
@@ -14,9 +11,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
     public class NoResidualCorrection : IResidualCorrection
     {
         /// <summary>
-        /// See <see cref="IResidualCorrection.Initialize(IMatrixView, IVectorView)"/>.
+        /// See <see cref="IResidualCorrection.Initialize(ILinearTransformation_v2, IVectorView)"/>.
         /// </summary>
-        public void Initialize(IMatrixView matrix, IVectorView rhs)
+        public void Initialize(ILinearTransformation_v2 matrix, IVectorView rhs)
         {
             // do nothing
         }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: This strategy can modify(correct) r, r*r (CG), s*r (PCG). However that s was computed by preconditioning the uncorrected
@@ -57,6 +54,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         /// <param name="initialResidualDotProduct">
         /// The initial dot product of the residual vector, with a vector specified by the iterative algorithm.
         /// </param>
-        void Initialize(IMatrixView matrix, IVectorView rhsVector, double residualTolerance, double initialResidualDotProduct);
+        void Initialize(ILinearTransformation_v2 matrix, IVectorView rhsVector, double residualTolerance, 
+            double initialResidualDotProduct);
     }
 }
