@@ -9,8 +9,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.FEM.Providers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
@@ -26,7 +24,7 @@ namespace ISAAR.MSolve.Problems
         private Dictionary<int, IMatrix> ms, cs, ks;
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
-        private IReadOnlyList<ILinearSystem_v2> linearSystems;
+        private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
         private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
 
@@ -153,7 +151,7 @@ namespace ISAAR.MSolve.Problems
         public IDictionary<int, IVector> GetAccelerationsOfTimeStep(int timeStep)
         {
             var d = new Dictionary<int, IVector>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 d.Add(linearSystem.Subdomain.ID, linearSystem.CreateZeroVector());
             }
@@ -207,7 +205,7 @@ namespace ISAAR.MSolve.Problems
         {
             var d = new Dictionary<int, IVector>();
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 d.Add(linearSystem.Subdomain.ID, linearSystem.CreateZeroVector());
             }
@@ -222,7 +220,7 @@ namespace ISAAR.MSolve.Problems
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
-            foreach (var l in linearSystems)
+            foreach (var l in linearSystems.Values)
             {
                 // This causes a redundant(?) copy and forces the provider to go through each subdomain.
                 //l.Value.RhsVector.CopyFrom(Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces, false));

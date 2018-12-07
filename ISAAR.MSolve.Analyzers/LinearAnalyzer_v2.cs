@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class LinearAnalyzer_v2 : IChildAnalyzer
     {
-        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
+        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly ISolver_v2 solver;
 
         public LinearAnalyzer_v2(ISolver_v2 solver)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -9,14 +10,14 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class LoadControlAnalyzer_v2 : NonLinearAnalyzerBase
     {
-        private LoadControlAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, 
-            INonLinearSubdomainUpdater_v2[] subdomainUpdaters,
+        private LoadControlAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
+            IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> subdomainUpdaters,
             int numIncrements, int maxIterationsPerIncrement, int numIterationsForMatrixRebuild, double residualTolerance) : 
             base(model, solver, provider, subdomainUpdaters, numIncrements, maxIterationsPerIncrement, 
                 numIterationsForMatrixRebuild, residualTolerance)
         {
         }
-
+        
         public override void Solve()
         {
             InitializeLogs();

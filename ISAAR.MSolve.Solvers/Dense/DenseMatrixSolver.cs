@@ -32,14 +32,14 @@ namespace ISAAR.MSolve.Solvers.Dense
             this.model = model;
             this.subdomain = model.Subdomains[0];
             this.linearSystem = new DenseSystem(subdomain);
-            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
 
             this.DofOrderer = dofOrderer;
         }
 
         public IDofOrderer DofOrderer { get; }
 
-        public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
         {

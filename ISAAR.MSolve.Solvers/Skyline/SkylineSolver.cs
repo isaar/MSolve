@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             this.model = model;
             this.subdomain = model.Subdomains[0];
             this.linearSystem = new SkylineSystem(subdomain);
-            this.LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            this.LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
 
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.DofOrderer = dofOrderer;
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
         public IDofOrderer DofOrderer { get; }
 
-        public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
