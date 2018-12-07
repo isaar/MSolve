@@ -257,9 +257,9 @@ namespace ISAAR.MSolve.FEM.Elements
             double c2 = c * c;
             double s = (element.INodes[1].Y - element.INodes[0].Y) / L;
             double s2 = s * s;
-            double dAL420 = Density * SectionArea * L / 420;
+            double dAL420 = density * beamSection.Area * L / 420;
 
-            double totalMass = Density * SectionArea * L;
+            double totalMass = density * beamSection.Area * L;
             double totalMassOfDiagonalTerms = 2 * dAL420 * (140 * c2 + 156 * s2) + 2 * dAL420 * (140 * s2 + 156 * c2);
             double scale = totalMass / totalMassOfDiagonalTerms;
 

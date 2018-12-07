@@ -130,6 +130,9 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000.0;
             int totalNodes = 2;
 
+            // Newton-Raphson parameters
+            int increments = 100;
+
             // Newmark Dynamic parameters
             double alpha = 0.25;
             double delta = 0.50;
@@ -201,7 +204,6 @@ namespace ISAAR.MSolve.Tests
             var linearSystemsArray = new[] { linearSystems[0] };
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int increments = 10;
             int totalDOFs = model.TotalDOFs;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs);
