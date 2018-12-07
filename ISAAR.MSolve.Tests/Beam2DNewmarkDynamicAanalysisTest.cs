@@ -131,13 +131,13 @@ namespace ISAAR.MSolve.Tests
             int totalNodes = 2;
 
             // Newton-Raphson parameters
-            int increments = 100;
+            int increments = 10;
 
             // Newmark Dynamic parameters
             double alpha = 0.25;
             double delta = 0.50;
             double timeStep = 1.0;
-            double totalTime = 100;
+            double totalTime = 10.0;
 
             // Material Definition
             ElasticMaterial material = new ElasticMaterial()
@@ -209,8 +209,8 @@ namespace ISAAR.MSolve.Tests
             provider, increments, totalDOFs);
 
             // Choose parent analyzer -> Parent: Static or Dynamic
-            //StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, alpha, delta, timeStep, totalTime);
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, alpha, delta, timeStep, totalTime);
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
