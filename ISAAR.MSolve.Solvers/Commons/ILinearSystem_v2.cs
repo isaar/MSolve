@@ -24,6 +24,7 @@ namespace ISAAR.MSolve.Solvers.Commons
     // and provider observe the LinearSystem. When someone alters e.g. the matrix, all the others will be notified to manage 
     // their own memory. This system also allows communicating and approving the clearing requests. However it would be very 
     // inefficient to alert all observers everytime a setter is called, therefore access to mutating methods should be controlled.
+    // An alternative would be to use the State pattern.
     // 4) To keep analyzers and providers non-generic, LinearSystem does not provide setters that operate on the interface vectors. 
     // Instead it must provide methods to initialize zero vectors (or scalar * ones()). Currently the vectors created inside the 
     // analyzer and provider are all of type Vector. However that is restricting, inefficient and will cause problems once 
@@ -46,20 +47,20 @@ namespace ISAAR.MSolve.Solvers.Commons
     // matrices with the same sparsity pattern.
     public interface ILinearSystem_v2
     {
-        ISubdomain_v2 Subdomain { get; } //TODO: delete this once subdomains have been abstracted.
-        //int ID { get; } //TODO: delete this once subdomains have been abstracted.
+        //TODO: these are error prone. The implementation should manage the state, by restricting access to the matrix.
+        //When a mutating method is called, observers (analyzers, solvers, providers) are notified  
+        bool IsMatrixOverwrittenBySolver { get; }
 
         HashSet<ISystemMatrixObserver> MatrixObservers { get; }
 
-        //TODO: these are error prone. The implementation should manage the state, by restricting access to the matrix.
-        //When a mutating method is called, observers (analyzers, solvers, providers) are notified  
-        bool IsMatrixFactorized { get; set; }
-        //bool IsMatrixModified { get; set; }
+        ISubdomain_v2 Subdomain { get; } //TODO: delete this once subdomains have been abstracted.
 
-        //TODO: setters must be removed, since they force the implementation (or the solver) to cast
         IMatrixView Matrix { get; }
+        IVectorView Solution { get; }
+
+        //TODO: setters should be removed, since they force the implementation (or the solver) to cast. Currently there is no
+        //      way around it
         IVector RhsVector { get; set; }
-        IVectorView Solution { get; } //TODO: this should be IVectorView, however NewtonRaphsonAnalyzer insists on mutating the solution vector.
 
         /// <summary>
         /// The freedom degrees must be ordered before this method can be called. Attention when the freedom degrees change 
@@ -70,9 +71,8 @@ namespace ISAAR.MSolve.Solvers.Commons
         //TODO: not sure about this one. Its current usecase should be refactored anyway
         void GetRhsFromSubdomain();
 
+        //TODO: setters should be removed, since they force the implementation (or the solver) to cast. Currently there is no
+        //      way around it
         void SetMatrix(IMatrixView matrix);
-
-        // This should probably be handled by the solver only. Analyzers and providers should not mess with the solution vector.
-        //void SetSolutionToZero();
     }
 }

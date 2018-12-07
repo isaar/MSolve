@@ -76,23 +76,15 @@ namespace ISAAR.MSolve.Solvers.Skyline
         public void Solve()
         {
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
+            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this
 
             if (mustFactorize)
             {
-                //TODO: the solver should inform the rest of the observers that the matrix has been overwritten by the factorization.
                 factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance); 
                 mustFactorize = false;
-                linearSystem.IsMatrixFactorized = true;
+                linearSystem.IsMatrixOverwrittenBySolver = true;
             }
-
-            //if (linearSystem.IsMatrixModified)
-            //{
-            //    factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance);
-            //    linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
-            //    linearSystem.IsMatrixFactorized = true;
-            //}
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
@@ -101,7 +93,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         /// <summary>
         /// The number of dofs might have been changed since the previous Solution vector had been created.
         /// </summary>
-        private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
+        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         //TODO: Copied from Stavroulakis code. Find out what the purpose of this is
         //private void DestroyAccuracy(ILinearSystem_v2 linearSystem)

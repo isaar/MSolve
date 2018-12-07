@@ -71,28 +71,21 @@ namespace ISAAR.MSolve.Solvers.PCG
         public void Solve()
         {
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
+            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             else linearSystem.Solution.Clear(); // In iterative algorithms we initialize the solution vector to 0.
 
             if (mustUpdatePreconditioner)
             {
                 preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
                 mustUpdatePreconditioner = false;
-                linearSystem.IsMatrixFactorized = true;
             }
-
-            //if (linearSystem.IsMatrixModified)
-            //{
-            //    preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
-            //    linearSystem.IsMatrixModified = false;
-            //}
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
         }
 
         //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
+        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {

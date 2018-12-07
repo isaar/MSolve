@@ -16,7 +16,6 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//Should I take the assembler from the solver, analyzer or LinearSystem?
 //TODO: Usually the LinearSystem is passed in, but for GetRHSFromHistoryLoad() it is stored as a field. Decide on one method.
 //TODO: I am not too fond of the provider storing global sized matrices.
 namespace ISAAR.MSolve.Problems
@@ -65,7 +64,10 @@ namespace ISAAR.MSolve.Problems
                 if (ks == null)
                     BuildKs();
                 else
-                    RebuildKs();
+                {
+                    //TODO I am not too fond of side effects, especially in getters
+                    RebuildKs(); // This is the same but also resets the material modified properties. 
+                }
                 return ks;
             }
         }
@@ -137,22 +139,20 @@ namespace ISAAR.MSolve.Problems
         {
             int id = linearSystem.Subdomain.ID;
 
-            if (linearSystem.IsMatrixFactorized) BuildKs();
+            //TODO: 1) Why do we want Ks to be built only if it has not been factorized? 
+            //      2) When calling Ks[id], the matrix will be built anyway, due to the annoying side effects of the property.
+            //         Therefore, if the matrix was indeed factorized it would be built twice!
+            //      3) The provider should be decoupled from solver logic, such as knowing if the matrix is factorized. Knowledge
+            //         that the matrix has been altered by the solver could be implemented by observers, if necessary.
+            //      4) The analyzer should decide when global matrices need to be rebuilt, not the provider.
+            //      5) The need to rebuild the system matrix if the solver has modified it might be avoidable if the analyzer 
+            //         uses and appropriate order of operations. However, that may not always be possible. Such a feature 
+            //         (rebuild or store) is nice to have. Whow would be responsible, the solver, provider or assembler?
+            if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
             IMatrix matrix = this.Ks[id];
-
             matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
             linearSystem.SetMatrix(this.Ks[id]);
-
-
-            //int id = linearSystem.Subdomain.ID;
-            //linearSystem.Matrix = this.Ks[id];
-            //if (linearSystem.IsMatrixFactorized) BuildKs();
-
-            //linearSystem.Matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
-            //linearSystem.Matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-
-            //linearSystem.IsMatrixModified = true;
         }
 
         public void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)

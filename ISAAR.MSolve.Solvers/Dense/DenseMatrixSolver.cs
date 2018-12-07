@@ -114,23 +114,15 @@ namespace ISAAR.MSolve.Solvers.Dense
         {
 
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HasSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
+            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this
 
             if (mustFactorize)
             {
-                //TODO: the solver should inform the rest of the observers that the matrix has been overwritten by the factorization.
                 factorizedMatrix = linearSystem.Matrix.FactorCholesky();
                 mustFactorize = false;
-                linearSystem.IsMatrixFactorized = true;
+                linearSystem.IsMatrixOverwrittenBySolver = true;
             }
-
-            //if (linearSystem.IsMatrixModified)
-            //{
-            //    factorizedMatrix = linearSystem.Matrix.FactorCholesky();
-            //    linearSystem.IsMatrixModified = false; //TODO: this is bad, since someone else might see it as unchanged. Better use observers.
-            //    linearSystem.IsMatrixFactorized = true;
-            //}
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
@@ -139,7 +131,7 @@ namespace ISAAR.MSolve.Solvers.Dense
         /// <summary>
         /// The number of dofs might have been changed since the previous Solution vector had been created.
         /// </summary>
-        private bool HasSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
+        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
