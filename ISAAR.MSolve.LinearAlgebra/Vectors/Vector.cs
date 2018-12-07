@@ -4,6 +4,7 @@ using System.Diagnostics;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 
 //TODO: align data using mkl_malloc
@@ -18,6 +19,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// </summary>
     public class Vector : IVector, ISliceable1D
     {
+        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+
         private readonly double[] data;
 
         private Vector(double[] data)
@@ -208,7 +211,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this vector's length");
-            CBlas.Daxpy(subvector.Length, 1.0, ref subvector.data[0], 1, ref this.data[destinationIndex], 1);
+            blas.Daxpy(subvector.Length, 1.0, subvector.data, 0, 1, this.data, destinationIndex, 1);
+            //CBlas.Daxpy(subvector.Length, 1.0, ref subvector.data[0], 1, ref this.data[destinationIndex], 1);
         }
 
         /// <summary>
@@ -251,7 +255,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref result[0], 1);
+            blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
+            //CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref result[0], 1);
             return new Vector(result);
         }
 
@@ -283,7 +288,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void AxpyIntoThis(Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref this.data[0], 1);
+            blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
+            //CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref this.data[0], 1);
         }
 
         /// <summary>
@@ -297,7 +303,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 
             if (sourceVector is Vector casted)
             {
-                CBlas.Daxpy(Length, sourceCoefficient, ref casted.data[sourceIndex], 1, ref this.data[destinationIndex], 1);
+                blas.Daxpy(Length, sourceCoefficient, casted.data, sourceIndex, 1, this.data, destinationIndex, 1);
+                //CBlas.Daxpy(Length, sourceCoefficient, ref casted.data[sourceIndex], 1, ref this.data[destinationIndex], 1);
             }
             else
             {

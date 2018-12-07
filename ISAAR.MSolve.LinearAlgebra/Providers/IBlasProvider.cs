@@ -8,6 +8,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public interface IBlasProvider
     {
+        void Daxpy(int n, double a, double[] x, int offsetX, int incX, double[] y, int offsetY, int incy);
+
+        //TODO: Use the regular BLAS names and parameters for these.
         void FullColMajorTimesVector(int numRows, int numCols, double[] matrix, double[] x, double[] y);
         void FullColMajorTransposeTimesVector(int numRows, int numCols, double[] matrix, double[] x, double[] y);
         void LowerRowMajorTimesVector(int order, double[] matrix, double[] x, double[] y);

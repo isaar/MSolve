@@ -7,6 +7,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class MklBlasProvider : IBlasProvider
     {
+        public void Daxpy(int n, double a, double[] x, int offsetX, int incX, double[] y, int offsetY, int incy)
+            => CBlas.Daxpy(n, a, ref x[offsetX], incX, ref y[offsetY], 1);
+
         public void FullColMajorTimesVector(int numRows, int numCols, double[] matrix, double[] x, double[] y)
         {
             CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, CBLAS_TRANSPOSE.CblasNoTrans, numRows, numCols,
