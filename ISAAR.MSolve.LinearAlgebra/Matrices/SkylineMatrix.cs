@@ -23,6 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class SkylineMatrix: IMatrix, ISparseMatrix, ISymmetricMatrix
     {
+        private static readonly IBlasProvider blas = new ManagedBlasProvider();
         private static readonly ISparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
 
         /// <summary>
@@ -157,7 +158,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
                     Array.Copy(this.values, resultValues, values.Length);
-                    CBlas.Daxpy(values.Length, otherCoefficient, ref otherSKY.values[0], 1, ref resultValues[0], 1);
+                    blas.Daxpy(values.Length, otherCoefficient, otherSKY.values, 0, 1, resultValues, 0, 1);
                     return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
                 }
             }
@@ -185,7 +186,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] resultValues = new double[values.Length];
             Array.Copy(this.values, resultValues, values.Length);
-            CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref resultValues[0], 1);
+            blas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, resultValues, 0, 1);
             // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
             return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
         }
@@ -215,7 +216,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
             {
-                CBlas.Daxpy(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, ref this.values[0], 1);
+                blas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, this.values, 0, 1);
             }
             else
             {
@@ -569,7 +570,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
                     Array.Copy(this.values, resultValues, values.Length);
-                    CBlas.Daxpby(values.Length, otherCoefficient, ref otherSKY.values[0], 1, thisCoefficient, ref this.values[0], 1);
+                    blas.Daxpby(values.Length, otherCoefficient, otherSKY.values, 0, 1, thisCoefficient, this.values, 0, 1);
                     return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
                 }
             }
@@ -604,7 +605,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
             {
-                CBlas.Daxpby(values.Length, otherCoefficient, ref otherMatrix.values[0], 1, thisCoefficient, ref this.values[0], 1);
+                blas.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1, thisCoefficient, this.values, 0, 1);
             }
             else
             {
@@ -751,14 +752,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int nnz = this.values.Length;
             double[] resultValues = new double[nnz];
             Array.Copy(this.values, resultValues, nnz); //TODO: perhaps I should also copy the indexers
-            CBlas.Dscal(nnz, scalar, ref resultValues[0], 1);
+            blas.Dscal(nnz, scalar, resultValues, 0, 1);
             return new SkylineMatrix(this.NumColumns, resultValues, this.diagOffsets);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, ref values[0], 1);
+        public void ScaleIntoThis(double scalar) => blas.Dscal(values.Length, scalar, values, 0, 1);
 
         /// <summary>
         /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.

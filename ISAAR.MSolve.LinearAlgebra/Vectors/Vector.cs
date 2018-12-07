@@ -212,7 +212,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this vector's length");
             blas.Daxpy(subvector.Length, 1.0, subvector.data, 0, 1, this.data, destinationIndex, 1);
-            //CBlas.Daxpy(subvector.Length, 1.0, ref subvector.data[0], 1, ref this.data[destinationIndex], 1);
         }
 
         /// <summary>
@@ -256,7 +255,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
             blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
-            //CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref result[0], 1);
             return new Vector(result);
         }
 
@@ -289,7 +287,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
             blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
-            //CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref this.data[0], 1);
         }
 
         /// <summary>
@@ -304,7 +301,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             if (sourceVector is Vector casted)
             {
                 blas.Daxpy(Length, sourceCoefficient, casted.data, sourceIndex, 1, this.data, destinationIndex, 1);
-                //CBlas.Daxpy(Length, sourceCoefficient, ref casted.data[sourceIndex], 1, ref this.data[destinationIndex], 1);
             }
             else
             {
@@ -539,7 +535,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public double DotProduct(Vector vector)
         {
             Preconditions.CheckVectorDimensions(this, vector);
-            return CBlas.Ddot(Length, ref this.data[0], 1, ref vector.data[0], 1);
+            return blas.Ddot(Length, this.data, 0, 1, vector.data, 0, 1);
         }
 
         /// <summary>
@@ -619,7 +615,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Daxpby(Length, otherCoefficient, ref otherVector.data[0], 1, thisCoefficient, ref result[0], 1);
+            blas.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
             return new Vector(result);
         }
 
@@ -652,7 +648,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void LinearCombinationIntoThis(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            CBlas.Daxpby(Length, otherCoefficient, ref otherVector.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            blas.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -686,7 +682,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
         /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
         /// </summary>
-        public double Norm2() => CBlas.Dnrm2(Length, ref data[0], 1);
+        public double Norm2() => blas.Dnrm2(Length, data, 0, 1);
 
         /// <summary>
         /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
@@ -804,14 +800,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Dscal(Length, scalar, ref result[0], 1);
+            blas.Dscal(Length, scalar, result, 0, 1);
             return new Vector(result);
         }
 
         /// <summary>
         /// See <see cref="IVector.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(Length, scalar, ref data[0], 1);
+        public void ScaleIntoThis(double scalar) => blas.Dscal(Length, scalar, data, 0, 1);
 
         /// <summary>
         /// Sets all entries of this vector to be equal to <paramref name="value"/>.

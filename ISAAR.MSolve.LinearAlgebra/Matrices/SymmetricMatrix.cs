@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class SymmetricMatrix: IMatrix, ISymmetricMatrix
     {
-        private static readonly IBlasProvider blas = new MklBlasProvider();
+        private static readonly IBlasProvider blas = new ManagedBlasProvider();
 
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -197,7 +197,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
+            blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
         }
 
@@ -224,7 +224,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(SymmetricMatrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
+            blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
             this.Definiteness = DefiniteProperty.Unknown;
         }
 
@@ -406,7 +406,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            blas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new SymmetricMatrix(result, NumColumns, DefiniteProperty.Unknown);
         }
 
@@ -432,7 +432,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, SymmetricMatrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            blas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
             this.Definiteness = DefiniteProperty.Unknown;
         }
 
@@ -531,11 +531,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int numStoredEntries = this.data.Length;
             double[] result = new double[numStoredEntries];
             Array.Copy(this.data, result, numStoredEntries);
-            CBlas.Dscal(numStoredEntries, scalar, ref result[0], 1);
+            blas.Dscal(numStoredEntries, scalar, result, 0, 1);
             return new SymmetricMatrix(result, this.Order, this.Definiteness);
         }
 
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
+        public void ScaleIntoThis(double scalar) => blas.Dscal(data.Length, scalar, data, 0, 1);
 
         // Not very efficient
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
