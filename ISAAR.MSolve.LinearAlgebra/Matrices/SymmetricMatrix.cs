@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using IntelMKL.LP64;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.LinearAlgebra.Providers;
 
 //TODO: align data using mkl_malloc
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
@@ -22,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class SymmetricMatrix: IMatrix, ISymmetricMatrix
     {
-        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+        private static readonly ICblasProvider blas = new MklCblasProvider();
 
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -499,7 +494,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVector.Length);
-            blas.SymmColMajorTimesVector(Order, data, lhsVector.InternalData, rhsVector.InternalData);
+            blas.Dspmv(CblasLayout.ColMajor, CblasTriangular.Upper, Order,
+                1.0, this.data, 0, lhsVector.InternalData, 0, 1,
+                0.0, rhsVector.InternalData, 0, 1);
         }
 
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

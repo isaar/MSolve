@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
@@ -23,7 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix : IMatrix, ISliceable2D
     {
-        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+        private static readonly ICblasProvider blas = new MklCblasProvider();
 
         private readonly double[] data;
 
@@ -776,39 +775,37 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public Matrix MultiplyRight(Matrix other, bool transposeThis = false, bool transposeOther = false)
         {
             int leftRows, leftCols, rightRows, rightCols;
-            CBLAS_TRANSPOSE transposeLeft, transposeRight;
+            CblasTranspose transposeLeft, transposeRight;
             if (transposeThis)
             {
-                transposeLeft = CBLAS_TRANSPOSE.CblasTrans;
+                transposeLeft = CblasTranspose.Transpose;
                 leftRows = this.NumColumns;
                 leftCols = this.NumRows;
             }
             else
             {
-                transposeLeft = CBLAS_TRANSPOSE.CblasNoTrans;
+                transposeLeft = CblasTranspose.NoTranspose;
                 leftRows = this.NumRows;
                 leftCols = this.NumColumns;
             }
             if (transposeOther)
             {
-                transposeRight = CBLAS_TRANSPOSE.CblasTrans;
+                transposeRight = CblasTranspose.Transpose;
                 rightRows = other.NumColumns;
                 rightCols = other.NumRows;
             }
             else
             {
-                transposeRight = CBLAS_TRANSPOSE.CblasNoTrans;
+                transposeRight = CblasTranspose.NoTranspose;
                 rightRows = other.NumRows;
                 rightCols = other.NumColumns;
             }
 
             Preconditions.CheckMultiplicationDimensions(leftCols, rightRows);
             double[] result = new double[leftRows * rightCols];
-            CBlas.Dgemm(CBLAS_LAYOUT.CblasColMajor, transposeLeft, transposeRight,
-                leftRows, rightCols, leftCols,
-                1.0, ref this.data[0], this.NumRows, 
-                ref other.data[0], other.NumRows,
-                1.0, ref result[0], leftRows);
+            blas.Dgemm(CblasLayout.ColMajor, transposeLeft, transposeRight, leftRows, rightCols, leftCols,
+                1.0, this.data, 0, this.NumRows, other.data, 0, other.NumRows,
+                1.0, result, 0, leftRows);
             return new Matrix(result, leftRows, rightCols);
         }
 
@@ -874,18 +871,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
+            int leftRows, leftCols;
+            CblasTranspose transpose;
             if (transposeThis)
             {
-                Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
-                Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
-                blas.FullColMajorTransposeTimesVector(NumRows, NumColumns, data, lhsVector.InternalData, rhsVector.InternalData);
+                transpose = CblasTranspose.Transpose;
+                leftRows = this.NumColumns;
+                leftCols = this.NumRows;
             }
             else
             {
-                Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
-                Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
-                blas.FullColMajorTimesVector(NumRows, NumColumns, data, lhsVector.InternalData, rhsVector.InternalData);
+                transpose = CblasTranspose.NoTranspose;
+                leftRows = this.NumRows;
+                leftCols = this.NumColumns;
             }
+
+            Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
+            blas.Dgemv(CblasLayout.ColMajor, transpose, NumRows, NumColumns,
+                1.0, this.data, 0, NumRows, lhsVector.InternalData, 0, 1,
+                0.0, rhsVector.InternalData, 0, 1);
         }
 
         /// <summary>

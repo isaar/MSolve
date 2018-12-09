@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// </summary>
     public class SparseVector: IVector
     {
-        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+        private static readonly ICblasProvider blas = new ManagedCblasProvider();
 
         private readonly double[] values;
 

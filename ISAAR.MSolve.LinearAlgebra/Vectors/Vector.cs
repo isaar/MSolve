@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Providers;
@@ -19,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// </summary>
     public class Vector : IVector, ISliceable1D
     {
-        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+        private static readonly ICblasProvider blas = new ManagedCblasProvider();
 
         private readonly double[] data;
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
@@ -27,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class CscMatrix: IMatrix, ISparseMatrix
     {
-        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+        private static readonly ICblasProvider blas = new ManagedCblasProvider();
         private static readonly ISparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
 
         private readonly double[] values;

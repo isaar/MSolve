@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Providers;
@@ -18,7 +17,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class TriangularLower: IMatrix
     {
-        private static readonly IBlasProvider blas = new ManagedBlasProvider();
+        private static readonly ICblasProvider blas = new MklCblasProvider();
 
         /// <summary>
         /// Packed storage, row major order: L[i, j] = data[j + (i+1)*i/2] for 0 &lt;= j &lt;= i &lt; n.
@@ -421,13 +420,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
+            CblasTranspose transpose = transposeThis ? CblasTranspose.Transpose : CblasTranspose.NoTranspose;
             Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
-            if (transposeThis)
-            {
-                blas.LowerRowMajorTransposeTimesVector(NumRows, data, lhsVector.InternalData, rhsVector.InternalData);
-            }
-            else blas.LowerRowMajorTimesVector(NumRows, data, lhsVector.InternalData, rhsVector.InternalData);
+            Array.Copy(lhsVector.InternalData, rhsVector.InternalData, Order);
+            blas.Dtpmv(CblasLayout.RowMajor, CblasTriangular.Lower, transpose, CblasDiagonal.NonUnit, Order,
+                this.data, 0, rhsVector.InternalData, 0, 1);
         }
 
         /// <summary>
@@ -482,12 +480,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs">The right hand side vector of the linear system. Constraints: 
         ///     <paramref name="rhs"/>.<see cref="Vector.Length"/> == this.<see cref="Order"/>.</param>
-        public Vector SolveLinearSystem(Vector rhs)
+        public Vector SolveLinearSystem(Vector rhs, bool transposeThis = false)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
-            CBlas.Dtpsv(CBLAS_LAYOUT.CblasRowMajor, CBLAS_UPLO.CblasLower, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
-                Order, ref data[0], ref result[0], 1);
+            CblasTranspose transposeBLAS = transposeThis ? CblasTranspose.Transpose : CblasTranspose.NoTranspose;
+            blas.Dtpsv(CblasLayout.RowMajor, CblasTriangular.Lower, transposeBLAS, CblasDiagonal.NonUnit, Order,
+                this.data, 0, result, 0, 1);
             return Vector.CreateFromArray(result, false);
         }
 
