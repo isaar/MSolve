@@ -1,9 +1,10 @@
 ﻿using System;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: Perhaps I should use the QR with pivoting
 // TODO: Add the option to specify if the diagonal entries of A are non diagonal.
@@ -204,8 +205,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int n = NumColumns; // Order of matrix R1
             int ldR = NumRows; // R1 is stored in the upper trapezoid of a NumRows * NumColumns col major array.
             int incC = 1; // step in rhs array, which is the same c used for Q^T * b
-            CBlas.Dtrsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
-                n, ref reflectorsAndR[0], ldR, ref c[0], incC);
+            CBlas.Dtrsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
+                n, reflectorsAndR, 0, ldR, c, 0, incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
             return Vector.CreateFromArray(c, false);
         }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
 // caller, depending on if it is a matrix, a transposed matrix, a vector, etc. Compare its performance with the verbose code and 
@@ -26,9 +26,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class CscMatrix: IMatrix, ISparseMatrix
     {
-        private static readonly ICblasProvider blas = new ManagedCblasProvider();
-        private static readonly ISparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
-
         private readonly double[] values;
         private readonly int[] rowIndices;
         private readonly int[] colOffsets;
@@ -140,7 +137,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
                     Array.Copy(this.values, resultValues, values.Length);
-                    blas.Daxpy(values.Length, otherCoefficient, otherCSC.values, 0, 1, resultValues, 0, 1);
+                    CBlas.Daxpy(values.Length, otherCoefficient, otherCSC.values, 0, 1, resultValues, 0, 1);
                     return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
                 }
             }
@@ -169,7 +166,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] resultValues = new double[values.Length];
             Array.Copy(this.values, resultValues, values.Length);
-            blas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, resultValues, 0, 1);
+            CBlas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, resultValues, 0, 1);
             // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
             return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
         }
@@ -200,7 +197,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
             }
-            blas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, this.values, 0, 1);
+            CBlas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, this.values, 0, 1);
         }
 
         /// <summary>
@@ -389,7 +386,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
                     Array.Copy(this.values, resultValues, values.Length);
-                    blas.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1, 
+                    CBlas.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1, 
                         thisCoefficient, this.values, 0, 1);
                     return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
                 }
@@ -427,7 +424,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
             }
-            blas.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1, thisCoefficient, this.values, 0, 1);
+            CBlas.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1, thisCoefficient, this.values, 0, 1);
         }
 
         /// <summary>
@@ -688,7 +685,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
                 Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
-                sparseBlas.CscTransposeTimesVector(NumColumns, values, colOffsets, rowIndices, lhsVector.InternalData, 
+                SparseBlas.CscTransposeTimesVector(NumColumns, values, colOffsets, rowIndices, lhsVector.InternalData, 
                     rhsVector.InternalData);
             }
             else
@@ -696,7 +693,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
                 Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
                 // A * x = linear combination of columns of A, with the entries of x as coefficients
-                sparseBlas.CscTimesVector(NumColumns, values, colOffsets, rowIndices, lhsVector.InternalData,
+                SparseBlas.CscTimesVector(NumColumns, values, colOffsets, rowIndices, lhsVector.InternalData,
                     rhsVector.InternalData);
             }
         }
@@ -729,14 +726,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int nnz = this.values.Length;
             double[] resultValues = new double[nnz]; 
             Array.Copy(this.values, resultValues, nnz); //TODO: perhaps I should also copy the indexers
-            blas.Dscal(nnz, scalar, resultValues, 0, 1);
+            CBlas.Dscal(nnz, scalar, resultValues, 0, 1);
             return new CscMatrix(this.NumRows, this.NumColumns, resultValues, this.rowIndices, this.colOffsets);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => blas.Dscal(values.Length, scalar, values, 0, 1);
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, values, 0, 1);
 
         /// <summary>
         /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.

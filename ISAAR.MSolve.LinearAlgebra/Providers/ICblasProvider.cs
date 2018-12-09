@@ -2,7 +2,7 @@
 //      SparseBLAS, LAPACK, etc. providers. The implementations should also be singletons or enums.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public interface ICblasProvider
+    public interface ICBlasProvider
     {
         #region BLAS Level 1
         /// <summary>
@@ -31,26 +31,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// <summary>
         /// y = alpha * op(A) * x + beta * y, where op(A) = A or transpose(A). A is a general matrix, stored in full format.
         /// </summary>
-        void Dgemv(CblasLayout layout, CblasTranspose trans, int m, int n, double alpha, double[] a, int offsetA, int ldA,
+        void Dgemv(CBlasLayout layout, CBlasTranspose transA, int m, int n, double alpha, double[] a, int offsetA, int ldA,
             double[] x, int offsetX, int incX, double beta, double[] y, int offsetY, int incY);
 
         /// <summary>
         /// y = alpha * op(A) * x + beta * y, where op(A) = A or transpose(A). A is a symmetric matrix, stored in packed format.
         /// </summary>
-        void Dspmv(CblasLayout layout, CblasTriangular uplo, int n, double alpha, double[] a, int offsetA,
+        void Dspmv(CBlasLayout layout, CBlasTriangular uplo, int n, double alpha, double[] a, int offsetA,
             double[] x, int offsetX, int incX, double beta, double[] y, int offsetY, int incY);
 
         /// <summary>
         /// x = op(A) * x, where op(A) = A or transpose(A). A is a triangular matrix, stored in packed format.
         /// </summary>
-        void Dtpmv(CblasLayout layout, CblasTriangular uplo, CblasTranspose trans, CblasDiagonal diag, int n,
+        void Dtpmv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
             double[] a, int offsetA, double[] x, int offsetX, int incX);
 
         /// <summary>
         /// x = inv(op(A)) * x, where op(A) = A or transpose(A). A is a triangular matrix, stored in packed format.
         /// </summary>
-        void Dtpsv(CblasLayout layout, CblasTriangular uplo, CblasTranspose trans, CblasDiagonal diag, int n,
+        void Dtpsv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
             double[] a, int offsetA, double[] x, int offsetX, int incX);
+
+        /// <summary>
+        /// x = inv(op(A)) * x, where op(A) = A or transpose(A). A is a triangular matrix, stored in full format, but only the 
+        /// entries corresponding to the designated triangle will be accessed.
+        /// </summary>
+        void Dtrsv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
+            double[] a, int offsetA, int ldA, double[] x, int offsetX, int incX);
         #endregion
 
         #region BLAS Level 3
@@ -61,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// <param name="m">The number of rows of op(A) and C.</param>
         /// <param name="n">The number of columns of op(B) and C.</param>
         /// <param name="k">The number of columns of op(A), which must be equal to the number of rows of op(B).</param>
-        void Dgemm(CblasLayout layout, CblasTranspose transA, CblasTranspose transB, int m, int n, int k, double alpha,
+        void Dgemm(CBlasLayout layout, CBlasTranspose transA, CBlasTranspose transB, int m, int n, int k, double alpha,
             double[] a, int offsetA, int ldA, double[] b, int offsetB, int ldB, double beta, double[] c, int offsetC, int ldC);
         #endregion
 

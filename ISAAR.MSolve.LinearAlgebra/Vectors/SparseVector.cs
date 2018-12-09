@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
@@ -16,8 +15,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// </summary>
     public class SparseVector: IVector
     {
-        private static readonly ICblasProvider blas = new ManagedCblasProvider();
-
         private readonly double[] values;
 
         /// <summary>
@@ -246,7 +243,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] result = new double[this.values.Length];
                     Array.Copy(this.values, result, this.values.Length);
-                    blas.Daxpy(values.Length, otherCoefficient, otherSparse.values, 0, 1, result, 0, 1);
+                    CBlas.Daxpy(values.Length, otherCoefficient, otherSparse.values, 0, 1, result, 0, 1);
                     return new SparseVector(Length, result, indices);
                 }
             }
@@ -290,7 +287,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             if (!HasSameIndexer(otherVector)) throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other vector has the same sparsity pattern");
 
-            blas.Daxpy(values.Length, otherCoefficient, otherVector.values, 0, 1, this.values, 0, 1);
+            CBlas.Daxpy(values.Length, otherCoefficient, otherVector.values, 0, 1, this.values, 0, 1);
         }
 
         /// <summary>
@@ -310,7 +307,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 int start = Array.FindIndex(this.indices, x => x >= destinationIndex);
                 int end = Array.FindIndex(this.indices, x => x >= destinationIndex + length);
                 int sparseLength = end - start;
-                blas.Daxpy(sparseLength, sourceCoefficient, otherSparse.values, start, 1, this.values, start, 1);
+                CBlas.Daxpy(sparseLength, sourceCoefficient, otherSparse.values, start, 1, this.values, start, 1);
             }
             throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other vector has the same sparsity pattern");
@@ -543,7 +540,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] result = new double[this.values.Length];
                     Array.Copy(this.values, result, this.values.Length);
-                    blas.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
+                    CBlas.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
                         thisCoefficient, result, 0, 1);
                     return new SparseVector(Length, result, indices);
                 }
@@ -561,7 +558,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             Preconditions.CheckVectorDimensions(this, otherVector);
             if ((otherVector is SparseVector otherSparse) && HasSameIndexer(otherSparse))
             {
-                blas.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
+                CBlas.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
                     thisCoefficient, this.values, 0, 1);
             }
             throw new SparsityPatternModifiedException(
@@ -596,14 +593,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             int nnz = this.values.Length;
             double[] resultValues = new double[nnz];
             Array.Copy(this.values, resultValues, nnz);
-            blas.Dscal(nnz, scalar, resultValues, 0, 1);
+            CBlas.Dscal(nnz, scalar, resultValues, 0, 1);
             return new SparseVector(Length, resultValues, this.indices); //TODO: perhaps I should also copy the indices
         }
 
         /// <summary>
         /// See <see cref="IVector.ScaleIntoThis(double)>
         /// </summary>
-        public void ScaleIntoThis(double scalar) => blas.Dscal(values.Length, scalar, values, 0, 1);
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, values, 0, 1);
 
         /// <summary>
         /// See <see cref="IVector.Set(int, double)"/>

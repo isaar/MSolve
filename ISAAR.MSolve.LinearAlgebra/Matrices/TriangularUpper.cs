@@ -5,6 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: Perhaps I should use row major for lower triangular, upper triangular or both.
 //TODO: Perhaps I should have an abstract class that handles everything except the lower/upper specific stuff and concrete
@@ -20,8 +21,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class TriangularUpper: IMatrix
     {
-        private static readonly ICblasProvider blas = new MklCblasProvider();
-
         /// <summary>
         /// Packed storage, column major order: U[i, j] = data[i + j*(2*n-j-1)/2] for 0 &lt;= j &lt;= i &lt; n.
         /// Although not used here, lower triangular would be: L[i, j] = data[i + j*(j+1)/2] for 0 &lt;= i &lt;= j &lt; n.
@@ -148,7 +147,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
+            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -175,7 +174,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
+            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -316,7 +315,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            blas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -345,7 +344,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            blas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -426,11 +425,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
-            CblasTranspose transpose = transposeThis ? CblasTranspose.Transpose : CblasTranspose.NoTranspose;
+            CBlasTranspose transpose = transposeThis ? CBlasTranspose.Transpose : CBlasTranspose.NoTranspose;
             Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
             Array.Copy(lhsVector.InternalData, rhsVector.InternalData, Order);
-            blas.Dtpmv(CblasLayout.ColMajor, CblasTriangular.Upper, transpose, CblasDiagonal.NonUnit, Order,
+            CBlas.Dtpmv(CBlasLayout.ColMajor, CBlasTriangular.Upper, transpose, CBlasDiagonal.NonUnit, Order,
                 this.data, 0, rhsVector.InternalData, 0, 1);
         }
 
@@ -462,14 +461,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int nnz = this.data.Length;
             double[] result = new double[nnz];
             Array.Copy(this.data, result, nnz);
-            blas.Dscal(nnz, scalar, result, 0, 1);
+            CBlas.Dscal(nnz, scalar, result, 0, 1);
             return new TriangularUpper(result, this.Order);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => blas.Dscal(data.Length, scalar, data, 0, 1);
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, data, 0, 1);
 
         /// <summary>
         /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
@@ -490,8 +489,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
-            CblasTranspose transposeBlas = transposeThis ? CblasTranspose.Transpose : CblasTranspose.NoTranspose;
-            blas.Dtpsv(CblasLayout.ColMajor, CblasTriangular.Upper, transposeBlas, CblasDiagonal.NonUnit, Order,
+            CBlasTranspose transposeBlas = transposeThis ? CBlasTranspose.Transpose : CBlasTranspose.NoTranspose;
+            CBlas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, transposeBlas, CBlasDiagonal.NonUnit, Order,
                 this.data, 0, result, 0, 1);
             return Vector.CreateFromArray(result, false);
         }

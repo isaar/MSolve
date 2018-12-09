@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
@@ -17,8 +17,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// </summary>
     public class Vector : IVector, ISliceable1D
     {
-        private static readonly ICblasProvider blas = new ManagedCblasProvider();
-
         private readonly double[] data;
 
         private Vector(double[] data)
@@ -209,7 +207,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this vector's length");
-            blas.Daxpy(subvector.Length, 1.0, subvector.data, 0, 1, this.data, destinationIndex, 1);
+            CBlas.Daxpy(subvector.Length, 1.0, subvector.data, 0, 1, this.data, destinationIndex, 1);
         }
 
         /// <summary>
@@ -252,7 +250,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
+            CBlas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
             return new Vector(result);
         }
 
@@ -284,7 +282,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void AxpyIntoThis(Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
+            CBlas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -298,7 +296,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 
             if (sourceVector is Vector casted)
             {
-                blas.Daxpy(Length, sourceCoefficient, casted.data, sourceIndex, 1, this.data, destinationIndex, 1);
+                CBlas.Daxpy(Length, sourceCoefficient, casted.data, sourceIndex, 1, this.data, destinationIndex, 1);
             }
             else
             {
@@ -533,7 +531,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public double DotProduct(Vector vector)
         {
             Preconditions.CheckVectorDimensions(this, vector);
-            return blas.Ddot(Length, this.data, 0, 1, vector.data, 0, 1);
+            return CBlas.Ddot(Length, this.data, 0, 1, vector.data, 0, 1);
         }
 
         /// <summary>
@@ -613,7 +611,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            blas.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
+            CBlas.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
             return new Vector(result);
         }
 
@@ -646,7 +644,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void LinearCombinationIntoThis(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            blas.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            CBlas.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -680,7 +678,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
         /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
         /// </summary>
-        public double Norm2() => blas.Dnrm2(Length, data, 0, 1);
+        public double Norm2() => CBlas.Dnrm2(Length, data, 0, 1);
 
         /// <summary>
         /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
@@ -798,14 +796,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            blas.Dscal(Length, scalar, result, 0, 1);
+            CBlas.Dscal(Length, scalar, result, 0, 1);
             return new Vector(result);
         }
 
         /// <summary>
         /// See <see cref="IVector.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => blas.Dscal(Length, scalar, data, 0, 1);
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(Length, scalar, data, 0, 1);
 
         /// <summary>
         /// Sets all entries of this vector to be equal to <paramref name="value"/>.

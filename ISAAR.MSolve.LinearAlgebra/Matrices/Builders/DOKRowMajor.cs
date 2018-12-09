@@ -384,7 +384,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public Vector MultiplyRight(Vector vector, bool avoidBuilding = false)
         {
             // MKL functions are way faster than managed code. Just don't sort the CSR.
-            bool buildCSR = (!avoidBuilding) && (CsrMatrix.SparseBlasProvider is MklSparseBlasProvider); 
+            bool buildCSR = (!avoidBuilding) && (LibrarySettings.SparseBlas is MklSparseBlasProvider); 
             if (buildCSR) return BuildCsrMatrix(false).Multiply(vector); 
 
             Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);

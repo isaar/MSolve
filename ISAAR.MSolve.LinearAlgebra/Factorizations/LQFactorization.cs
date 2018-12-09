@@ -1,9 +1,10 @@
 ﻿using System;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: Handle the case when n < m. That would be a QL factorization.
 // TODO: I think least squares only work if the columns of A are independent. This is not taken care of so far.
@@ -148,8 +149,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int incC = 1; // step in rhs array
             double[] c = new double[NumColumns];
             rhsVector.CopyToArray(0, c, 0, NumRows);
-            CBlas.Dtrsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasLower, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
-                NumRows, ref reflectorsAndL[0], ldA, ref c[0], incC);
+            CBlas.Dtrsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
+                NumRows, reflectorsAndL, 0, ldA, c, 0, incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
 
             // Step 2: x = Q^T * c. Q is n-by-n, c is n-by-1, x is n-by-1

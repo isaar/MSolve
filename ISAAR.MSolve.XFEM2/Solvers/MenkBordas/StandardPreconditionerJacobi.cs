@@ -19,7 +19,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         private StandardPreconditionerJacobi(DokRowMajor Kss)
         {
-            CsrMatrix.SparseBlasProvider = new MklSparseBlasProvider(); //TODO: this should be done elsewhere
             this.Kss = Kss.BuildCsrMatrix(true);
             this.order = Kss.NumColumns;
 

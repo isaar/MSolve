@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public enum CblasLayout
+    public enum CBlasLayout
     {
         /// <summary>
         /// Row major layout.
@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         ColMajor
     }
 
-    public enum CblasTranspose
+    public enum CBlasTranspose
     {
         /// <summary>
         /// The stored matrix will be accessed normally.
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         ConjugateTranspose
     }
 
-    public enum CblasTriangular
+    public enum CBlasTriangular
     {
         /// <summary>
         /// The stored matrix is upper triangular.
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         Lower
     }
 
-    public enum CblasDiagonal
+    public enum CBlasDiagonal
     {
         /// <summary>
         /// The entries of the diagonal are 1. Applicable to triangular matrices only. Therefore the matrix is upper unit 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: Can't I just do an LDL for symmetric indefinite matrices? It works and it is as efficient as Cholesky.
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>

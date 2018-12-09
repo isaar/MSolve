@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: align data using mkl_malloc
 //TODO: add inplace option for factorizations and leave all subsequent operations (determinant, system solution, etc.) to them
@@ -22,8 +23,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix : IMatrix, ISliceable2D
     {
-        private static readonly ICblasProvider blas = new MklCblasProvider();
-
         private readonly double[] data;
 
         private Matrix(double[] data, int numRows, int numColumns)
@@ -298,7 +297,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
+            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -334,7 +333,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
+            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -703,7 +702,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            blas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -742,7 +741,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            blas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -775,35 +774,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public Matrix MultiplyRight(Matrix other, bool transposeThis = false, bool transposeOther = false)
         {
             int leftRows, leftCols, rightRows, rightCols;
-            CblasTranspose transposeLeft, transposeRight;
+            CBlasTranspose transposeLeft, transposeRight;
             if (transposeThis)
             {
-                transposeLeft = CblasTranspose.Transpose;
+                transposeLeft = CBlasTranspose.Transpose;
                 leftRows = this.NumColumns;
                 leftCols = this.NumRows;
             }
             else
             {
-                transposeLeft = CblasTranspose.NoTranspose;
+                transposeLeft = CBlasTranspose.NoTranspose;
                 leftRows = this.NumRows;
                 leftCols = this.NumColumns;
             }
             if (transposeOther)
             {
-                transposeRight = CblasTranspose.Transpose;
+                transposeRight = CBlasTranspose.Transpose;
                 rightRows = other.NumColumns;
                 rightCols = other.NumRows;
             }
             else
             {
-                transposeRight = CblasTranspose.NoTranspose;
+                transposeRight = CBlasTranspose.NoTranspose;
                 rightRows = other.NumRows;
                 rightCols = other.NumColumns;
             }
 
             Preconditions.CheckMultiplicationDimensions(leftCols, rightRows);
             double[] result = new double[leftRows * rightCols];
-            blas.Dgemm(CblasLayout.ColMajor, transposeLeft, transposeRight, leftRows, rightCols, leftCols,
+            CBlas.Dgemm(CBlasLayout.ColMajor, transposeLeft, transposeRight, leftRows, rightCols, leftCols,
                 1.0, this.data, 0, this.NumRows, other.data, 0, other.NumRows,
                 1.0, result, 0, leftRows);
             return new Matrix(result, leftRows, rightCols);
@@ -872,23 +871,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
             int leftRows, leftCols;
-            CblasTranspose transpose;
+            CBlasTranspose transpose;
             if (transposeThis)
             {
-                transpose = CblasTranspose.Transpose;
+                transpose = CBlasTranspose.Transpose;
                 leftRows = this.NumColumns;
                 leftCols = this.NumRows;
             }
             else
             {
-                transpose = CblasTranspose.NoTranspose;
+                transpose = CBlasTranspose.NoTranspose;
                 leftRows = this.NumRows;
                 leftCols = this.NumColumns;
             }
 
             Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
-            blas.Dgemv(CblasLayout.ColMajor, transpose, NumRows, NumColumns,
+            CBlas.Dgemv(CBlasLayout.ColMajor, transpose, NumRows, NumColumns,
                 1.0, this.data, 0, NumRows, lhsVector.InternalData, 0, 1,
                 0.0, rhsVector.InternalData, 0, 1);
         }
@@ -938,14 +937,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            blas.Dscal(data.Length, scalar, result, 0, 1);
+            CBlas.Dscal(data.Length, scalar, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => blas.Dscal(data.Length, scalar, data, 0, 1);
+        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, data, 0, 1);
 
         /// <summary>
         /// Sets all entries of this matrix to be equal to <paramref name="value"/>.
@@ -1076,7 +1075,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix Transpose()
         {
-            //TODO: The wrapper library does not include MKL's blas-like extensions yet. Create my own wrapper or 
+            //TODO: The wrapper library does not include MKL's CBlas-like extensions yet. Create my own wrapper or 
             // piggyback on another BLAS function.
             double[] transpose = Conversions.ColumnMajorToRowMajor(data, NumRows, NumColumns);
             return new Matrix(transpose, NumColumns, NumRows);
