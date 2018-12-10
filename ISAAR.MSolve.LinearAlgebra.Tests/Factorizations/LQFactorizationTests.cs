@@ -18,9 +18,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestFactorsLQ()
         {
-            var A = Matrix.CreateFromArray(RectangularFullRank10by5.matrix).Transpose();
-            Matrix expectedL = Matrix.CreateFromArray(RectangularFullRank10by5.lqFactorL);
-            Matrix expectedQ = Matrix.CreateFromArray(RectangularFullRank10by5.lqFactorQ);
+            var A = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix).Transpose();
+            Matrix expectedL = Matrix.CreateFromArray(RectangularFullRank10by5.LQFactorL);
+            Matrix expectedQ = Matrix.CreateFromArray(RectangularFullRank10by5.LQFactorQ);
 
             LQFactorization factorization = A.FactorLQ();
             Matrix computedL = factorization.GetFactorL();
@@ -33,9 +33,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestMinNormSolution()
         {
-            var A = Matrix.CreateFromArray(RectangularFullRank10by5.matrix).Transpose();
-            var b = Vector.CreateFromArray(RectangularFullRank10by5.rhsMinNorm);
-            var xExpected = Vector.CreateFromArray(RectangularFullRank10by5.lhsMinNorm);
+            var A = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix).Transpose();
+            var b = Vector.CreateFromArray(RectangularFullRank10by5.RhsMinNorm);
+            var xExpected = Vector.CreateFromArray(RectangularFullRank10by5.LhsMinNorm);
 
             LQFactorization factorization = A.FactorLQ();
             Vector xComputed = factorization.SolveMinNorm(b);

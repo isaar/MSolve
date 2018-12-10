@@ -18,11 +18,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestEconomyFactorsQ1R1()
         {
-            int m = RectangularFullRank10by5.numRows;
-            int n = RectangularFullRank10by5.numCols;
-            var A = Matrix.CreateFromArray(RectangularFullRank10by5.matrix);
-            Matrix expectedQ1 = Matrix.CreateFromArray(RectangularFullRank10by5.qrFactorQ).GetSubmatrix(0, m, 0, n);
-            Matrix expectedR1 = Matrix.CreateFromArray(RectangularFullRank10by5.qrFactorR).GetSubmatrix(0, n, 0, n);
+            int m = RectangularFullRank10by5.NumRows;
+            int n = RectangularFullRank10by5.NumCols;
+            var A = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix);
+            Matrix expectedQ1 = Matrix.CreateFromArray(RectangularFullRank10by5.QRFactorQ).GetSubmatrix(0, m, 0, n);
+            Matrix expectedR1 = Matrix.CreateFromArray(RectangularFullRank10by5.QRqrFactorR).GetSubmatrix(0, n, 0, n);
 
             QRFactorization factorization = A.FactorQR();
             Matrix computedQ1 = factorization.GetEconomyFactorQ();
@@ -35,9 +35,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestFactorsQR()
         {
-            var A = Matrix.CreateFromArray(RectangularFullRank10by5.matrix);
-            Matrix expectedQ = Matrix.CreateFromArray(RectangularFullRank10by5.qrFactorQ);
-            Matrix expectedR = Matrix.CreateFromArray(RectangularFullRank10by5.qrFactorR);
+            var A = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix);
+            Matrix expectedQ = Matrix.CreateFromArray(RectangularFullRank10by5.QRFactorQ);
+            Matrix expectedR = Matrix.CreateFromArray(RectangularFullRank10by5.QRqrFactorR);
 
             QRFactorization factorization = A.FactorQR();
             Matrix computedQ = factorization.GetFactorQ();
@@ -50,18 +50,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestLeastSquaresSolution()
         {
-            var A = Matrix.CreateFromArray(RectangularFullRank10by5.matrix);
+            var A = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix);
             QRFactorization factorization = A.FactorQR();
 
             // RHS is in the column space
-            var b1 = Vector.CreateFromArray(RectangularFullRank10by5.rhs10);
-            var x1Expected = Vector.CreateFromArray(RectangularFullRank10by5.lhs5);
+            var b1 = Vector.CreateFromArray(RectangularFullRank10by5.Rhs10);
+            var x1Expected = Vector.CreateFromArray(RectangularFullRank10by5.Lhs5);
             Vector x1Computed = factorization.SolveLeastSquares(b1);
             comparer.AssertEqual(x1Expected, x1Computed);
 
             // RHS is not in the column space
-            var b2 = Vector.CreateFromArray(RectangularFullRank10by5.rhsLsq);
-            var x2Expected = Vector.CreateFromArray(RectangularFullRank10by5.lhsLsq);
+            var b2 = Vector.CreateFromArray(RectangularFullRank10by5.RhsLsq);
+            var x2Expected = Vector.CreateFromArray(RectangularFullRank10by5.LhsLsq);
             Vector x2Computed = factorization.SolveLeastSquares(b2);
             comparer.AssertEqual(x2Expected, x2Computed);
         }

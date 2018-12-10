@@ -9,9 +9,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     /// </summary>
     internal static class SymmPosDef10by10
     {
-        internal const int order = 10;
+        internal const int Order = 10;
 
-        internal static readonly double[,] matrix = new double[,] {
+        internal static double[,] Matrix => new double[,] {
             { 8.9156,    0.4590,    0.0588,    0.5776,    0.7118,    0.7423,    0.4389,    0.4353,    0.4929,    0.7223 },
             { 0.4590,    7.5366,    0.4276,    0.3282,    0.5277,    0.4274,    0.2498,    0.7622,    0.4987,    0.8953 },
             { 0.0588,    0.4276,    6.4145,    0.4144,    0.5954,    0.6196,    0.3257,    0.5084,    0.6342,    0.5270 },
@@ -24,16 +24,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0.7223,    0.8953,    0.5270,    0.3928,    0.5276,    0.7933,    0.2763,    0.6254,    0.3035,    9.6122 }
         };
 
-        internal static readonly double[] lhs = {
+        internal static double[] Lhs => new double[] {
             2.6621, 3.5825, 0.8965, 1.6827, 0.9386, 1.6096, 2.0193, 2.7428, 0.2437, 2.7637
         };
 
-        internal static readonly double[] rhs = MatrixOperations.MatrixTimesVector(matrix, lhs);
+        internal static double[] Rhs => MatrixOperations.MatrixTimesVector(Matrix, Lhs);
 
         /// <summary>
         /// Cholesky factor U, such that A = transpose(U) * U.
         /// </summary>
-        internal static readonly double[,] factorU = new double[,] {
+        internal static double[,] FactorU => new double[,] {
             { 2.985900199269895, 0.153722485470959, 0.019692553694319, 0.193442500235351, 0.238387070061500, 0.248601745021989, 0.146990847218309, 0.145785180665596, 0.165075845509010, 0.241903597506914 },
             { 0.000000000000000, 2.740979641927431, 0.154898199609496, 0.108889366963057, 0.179152934802792, 0.141987308446090, 0.082891604938865, 0.269899684173881, 0.172684292687522, 0.313068351410101 },
             { 0.000000000000000, 0.000000000000000, 2.527868420445719, 0.155753303096660, 0.222699519569065, 0.234470597262118, 0.122619362611506, 0.183443939802229, 0.239015901351388, 0.187407925427375 },
@@ -46,9 +46,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 3.055401743667175 }
         };
 
-        internal const double determinant = 1161566697.17954;
+        internal const double Determinant = 1161566697.17954;
 
-        internal static readonly double[,] inverse = new double[,] {
+        internal static double[,] Inverse => new double[,] {
             {  1.15036865934732e-001,   -4.39532821775264e-003,   2.42037551285770e-003, -5.97442668250739e-003, -6.90720784369428e-003, -5.95113316951374e-003, -4.47671372388698e-003, -3.83803697247067e-003, -5.02329472415375e-003, -6.71622551868538e-003 },
             { -4.39532821775264e-003,    1.36732896698586e-001,  -5.75169213114003e-003, -3.03503313527466e-003, -4.92435739258999e-003, -2.38087837250887e-003, -1.63915778627162e-003, -1.11803335814405e-002, -6.12024602474453e-003, -1.05313557472777e-002 },
             {  2.42037551285770e-003,   -5.75169213114003e-003,   1.60325077112127e-001, -5.41279316018277e-003, -7.68848261959135e-003, -6.76133191373731e-003, -4.07388870269966e-003, -7.54515406778568e-003, -1.04002539890800e-002, -6.29854537225606e-003 },
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { -6.71622551868538e-003,   -1.05313557472777e-002,  -6.29854537225606e-003, -2.74544183434557e-003, -3.58326599023808e-003, -5.80050621175504e-003, -1.50440957718562e-003, -5.86189359820442e-003, -1.28635721186656e-003,  1.07118222072671e-001 }
         };
 
-        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+        internal static string FilePath => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
             + @"\Resources\SymmPosDef10by10.txt";
     }
 }

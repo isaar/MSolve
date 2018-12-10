@@ -16,9 +16,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         [Fact]
         private static void TestAddition()
         {
-            var v1 = Vector.CreateFromArray(TestVectors.vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.vector2);
-            var expected = Vector.CreateFromArray(TestVectors.sum);
+            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+            var expected = Vector.CreateFromArray(TestVectors.Sum);
 
             // operator+
             comparer.AssertEqual(expected, v1 + v2);
@@ -32,24 +32,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         [Fact]
         private static void TestAxpy()
         {
-            var v1 = Vector.CreateFromArray(TestVectors.vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.vector2);
-            var expected = Vector.CreateFromArray(TestVectors.vector1PlusVector2Times3);
+            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+            var expected = Vector.CreateFromArray(TestVectors.Vector1PlusVector2Times3);
 
             // Axpy()
-            comparer.AssertEqual(expected, v1.Axpy(v2, TestVectors.scalar2));
+            comparer.AssertEqual(expected, v1.Axpy(v2, TestVectors.Scalar2));
 
             // AxpyIntoThis
             var temp = Vector.CreateFromVector(v1);
-            temp.AxpyIntoThis(v2, TestVectors.scalar2);
+            temp.AxpyIntoThis(v2, TestVectors.Scalar2);
             comparer.AssertEqual(expected, temp);
         }
 
         [Fact]
         private static void TestClear()
         {
-            var zero = Vector.CreateZero(TestVectors.vector1.Length);
-            var vector = Vector.CreateFromArray(TestVectors.vector1);
+            var zero = Vector.CreateZero(TestVectors.Vector1.Length);
+            var vector = Vector.CreateFromArray(TestVectors.Vector1, true);
             vector.Clear();
             comparer.AssertEqual(zero, vector);
         }
@@ -57,22 +57,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         [Fact]
         private static void TestDotProduct()
         {
-            var v1 = Vector.CreateFromArray(TestVectors.vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.vector2);
+            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
 
             // DotProduct()
-            comparer.AssertEqual(TestVectors.dotProduct, v1.DotProduct(v2));
+            comparer.AssertEqual(TestVectors.DotProduct, v1.DotProduct(v2));
 
             // operator*
-            comparer.AssertEqual(TestVectors.dotProduct, v1 * v2);
+            comparer.AssertEqual(TestVectors.DotProduct, v1 * v2);
         }
 
         [Fact]
         private static void TestHadamardProduct()
         {
-            var v1 = Vector.CreateFromArray(TestVectors.vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.vector2);
-            var expected = Vector.CreateFromArray(TestVectors.hadamardProduct);
+            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+            var expected = Vector.CreateFromArray(TestVectors.HadamardProduct);
 
             // MultiplyPointwise()
             comparer.AssertEqual(expected, v1.MultiplyEntrywise(v2));
@@ -86,8 +86,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         [Fact]
         private static void TestLinearCombination()
         {
-            var v1 = Vector.CreateFromArray(TestVectors.vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.vector2);
+            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
             var expected = 2.5 * v1 + -3.5 * v2;
             var comparer = new MatrixComparer();
 
@@ -103,17 +103,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         [Fact]
         private static void TestNorm2()
         {
-            var vector = Vector.CreateFromArray(TestVectors.vector1);
+            var vector = Vector.CreateFromArray(TestVectors.Vector1);
 
             // Norm2()
-            comparer.AssertEqual(TestVectors.norm2OfVector1, vector.Norm2());
+            comparer.AssertEqual(TestVectors.Norm2OfVector1, vector.Norm2());
         }
 
         [Fact]
         private static void TestScaling()
         {
-            var vector = Vector.CreateFromArray(TestVectors.vector1);
-            var expected = Vector.CreateFromArray(TestVectors.vector1Times2);
+            var vector = Vector.CreateFromArray(TestVectors.Vector1);
+            var expected = Vector.CreateFromArray(TestVectors.Vector1Times2);
 
             // Scale()
             comparer.AssertEqual(expected, vector.Scale(2.0));
@@ -130,9 +130,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
         [Fact]
         private static void TestSubtraction()
         {
-            var v1 = Vector.CreateFromArray(TestVectors.vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.vector2);
-            var expected = Vector.CreateFromArray(TestVectors.difference);
+            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+            var expected = Vector.CreateFromArray(TestVectors.Difference);
 
             // operator-
             comparer.AssertEqual(expected, v1 - v2);

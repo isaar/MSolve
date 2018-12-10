@@ -21,9 +21,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestPosDefDenseSystem()
         {
-            var A = Matrix.CreateFromArray(SymmPosDef10by10.matrix);
-            var b = Vector.CreateFromArray(SymmPosDef10by10.rhs);
-            var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
+            var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            var b = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
+            var xExpected = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
 
             var builder = new PcgAlgorithm.Builder();
             builder.ResidualTolerance = 1E-7;
@@ -38,9 +38,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         [Fact]
         private static void TestPosDefSparseSystem()
         {
-            var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
-            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
+            var A = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
+            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
 
             var builder = new PcgAlgorithm.Builder();
             builder.ResidualTolerance = 1E-7;

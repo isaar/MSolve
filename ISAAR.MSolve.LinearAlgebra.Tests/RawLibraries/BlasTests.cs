@@ -124,15 +124,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             double beta = 0.0;
             int incX = 1;
             int incY = 1;
-            int m = RectangularFullRank10by5.numRows;
-            int n = RectangularFullRank10by5.numCols;
+            int m = RectangularFullRank10by5.NumRows;
+            int n = RectangularFullRank10by5.NumCols;
             int ldA = m;
-            double[] A = Conversions.Array2DToFullColMajor(RectangularFullRank10by5.matrix);
-            double[] X = RectangularFullRank10by5.lhs5;
+            double[] A = Conversions.Array2DToFullColMajor(RectangularFullRank10by5.Matrix);
+            double[] X = RectangularFullRank10by5.Lhs5;
             double[] Y = new double[m];
             LAPACKE.Dgemv(layout, transA, m, n, alpha, A, ldA, X, incX, beta, Y, incY);
 
-            comparer.AssertEqual(RectangularFullRank10by5.rhs10, Y);
+            comparer.AssertEqual(RectangularFullRank10by5.Rhs10, Y);
         }
     }
 }

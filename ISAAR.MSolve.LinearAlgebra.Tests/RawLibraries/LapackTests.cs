@@ -20,15 +20,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
         {
             int layout = LAPACKE.LAPACK_COL_MAJOR;
             char transA = LAPACKE.LAPACK_NO_TRANSPOSE;
-            int m = SquareInvertible10by10.order;
+            int m = SquareInvertible10by10.Order;
             int n = m;
             int minDim = m < n ? m : n;
             int ldA = m;
-            double[] A = Conversions.Array2DToFullColMajor(SquareInvertible10by10.matrix); // will be overwritten with LU
+            double[] A = Conversions.Array2DToFullColMajor(SquareInvertible10by10.Matrix); // will be overwritten with LU
             int[] iPiv = new int[minDim];
             int nRhs = 1;
             double[] B = new double[n];
-            Array.Copy(SquareInvertible10by10.rhs, B, n); // will be overwritten with solution
+            Array.Copy(SquareInvertible10by10.Rhs, B, n); // will be overwritten with solution
             int ldB = n;
 
             int infoFact = MklUtilities.DefaultInfo;
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             //    Console.WriteLine($"The {-infoSolve}th parameter has an illegal value."
             //        + " Please contact the developer responsible for the linear algebra project.");
             //}
-            comparer.AssertEqual(SquareInvertible10by10.lhs, B);
+            comparer.AssertEqual(SquareInvertible10by10.Lhs, B);
         }
     }
 }

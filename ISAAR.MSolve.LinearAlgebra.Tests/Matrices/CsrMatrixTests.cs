@@ -17,9 +17,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         [Fact]
         private static void TestClear()
         {
-            var zero = Matrix.CreateZero(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols);
-            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+            var zero = Matrix.CreateZero(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols);
+            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
                 true);
             csr.Clear();
             comparer.AssertEqual(zero, csr);
@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         [Fact]
         private static void TestEquality()
         {
-            var full = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
-            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+            var full = Matrix.CreateFromArray(SparseRectangular10by5.Matrix);
+            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
                 true);
             Assert.True(csr.Equals(full));
         }
@@ -38,9 +38,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         [Fact]
         private static void TestMatrixCopy()
         {
-            var full = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
-            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets, 
+            var full = Matrix.CreateFromArray(SparseRectangular10by5.Matrix);
+            var csr = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets, 
                 true);
             comparer.AssertEqual(full, csr.CopyToFullMatrix());
         }
@@ -48,29 +48,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         [Fact]
         private static void TestMatrixMatrixMultiplication()
         {
-            var matrix5x5 = Matrix.CreateFromArray(SquareInvertible10by10.matrix).GetSubmatrix(0, 5, 0, 5); //TODO: add a 5x5 matrix and its products
-            var matrix10x10 = Matrix.CreateFromArray(SquareInvertible10by10.matrix);
+            var matrix5x5 = Matrix.CreateFromArray(SquareInvertible10by10.Matrix).GetSubmatrix(0, 5, 0, 5); //TODO: add a 5x5 matrix and its products
+            var matrix10x10 = Matrix.CreateFromArray(SquareInvertible10by10.Matrix);
             var ATimesMatrix5x5 = Matrix.CreateFromArray(
-                MatrixOperations.MatrixTimesMatrix(SparseRectangular10by5.matrix, matrix5x5.CopyToArray2D()));
+                MatrixOperations.MatrixTimesMatrix(SparseRectangular10by5.Matrix, matrix5x5.CopyToArray2D()));
             var ATimesTransposeMatrix5x5 = Matrix.CreateFromArray(
-                MatrixOperations.MatrixTimesMatrix(SparseRectangular10by5.matrix, matrix5x5.Transpose().CopyToArray2D()));
+                MatrixOperations.MatrixTimesMatrix(SparseRectangular10by5.Matrix, matrix5x5.Transpose().CopyToArray2D()));
             var transposeATimesMatrix10x10 = Matrix.CreateFromArray(MatrixOperations.MatrixTimesMatrix(
-                MatrixOperations.Transpose(SparseRectangular10by5.matrix), matrix10x10.CopyToArray2D()));
+                MatrixOperations.Transpose(SparseRectangular10by5.Matrix), matrix10x10.CopyToArray2D()));
             var transposeATimesTransposeMatrix10x10 = Matrix.CreateFromArray(MatrixOperations.MatrixTimesMatrix(
-                MatrixOperations.Transpose(SparseRectangular10by5.matrix), matrix10x10.Transpose().CopyToArray2D()));
+                MatrixOperations.Transpose(SparseRectangular10by5.Matrix), matrix10x10.Transpose().CopyToArray2D()));
             var matrix10x10TimesA = Matrix.CreateFromArray(
-                MatrixOperations.MatrixTimesMatrix(matrix10x10.CopyToArray2D(), SparseRectangular10by5.matrix));
+                MatrixOperations.MatrixTimesMatrix(matrix10x10.CopyToArray2D(), SparseRectangular10by5.Matrix));
             var transposeMatrix10x10TimesA = Matrix.CreateFromArray(
-                MatrixOperations.MatrixTimesMatrix(matrix10x10.Transpose().CopyToArray2D(), SparseRectangular10by5.matrix));
+                MatrixOperations.MatrixTimesMatrix(matrix10x10.Transpose().CopyToArray2D(), SparseRectangular10by5.Matrix));
             var matrix5x5TimesTransposeA = Matrix.CreateFromArray(
                 MatrixOperations.MatrixTimesMatrix(matrix5x5.CopyToArray2D(), 
-                MatrixOperations.Transpose(SparseRectangular10by5.matrix)));
+                MatrixOperations.Transpose(SparseRectangular10by5.Matrix)));
             var transposeMatrix5x5TimesTransposeA = Matrix.CreateFromArray(
                 MatrixOperations.MatrixTimesMatrix(matrix5x5.Transpose().CopyToArray2D(), 
-                MatrixOperations.Transpose(SparseRectangular10by5.matrix)));
+                MatrixOperations.Transpose(SparseRectangular10by5.Matrix)));
 
-            var A = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-               SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+            var A = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+               SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
                true);
 
             // MultiplyRight()
@@ -90,17 +90,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestMatrixVectorMultiplication()
         {
             // MultiplyRight() - untransposed - rows > cols
-            var A = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+            var A = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
                 true);
-            var x5 = Vector.CreateFromArray(SparseRectangular10by5.lhs5);
-            var b10Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs10);
+            var x5 = Vector.CreateFromArray(SparseRectangular10by5.Lhs5);
+            var b10Expected = Vector.CreateFromArray(SparseRectangular10by5.Rhs10);
             Vector b10Computed = A.Multiply(x5, false);
             comparer.AssertEqual(b10Expected, b10Computed);
 
             // MultiplyRight() - transposed - rows > cols
-            var x10 = Vector.CreateFromArray(SparseRectangular10by5.lhs10);
-            var b5Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs5);
+            var x10 = Vector.CreateFromArray(SparseRectangular10by5.Lhs10);
+            var b5Expected = Vector.CreateFromArray(SparseRectangular10by5.Rhs5);
             Vector b5Computed = A.Multiply(x10, true);
             comparer.AssertEqual(b5Expected, b5Computed);
 
@@ -112,17 +112,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             comparer.AssertEqual(b20Expected, b20Computed);
 
             // MultiplyRight() - untransposed - rows < cols
-            var B = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numCols, SparseRectangular10by5.numRows,
-                SparseRectangular10by5.cscValues, SparseRectangular10by5.cscRowIndices, SparseRectangular10by5.cscColOffsets,
+            var B = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumCols, SparseRectangular10by5.NumRows,
+                SparseRectangular10by5.CscValues, SparseRectangular10by5.CscRowIndices, SparseRectangular10by5.CscColOffsets,
                 true);
-            var y10 = Vector.CreateFromArray(SparseRectangular10by5.lhs10);
-            var c5Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs5);
+            var y10 = Vector.CreateFromArray(SparseRectangular10by5.Lhs10);
+            var c5Expected = Vector.CreateFromArray(SparseRectangular10by5.Rhs5);
             Vector c5Computed = B.Multiply(y10, false);
             comparer.AssertEqual(c5Expected, c5Computed);
 
             // MultiplyRight() - transposed - rows < cols
-            var y5 = Vector.CreateFromArray(SparseRectangular10by5.lhs5);
-            var c10Expected = Vector.CreateFromArray(SparseRectangular10by5.rhs10);
+            var y5 = Vector.CreateFromArray(SparseRectangular10by5.Lhs5);
+            var c10Expected = Vector.CreateFromArray(SparseRectangular10by5.Rhs10);
             Vector c10Computed = B.Multiply(y5, true);
             comparer.AssertEqual(c10Expected, c10Computed);
         }
@@ -130,10 +130,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         [Fact]
         private static void TestTransposition()
         {
-            var matrix = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+            var matrix = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
                 true);
-            var transposeExpected = Matrix.CreateFromArray(MatrixOperations.Transpose(SparseRectangular10by5.matrix));
+            var transposeExpected = Matrix.CreateFromArray(MatrixOperations.Transpose(SparseRectangular10by5.Matrix));
 
             // TransposeToCSC()
             CscMatrix transposeCsc = matrix.TransposeToCSC(true);

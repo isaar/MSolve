@@ -18,9 +18,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         [Fact]
         private static void TestVector1()
         {
-            var vector = Vector.CreateFromArray(TestVectors.vector1, true);
+            var vector = Vector.CreateFromArray(TestVectors.Vector1, true);
             var writer = new FullVectorWriter(false) { ArrayFormat = Array1DFormat.Brackets };
-            TestWriteOperation(vector, TestVectors.filePath, writer);
+            TestWriteOperation(vector, TestVectors.FilePath, writer);
         }
 
         private static void TestWriteOperation(IIndexable1D vector, string referenceFile)

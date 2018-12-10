@@ -29,10 +29,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         private static void TestPosDefDenseSystem()
         {
             var comparer = new MatrixComparer(1E-6);
-            int n = SparsePosDef10by10.order;
-            var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
-            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
+            int n = SparsePosDef10by10.Order;
+            var A = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
+            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
             var minres = new MinRes(n, 1e-10, 0, false, false);
             (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);
@@ -42,10 +42,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
         private static void TestPosDefSparseSystem()
         {
             var comparer = new MatrixComparer(1E-6);
-            int n = SparsePosDef10by10.order;
-            var A = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            var b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
-            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.lhs);
+            int n = SparsePosDef10by10.Order;
+            var A = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
+            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
             var minres = new MinRes(n, 1e-10, 0, false, false);
             (IVector xComputed, MinresStatistics stats) = minres.Solve(A, b);
             comparer.AssertEqual(xExpected, xComputed);

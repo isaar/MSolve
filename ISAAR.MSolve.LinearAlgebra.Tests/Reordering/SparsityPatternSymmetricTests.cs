@@ -19,12 +19,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
         [Fact]
         private static void TestConnectIndices()
         {
-            int n = GlobalMatrixAssembly.globalOrder;
-            var dense = Matrix.CreateFromArray(GlobalMatrixAssembly.globalMatrix);
+            int n = GlobalMatrixAssembly.GlobalOrder;
+            var dense = Matrix.CreateFromArray(GlobalMatrixAssembly.GlobalMatrix);
             var pattern = SparsityPatternSymmetric.CreateEmpty(n);
-            pattern.ConnectIndices(GlobalMatrixAssembly.globalIndices1, true);
-            pattern.ConnectIndices(GlobalMatrixAssembly.globalIndices2, true);
-            pattern.ConnectIndices(GlobalMatrixAssembly.globalIndices3, true);
+            pattern.ConnectIndices(GlobalMatrixAssembly.GlobalIndices1, true);
+            pattern.ConnectIndices(GlobalMatrixAssembly.GlobalIndices2, true);
+            pattern.ConnectIndices(GlobalMatrixAssembly.GlobalIndices3, true);
 
             for (int i = 0; i < n; ++i)
             {
@@ -40,24 +40,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
         [Fact]
         private static void TestReorderingAMD()
         {
-            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.matrix));
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.Matrix));
             var orderingAlg = new OrderingAmd();
             (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
-            comparer.AssertEqual(SparsePosDef10by10.matlabPermutationAMD, permutation);
+            comparer.AssertEqual(SparsePosDef10by10.MatlabPermutationAMD, permutation);
         }
 
         [Fact]
         private static void TestReorderingCAMD()
         {
-            int n = SparsePosDef10by10.order;
-            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.matrix));
+            int n = SparsePosDef10by10.Order;
+            var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.Matrix));
             var orderingAlg = new OrderingCamd();
             (int[] permutation, ReorderingStatistics stats) = 
-                orderingAlg.FindPermutation(pattern, SparsePosDef10by10.constraintsCAMD);
+                orderingAlg.FindPermutation(pattern, SparsePosDef10by10.ConstraintsCAMD);
 
             var originalDiagonal = new double[n];
             var permutedDiagonal = new double[n];
-            for (int i = 0; i < n; ++i) originalDiagonal[i] = SparsePosDef10by10.matrix[i, i];
+            for (int i = 0; i < n; ++i) originalDiagonal[i] = SparsePosDef10by10.Matrix[i, i];
             for (int i = 0; i < n; ++i) permutedDiagonal[i] = originalDiagonal[permutation[i]];
 
             var writer = new Array1DWriter();
@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
             Console.Write("Permuted diagonal: ");
             writer.WriteToConsole(permutedDiagonal);
 
-            comparer.AssertEqual(SparsePosDef10by10.permutationCAMD, permutation);
+            comparer.AssertEqual(SparsePosDef10by10.PermutationCAMD, permutation);
         }
     }
 }

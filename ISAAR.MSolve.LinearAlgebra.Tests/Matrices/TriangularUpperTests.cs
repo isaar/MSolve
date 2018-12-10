@@ -18,19 +18,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestArrayCopy()
         {
             // invertible
-            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.matrix);
-            comparer.AssertEqual(UpperInvertible10by10.matrix, A1.CopyToArray2D());
+            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.Matrix);
+            comparer.AssertEqual(UpperInvertible10by10.Matrix, A1.CopyToArray2D());
 
             // singular
-            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.matrix);
-            comparer.AssertEqual(UpperSingular10by10.matrix, A2.CopyToArray2D());
+            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.Matrix);
+            comparer.AssertEqual(UpperSingular10by10.Matrix, A2.CopyToArray2D());
         }
 
         [Fact]
         private static void TestClear()
         {
-            var zero = Matrix.CreateZero(UpperSingular10by10.order, UpperSingular10by10.order);
-            var matrix = TriangularUpper.CreateFromArray(UpperSingular10by10.matrix);
+            var zero = Matrix.CreateZero(UpperSingular10by10.Order, UpperSingular10by10.Order);
+            var matrix = TriangularUpper.CreateFromArray(UpperSingular10by10.Matrix);
             matrix.Clear();
             comparer.AssertEqual(zero, matrix);
         }
@@ -39,16 +39,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestMatrixVectorMultiplication()
         {
             // invertible
-            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.matrix);
-            var x1 = Vector.CreateFromArray(UpperInvertible10by10.lhs);
-            var b1Expected = Vector.CreateFromArray(UpperInvertible10by10.rhs);
+            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.Matrix);
+            var x1 = Vector.CreateFromArray(UpperInvertible10by10.Lhs);
+            var b1Expected = Vector.CreateFromArray(UpperInvertible10by10.Rhs);
             Vector b1Computed = A1.Multiply(x1);
             comparer.AssertEqual(b1Expected, b1Computed);
 
             // singular
-            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.matrix);
-            var x2 = Vector.CreateFromArray(UpperSingular10by10.lhs);
-            var b2Expected = Vector.CreateFromArray(UpperSingular10by10.rhs);
+            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.Matrix);
+            var x2 = Vector.CreateFromArray(UpperSingular10by10.Lhs);
+            var b2Expected = Vector.CreateFromArray(UpperSingular10by10.Rhs);
             Vector b2Computed = A2.Multiply(x1);
             comparer.AssertEqual(b2Expected, b2Computed);
         }
@@ -57,21 +57,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestSystemSolution()
         {
             // invertible
-            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.matrix);
-            var b1 = Vector.CreateFromArray(UpperInvertible10by10.rhs);
-            var x1Expected = Vector.CreateFromArray(UpperInvertible10by10.lhs);
+            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.Matrix);
+            var b1 = Vector.CreateFromArray(UpperInvertible10by10.Rhs);
+            var x1Expected = Vector.CreateFromArray(UpperInvertible10by10.Lhs);
             Vector x1Computed = A1.SolveLinearSystem(b1);
             comparer.AssertEqual(x1Expected, x1Computed);
 
             // singular
-            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.matrix);
-            var b2 = Vector.CreateFromArray(UpperSingular10by10.rhs);
-            var x2Expected = Vector.CreateFromArray(UpperSingular10by10.lhs);
+            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.Matrix);
+            var b2 = Vector.CreateFromArray(UpperSingular10by10.Rhs);
+            var x2Expected = Vector.CreateFromArray(UpperSingular10by10.Lhs);
             Vector x2Computed = A2.SolveLinearSystem(b2);
             Assert.False(comparer.AreEqual(x2Expected, x2Computed));
 
             // invertible - solve transposed (forward substitution)
-            Matrix A3 = Matrix.CreateFromArray(UpperInvertible10by10.matrix).Invert().Transpose();
+            Matrix A3 = Matrix.CreateFromArray(UpperInvertible10by10.Matrix).Invert().Transpose();
             Vector x3Expected = A3 * b1;
             Vector x3Computed = A1.SolveLinearSystem(b1, true);
             comparer.AssertEqual(x3Expected, x3Computed);
@@ -81,14 +81,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestTransposition()
         {
             // invertible
-            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.matrix);
-            var A1TransposeExpected = MatrixOperations.Transpose(UpperInvertible10by10.matrix);
+            var A1 = TriangularUpper.CreateFromArray(UpperInvertible10by10.Matrix);
+            var A1TransposeExpected = MatrixOperations.Transpose(UpperInvertible10by10.Matrix);
             TriangularLower A1TransposeComputed = A1.Transpose(false);
             comparer.AssertEqual(A1TransposeExpected, A1TransposeComputed.CopyToArray2D());
 
             // singular
-            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.matrix);
-            var A2TransposeExpected = MatrixOperations.Transpose(UpperSingular10by10.matrix);
+            var A2 = TriangularUpper.CreateFromArray(UpperSingular10by10.Matrix);
+            var A2TransposeExpected = MatrixOperations.Transpose(UpperSingular10by10.Matrix);
             TriangularLower A2TransposeComputed = A2.Transpose(false);
             comparer.AssertEqual(A2TransposeExpected, A2TransposeComputed.CopyToArray2D());
         }

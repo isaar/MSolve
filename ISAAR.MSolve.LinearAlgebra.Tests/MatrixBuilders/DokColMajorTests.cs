@@ -32,10 +32,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
         [Fact]
         private static void TestBuildCSR()
         {
-            int m = SparseRectangular10by5.numRows;
-            int n = SparseRectangular10by5.numCols;
-            var dense = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
-            DokColMajor dok = CreateDok(SparseRectangular10by5.matrix);
+            var dense = Matrix.CreateFromArray(SparseRectangular10by5.Matrix);
+            DokColMajor dok = CreateDok(SparseRectangular10by5.Matrix);
 
             // CSR with sorted col indices of each row
             CscMatrix cscSorted = dok.BuildCscMatrix(true);
@@ -49,10 +47,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
         [Fact]
         private static void TestIndexer()
         {
-            int m = SparseRectangular10by5.numRows;
-            int n = SparseRectangular10by5.numCols;
-            Matrix dense = Matrix.CreateFromArray(SparseRectangular10by5.matrix);
-            DokColMajor dok = CreateDok(SparseRectangular10by5.matrix);
+            Matrix dense = Matrix.CreateFromArray(SparseRectangular10by5.Matrix);
+            DokColMajor dok = CreateDok(SparseRectangular10by5.Matrix);
             comparer.AssertEqual(dense, dok);
         }
     }

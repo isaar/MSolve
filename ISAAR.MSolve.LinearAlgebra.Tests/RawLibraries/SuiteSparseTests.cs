@@ -45,15 +45,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
         [Fact]
         private static void TestReordering()
         {
-            int order = SparseSymm5by5.order;
-            int[] rowIndices = SparseSymm5by5.cscRowIndices;
-            int[] colOffsets = SparseSymm5by5.cscColOffsets;
+            int order = SparseSymm5by5.Order;
+            int[] rowIndices = SparseSymm5by5.CscRowIndices;
+            int[] colOffsets = SparseSymm5by5.CscColOffsets;
             int[] permutation = new int[order];
             IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
             int status = SuiteSparseUtilities.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation,
                 out int factorNNZ, common);
             Assert.True(status == 1, "SuiteSparse reordering failed. A possible reason is the lack of enough available memory");
-            comparer.AssertEqual(SparseSymm5by5.matlabPermutationAMD, permutation);
+            comparer.AssertEqual(SparseSymm5by5.MatlabPermutationAMD, permutation);
            
             SuiteSparseUtilities.DestroyCommon(ref common);
         }

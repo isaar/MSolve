@@ -31,15 +31,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
         [Fact]
         private static void TestAddSubmatrix()
         {
-            var k1 = Matrix.CreateFromArray(GlobalMatrixAssembly.subMatrix1);
-            var k2 = Matrix.CreateFromArray(GlobalMatrixAssembly.subMatrix2);
-            var k3 = Matrix.CreateFromArray(GlobalMatrixAssembly.subMatrix3);
-            var expectedK = Matrix.CreateFromArray(GlobalMatrixAssembly.globalMatrix);
+            var k1 = Matrix.CreateFromArray(GlobalMatrixAssembly.SubMatrix1);
+            var k2 = Matrix.CreateFromArray(GlobalMatrixAssembly.SubMatrix2);
+            var k3 = Matrix.CreateFromArray(GlobalMatrixAssembly.SubMatrix3);
+            var expectedK = Matrix.CreateFromArray(GlobalMatrixAssembly.GlobalMatrix);
 
-            var computedK = DokSymmetric.CreateEmpty(GlobalMatrixAssembly.globalOrder);
-            computedK.AddSubmatrixSymmetric(k1, GlobalMatrixAssembly.indicesDictionary1);
-            computedK.AddSubmatrixSymmetric(k2, GlobalMatrixAssembly.indicesDictionary2);
-            computedK.AddSubmatrixSymmetric(k3, GlobalMatrixAssembly.indicesDictionary3);
+            var computedK = DokSymmetric.CreateEmpty(GlobalMatrixAssembly.GlobalOrder);
+            computedK.AddSubmatrixSymmetric(k1, GlobalMatrixAssembly.IndicesDictionary1);
+            computedK.AddSubmatrixSymmetric(k2, GlobalMatrixAssembly.IndicesDictionary2);
+            computedK.AddSubmatrixSymmetric(k3, GlobalMatrixAssembly.IndicesDictionary3);
 
             comparer.AssertEqual(expectedK, computedK);
         }
@@ -47,10 +47,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
         [Fact]
         private static void TestGetColumn()
         {
-            Matrix dense = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            DokSymmetric dok = CreateDok(SparsePosDef10by10.matrix);
+            Matrix dense = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            DokSymmetric dok = CreateDok(SparsePosDef10by10.Matrix);
 
-            for (int j = 0; j < SparsePosDef10by10.order; ++j)
+            for (int j = 0; j < SparsePosDef10by10.Order; ++j)
             {
                 comparer.AssertEqual(dense.GetColumn(j), dok.GetColumn(j)); //TODO: have hardcoded columns to compare against
             }
@@ -59,8 +59,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
         [Fact]
         private static void TestIndexer()
         {
-            Matrix dense = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            DokSymmetric dok = CreateDok(SparsePosDef10by10.matrix);
+            Matrix dense = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            DokSymmetric dok = CreateDok(SparsePosDef10by10.Matrix);
             comparer.AssertEqual(dense, dok);
         }
     }

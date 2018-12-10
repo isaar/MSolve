@@ -20,18 +20,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         private static void TestDeterminant()
         {
             // positive definite
-            var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.matrix);
+            var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
             CholeskyPacked factorization = A.FactorCholesky();
             double detComputed = factorization.CalcDeterminant();
-            comparer.AssertEqual(SymmPosDef10by10.determinant, detComputed);
+            comparer.AssertEqual(SymmPosDef10by10.Determinant, detComputed);
         }
 
         [Fact]
         private static void TestInversion()
         {
             // positive definite
-            var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.matrix);
-            var inverseAExpected = Matrix.CreateFromArray(SymmPosDef10by10.inverse);
+            var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            var inverseAExpected = Matrix.CreateFromArray(SymmPosDef10by10.Inverse);
             CholeskyPacked factorization = A.FactorCholesky();
             SymmetricMatrix inverseAComputed = factorization.Invert(true);
             comparer.AssertEqual(inverseAExpected, inverseAComputed);
@@ -41,14 +41,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         private static void TestFactorization()
         {
             // positive definite
-            var A1 = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.matrix);
-            var expectedU1 = Matrix.CreateFromArray(SymmPosDef10by10.factorU);
+            var A1 = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            var expectedU1 = Matrix.CreateFromArray(SymmPosDef10by10.FactorU);
             CholeskyPacked factorization1 = A1.FactorCholesky();
             TriangularUpper computedU1 = factorization1.GetFactorU();
             comparer.AssertEqual(expectedU1, computedU1);
 
             // singular
-            var A2 = Matrix.CreateFromArray(SquareSingular10by10.matrix);
+            var A2 = Matrix.CreateFromArray(SquareSingular10by10.Matrix);
             Assert.Throws<IndefiniteMatrixException>(() => A2.FactorCholesky());
         }
 
@@ -56,9 +56,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         private static void TestSystemSolution()
         {
             // positive definite
-            var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.matrix);
-            var b = Vector.CreateFromArray(SymmPosDef10by10.rhs);
-            var xExpected = Vector.CreateFromArray(SymmPosDef10by10.lhs);
+            var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            var b = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
+            var xExpected = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
             CholeskyPacked factorization = A.FactorCholesky();
             Vector xComputed = factorization.SolveLinearSystem(b);
             comparer.AssertEqual(xExpected, xComputed);

@@ -10,9 +10,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     /// </summary>
     internal static class SquareSingularSingleDeficiency10by10
     {
-        internal const int order = 10;
+        internal const int Order = 10;
 
-        internal static readonly double[,] matrix = new double[,] {
+        internal static double[,] Matrix => new double[,] {
             { 5.0389,    0.2156,    9.4373,    8.2953,    4.0673,    3.8888,    4.5039,    2.7529,    5.7474,    1.1704 },
             { 6.4681,    5.5984,    5.4916,    8.4909,    6.6693,    4.5474,    2.0567,    7.1667,    3.2604,    8.1468 },
             { 3.0775,    3.0082,    7.2839,    3.7253,    9.3373,    2.4669,    8.9965,    2.8338,    4.5642,    3.2486 },
@@ -24,13 +24,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 6.6851,    5.9753,    3.7231,    6.5385,    9.8797,    1.4888,    1.2281,    8.3437,    4.3851,    3.9582 },
             { 1.3350,    8.8402,    9.3713,    0.7205,    8.6415,    8.9971,    4.0732,    6.0963,    4.3782,    3.9813 }};
 
-        internal static readonly double[] lhs = {
+        internal static double[] Lhs => new double[] {
             3.4484, 1.9563, 2.7385, 4.2828, 5.3064, 4.3251, 0.1117, 4.0487, 2.6311, 2.6269
         };
 
-        internal static readonly double[] rhs = MatrixOperations.MatrixTimesVector(matrix, lhs);
+        internal static double[] Rhs => MatrixOperations.MatrixTimesVector(Matrix, Lhs);
 
-        internal static readonly double[,] factorL = new double[,] {
+        internal static double[,] FactorL => new double[,] {
             { 1.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000, 0.000000000000000 },
             { 0.176016038370278,  1.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000, 0.000000000000000 },
             { 0.639365063252592, -0.614258360352771,  1.000000000000000,  0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000, 0.000000000000000 },
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0.848244534392407, -0.102399521086466, -0.157685267248492, -0.297951665007305, 1.000000000000000, -0.000000000000000, -0.000000000000000,  0.000000000000000, 0.000000000000000, 1.000000000000000 }
         };
 
-        internal static readonly double[,] factorU = new double[,] {
+        internal static double[,] FactorU => new double[,] {
             { 7.881100000000000, 8.008200000000000, 6.463000000000000,  6.684600000000000,  4.170500000000000,  5.582800000000000,  6.732300000000000,  4.979000000000000,  0.186100000000000,  5.465500000000000 },
             { 0.000000000000000, 7.984528361523138, 4.630008344012891,  4.755203189910038,  7.375425111976755,  6.861537660986411,  6.440907224879775,  8.085616144954384,  7.105243415259291,  1.500284342287244 },
             { 0.000000000000000, 0.000000000000000, 8.149104930011509,  6.942323612760134,  5.931244539892565,  4.534109598009734,  4.155883695803547,  4.536158665706923,  9.992869331893191, -1.402487553050741 },
@@ -56,9 +56,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0.000000000000000, 0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000,  0.000000000000000, -0.000000000000000 }
         };
 
-        internal const double determinant = 0.0;
+        internal const double Determinant = 0.0;
 
-        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+        internal static string FilePath => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
             + @"\Resources\SquareSingularSingleDeficiency10by10.txt";
     }
 }
