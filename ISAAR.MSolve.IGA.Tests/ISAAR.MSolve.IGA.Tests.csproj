@@ -6,6 +6,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup>
+   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup> 
+  
   <ItemGroup>
     <None Remove="InputFiles\Qube4096.txt" />
     <None Remove="InputFiles\Qube512.txt" />
@@ -27,6 +31,18 @@
     <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.IGA\ISAAR.MSolve.IGA.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>System</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

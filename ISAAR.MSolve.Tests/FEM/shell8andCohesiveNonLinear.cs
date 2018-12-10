@@ -286,7 +286,6 @@ namespace ISAAR.MSolve.Tests.FEM
             e1.NodesDictionary.Add(4, model.NodesDictionary[4]);
             e1.NodesDictionary.Add(7, model.NodesDictionary[7]);
 
-            int subdomainID = 1; // tha mporei kai na dinetai sto hexabuilder opws sto MakeBeamBuilding
             model.ElementsDictionary.Add(e1.ID, e1);
             model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e1.ID, e1);
             //eisagwgh shell ews edw
