@@ -555,19 +555,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return SymmetricMatrix.CreateFromArray(data, Order, Definiteness, copyInternalArray);
         }
 
-
-        public void WriteToFile(string path, bool append = false)
-        {
-            using (var writer = new System.IO.StreamWriter(path, append))
-            {
-#if DEBUG
-                writer.AutoFlush = true; // To look at intermediate output at certain breakpoints
-#endif
-                for (int i = 0; i < data.Length; ++i)
-                    writer.WriteLine(data[i].ToString("g17", new System.Globalization.CultureInfo("en-US", false).NumberFormat));
-            }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int Find1DIndex(int i, int j)
         {

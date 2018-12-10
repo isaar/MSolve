@@ -1,5 +1,6 @@
 ﻿using System;
 using DotNumerics.LinearAlgebra.CSLapack;
+using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 using static ISAAR.MSolve.LinearAlgebra.Providers.ManagedConstants;
 
 //TODO: find a managed BLAS that supports the methods DotNumerics doesn't or implement them myself (naively).
@@ -40,15 +41,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         public void Dspmv(CBlasLayout layout, CBlasTriangular uplo, int n, 
             double alpha, double[] a, int offsetA, double[] x, int offsetX, int incX, 
             double beta, double[] y, int offsetY, int incY)
-            => throw new NotImplementedException("The current managed BLAS does not support operations with packed format.");
+        {
+            // y = alpha * L * x + beta * y 
+            CblasLevel2.LowerTimesVectorPackedRowMajor(CblasLevel2.Diagonal.Regular, n, alpha, a, offsetA, x, offsetX, incX,
+                beta, y, offsetY, incY);
+
+            // y = alpha * U * x + y, where U has 0 diagonal
+            CblasLevel2.UpperTimesVectorPackedColMajor(CblasLevel2.Diagonal.Zero, n, alpha, a, offsetA, x, offsetX, incX,
+                1.0, y, offsetY, incY);
+        }
 
         public void Dtpmv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
             double[] a, int offsetA, double[] x, int offsetX, int incX)
-            => throw new NotImplementedException("The current managed BLAS does not support operations with packed format.");
+        {
+            // The copy may be avoidable in trangular operations, if we start the dot products from the bottom
+            var input = new double[x.Length];
+            Array.Copy(x, input, x.Length);
+
+            CblasLevel2.Diagonal managedDiag = (diag == CBlasDiagonal.NonUnit) ? 
+                CblasLevel2.Diagonal.Regular : CblasLevel2.Diagonal.Unit;
+            if (UseUpperImplementation(uplo, transA, layout))
+            {
+                CblasLevel2.UpperTimesVectorPackedColMajor(managedDiag, n, 1.0, a, offsetA, input, offsetX, incX,
+                    0.0, x, offsetX, incX);
+            }
+            else
+            {
+                CblasLevel2.LowerTimesVectorPackedRowMajor(managedDiag, n, 1.0, a, offsetA, input, offsetX, incX,
+                    0.0, x, offsetX, incX);
+            }
+        }
 
         public void Dtpsv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
             double[] a, int offsetA, double[] x, int offsetX, int incX)
-            => throw new NotImplementedException("The current managed BLAS does not support operations with packed format.");
+        {
+            bool unit = (diag == CBlasDiagonal.Unit) ? true : false;
+            if (UseUpperImplementation(uplo, transA, layout))
+            {
+                CblasLevel2.BackSubstitutionPackedColMajor(unit, n, a, offsetA, x, offsetX, incX);
+            }
+            else CblasLevel2.ForwardSubstitutionPackedRowMajor(unit, n, a, offsetA, x, offsetX, incX);
+        }
 
         public void Dtrsv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
             double[] a, int offsetA, int ldA, double[] x, int offsetX, int incX)
@@ -70,5 +103,50 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             daxpy.Run(n, alpha, x, offsetX, incX, ref y, offsetY, incY);
         }
         #endregion
+
+        //TODO: I have not tested all combinations
+        private static bool UseUpperImplementation(CBlasTriangular uplo, CBlasTranspose transA, CBlasLayout layout)
+        {
+            if (transA == CBlasTranspose.ConjugateTranspose)
+                throw new ArgumentException("Cannot use conjugate transpose operations for double matrices and vectors.");
+
+            // Upper triangular combinations
+            if (uplo == CBlasTriangular.Upper && transA == CBlasTranspose.NoTranspose && layout == CBlasLayout.ColMajor)
+            {
+                return true;
+            }
+            if (uplo == CBlasTriangular.Upper && transA == CBlasTranspose.NoTranspose && layout == CBlasLayout.RowMajor)
+            {
+                return false;
+            }
+            if (uplo == CBlasTriangular.Upper && transA == CBlasTranspose.Transpose && layout == CBlasLayout.ColMajor)
+            {
+                return false;
+            }
+            if (uplo == CBlasTriangular.Upper && transA == CBlasTranspose.Transpose && layout == CBlasLayout.RowMajor)
+            {
+                return true;
+            }
+
+            // Lower triangular combinations
+            if (uplo == CBlasTriangular.Lower && transA == CBlasTranspose.NoTranspose && layout == CBlasLayout.RowMajor)
+            {
+                return false;
+            }
+            if (uplo == CBlasTriangular.Lower && transA == CBlasTranspose.NoTranspose && layout == CBlasLayout.ColMajor)
+            {
+                return true;
+            }
+            if (uplo == CBlasTriangular.Lower && transA == CBlasTranspose.Transpose && layout == CBlasLayout.RowMajor)
+            {
+                return true;
+            }
+            if (uplo == CBlasTriangular.Lower && transA == CBlasTranspose.Transpose && layout == CBlasLayout.ColMajor)
+            {
+                return false;
+            }
+
+            throw new Exception("This code should not have been reached");
+        }
     }
 }
