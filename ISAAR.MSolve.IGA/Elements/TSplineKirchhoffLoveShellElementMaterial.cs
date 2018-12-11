@@ -31,8 +31,19 @@ namespace ISAAR.MSolve.IGA.Elements
 		private Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>
 			materialsAtThicknessGP =
 				new Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>();
-		public TSplineKirchhoffLoveShellElementMaterial(IShellMaterial shellMaterial)
+		
+
+		public TSplineKirchhoffLoveShellElementMaterial(int id, Patch patch, int degreeKsi, int degreeHeta,
+			double thickness, Matrix2D extractionOperator, IShellMaterial shellMaterial)
 		{
+			this.ID = id;
+			this.Patch = patch;
+			this.DegreeKsi = degreeKsi;
+			this.DegreeHeta = degreeHeta;
+			this.Thickness = thickness;
+			this.ExtractionOperator = extractionOperator;
+
+			CreateElementGaussPoints(this);
 			foreach (var medianSurfaceGP in thicknessIntegrationPoints.Keys)
 			{
 				materialsAtThicknessGP.Add(medianSurfaceGP, new Dictionary<GaussLegendrePoint3D, IShellMaterial>());
@@ -70,7 +81,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
 		{
-			var shellElement = (TSplineKirchhoffLoveShellElement)element;
+			var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
 			Vector ElementNodalForces = new Vector(shellElement.ControlPointsDictionary.Count * 3);
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
@@ -141,13 +152,12 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
 		{
-			var shellElement = (TSplineKirchhoffLoveShellElement)element;
-			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
+			var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			//Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
 
-			for (int j = 0; j < gaussPoints.Count; j++)
+			for (int j = 0; j < materialsAtThicknessGP.Keys.Count; j++)
 			{
 				var jacobianMatrix = CalculateJacobian(shellElement, tsplines, j);
 
@@ -173,7 +183,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				var membraneStrain = Bmembrane.Transpose() * new Vector(localDisplacements);
 				var bendingStrain = Bbending.Transpose() * (new Vector(localDisplacements));
 				
-				foreach (var keyValuePair in materialsAtThicknessGP[gaussPoints[j]])
+				foreach (var keyValuePair in materialsAtThicknessGP[materialsAtThicknessGP.Keys.ToList()[j]])
 				{
 					var thicknessPoint = keyValuePair.Key;
 					var material = keyValuePair.Value;
@@ -203,7 +213,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
 		{
-			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
+			var nurbsElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
@@ -224,10 +234,9 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public IMatrix2D StiffnessMatrix(IElement element)
 		{
-			var shellElement = (TSplineKirchhoffLoveShellElement)element;
-            IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
+			var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
-
+			var gaussPoints = materialsAtThicknessGP.Keys.ToList();
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
 
 			for (int j = 0; j < gaussPoints.Count; j++)
@@ -235,12 +244,18 @@ namespace ISAAR.MSolve.IGA.Elements
 				var jacobianMatrix = CalculateJacobian(shellElement, tsplines, j);
 
 				var hessianMatrix = CalculateHessian(shellElement, tsplines, j);
-
 				var surfaceBasisVector1 = CalculateSurfaceBasisVector1(jacobianMatrix, 0);
 
 				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
 
 				var surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
+
+				foreach (var integrationPointMaterial in materialsAtThicknessGP[gaussPoints[j]].Values)
+				{
+					integrationPointMaterial.TangentVectorV1 = surfaceBasisVector1.Data;
+					integrationPointMaterial.TangentVectorV2 = surfaceBasisVector2.Data;
+					integrationPointMaterial.NormalVectorV3 = surfaceBasisVector3.Data;
+				}
 				var J1 = surfaceBasisVector3.Norm;
 				surfaceBasisVector3.Multiply(1 / J1);
 
@@ -286,12 +301,19 @@ namespace ISAAR.MSolve.IGA.Elements
 			{
 				var thicknessPoint = keyValuePair.Key;
 				var material = keyValuePair.Value;
-				MembraneConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				                               (Thickness / 2));
-				BendingConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				                              Math.Pow(thicknessPoint.Zeta, 2) * (Thickness / 2));
-				CouplingConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				                               thicknessPoint.Zeta * (Thickness / 2));
+				//TODO: Check changes with Gery
+				MembraneConstitutiveMatrix.Add((Matrix2D)material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
+				                               Thickness);
+				BendingConstitutiveMatrix.Add((Matrix2D)material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
+				                              Math.Pow(thicknessPoint.Zeta, 2) * Thickness);
+				CouplingConstitutiveMatrix.Add((Matrix2D)material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
+				                               thicknessPoint.Zeta * Thickness);
+				//MembraneConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
+				//                               (Thickness / 2));
+				//BendingConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
+				//                              Math.Pow(thicknessPoint.Zeta, 2) * (Thickness / 2));
+				//CouplingConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
+				//                               thicknessPoint.Zeta * (Thickness / 2));
 			}
 
 			return (MembraneConstitutiveMatrix, BendingConstitutiveMatrix,CouplingConstitutiveMatrix);
@@ -355,7 +377,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
 			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
-			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElement element)
+			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElementMaterial element)
 		{
 			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
 			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
@@ -443,7 +465,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		}
 
 		private Matrix2D CalculateMembraneDeformationMatrix(ShapeTSplines2DFromBezierExtraction tsplines, int j, Vector surfaceBasisVector1,
-			Vector surfaceBasisVector2, TSplineKirchhoffLoveShellElement element)
+			Vector surfaceBasisVector2, TSplineKirchhoffLoveShellElementMaterial element)
 		{
 			Matrix2D dRIa = new Matrix2D(3, element.ControlPoints.Count * 3);
 			for (int i = 0; i < element.ControlPoints.Count; i++)
@@ -483,7 +505,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return surfaceBasisVector1;
 		}
 
-		private static Matrix2D CalculateHessian(TSplineKirchhoffLoveShellElement shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
+		private static Matrix2D CalculateHessian(TSplineKirchhoffLoveShellElementMaterial shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
 			Matrix2D hessianMatrix = new Matrix2D(3, 3);
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
@@ -502,7 +524,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return hessianMatrix;
 		}
 
-		private static Matrix2D CalculateJacobian(TSplineKirchhoffLoveShellElement shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
+		private static Matrix2D CalculateJacobian(TSplineKirchhoffLoveShellElementMaterial shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
 			Matrix2D jacobianMatrix = new Matrix2D(2, 3);
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
@@ -521,7 +543,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		const int thicknessIntegrationDegree = 2;
 		Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>> thicknessIntegrationPoints= new Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>>();
-		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElement element)
+		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElementMaterial element)
         {
             GaussQuadrature gauss = new GaussQuadrature();
 	        var medianSurfaceGP= gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, new List<Knot>
@@ -537,9 +559,9 @@ namespace ISAAR.MSolve.IGA.Elements
 				thicknessIntegrationPoints.Add(point, gauss.CalculateElementGaussPoints(thicknessIntegrationDegree,
 					new List<Knot>
 					{
-						new Knot() {ID = 0, Ksi = point.Ksi, Heta = point.Heta, Zeta = -Thickness / 2},
-						new Knot() {ID = 1, Ksi = point.Ksi, Heta = point.Heta, Zeta = Thickness / 2},
-					}).ToList());
+						new Knot() {ID = 0, Ksi = -Thickness / 2, Heta = point.Heta },
+						new Knot() {ID = 1, Ksi = Thickness / 2, Heta = point.Heta},
+					}).Select(gp => new GaussLegendrePoint3D(point.Ksi, point.Heta, gp.Ksi, null, gp.WeightFactor)).ToList());
 	        }
 
 	        //new Knot() { ID = 0, Ksi = -1, Heta = -1, Zeta = -Thickness / 2 },

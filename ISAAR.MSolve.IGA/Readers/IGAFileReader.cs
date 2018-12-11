@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Text;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Readers
@@ -20,6 +22,11 @@ namespace ISAAR.MSolve.IGA.Readers
 			plane, surface
 	    }
 
+	    public enum TSplineShellTypes
+	    {
+			LinearMaterial,SectionMaterial, ThicknessMaterial 
+	    }
+
 		public Model Model { get;  }
 		public string Filename { get; private set; }
 
@@ -34,7 +41,7 @@ namespace ISAAR.MSolve.IGA.Readers
 	    private int controlPointIDcounter=0;
 	    private int elementIDCounter = 0;
         private int numberOfDimensions;
-	    public void CreateTSplineShellsModelFromFile()
+	    public void CreateTSplineShellsModelFromFile(TSplineShellTypes shellType=TSplineShellTypes.LinearMaterial, ShellElasticMaterial2D shellMaterial=null, double thickness=1)
 	    {
 		    char[] delimeters = { ' ', '=', '\t' };
 		    Attributes? name = null;
@@ -127,23 +134,19 @@ namespace ISAAR.MSolve.IGA.Readers
                         }
 						else
 						{
-                            Element element = new TSplineKirchhoffLoveShellElement()
-                            {
-                                ID = elementIDCounter,
-                                Patch = Model.PatchesDictionary[0],
-                                ElementType = new TSplineKirchhoffLoveShellElement(),
-                                DegreeKsi = elementDegreeKsi,
-                                DegreeHeta = elementDegreeHeta,
-                                ExtractionOperator = extractionOperator
-                            };
-                            for (int cp = 0; cp < connectivity.Length; cp++)
-                            {
-                                element.AddControlPoint(Model.ControlPointsDictionary[connectivity[cp]]);
-                            }
-							Model.ElementsDictionary.Add(elementIDCounter,element);
-                            Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
-
-                        }
+							switch (shellType)
+							{
+								case TSplineShellTypes.LinearMaterial:
+									CreateLinearShell(elementDegreeKsi, elementDegreeHeta, extractionOperator, connectivity);
+									break;
+								case TSplineShellTypes.SectionMaterial:
+									CreateSectionMaterialShell(elementDegreeKsi, elementDegreeHeta, extractionOperator, connectivity);
+									break;
+								case TSplineShellTypes.ThicknessMaterial:
+									CreateThicknessShell(elementDegreeKsi, elementDegreeHeta, extractionOperator, connectivity, shellMaterial, thickness);
+									break;
+							}
+						}
 						break;
 					case Attributes.set:
 						break;
@@ -153,5 +156,66 @@ namespace ISAAR.MSolve.IGA.Readers
             var a = 0;
         }
 
-    }
+	    private void CreateLinearShell(int elementDegreeKsi, int elementDegreeHeta, Matrix2D extractionOperator,
+		    int[] connectivity)
+	    {
+		    Element element = new TSplineKirchhoffLoveShellElement()
+		    {
+			    ID = elementIDCounter,
+			    Patch = Model.PatchesDictionary[0],
+			    ElementType = new TSplineKirchhoffLoveShellElement(),
+			    DegreeKsi = elementDegreeKsi,
+			    DegreeHeta = elementDegreeHeta,
+			    ExtractionOperator = extractionOperator
+		    };
+		    for (int cp = 0; cp < connectivity.Length; cp++)
+		    {
+			    element.AddControlPoint(Model.ControlPointsDictionary[connectivity[cp]]);
+		    }
+
+		    Model.ElementsDictionary.Add(elementIDCounter, element);
+		    Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
+	    }
+
+	    private void CreateSectionMaterialShell(int elementDegreeKsi, int elementDegreeHeta, Matrix2D extractionOperator,
+		    int[] connectivity)
+	    {
+			//TODO: Create constructor to fill section material at gauss points
+		    Element element = new TSplineKirchhoffLoveShellSectionElement()
+		    {
+			    ID = elementIDCounter,
+			    Patch = Model.PatchesDictionary[0],
+			    ElementType = new TSplineKirchhoffLoveShellSectionElement(),
+			    DegreeKsi = elementDegreeKsi,
+			    DegreeHeta = elementDegreeHeta,
+			    ExtractionOperator = extractionOperator
+		    };
+		    for (int cp = 0; cp < connectivity.Length; cp++)
+		    {
+			    element.AddControlPoint(Model.ControlPointsDictionary[connectivity[cp]]);
+		    }
+
+		    Model.ElementsDictionary.Add(elementIDCounter, element);
+		    Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
+	    }
+
+	    private void CreateThicknessShell(int elementDegreeKsi, int elementDegreeHeta, Matrix2D extractionOperator,
+		    int[] connectivity, ShellElasticMaterial2D shellMaterial, double thickness)
+	    {
+			//TODO: Create constructor to fill section material at gauss points
+		    Element element = new TSplineKirchhoffLoveShellElementMaterial(elementIDCounter, Model.PatchesDictionary[0],
+				    elementDegreeKsi, elementDegreeHeta, thickness, extractionOperator, shellMaterial)
+			    {ElementType = new TSplineKirchhoffLoveShellElementMaterial(elementIDCounter, Model.PatchesDictionary[0],
+				    elementDegreeKsi, elementDegreeHeta, thickness, extractionOperator, shellMaterial)
+			    };
+
+		    for (int cp = 0; cp < connectivity.Length; cp++)
+		    {
+			    element.AddControlPoint(Model.ControlPointsDictionary[connectivity[cp]]);
+		    }
+
+		    Model.ElementsDictionary.Add(elementIDCounter, element);
+		    Model.PatchesDictionary[0].ElementsDictionary.Add(elementIDCounter++, element);
+	    }
+	}
 }
