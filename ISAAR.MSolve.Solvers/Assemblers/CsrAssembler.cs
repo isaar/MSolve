@@ -32,28 +32,29 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 
-        public (CsrMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
-            AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
-        {
-            int numConstrainedDofs = dofOrderer.NumConstrainedDofs;
-            int numFreeDofs = dofOrderer.NumFreeDofs;
-            var Kff = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
-            var Kfc = DokRowMajor.CreateEmpty(numFreeDofs, numConstrainedDofs);
+        //TODO: This is for the case when we also number constrained dofs globally.
+        //public (CsrMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
+        //    AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
+        //{
+        //    int numConstrainedDofs = dofOrderer.NumConstrainedDofs;
+        //    int numFreeDofs = dofOrderer.NumFreeDofs;
+        //    var Kff = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
+        //    var Kfc = DokRowMajor.CreateEmpty(numFreeDofs, numConstrainedDofs);
 
-            foreach (IElement elementWrapper in elements)
-            {
-                ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
-                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
-                (IReadOnlyDictionary<int, int> mapStandard, IReadOnlyDictionary<int, int> mapConstrained) =
-                    dofOrderer.MapDofsElementToGlobal(element);
-                Matrix k = matrixProvider.Matrix(elementWrapper).LegacyToNewMatrix();
-                Kff.AddSubmatrixSymmetric(k, mapStandard);
-                Kfc.AddSubmatrix(k, mapStandard, mapConstrained);
-            }
+        //    foreach (IElement elementWrapper in elements)
+        //    {
+        //        ContinuumElement2D element = (ContinuumElement2D)(elementWrapper.IElementType);
+        //        // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
+        //        (IReadOnlyDictionary<int, int> mapStandard, IReadOnlyDictionary<int, int> mapConstrained) =
+        //            dofOrderer.MapDofsElementToGlobal(element);
+        //        Matrix k = matrixProvider.Matrix(elementWrapper).LegacyToNewMatrix();
+        //        Kff.AddSubmatrixSymmetric(k, mapStandard);
+        //        Kfc.AddSubmatrix(k, mapStandard, mapConstrained);
+        //    }
 
-            //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. dok.Build())
-            return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
-        }
+        //    //TODO: perhaps I should filter the matrices in the concrete class before returning (e.g. dok.Build())
+        //    return (Kff.BuildCsrMatrix(sortColsOfEachRow), Kfc);
+        //}
 
         public CsrMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)

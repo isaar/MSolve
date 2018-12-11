@@ -65,6 +65,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
+        //TODO: use Table.ModifyValues() for this.
         public void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes)
         {
             int dofIdx = -1;
