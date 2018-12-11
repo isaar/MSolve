@@ -15,8 +15,6 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 //      Matrix and an array instead of an output Vector.
 //TODO: perhaps optimizations if (other is Matrix) are needed, to directly index into its raw col major array.
 //      The access paterns are always the same
-//TODO: find a better design than a global static UseMKL flag. Perhaps providers (strategy objects?) that are set for each 
-//      matrix and/or system wide.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -814,7 +812,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public CsrMatrix TransposeToCSR()
         {
             // Use C# port of the scipy method.
-            // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use MKL
+            // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use SparseBLAS
             int nnz = this.values.Length;
             var cscValues = new double[nnz];
             var cscRowIndices = new int[nnz];

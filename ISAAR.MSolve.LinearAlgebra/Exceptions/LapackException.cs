@@ -3,7 +3,7 @@
 namespace ISAAR.MSolve.LinearAlgebra.Exceptions
 {
     /// <summary>
-    /// The exception that is thrown when a call to Intel Math Kernel Library fails.
+    /// The exception that is thrown when a call to the LAPACK library fails.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class LapackException : Exception

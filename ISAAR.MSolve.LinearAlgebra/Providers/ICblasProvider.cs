@@ -4,11 +4,14 @@
 //      does just that. CBLAS functions might also explicitly transpose matrices, like LAPACKE does, which should not be hidden
 //      from the matrix/vector classes. MKL provides both BLAS and CBLAS, but other major packages 
 //      (e.g. DotNumerics, cuBLAS) only provide the BLAS interface.
+//TODO: Even better would be to write my own BLAS wrapper, similarly to CBLAS, which would wrap all BLAS providers and 
+//      be simple enough for regular use.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public interface ICBlasProvider
     {
         #region BLAS Level 1
+
         /// <summary>
         /// y = alpha * x + y
         /// </summary>
@@ -65,6 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         #endregion
 
         #region BLAS Level 3
+
         /// <summary>
         /// C = alpha * op(A) * op(B) + beta * C, where op(A) = A or transpose(A), op(B) = B or transpose(B). A, B, C are general
         /// matrices, stored in full format.

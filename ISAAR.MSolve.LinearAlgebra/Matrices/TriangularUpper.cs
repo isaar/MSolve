@@ -14,8 +14,8 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// Upper triangular square matrix in column major Packed storage format (only stores the n*(n+1)/2 non zeros). Uses Intel  
-    /// MKL. For the more information about the layout, see 
+    /// Upper triangular square matrix in column major Packed storage format (only stores the n*(n+1)/2 non zeros). Uses LAPACK.  
+    /// For the more information about the layout, see 
     /// <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// Authors: Serafeim Bakalakos
     /// </summary>

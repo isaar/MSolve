@@ -383,7 +383,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         ///     <paramref name="vector"/>.<see cref="IIndexable1D.Length"/> != this.<see cref="NumColumns"/>.</exception>
         public Vector MultiplyRight(Vector vector, bool avoidBuilding = false)
         {
-            // MKL functions are way faster than managed code. Just don't sort the CSR.
+            // SparseBLAS functions are way faster than managed code. Just don't sort the CSR.
             bool buildCSR = (!avoidBuilding) && (LibrarySettings.SparseBlas is MklSparseBlasProvider); 
             if (buildCSR) return BuildCsrMatrix(false).Multiply(vector); 
 

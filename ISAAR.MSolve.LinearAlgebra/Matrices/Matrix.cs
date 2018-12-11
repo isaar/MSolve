@@ -18,7 +18,7 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// General purpose matrix class. All entries are stored in an 1D column major array. Uses MKL for most operations. 
+    /// General purpose matrix class. All entries are stored in an 1D column major array. Uses LAPACK for most operations. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class Matrix : IMatrix, ISliceable2D
@@ -495,7 +495,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not symmetric positive definite.</exception>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public CholeskyFull FactorCholesky()
         {
             Preconditions.CheckSquare(this);
@@ -509,7 +509,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = L * Q. Q is an orthogonal n-by-n matrix and L is a lower trapezoidal m-by-n matrix. Requires extra available  
         /// memory form * n + min(m, n) entries.
         /// </summary>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public LQFactorization FactorLQ()
         {
             return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
@@ -521,7 +521,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// permutation matrix. Requires extra available memory n^2 + n entries. 
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public LUFactorization FactorLU()
         {
             Preconditions.CheckSquare(this);
@@ -535,7 +535,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = Q * R. Q is an orthogonal m-by-m matrix and R is an upper trapezoidal m-by-n matrix. Requires extra 
         /// available memory for m * n + min(m, n) entries. 
         /// </summary>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public QRFactorization FactorQR()
         {
             return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
@@ -625,7 +625,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public Matrix Invert()
         {
             if ((NumRows == 2) && (NumColumns == 2))
@@ -647,7 +647,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public (Matrix inverse, double determinant) InvertAndDetermninant()
         {
             if ((NumRows == 2) && (NumColumns == 2))
@@ -1075,7 +1075,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix Transpose()
         {
-            //TODO: The wrapper library does not include MKL's CBlas-like extensions yet. Create my own wrapper or 
+            //TODO: The wrapper library does not include LAPACK's CBlas-like extensions yet. Create my own wrapper or 
             // piggyback on another BLAS function.
             double[] transpose = Conversions.ColumnMajorToRowMajor(data, NumRows, NumColumns);
             return new Matrix(transpose, NumColumns, NumRows);

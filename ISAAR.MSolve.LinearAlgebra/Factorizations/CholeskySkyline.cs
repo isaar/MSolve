@@ -265,9 +265,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
         public void SolveLinearSystem(Vector rhs, Vector solution)
         {
+            // Copied from Stavroulakis code.
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, solution.Length);
 

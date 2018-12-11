@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     /// <summary>
     /// The Bunch-Kaufman factorization of a symmetric matrix A is" A = transpose(U) * D * U. It is recommended for symmetric 
     /// indefinite matrices, since Cholesky factorization cannot be used and Bunch-Kaufman is more efficient than LU 
-    /// factorization. Uses Intel MKL.
+    /// factorization. Uses LAPACK.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class BunchKaufmanFactorization : ITriangulation

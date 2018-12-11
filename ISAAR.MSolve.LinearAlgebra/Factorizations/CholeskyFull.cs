@@ -1,11 +1,10 @@
 ﻿using System;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: check if the last minor is non-negative, during factorization. Is it possible that it isn't. Does it affect system 
 // solution or inversion?
@@ -14,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     /// <summary>
     /// Cholesky factorization of a symmetric positive definite matrix, stored in full column major format. Only the upper
     /// triangle part of the matrix is factorized. The subdiagonal part of the original matrix is still stored in the array but 
-    /// it is ignored. Uses Intel MKL.
+    /// it is ignored. Uses Lapack.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class CholeskyFull: ITriangulation
@@ -47,11 +46,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not symmetric positive definite.</exception>
         public static CholeskyFull Factorize(int order, double[] matrix)
         {
-            // Call MKL
+            // Call LAPACK
             int info = LapackUtilities.DefaultInfo;
-            Lapack.Dpotrf("U", ref order, ref matrix[0], ref order, ref info);
+            Lapack.Dpotrf("U", order, matrix, 0, order, ref info);
 
-            // Check MKL execution
+            // Check LAPACK execution
             if (info == 0) return new CholeskyFull(order, matrix);
             else if (info > 0)
             {
@@ -104,7 +103,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         {
             CheckOverwritten();
 
-            // Call MKL
+            // Call LAPACK
             int info = LapackUtilities.DefaultInfo;
             double[] inverse;
             if (inPlace)
@@ -117,10 +116,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 inverse = new double[data.Length];
                 Array.Copy(data, inverse, data.Length);
             }
-            info = LAPACKE.Dpotri(LAPACKE.LAPACK_COL_MAJOR, LAPACKE.LAPACK_UPPER, Order, inverse, Order);
+            Lapack.Dpotri("U", Order, inverse, 0, Order, ref info);
             Conversions.CopyUpperToLowerColMajor(inverse, Order); //So far the lower triangle was the same as the original matrix
 
-            // Check MKL execution
+            // Check LAPACK execution
             if (info == 0) return Matrix.CreateFromArray(inverse, Order, Order, false);
             else if (info > 0) // this should not have happened
             {
@@ -133,22 +132,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
-        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid arguments.</exception>
         public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             CheckOverwritten();
             Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
             Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
 
-            // Back & forward substitution using MKL
+            // Back & forward substitution using LAPACK
             int n = Order;
             solution.CopyFrom(rhs);
             int info = LapackUtilities.DefaultInfo;
             int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
-            int ldb = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dpotrs("U", ref n, ref nRhs, ref data[0], ref n, ref solution.InternalData[0], ref ldb, ref info);
+            int ldB = n; // column major ordering: leading dimension of b is n 
+            Lapack.Dpotrs("U", n, nRhs, data, 0, n, solution.InternalData, 0, ldB, ref info);
 
-            // Check MKL execution
+            // Check LAPACK execution
             if (info != 0) throw LapackUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 

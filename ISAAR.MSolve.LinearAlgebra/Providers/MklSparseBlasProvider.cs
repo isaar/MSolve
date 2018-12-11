@@ -32,12 +32,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         public void CsrTransposeTimesVector(int numRows, double[] values, int[] rowOffsets, int[] colIndices, double[] x, 
             double[] y)
         {
-            // MKL overwrites memory equal to the number of matrix rows. If the rhs vector is shorter than that, the 
+            // SparseBLAS overwrites memory equal to the number of matrix rows. If the rhs vector is shorter than that, the 
             // remaining entries are overwritten with 0. However, this messes up the managed vector objects, since 
             // important data is overwritten (why doesn't it throw access violation exception?). For now I am going to 
             // use a temp array and then copy the relevant part. This problem does not seem to appear in the untransposed 
             // version of the method.
-            //TODO: Try using the MKL inspector-executor routines, instead of the deprecated dcsrgemv().
+            //TODO: Try using the SparseBLAS inspector-executor routines, instead of the deprecated dcsrgemv().
             if (y.Length < numRows)
             {
                 var temp = new double[numRows];

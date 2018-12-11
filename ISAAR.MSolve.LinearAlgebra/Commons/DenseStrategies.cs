@@ -259,7 +259,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         }
 
 
-        // This will be replaced with MKL SVD. 
+        // This will be replaced with LAPACK SVD. 
         internal static void SVD(Matrix matrix, double[] w, double[,] v)
         {
             //      double precision a(nm,n),w(n),u(nm,n),v(nm,n),rv1(n)

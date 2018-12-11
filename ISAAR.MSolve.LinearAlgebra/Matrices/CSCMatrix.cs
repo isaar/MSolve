@@ -756,7 +756,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public CscMatrix TransposeToCSC()
         {
             // Use C# port of the scipy method.
-            // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use MKL
+            // TODO: Perhaps it could be done faster by making extra assumptions. Otherwise use SparseBLAS
             int nnz = this.values.Length;
             var csrValues = new double[nnz];
             var csrColIndices = new int[nnz];

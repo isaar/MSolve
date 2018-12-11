@@ -242,7 +242,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public static Matrix LegacyToNewMatrix(this Numerical.LinearAlgebra.Interfaces.IMatrix2D oldMatrix)
         {
-            if (oldMatrix is Numerical.LinearAlgebra.Matrix2D casted) return Matrix.CreateFromArray(casted.Data);
+            if (oldMatrix is Numerical.LinearAlgebra.Matrix2D dense) return Matrix.CreateFromArray(dense.Data);
+            //else if (oldMatrix is Numerical.LinearAlgebra.SymmetricMatrix2D packed)
+            //{
+            //    double[] full = Conversions.PackedUpperColMajorToFullSymmColMajor(packed.Data);
+            //    return Matrix.CreateFromArray(full, oldMatrix.Rows, oldMatrix.Columns, false); //Doesn't work
+            //}
             else
             {
                 int m = oldMatrix.Rows;

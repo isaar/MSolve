@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
     /// Symmetric matrix. Only the upper triangle is stored in Packed format (only stores the n*(n+1)/2 non zeros) and column 
-    /// major order. Uses Intel MKL. Do not use this, since it is an experimantal class, which will probably be removed.
+    /// major order. Uses LAPACK. Do not use this, since it is an experimantal class, which will probably be removed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SymmetricMatrix: IMatrix, ISymmetricMatrix

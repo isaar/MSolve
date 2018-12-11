@@ -1,10 +1,10 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
-// TODO: Perhaps I should have various info classes and wrap the MKL calls directly
-namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
+// TODO: Perhaps I should have various info classes and wrap the LAPACK calls directly
+namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
-    /// Utility methods to use when calling Intel MKL functions.
+    /// Utility methods to use when calling LAPACK functions.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public static class LapackUtilities
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         public const int DefaultInfo = int.MinValue;
 
         /// <summary>
-        /// Most MKL functions return the same negative error codes for invalid parameters. Parameter <paramref name="info"/> 
+        /// Most LAPACK functions return the same negative error codes for invalid parameters. Parameter <paramref name="info"/> 
         /// will not be checked to make sure it is negative.
         /// </summary>
         /// <param name="info"></param>
@@ -25,8 +25,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
             if (info == LapackUtilities.DefaultInfo)
             {
                 // first check the default info value, since it is negative.
-                // info == default => the MKL call did not succeed. 
-                return new LapackException("Something went wrong with the MKL call."
+                // info == default => the LAPACK call did not succeed. 
+                return new LapackException("Something went wrong with the LAPACK call."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
             else

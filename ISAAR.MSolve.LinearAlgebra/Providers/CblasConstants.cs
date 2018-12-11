@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+//TODO: these and the Translate methods shoudl be refactored. Also note that I will only use BLAS, LAPACK (for starters), 
+//      which means that the translate methods are the same and thus can be written here using enum classes.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public enum CBlasLayout
