@@ -13,7 +13,8 @@ namespace ISAAR.MSolve.Materials
     {
         public double[] NormalVectorV3 { get; set; }
         public double[] TangentVectorV1 { get; set; }
-        public double YoungModulus { get; set; }
+	    public double[] TangentVectorV2 { get; set; }
+		public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
         public double ShearCorrectionCoefficientK { get; set; }
 
