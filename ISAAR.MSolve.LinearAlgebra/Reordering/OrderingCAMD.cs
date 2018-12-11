@@ -1,6 +1,6 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
 
 //TODO: also return the nonzeros after cholesky, flop count and other statistics
 namespace ISAAR.MSolve.LinearAlgebra.Reordering
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             int[] cscColOffsets, int[] constraints)
         {
             var permutation = new int[order];
-            int status = SuiteSparseUtilities.ReorderCAMD(order, cscRowIndices, cscColOffsets, constraints, 
+            int status = SuiteSparse.ReorderCAMD(order, cscRowIndices, cscColOffsets, constraints, 
                 denseThreshold, aggressiveAbsorption ? 1 : 0, 
                 permutation, out int nnzFactor, out int numMovedDense);
 

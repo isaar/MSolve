@@ -2,7 +2,7 @@
 using IntelMKL.LP64;
 using static ISAAR.MSolve.LinearAlgebra.Providers.MklConstants;
 
-//TODO: this probably call the MKL dll directly, instead of using the package Compute.NET Bindings.
+//TODO: this should probably call the MKL dll directly, instead of using the package Compute.NET Bindings.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class MklCBlasProvider : ICBlasProvider

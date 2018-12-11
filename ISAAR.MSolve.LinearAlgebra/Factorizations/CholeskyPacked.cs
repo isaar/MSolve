@@ -3,7 +3,7 @@ using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 // TODO: check if the last minor is non-negative, during factorization. Is it possible that it isn't. Does it affect system 
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public static CholeskyPacked Factorize(int order, double[] matrix)
         {
             // Call MKL
-            int info = MklUtilities.DefaultInfo;
+            int info = LapackUtilities.DefaultInfo;
             Lapack.Dpptrf("U", ref order, ref matrix[0], ref info);
 
             // Check MKL execution
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 + " positive-definite, and the factorization could not be completed.";
                 throw new IndefiniteMatrixException(msg);
             }
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
+            else throw LapackUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             CheckOverwritten();
 
             // Call MKL
-            int info = MklUtilities.DefaultInfo;
+            int info = LapackUtilities.DefaultInfo;
             double[] inverse; // if A is posdef, so is inv(A)
             if (inPlace)
             {
@@ -123,13 +123,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 throw new IndefiniteMatrixException($"The leading minor of order {info - 1} (and therefore the matrix itself)"
                 + "is not positive-definite, and the factorization could not be completed.");
             }
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
+            else throw LapackUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
+        /// <exception cref="LapackException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
         public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             CheckOverwritten();
@@ -139,13 +139,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             // Call MKL
             int n = Order;
             solution.CopyFrom(rhs);
-            int info = MklUtilities.DefaultInfo;
+            int info = LapackUtilities.DefaultInfo;
             int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int ldb = n; // column major ordering: leading dimension of b is n 
             Lapack.Dpptrs("U", ref n, ref nRhs, ref data[0], ref solution.InternalData[0], ref ldb, ref info);
 
             // Check MKL execution
-            if (info != 0) throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            if (info != 0) throw LapackUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
         }
 
         private void CheckOverwritten()

@@ -2,7 +2,8 @@
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
+using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: SuiteSparse Common should be represented here by an IDisposable class SuiteSparseCommon.
@@ -41,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// The number of non-zero entries (and excplicitly stored zeros) in the explicitly stored upper triangular factor 
         /// after Cholesky factorization.
         /// </summary>
-        public int NumNonZeros { get => SuiteSparseUtilities.GetFactorNonZeros(factorizedMatrix); }
+        public int NumNonZeros { get => SuiteSparse.GetFactorNonZeros(factorizedMatrix); }
 
         /// <summary>
         /// Performs the Cholesky factorization: A = L * L^T or A = L * D * L^T of a symmetric positive definite matrix A. 
@@ -79,19 +80,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int[] colOffsets, bool superNodal, SuiteSparseOrdering ordering)
         {
             int factorizationType = superNodal ? 1 : 0;
-            IntPtr common = SuiteSparseUtilities.CreateCommon(factorizationType, (int)ordering);
+            IntPtr common = SuiteSparse.CreateCommon(factorizationType, (int)ordering);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
-            int status = SuiteSparseUtilities.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets,
+            int status = SuiteSparse.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets,
                 out IntPtr factorizedMatrix, common);
             if (status == -2)
             {
-                SuiteSparseUtilities.DestroyCommon(ref common);
+                SuiteSparse.DestroyCommon(ref common);
                 throw new SuiteSparseException("Factorization did not succeed. This could be caused by insufficent memory,"
                     + " due to excessive fill-in.");
             }
             else if (status >= 0)
             {
-                SuiteSparseUtilities.DestroyCommon(ref common);
+                SuiteSparse.DestroyCommon(ref common);
                 throw new IndefiniteMatrixException("The matrix not being positive definite."
                     + $" Cholesky failed at column {status} (0-based indexing).");
             }
@@ -130,7 +131,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 
             int nnz = newRow.CountNonZeros();
             int[] colOffsets = { 0, nnz };
-            int status = SuiteSparseUtilities.RowAdd(Order, factorizedMatrix, rowIdx,
+            int status = SuiteSparse.RowAdd(Order, factorizedMatrix, rowIdx,
                 nnz, newRow.InternalValues, newRow.InternalIndices, colOffsets, common);
             if (status != 1)
             {
@@ -203,7 +204,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                     + $" {Order}-by-{Order} matrix");
             }
 
-            int status = SuiteSparseUtilities.RowDelete(factorizedMatrix, rowIdx, common);
+            int status = SuiteSparse.RowDelete(factorizedMatrix, rowIdx, common);
             if (status != 1)
             {
                 throw new SuiteSparseException("Rows deletion did not succeed.");
@@ -293,9 +294,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 {
                     throw new AccessViolationException("The matrix in unmanaged memory has already been cleared or lost");
                 }
-                SuiteSparseUtilities.DestroyFactor(ref factorizedMatrix, common);
+                SuiteSparse.DestroyFactor(ref factorizedMatrix, common);
                 factorizedMatrix = IntPtr.Zero;
-                SuiteSparseUtilities.DestroyCommon(ref common);
+                SuiteSparse.DestroyCommon(ref common);
                 common = IntPtr.Zero;
             }
         }
@@ -308,7 +309,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
             Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
 
-            int status = SuiteSparseUtilities.Solve((int)system, Order, 1, factorizedMatrix, rhs.InternalData, solution, common);
+            int status = SuiteSparse.Solve((int)system, Order, 1, factorizedMatrix, rhs.InternalData, solution, common);
             if (status != 1) throw new SuiteSparseException("System solution failed.");
         }
 
@@ -320,7 +321,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
             Preconditions.CheckSystemSolutionDimensions(Order, rhs.NumRows);
             double[] solution = new double[rhs.NumRows * rhs.NumColumns];
-            int status = SuiteSparseUtilities.Solve((int)system, Order, rhs.NumColumns, factorizedMatrix, rhs.InternalData,
+            int status = SuiteSparse.Solve((int)system, Order, rhs.NumColumns, factorizedMatrix, rhs.InternalData,
                 solution, common);
             if (status != 1) throw new SuiteSparseException("System solution failed.");
             return Matrix.CreateFromArray(solution, rhs.NumRows, rhs.NumColumns, false);

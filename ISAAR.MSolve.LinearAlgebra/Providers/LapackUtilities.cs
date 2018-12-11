@@ -1,13 +1,13 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 // TODO: Perhaps I should have various info classes and wrap the MKL calls directly
-namespace ISAAR.MSolve.LinearAlgebra.MKL
+namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
 {
     /// <summary>
     /// Utility methods to use when calling Intel MKL functions.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class MklUtilities
+    public static class LapackUtilities
     {
         /// <summary>
         /// Use this value to initialize the output arguments named info. So far, negative values of the info are parameter 
@@ -20,13 +20,13 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
         /// will not be checked to make sure it is negative.
         /// </summary>
         /// <param name="info"></param>
-        internal static MklException ProcessNegativeInfo(int info)
+        internal static LapackException ProcessNegativeInfo(int info)
         {
-            if (info == MklUtilities.DefaultInfo)
+            if (info == LapackUtilities.DefaultInfo)
             {
                 // first check the default info value, since it is negative.
                 // info == default => the MKL call did not succeed. 
-                return new MklException("Something went wrong with the MKL call."
+                return new LapackException("Something went wrong with the MKL call."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
             else
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.LinearAlgebra.MKL
                 else if (info == -2) suffix = "nd";
                 else if (info == -3) suffix = "rd";
                 else suffix = "th";
-                return new MklException($"The {-info}{suffix} parameter has an illegal value."
+                return new LapackException($"The {-info}{suffix} parameter has an illegal value."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
         }

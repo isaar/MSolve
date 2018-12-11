@@ -1,5 +1,9 @@
 ﻿//TODO: this and its implementations should be internal. The user should select a Provider that will then specify different BLAS,
 //      SparseBLAS, LAPACK, etc. providers. The implementations should also be singletons or enums.
+//TODO: Perhaps I should have providers for BLAS, rather than CBLAS, or both. Cblas seems to be a wrapper, but this whole project
+//      does just that. CBLAS functions might also explicitly transpose matrices, like LAPACKE does, which should not be hidden
+//      from the matrix/vector classes. MKL provides both BLAS and CBLAS, but other major packages 
+//      (e.g. DotNumerics, cuBLAS) only provide the BLAS interface.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public interface ICBlasProvider

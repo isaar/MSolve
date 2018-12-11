@@ -1,6 +1,6 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using Xunit;
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             Array.Copy(SquareInvertible10by10.Rhs, B, n); // will be overwritten with solution
             int ldB = n;
 
-            int infoFact = MklUtilities.DefaultInfo;
+            int infoFact = LapackUtilities.DefaultInfo;
             infoFact = LAPACKE.Dgetrf(layout, m, n, A, ldA, iPiv);
             Assert.True(infoFact == 0);
             //Console.Write("LAPACKE.Dgetrf() result: ");
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             //}
             //else Console.WriteLine("LAPACKE.Dgetrf() was successful");
 
-            int infoSolve = MklUtilities.DefaultInfo;
+            int infoSolve = LapackUtilities.DefaultInfo;
             infoSolve = LAPACKE.Dgetrs(layout, transA, n, nRhs, A, ldA, iPiv, B, ldB);
             Assert.True(infoSolve == 0);
             //Console.Write("LAPACKE.Dgetrs() result: ");

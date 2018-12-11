@@ -1,7 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
 
 //TODO: also return the nonzeros after cholesky, flop count and other statistics
 //TODO: the number of "dense" rows moved to the end is not reported by SuiteSparse and a dummy value (-1) is return. Fix this.
@@ -40,13 +40,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             int[] cscColOffsets)
         {
             var permutation = new int[order];
-            IntPtr common = SuiteSparseUtilities.CreateCommon(0, 0);
+            IntPtr common = SuiteSparse.CreateCommon(0, 0);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
-            int status = SuiteSparseUtilities.ReorderAMDUpper(order, nonZerosUpper, cscRowIndices, cscColOffsets, permutation, 
+            int status = SuiteSparse.ReorderAMDUpper(order, nonZerosUpper, cscRowIndices, cscColOffsets, permutation, 
                 out int nnzFactor, common);
             if (status == 0) throw new SuiteSparseException("AMD failed. This could be caused by the matrix being so large it"
                 + " cannot be processed with the available memory.");
-            SuiteSparseUtilities.DestroyCommon(ref common);
+            SuiteSparse.DestroyCommon(ref common);
             return (permutation, new ReorderingStatistics(nnzFactor, -1));
         }
 
