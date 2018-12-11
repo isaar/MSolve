@@ -60,20 +60,21 @@ namespace ISAAR.MSolve.Materials
 			{
 				{
 					inverse[0,0]*inverse[0,0],
-					this.PoissonRatio*inverse[0,0]*inverse[1,1]+(1-this.PoissonRatio)*inverse[1,0]*inverse[1,0],
+					PoissonRatio*inverse[0,0]*inverse[1,1]+(1-PoissonRatio)*inverse[1,0]*inverse[1,0],
 					inverse[0,0]*inverse[1,0]
 				},
 				{
-					this.PoissonRatio*inverse[0,0]*inverse[1,1]+(1-this.PoissonRatio)*inverse[1,0]*inverse[1,0],
+					PoissonRatio*inverse[0,0]*inverse[1,1]+(1-PoissonRatio)*inverse[1,0]*inverse[1,0],
 					inverse[1,1]*inverse[1,1],
 					inverse[1,1]*inverse[1,0]
 				},
 				{
 					inverse[0,0]*inverse[1,0],
 					inverse[1,1]*inverse[1,0],
-					0.5*(1-this.PoissonRatio)*inverse[0,0]*inverse[1,1]+(1+this.PoissonRatio)*inverse[1,0]*inverse[1,0]
+					0.5*(1-PoissonRatio)*inverse[0,0]*inverse[1,1]+(1+PoissonRatio)*inverse[1,0]*inverse[1,0]
 				},
 			});
+			constitutiveMatrix.Scale(YoungModulus/(1-Math.Pow(PoissonRatio,2)));
 			 CartesianConstitutiveMatrix= constitutiveMatrix.Data;
 		}
 
