@@ -143,13 +143,15 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            TrussExample.Run();
+            //TrussExample.Run();
             //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
             //SeparateCodeCheckingClass.Check06();
             //CNTExamples.CNT_4_4_DisplacementControl();
             //CNTExamples.CNT_4_4_NewtonRaphson();
+            //CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_DisplacementControl();
+            CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_NewtonRaphson();
         }
     }
 }
