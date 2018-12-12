@@ -5,7 +5,7 @@
     /// implementations yet. If performance is of concern, then the user should choose the native optimized providers (e.g. MKL).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class CblasLevel2
+    internal static class CblasLevel2Implementations
     {
         internal enum Diagonal { Regular, Unit, Zero};
 

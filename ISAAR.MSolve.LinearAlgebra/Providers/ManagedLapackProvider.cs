@@ -4,6 +4,8 @@ using System.Text;
 using DotNumerics.LinearAlgebra.CSLapack;
 using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 
+//TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
+//TODO: In the custom LAPACK implementations, provide error checking for more than just the index where singularity, ... is found.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class ManagedLapackProvider : ILapackProvider
@@ -57,12 +59,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 
         public void Dpotrf(string uplo, int n, double[] a, int offsetA, int ldA, ref int info)
         {
-            throw new NotImplementedException();
+            if (uplo.Equals("L") || uplo.Equals("l"))
+            {
+                LapackImplementations.CholeskyLowerFullColMajor(n, a, offsetA, ldA, ref info);
+            }
+            else if (uplo.Equals("U") || uplo.Equals("u"))
+            {
+                LapackImplementations.CholeskyUpperFullColMajor(n, a, offsetA, ldA, ref info);
+
+            }
+            else info = -1;
         }
 
         public void Dpotri(string uplo, int n, double[] a, int offsetA, int ldA, ref int info)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(
+                "Matrix inversion using the Cholesky factorization in full format is not implemented yet in C#." 
+                + " Use an MKL provider instead.");
         }
 
         public void Dpotrs(string uplo, int n, int nRhs, double[] a, int offsetA, int ldA, 
@@ -73,12 +86,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 
         public void Dpptrf(string uplo, int n, double[] a, int offsetA, ref int info)
         {
-            throw new NotImplementedException();
+            if (uplo.Equals("L") || uplo.Equals("l"))
+            {
+                LapackImplementations.CholeskyLowerPackedColMajor(n, a, offsetA, ref info);
+            }
+            else if (uplo.Equals("U") || uplo.Equals("u"))
+            {
+                LapackImplementations.CholeskyUpperPackedColMajor(n, a, offsetA, ref info);
+
+            }
+            else info = -1;
         }
 
         public void Dpptri(string uplo, int n, double[] a, int offsetA, ref int info)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(
+                "Matrix inversion using the Cholesky factorization in packed format is not implemented yet in C#."
+                + " Use an MKL provider instead.");
         }
 
         public void Dpptrs(string uplo, int n, int nRhs, double[] a, int offsetA, double[] b, int offsetB, int ldB, ref int info)

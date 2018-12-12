@@ -3,7 +3,7 @@ using DotNumerics.LinearAlgebra.CSLapack;
 using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 using static ISAAR.MSolve.LinearAlgebra.Providers.ManagedConstants;
 
-//TODO: find a managed BLAS that supports the methods DotNumerics doesn't or implement them myself (naively).
+//TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class ManagedCBlasProvider : ICBlasProvider
@@ -43,12 +43,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             double beta, double[] y, int offsetY, int incY)
         {
             // y = alpha * L * x + beta * y 
-            CblasLevel2.LowerTimesVectorPackedRowMajor(CblasLevel2.Diagonal.Regular, n, alpha, a, offsetA, x, offsetX, incX,
-                beta, y, offsetY, incY);
+            CblasLevel2Implementations.LowerTimesVectorPackedRowMajor(
+                CblasLevel2Implementations.Diagonal.Regular, n, alpha, a, offsetA, x, offsetX, incX, beta, y, offsetY, incY);
 
             // y = alpha * U * x + y, where U has 0 diagonal
-            CblasLevel2.UpperTimesVectorPackedColMajor(CblasLevel2.Diagonal.Zero, n, alpha, a, offsetA, x, offsetX, incX,
-                1.0, y, offsetY, incY);
+            CblasLevel2Implementations.UpperTimesVectorPackedColMajor(
+                CblasLevel2Implementations.Diagonal.Zero, n, alpha, a, offsetA, x, offsetX, incX, 1.0, y, offsetY, incY);
         }
 
         public void Dtpmv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
@@ -58,17 +58,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             var input = new double[x.Length];
             Array.Copy(x, input, x.Length);
 
-            CblasLevel2.Diagonal managedDiag = (diag == CBlasDiagonal.NonUnit) ? 
-                CblasLevel2.Diagonal.Regular : CblasLevel2.Diagonal.Unit;
+            CblasLevel2Implementations.Diagonal managedDiag = (diag == CBlasDiagonal.NonUnit) ? 
+                CblasLevel2Implementations.Diagonal.Regular : CblasLevel2Implementations.Diagonal.Unit;
             if (UseUpperImplementation(uplo, transA, layout))
             {
-                CblasLevel2.UpperTimesVectorPackedColMajor(managedDiag, n, 1.0, a, offsetA, input, offsetX, incX,
-                    0.0, x, offsetX, incX);
+                CblasLevel2Implementations.UpperTimesVectorPackedColMajor(
+                    managedDiag, n, 1.0, a, offsetA, input, offsetX, incX, 0.0, x, offsetX, incX);
             }
             else
             {
-                CblasLevel2.LowerTimesVectorPackedRowMajor(managedDiag, n, 1.0, a, offsetA, input, offsetX, incX,
-                    0.0, x, offsetX, incX);
+                CblasLevel2Implementations.LowerTimesVectorPackedRowMajor(
+                    managedDiag, n, 1.0, a, offsetA, input, offsetX, incX, 0.0, x, offsetX, incX);
             }
         }
 
@@ -78,9 +78,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             bool unit = (diag == CBlasDiagonal.Unit) ? true : false;
             if (UseUpperImplementation(uplo, transA, layout))
             {
-                CblasLevel2.BackSubstitutionPackedColMajor(unit, n, a, offsetA, x, offsetX, incX);
+                CblasLevel2Implementations.BackSubstitutionPackedColMajor(unit, n, a, offsetA, x, offsetX, incX);
             }
-            else CblasLevel2.ForwardSubstitutionPackedRowMajor(unit, n, a, offsetA, x, offsetX, incX);
+            else CblasLevel2Implementations.ForwardSubstitutionPackedRowMajor(unit, n, a, offsetA, x, offsetX, incX);
         }
 
         public void Dtrsv(CBlasLayout layout, CBlasTriangular uplo, CBlasTranspose transA, CBlasDiagonal diag, int n,
