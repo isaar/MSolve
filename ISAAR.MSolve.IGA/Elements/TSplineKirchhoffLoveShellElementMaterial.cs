@@ -301,22 +301,24 @@ namespace ISAAR.MSolve.IGA.Elements
 			{
 				var thicknessPoint = keyValuePair.Key;
 				var material = keyValuePair.Value;
-				//TODO: Check changes with Gery
-				MembraneConstitutiveMatrix.Add((Matrix2D)material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				                               Thickness);
-				BendingConstitutiveMatrix.Add((Matrix2D)material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				                              Math.Pow(thicknessPoint.Zeta, 2) * Thickness);
-				CouplingConstitutiveMatrix.Add((Matrix2D)material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				                               thicknessPoint.Zeta * Thickness);
-				//MembraneConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				//                               (Thickness / 2));
-				//BendingConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				//                              Math.Pow(thicknessPoint.Zeta, 2) * (Thickness / 2));
-				//CouplingConstitutiveMatrix.Add((Matrix2D) material.ConstitutiveMatrix * thicknessPoint.WeightFactor *
-				//                               thicknessPoint.Zeta * (Thickness / 2));
+				var constitutiveMatrixM= CopyConstitutiveMatrix((Matrix2D)material.ConstitutiveMatrix);
+				MembraneConstitutiveMatrix.Add(constitutiveMatrixM * thicknessPoint.WeightFactor);
+				var constitutiveMatrixB = CopyConstitutiveMatrix((Matrix2D)material.ConstitutiveMatrix);
+				BendingConstitutiveMatrix.Add(constitutiveMatrixB * thicknessPoint.WeightFactor *
+											  Math.Pow(thicknessPoint.Zeta, 2));
+				var constitutiveMatrixC = CopyConstitutiveMatrix((Matrix2D)material.ConstitutiveMatrix);
+				CouplingConstitutiveMatrix.Add(constitutiveMatrixC * thicknessPoint.WeightFactor *
+											   thicknessPoint.Zeta);
 			}
 
 			return (MembraneConstitutiveMatrix, BendingConstitutiveMatrix,CouplingConstitutiveMatrix);
+		}
+
+		private Matrix2D CopyConstitutiveMatrix(Matrix2D f)
+		{
+			double [,] g= new double[f.Rows,f.Columns];
+			Array.Copy(f.Data, 0, g, 0, f.Data.Length);
+			return new Matrix2D(g);
 		}
 
 		public (Vector MembraneForces, Vector BendingMoments ) IntegratedStressesOverThickness(
@@ -343,38 +345,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return (MembraneForces, BendingMoments);
 		}
 
-
-		private Matrix2D CalculateConstitutiveMatrix(TSplineKirchhoffLoveShellElement element, Vector surfaceBasisVector1, Vector surfaceBasisVector2)
-		{
-            var auxMatrix1 = new Matrix2D(2, 2);
-            auxMatrix1[0, 0] = surfaceBasisVector1.DotProduct(surfaceBasisVector1);
-			auxMatrix1[0, 1] = surfaceBasisVector1.DotProduct(surfaceBasisVector2);
-			auxMatrix1[1, 0] = surfaceBasisVector2.DotProduct(surfaceBasisVector1);
-            auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
-            (Matrix2D inverse, double det) = auxMatrix1.Invert2x2AndDeterminant();
-
-			var material = ((IContinuumMaterial2D)element.Patch.Material);
-			var constitutiveMatrix = new Matrix2D(new double[3, 3]
-			{
-				{
-                    inverse[0,0]*inverse[0,0],
-					material.PoissonRatio*inverse[0,0]*inverse[1,1]+(1-material.PoissonRatio)*inverse[1,0]*inverse[1,0],
-					inverse[0,0]*inverse[1,0]
-				},
-				{
-					material.PoissonRatio*inverse[0,0]*inverse[1,1]+(1-material.PoissonRatio)*inverse[1,0]*inverse[1,0],
-					inverse[1,1]*inverse[1,1],
-					inverse[1,1]*inverse[1,0]
-				},
-				{
-					inverse[0,0]*inverse[1,0],
-					inverse[1,1]*inverse[1,0],
-					0.5*(1-material.PoissonRatio)*inverse[0,0]*inverse[1,1]+(1+material.PoissonRatio)*inverse[1,0]*inverse[1,0]
-				},
-			});
-			return constitutiveMatrix;
-		}
-
+		
 		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
 			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
 			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElementMaterial element)

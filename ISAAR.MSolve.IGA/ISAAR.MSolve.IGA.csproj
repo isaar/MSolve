@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Elements\TSplineKirchhoffLoveShellElementMaterial.cs~RF102c8e6.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Moq" Version="4.10.0" />
   </ItemGroup>
 
