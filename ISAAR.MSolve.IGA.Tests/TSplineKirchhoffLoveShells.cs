@@ -128,44 +128,62 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
-			//var expectedSolutionVector = new Vector(new double[]
-			//{
-			//	0, 0, -306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924153, 0, 0, -8702.62361, 0, 0,
-			//	-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0,
-			//	-3454.810407, 0, 0, -5881.924117, 0, 0, -8702.623683, 0, 0, -11785.71423, 0, 0, -13928.57093, 0, 0,
-			//	-15000.00025, 0, 0, -306.1224493, 0, 0, -1552.478088, 0, 0, -3454.810449, 0, 0, -5881.924038, 0, 0,
-			//	-8702.623837, 0, 0, -11785.71389, 0, 0, -13928.57157, 0, 0, -14999.99909, 0, 0, -306.1224494, 0, 0,
-			//	-1552.478088, 0, 0, -3454.810449, 0, 0, -5881.924038, 0, 0, -8702.623837, 0, 0, -11785.71389, 0, 0,
-			//	-13928.57157, 0, 0, -14999.99909, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0, -3454.810407, 0, 0,
-			//	-5881.924117, 0, 0, -8702.623683, 0, 0, -11785.71423, 0, 0, -13928.57093, 0, 0, -15000.00025, 0, 0,
-			//	-306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924154, 0, 0, -8702.62361, 0, 0,
-			//	-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008
-			//});
-			//for (int i = 0; i < expectedSolutionVector.Length; i++)
-			//{
-			//	Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], linearSystems[0].Solution[i],
-			//		1e-9));
-			//}
+			var expectedSolutionVector = new Vector(new double[]
+			{
+				0, 0, -306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924153, 0, 0, -8702.62361, 0, 0,
+				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0,
+				-3454.810407, 0, 0, -5881.924117, 0, 0, -8702.623683, 0, 0, -11785.71423, 0, 0, -13928.57093, 0, 0,
+				-15000.00025, 0, 0, -306.1224493, 0, 0, -1552.478088, 0, 0, -3454.810449, 0, 0, -5881.924038, 0, 0,
+				-8702.623837, 0, 0, -11785.71389, 0, 0, -13928.57157, 0, 0, -14999.99909, 0, 0, -306.1224494, 0, 0,
+				-1552.478088, 0, 0, -3454.810449, 0, 0, -5881.924038, 0, 0, -8702.623837, 0, 0, -11785.71389, 0, 0,
+				-13928.57157, 0, 0, -14999.99909, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0, -3454.810407, 0, 0,
+				-5881.924117, 0, 0, -8702.623683, 0, 0, -11785.71423, 0, 0, -13928.57093, 0, 0, -15000.00025, 0, 0,
+				-306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924154, 0, 0, -8702.62361, 0, 0,
+				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008
+			});
+			for (int i = 0; i < expectedSolutionVector.Length; i++)
+			{
+				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], linearSystems[0].Solution[i],
+					1e-6));
+			}
 
 		}
 
-		//[Fact]
-		public void SquareTSplinesGeoPDEsBenchmark()
+		[Fact]
+		public void SimpleHoodBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
-			string filename = "..\\..\\..\\InputFiles\\square_unstructured.iga";
+			string filename = "..\\..\\..\\InputFiles\\simpleHood.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
-			modelReader.CreateTSplineShellsModelFromFile();
 
-			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			var thickness = 1.0;
+
+			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.ThicknessMaterial, new ShellElasticMaterial2D
 			{
-				PoissonRatio = 0.0,
-				YoungModulus = 100
-			};
-			model.PatchesDictionary[0].Thickness = 1;
+				PoissonRatio = 0.3,
+				YoungModulus = 1e5,
+			}, thickness);
 
-			
+			for (int i = 0; i < 100; i++)
+			{
+				var id = model.ControlPoints[i].ID;
+				model.ControlPointsDictionary[id].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Z);
+			}
+
+			for (int i = model.ControlPoints.Count-100; i < model.ControlPoints.Count; i++)
+			{
+				var id = model.ControlPoints[i].ID;
+				model.Loads.Add(new Load()
+				{
+					Amount = 100,
+					ControlPoint = model.ControlPointsDictionary[id],
+					DOF = DOFType.Z
+				});
+			}
+
 			model.ConnectDataStructures();
 
 			var linearSystems = new Dictionary<int, ILinearSystem>();
@@ -178,6 +196,8 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.BuildMatrices();
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+
+			
 		}
 	}
 }
