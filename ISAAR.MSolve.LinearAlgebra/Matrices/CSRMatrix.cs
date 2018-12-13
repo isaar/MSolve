@@ -685,16 +685,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
                 Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
-                SparseBlas.CsrTransposeTimesVector(NumRows, values, rowOffsets, colIndices, lhsVector.InternalData,
-                        rhsVector.InternalData);
+                
             }
             else
             {
                 Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
                 Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
-                SparseBlas.CsrTimesVector(NumRows, values, rowOffsets, colIndices, lhsVector.InternalData,
-                        rhsVector.InternalData);
             }
+            SparseBlas.Dcsrgemv(transposeThis, NumRows, NumColumns, values, rowOffsets, colIndices, 
+                lhsVector.InternalData, rhsVector.InternalData);
         }
 
         /// <summary>

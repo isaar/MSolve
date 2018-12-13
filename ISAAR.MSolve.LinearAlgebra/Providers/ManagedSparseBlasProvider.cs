@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
+//TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design though.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
@@ -11,70 +12,82 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     /// </summary>
     public class ManagedSparseBlasProvider : ISparseBlasProvider
     {
-        public void CscTimesVector(int numCols, double[] values, int[] colOffsets, int[] rowIndices, double[] x, double[] y)
+        public void Daxpyi(int nnz, double[] alpha, double[] x, int offsetX, int[] indicesX, double[] y, int offsetY)
         {
-            // A * x = linear combination of columns of A, with the entries of x as coefficients
-            for (int j = 0; j < numCols; ++j)
+            throw new NotImplementedException();
+        }
+
+        public void Dcscgemv(bool transpose, int numRows, int numCols, double[] values, int[] colOffsets, int[] rowIndices,
+            double[] lhs, double[] rhs)
+        {
+            if (transpose)
             {
-                double scalar = x[j];
-                int colStart = colOffsets[j]; //inclusive
-                int colEnd = colOffsets[j + 1]; //exclusive
-                for (int k = colStart; k < colEnd; ++k)
+                // A^T * x = sum{row of A^T * x} = sum{col of A * x}
+                for (int j = 0; j < numCols; ++j)
                 {
-                    y[rowIndices[k]] += scalar * values[k];
+                    double dot = 0.0;
+                    int colStart = colOffsets[j]; //inclusive
+                    int colEnd = colOffsets[j + 1]; //exclusive
+                    for (int k = colStart; k < colEnd; ++k)
+                    {
+                        dot += values[k] * lhs[rowIndices[k]];
+                    }
+                    rhs[j] = dot;
+                }
+            }
+            else
+            {
+                // A * x = linear combination of columns of A, with the entries of x as coefficients
+                for (int j = 0; j < numCols; ++j)
+                {
+                    double scalar = lhs[j];
+                    int colStart = colOffsets[j]; //inclusive
+                    int colEnd = colOffsets[j + 1]; //exclusive
+                    for (int k = colStart; k < colEnd; ++k)
+                    {
+                        rhs[rowIndices[k]] += scalar * values[k];
+                    }
                 }
             }
         }
 
-        public void CscTransposeTimesVector(int numCols, double[] values, int[] colOffsets, int[] rowIndices, double[] x, 
-            double[] y)
+        public void Dcsrgemv(bool transpose, int numRows, int numColumns, double[] values, int[] rowOffsets, int[] colIndices,
+            double[] lhs, double[] rhs)
         {
-            // A^T * x = sum{row of A^T * x} = sum{col of A * x}
-            for (int j = 0; j < numCols; ++j)
+            if (transpose)
             {
-                double dot = 0.0;
-                int colStart = colOffsets[j]; //inclusive
-                int colEnd = colOffsets[j + 1]; //exclusive
-                for (int k = colStart; k < colEnd; ++k)
+                // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
+                for (int i = 0; i < numRows; ++i)
                 {
-                    dot += values[k] * x[rowIndices[k]];
+                    double scalar = lhs[i];
+                    int rowStart = rowOffsets[i]; //inclusive
+                    int rowEnd = rowOffsets[i + 1]; //exclusive
+                    for (int k = rowStart; k < rowEnd; ++k)
+                    {
+                        rhs[colIndices[k]] += scalar * values[k];
+                    }
                 }
-                y[j] = dot;
             }
-        }
-
-        public void CsrTimesVector(int numRows, double[] values, int[] rowOffsets, int[] colIndices, double[] x, double[] y)
-        {
-            for (int i = 0; i < numRows; ++i)
+            else
             {
-                double dot = 0.0;
-                int rowStart = rowOffsets[i]; //inclusive
-                int rowEnd = rowOffsets[i + 1]; //exclusive
-                for (int k = rowStart; k < rowEnd; ++k)
+                for (int i = 0; i < numRows; ++i)
                 {
-                    dot += values[k] * x[colIndices[k]];
-                }
-                y[i] = dot;
-            }
-        }
-
-        public void CsrTransposeTimesVector(int numRows, double[] values, int[] rowOffsets, int[] colIndices, double[] x, 
-            double[] y)
-        {
-            // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
-            for (int i = 0; i < numRows; ++i)
-            {
-                double scalar = x[i];
-                int rowStart = rowOffsets[i]; //inclusive
-                int rowEnd = rowOffsets[i + 1]; //exclusive
-                for (int k = rowStart; k < rowEnd; ++k)
-                {
-                    y[colIndices[k]] += scalar * values[k];
+                    double dot = 0.0;
+                    int rowStart = rowOffsets[i]; //inclusive
+                    int rowEnd = rowOffsets[i + 1]; //exclusive
+                    for (int k = rowStart; k < rowEnd; ++k)
+                    {
+                        dot += values[k] * lhs[colIndices[k]];
+                    }
+                    rhs[i] = dot;
                 }
             }
         }
 
-        public void SkylineTimesVector(int order, double[] values, int[] diagOffsets, double[] x, double[] y)
+        /// <summary>
+        /// Matrix vector multiplication, with a symmetric matrix in Skyline format, where only the upper triangle is stored.
+        /// </summary>
+        public void Dskymv(int order, double[] values, int[] diagOffsets, double[] lhs, double[] rhs)
         {
             // A*x = (L+D)*x + U*x
             // (L+D)*x is easy, since the non zero entries of row i left of the diagonal are stored contiguously in column i and
@@ -87,7 +100,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             {
                 int diagOffset = diagOffsets[j];
                 int columnTop = j - diagOffsets[j + 1] + diagOffset + 1;
-                double linearCombinationCoeff = x[j];
+                double linearCombinationCoeff = lhs[j];
                 // Dot product of the (L+D) part of the row * vector
                 double dotLower = values[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
                 for (int i = j - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
@@ -96,16 +109,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 
                     // Contribution of the L part of the row, which is identical to the stored column j.
                     // Thus A[j,i]=A[i,j] and sum(A[i,j]*x[j]) = sum(A[i,j]*x[i])
-                    dotLower += aij * x[i];
+                    dotLower += aij * lhs[i];
 
                     // Contribution of the U part of the column: result += coefficient * column j of U. This will update all rows
                     // [columnTop, j) of the result vector need to be updated to account for the current column j. 
-                    y[i] += aij * linearCombinationCoeff;
+                    rhs[i] += aij * linearCombinationCoeff;
                 }
                 // Column j alters rows [0,j) of the result vector, thus this should be the 1st time result[j] is written.
-                Debug.Assert(y[j] == 0);
-                y[j] = dotLower; // contribution of the (L+D) part of the row. 
+                Debug.Assert(rhs[j] == 0);
+                rhs[j] = dotLower; // contribution of the (L+D) part of the row. 
             }
+        }
+
+        /// <summary>
+        /// Linear system solution, with a symmetric matrix in Skyline format, where only the upper triangle is stored.
+        /// </summary>
+        public void Dskysv()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
+﻿//TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design though.
+namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
 {
     /// <summary>
     /// Custom and unoptimized managed implementations of BLAS like operations, for which I have not found 3rd party 
