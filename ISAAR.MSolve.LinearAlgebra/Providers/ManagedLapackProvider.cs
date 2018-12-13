@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using DotNumerics.LinearAlgebra.CSLapack;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 
 //TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
@@ -10,6 +11,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class ManagedLapackProvider : ILapackProvider
     {
+        private static readonly ManagedCBlasProvider blas =  new ManagedCBlasProvider();
+
         private static readonly DGELQF dgelqf = new DGELQF();
         private static readonly DGEQRF dgeqrf = new DGEQRF();
         private static readonly DORGLQ dorglq = new DORGLQ();
@@ -19,6 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         private static readonly DGETRF dgetrf = new DGETRF();
         private static readonly DGETRI dgetri = new DGETRI();
         private static readonly DGETRS dgetrs = new DGETRS();
+        private static readonly DTRSM dtrsm = new DTRSM();
 
         public void Dgelqf(int m, int n, double[] a, int offsetA, int ldA, double[] tau, int offsetTau, 
             double[] work, int offsetWork, int lWork, ref int info)
@@ -59,55 +63,139 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 
         public void Dpotrf(string uplo, int n, double[] a, int offsetA, int ldA, ref int info)
         {
-            if (uplo.Equals("L") || uplo.Equals("l"))
+            try
             {
-                LapackImplementations.CholeskyLowerFullColMajor(n, a, offsetA, ldA, ref info);
+                if (IsUpper(uplo)) LapackImplementations.CholeskyUpperFullColMajor(n, a, offsetA, ldA, ref info);
+                else LapackImplementations.CholeskyLowerFullColMajor(n, a, offsetA, ldA, ref info);
             }
-            else if (uplo.Equals("U") || uplo.Equals("u"))
+            catch (ArgumentException)
             {
-                LapackImplementations.CholeskyUpperFullColMajor(n, a, offsetA, ldA, ref info);
-
+                info = -1;
             }
-            else info = -1;
         }
 
         public void Dpotri(string uplo, int n, double[] a, int offsetA, int ldA, ref int info)
         {
-            throw new NotImplementedException(
-                "Matrix inversion using the Cholesky factorization in full format is not implemented yet in C#." 
-                + " Use an MKL provider instead.");
+            if (ldA != n) throw new NotImplementedException("dpotri only works for ldA=n");
+
+            // Start with an identity matrix
+            var inverse = new double[n * n];
+            for (int i = 0; i < n; ++i) inverse[i * ldA + i] = 1.0;
+
+            // Solve (L*L^T) * inverse = I or (U^T*U) * inverse = I
+            int infoSolve = LapackUtilities.DefaultInfo;
+            Dpotrs(uplo, n, n, a, offsetA, ldA, inverse, 0, n, ref infoSolve);
+
+            // Copy the inverse matrix over the factorization
+            Array.Copy(inverse, 0, a, offsetA, n * n);
+
+            info = 0; //TODO add checks
         }
 
         public void Dpotrs(string uplo, int n, int nRhs, double[] a, int offsetA, int ldA, 
             double[] b, int offsetB, int ldB, ref int info)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (IsUpper(uplo)) // A*X=B <=> U^T * (U*X) = B
+                {
+                    dtrsm.Run("L", "U", "T", "N", n, nRhs, 1.0, a, offsetA, ldA, ref b, offsetB, ldB); // B = U^T \ B
+                    dtrsm.Run("L", "U", "N", "N", n, nRhs, 1.0, a, offsetA, ldA, ref b, offsetB, ldB); // B = U \ B
+                }
+                else // A*X=B <=> L * (L^T*X) = B
+                {
+                    dtrsm.Run("L", "L", "N", "N", n, nRhs, 1.0, a, offsetA, ldA, ref b, offsetB, ldB); // B = L \ B
+                    dtrsm.Run("L", "L", "T", "N", n, nRhs, 1.0, a, offsetA, ldA, ref b, offsetB, ldB); // B = L^T \ B
+                }
+                info = 0; // TODO: needs more checks
+            }
+            catch (ArgumentException)
+            {
+                info = -1;
+            }
         }
 
         public void Dpptrf(string uplo, int n, double[] a, int offsetA, ref int info)
         {
-            if (uplo.Equals("L") || uplo.Equals("l"))
+            try
             {
-                LapackImplementations.CholeskyLowerPackedColMajor(n, a, offsetA, ref info);
+                if (IsUpper(uplo)) LapackImplementations.CholeskyUpperPackedColMajor(n, a, offsetA, ref info);
+                else LapackImplementations.CholeskyLowerPackedColMajor(n, a, offsetA, ref info);
             }
-            else if (uplo.Equals("U") || uplo.Equals("u"))
+            catch (ArgumentException)
             {
-                LapackImplementations.CholeskyUpperPackedColMajor(n, a, offsetA, ref info);
-
+                info = -1;
             }
-            else info = -1;
         }
 
         public void Dpptri(string uplo, int n, double[] a, int offsetA, ref int info)
         {
-            throw new NotImplementedException(
-                "Matrix inversion using the Cholesky factorization in packed format is not implemented yet in C#."
-                + " Use an MKL provider instead.");
+            try
+            {
+                // Start with an identity matrix
+                var inverse = new double[n * n];
+                for (int i = 0; i < n; ++i) inverse[i * n + i] = 1.0;
+
+                // Solve (L*L^T) * inverse = I or (U^T*U) * inverse = I
+                int infoSolve = LapackUtilities.DefaultInfo;
+                Dpptrs(uplo, n, n, a, offsetA, inverse, 0, n, ref infoSolve);
+
+                // Copy the inverse matrix over the factorization
+                if (IsUpper(uplo)) Conversions.FullColMajorToPackedUpperColMajor(n, inverse, a, offsetA);
+                else Conversions.FullColMajorToPackedLowerColMajor(n, inverse, a, offsetA);
+                info = 0; // TODO: needs more checks
+            }
+            catch (ArgumentException)
+            {
+                info = -1;
+            }
         }
 
         public void Dpptrs(string uplo, int n, int nRhs, double[] a, int offsetA, double[] b, int offsetB, int ldB, ref int info)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (IsUpper(uplo))
+                {
+                    // Process each column separately
+                    for (int i = 0; i < nRhs; ++i)
+                    {
+                        // b = U^T \ b
+                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, CBlasTranspose.Transpose, CBlasDiagonal.NonUnit,
+                            n, a, offsetA, b, offsetB + i * nRhs, 1);
+
+                        // b = U \ b
+                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
+                            n, a, offsetA, b, offsetB + i * nRhs, 1);
+                    }
+                }
+                else
+                {
+                    // Process each column separately
+                    for (int i = 0; i < nRhs; ++i)
+                    {
+                        // b = L \ b
+                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
+                            n, a, offsetA, b, offsetB + i * n, 1);
+
+                        // b = L^T \ b
+                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.Transpose, CBlasDiagonal.NonUnit,
+                            n, a, offsetA, b, offsetB + i * n, 1);
+                    }
+                }
+                info = 0; // TODO: needs more checks
+            }
+            catch (ArgumentException)
+            {
+                info = -1;
+            }
+        }
+
+        private static bool IsUpper(string uplo)
+        {
+            if (uplo.Equals("L") || uplo.Equals("l")) return false;
+            else if (uplo.Equals("U") || uplo.Equals("u")) return true;
+            else throw new ArgumentException("Parameter uplo must be U, u, L or l");
         }
     }
 }

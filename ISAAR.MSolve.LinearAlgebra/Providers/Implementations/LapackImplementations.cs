@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using DotNumerics.LinearAlgebra.CSLapack;
 
+//TODO: Some of these could be done by calling other BLAS, LAPACK functions. See the LAPACK source.
 namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
 {
     /// <summary>
@@ -11,7 +13,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
     /// </summary>
     internal static class LapackImplementations
     {
-       
         internal static void CholeskyLowerFullColMajor(int n, double[] a, int offsetA, int ldA, ref int info)
             => CholeskyTemplate(n, a, ref info, (i, j) => offsetA + j * ldA + i);
 
@@ -19,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
             => CholeskyTemplate(n, a, ref info, (i, j) => offsetA + i + (j * (2 * n + 1 - j)) / 2);
 
         internal static void CholeskyUpperFullColMajor(int n, double[] a, int offsetA, int ldA, ref int info)
-            => CholeskyTemplate(n, a, ref info, (i, j) => offsetA + j * ldA + i); //Transpose access
+            => CholeskyTemplate(n, a, ref info, (i, j) => offsetA + i * ldA + j); // Do not transpose access
 
         internal static void CholeskyUpperPackedColMajor(int n, double[] a, int offsetA, ref int info)
             => CholeskyTemplate(n, a, ref info, (i, j) => offsetA + j + (i * (i + 1)) / 2); //Transpose access
@@ -29,7 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
         /// https://algowiki-project.org/en/Cholesky_decomposition#Software_implementation_of_the_algorithm. 
         /// For the indexing formulas see
         /// https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines.
-        /// This algorithm operates on L only. The caller needs to transpose (i, j), in order to operate on U instead.
+        /// This algorithm operates on L only. The caller might need to transpose (i, j), in order to operate on U instead.
         /// </summary>
         private static void CholeskyTemplate(int n, double[] a, ref int info, Func<int, int, int> FindIndex)
         {

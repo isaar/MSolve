@@ -136,7 +136,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <returns></returns>
         public static SymmetricMatrix CreateFromMatrix(Matrix originalMatrix)
         {
-            double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.InternalData, originalMatrix.NumColumns);
+            double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.NumColumns, 
+                originalMatrix.InternalData);
             return new SymmetricMatrix(data, originalMatrix.NumColumns, DefiniteProperty.Unknown);
         }
 
