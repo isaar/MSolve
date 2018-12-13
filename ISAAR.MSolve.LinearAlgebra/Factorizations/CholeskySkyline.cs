@@ -4,6 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //also implement ISymmetricSparseMatrix.
@@ -17,6 +18,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     /// </summary>
     public class CholeskySkyline : IIndexable2D, ISparseMatrix, ITriangulation
     {
+        private static readonly ManagedSparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
+
         /// <summary>
         /// The default value under which a diagonal entry (pivot) is considered to be 0 during Cholesky factorization.
         /// </summary>
@@ -267,54 +270,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         public void SolveLinearSystem(Vector rhs, Vector solution)
         {
-            // Copied from Stavroulakis code.
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
-            Preconditions.CheckMultiplicationDimensions(this.NumColumns, solution.Length);
-
-            //var e = DateTime.Now;
-            //double[] result = new double[K.Rows];
-            solution.CopyFrom(rhs);
-
-            // RHS vector reduction
-            int n;
-            for (n = 0; n < NumColumns; n++)
-            {
-                int KL = diagOffsets[n] + 1;
-                int KU = diagOffsets[n + 1] - 1;
-                if (KU >= KL)
-                {
-                    int k = n;
-                    double C = 0;
-                    for (int KK = KL; KK <= KU; KK++)
-                    {
-                        k--;
-                        C += values[KK] * solution[k];
-                    }
-                    solution[n] -= C;
-                }
-            }
-
-            // Back substitution
-            for (n = 0; n < NumColumns; n++) solution[n] /= values[diagOffsets[n]];
-
-            n = NumColumns - 1;
-            for (int l = 1; l < NumColumns; l++)
-            {
-                int KL = diagOffsets[n] + 1;
-                int KU = diagOffsets[n + 1] - 1;
-                if (KU >= KL)
-                {
-                    int k = n;
-                    for (int KK = KL; KK <= KU; KK++)
-                    {
-                        k--;
-                        solution[k] -= values[KK] * solution[n];
-                    }
-                }
-                n--;
-            }
-            //var x = new List<TimeSpan>();
-            //x.Add(DateTime.Now - e);
+            Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
+            sparseBlas.Dskysv(NumColumns, values, diagOffsets, rhs.InternalData, solution.InternalData);
+            
         }
     }
 }

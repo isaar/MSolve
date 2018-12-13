@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
-//TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design though.
+//TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design 
+//      though.
+//TODO: At some point I should change my Skyline format to match the one used in MKL. Then the SparseBLAS operations can be 
+//      interchangeable.
+//TODO: This should be a singleton
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
-    /// Uses managed C# code (usually unoptimized) to performs BLAS operations.
+    /// Uses managed C# code (usually unoptimized) to perform BLAS operations.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class ManagedSparseBlasProvider : ISparseBlasProvider
@@ -124,9 +129,51 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// <summary>
         /// Linear system solution, with a symmetric matrix in Skyline format, where only the upper triangle is stored.
         /// </summary>
-        public void Dskysv()
+        public void Dskysv(int order, double[] values, int[] diagOffsets, double[] rhs, double[] lhs)
         {
-            throw new NotImplementedException();
+            // Copied from Stavroulakis code.
+
+            // Copy the rhs vector
+            Array.Copy(rhs, lhs, order);
+
+            // RHS vector reduction
+            int n;
+            for (n = 0; n < order; n++)
+            {
+                int KL = diagOffsets[n] + 1;
+                int KU = diagOffsets[n + 1] - 1;
+                if (KU >= KL)
+                {
+                    int k = n;
+                    double C = 0;
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        C += values[KK] * lhs[k];
+                    }
+                    lhs[n] -= C;
+                }
+            }
+
+            // Back substitution
+            for (n = 0; n < order; n++) lhs[n] /= values[diagOffsets[n]];
+
+            n = order - 1;
+            for (int l = 1; l < order; l++)
+            {
+                int KL = diagOffsets[n] + 1;
+                int KU = diagOffsets[n + 1] - 1;
+                if (KU >= KL)
+                {
+                    int k = n;
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        lhs[k] -= values[KK] * lhs[n];
+                    }
+                }
+                n--;
+            }
         }
     }
 }

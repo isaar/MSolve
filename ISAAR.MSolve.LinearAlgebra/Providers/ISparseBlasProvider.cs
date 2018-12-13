@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 //TODO: this and its implementations should be internal. The user should select a Provider that will then specify different BLAS,
-//      SparseBLAS, LAPACK, etc. providers. The implementations shoud lalso be singletons or enums.
+//      SparseBLAS, LAPACK, etc. providers. The implementations should also be singletons or enums.
 //TODO: some dimensions are redundant, since they can be read from the indexing arrays.
 //TODO: Add offsets.
 //TODO: For now this is my own interface. However there are some semi-standard ones. E.g. the inspector-executor interface, 

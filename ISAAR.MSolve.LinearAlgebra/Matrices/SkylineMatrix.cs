@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class SkylineMatrix: IMatrix, ISparseMatrix, ISymmetricMatrix
     {
-        private static readonly ManagedSparseBlasProvider managedSparseBlas = new ManagedSparseBlasProvider();
+        private static readonly ManagedSparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
 
         /// <summary>
         /// Contains the non zero superdiagonal entries of the matrix in column major order, starting from the diagonal and going
@@ -719,7 +719,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
-            managedSparseBlas.Dskymv(NumColumns, values, diagOffsets, lhsVector.InternalData, rhsVector.InternalData);
+            sparseBlas.Dskymv(NumColumns, values, diagOffsets, lhsVector.InternalData, rhsVector.InternalData);
         }
 
         /// <summary>

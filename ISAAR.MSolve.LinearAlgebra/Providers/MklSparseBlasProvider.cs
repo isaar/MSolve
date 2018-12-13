@@ -5,6 +5,7 @@ using IntelMKL.LP64;
 
 //TODO: Should I use transpose flags instead of providing different methods. The caller would have to repeat checking this
 //      flag (granted, it is not that costly) and I would need to write a lot of nested if...else... clauses.
+//TODO: This shoudl be a singleton.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
@@ -69,9 +70,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// </summary>
         public void Dskymv(bool upper, int order, double[] values, int[] diagOffsets, double[] lhs, double[] rhs)
         {
-            //int[] diagOffsets1Based = Convert0To1BasedIndexing(diagOffsets); // This method accepts 1-based indexing.
-            //SpBlas.MklDskymv();
-            throw new NotImplementedException();
+            string trans = "N"; //TODO: not sure about this
+            string matdscrA = "SUNF"; // symmetric, upper, non-unit, fortran indexing
+            double alpha = 1.0;
+            double beta = 0.0;
+            SpBlas.MklDskymv(trans, ref order, ref order, ref alpha, matdscrA, ref values[0], ref diagOffsets[0],
+                ref lhs[0], ref beta, ref rhs[0]);
         }
 
         /// <summary>
@@ -83,11 +87,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// In constrast, in the current version of our Skyline matrix, 0-based indexing is used and the entries of each column 
         /// are ordered from the diagonal to the top.
         /// </summary>
-        public void Dskysv(bool upper, int order, double[] values, int[] diagOffsets, double[] x, double[] y)
+        public void Dskysv(bool upper, int order, double[] values, int[] diagOffsets, double[] rhs, double[] lhs)
         {
-            //int[] diagOffsets1Based = Convert0To1BasedIndexing(diagOffsets); // This method accepts 1-based indexing.
-            //SpBlas.MklDskysv();
-            throw new NotImplementedException();
+            string trans = "N"; //TODO: not sure about this
+            string matdscrA = "SUNF"; // symmetric, upper, non-unit, fortran indexing
+            double alpha = 1.0;
+            SpBlas.MklDskysv(trans, ref order, ref alpha, matdscrA, ref values[0], ref diagOffsets[0],
+                ref rhs[0], ref lhs[0]);
         }
 
         //TODO: perhaps the 1-based indexing array can be stored in the matrix or cached here instead of rebuilding it 
