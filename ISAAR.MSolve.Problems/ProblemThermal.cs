@@ -20,12 +20,13 @@ namespace ISAAR.MSolve.Problems
     public class ProblemThermal: IImplicitIntegrationProvider, IStaticProvider, INonLinearProvider
     {
         private Dictionary<int, IMatrix2D> capacityMatrices, conductivityMatrices;
-        private readonly IStructuralModel model;
+        //private readonly IStructuralModel model; // We cannot generalize it yet.
+        private readonly Model model;
         private IDictionary<int, ILinearSystem> subdomains;
         private ElementStructuralStiffnessProvider conductivityProvider = new ElementStructuralStiffnessProvider();
         private ElementStructuralMassProvider capacityProvider = new ElementStructuralMassProvider();
 
-        public ProblemThermal(IStructuralModel model, IDictionary<int, ILinearSystem> subdomains)
+        public ProblemThermal(Model model, IDictionary<int, ILinearSystem> subdomains)
         {
             this.model = model;
             this.subdomains = subdomains;
@@ -44,10 +45,8 @@ namespace ISAAR.MSolve.Problems
         {
             get
             {
-                if (conductivityMatrices == null)
-                    BuildConductivityMatrices();
-                else
-                    RebuildConductivityMatrices();
+                if (conductivityMatrices == null) BuildConductivityMatrices();
+                //else RebuildConductivityMatrices();
                 return conductivityMatrices;
             }
         }
@@ -118,21 +117,26 @@ namespace ISAAR.MSolve.Problems
 
         public void CalculateEffectiveMatrix(ILinearSystem subdomain, ImplicitIntegrationCoefficients coefficients)
         {
-            subdomain.Matrix = this.ConductivityMatrices[subdomain.ID];
+            // Either way the GlobalMatrixAssemblerSkyline is hardcoded at this point, so the matrix, can only be Skyline.
+            SkylineMatrix2D conductivity = (SkylineMatrix2D)(this.ConductivityMatrices[subdomain.ID]);
 
-            if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized)
-                BuildConductivityMatrices();
+            // We will keep both the conductivity and the effective matrix, therefore only the effective matrix must be factorized. 
+            // CalculateMatrix() set the conductivity as the linear system matrix and then the solver will factorize it.
+            //if (((SkylineMatrix2D)subdomain.Matrix).IsFactorized) BuildConductivityMatrices();
+            if (conductivity.IsFactorized) throw new InvalidOperationException("Conductivity matrix has been factorized. This should not have happened in a dynamic setting.");
 
-            var m = subdomain.Matrix as ILinearlyCombinable;
-            m.LinearCombination(
+            SkylineMatrix2D effective = conductivity.Copy(); // We need the conductivity matrix in the analyzer if the integration scheme is not purely implicit.
+            effective.LinearCombination(
                 new double[]
                 {
                     coefficients.Stiffness, coefficients.Mass
                 },
                 new IMatrix2D[]
                 {
-                    this.ConductivityMatrices[subdomain.ID], this.capacityMatrices[subdomain.ID]
+                    effective, this.CapacityMatrices[subdomain.ID]
                 });
+
+            subdomain.Matrix = effective;
         }
 
         public void ProcessRHS(ILinearSystem subdomain, ImplicitIntegrationCoefficients coefficients)
@@ -151,6 +155,8 @@ namespace ISAAR.MSolve.Problems
             throw new InvalidOperationException("This is not needed in explicit methods for first order equations");
         }
 
+        //TODO: It is very common for the loading to be constant w.r.t. time throughout the analysis. This results in the same
+        //      rhs at each iteration and we could avoid many operations. Find a way to allow this optimization.
         public void GetRHSFromHistoryLoad(int timeStep)
         {
             foreach (Subdomain subdomain in model.ISubdomainsDictionary.Values)
@@ -158,9 +164,8 @@ namespace ISAAR.MSolve.Problems
                 Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
             }
 
-
-            model.AssignLoads();
-            model.AssignMassAccelerationHistoryLoads(timeStep);
+            model.AssignNodalLoads(); // Time-independent nodal loads
+            model.AssignTimeDependentNodalLoads(timeStep); // Time-dependent nodal loads
 
             foreach (var l in subdomains)
                 l.Value.RHS.CopyFrom(0, l.Value.RHS.Length, new Vector(model.ISubdomainsDictionary[l.Key].Forces), 0);
