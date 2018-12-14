@@ -231,7 +231,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         public IVector Axpy(IVectorView otherVector, double otherCoefficient)
         {
-            if (otherVector is Vector casted) return Axpy(casted, otherCoefficient);
+            if (otherVector is Vector dense) return Axpy(dense, otherCoefficient);
+            else if (otherVector is SparseVector sparse)
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                double[] result = new double[data.Length];
+                Array.Copy(data, result, data.Length);
+                SparseBlas.Daxpyi(sparse.InternalIndices.Length, otherCoefficient, sparse.InternalValues,
+                    sparse.InternalIndices, 0, result, 0);
+                return Vector.CreateFromArray(result, false);
+            }
             else return otherVector.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
         }
 
@@ -259,13 +268,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         public void AxpyIntoThis(IVectorView otherVector, double otherCoefficient)
         {
-            if (otherVector is Vector casted) AxpyIntoThis(casted, otherCoefficient);
+            if (otherVector is Vector dense) AxpyIntoThis(dense, otherCoefficient);
             else
             {
                 Preconditions.CheckVectorDimensions(this, otherVector);
-                for (int i = 0; i < Length; ++i)
+                if (otherVector is SparseVector sparse)
                 {
-                    this.data[i] += otherCoefficient * otherVector[i];
+                    SparseBlas.Daxpyi(sparse.InternalIndices.Length, otherCoefficient, sparse.InternalValues,
+                    sparse.InternalIndices, 0, data, 0);
+                }
+                else
+                {
+                    for (int i = 0; i < Length; ++i) this.data[i] += otherCoefficient * otherVector[i];
                 }
             }
         }

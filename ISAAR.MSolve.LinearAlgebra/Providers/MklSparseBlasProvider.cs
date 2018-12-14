@@ -14,10 +14,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     /// </summary>
     public class MklSparseBlasProvider : ISparseBlasProvider
     {
-        public void Daxpyi(int nnz, double[] alpha, double[] x, int offsetX, int[] indicesX, double[] y, int offsetY)
-        {
-            throw new NotImplementedException();
-        }
+        public void Daxpyi(int nnz, double alpha, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)
+            => CBlas.Daxpyi(nnz, alpha, ref x[offsetX], ref indicesX[offsetX], ref y[offsetY]);
 
         public void Dcscgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] colOffsetsA,
             int[] rowIndicesA, double[] b, double[] c)
@@ -76,6 +74,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     ref x[offsetX], ref y[offsetY]);
             }
         }
+
+        public double Ddoti(int nnz, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)
+            => CBlas.Ddoti(nnz, ref x[offsetX], ref indicesX[offsetX], ref y[offsetY]);
 
         /// <summary>
         /// Matrix vector multiplication y = A * x, with A being a triangular matrix in Skyline format. See

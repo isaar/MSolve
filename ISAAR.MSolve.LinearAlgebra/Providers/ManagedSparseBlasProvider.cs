@@ -18,9 +18,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     /// </summary>
     public class ManagedSparseBlasProvider : ISparseBlasProvider
     {
-        public void Daxpyi(int nnz, double[] alpha, double[] x, int offsetX, int[] indicesX, double[] y, int offsetY)
+        public void Daxpyi(int nnz, double alpha, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < nnz; ++i)
+            {
+                int idxX = offsetX + i;
+                y[offsetY + indicesX[idxX]] += alpha * x[idxX];
+            }
         }
 
         //TODO: use transposed CSR method
@@ -74,6 +78,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     y[offsetY + i] = dot;
                 }
             }
+        }
+
+        public double Ddoti(int nnz, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)
+        {
+            double dot = 0.0;
+            for (int i = 0; i < nnz; ++i)
+            {
+                int idxX = offsetX + i;
+                dot += x[idxX] * y[offsetY + indicesX[idxX]];
+            }
+            return dot;
         }
 
         /// <summary>

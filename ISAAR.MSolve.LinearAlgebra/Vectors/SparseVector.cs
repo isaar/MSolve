@@ -490,6 +490,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public double DotProduct(IVectorView vector)
         {
             Preconditions.CheckVectorDimensions(this, vector);
+
+            if (vector is Vector dense) return SparseBlas.Ddoti(values.Length, values, indices, 0, dense.InternalData, 0);
+            else if ((vector is SparseVector sparse) && HasSameIndexer(sparse))
+            {
+                return CBlas.Ddot(values.Length, this.values, 0, 1, sparse.values, 0, 1);
+            }
+
             double sum = 0;
             for (int i = 0; i < values.Length; ++i) sum += values[i] * vector[indices[i]];
             return sum;

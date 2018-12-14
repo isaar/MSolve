@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     public interface ISparseBlasProvider
     {
         //TODO: also dot product
-        void Daxpyi(int nnz, double[] alpha, double[] x, int offsetX, int[] indicesX, double[] y, int offsetY);
+        void Daxpyi(int nnz, double alpha, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY);
 
         /// <summary>
         /// Matrix-matrix multiplication C = op(A) * B, with A being a general matrix in 3-array CSC format (zero indexing) and
@@ -40,5 +40,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// </summary>
         void Dcsrgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] rowOffsetsA, int[] colIndicesA,
             double[] x, int offsetX, double[] y, int offsetY);
+
+        double Ddoti(int nnz, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY);
     }
 }
