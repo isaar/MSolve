@@ -75,7 +75,7 @@ namespace ISAAR.MSolve.Analyzers
                 ConductivityTimesTemperature.Add(subdomain.ID, new Vector(dofs));
                 Temperature.Add(subdomain.ID, new Vector(dofs));
                 rhs.Add(subdomain.ID, new Vector(dofs));
-                //rhsPrevious.Add(subdomain.ID, new Vector(dofs)); //This should not be necessary
+                rhsPrevious.Add(subdomain.ID, new Vector(dofs));
 
                 // Account for initial conditions coming from a previous solution
                 subdomain.Solution.CopyTo(Temperature[subdomain.ID].Data, 0);
@@ -86,36 +86,24 @@ namespace ISAAR.MSolve.Analyzers
         {
             ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients
             {
-                Mass = 1 / timeStep,
+                Mass = 1 / timeStep ,
                 Stiffness = beta
             };
-            foreach (ILinearSystem subdomain in subdomains.Values)
-                provider.CalculateEffectiveMatrix(subdomain, coeffs);
-
-            var m = (SkylineMatrix2D)subdomains[0].Matrix;//TODO: Subdomain matrices should not be retrieved like that.
-            var x = new HashSet<double>();
-            int nonZeroCount = 0;
-            for (int i = 0; i < m.Data.Length; i++)
-            {
-                nonZeroCount += m.Data[i] != 0 ? 1 : 0;
-                if (x.Contains(m.Data[i]) == false)
-                    x.Add(m.Data[i]);
-            }
-            nonZeroCount += 0;
+            foreach (ILinearSystem subdomain in subdomains.Values) provider.CalculateEffectiveMatrix(subdomain, coeffs);
         }
 
         private void InitializeRHSs()
         {
             ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients
             {
-                Mass = 1/timeStep,
-                Stiffness = beta
+                Mass = 0,  //never used
+                Stiffness = 0
             };
             foreach (ILinearSystem subdomain in subdomains.Values)
             {
                 provider.ProcessRHS(subdomain, coeffs);
                 int dofs = subdomain.RHS.Length;
-                rhsPrevious[subdomain.ID] = rhs[subdomain.ID];
+                //rhsPrevious[subdomain.ID] = rhs[subdomain.ID];
                 rhs[subdomain.ID] = new Vector(rhs[subdomain.ID].Length);
                 rhs[subdomain.ID].CopyFrom(0, subdomain.RHS.Length, subdomain.RHS, 0);
                 //for (int i = 0; i < dofs; i++) rhs[subdomain.ID][i] = subdomain.RHS[i];
@@ -150,9 +138,8 @@ namespace ISAAR.MSolve.Analyzers
         public void Initialize()
         {
             if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-            //InitializeCoefficients();
+
             InitializeInternalVectors();
-            //InitializeMatrices();
             InitializeRHSs();
             childAnalyzer.Initialize();
         }
@@ -160,55 +147,64 @@ namespace ISAAR.MSolve.Analyzers
         private void CalculateRHSImplicit(ILinearSystem subdomain, double[] rhsResult, bool addRHS)
         {
             int id = subdomain.ID;
-            ////for (int i = 0; i < subdomain.RHS.Length; i++)
-            ////{
-            ////    uu[id].Data[i] = 1/timeStep * Temperature[id].Data[i] ;
-            ////    uc[id].Data[i] = -(1-beta) * Temperature[id].Data[i] ;
-            ////}
-            //provider.Ms[id].Multiply(uu[id], uum[id].Data);
             provider.MassMatrixVectorProduct(subdomain, Temperature[id], CapacityTimesTemperature[id].Data);
             provider.DampingMatrixVectorProduct(subdomain, Temperature[id], ConductivityTimesTemperature[id].Data);
             if (addRHS) /// what is the meaning of this?
+            {
                 for (int i = 0; i < subdomain.RHS.Length; i++)
-                    rhsResult[i] = (1-beta)* rhsPrevious[id].Data[i] + beta*rhs[id].Data[i] + 1 / timeStep*CapacityTimesTemperature[id].Data[i]  -(1 - beta)*ConductivityTimesTemperature[id].Data[i];
+                {
+                    rhsResult[i] = (1 - beta) * rhsPrevious[id].Data[i] + beta * rhs[id].Data[i] + 1 / timeStep * CapacityTimesTemperature[id].Data[i] - (1 - beta)* ConductivityTimesTemperature[id].Data[i];
+                }
+            }
             else
+            {
                 for (int i = 0; i < subdomain.RHS.Length; i++)
-                    rhsResult[i] = 1 / timeStep*CapacityTimesTemperature[id].Data[i]  -(1 - beta)*ConductivityTimesTemperature[id].Data[i];
-
+                {
+                    rhsResult[i] = (1 - beta) * rhsPrevious[id].Data[i] + beta * rhs[id].Data[i] + 1 / timeStep * CapacityTimesTemperature[id].Data[i] - (1 - beta)  * ConductivityTimesTemperature[id].Data[i];
+                }
+            }
+            rhsPrevious[subdomain.ID] = rhs[subdomain.ID];
         }
 
         private void CalculateRHSImplicit()
         {
             foreach (ILinearSystem subdomain in subdomains.Values)
             {
-
                 CalculateRHSImplicit(subdomain, ((Vector)subdomain.RHS).Data, true);
-
             }
-
         }
 
         public void Solve()
         {
             if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
 
-            for (int i = 0; i < (int)(totalTime / timeStep); i++)
+            int numTimeSteps = (int)(totalTime / timeStep);
+            for (int t = 0; t < numTimeSteps; ++t)
             {
-                Debug.WriteLine("Newmark step: {0}", i);
-                provider.GetRHSFromHistoryLoad(i);
+                Debug.WriteLine("Newmark step: {0}", t);
+                provider.GetRHSFromHistoryLoad(t);
                 InitializeRHSs();
                 // ProcessRHS
                 CalculateRHSImplicit();
                 DateTime start = DateTime.Now;
                 childAnalyzer.Solve();
                 DateTime end = DateTime.Now;
+                UpdateTemperature(t);
                 UpdateResultStorages(start, end);
             }
 
             //childAnalyzer.Solve();
         }
 
+        private void UpdateTemperature(int timeStep)
+        {
+            foreach (ILinearSystem subdomain in subdomains.Values)
+            {
+                int id = subdomain.ID;
+                subdomain.Solution.CopyTo(Temperature[id].Data, 0);
 
+            }
+        }
 
         public void BuildMatrices()
         {
