@@ -30,37 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 
         public void Dcscgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] colOffsetsA, int[] rowIndicesA,
             double[] x, int offsetX, double[] y, int offsetY)
-        {
-            if (transposeA)
-            {
-                // A^T * x = sum{row of A^T * x} = sum{col of A * x}
-                for (int j = 0; j < numColsA; ++j)
-                {
-                    double dot = 0.0;
-                    int colStart = colOffsetsA[j]; //inclusive
-                    int colEnd = colOffsetsA[j + 1]; //exclusive
-                    for (int k = colStart; k < colEnd; ++k)
-                    {
-                        dot += valuesA[k] * x[rowIndicesA[k]];
-                    }
-                    y[j] = dot;
-                }
-            }
-            else
-            {
-                // A * x = linear combination of columns of A, with the entries of x as coefficients
-                for (int j = 0; j < numColsA; ++j)
-                {
-                    double scalar = x[j];
-                    int colStart = colOffsetsA[j]; //inclusive
-                    int colEnd = colOffsetsA[j + 1]; //exclusive
-                    for (int k = colStart; k < colEnd; ++k)
-                    {
-                        y[rowIndicesA[k]] += scalar * valuesA[k];
-                    }
-                }
-            }
-        }
+            => Dcsrgemv(!transposeA, numColsA, numRowsA, valuesA, colOffsetsA, rowIndicesA, x, offsetX, y, offsetY);
 
         public void Dcsrgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] rowOffsetsA,
             int[] colIndicesA, double[] b, double[] c)
