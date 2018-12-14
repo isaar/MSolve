@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// use <see cref="Builders.DokRowMajor"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CsrMatrix: IMatrix, ISparseMatrix
+    public class CsrMatrix : IMatrix, ISparseMatrix
     {
         private readonly double[] values;
         private readonly int[] colIndices;
