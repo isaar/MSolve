@@ -7,10 +7,11 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: many of these may be able to be simplified to avoid much code duplication. An approach would be to have dedicated 1D 
 //      vectors that are rows or columns of matrices. Then the CSR loops will operate only on them. The rest of the methods, 
 //      will just need to provide the correct rows/columns.
+//TODO: These should not be in the Commons namespace.
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
-    /// Implementations of common BLAS like operations with a matrix stored in CSR format.
+    /// Implementations of multiplication operations with a matrix stored in CSR format.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     internal static class CsrMultiplications

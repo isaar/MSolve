@@ -266,6 +266,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
 
         /// <summary>
+        /// Same as <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
+        /// </summary>
+        /// <exception cref="SparsityPatternModifiedException">
+        /// Thrown if overwritting the <paramref name="solution"/> is not supported by its strorage format.
+        /// </exception>
+        public void SolveLinearSystem(IVectorView rhs, IVector solution)
+        {
+            Preconditions.CheckSystemSolutionDimensions(this, rhs);
+            Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
+            SkylineSubstitutions.SolveLinearSystem(NumColumns, values, diagOffsets, rhs, solution);
+        }
+
+        /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
         public void SolveLinearSystem(Vector rhs, Vector solution)
@@ -273,7 +286,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
             sparseBlas.Dskysv(NumColumns, values, diagOffsets, rhs.InternalData, solution.InternalData);
-            
+        }
+
+        /// <summary>
+        /// Solves the linear systems A * X = B, where A is the original matrix (before the factorization), 
+        /// B = <paramref name="rhsVectors"/> and X is the matrix containing the solution vectors, which will overwrite the 
+        /// provided <paramref name="solutionVectors"/>.
+        /// </summary>
+        /// <param name="rhsVectors">
+        /// A matrix that contains the right hand side vectors as its columns. Constraints: 
+        /// a) Its <see cref="IIndexable2D.NumRows"/> must be equal to the <see cref="IIndexable2D.NumRows"/> of the original 
+        /// matrix A. b) Its <see cref="IIndexable2D.NumColumns"/> must be equal to the <see cref="IIndexable2D.NumColumns"/> of
+        /// <paramref name="solutionVectors"/>.
+        /// </param>
+        /// <param name="solutionVectors">
+        /// Output matrix that will be overwritten with the solutions of the linear system as its columns. Constraints:
+        /// a) Its <see cref="IIndexable2D.NumRows"/> must be equal to the <see cref="IIndexable2D.NumRows"/> of the original 
+        /// matrix A. b) Its <see cref="IIndexable2D.NumColumns"/> must be equal to the <see cref="IIndexable2D.NumColumns"/> of
+        /// <paramref name="rhsVectors"/>.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="rhsVectors"/> or <paramref name="solutionVectors"/> violate the described constraints.
+        /// </exception>
+        public void SolveLinearSystems(Matrix rhsVectors, Matrix solutionVectors)
+        {
+            Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVectors.NumRows);
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, solutionVectors.NumRows);
+            Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
+            sparseBlas.Dskysm(this.NumColumns, rhsVectors.NumColumns, values, diagOffsets, 
+                rhsVectors.InternalData, solutionVectors.InternalData);
         }
     }
 }

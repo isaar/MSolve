@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         }
 
         /// <summary>
-        /// Linear system solution x = inv(A) * y, with A being a triangular matrix in Skyline format. See
+        /// Solve multiple linear systems X = inv(A) * B, with A being a triangular matrix in Skyline format. See
         /// https://software.intel.com/node/0a9d506f-d424-4651-8e68-16625ed412e7#0A9D506F-D424-4651-8E68-16625ED412E7
         /// Warning: Intel MKL's Skyline format uses 1-based indexing and the non zero entries of each column are ordered from
         /// the top to the diagonal, if the upper triangle is stored. See
@@ -105,13 +105,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// In constrast, in the current version of our Skyline matrix, 0-based indexing is used and the entries of each column 
         /// are ordered from the diagonal to the top.
         /// </summary>
-        public void Dskysv(bool upper, int orderA, double[] valuesA, int[] diagOffsetsA, double[] y, double[] x)
+        public void Dskysm(bool upper, int n, int nRhs, double[] valuesA, int[] colOffsetsA, double[] b, int ldB,
+            double[] x, int ldX)
         {
             string trans = "N"; //TODO: not sure about this
             string matdscrA = "SUNF"; // symmetric, upper, non-unit, fortran indexing
             double alpha = 1.0;
-            SpBlas.MklDskysv(trans, ref orderA, ref alpha, matdscrA, ref valuesA[0], ref diagOffsetsA[0],
-                ref y[0], ref x[0]);
+            SpBlas.MklDskysm(trans, ref n, ref nRhs, ref alpha, matdscrA, ref valuesA[0], ref colOffsetsA[0],
+                ref b[0], ref ldB, ref x[0], ref ldX);
+        }
+
+        /// <summary>
+        /// Linear system solution x = inv(A) * b, with A being a triangular matrix in Skyline format. See
+        /// https://software.intel.com/node/0a9d506f-d424-4651-8e68-16625ed412e7#0A9D506F-D424-4651-8E68-16625ED412E7
+        /// Warning: Intel MKL's Skyline format uses 1-based indexing and the non zero entries of each column are ordered from
+        /// the top to the diagonal, if the upper triangle is stored. See
+        /// https://software.intel.com/en-us/mkl-developer-reference-c-sparse-blas-skyline-matrix-storage-format
+        /// In constrast, in the current version of our Skyline matrix, 0-based indexing is used and the entries of each column 
+        /// are ordered from the diagonal to the top.
+        /// </summary>
+        public void Dskysv(bool upper, int orderA, double[] valuesA, int[] colOffsetsA, double[] b, double[] x)
+        {
+            string trans = "N"; //TODO: not sure about this
+            string matdscrA = "SUNF"; // symmetric, upper, non-unit, fortran indexing
+            double alpha = 1.0;
+            SpBlas.MklDskysv(trans, ref orderA, ref alpha, matdscrA, ref valuesA[0], ref colOffsetsA[0],
+                ref b[0], ref x[0]);
         }
 
         //TODO: perhaps the 1-based indexing array can be stored in the matrix or cached here instead of rebuilding it 

@@ -114,16 +114,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             }
         }
 
+        public void Dskysm(int order, int numRhs, double[] valuesA, int[] diagOffsetsA, double[] b, double[] x)
+        {
+            //TODO: This implementation uses level 2 BLAS. I should implement it from scratch as a lvl 3 BLAS, but is it worth 
+            //      it without parallelism?
+            for (int j = 0; j < numRhs; ++j)
+            {
+                int offset = j * order;
+                Dskysv(order, valuesA, diagOffsetsA, b, offset, x, offset);
+            }
+        }
+
         /// <summary>
-        /// Linear system solution x = inv(A) * y, with A being with a symmetric matrix in Skyline format, where only the upper 
+        /// Linear system solution x = inv(A) * b, with A being with a symmetric matrix in Skyline format, where only the upper 
         /// triangle is stored.
         /// </summary>
-        public void Dskysv(int order, double[] valuesA, int[] diagOffsetsA, double[] y, double[] x)
+        public void Dskysv(int order, double[] valuesA, int[] diagOffsetsA, double[] b, double[] x)
         {
             // Copied from Stavroulakis code.
 
             // Copy the y vector
-            Array.Copy(y, x, order);
+            Array.Copy(b, x, order);
 
             // RHS vector reduction
             int n;
@@ -155,10 +166,66 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                 if (KU >= KL)
                 {
                     int k = n;
+                    double xn = x[n];
                     for (int KK = KL; KK <= KU; KK++)
                     {
                         k--;
-                        x[k] -= valuesA[KK] * x[n];
+                        x[k] -= valuesA[KK] * xn;
+                    }
+                }
+                n--;
+            }
+        }
+
+        //TODO: this is the same method as above, but without the offsets, to avoid the extra computations. Perhaps I can 
+        //      write this method, such that all index variables are initialized with respect to the offset, instead of
+        //      always adding it. Also other micro optimizations should be doable.
+        /// <summary>
+        /// Linear system solution x = inv(A) * b, with A being with a symmetric matrix in Skyline format, where only the upper 
+        /// triangle is stored.
+        /// </summary>
+        public void Dskysv(int order, double[] valuesA, int[] diagOffsetsA, double[] b, int offsetB, double[] x, int offsetX)
+        {
+            // Copied from Stavroulakis code.
+
+            // Copy the y vector
+            Array.Copy(b, offsetB, x, offsetX, order);
+
+            // RHS vector reduction
+            int n;
+            for (n = 0; n < order; n++)
+            {
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
+                if (KU >= KL) //TODO: can't I avoid this check, by accessing the entries in a smarter way?
+                {
+                    int k = offsetX + n;
+                    double C = 0;
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        C += valuesA[KK] * x[k];
+                    }
+                    x[offsetX + n] -= C;
+                }
+            }
+
+            // Back substitution
+            for (n = 0; n < order; n++) x[offsetX + n] /= valuesA[diagOffsetsA[n]];
+
+            n = order - 1;
+            for (int l = 1; l < order; l++)
+            {
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
+                if (KU >= KL) //TODO: can't I avoid this check, by accessing the entries in a smarter way?
+                {
+                    int k = offsetX + n;
+                    double xn = x[k];
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        x[k] -= valuesA[KK] * xn;
                     }
                 }
                 n--;
