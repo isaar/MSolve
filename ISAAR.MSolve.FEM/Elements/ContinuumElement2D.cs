@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Elements
     /// of this element is uniform, therefore it is necessary to use finer meshes to simulate domains with variable thickness.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ContinuumElement2D: IStructuralFiniteElement
+    public class ContinuumElement2D : IStructuralFiniteElement
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
