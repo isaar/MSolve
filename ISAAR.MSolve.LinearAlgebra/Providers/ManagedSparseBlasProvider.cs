@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
+//TODO: I am pretty sure that the CSC calculations can use the corresponding CSR implementations by transposing the matrix. 
 //TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design 
 //      though.
 //TODO: At some point I should change my Skyline format to match the one used in MKL. Then the SparseBLAS operations can be 
@@ -22,77 +23,97 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             throw new NotImplementedException();
         }
 
-        public void Dcscgemv(bool transpose, int numRows, int numCols, double[] values, int[] colOffsets, int[] rowIndices,
-            double[] lhs, double[] rhs)
+        //TODO: use transposed CSR method
+        public void Dcscgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] colOffsetsA,
+            int[] rowIndicesA, double[] b, double[] c)
+            => Dcsrgemm(!transposeA, numColsA, numColsB, numRowsA, valuesA, colOffsetsA, rowIndicesA, b, c);
+
+        public void Dcscgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] colOffsetsA, int[] rowIndicesA,
+            double[] x, int offsetX, double[] y, int offsetY)
         {
-            if (transpose)
+            if (transposeA)
             {
                 // A^T * x = sum{row of A^T * x} = sum{col of A * x}
-                for (int j = 0; j < numCols; ++j)
+                for (int j = 0; j < numColsA; ++j)
                 {
                     double dot = 0.0;
-                    int colStart = colOffsets[j]; //inclusive
-                    int colEnd = colOffsets[j + 1]; //exclusive
+                    int colStart = colOffsetsA[j]; //inclusive
+                    int colEnd = colOffsetsA[j + 1]; //exclusive
                     for (int k = colStart; k < colEnd; ++k)
                     {
-                        dot += values[k] * lhs[rowIndices[k]];
+                        dot += valuesA[k] * x[rowIndicesA[k]];
                     }
-                    rhs[j] = dot;
+                    y[j] = dot;
                 }
             }
             else
             {
                 // A * x = linear combination of columns of A, with the entries of x as coefficients
-                for (int j = 0; j < numCols; ++j)
+                for (int j = 0; j < numColsA; ++j)
                 {
-                    double scalar = lhs[j];
-                    int colStart = colOffsets[j]; //inclusive
-                    int colEnd = colOffsets[j + 1]; //exclusive
+                    double scalar = x[j];
+                    int colStart = colOffsetsA[j]; //inclusive
+                    int colEnd = colOffsetsA[j + 1]; //exclusive
                     for (int k = colStart; k < colEnd; ++k)
                     {
-                        rhs[rowIndices[k]] += scalar * values[k];
+                        y[rowIndicesA[k]] += scalar * valuesA[k];
                     }
                 }
             }
         }
 
-        public void Dcsrgemv(bool transpose, int numRows, int numColumns, double[] values, int[] rowOffsets, int[] colIndices,
-            double[] lhs, double[] rhs)
+        public void Dcsrgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] rowOffsetsA,
+            int[] colIndicesA, double[] b, double[] c)
         {
-            if (transpose)
+            int ldB = transposeA ? numRowsA : numColsA;
+            int ldC = transposeA ? numColsA : numRowsA;
+
+            //TODO: This implementation uses level 2 BLAS. I should implement it from scratch as a lvl 3 BLAS, but is it worth 
+            //      it without parallelism?
+            for (int j = 0; j < numColsB; ++j)
+            {
+                Dcsrgemv(transposeA, numRowsA, numColsA, valuesA, rowOffsetsA, colIndicesA, b, j * ldB, c, j * ldC);
+            }
+        }
+
+        public void Dcsrgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] rowOffsetsA, int[] colIndicesA,
+            double[] x, int offsetX, double[] y, int offsetY)
+        {
+            if (transposeA)
             {
                 // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
-                for (int i = 0; i < numRows; ++i)
+                for (int i = 0; i < numRowsA; ++i)
                 {
-                    double scalar = lhs[i];
-                    int rowStart = rowOffsets[i]; //inclusive
-                    int rowEnd = rowOffsets[i + 1]; //exclusive
+                    double scalar = x[offsetX + i];
+                    int rowStart = rowOffsetsA[i]; //inclusive
+                    int rowEnd = rowOffsetsA[i + 1]; //exclusive
                     for (int k = rowStart; k < rowEnd; ++k)
                     {
-                        rhs[colIndices[k]] += scalar * values[k];
+                        y[offsetY + colIndicesA[k]] += scalar * valuesA[k];
                     }
                 }
             }
             else
             {
-                for (int i = 0; i < numRows; ++i)
+                for (int i = 0; i < numRowsA; ++i)
                 {
                     double dot = 0.0;
-                    int rowStart = rowOffsets[i]; //inclusive
-                    int rowEnd = rowOffsets[i + 1]; //exclusive
+                    int rowStart = rowOffsetsA[i]; //inclusive
+                    int rowEnd = rowOffsetsA[i + 1]; //exclusive
                     for (int k = rowStart; k < rowEnd; ++k)
                     {
-                        dot += values[k] * lhs[colIndices[k]];
+                        dot += valuesA[k] * x[offsetX + colIndicesA[k]];
                     }
-                    rhs[i] = dot;
+                    y[offsetY + i] = dot;
                 }
             }
         }
 
         /// <summary>
-        /// Matrix vector multiplication, with a symmetric matrix in Skyline format, where only the upper triangle is stored.
+        /// Matrix vector multiplication y = A * x, with A being a symmetric matrix in Skyline format, where only the upper 
+        /// triangle is stored.
         /// </summary>
-        public void Dskymv(int order, double[] values, int[] diagOffsets, double[] lhs, double[] rhs)
+        public void Dskymv(int order, double[] valuesA, int[] diagOffsetsA, double[] x, double[] y)
         {
             // A*x = (L+D)*x + U*x
             // (L+D)*x is easy, since the non zero entries of row i left of the diagonal are stored contiguously in column i and
@@ -103,45 +124,46 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
             // not the result vector entry result[i].
             for (int j = 0; j < order; ++j)
             {
-                int diagOffset = diagOffsets[j];
-                int columnTop = j - diagOffsets[j + 1] + diagOffset + 1;
-                double linearCombinationCoeff = lhs[j];
+                int diagOffset = diagOffsetsA[j];
+                int columnTop = j - diagOffsetsA[j + 1] + diagOffset + 1;
+                double linearCombinationCoeff = x[j];
                 // Dot product of the (L+D) part of the row * vector
-                double dotLower = values[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
+                double dotLower = valuesA[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
                 for (int i = j - 1; i >= columnTop; --i) // Process the rest of the non zero entries of the column
                 {
-                    double aij = values[diagOffset + j - i]; // Thus the matrix is only indexed once
+                    double aij = valuesA[diagOffset + j - i]; // Thus the matrix is only indexed once
 
                     // Contribution of the L part of the row, which is identical to the stored column j.
                     // Thus A[j,i]=A[i,j] and sum(A[i,j]*x[j]) = sum(A[i,j]*x[i])
-                    dotLower += aij * lhs[i];
+                    dotLower += aij * x[i];
 
                     // Contribution of the U part of the column: result += coefficient * column j of U. This will update all rows
                     // [columnTop, j) of the result vector need to be updated to account for the current column j. 
-                    rhs[i] += aij * linearCombinationCoeff;
+                    y[i] += aij * linearCombinationCoeff;
                 }
                 // Column j alters rows [0,j) of the result vector, thus this should be the 1st time result[j] is written.
-                Debug.Assert(rhs[j] == 0);
-                rhs[j] = dotLower; // contribution of the (L+D) part of the row. 
+                Debug.Assert(y[j] == 0);
+                y[j] = dotLower; // contribution of the (L+D) part of the row. 
             }
         }
 
         /// <summary>
-        /// Linear system solution, with a symmetric matrix in Skyline format, where only the upper triangle is stored.
+        /// Linear system solution x = inv(A) * y, with A being with a symmetric matrix in Skyline format, where only the upper 
+        /// triangle is stored.
         /// </summary>
-        public void Dskysv(int order, double[] values, int[] diagOffsets, double[] rhs, double[] lhs)
+        public void Dskysv(int order, double[] valuesA, int[] diagOffsetsA, double[] y, double[] x)
         {
             // Copied from Stavroulakis code.
 
-            // Copy the rhs vector
-            Array.Copy(rhs, lhs, order);
+            // Copy the y vector
+            Array.Copy(y, x, order);
 
             // RHS vector reduction
             int n;
             for (n = 0; n < order; n++)
             {
-                int KL = diagOffsets[n] + 1;
-                int KU = diagOffsets[n + 1] - 1;
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
                 if (KU >= KL)
                 {
                     int k = n;
@@ -149,27 +171,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     for (int KK = KL; KK <= KU; KK++)
                     {
                         k--;
-                        C += values[KK] * lhs[k];
+                        C += valuesA[KK] * x[k];
                     }
-                    lhs[n] -= C;
+                    x[n] -= C;
                 }
             }
 
             // Back substitution
-            for (n = 0; n < order; n++) lhs[n] /= values[diagOffsets[n]];
+            for (n = 0; n < order; n++) x[n] /= valuesA[diagOffsetsA[n]];
 
             n = order - 1;
             for (int l = 1; l < order; l++)
             {
-                int KL = diagOffsets[n] + 1;
-                int KU = diagOffsets[n + 1] - 1;
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
                 if (KU >= KL)
                 {
                     int k = n;
                     for (int KK = KL; KK <= KU; KK++)
                     {
                         k--;
-                        lhs[k] -= values[KK] * lhs[n];
+                        x[k] -= valuesA[KK] * x[n];
                     }
                 }
                 n--;
