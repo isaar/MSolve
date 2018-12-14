@@ -552,7 +552,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
             if (vector is Vector casted) return Multiply(casted, transposeThis);
-            else throw new NotImplementedException();
+
+            if (transposeThis)
+            {
+                var result = new double[NumColumns];
+                Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
+                CsrMultiplications.CsrTransTimesVector(NumRows, values, rowOffsets, colIndices, vector, result);
+                return Vector.CreateFromArray(result, false);
+            }
+            else
+            {
+                var result = new double[NumRows];
+                Preconditions.CheckMultiplicationDimensions(NumColumns, vector.Length);
+                CsrMultiplications.CsrTimesVector(NumRows, values, rowOffsets, colIndices, vector, result);
+                return Vector.CreateFromArray(result, false);
+            }
         }
 
         /// <summary>
@@ -582,7 +596,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
             }
-            else throw new NotImplementedException();
+
+            if (transposeThis)
+            {
+                Preconditions.CheckMultiplicationDimensions(NumRows, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumColumns, rhsVector.Length);
+                CsrMultiplications.CsrTransTimesVector(NumRows, values, rowOffsets, colIndices, lhsVector, rhsVector);
+            }
+            else
+            {
+                Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
+                CsrMultiplications.CsrTimesVector(NumRows, values, rowOffsets, colIndices, lhsVector, rhsVector);
+            }
         }
 
         /// <summary>

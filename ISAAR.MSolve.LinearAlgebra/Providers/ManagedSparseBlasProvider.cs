@@ -70,10 +70,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     double dot = 0.0;
                     int rowStart = rowOffsetsA[i]; //inclusive
                     int rowEnd = rowOffsetsA[i + 1]; //exclusive
-                    for (int k = rowStart; k < rowEnd; ++k)
-                    {
-                        dot += valuesA[k] * x[offsetX + colIndicesA[k]];
-                    }
+                    for (int k = rowStart; k < rowEnd; ++k) dot += valuesA[k] * x[offsetX + colIndicesA[k]];
                     y[offsetY + i] = dot;
                 }
             }

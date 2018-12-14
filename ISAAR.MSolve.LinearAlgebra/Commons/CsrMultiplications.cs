@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: many of these may be able to be simplified. An approach would be to have dedicated 1D vectors that are rows or columns
-//      of matrices. Then the CSR loops will operate only on them. The rest of the methods, will just need to provide the correct
-//      rows/columns.
+//TODO: many of these may be able to be simplified to avoid much code duplication. An approach would be to have dedicated 1D 
+//      vectors that are rows or columns of matrices. Then the CSR loops will operate only on them. The rest of the methods, 
+//      will just need to provide the correct rows/columns.
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
@@ -52,6 +53,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
+        internal static void CsrTimesVector(int numCsrRows, double[] csrValues, int[] csrRowOffsets, int[] csrColIndices,
+            IVectorView lhs, double[] rhs)
+        {
+            for (int i = 0; i < numCsrRows; ++i)
+            {
+                double dot = 0.0;
+                int rowStart = csrRowOffsets[i]; //inclusive
+                int rowEnd = csrRowOffsets[i + 1]; //exclusive
+                for (int k = rowStart; k < rowEnd; ++k) dot += csrValues[k] * lhs[csrColIndices[k]];
+                rhs[i] = dot;
+            }
+        }
+
+        internal static void CsrTimesVector(int numCsrRows, double[] csrValues, int[] csrRowOffsets, int[] csrColIndices,
+            IVectorView lhs, IVector rhs)
+        {
+            for (int i = 0; i < numCsrRows; ++i)
+            {
+                double dot = 0.0;
+                int rowStart = csrRowOffsets[i]; //inclusive
+                int rowEnd = csrRowOffsets[i + 1]; //exclusive
+                for (int k = rowStart; k < rowEnd; ++k) dot += csrValues[k] * lhs[csrColIndices[k]];
+                rhs.Set(i, dot);
+            }
+        }
+
         internal static void CsrTransTimesMatrix(int numCsrRows, double[] csrValues, int[] csrRowOffsets, int[] csrColIndices,
             IMatrixView other, Matrix result)
         {
@@ -90,6 +117,43 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                     }
                 }
             }
+        }
+
+        internal static void CsrTransTimesVector(int numCsrRows, double[] csrValues, int[] csrRowOffsets, int[] csrColIndices,
+            IVectorView lhs, double[] rhs)
+        {
+            // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
+            for (int i = 0; i < numCsrRows; ++i)
+            {
+                double scalar = lhs[i];
+                int rowStart = csrRowOffsets[i]; //inclusive
+                int rowEnd = csrRowOffsets[i + 1]; //exclusive
+                for (int k = rowStart; k < rowEnd; ++k)
+                {
+                    rhs[csrColIndices[k]] += scalar * csrValues[k];
+                }
+            }
+        }
+
+        internal static void CsrTransTimesVector(int numCsrRows, double[] csrValues, int[] csrRowOffsets, int[] csrColIndices,
+            IVectorView lhs, IVector rhs)
+        {
+            var temp = new double[rhs.Length];
+            CsrTransTimesVector(numCsrRows, csrValues, csrRowOffsets, csrColIndices, lhs, temp);
+            rhs.CopyFrom(Vector.CreateFromArray(temp));
+
+            // The following requires a lot of indexing into the rhs vector.
+            //// A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
+            //for (int i = 0; i < numCsrRows; ++i)
+            //{
+            //    double scalar = lhs[i];
+            //    int rowStart = csrRowOffsets[i]; //inclusive
+            //    int rowEnd = csrRowOffsets[i + 1]; //exclusive
+            //    for (int k = rowStart; k < rowEnd; ++k)
+            //    {
+            //        rhs.Set(csrColIndices[k], rhs[csrColIndices[k]] + scalar * csrValues[k]);
+            //    }
+            //}
         }
 
         internal static void MatrixTimesCsr(int numCsrRows, double[] csrValues, int[] csrRowOffsets, int[] csrColIndices,
