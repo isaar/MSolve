@@ -117,6 +117,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
 
         public IMatrix2D MassMatrix(IElement element)
         {
+            //TODO: This is the lumped mass. In continuum elements 2D and 3D we use the consistent mass.
             double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
             double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
             double L = Math.Sqrt(x2 + y2);

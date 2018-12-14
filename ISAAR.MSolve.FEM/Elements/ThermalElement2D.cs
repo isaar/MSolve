@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -19,7 +17,6 @@ namespace ISAAR.MSolve.FEM.Elements
 {
     public class ThermalElement2D : IFiniteElement
     {
-        private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.Temperature };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
         //private readonly Dictionary<GaussPoint2D, ThermalMaterial> materialsAtGaussPoints;
