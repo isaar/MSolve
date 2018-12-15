@@ -18,8 +18,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     /// </summary>
     public class CholeskySkyline : IIndexable2D, ISparseMatrix, ITriangulation
     {
-        private static readonly ManagedSparseBlasProvider sparseBlas = new ManagedSparseBlasProvider();
-
         /// <summary>
         /// The default value under which a diagonal entry (pivot) is considered to be 0 during Cholesky factorization.
         /// </summary>
@@ -285,7 +283,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
-            sparseBlas.Dskysv(NumColumns, values, diagOffsets, rhs.InternalData, solution.InternalData);
+            ManagedSparseBlasProvider.UniqueInstance.Dskysv(
+                NumColumns, values, diagOffsets, rhs.InternalData, solution.InternalData);
         }
 
         /// <summary>
@@ -313,7 +312,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVectors.NumRows);
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, solutionVectors.NumRows);
             Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
-            sparseBlas.Dskysm(this.NumColumns, rhsVectors.NumColumns, values, diagOffsets, 
+            ManagedSparseBlasProvider.UniqueInstance.Dskysm(this.NumColumns, rhsVectors.NumColumns, values, diagOffsets, 
                 rhsVectors.InternalData, solutionVectors.InternalData);
         }
     }

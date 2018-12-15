@@ -14,8 +14,8 @@ namespace ISAAR.MSolve.LinearAlgebra
 {
     public static class LibrarySettings
     {
-        public static ICBlasProvider CBlas { get; set; } = new ManagedCBlasProvider();
-        public static ISparseBlasProvider SparseBlas { get; set; } = new ManagedSparseBlasProvider();
-        public static ILapackProvider Lapack { get; set; } = new ManagedLapackProvider();
+        public static ICBlasProvider CBlas { get; set; } = ManagedCBlasProvider.UniqueInstance;
+        public static ISparseBlasProvider SparseBlas { get; set; } = ManagedSparseBlasProvider.UniqueInstance;
+        public static ILapackProvider Lapack { get; set; } = ManagedLapackProvider.UniqueInstance;
     }
 }

@@ -5,7 +5,6 @@ using IntelMKL.LP64;
 
 //TODO: Should I use transposeA flags instead of providing different methods. The caller would have to repeat checking this
 //      flag (granted, it is not that costly) and I would need to write a lot of nested if...else... clauses.
-//TODO: This should be a singleton.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
@@ -14,6 +13,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     /// </summary>
     public class MklSparseBlasProvider : ISparseBlasProvider
     {
+        public static MklSparseBlasProvider UniqueInstance { get; } = new MklSparseBlasProvider();
+
+        private MklSparseBlasProvider() { } // private constructor for singleton pattern
+
         public void Daxpyi(int nnz, double alpha, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)
             => CBlas.Daxpyi(nnz, alpha, ref x[offsetX], ref indicesX[offsetX], ref y[offsetY]);
 

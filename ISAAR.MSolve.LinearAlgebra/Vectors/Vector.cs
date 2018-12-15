@@ -275,7 +275,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 if (otherVector is SparseVector sparse)
                 {
                     SparseBlas.Daxpyi(sparse.InternalIndices.Length, otherCoefficient, sparse.InternalValues,
-                    sparse.InternalIndices, 0, data, 0);
+                        sparse.InternalIndices, 0, data, 0);
                 }
                 else
                 {

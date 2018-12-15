@@ -8,6 +8,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class MklLapackProvider : ILapackProvider
     {
+        public static MklLapackProvider UniqueInstance { get; } = new MklLapackProvider();
+
+        private MklLapackProvider() { } // private constructor for singleton pattern
+
         public void Dgelqf(int m, int n, double[] a, int offsetA, int ldA, double[] tau, int offsetTau, double[] work, int offsetWork, int lWork, ref int info)
             => Lapack.Dgelqf(ref m, ref n, ref a[offsetA], ref ldA, ref tau[offsetTau],
                 ref work[offsetWork], ref lWork, ref info);

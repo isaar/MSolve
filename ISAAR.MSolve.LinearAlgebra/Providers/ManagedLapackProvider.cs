@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using DotNumerics.LinearAlgebra.CSLapack;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
@@ -11,8 +9,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class ManagedLapackProvider : ILapackProvider
     {
-        private static readonly ManagedCBlasProvider blas =  new ManagedCBlasProvider();
-
         private static readonly DGELQF dgelqf = new DGELQF();
         private static readonly DGEQRF dgeqrf = new DGEQRF();
         private static readonly DORGLQ dorglq = new DORGLQ();
@@ -23,6 +19,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         private static readonly DGETRI dgetri = new DGETRI();
         private static readonly DGETRS dgetrs = new DGETRS();
         private static readonly DTRSM dtrsm = new DTRSM();
+
+        public static ManagedLapackProvider UniqueInstance { get; } = new ManagedLapackProvider();
+
+        private ManagedLapackProvider() { } // private constructor for singleton pattern
 
         public void Dgelqf(int m, int n, double[] a, int offsetA, int ldA, double[] tau, int offsetTau, 
             double[] work, int offsetWork, int lWork, ref int info)
@@ -161,12 +161,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     for (int i = 0; i < nRhs; ++i)
                     {
                         // b = U^T \ b
-                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, CBlasTranspose.Transpose, CBlasDiagonal.NonUnit,
-                            n, a, offsetA, b, offsetB + i * nRhs, 1);
+                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, 
+                            CBlasTranspose.Transpose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * nRhs, 1);
 
                         // b = U \ b
-                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
-                            n, a, offsetA, b, offsetB + i * nRhs, 1);
+                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, 
+                            CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * nRhs, 1);
                     }
                 }
                 else
@@ -175,12 +175,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     for (int i = 0; i < nRhs; ++i)
                     {
                         // b = L \ b
-                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
-                            n, a, offsetA, b, offsetB + i * n, 1);
+                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, 
+                            CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * n, 1);
 
                         // b = L^T \ b
-                        blas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.Transpose, CBlasDiagonal.NonUnit,
-                            n, a, offsetA, b, offsetB + i * n, 1);
+                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, 
+                            CBlasTranspose.Transpose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * n, 1);
                     }
                 }
                 info = 0; // TODO: needs more checks

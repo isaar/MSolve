@@ -7,6 +7,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class MklCBlasProvider : ICBlasProvider
     {
+        public static MklCBlasProvider UniqueInstance { get; } = new MklCBlasProvider();
+
+        private MklCBlasProvider() { } // private constructor for singleton pattern
+
         #region BLAS Level 1
         public void Daxpy(int n, double alpha, double[] x, int offsetX, int incX, double[] y, int offsetY, int incY)
             => CBlas.Daxpy(n, alpha, ref x[offsetX], incX, ref y[offsetY], incY);

@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 //TODO: I am pretty sure that the CSC calculations can use the corresponding CSR implementations by transposing the matrix. 
 //TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design 
 //      though.
 //TODO: At some point I should change my Skyline format to match the one used in MKL. Then the SparseBLAS operations can be 
 //      interchangeable.
-//TODO: This should be a singleton
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
@@ -18,6 +14,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     /// </summary>
     public class ManagedSparseBlasProvider : ISparseBlasProvider
     {
+        public static ManagedSparseBlasProvider UniqueInstance { get; } = new ManagedSparseBlasProvider();
+
+        private ManagedSparseBlasProvider() { } // private constructor for singleton pattern
+
         public void Daxpyi(int nnz, double alpha, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)
         {
             for (int i = 0; i < nnz; ++i)

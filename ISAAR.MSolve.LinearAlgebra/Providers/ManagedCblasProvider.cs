@@ -17,6 +17,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         private static readonly DSCAL dscal = new DSCAL();
         private static readonly DTRSV dtrsv = new DTRSV();
 
+        public static ManagedCBlasProvider UniqueInstance { get; } = new ManagedCBlasProvider();
+
+        private ManagedCBlasProvider() { } // private constructor for singleton pattern
+
         #region BLAS Level 1
         public void Daxpy(int n, double alpha, double[] x, int offsetX, int incX, double[] y, int offsetY, int incY)
             => daxpy.Run(n, alpha, x, offsetX, incX, ref y, offsetY, incY);
@@ -148,5 +152,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
 
             throw new Exception("This code should not have been reached");
         }
+
     }
 }
