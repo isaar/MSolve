@@ -28,6 +28,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         //}
 
         [Fact]
+        private static void TestMultipleSystemsSolution()
+        {
+            var skyline = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, SparsePosDef10by10.SkylineValues,
+                 SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            CholeskySkyline factor = skyline.FactorCholesky(false);
+            var identity = Matrix.CreateIdentity(SparsePosDef10by10.Order);
+            var inverse = Matrix.CreateZero(SparsePosDef10by10.Order, SparsePosDef10by10.Order);
+            factor.SolveLinearSystems(identity, inverse);
+
+            var matrixTimesInverse = MatrixOperations.MatrixTimesMatrix(SparsePosDef10by10.Matrix, inverse.CopyToArray2D());
+            comparer.AssertEqual(identity.CopyToArray2D(), matrixTimesInverse);
+        }
+
+        [Fact]
         private static void TestSystemSolution()
         {
             var skyline = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, SparsePosDef10by10.SkylineValues,
@@ -37,7 +51,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             CholeskySkyline factor = skyline.FactorCholesky(false);
             Vector xComputed = factor.SolveLinearSystem(b);
             comparer.AssertEqual(xExpected, xComputed);
-            
         }
     }
 }

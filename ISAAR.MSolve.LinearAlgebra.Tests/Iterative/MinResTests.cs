@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
 
-namespace ISAAR.MSolve.LinearAlgebra.Tests.LinearSystems
+namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
 {
     /// <summary>
     /// Tests for <see cref="SparsityPatternSymmetric"/>.
