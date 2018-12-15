@@ -122,24 +122,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return true;
         }
 
-        /// <summary>
-        /// Performs the matrix-vector multiplication: oper(<paramref name="matrix"/>) * <paramref name="vector"/>.
-        /// To multiply <paramref name="matrix"/> * columnVector, set <paramref name="transposeThis"/> to false.
-        /// To multiply rowVector * <paramref name="matrix"/>, set <paramref name="transposeThis"/> to true.
-        /// </summary>
-        /// <param name="matrix">The matrix to multiply.</param>
-        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
-        ///     <see cref="IIndexable2D.NumColumns"/> of oper(<paramref name="matrix"/>).</param>
-        /// <param name="transposeThis">If true, oper(<paramref name="matrix"/>) = transpose(<paramref name="matrix"/>). 
-        ///     Otherwise oper(<paramref name="matrix"/>) = <paramref name="matrix"/>.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
-        ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of 
-        ///     oper(<paramref name="matrix"/>).</exception>
-        public static double[] MultiplyRight(this CscMatrix matrix, double[] vector, bool transposeThis)
-        { //TODO: delete this once legacy vectors, matrices are no longer used.
-            var asVector = Vector.CreateFromArray(vector, false);
-            return matrix.Multiply(asVector, transposeThis).InternalData;
-        }
+        
 
         /// <summary>
         /// Performs the multiplication operation: 
@@ -234,6 +217,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     overwritten, but that is not permitted by the matrix storage format.</exception>
         public static void SubtractIntoThis(this IMatrix matrix1, IMatrixView matrix2) => matrix1.AxpyIntoThis(matrix2, -1.0);
 
+        
         #region legacy linear algebra classes conversions
 
         /// <summary>
