@@ -1,32 +1,37 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
+﻿using System;
+using System.Diagnostics;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 // TODO: Perhaps I should have various info classes and wrap the LAPACK calls directly
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
-    /// Utility methods to use when calling LAPACK functions.
+    /// Utility methods to use when calling methods from <see cref="LapackLinearEquationsFacade"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class LapackUtilities
+    internal static class LapackUtilities
     {
         /// <summary>
         /// Use this value to initialize the output arguments named info. So far, negative values of the info are parameter 
         /// indices, thus the int.MinValue is safe to use as a default.  
         /// </summary>
-        public const int DefaultInfo = int.MinValue;
+        internal const int DefaultInfo = int.MinValue;
+
+        internal delegate void RawLapackRoutine(double[] workArray, int offsetWork, int lengthWork);
 
         /// <summary>
         /// Most LAPACK functions return the same negative error codes for invalid parameters. Parameter <paramref name="info"/> 
         /// will not be checked to make sure it is negative.
         /// </summary>
         /// <param name="info"></param>
-        internal static LapackException ProcessNegativeInfo(int info)
+        [Conditional("DEBUG")]
+        internal static void ProcessNegativeInfo(int info)
         {
-            if (info == LapackUtilities.DefaultInfo)
+            if (info == DefaultInfo)
             {
                 // first check the default info value, since it is negative.
                 // info == default => the LAPACK call did not succeed. 
-                return new LapackException("Something went wrong with the LAPACK call."
+                throw new LapackException("Something went wrong with the LAPACK call."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
             else
@@ -36,9 +41,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                 else if (info == -2) suffix = "nd";
                 else if (info == -3) suffix = "rd";
                 else suffix = "th";
-                return new LapackException($"The {-info}{suffix} parameter has an illegal value."
+                throw new LapackException($"The {-info}{suffix} parameter has an illegal value."
                     + " Please contact the developer responsible for the linear algebra project.");
             }
+            // If positive values are possible they should be checked by the called
+        }
+
+        //TODO: The query info result is overwritten by the code from the second call and thus cannot be checked.
+        internal static void QueryWorkspaceAndExecute(RawLapackRoutine routine)
+        {
+            // Tell LAPACK query to calculate the optimum workspace size, instead of executing the operation
+            var workQuery = new double[1];
+            int lengthWorkQuery = -1;
+            routine(workQuery, 0, lengthWorkQuery);
+
+            // Call LAPACK to actually perform the operation
+            int lengthWorkOptim = (int)(workQuery[0]);
+            if (lengthWorkOptim < 1) lengthWorkOptim = 1; //TODO: should I throw an exception instead?
+            var workOptim = new double[lengthWorkOptim];
+            routine(workOptim, 0, lengthWorkOptim);
         }
     }
 }

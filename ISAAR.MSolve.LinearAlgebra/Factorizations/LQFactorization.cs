@@ -22,14 +22,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     public class LQFactorization
     {
         private readonly double[] reflectorsAndL;
-        private readonly double[] tau;
+        private readonly double[] reflectorScalars;
 
-        private LQFactorization(int numRows, int numCols, double[] reflectorsAndL, double[] tau)
+        private LQFactorization(int numRows, int numCols, double[] reflectorsAndL, double[] reflectorScalars)
         {
             this.NumRows = numRows;
             this.NumColumns = numCols;
             this.reflectorsAndL = reflectorsAndL;
-            this.tau = tau;
+            this.reflectorScalars = reflectorScalars;
         }
 
         /// <summary>
@@ -61,29 +61,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 throw new NotImplementedException("For now, the number of rows must be <= the number of columns");
             }
 
-            // Prepare LAPACK arguments
-            int m = numRows;
-            int n = numCols;
-            int ldA = m;
-            int minDim = Math.Min(m, n); //TODO: this is known to be numRows (though it may change in the future)
-            double[] tau = new double[minDim];
+            int leadingDimA = numRows;
+            int minDim = Math.Min(numRows, numCols); //TODO: this is known to be numRows (though it may change in the future)
+            double[] reflectorScalars = new double[minDim];
+            LapackLeastSquares.Dgelqf(numRows, numCols, matrix, 0, leadingDimA, reflectorScalars, 0);
 
-            // LAPACK query to find the optimum block size. TODO: Use a LAPACKE like wrapper to simplify this.
-            int infoQuery = LapackUtilities.DefaultInfo;
-            var workQuery = new double[1];
-            int lWorkQuery = -1;
-            Lapack.Dgelqf(m, n, matrix, 0, ldA, tau, 0, workQuery, 0, lWorkQuery, ref infoQuery);
-            CheckLapackExecution(infoQuery);
-
-            // Call LAPACK to actually perform the operation
-            int lWorkOptim = (int)(workQuery[0]);
-            if (lWorkOptim < 1) lWorkOptim = 1; //TODO: should I throw an exception instead?
-            var workOptim = new double[lWorkOptim];
-            int info = LapackUtilities.DefaultInfo;
-            Lapack.Dgelqf(m, n, matrix, 0, ldA, tau, 0, workOptim, 0, lWorkOptim, ref info);
-            CheckLapackExecution(info);
-
-            return new LQFactorization(numRows, numCols, matrix, tau);
+            return new LQFactorization(numRows, numCols, matrix, reflectorScalars);
         }
 
         /// <summary>
@@ -115,31 +98,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 throw new NotImplementedException("For now, the number of rows must be <= the number of columns");
             }
 
-            // Prepare LAPACK arguments
-            int n = NumColumns;
-            int m = n;
-            int k = NumRows;
-            int ldA = m;
-
             // We need a larger buffer for Q (n-by-n) > reflectorsAndL (p-by-n)
-            double[] q = ArrayColMajor.IncreaseRows(NumRows, NumColumns, NumColumns, reflectorsAndL);
+            double[] matrixQ = ArrayColMajor.IncreaseRows(NumRows, NumColumns, NumColumns, reflectorsAndL);
 
-            // LAPACK query to find the optimum block size. TODO: Use a LAPACKE like wrapper to simplify this.
-            int infoQuery = LapackUtilities.DefaultInfo;
-            var workQuery = new double[1];
-            int lWorkQuery = -1;
-            Lapack.Dorglq(m, n, k, q, 0, ldA, tau, 0, workQuery, 0, lWorkQuery, ref infoQuery);
-            CheckLapackExecution(infoQuery);
-
-            // Call LAPACK to actually perform the operation
-            int lWorkOptim = (int)(workQuery[0]);
-            if (lWorkOptim < 1) lWorkOptim = 1; //TODO: should I throw an exception instead?
-            var workOptim = new double[lWorkOptim];
-            int info = LapackUtilities.DefaultInfo;
-            Lapack.Dorglq(m, n, k, q, 0, ldA, tau, 0, workOptim, 0, lWorkOptim, ref info);
-            CheckLapackExecution(info);
-
-            return Matrix.CreateFromArray(q, NumColumns, NumColumns, false);
+            // Call LAPACK
+            int numColsQ = NumColumns;
+            int numRowsQ = numColsQ;
+            int numReflectors = NumRows;
+            int leadingDimQ = numRowsQ;
+            LapackLeastSquares.Dorglq(numRowsQ, numColsQ, numReflectors, matrixQ, 0, leadingDimQ, reflectorScalars, 0);
+            return Matrix.CreateFromArray(matrixQ, NumColumns, NumColumns, false);
         }
 
         /// <summary>
@@ -168,47 +136,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             // L1 is m-by-m, lower triangular and stored in the factorized col major dat
             // c1 is m-by-1 and can be found by forward substitution
             // c2 is (n-m)-by-1 and can be any vector whatsoever.
-            int ldA = NumRows; // Also k = min(NumRows, NumColumns) = NumRows = ldA
+            int leadingDimA = NumRows; // Also k = min(NumRows, NumColumns) = NumRows = ldA
             int incC = 1; // step in rhs array
             double[] c = new double[NumColumns];
             rhsVector.CopyToArray(0, c, 0, NumRows);
             CBlas.Dtrsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
-                NumRows, reflectorsAndL, 0, ldA, c, 0, incC);
+                NumRows, reflectorsAndL, 0, leadingDimA, c, 0, incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
 
             // Step 2: x = Q^T * c. Q is n-by-n, c is n-by-1, x is n-by-1
-
-            // Prepare LAPACK arguments
-            int m = NumColumns; // c has been grown past the limits of rhs.
-            int nRhs = 1; // rhs = m-by-1
-            int k = tau.Length;
-            int ldC = m;
-
-            // LAPACK query to find the optimum block size. TODO: Use a LAPACKE like wrapper to simplify this.
-            int infoQuery = LapackUtilities.DefaultInfo;
-            var workQuery = new double[1];
-            int lWorkQuery = -1;
-            Lapack.Dormlq("L", "T", m, nRhs, k, reflectorsAndL, 0, ldA, tau, 0, c, 0, ldC,
-                workQuery, 0, lWorkQuery, ref infoQuery);
-            CheckLapackExecution(infoQuery);
-
-            // Call LAPACK to actually perform the operation
-            int infoMult = LapackUtilities.DefaultInfo;
-            int lWorkOptim = (int)(workQuery[0]);
-            if (lWorkOptim < 1) lWorkOptim = 1; //TODO: should I throw an exception instead?
-            var workOptim = new double[lWorkOptim];
-            Lapack.Dormlq("L", "T", m, nRhs, k, reflectorsAndL, 0, ldA, tau, 0, c, 0, ldC,
-                workOptim, 0, lWorkOptim, ref infoMult);
-            CheckLapackExecution(infoMult);
+            int numRowsC = NumColumns; // c has been grown past the limits of rhs.
+            int numColsC = 1; // c is m-by-1
+            int k = reflectorScalars.Length;
+            int leadingDimC = numRowsC;
+            LapackLeastSquares.Dormlq(MultiplicationSide.Left, TransposeMatrix.Transpose, numRowsC, numColsC, k, 
+                reflectorsAndL, 0, leadingDimA, reflectorScalars, 0, c, 0, leadingDimC);
 
             return Vector.CreateFromArray(c, false);
-        }
-
-        private static void CheckLapackExecution(int info)
-        {
-            if (info < 0) throw LapackUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
-            else if (info > 0) throw new Exception(
-                "This should not have happened. The corresponding LAPACK function does not return positive codes in info");
         }
     }
 }

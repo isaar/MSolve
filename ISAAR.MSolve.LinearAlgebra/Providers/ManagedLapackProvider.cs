@@ -4,7 +4,8 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 
 //TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
-//TODO: In the custom LAPACK implementations, provide error checking for more than just the index where singularity, ... is found.
+//TODO: In the custom LAPACK implementations, provide error checking for more than just the index where singularity, etc. is 
+//      found. See LAPACK source for the checks. Error checking needs to be improved in general.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     public class ManagedLapackProvider : ILapackProvider

@@ -34,13 +34,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         private readonly int[] rowExchanges;
         private readonly int firstZeroPivot;
+        private readonly double pivotTolerance;
 
-        private LUFactorization(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot, bool isSingular)
+        private LUFactorization(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot, bool isSingular, 
+            double pivotTolerance)
         {
             this.Order = order;
             this.lowerUpper = lowerUpper;
             this.rowExchanges = permutation;
             this.firstZeroPivot = firstZeroPivot;
+            this.pivotTolerance = pivotTolerance;
             this.IsSingular = isSingular;
             this.IsOverwritten = false;
         }
@@ -77,28 +80,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public static LUFactorization Factorize(int order, double[] matrix,
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
-            // Call LAPACK
             int[] rowExchanges = new int[order];
-            int info = LapackUtilities.DefaultInfo;
-            Lapack.Dgetrf(order, order, matrix, 0, order, rowExchanges, 0, ref info);
-
-            // Check LAPACK execution
-            int firstZeroPivot = int.MinValue;
-            if (info == 0) // Supposedly everything went ok
-            {
-                if (Math.Abs(matrix[order * order - 1]) <= pivotTolerance)
-                {
-                    // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
-                    firstZeroPivot = order - 1;
-                }
-                return new LUFactorization(order, matrix, rowExchanges, firstZeroPivot, (firstZeroPivot >= 0));
-            }
-            else if (info > 0)
-            {
-                firstZeroPivot = info - 1;
-                return new LUFactorization(order, matrix, rowExchanges, firstZeroPivot, true);
-            }
-            else throw LapackUtilities.ProcessNegativeInfo(info); // info < 0
+            int firstZeroPivot = LapackLinearEquations.Dgetrf(order, order, matrix, 0, order, rowExchanges, 0, pivotTolerance);
+            return new LUFactorization(order, matrix, rowExchanges, firstZeroPivot, firstZeroPivot > 0, pivotTolerance);
         }
 
         /// <summary>
@@ -183,20 +167,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 Array.Copy(lowerUpper, inverse, lowerUpper.Length);
             }
 
-            // LAPACK query to find the optimum block size. TODO: Use a LAPACKE like wrapper to simplify this.
-            int infoQuery = LapackUtilities.DefaultInfo;
-            var workQuery = new double[1];
-            int lWorkQuery = -1;
-            Lapack.Dgetri(Order, inverse, 0, Order, rowExchanges, 0, workQuery, 0, lWorkQuery, ref infoQuery);
-            CheckLapackInversionExecution(infoQuery);
-
-            // Call LAPACK to perform the inversion
-            int lWorkOptim = (int)(workQuery[0]);
-            if (lWorkOptim < 1) lWorkOptim = 1; //TODO: should I throw an exception instead?
-            var workOptim = new double[lWorkOptim];
-            int info = LapackUtilities.DefaultInfo;
-            Lapack.Dgetri(Order, inverse, 0, Order, rowExchanges, 0, workOptim, 0, lWorkOptim, ref info);
-            CheckLapackInversionExecution(info);
+            // Call LAPACK
+            int firstZeroDiagonal = LapackLinearEquations.Dgetri(Order, inverse, 0, Order, rowExchanges, 0, pivotTolerance);
+            if (firstZeroDiagonal > 0) // This should not have happened though
+            {
+                throw new SingularMatrixException($"The ({firstZeroDiagonal}, {firstZeroDiagonal}) element of factor U is zero,"
+                    + " U is singular and the inversion could not be completed.");
+            }
 
             return Matrix.CreateFromArray(inverse, Order, Order, false);
         }
@@ -227,30 +204,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             // Back & forward substitution using LAPACK
             int n = Order;
             solution.CopyFrom(rhs); //double[] solution = rhs.CopyToArray();
-            int info = LapackUtilities.DefaultInfo;
-            int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
-            int ldB = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dgetrs("N", n, nRhs, lowerUpper, 0, n, rowExchanges, 0, solution.InternalData, 0, ldB, ref info);
-
-            // Check LAPACK execution
-            if (info != 0) throw LapackUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            int numRhs = 1; // rhs is a n x nRhs matrix, stored in b
+            int leadingDimB = n; // column major ordering: leading dimension of b is n 
+            LapackLinearEquations.Dgetrs(TransposeMatrix.NoTranspose, n, numRhs, lowerUpper, 0, n, rowExchanges, 0, 
+                solution.InternalData, 0, leadingDimB);
         }
 
         private void CheckOverwritten()
         {
             if (IsOverwritten) throw new InvalidOperationException(
                 "The internal buffer of this factorization has been overwritten and thus cannot be used anymore.");
-        }
-
-        //TODO: this should probably belong to the wrapper.
-        private static void CheckLapackInversionExecution(int info)
-        {
-            if (info > 0) // This should not have happened though
-            {
-                throw new SingularMatrixException($"The {info - 1} diagonal element of factor U is zero, U is singular and the"
-                    + "inversion could not be completed.");
-            }
-            else if (info <0) throw LapackUtilities.ProcessNegativeInfo(info);
         }
     }
 }

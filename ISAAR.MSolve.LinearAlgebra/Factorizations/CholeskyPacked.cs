@@ -46,18 +46,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public static CholeskyPacked Factorize(int order, double[] matrix)
         {
             // Call LAPACK
-            int info = LapackUtilities.DefaultInfo;
-            Lapack.Dpptrf("U", order, matrix, 0, ref info);
+            int indefiniteMinorIdx = LapackLinearEquations.Dpptrf(StoredTriangle.Upper, order, matrix, 0);
 
             // Check LAPACK execution
-            if (info == 0) return new CholeskyPacked(order, matrix);
-            else if (info > 0)
+            if (indefiniteMinorIdx < 0) return new CholeskyPacked(order, matrix);
+            else
             {
-                string msg = "The leading minor of order " + (info - 1) + " (and therefore the matrix itself) is not"
-                + " positive-definite, and the factorization could not be completed.";
+                string msg = $"The leading minor of order {indefiniteMinorIdx} (and therefore the matrix itself) is not"
+                    + " positive-definite, and the factorization could not be completed.";
                 throw new IndefiniteMatrixException(msg);
             }
-            else throw LapackUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -102,7 +100,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             CheckOverwritten();
 
             // Call LAPACK
-            int info = LapackUtilities.DefaultInfo;
             double[] inverse; // if A is posdef, so is inv(A)
             if (inPlace)
             {
@@ -114,16 +111,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 inverse = new double[data.Length];
                 Array.Copy(data, inverse, data.Length);
             }
-            Lapack.Dpptri("U", Order, inverse, 0, ref info);
-            
+            int indefiniteMinorIdx = LapackLinearEquations.Dpptri(StoredTriangle.Upper, Order, inverse, 0);
+
             // Check LAPACK execution
-            if (info == 0) return SymmetricMatrix.CreateFromArray(inverse, Order, DefiniteProperty.PositiveDefinite);
-            else if (info > 0) // this should not have happened
+            if (indefiniteMinorIdx < 0)
             {
-                throw new IndefiniteMatrixException($"The leading minor of order {info - 1} (and therefore the matrix itself)"
-                + "is not positive-definite, and the factorization could not be completed.");
+                return SymmetricMatrix.CreateFromArray(inverse, Order, DefiniteProperty.PositiveDefinite);
             }
-            else throw LapackUtilities.ProcessNegativeInfo(info); // info < 0
+            else  // this should not have happened
+            {
+                throw new IndefiniteMatrixException($"The entry ({indefiniteMinorIdx}, {indefiniteMinorIdx}) of the factor U"
+                    + " is 0 and the inverse could not be computed.");
+            }
         }
 
         /// <summary>
@@ -137,15 +136,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
 
             // Call LAPACK
-            int n = Order;
             solution.CopyFrom(rhs);
-            int info = LapackUtilities.DefaultInfo;
-            int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
-            int ldB = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dpptrs("U", n, nRhs, data, 0, solution.InternalData, 0, ldB, ref info);
-
-            // Check LAPACK execution
-            if (info != 0) throw LapackUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            int numRhs = 1; // rhs is a n x nRhs matrix, stored in b
+            int leadingDimB = Order; // column major ordering: leading dimension of b is n 
+            LapackLinearEquations.Dpptrs(StoredTriangle.Upper, Order, numRhs, data, 0, solution.InternalData, 0, leadingDimB);
         }
 
         private void CheckOverwritten()
