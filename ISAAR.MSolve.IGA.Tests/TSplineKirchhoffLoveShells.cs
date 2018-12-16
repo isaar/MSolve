@@ -154,7 +154,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
-			string filename = "..\\..\\..\\InputFiles\\simpleHood.iga";
+			string filename = "..\\..\\..\\InputFiles\\attempt2.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 
 			var thickness = 1.0;
