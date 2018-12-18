@@ -9,7 +9,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: perhaps this, the providers and analyzers should be generic.
 //TODO: This should hide distributed systems arising in domain decomposition methods. That should be transparent to the analyzers
 //      and providers.
-
+//TODO: Perhaps the matrix should not necessarily be IMatrix. It could also be a DOK. However that might complicate the
+//      analyzers, providers.
 namespace ISAAR.MSolve.Solvers.Commons
 {
     // How this works: 

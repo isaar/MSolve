@@ -24,9 +24,10 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sortColsOfEachRow">Sorting the columns of each row in the CSR storage format may increase performance 
-        ///     of the matrix vector multiplications. It is recommended to set it to true, especially for iterative linear 
-        ///     system solvers.</param>
+        /// <param name="sortColsOfEachRow">
+        /// Sorting the columns of each row in the CSR storage format may increase performance of the matrix vector 
+        /// multiplications. It is recommended to set it to true, especially for iterative linear system solvers.
+        /// </param>
         public CsrAssembler(bool sortColsOfEachRow = true)
         {
             this.sortColsOfEachRow = sortColsOfEachRow;
@@ -66,7 +67,6 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 Matrix k = matrixProvider.Matrix(element).LegacyToNewMatrix();
                 Kff.AddSubmatrixSymmetric(k, elementDofIndices, subdomainDofIndices);
             }
