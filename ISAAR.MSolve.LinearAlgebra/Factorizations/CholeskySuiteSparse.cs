@@ -11,9 +11,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>
-    /// Cholesky factorization of a symmetric positive definite matrix using the SuiteSparse library. The original matrix must
-    /// be in Compressed Sparse Columns format. SuiteSparse is very efficient for sparse matrices and provides a lot of 
-    /// functionality, but requires handling unmanaged memory, which is abstracted in this class.
+    /// Cholesky factorization of a sparse symmetric positive definite matrix using the SuiteSparse library. The original matrix 
+    /// must be in Compressed Sparse Columns format, with only the upper triangle stored. SuiteSparse is very efficient for  
+    /// sparse matrices and provides a lot of functionality, but requires handling unmanaged memory, which is abstracted in this
+    /// class. If SuiteSparse dlls are not available, try using the managed alternative <see cref="CholeskyCSparseNet"/> instead.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class CholeskySuiteSparse : ITriangulation, IDisposable
@@ -34,55 +35,63 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
+        /// The number of non-zero entries (and explicitly stored zeros) in the explicitly stored upper triangular factor 
+        /// after Cholesky factorization.
+        /// </summary>
+        public int NumNonZerosUpper { get => SuiteSparse.GetFactorNonZeros(factorizedMatrix); }
+
+        /// <summary>
         /// The number of rows/columns of the square matrix. 
         /// </summary>
         public int Order { get; }
 
         /// <summary>
-        /// The number of non-zero entries (and excplicitly stored zeros) in the explicitly stored upper triangular factor 
-        /// after Cholesky factorization.
-        /// </summary>
-        public int NumNonZeros { get => SuiteSparse.GetFactorNonZeros(factorizedMatrix); }
-
-        /// <summary>
         /// Performs the Cholesky factorization: A = L * L^T or A = L * D * L^T of a symmetric positive definite matrix A. 
         /// Only the upper triangle of the original matrix is required and is provided in symmetric CSC format by 
-        /// <paramref name="values"/>, <paramref name="rowIndices"/> and <paramref name="colOffsets"/>. 
+        /// <paramref name="cscValues"/>, <paramref name="cscRowIndices"/> and <paramref name="cscColOffsets"/>. 
         /// The user may choose between supernodal or simplicial factorization. It is also possible to automatically reorder 
         /// the matrix, using the algorithms provided by SuiteSparse.
         /// The factorized data, which may be sufficiently larger than the original matrix due to fill-in, will be written to 
         /// unmanaged memory.
         /// </summary>
         /// <param name="order">The number of rows/columns of the square matrix.</param>
-        /// <param name="nonZerosUpper">The number of explicitly stored entries in the upper triangle of the matrix.</param>
-        /// <param name="values">Contains the non-zero entries of the upper triangle. Its length must be equal to
-        ///     <paramref name="nonZerosUpper"/>. The non-zero entries of each row must appear consecutively in 
-        ///     <paramref name="values"/>. They should also be sorted in increasing order of their row indices, to speed up
-        ///     subsequent the factorization. </param>
-        /// <param name="rowIndices">Contains the row indices of the non-zero entries. Its length must be equal to
-        ///     <paramref name="nonZerosUpper"/>. There is an 1 to 1 matching between these two arrays: 
-        ///     <paramref name="rowIndices"/>[i] is the row index of the entry <paramref name="values"/>[i]. Also:
-        ///     0 &lt;= <paramref name="rowIndices"/>[i] &lt; <paramref name="order"/>.</param>
-        /// <param name="colOffsets">Contains the index of the first entry of each column into the arrays 
-        ///     <paramref name="values"/> and <paramref name="rowIndices"/>. Its length must be <paramref name="order"/> + 1. The 
-        ///     last entry must be <paramref name="nonZerosUpper"/>.</param>
-        /// <param name="superNodal">If true, a supernodal factorization will be performed, which results in faster back/forward
-        ///     substitutions during the linear system solution. If false, a simplicial factorization will be performed, which
-        ///     allows manipulating the factorized matrix (e.g. using <see cref="AddRow(int, SparseVector)"/> or 
-        ///     <see cref="DeleteRow(int)"/>.</param>
-        /// <param name="ordering">Controls what reordering algorithms (if any) SuiteSparse will try before performing the
-        ///     factorization.</param>
+        /// <param name="numNonZerosUpper">The number of explicitly stored entries in the upper triangle of the matrix.</param>
+        /// <param name="cscValues">
+        /// Contains the non-zero entries of the upper triangle. Its length must be equal to <paramref name="numNonZerosUpper"/>.
+        /// The non-zero entries of each row must appear consecutively in <paramref name="cscValues"/>. They should also be 
+        /// sorted in increasing order of their row indices, to speed up subsequent the factorization. 
+        /// </param>
+        /// <param name="cscRowIndices">
+        /// Contains the row indices of the non-zero entries. Its length must be equal to <paramref name="numNonZerosUpper"/>. 
+        /// There is an 1 to 1 matching between these two arrays: <paramref name="cscRowIndices"/>[i] is the row index of the 
+        /// entry <paramref name="cscValues"/>[i]. Also: 0 &lt;= <paramref name="cscRowIndices"/>[i] &lt; 
+        /// <paramref name="order"/>.
+        /// </param>
+        /// <param name="cscColOffsets">
+        /// Contains the index of the first entry of each column into the arrays <paramref name="cscValues"/> and 
+        /// <paramref name="cscRowIndices"/>. Its length must be <paramref name="order"/> + 1. The last entry must be 
+        /// <paramref name="numNonZerosUpper"/>.
+        /// </param>
+        /// <param name="superNodal">
+        /// If true, a supernodal factorization will be performed, which results in faster back/forward substitutions during the 
+        /// linear system solution. If false, a simplicial factorization will be performed, which allows manipulating the 
+        /// factorized matrix (e.g. using <see cref="AddRow(int, SparseVector)"/> or <see cref="DeleteRow(int)"/>.
+        /// </param>
+        /// <param name="ordering">
+        /// Controls what reordering algorithms (if any) SuiteSparse will try before performing the factorization.
+        /// </param>
         /// <exception cref="IndefiniteMatrixException">Thrown if the original matrix is not positive definite.</exception>
-        /// <exception cref="SuiteSparseException">Thrown if the calls to SuiteSparse library fail. This usually happens if the
-        ///     SuiteSparse .dlls are not available or if there is not sufficient memory to perform the factorization.
-        ///     </exception>
-        public static CholeskySuiteSparse Factorize(int order, int nonZerosUpper, double[] values, int[] rowIndices,
-            int[] colOffsets, bool superNodal, SuiteSparseOrdering ordering)
+        /// <exception cref="SuiteSparseException">
+        /// Thrown if the calls to SuiteSparse library fail. This usually happens if the SuiteSparse .dlls are not available or 
+        /// if there is not sufficient memory to perform the factorization.
+        /// </exception>
+        public static CholeskySuiteSparse Factorize(int order, int numNonZerosUpper, double[] cscValues, int[] cscRowIndices,
+            int[] cscColOffsets, bool superNodal, SuiteSparseOrdering ordering)
         {
             int factorizationType = superNodal ? 1 : 0;
             IntPtr common = SuiteSparse.CreateCommon(factorizationType, (int)ordering);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
-            int status = SuiteSparse.FactorizeCSCUpper(order, nonZerosUpper, values, rowIndices, colOffsets,
+            int status = SuiteSparse.FactorizeCSCUpper(order, numNonZerosUpper, cscValues, cscRowIndices, cscColOffsets,
                 out IntPtr factorizedMatrix, common);
             if (status == -2)
             {

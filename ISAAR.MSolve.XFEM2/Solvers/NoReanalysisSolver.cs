@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 Solution = factorization.SolveLinearSystem(rhs);
-                nnzOrderedFactor = factorization.NumNonZeros;
+                nnzOrderedFactor = factorization.NumNonZerosUpper;
             }
 
             #region test
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural)) 
             {
                 unorderSolution = factorization.SolveLinearSystem(rhs);
-                nnzUnorderedFactor = factorization.NumNonZeros;
+                nnzUnorderedFactor = factorization.NumNonZerosUpper;
             }
             Vector solutionExpected = unorderSolution.Reorder(permutationOldToNew, false);
             double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();

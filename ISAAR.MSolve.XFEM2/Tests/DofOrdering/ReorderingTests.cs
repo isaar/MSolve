@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZeros}"
+                Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZerosUpper}"
                     + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
             }
 
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZeros}"
+                Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZerosUpper}"
                     + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
             }
 
@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.AMD))
             {
                 watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZeros}"
+                Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZerosUpper}"
                     + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
 
             }

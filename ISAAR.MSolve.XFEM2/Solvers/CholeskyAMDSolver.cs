@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);
-                Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factorization.NumNonZeros}");
+                Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factorization.NumNonZerosUpper}");
             }
         }
     }
