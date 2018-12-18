@@ -14,10 +14,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
     /// information, see the AMD user guide, which is distributed as part of the SuiteSparse library.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class OrderingAmdCSparseNet : IOrderingAlgorithm
+    public class OrderingAmdCSparseNet : IReorderingAlgorithm
     {
         /// <summary>
-        /// See <see cref="IOrderingAlgorithm.FindPermutation(SparsityPatternSymmetric)"/>
+        /// See <see cref="IReorderingAlgorithm.FindPermutation(SparsityPatternSymmetric)"/>
         /// </summary>
         /// <remarks>The returned permutation is new-to-old.</remarks>
         public (int[] permutation, bool oldToNew) FindPermutation(SparsityPatternSymmetric pattern)

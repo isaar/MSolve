@@ -4,7 +4,7 @@
     /// Calculates fill-reducting permutations for the rows/columns of a symmetric sparse matrix.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IOrderingAlgorithm
+    public interface IReorderingAlgorithm
     {
         /// <summary>
         /// Finds a fill-reducting permutation for the rows/columns of a symmetric sparse matrix, described by its sparsity 

@@ -8,6 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
@@ -139,8 +140,13 @@ namespace ISAAR.MSolve.Solvers.Dense
 
             public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
 
+            public IReorderingAlgorithm Reordering { get; set; } = null;
+
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
-                => new DenseMatrixSolver(model, DofOrderer);
+            {
+                if (Reordering != null) DofOrderer.Reordering = Reordering;
+                return new DenseMatrixSolver(model, DofOrderer);
+            }
         }
 
         private class DenseSystem : LinearSystem_v2<Matrix, Vector>

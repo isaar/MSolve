@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Output;
-using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
@@ -24,8 +19,8 @@ using ISAAR.MSolve.Solvers.Ordering;
 namespace ISAAR.MSolve.Solvers.Skyline
 {
     /// <summary>
-    /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on symmetric positive definite matrices 
-    /// stored in Skyline format.
+    /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on sparse symmetric positive definite 
+    /// matrices stored in Skyline format.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SkylineSolver : ISolver_v2
@@ -40,7 +35,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
         private bool mustFactorize = true;
         private CholeskySkyline factorizedMatrix;
 
-        public SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
+        private SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
         {
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
                 $"{name} can be used if there is only 1 subdomain");
@@ -95,7 +90,8 @@ namespace ISAAR.MSolve.Solvers.Skyline
         /// </summary>
         private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
-        //TODO: Copied from Stavroulakis code. Find out what the purpose of this is
+        //TODO: Copied from Stavroulakis code. Find out what the purpose of this is. I suspect he wanted to compare with some 
+        //      old solution that used single precision.
         //private void DestroyAccuracy(ILinearSystem_v2 linearSystem)
         //{
         //    if (AccuracyDigits < 1) return;
@@ -117,8 +113,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            public SkylineSolver BuildSolver(IStructuralModel_v2 model) 
-                => new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
+            public IReorderingAlgorithm Reordering { get; set; } = null;
+
+            public SkylineSolver BuildSolver(IStructuralModel_v2 model)
+            {
+                if (Reordering != null) DofOrderer.Reordering = Reordering;
+                return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
+            }
         }
 
         private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>

@@ -8,6 +8,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: SuiteSparse Common should be represented here by an IDisposable class SuiteSparseCommon.
 //TODO: Perhaps I should express the back/forward/full solve using the L*D*L^T, L*L^T, L^T, L^T*D factors as in CHOLMOD.
+//TODO: During a non linear or dynamic analysis the sparsity pattern stays the same. Perhaps the symbolic factorization phase 
+//      (and anything else that depends only on the pattern) can be cached.
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>

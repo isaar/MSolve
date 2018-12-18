@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
@@ -97,8 +98,13 @@ namespace ISAAR.MSolve.Solvers.PCG
         
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
 
+            public IReorderingAlgorithm Reordering { get; set; } = null;
+
             public PcgSolver BuildSolver(IStructuralModel_v2 model)
-                => new PcgSolver(model, pcg, PreconditionerFactory, DofOrderer);
+            {
+                if (Reordering != null) DofOrderer.Reordering = Reordering;
+                return new PcgSolver(model, pcg, PreconditionerFactory, DofOrderer);
+            }
         }
 
         private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>

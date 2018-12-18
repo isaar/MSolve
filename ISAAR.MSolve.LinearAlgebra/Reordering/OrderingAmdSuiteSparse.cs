@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
     /// information, see the AMD user guide, which is distributed as part of the SuiteSparse library.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class OrderingAmdSuiteSparse : IOrderingAlgorithm
+    public class OrderingAmdSuiteSparse : IReorderingAlgorithm
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="OrderingAmdSuiteSparse"/> class.
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// See <see cref="IOrderingAlgorithm.FindPermutation(SparsityPatternSymmetric)"/>.
+        /// See <see cref="IReorderingAlgorithm.FindPermutation(SparsityPatternSymmetric)"/>.
         /// </summary>
         /// <remarks>The returned permutation is new-to-old.</remarks>
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded or if AMD fails.</exception>
