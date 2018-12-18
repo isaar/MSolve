@@ -8,16 +8,18 @@ using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
 namespace ISAAR.MSolve.LinearAlgebra.Reordering
 {
     /// <summary>
-    /// Implements the Approximate Minimum Degree (AMD) ordering algorithm, by calling the appropriate SuiteSparse library 
-    /// functions. For more, see the AMD user guide, which is distributed as part of the SuiteSparse library.
+    /// Calculates a fill-reducing permutation for the rows/columns of a symmetric sparse matrix, using the Approximate Minimum 
+    /// Degree (AMD) ordering algorithm. The AMD implementation used is provided by the SuiteSparse library. If SuiteSparse 
+    /// dlls are not available, try using the managed alternative <see cref="CholeskyCSparseNet"/> instead.  For more 
+    /// information, see the AMD user guide, which is distributed as part of the SuiteSparse library.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class OrderingAmd
+    public class OrderingAmdSuiteSparse : IOrderingAlgorithm
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrderingAmd"/> class.
+        /// Initializes a new instance of the <see cref="OrderingAmdSuiteSparse"/> class.
         /// </summary>
-        public OrderingAmd()
+        public OrderingAmdSuiteSparse()
         {
             //TODO: add options for dense rows and aggressive absorption.
         }
@@ -51,26 +53,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         }
 
         /// <summary>
-        /// Find a fill reducing permutation for the sparsity pattern of a symmetric matrix.
-        /// The returned permutation is new-to-old, namely reordered[i] = original[permutation[i]].
+        /// See <see cref="IOrderingAlgorithm.FindPermutation(SparsityPatternSymmetric)"/>.
         /// </summary>
-        /// <param name="pattern">The indices of the non-zero entries of a symmetric matrix.</param>
-        /// <returns>permutation: An array containing the new-to-old fill reducing permutation. 
-        ///     stats: Measuments taken by SuiteSparse during the execution of AMD.</returns>
+        /// <remarks>The returned permutation is new-to-old.</remarks>
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded or if AMD fails.</exception>
-        public (int[] permutation, ReorderingStatistics stats) FindPermutation(SparsityPatternSymmetric pattern)
+        public (int[] permutation, bool oldToNew) FindPermutation(SparsityPatternSymmetric pattern)
         {
             (int[] rowIndices, int[] colOffsets) = pattern.BuildSymmetricCSCArrays(true);
-            return FindPermutation(pattern.Order, rowIndices.Length, rowIndices, colOffsets);
+            (int[] permutation, ReorderingStatistics stats) = 
+                FindPermutation(pattern.Order, rowIndices.Length, rowIndices, colOffsets);
+            return (permutation, false);
         }
 
         /// <summary>
-        /// Find a fill reducing permutation for the sparsity pattern of a symmetric matrix.
-        /// The returned permutation is new-to-old, namely reordered[i] = original[permutation[i]].
+        /// Finds a fill-reducting permutation for the rows/columns of a symmetric sparse matrix, described by its sparsity 
+        /// pattern. The returned permutation is new-to-old.
         /// </summary>
-        /// <param name="dok">A builder for symmetric sparse matrices.</param>
-        /// <returns>permutation: An array containing the new-to-old fill reducing permutation. 
-        ///     stats: Measuments taken by SuiteSparse during the execution of AMD.</returns>
+        /// <param name="pattern">The indices of the non-zero entries of a symmetric matrix.</param>
+        /// <returns>
+        /// permutation: An array containing the fill reducing permutation.
+        /// stats: Measuments taken during the execution of the reordering algorithm.
+        /// </returns>
         /// <exception cref="SuiteSparseException">Thrown if SuiteSparse dlls cannot be loaded or if AMD fails.</exception>
         public (int[] permutation, ReorderingStatistics stats) FindPermutation(DokSymmetric dok)
         {

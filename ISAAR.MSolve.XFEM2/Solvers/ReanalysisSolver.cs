@@ -171,9 +171,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 pattern.ConnectIndices(allDofs, false);
             }
 
-            var orderingAlgorithm = new OrderingAmd();
-            (int[] permutationOldToNew, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
-            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            var orderingAlgorithm = new OrderingAmdSuiteSparse();
+            (int[] permutation, bool oldToNew) = orderingAlgorithm.FindPermutation(pattern);
+            DofOrderer.ReorderUnconstrainedDofs(permutation, oldToNew);
         }
 
         private void SolveFirstTime()

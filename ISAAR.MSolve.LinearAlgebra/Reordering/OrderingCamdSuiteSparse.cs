@@ -13,13 +13,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
     /// of the SuiteSparse library.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class OrderingCamd
+    public class OrderingCamdSuiteSparse
     {
         private readonly bool aggressiveAbsorption;
         private readonly int denseThreshold;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrderingCamd"/> class, with the provided settings.
+        /// Initializes a new instance of the <see cref="OrderingCamdSuiteSparse"/> class, with the provided settings.
         /// </summary>
         /// <param name="denseThreshold">A dense row/column in A + A^T can cause CAMD to spend significant time in ordering    
         /// 	the matrix A. If <paramref name="denseThreshold"/> &gt;= 0, rows/columns with more than 
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
         /// 	adjacent to the current pivot element. This nearly always leads to a better ordering (because the approximate  
         /// 	degrees are more accurate) and a lower execution time. However, there are cases where it can lead to a slightly  
         /// 	worse ordering.</param>
-        public OrderingCamd(int denseThreshold = -1, bool aggressiveAbsorption = true)
+        public OrderingCamdSuiteSparse(int denseThreshold = -1, bool aggressiveAbsorption = true)
         {
             this.denseThreshold = denseThreshold;
             this.aggressiveAbsorption = aggressiveAbsorption;

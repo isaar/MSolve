@@ -128,10 +128,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 pattern.ConnectIndices(allDofs, false);
             }
 
-            var orderingAlgorithm = new OrderingAmd();
-            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
+            var orderingAlgorithm = new OrderingAmdSuiteSparse();
+            (int[] permutation, bool oldToNew) = orderingAlgorithm.FindPermutation(pattern);
             permutationOldToNew = permutation;
-            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, oldToNew);
 
         }
 

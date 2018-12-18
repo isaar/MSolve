@@ -41,8 +41,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
         private static void TestReorderingAMD()
         {
             var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.Matrix));
-            var orderingAlg = new OrderingAmd();
-            (int[] permutation, ReorderingStatistics stats) = orderingAlg.FindPermutation(pattern);
+            var orderingAlg = new OrderingAmdSuiteSparse();
+            (int[] permutation, bool oldToNew) = orderingAlg.FindPermutation(pattern);
             comparer.AssertEqual(SparsePosDef10by10.MatlabPermutationAMD, permutation);
         }
 
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
         {
             int n = SparsePosDef10by10.Order;
             var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.Matrix));
-            var orderingAlg = new OrderingCamd();
+            var orderingAlg = new OrderingCamdSuiteSparse();
             (int[] permutation, ReorderingStatistics stats) = 
                 orderingAlg.FindPermutation(pattern, SparsePosDef10by10.ConstraintsCAMD);
 
