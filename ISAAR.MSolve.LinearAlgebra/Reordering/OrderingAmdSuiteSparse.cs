@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
     /// <summary>
     /// Calculates a fill-reducing permutation for the rows/columns of a symmetric sparse matrix, using the Approximate Minimum 
     /// Degree (AMD) ordering algorithm. The AMD implementation used is provided by the SuiteSparse library. If SuiteSparse 
-    /// dlls are not available, try using the managed alternative <see cref="CholeskyCSparseNet"/> instead.  For more 
+    /// dlls are not available, try using the managed alternative <see cref="OrderingAmdCSparseNet"/> instead. For more 
     /// information, see the AMD user guide, which is distributed as part of the SuiteSparse library.
     /// Authors: Serafeim Bakalakos
     /// </summary>
