@@ -284,7 +284,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
             ManagedSparseBlasProvider.UniqueInstance.Dskysv(
-                NumColumns, values, diagOffsets, rhs.InternalData, solution.InternalData);
+                NumColumns, values, diagOffsets, rhs.RawData, solution.RawData);
         }
 
         /// <summary>
@@ -313,7 +313,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, solutionVectors.NumRows);
             Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
             ManagedSparseBlasProvider.UniqueInstance.Dskysm(this.NumColumns, rhsVectors.NumColumns, values, diagOffsets, 
-                rhsVectors.InternalData, solutionVectors.InternalData);
+                rhsVectors.RawData, solutionVectors.RawData);
         }
     }
 }

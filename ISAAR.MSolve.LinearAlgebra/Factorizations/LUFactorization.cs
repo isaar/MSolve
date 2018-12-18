@@ -207,7 +207,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int numRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int leadingDimB = n; // column major ordering: leading dimension of b is n 
             LapackLinearEquations.Dgetrs(TransposeMatrix.NoTranspose, n, numRhs, lowerUpper, 0, n, rowExchanges, 0, 
-                solution.InternalData, 0, leadingDimB);
+                solution.RawData, 0, leadingDimB);
         }
 
         private void CheckOverwritten()

@@ -50,6 +50,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int NumRows { get; }
 
         /// <summary>
+        /// The internal array that stores the non-zero entries of the matrix. The non-zero entries of each row are consecutive.
+        /// Its length is equal to the number of non-zero entries. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal double[] RawValues => values;
+
+        /// <summary>
+        /// The internal array that stores the column indices of the non-zero entries in <see cref="RawValues"/>.
+        /// Its length is equal to the number of non-zero entries. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal int[] RawColIndices => colIndices;
+
+        /// <summary>
+        /// The internal array that stores the index into the arrays <see cref="RawValues"/> and <see cref="RawColIndices"/> of  
+        /// the first entry of each row. Its length is equal to <paramref name="NumRows"/> + 1. The last entry is the number of 
+        /// non-zero entries, which must be equal to <see cref="RawValues"/>.Length == <see cref="RawColIndices"/>.Length.
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal int[] RawRowOffsets => rowOffsets;
+
+        /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
         /// </summary>
         public double this[int rowIdx, int colIdx]
@@ -543,7 +565,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
             var result = Matrix.CreateZero(numRowsResult, other.NumColumns);
             SparseBlas.Dcsrgemm(transposeThis, this.NumRows, other.NumColumns, this.NumColumns, values, rowOffsets, colIndices,
-                other.InternalData, result.InternalData);
+                other.RawData, result.RawData);
             return result;
         }
 
@@ -646,7 +668,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
             }
             SparseBlas.Dcsrgemv(transposeThis, NumRows, NumColumns, values, rowOffsets, colIndices, 
-                lhsVector.InternalData, 0, rhsVector.InternalData, 0);
+                lhsVector.RawData, 0, rhsVector.RawData, 0);
         }
 
         /// <summary>

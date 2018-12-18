@@ -53,9 +53,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //(new FullVectorWriter(expectedSolution, true)).WriteToFile(solutionPath);
             #endregion
 
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
-                Solution = factorization.SolveLinearSystem(rhs);
+                Solution = factor.SolveLinearSystem(rhs);
             }
         }
 

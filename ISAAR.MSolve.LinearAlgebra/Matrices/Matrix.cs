@@ -54,10 +54,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int NumRows { get; }
 
         /// <summary>
-        /// The internal array that stores the entries of the matrix. It should only be used for passing the raw array to linear 
-        /// algebra libraries.
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// The internal array that stores the entries of the matrix in column major layout. 
         /// </summary>
-        internal double[] InternalData { get { return data; } }
+        internal double[] RawData { get { return data; } }
 
         /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
@@ -888,8 +888,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
             CBlas.Dgemv(CBlasLayout.ColMajor, transpose, NumRows, NumColumns,
-                1.0, this.data, 0, NumRows, lhsVector.InternalData, 0, 1,
-                0.0, rhsVector.InternalData, 0, 1);
+                1.0, this.data, 0, NumRows, lhsVector.RawData, 0, 1,
+                0.0, rhsVector.RawData, 0, 1);
         }
 
         /// <summary>
@@ -976,7 +976,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckIndexCol(this, colIdx);
             if (rowStart + colValues.Length > this.NumRows) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this matrix's number of rows");
-            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, rowStart, colValues.InternalData);
+            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, rowStart, colValues.RawData);
         }
 
         /// <summary>
@@ -1042,7 +1042,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckIndexRow(this, rowIdx);
             if (colStart + rowValues.Length > this.NumRows) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this matrix's number of columns");
-            ArrayColMajor.SetRow(NumRows, NumColumns, data, rowIdx, colStart, rowValues.InternalData);
+            ArrayColMajor.SetRow(NumRows, NumColumns, data, rowIdx, colStart, rowValues.RawData);
         }
 
         /// <summary>

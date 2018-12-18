@@ -23,8 +23,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     public class SkylineMatrix: IMatrix, ISparseMatrix, ISymmetricMatrix
     {
         /// <summary>
-        /// Contains the non zero superdiagonal entries of the matrix in column major order, starting from the diagonal and going
-        /// upwards. Its length is nnz.
+        /// Contains the non-zero entries of the matrix's upper triangle in column major order, starting from the diagonal and 
+        /// going upwards. Its length is nnz.
         /// </summary>
         private double[] values;
 
@@ -50,6 +50,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// The number of rows of the matrix.
         /// </summary>
         public int NumRows { get { return NumColumns; } }
+
+        /// <summary>
+        /// The internal array that stores the non-zero entries of the matrix's upper triangle in column major order, 
+        /// starting from the diagonal and going upwards. Its length is equal to the number of non-zero entries. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal double[] RawValues => values;
+
+        /// <summary>
+        /// The internal array that stores the indices into <see cref="RawValues"/> of the diagonal entries of the matrix. 
+        /// Its length = order + 1, with the last entry being equal to nnz.
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal int[] RawDiagOffsets => diagOffsets;
 
         /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
@@ -719,7 +733,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckMultiplicationDimensions(NumColumns, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(NumRows, rhsVector.Length);
             ManagedSparseBlasProvider.UniqueInstance.Dskymv(
-                NumColumns, values, diagOffsets, lhsVector.InternalData, rhsVector.InternalData);
+                NumColumns, values, diagOffsets, lhsVector.RawData, rhsVector.RawData);
         }
 
         /// <summary>

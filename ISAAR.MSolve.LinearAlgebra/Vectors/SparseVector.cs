@@ -35,16 +35,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public int Length { get; }
 
         /// <summary>
-        /// The internal array that stores the indices of the non-zero entries of the vector. It should only be used for passing 
-        /// the raw array to linear algebra libraries.
+        /// The internal array that stores the indices of the non-zero entries of the vector. 
+        /// Its length is equal to the number of non-zero entries.
+        /// It should only be used for passing the raw array to linear algebra libraries.
         /// </summary>
-        internal int[] InternalIndices { get { return indices; } }
+        internal int[] RawIndices => indices;
 
         /// <summary>
-        /// The internal array that stores the values of the non-zero entries of the vector. It should only be used for passing 
-        /// the raw array to linear algebra libraries.
+        /// The internal array that stores the values of the non-zero entries of the vector.
+        /// Its length is equal to the number of non-zero entries.
+        /// It should only be used for passing the raw array to linear algebra libraries.
         /// </summary>
-        internal double[] InternalValues { get { return values; } }
+        internal double[] RawValues => values;
 
         /// <summary>
         /// See <see cref="IIndexable1D.this[int]"/>
@@ -147,7 +149,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <see cref="SparseVector"/>.
         /// </summary>
         /// <param name="denseVector">The original vector that will be converted to <see cref="SparseVector"/>.</param>
-        public static SparseVector CreateFromDense(Vector denseVector) => CreateFromDense(denseVector.InternalData);
+        public static SparseVector CreateFromDense(Vector denseVector) => CreateFromDense(denseVector.RawData);
 
         /// <summary>
         /// Creates a new instance of <see cref="SparseVector"/> with the entries of <paramref name="denseVector"/>. Only the
@@ -160,7 +162,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     <paramref name="tolerance"/> = 0 use <see cref="CreateFromDense(double[])"/>.</param>
         public static SparseVector CreateFromDense(Vector denseVector, double tolerance)
         {
-            return CreateFromDense(denseVector.InternalData, tolerance);
+            return CreateFromDense(denseVector.RawData, tolerance);
         }
 
         /// <summary>
@@ -491,7 +493,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             Preconditions.CheckVectorDimensions(this, vector);
 
-            if (vector is Vector dense) return SparseBlas.Ddoti(values.Length, values, indices, 0, dense.InternalData, 0);
+            if (vector is Vector dense) return SparseBlas.Ddoti(values.Length, values, indices, 0, dense.RawData, 0);
             else if ((vector is SparseVector sparse) && HasSameIndexer(sparse))
             {
                 return CBlas.Ddot(values.Length, this.values, 0, 1, sparse.values, 0, 1);

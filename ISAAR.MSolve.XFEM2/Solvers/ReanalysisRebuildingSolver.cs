@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
-            factorizedKff = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
+            factorizedKff = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
             Solution = factorizedKff.SolveLinearSystem(rhs);
 
             //CheckSolutionAndEnforce(1.0);
@@ -281,7 +281,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var assembler = new ReanalysisWholeAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
-            CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var factorization = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
             double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");

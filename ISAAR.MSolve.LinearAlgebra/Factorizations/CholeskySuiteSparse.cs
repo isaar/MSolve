@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// if there is not sufficient memory to perform the factorization.
         /// </exception>
         public static CholeskySuiteSparse Factorize(int order, int numNonZerosUpper, double[] cscValues, int[] cscRowIndices,
-            int[] cscColOffsets, bool superNodal, SuiteSparseOrdering ordering)
+            int[] cscColOffsets, bool superNodal, SuiteSparseOrdering ordering = SuiteSparseOrdering.Natural)
         {
             int factorizationType = superNodal ? 1 : 0;
             IntPtr common = SuiteSparse.CreateCommon(factorizationType, (int)ordering);
@@ -109,6 +109,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
             else return new CholeskySuiteSparse(order, common, factorizedMatrix);
         }
+
+        /// <summary>
+        /// Performs the Cholesky factorization: A = L * L^T or A = L * D * L^T of a symmetric positive definite matrix A. 
+        /// Only the upper triangle of the original matrix is required and is provided in symmetric CSC format. 
+        /// The user may choose between supernodal or simplicial factorization. It is also possible to automatically reorder 
+        /// the matrix, using the algorithms provided by SuiteSparse.
+        /// The factorized data, which may be sufficiently larger than the original matrix due to fill-in, will be written to 
+        /// unmanaged memory.
+        /// </summary>
+        /// <param name="matrix">The matrix in symmetric (only upper triangle) CSC format.</param>
+        /// <param name="superNodal">
+        /// If true, a supernodal factorization will be performed, which results in faster back/forward substitutions during the 
+        /// linear system solution. If false, a simplicial factorization will be performed, which allows manipulating the 
+        /// factorized matrix (e.g. using <see cref="AddRow(int, SparseVector)"/> or <see cref="DeleteRow(int)"/>.
+        /// </param>
+        /// <param name="ordering">
+        /// Controls what reordering algorithms (if any) SuiteSparse will try before performing the factorization.
+        /// </param>
+        /// <exception cref="IndefiniteMatrixException">Thrown if the original matrix is not positive definite.</exception>
+        /// <exception cref="SuiteSparseException">
+        /// Thrown if the calls to SuiteSparse library fail. This usually happens if the SuiteSparse .dlls are not available or 
+        /// if there is not sufficient memory to perform the factorization.
+        /// </exception>
+        public static CholeskySuiteSparse Factorize(SymmetricCscMatrix matrix, bool superNodal, 
+            SuiteSparseOrdering ordering = SuiteSparseOrdering.Natural)
+            => Factorize(matrix.NumColumns, matrix.NumNonZerosUpper, matrix.RawValues, matrix.RawRowIndices, 
+                matrix.RawColOffsets, false, ordering);
 
         /// <summary>
         /// Sets the <paramref name="rowIdx"/>-th row/column of the factorized matrix to the one it would have if 
@@ -143,7 +170,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int nnz = newRow.CountNonZeros();
             int[] colOffsets = { 0, nnz };
             int status = SuiteSparse.RowAdd(Order, factorizedMatrix, rowIdx,
-                nnz, newRow.InternalValues, newRow.InternalIndices, colOffsets, common);
+                nnz, newRow.RawValues, newRow.RawIndices, colOffsets, common);
             if (status != 1)
             {
                 throw new SuiteSparseException("Rows addition did not succeed. This could be caused by insufficent memory");
@@ -276,7 +303,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public void SolveLinearSystem(Vector rhsVector, Vector solution)
         {
             Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
-            SolveInternal(SystemType.Regular, rhsVector, solution.InternalData);
+            SolveInternal(SystemType.Regular, rhsVector, solution.RawData);
         }
 
         /// <summary>
@@ -320,7 +347,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
             Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
 
-            int status = SuiteSparse.Solve((int)system, Order, 1, factorizedMatrix, rhs.InternalData, solution, common);
+            int status = SuiteSparse.Solve((int)system, Order, 1, factorizedMatrix, rhs.RawData, solution, common);
             if (status != 1) throw new SuiteSparseException("System solution failed.");
         }
 
@@ -332,7 +359,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             }
             Preconditions.CheckSystemSolutionDimensions(Order, rhs.NumRows);
             double[] solution = new double[rhs.NumRows * rhs.NumColumns];
-            int status = SuiteSparse.Solve((int)system, Order, rhs.NumColumns, factorizedMatrix, rhs.InternalData,
+            int status = SuiteSparse.Solve((int)system, Order, rhs.NumColumns, factorizedMatrix, rhs.RawData,
                 solution, common);
             if (status != 1) throw new SuiteSparseException("System solution failed.");
             return Matrix.CreateFromArray(solution, rhs.NumRows, rhs.NumColumns, false);

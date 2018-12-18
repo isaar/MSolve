@@ -11,6 +11,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
 using ISAAR.MSolve.XFEM.Tests.Khoei;
+using ISAAR.MSolve.LinearAlgebra.Factorizations;
 
 namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
 {
@@ -59,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             Console.WriteLine($"CSC non zeros = {Kuu.CountNonZeros()}");
 
             watch.Start();
-            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZerosUpper}"
@@ -74,7 +75,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDofs);
 
             watch.Restart();
-            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZerosUpper}"
@@ -84,7 +85,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             // Let SuiteSparse handle the AMD ordering
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
             watch.Restart();
-            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.AMD))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.AMD))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZerosUpper}"

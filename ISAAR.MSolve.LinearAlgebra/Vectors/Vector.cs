@@ -31,10 +31,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public int Length { get; }
 
         /// <summary>
-        /// The internal array that stores the entries of the vector. It should only be used for passing the raw array to linear 
-        /// algebra libraries.
+        /// The internal array that stores the entries of the vector. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
         /// </summary>
-        internal double[] InternalData { get { return data; } }
+        internal double[] RawData => data;
 
         /// <summary>
         /// See <see cref="IIndexable1D.this[int]"/>.
@@ -237,8 +237,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 Preconditions.CheckVectorDimensions(this, otherVector);
                 double[] result = new double[data.Length];
                 Array.Copy(data, result, data.Length);
-                SparseBlas.Daxpyi(sparse.InternalIndices.Length, otherCoefficient, sparse.InternalValues,
-                    sparse.InternalIndices, 0, result, 0);
+                SparseBlas.Daxpyi(sparse.RawIndices.Length, otherCoefficient, sparse.RawValues,
+                    sparse.RawIndices, 0, result, 0);
                 return Vector.CreateFromArray(result, false);
             }
             else return otherVector.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
@@ -274,8 +274,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 Preconditions.CheckVectorDimensions(this, otherVector);
                 if (otherVector is SparseVector sparse)
                 {
-                    SparseBlas.Daxpyi(sparse.InternalIndices.Length, otherCoefficient, sparse.InternalValues,
-                        sparse.InternalIndices, 0, data, 0);
+                    SparseBlas.Daxpyi(sparse.RawIndices.Length, otherCoefficient, sparse.RawValues,
+                        sparse.RawIndices, 0, data, 0);
                 }
                 else
                 {

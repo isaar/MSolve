@@ -71,11 +71,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Check the solution vectors
             Vector previousSolution, newSolution;
-            using (var factor = previousK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(
+                previousK.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 previousSolution = factor.SolveLinearSystem(rhs);
             }
-            using (var factor = newK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(
+                newK.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 newSolution = factor.SolveLinearSystem(rhs);
             }
@@ -130,11 +132,13 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Check the solution vectors
             Vector expectedSolution, computedSolution;
-            using (var factor = expectedK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(
+                expectedK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 expectedSolution = factor.SolveLinearSystem(rhs);
             }
-            using (var factor = newK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(
+                newK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 computedSolution = factor.SolveLinearSystem(rhs);
             }
@@ -241,14 +245,16 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             /// Calculate expected solution
             Vector expectedSolution;
-            using (CholeskySuiteSparse factorization = expectedK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                expectedK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 expectedSolution = factorization.SolveLinearSystem(rhs);
             }
 
             /// Factorize previous K and update it
             Vector cholmodSolution;
-            using (CholeskySuiteSparse factorization = expectedPreviousK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                expectedPreviousK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 var tabooRows = new HashSet<int>(addedCols);
                 tabooRows.UnionWith(removedCols); // not sure about this one. Might be needed if row deletion happens after addition
@@ -277,7 +283,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             /// Calculate expected solution
             Vector expectedSolution;
-            using (CholeskySuiteSparse factorization = expectedK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                expectedK.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 expectedSolution = factorization.SolveLinearSystem(rhs);
             }
@@ -290,7 +297,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Factorize previous K, update it and check the solution
             Vector cholmodSolution;
-            using (CholeskySuiteSparse factorization = previousK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                previousK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 var tabooRows = new HashSet<int>(addedCols);
                 foreach (int col in addedCols)
@@ -313,7 +321,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
         {
             /// Calculate expected solution
             Vector expectedSolution;
-            using (CholeskySuiteSparse factorization = expectedK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                expectedK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 expectedSolution = factorization.SolveLinearSystem(rhs);
             }
@@ -329,7 +338,8 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Factorize previous K, update it and check the solution
             Vector cholmodSolution;
-            using (CholeskySuiteSparse factorization = previousK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                previousK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 foreach (int row in removedCols.OrderBy(row => row))
                 {
@@ -368,14 +378,16 @@ namespace ISAAR.MSolve.XFEM.Tests.GRACM
 
             /// Calculate expected solution from previous K
             Vector expectedSolution;
-            using (CholeskySuiteSparse factorization = previousK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                previousK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 expectedSolution = factorization.SolveLinearSystem(rhs);
             }
 
             /// Factorize current K, update it and check the solution
             Vector cholmodSolution;
-            using (CholeskySuiteSparse factorization = expectedK.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factorization = CholeskySuiteSparse.Factorize(
+                expectedK.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural))
             {
                 //foreach (int row in addedRows)
                 foreach (int col in addedCols.OrderBy(row => row))

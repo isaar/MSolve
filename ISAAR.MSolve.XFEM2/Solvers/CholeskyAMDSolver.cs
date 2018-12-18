@@ -80,13 +80,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Linear system solution
             watch.Restart();
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 watch.Stop();
                 Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
 
                 watch.Restart();
-                Solution = factorization.SolveLinearSystem(rhs);
+                Solution = factor.SolveLinearSystem(rhs);
                 watch.Stop();
                 Logger.LogDuration(iteration, "back & forward substitution", watch.ElapsedMilliseconds);
                 //Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
@@ -149,10 +149,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var assembler = new GlobalDOKAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);
-                Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factorization.NumNonZerosUpper}");
+                Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factor.NumNonZerosUpper}");
             }
         }
     }

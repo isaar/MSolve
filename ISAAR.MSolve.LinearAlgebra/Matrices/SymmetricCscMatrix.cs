@@ -45,6 +45,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// The internal array that stores the non-zero entries of the upper triangle. The non-zero entries of each 
+        /// column are consecutive. Its length is equal to the number of the upper triangle's non-zero entries. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal double[] RawValues => values;
+
+        /// <summary>
+        /// The internal array that stores the index into the arrays <see cref="RawValues"/> and <see cref="RawRowIndices"/> of  
+        /// the first entry of each column. Its length is equal to <paramref name="NumColumns"/> + 1. 
+        /// The last entry is the number of the upper triangle's non-zero entries, which must be equal to 
+        /// <see cref="RawValues"/>.Length == <see cref="RawRowIndices"/>.Length.
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal int[] RawColOffsets => colOffsets;
+
+        /// <summary>
+        /// The internal array that stores the row indices of the non-zero entries in <see cref="RawValues"/>.
+        /// Its length is equal to the number of the upper triangle's non-zero entries. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal int[] RawRowIndices => rowIndices;
+
+        /// <summary>
         /// The number of columns of the matrix. 
         /// </summary>
         public int NumColumns { get; }
@@ -287,9 +310,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
             => DenseStrategies.AreEqual(this, other, tolerance);
-
-        public CholeskySuiteSparse FactorCholesky(SuiteSparseOrdering ordering) //TODO: perhaps should be moved to the factorization class
-            => CholeskySuiteSparse.Factorize(NumColumns, NumNonZerosUpper, values, rowIndices, colOffsets, false, ordering);
 
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.

@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             solution.CopyFrom(rhs);
             int numRhs = 1; // rhs is a n x nRhs matrix, stored in b
             int leadingDimB = Order; // column major ordering: leading dimension of b is n 
-            LapackLinearEquations.Dpptrs(StoredTriangle.Upper, Order, numRhs, data, 0, solution.InternalData, 0, leadingDimB);
+            LapackLinearEquations.Dpptrs(StoredTriangle.Upper, Order, numRhs, data, 0, solution.RawData, 0, leadingDimB);
         }
 
         private void CheckOverwritten()

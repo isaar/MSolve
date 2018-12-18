@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DokSymmetric.CreateIdentity(SparsePosDef10by10.Order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var factor = CholeskySuiteSparse.Factorize(dok.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
             var dok = DokSymmetric.CreateIdentity(SparsePosDef10by10.Order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var factor = CholeskySuiteSparse.Factorize(dok.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                     if (matrixExpected[i, j] != 0) dok[i, j] = matrixExpected[i, j];
                 }
             }
-            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var factor = CholeskySuiteSparse.Factorize(dok.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             //SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
 
             //Solve it using SuiteSparse
-            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(matrixCSC, true, SuiteSparseOrdering.Natural))
             {
                 Vector solution = factor.SolveLinearSystem(rhs);
                 comparer.AssertEqual(solutionExpected, solution);

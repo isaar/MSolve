@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static double[] MultiplyRight(this CscMatrix matrix, double[] vector, bool transposeThis)
         { //TODO: delete this once legacy vectors, matrices are no longer used.
             var asVector = Vector.CreateFromArray(vector, false);
-            return matrix.Multiply(asVector, transposeThis).InternalData;
+            return matrix.Multiply(asVector, transposeThis).RawData;
         }
 
         /// <summary>

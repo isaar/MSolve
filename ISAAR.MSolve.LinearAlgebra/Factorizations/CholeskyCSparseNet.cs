@@ -3,6 +3,7 @@ using CSparse;
 using CSparse.Double;
 using CSparse.Double.Factorization;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Implement IIndexable2D to allow easy output.
@@ -88,6 +89,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         }
 
         /// <summary>
+        /// Performs the Cholesky factorization: A = L * L^T of a symmetric positive definite matrix A. 
+        /// Only the upper triangle of the original matrix is required and is provided in symmetric CSC format. 
+        /// The user may choose between supernodal or simplicial factorization. It is also possible to automatically reorder 
+        /// the matrix, using the algorithms provided by SuiteSparse.
+        /// The factorized data, which may be sufficiently larger than the original matrix due to fill-in, will be written to 
+        /// unmanaged memory.
+        /// </summary>
+        /// <param name="matrix">The matrix in symmetric (only upper triangle) CSC format.</param>
+        /// <exception cref="IndefiniteMatrixException">Thrown if the original matrix is not positive definite.</exception>
+        public static CholeskyCSparseNet Factorize(SymmetricCscMatrix matrix)
+            => Factorize(matrix.NumColumns, matrix.NumNonZerosUpper, matrix.RawValues, matrix.RawRowIndices, 
+                matrix.RawColOffsets);
+
+        /// <summary>
         /// See <see cref="ITriangulation.CalcDeterminant"/>.
         /// </summary>
         public double CalcDeterminant()
@@ -99,6 +114,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
         public void SolveLinearSystem(Vectors.Vector rhs, Vectors.Vector solution)
-            => factorization.Solve(rhs.InternalData, solution.InternalData);
+            => factorization.Solve(rhs.RawData, solution.RawData);
     }
 }

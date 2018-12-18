@@ -577,8 +577,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         {
             SetColumnToZero(colIdx); // First remove everything
 
-            int[] rowIndices = newColumn.InternalIndices;
-            double[] values = newColumn.InternalValues;
+            int[] rowIndices = newColumn.RawIndices;
+            double[] values = newColumn.RawValues;
 
             // The super-diagonal part is straightforward
             int t = 0;

@@ -45,6 +45,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int Order { get; }
 
         /// <summary>
+        /// The internal array that stores the entries of the lower triangle (packed storage format) in row major layout. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal double[] RawData => data;
+
+        /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
         /// </summary>
         /// <remarks> This property is not that efficient, due to the necessary bound checking.</remarks>
@@ -422,9 +428,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             CBlasTranspose transpose = transposeThis ? CBlasTranspose.Transpose : CBlasTranspose.NoTranspose;
             Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
-            Array.Copy(lhsVector.InternalData, rhsVector.InternalData, Order);
+            Array.Copy(lhsVector.RawData, rhsVector.RawData, Order);
             CBlas.Dtpmv(CBlasLayout.RowMajor, CBlasTriangular.Lower, transpose, CBlasDiagonal.NonUnit, Order,
-                this.data, 0, rhsVector.InternalData, 0, 1);
+                this.data, 0, rhsVector.RawData, 0, 1);
         }
 
         /// <summary>
