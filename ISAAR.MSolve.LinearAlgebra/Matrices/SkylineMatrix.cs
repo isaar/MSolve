@@ -271,6 +271,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SkylineMatrix"/>. 
+        /// Warning: there may not be enough memory.
         /// </summary>
         public Matrix CopyToFullMatrix()
         {

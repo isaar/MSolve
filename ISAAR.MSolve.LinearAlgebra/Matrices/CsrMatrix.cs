@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             get
             {
-                int index = FindIndexOf(rowIdx, colIdx);
+                int index = FindOffsetOf(rowIdx, colIdx);
                 if (index == -1) return 0.0;
                 else return values[index];
             }
@@ -203,6 +203,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CsrMatrix"/>. 
+        /// Warning: there may not be enough memory.
         /// </summary>
         public Matrix CopyToFullMatrix()
         {
@@ -724,7 +725,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
-            int index = FindIndexOf(rowIdx, colIdx);
+            int index = FindOffsetOf(rowIdx, colIdx);
             if (index == -1) throw new SparsityPatternModifiedException($"Cannot write to zero entry ({rowIdx}, {colIdx}).");
             else values[index] = value;
         }
@@ -782,7 +783,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="rowIdx"></param>
         /// <param name="colIdx"></param>
         /// <returns></returns>
-        private int FindIndexOf(int rowIdx, int colIdx)
+        private int FindOffsetOf(int rowIdx, int colIdx)
         {
             Preconditions.CheckIndices(this, rowIdx, colIdx); //TODO: check indices?
             int rowStart = rowOffsets[rowIdx]; //inclusive

@@ -382,7 +382,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public SymmetricCscMatrix BuildSymmetricCscMatrix(bool sortRowsOfEachCol)
         {
             (double[] values, int[] rowIndices, int[] colOffsets) = BuildSymmetricCscArrays(sortRowsOfEachCol);
-            return new SymmetricCscMatrix(values, rowIndices, colOffsets, false);
+            return SymmetricCscMatrix.CreateFromArrays(NumColumns, values, rowIndices, colOffsets, false);
         }
 
         /// <summary>

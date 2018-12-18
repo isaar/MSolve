@@ -258,6 +258,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
+        internal static void MultiplyIntoResult(IMatrixView matrix, IVectorView lhsVector, IVector rhsVector, 
+            bool transposeMatrix)
+        {
+            if (transposeMatrix)
+            {
+                Preconditions.CheckMultiplicationDimensions(matrix.NumRows, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(matrix.NumColumns, rhsVector.Length);
+                for (int i = 0; i < rhsVector.Length; ++i)
+                {
+                    for (int j = 0; j < lhsVector.Length; ++j)
+                    {
+                        rhsVector.Set(i, matrix[j, i] * lhsVector[j]);
+                    }
+                }
+            }
+            else
+            {
+                Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, lhsVector.Length);
+                Preconditions.CheckSystemSolutionDimensions(matrix.NumRows, rhsVector.Length);
+                for (int i = 0; i < rhsVector.Length; ++i)
+                {
+                    for (int j = 0; j < lhsVector.Length; ++j)
+                    {
+                        rhsVector.Set(i, matrix[j, i] * lhsVector[j]);
+                    }
+                }
+            }
+        }
 
         // This will be replaced with LAPACK SVD. 
         internal static void SVD(Matrix matrix, double[] w, double[,] v)
