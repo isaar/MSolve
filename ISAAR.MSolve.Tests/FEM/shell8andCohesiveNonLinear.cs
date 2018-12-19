@@ -11,6 +11,7 @@ using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
@@ -126,8 +127,8 @@ namespace ISAAR.MSolve.Tests.FEM
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
             //var solverBuilder = new Solvers.Dense.DenseMatrixSolver.Builder();
-            solverBuilder.DofOrderer = new NodeMajorDofOrderer();
-            //solverBuilder.DofOrderer = new SimpleDofOrderer();
+            solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
+            //solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NullReordering());
             var solver = solverBuilder.BuildSolver(model);
 
             // Problem type

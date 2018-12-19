@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 namespace ISAAR.MSolve.Solvers
 {
@@ -16,6 +16,7 @@ namespace ISAAR.MSolve.Solvers
     /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on sparse symmetric positive definite 
     /// matrices stored in symmetric (only the upper triangle) format. Uses native dlls from the SuiteSparse library. 
     /// The factorized matrix and other data are stored in unmanaged memory and properly disposed by this class.
+    /// The default behaviour is to apply AMD reordering before Cholesky factorization.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SuiteSparseSolver : ISolver_v2, IDisposable
@@ -115,17 +116,13 @@ namespace ISAAR.MSolve.Solvers
         {
             public Builder() { }
 
-            public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
+            public IDofOrderer DofOrderer { get; set; }
+                = new DofOrderer(new SimpleDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            public IReorderingAlgorithm Reordering { get; set; } = null;
-
             public SuiteSparseSolver BuildSolver(IStructuralModel_v2 model)
-            {
-                if (Reordering != null) DofOrderer.Reordering = Reordering;
-                return new SuiteSparseSolver(model, FactorizationPivotTolerance, DofOrderer);
-            }
+                => new SuiteSparseSolver(model, FactorizationPivotTolerance, DofOrderer);
         }
 
         private class SuiteSparseSystem : LinearSystem_v2<SymmetricCscMatrix, Vector>

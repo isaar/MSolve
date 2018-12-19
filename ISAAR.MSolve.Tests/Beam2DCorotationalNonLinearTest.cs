@@ -19,6 +19,7 @@ using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -222,7 +223,7 @@ namespace ISAAR.MSolve.Tests
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             // If we reorder, the expected displacements might correspond to different dofs
-            //solverBuilder.Reordering = new OrderingAmdCSparseNet();
+            //solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem

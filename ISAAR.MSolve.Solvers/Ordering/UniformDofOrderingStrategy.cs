@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.Commons;
@@ -8,26 +6,27 @@ using ISAAR.MSolve.Numerical.Commons;
 namespace ISAAR.MSolve.Solvers.Ordering
 {
     /// <summary>
-    /// Free dofs are assigned global (actually subdomain) indices in a node major fashion: The dofs of the first node are 
-    /// numbered, then the dofs of the second node, etc. Contrary to <see cref="NodeMajorDofOrderer"/>, the dofs of each node
-    /// are assumed to be the same and supplied by the client. Based on that assumption, this class is much faster than
-    /// <see cref="NodeMajorDofOrderer"/>. Constrained dofs are ignored.
+    /// Free dofs are assigned global / subdomain indices in a node major fashion: The dofs of the first node are numbered, then 
+    /// the dofs of the second node, etc. Note that the dofs of each node are assumed to be the same and supplied by the client. 
+    /// Based on that assumption, this class is much faster than its alternatives. Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformDofOrderer: DofOrdererBase
+    public class UniformDofOrderingStrategy : IDofOrderingStrategy
     {
         private readonly IReadOnlyList<DOFType> dofsPerNode;
 
-        public UniformDofOrderer(IReadOnlyList<DOFType> dofsPerNode)
+        public UniformDofOrderingStrategy(IReadOnlyList<DOFType> dofsPerNode)
         {
             this.dofsPerNode = dofsPerNode;
         }
 
-        protected override (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
             => OrderFreeDofsOfNodeSet(model.Nodes, model.Constraints);
 
-        protected override (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+
+        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
             => OrderFreeDofsOfNodeSet(subdomain.Nodes, subdomain.Constraints);
+
 
         private (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfNodeSet(IEnumerable<INode> sortedNodes,
             Table<INode, DOFType, double> constraints)

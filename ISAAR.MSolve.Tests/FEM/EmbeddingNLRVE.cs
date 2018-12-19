@@ -16,6 +16,7 @@ using ISAAR.MSolve.PreProcessor.Embedding;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
@@ -128,7 +129,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            solverBuilder.DofOrderer = new NodeMajorDofOrderer();
+            solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type

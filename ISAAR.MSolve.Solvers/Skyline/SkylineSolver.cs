@@ -8,6 +8,7 @@ using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: factorization should be done during Solve() to time correctly. Alternatively, an observer should record the durations.
 //TODO: investigate if it is possible to avoid casting the matrix provided by the analyzer/assembler into skyline. Perhaps the
@@ -111,15 +112,13 @@ namespace ISAAR.MSolve.Solvers.Skyline
         {
             public Builder() { }
 
-            public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
+            public IDofOrderer DofOrderer { get; set; } 
+                = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            public IReorderingAlgorithm Reordering { get; set; } = null;
-
             public SkylineSolver BuildSolver(IStructuralModel_v2 model)
             {
-                if (Reordering != null) DofOrderer.Reordering = Reordering;
                 return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }
         }

@@ -8,12 +8,12 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 namespace ISAAR.MSolve.Solvers.Dense
 {
@@ -138,15 +138,11 @@ namespace ISAAR.MSolve.Solvers.Dense
         {
             public Builder() { }
 
-            public IDofOrderer DofOrderer { get; set; } = new SimpleDofOrderer();
-
-            public IReorderingAlgorithm Reordering { get; set; } = null;
+            public IDofOrderer DofOrderer { get; set; }
+                = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
 
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
-            {
-                if (Reordering != null) DofOrderer.Reordering = Reordering;
-                return new DenseMatrixSolver(model, DofOrderer);
-            }
+                => new DenseMatrixSolver(model, DofOrderer);
         }
 
         private class DenseSystem : LinearSystem_v2<Matrix, Vector>

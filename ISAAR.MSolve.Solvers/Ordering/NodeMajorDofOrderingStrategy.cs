@@ -1,26 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.Commons;
 
+//TODO: benchmark this against simple ordering + node major reordering
 namespace ISAAR.MSolve.Solvers.Ordering
 {
     /// <summary>
-    /// Free dofs are assigned global (actually subdomain) indices in a node major fashion: The dofs of the first node are 
+    /// Free dofs are assigned global / subdomain indices in a node major fashion: The dofs of the first node are 
     /// numbered, then the dofs of the second node, etc. Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class NodeMajorDofOrdererAlternative: DofOrdererBase
+    public class NodeMajorDofOrderingStrategy : IDofOrderingStrategy
     {
-        protected override (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
             => OrderFreeDofsOfElementSet(model.Elements, model.Nodes, model.Constraints);
 
-        protected override (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+
+        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
             => OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Nodes, subdomain.Constraints);
 
+
+        // Copied from the methods used by Subdomain and Model previously.
         private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
             IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
         {
