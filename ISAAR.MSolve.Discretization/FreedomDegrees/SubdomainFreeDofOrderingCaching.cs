@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: This should be thread safe.
-//TODO: In case of reordering, the caches must be cleared.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
-    public class SubdomainFreeDofOrderingCaching: ISubdomainFreeDofOrdering
+    public class SubdomainFreeDofOrderingCaching : ISubdomainFreeDofOrdering
     {
         private readonly Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
             elementDofsCache = new Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
@@ -57,6 +57,28 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return (elementDofIndices, subdomainDofIndices);
         }
 
+        public void Reorder(IReorderingAlgorithm reorderingAlgorithm, ISubdomain_v2 subdomain)
+        {
+            elementDofsCache.Clear();
+            var pattern = SparsityPatternSymmetric.CreateEmpty(NumFreeDofs);
+            foreach (var element in subdomain.Elements)
+            {
+                // Do not cache anything at this point
+                (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) = ProcessElement(element);
+
+                //TODO: ISubdomainFreeDofOrdering could perhaps return whether the subdomainDofIndices are sorted or not.
+                pattern.ConnectIndices(subdomainDofIndices, false);
+            }
+            (int[] permutation, bool oldToNew) = reorderingAlgorithm.FindPermutation(pattern);
+            FreeDofs.Reorder(permutation, oldToNew);
+        }
+
+        public void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes)
+        {
+            elementDofsCache.Clear();
+            FreeDofs.ReorderNodeMajor(sortedNodes);
+        }
+
         private (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) GetElementData(IElement element)
         {
             bool isStored = elementDofsCache.TryGetValue(element, out (int, int[], int[]) elementData);
@@ -69,7 +91,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        private (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
+        private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
         {
             IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);

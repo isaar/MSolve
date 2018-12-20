@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Ideally all the relevant methods should return Vector (or at least Vector for element level) 
@@ -27,5 +28,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector); 
 
         (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element);
+
+        //TODO: perhaps the subdomain should be passed in the constructor.
+        void Reorder(IReorderingAlgorithm reorderingAlgorithm, ISubdomain_v2 subdomain);
+
+        void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes);
     }
 }

@@ -79,15 +79,15 @@ namespace ISAAR.MSolve.Tests.Solvers
         {
             var solverBuilder = new SuiteSparseSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(
-                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 
         private static void RunCantileverBenchmark(Func<Model_v2, ISolver_v2> buildSolver)
         {
             var benchmarkBuilder = new CantileverBeam.Builder();
-            benchmarkBuilder.Length = 5.0;
-            CantileverBeam benchmark = benchmarkBuilder.BuildWithQuad4Elements(160, 8);
+            //benchmarkBuilder.Length = 5.0;
+            CantileverBeam benchmark = benchmarkBuilder.BuildWithQuad4Elements(200, 10);
 
             // Solver
             ISolver_v2 solver = buildSolver(benchmark.Model);
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             double endDeflectionComputed = 
                 benchmark.CalculateAverageEndDeflectionFromSolution(solver.LinearSystems.First().Solution);
             var comparer = new ValueComparer(1E-2);
-            //Assert.True(comparer.AreEqual(endDeflectionExpected, endDeflectionComputed));
+            Assert.True(comparer.AreEqual(endDeflectionExpected, endDeflectionComputed));
         }
     }
 }

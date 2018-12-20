@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         /// </summary>
         /// <param name="permutation">The permutation vector.</param>
         /// <param name="oldToNew">The direction it should be applied to.</param>
-        public void Reorder(IReadOnlyList<int> permutation, bool oldToNew)
+        internal void Reorder(IReadOnlyList<int> permutation, bool oldToNew)
         {
             IReadOnlyList<int> permutationOldToNew;
             if (oldToNew) permutationOldToNew = permutation;
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         }
 
         //TODO: use Table.ModifyValues() for this.
-        public void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes)
+        internal void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes)
         {
             int dofIdx = -1;
             foreach (INode node in sortedNodes)

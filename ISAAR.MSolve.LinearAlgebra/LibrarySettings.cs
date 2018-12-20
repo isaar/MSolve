@@ -30,14 +30,14 @@ namespace ISAAR.MSolve.LinearAlgebra
             LapackLeastSquares = new LapackLeastSquaresFacadeDouble(lapackProvider);
         }
 
-        internal static ICBlasProvider CBlas { get; private set; } = MklCBlasProvider.UniqueInstance;
+        internal static ICBlasProvider CBlas { get; private set; } = ManagedCBlasProvider.UniqueInstance;
 
-        internal static ISparseBlasProvider SparseBlas { get; private set; } = MklSparseBlasProvider.UniqueInstance;
+        internal static ISparseBlasProvider SparseBlas { get; private set; } = ManagedSparseBlasProvider.UniqueInstance;
 
         internal static LapackLinearEquationsFacade LapackLinearEquations { get; private set; } 
-            = new LapackLinearEquationsFacade(MklLapackProvider.UniqueInstance);
+            = new LapackLinearEquationsFacade(ManagedLapackProvider.UniqueInstance);
 
         internal static LapackLeastSquaresFacadeDouble LapackLeastSquares { get; private set; }
-            = new LapackLeastSquaresFacadeDouble(MklLapackProvider.UniqueInstance);
+            = new LapackLeastSquaresFacadeDouble(ManagedLapackProvider.UniqueInstance);
     }
 }

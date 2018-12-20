@@ -26,16 +26,19 @@ namespace ISAAR.MSolve.Solvers.Ordering.Reordering
 
         public void ReorderDofs(ISubdomain_v2 subdomain, ISubdomainFreeDofOrdering originalOrdering)
         {
-            var pattern = SparsityPatternSymmetric.CreateEmpty(originalOrdering.NumFreeDofs);
-            foreach (var element in subdomain.Elements)
-            {
-                (int[] elementDofIndices, int[] subdomainDofIndices) = originalOrdering.MapFreeDofsElementToSubdomain(element);
+            originalOrdering.Reorder(amd, subdomain);
 
-                //TODO: ISubdomainFreeDofOrdering could perhaps return whether the subdomainDofIndices are sorted or not.
-                pattern.ConnectIndices(subdomainDofIndices, false);
-            }
-            (int[] permutation, bool oldToNew) = amd.FindPermutation(pattern);
-            originalOrdering.FreeDofs.Reorder(permutation, oldToNew);
+            //TODO: Delete the next. That code has been copied to the ISubdomainFreeDofOrdering implementations. This class
+            //      works for any reordering algorithm, not only AMD.
+            //var pattern = SparsityPatternSymmetric.CreateEmpty(originalOrdering.NumFreeDofs);
+            //foreach (var element in subdomain.Elements)
+            //{
+            //    (int[] elementDofIndices, int[] subdomainDofIndices) = originalOrdering.MapFreeDofsElementToSubdomain(element);
+
+            //    //TODO: ISubdomainFreeDofOrdering could perhaps return whether the subdomainDofIndices are sorted or not.
+            //    pattern.ConnectIndices(subdomainDofIndices, false);
+            //}
+            //(int[] permutation, bool oldToNew) = amd.FindPermutation(pattern);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
@@ -97,6 +98,22 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
             return (elementDofIndices.ToArray(), subdomainDofIndices.ToArray());
         }
+
+        public void Reorder(IReorderingAlgorithm reorderingAlgorithm, ISubdomain_v2 subdomain)
+        {
+            var pattern = SparsityPatternSymmetric.CreateEmpty(NumFreeDofs);
+            foreach (var element in subdomain.Elements)
+            {
+                (int[] elementDofIndices, int[] subdomainDofIndices) = MapFreeDofsElementToSubdomain(element);
+
+                //TODO: ISubdomainFreeDofOrdering could perhaps return whether the subdomainDofIndices are sorted or not.
+                pattern.ConnectIndices(subdomainDofIndices, false);
+            }
+            (int[] permutation, bool oldToNew) = reorderingAlgorithm.FindPermutation(pattern);
+            FreeDofs.Reorder(permutation, oldToNew);
+        }
+
+        public void ReorderNodeMajor(IReadOnlyList<INode> sortedNodes) => FreeDofs.ReorderNodeMajor(sortedNodes);
 
         //public IReadOnlyDictionary<int, int> MapFreeDofsElementToSubdomain(IElement element)
         //{
