@@ -113,7 +113,7 @@ namespace ISAAR.MSolve.Solvers.Skyline
             public Builder() { }
 
             public IDofOrderer DofOrderer { get; set; } 
-                = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
+                = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 

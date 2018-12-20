@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Solvers
         private const string name = "SkylineSolver"; // For error messages
         private const bool useSuperNodalFactorization = true; // For faster back/forward substitutions.
 
-        private readonly SkylineAssembler assembler = new SkylineAssembler();
+        private readonly SymmetricCscAssembler assembler = new SymmetricCscAssembler();
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
@@ -74,8 +74,11 @@ namespace ISAAR.MSolve.Solvers
         public void OnMatrixSetting()
         {
             mustFactorize = true;
-            factorization.Dispose();
-            factorization = null;
+            if (factorization != null)
+            {
+                factorization.Dispose();
+                factorization = null;
+            }
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
 
@@ -117,7 +120,7 @@ namespace ISAAR.MSolve.Solvers
             public Builder() { }
 
             public IDofOrderer DofOrderer { get; set; }
-                = new DofOrderer(new SimpleDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+                = new DofOrderer(new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 

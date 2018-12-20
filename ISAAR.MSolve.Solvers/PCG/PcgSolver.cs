@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.Solvers.PCG
             public Builder(PcgAlgorithm pcg) => this.pcg = pcg;
 
             public IDofOrderer DofOrderer { get; set; }
-                = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
+                = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
 

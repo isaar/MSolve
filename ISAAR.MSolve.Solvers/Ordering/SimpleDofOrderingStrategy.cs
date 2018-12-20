@@ -3,6 +3,8 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Numerical.Commons;
 
+//TODO: This is dramativally slower than NodeMajorDofOrderingStrategy. It should be made faster. Also this + NodeMajorReordering() 
+//      must be at least as fast as NodeMajorDofOrderingStrategy. Then the solvers should have simple + reordering as defaults.
 namespace ISAAR.MSolve.Solvers.Ordering
 {
     /// <summary>

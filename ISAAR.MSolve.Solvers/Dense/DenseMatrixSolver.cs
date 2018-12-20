@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.Solvers.Dense
             public Builder() { }
 
             public IDofOrderer DofOrderer { get; set; }
-                = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
+                = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
                 => new DenseMatrixSolver(model, DofOrderer);

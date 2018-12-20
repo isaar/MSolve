@@ -6,6 +6,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: This should be thread safe.
+//TODO: In case of reordering, the caches must be cleared.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
     public class SubdomainFreeDofOrderingCaching: ISubdomainFreeDofOrdering

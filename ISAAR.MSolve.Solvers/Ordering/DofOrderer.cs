@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
         private readonly IDofReorderingStrategy reorderingStrategy;
 
         public DofOrderer(IDofOrderingStrategy orderingStrategy, IDofReorderingStrategy reorderingStrategy,
-            bool doOptimizationsIfSingleSubdomain = true, bool cacheElementToSubdomainDofMaps = true)
+            bool doOptimizationsIfSingleSubdomain = true, bool cacheElementToSubdomainDofMaps = false)
         {
             this.orderingStrategy = orderingStrategy;
             this.reorderingStrategy = reorderingStrategy;
