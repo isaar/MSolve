@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
             var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
             int totalDOFs = model.TotalDOFs;
-            int increments = 10;
+            int increments = 100;
             NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
             provider, increments, totalDOFs);
 
@@ -59,16 +59,17 @@ namespace ISAAR.MSolve.SamplesConsole
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
             childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] {
-            model.NodalDOFsDictionary[2603600][DOFType.X],
-            model.NodalDOFsDictionary[2603600][DOFType.Y],
-            model.NodalDOFsDictionary[2603600][DOFType.Z]});
+            model.NodalDOFsDictionary[3601][DOFType.X],
+            model.NodalDOFsDictionary[3601][DOFType.Y],
+            model.NodalDOFsDictionary[3601][DOFType.Z]});
 
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            var expectedValue = linearSystems[1].Solution[11];
-            Assert.Equal(11.584726466617692, expectedValue, 3);
+            var monitorDOFdisplacement = linearSystems[1].Solution[10709];
+            var expectedDOFdisplacement = 97.5308525603;
+            Assert.Equal(monitorDOFdisplacement, expectedDOFdisplacement, 3);
         }
 
         public static void EmbeddedCNTinMatrix_DisplacementControl()
@@ -82,19 +83,19 @@ namespace ISAAR.MSolve.SamplesConsole
             {
                 HostElementsBuilder(model);
                 EmbeddedElementsBuilder(model);
-                var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 2500000).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 2500000).Select(kv => kv.Value), true);
+                //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 2500000).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 2500000).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 2500).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 2500).Select(kv => kv.Value), true);
             }
 
             public static void HostElementsBuilder(Model model)
             {
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
-                string MatrixGeometryFileName = "MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-Geometry.inp";
-                string MatrixGonnectivityFileName = "MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-ConnMatr.inp";
+                string MatrixGeometryFileName = "MATRIX_3D-L_x=5-L_y=5-L_z=100-5x5x100-Geometry_MSolve.inp"; //"MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-Geometry.inp";
+                string MatrixGonnectivityFileName = "MATRIX_3D-L_x=5-L_y=5-L_z=100-5x5x100-ConnMatr_MSolve.inp"; //"MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-ConnMatr.inp";
                 int MatrixNodes = File.ReadLines(workingDirectory + '\\' + MatrixGeometryFileName).Count();
                 int MatrixElements = File.ReadLines(workingDirectory + '\\' + MatrixGonnectivityFileName).Count();
 
-                // Nodes Geometry
-                IList<Node> nodes = new List<Node>();
+                // Nodes Geometry                
                 using (TextReader reader = File.OpenText(workingDirectory + '\\' + MatrixGeometryFileName))
                 {
                     for (int i = 0; i < MatrixNodes; i++)
@@ -105,13 +106,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        nodes.Add(new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
-                        model.NodesDictionary.Add(nodeID, nodes[i]);
+                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
                 }
 
                 // Boundary Conditions
-                for (int iNode = 1; iNode < 2601; iNode++)
+                for (int iNode = 1; iNode <= 36; iNode++)
                 {
                     model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
                     model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
@@ -166,10 +166,12 @@ namespace ISAAR.MSolve.SamplesConsole
                 }
 
                 // Add nodal load values at the top nodes of the model
-                for (int iNode = 2603551; iNode < 2603601; iNode++)
+                for (int iNode = 3601; iNode <= 3606; iNode++) //(int iNode = 2603551; iNode < 2603601; iNode++)
                 {
-                    model.Loads.Add(new Load() { Amount = 10, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
+                    model.Loads.Add(new Load() { Amount = 1.6666667, Node = model.NodesDictionary[iNode], DOF = DOFType.Y });
                 }
+                //model.Loads.Add(new Load() { Amount = 5, Node = model.NodesDictionary[3601], DOF = DOFType.Y });
+                //model.Loads.Add(new Load() { Amount = 5, Node = model.NodesDictionary[3606], DOF = DOFType.Y });
             }
 
             public static void EmbeddedElementsBuilder(Model model)
@@ -178,32 +180,30 @@ namespace ISAAR.MSolve.SamplesConsole
                 double youngModulus = 16710.0;
                 double shearModulus = 8080.0;
                 double poissonRatio = 0.034; //(youngModulus / (2 * shearModulus)) - 1;
-                double area = 1776.65;  // CNT(20,20)-LinearEBE-TBT-L = 10nm
-                double inertiaY = 1058.55;
-                double inertiaZ = 1058.55;
-                double torsionalInertia = 496.38;
+                double area = 5.594673861218848d - 003;  // CNT(20,20)-LinearEBE-TBT-L = 10nm
+                double inertiaY = 2.490804749753243D - 006; //1058.55;
+                double inertiaZ = 2.490804749753243D - 006; // 1058.55;
+                double torsionalInertia = 4.981609499506486D - 006; //496.38;
                 double effectiveAreaY = area;
                 double effectiveAreaZ = area;
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
-                string CNTgeometryFileName = "CNT-8-8-L=100-Geometry-2.inp";
-                string CNTconnectivityFileName = "CNT-8-8-L=100-ConnMatr-2.inp";
+                string CNTgeometryFileName = "CNT-8-8-L=100-Geometry-2.inp"; //"EmbeddedCNT-8-8-L=100-h=0-k=1-EBE-L=1-NumberOfCNTs=1-Geometry_beam.inp"; //
+                string CNTconnectivityFileName = "CNT-8-8-L=100-ConnMatr-2.inp"; //"EmbeddedCNT-8-8-L=100-h=0-k=1-EBE-L=1-NumberOfCNTs=1-ConnMatr_beam.inp"; //
                 int CNTNodes = File.ReadLines(workingDirectory + '\\' + CNTgeometryFileName).Count();
                 int CNTElems = File.ReadLines(workingDirectory + '\\' + CNTconnectivityFileName).Count();
 
                 // Geometry
-                IList<Node> nodes = new List<Node>();
                 using (TextReader reader = File.OpenText(workingDirectory + '\\' + CNTgeometryFileName))
                 {
                     for (int i = 0; i < CNTNodes; i++)
                     {
                         string text = reader.ReadLine();
                         string[] bits = text.Split(',');
-                        int nodeID = int.Parse(bits[0]) + 2603601;
+                        int nodeID = int.Parse(bits[0]) + 3636; //2603601;
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        nodes.Add(new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
-                        model.NodesDictionary.Add(nodeID, nodes[i]);
+                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
                 }
 
@@ -224,24 +224,24 @@ namespace ISAAR.MSolve.SamplesConsole
                     {
                         string text = reader.ReadLine();
                         string[] bits = text.Split(',');
-                        int elementID = int.Parse(bits[0]) + 2500000;
-                        int node1 = int.Parse(bits[1]);
-                        int node2 = int.Parse(bits[2]);
+                        int elementID = int.Parse(bits[0]) + 2500; //2500000;
+                        int node1 = int.Parse(bits[1]) + 3636; //2603601;
+                        int node2 = int.Parse(bits[2]) + 3636; //2603601;
                         // element nodes
                         IList<Node> elementNodes = new List<Node>();
                         elementNodes.Add(model.NodesDictionary[node1]);
                         elementNodes.Add(model.NodesDictionary[node2]);
                         // create element
                         var beam_1 = new Beam3DCorotationalQuaternion(elementNodes, beamMaterial, 7.85, beamSection);
-                        var element = new Element { ID = elementID, ElementType = beam_1 };
+                        var beamElement = new Element { ID = elementID, ElementType = beam_1 };
                         // Add nodes to the created element
-                        element.AddNode(model.NodesDictionary[node1]);
-                        element.AddNode(model.NodesDictionary[node2]);
+                        beamElement.AddNode(model.NodesDictionary[node1]);
+                        beamElement.AddNode(model.NodesDictionary[node2]);
                         // beam stiffness matrix
-                        var a = beam_1.StiffnessMatrix(element);
+                        // var a = beam_1.StiffnessMatrix(beamElement);
                         // Add beam element to the element and subdomains dictionary of the model
-                        model.ElementsDictionary.Add(element.ID, element);
-                        model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+                        model.ElementsDictionary.Add(beamElement.ID, beamElement);
+                        model.SubdomainsDictionary[1].ElementsDictionary.Add(beamElement.ID, beamElement);
                     }                    
                 }
             }            
