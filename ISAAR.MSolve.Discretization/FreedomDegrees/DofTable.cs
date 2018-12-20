@@ -44,6 +44,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             if (oldToNew) permutationOldToNew = permutation;
             else
             {
+                //TODO: is it necessary to create a temp oldToNew array?
                 var permutationArray = new int[permutation.Count];
                 for (int newIdx = 0; newIdx < permutation.Count; ++newIdx) permutationArray[permutation[newIdx]] = newIdx;
                 permutationOldToNew = permutationArray;

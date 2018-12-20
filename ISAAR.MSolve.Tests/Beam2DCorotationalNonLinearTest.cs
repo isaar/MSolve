@@ -20,6 +20,7 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.Tests
 {

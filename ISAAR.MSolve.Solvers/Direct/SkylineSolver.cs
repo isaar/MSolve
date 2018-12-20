@@ -17,7 +17,7 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 //TODO: try to abstract the subdomain logic from ther analyzers. I doubt it is possible though.
 //TODO: directly pass the single linear system instead of a list that must be checked. The same holds for all solvers and 
 //      assemblers.
-namespace ISAAR.MSolve.Solvers.Skyline
+namespace ISAAR.MSolve.Solvers.Direct
 {
     /// <summary>
     /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on sparse symmetric positive definite 

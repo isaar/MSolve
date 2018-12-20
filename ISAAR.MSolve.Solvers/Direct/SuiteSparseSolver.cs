@@ -10,7 +10,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
-namespace ISAAR.MSolve.Solvers
+namespace ISAAR.MSolve.Solvers.Direct
 {
     /// <summary>
     /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on sparse symmetric positive definite 

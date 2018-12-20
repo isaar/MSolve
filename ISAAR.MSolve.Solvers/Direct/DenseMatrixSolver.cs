@@ -15,7 +15,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
-namespace ISAAR.MSolve.Solvers.Dense
+namespace ISAAR.MSolve.Solvers.Direct
 {
     public class DenseMatrixSolver: ISolver_v2
     {

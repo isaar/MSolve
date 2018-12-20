@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers;
-using ISAAR.MSolve.Solvers.Dense;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.Iterative;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
-using ISAAR.MSolve.Solvers.PCG;
-using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
 //TODO: add performance logging for solvers and gather all these in the same method.
