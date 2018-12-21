@@ -7,34 +7,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     internal interface ISparseBlasProvider
     {
         //TODO: also dot product
-        void Daxpyi(int nnz, double alpha, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY);
+        void Daxpyi(int nnz, double alpha, double[] valuesX, int[] indicesX, int offsetX, double[] vectorY, int offsetY);
 
         /// <summary>
         /// Matrix-matrix multiplication C = op(A) * B, with A being a general matrix in 3-array CSC format (zero indexing) and
         /// B, C general matrices in full column major format.
         /// </summary>
         void Dcscgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] colOffsetsA, 
-            int[] rowIndicesA, double[] b, double[] c);
+            int[] rowIndicesA, double[] matrixB, double[] matrixC);
 
         /// <summary>
         /// Matrix-vector multiplication y = A*x, with A being a general matrix in 3-array CSC format (zero indexing).
         /// </summary>
         void Dcscgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] colOffsetsA, int[] rowIndicesA, 
-            double[] x, int offsetX, double[] y, int offsetY);
+            double[] vectorX, int offsetX, double[] vectorY, int offsetY);
 
         /// <summary>
         /// Matrix-matrix multiplication C = op(A) * B, with A being a general matrix in 3-array CSR format (zero indexing) and
         /// B, C general matrices in full column major format.
         /// </summary>
         void Dcsrgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] rowOffsetsA,
-            int[] colIndicesA, double[] b, double[] c);
+            int[] colIndicesA, double[] matrixB, double[] matrixC);
 
         /// <summary>
         /// Matrix-vector multiplication y = A*x, with A being a general matrix in 3-array CSR format (zero indexing).
         /// </summary>
         void Dcsrgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] rowOffsetsA, int[] colIndicesA,
-            double[] x, int offsetX, double[] y, int offsetY);
+            double[] vectorX, int offsetX, double[] vectorY, int offsetY);
 
-        double Ddoti(int nnz, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY);
+        double Ddoti(int nnz, double[] valuesX, int[] indicesX, int offsetX, double[] vectorY, int offsetY);
     }
 }
