@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             Console.WriteLine($"CSC non zeros = {Kuu.CountNonZeros()}");
 
             watch.Start();
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZerosUpper}"
@@ -75,33 +75,33 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDofs);
 
             watch.Restart();
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 watch.Stop();
                 Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZerosUpper}"
                     + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
             }
 
-            // Let SuiteSparse handle the AMD ordering
-            (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
-            watch.Restart();
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.AMD))
-            {
-                watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZerosUpper}"
-                    + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
+            // Deprecated: Let SuiteSparse handle the AMD ordering
+            //(Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
+            //watch.Restart();
+            //using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.AMD))
+            //{
+            //    watch.Stop();
+            //    Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZerosUpper}"
+            //        + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
 
-            }
+            //}
 
-            if (printEnumerations)
-            {
-                Console.WriteLine("\nPermutation: ");
-                PrintList(permutation);
-                Console.WriteLine("\nBefore reordering: ");
-                unorderedDofs.WriteToConsole();
-                Console.WriteLine("\nAfter reordering: ");
-                reorderedDofs.WriteToConsole();
-            }
+            //if (printEnumerations)
+            //{
+            //    Console.WriteLine("\nPermutation: ");
+            //    PrintList(permutation);
+            //    Console.WriteLine("\nBefore reordering: ");
+            //    unorderedDofs.WriteToConsole();
+            //    Console.WriteLine("\nAfter reordering: ");
+            //    reorderedDofs.WriteToConsole();
+            //}
         }
 
         private static Model2D CreateDcb3x1()

@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCscArrays(true);
             return CholeskySuiteSparse.Factorize(Kee.NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr,
-                colOffsetsEnr, true, SuiteSparseOrdering.Natural);
+                colOffsetsEnr, true);
             //TODO: perhaps I should discard Kee here, instead of in MenkBordasSystem.
         }
 

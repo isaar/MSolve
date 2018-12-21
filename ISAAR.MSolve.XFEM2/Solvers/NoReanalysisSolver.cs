@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             int nnzOrderedFactor;
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 Solution = factor.SolveLinearSystem(rhs);
                 nnzOrderedFactor = factor.NumNonZerosUpper;
@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = Fu - Kuc.MultiplyRight(uc);
             Vector unorderSolution;
             int nnzUnorderedFactor;
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural)) 
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true)) 
             {
                 unorderSolution = factor.SolveLinearSystem(rhs);
                 nnzUnorderedFactor = factor.NumNonZerosUpper;

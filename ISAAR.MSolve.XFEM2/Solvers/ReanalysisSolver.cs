@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             // Factorize the whole stiffness matrix for the first and last time.
             // WARNING: DO NOT use using(){} here. We want the unmanaged resource to persist for the lifetime of this object.
             watch.Restart();
-            factorizedKff = CholeskySuiteSparse.Factorize(Kff.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
+            factorizedKff = CholeskySuiteSparse.Factorize(Kff.BuildSymmetricCscMatrix(true), false);
             watch.Stop();
             Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
 
@@ -423,7 +423,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhsNew = model.CalculateFreeForces(DofOrderer) 
                 - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
-            var factorization = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), false, SuiteSparseOrdering.Natural);
+            var factorization = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), false);
             Vector solutionExpected = factorization.SolveLinearSystem(rhsNew);
             double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");
@@ -459,7 +459,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //Vector rhsNew = model.CalculateFreeForces(DofOrderer)
             //    - Kuc.MultiplyRight(model.CalculateConstrainedDisplacements(DofOrderer));
             //Vector solutionExpected;
-            //using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            //using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())
             //{
             //    solutionExpected = factorization.SolveLinearSystem(rhs);
             //}

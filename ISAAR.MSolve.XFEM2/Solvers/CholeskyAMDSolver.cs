@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Linear system solution
             watch.Restart();
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 watch.Stop();
                 Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var assembler = new GlobalDOKAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
-            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);
                 Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factor.NumNonZerosUpper}");

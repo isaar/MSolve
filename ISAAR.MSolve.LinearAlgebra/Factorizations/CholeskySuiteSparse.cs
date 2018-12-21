@@ -10,6 +10,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Perhaps I should express the back/forward/full solve using the L*D*L^T, L*L^T, L^T, L^T*D factors as in CHOLMOD.
 //TODO: During a non linear or dynamic analysis the sparsity pattern stays the same. Perhaps the symbolic factorization phase 
 //      (and anything else that depends only on the pattern) can be cached.
+//TODO: the user should be able to choose a reordering algorithm or try them all, independently of the factorization. He could 
+//      then use that reordering during other system solutions with the same dofs (e.g. during a non linear analysis). As it is
+//      now, the option to try various reorderings is only possible during factorization. Thus, during each linear system 
+//      solution, the rhs and solution vectors must be permuted and the same pattern must be processed to find a good reordering.
 namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>
@@ -79,19 +83,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// linear system solution. If false, a simplicial factorization will be performed, which allows manipulating the 
         /// factorized matrix (e.g. using <see cref="AddRow(int, SparseVector)"/> or <see cref="DeleteRow(int)"/>.
         /// </param>
-        /// <param name="ordering">
-        /// Controls what reordering algorithms (if any) SuiteSparse will try before performing the factorization.
-        /// </param>
         /// <exception cref="IndefiniteMatrixException">Thrown if the original matrix is not positive definite.</exception>
         /// <exception cref="SuiteSparseException">
         /// Thrown if the calls to SuiteSparse library fail. This usually happens if the SuiteSparse .dlls are not available or 
         /// if there is not sufficient memory to perform the factorization.
         /// </exception>
         public static CholeskySuiteSparse Factorize(int order, int numNonZerosUpper, double[] cscValues, int[] cscRowIndices,
-            int[] cscColOffsets, bool superNodal, SuiteSparseOrdering ordering = SuiteSparseOrdering.Natural)
+            int[] cscColOffsets, bool superNodal)
         {
             int factorizationType = superNodal ? 1 : 0;
-            IntPtr common = SuiteSparse.CreateCommon(factorizationType, (int)ordering);
+            IntPtr common = SuiteSparse.CreateCommon(factorizationType, (int)SuiteSparseOrdering.Natural);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
             int status = SuiteSparse.FactorizeCSCUpper(order, numNonZerosUpper, cscValues, cscRowIndices, cscColOffsets,
                 out IntPtr factorizedMatrix, common);
@@ -104,7 +105,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             else if (status >= 0)
             {
                 SuiteSparse.DestroyCommon(ref common);
-                throw new IndefiniteMatrixException("The matrix not being positive definite."
+                throw new IndefiniteMatrixException("The matrix is not positive definite."
                     + $" Cholesky failed at column {status} (0-based indexing).");
             }
             else return new CholeskySuiteSparse(order, common, factorizedMatrix);
@@ -124,18 +125,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// linear system solution. If false, a simplicial factorization will be performed, which allows manipulating the 
         /// factorized matrix (e.g. using <see cref="AddRow(int, SparseVector)"/> or <see cref="DeleteRow(int)"/>.
         /// </param>
-        /// <param name="ordering">
-        /// Controls what reordering algorithms (if any) SuiteSparse will try before performing the factorization.
-        /// </param>
         /// <exception cref="IndefiniteMatrixException">Thrown if the original matrix is not positive definite.</exception>
         /// <exception cref="SuiteSparseException">
         /// Thrown if the calls to SuiteSparse library fail. This usually happens if the SuiteSparse .dlls are not available or 
         /// if there is not sufficient memory to perform the factorization.
         /// </exception>
-        public static CholeskySuiteSparse Factorize(SymmetricCscMatrix matrix, bool superNodal, 
-            SuiteSparseOrdering ordering = SuiteSparseOrdering.Natural)
+        public static CholeskySuiteSparse Factorize(SymmetricCscMatrix matrix, bool superNodal)
             => Factorize(matrix.NumColumns, matrix.NumNonZerosUpper, matrix.RawValues, matrix.RawRowIndices, 
-                matrix.RawColOffsets, false, ordering);
+                matrix.RawColOffsets, false);
 
         /// <summary>
         /// Sets the <paramref name="rowIdx"/>-th row/column of the factorized matrix to the one it would have if 
