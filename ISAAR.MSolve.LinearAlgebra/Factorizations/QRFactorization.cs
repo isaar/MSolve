@@ -197,7 +197,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int n = NumColumns; // Order of matrix R1
             int ldR = NumRows; // R1 is stored in the upper trapezoid of a NumRows * NumColumns col major array.
             int incC = 1; // step in rhs array, which is the same c used for Q^T * b
-            CBlas.Dtrsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
+            Blas.Dtrsv(StoredTriangle.Upper, TransposeMatrix.NoTranspose, DiagonalValues.NonUnit,
                 n, reflectorsAndR, 0, ldR, c, 0, incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
             return Vector.CreateFromArray(c, false);

@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -180,7 +180,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -321,7 +321,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -350,7 +350,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -431,11 +431,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
-            CBlasTranspose transpose = transposeThis ? CBlasTranspose.Transpose : CBlasTranspose.NoTranspose;
+            TransposeMatrix transpose = transposeThis ? TransposeMatrix.Transpose : TransposeMatrix.NoTranspose;
             Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
             Array.Copy(lhsVector.RawData, rhsVector.RawData, Order);
-            CBlas.Dtpmv(CBlasLayout.ColMajor, CBlasTriangular.Upper, transpose, CBlasDiagonal.NonUnit, Order,
+            Blas.Dtpmv(StoredTriangle.Upper, transpose, DiagonalValues.NonUnit, Order,
                 this.data, 0, rhsVector.RawData, 0, 1);
         }
 
@@ -467,14 +467,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int nnz = this.data.Length;
             double[] result = new double[nnz];
             Array.Copy(this.data, result, nnz);
-            CBlas.Dscal(nnz, scalar, result, 0, 1);
+            Blas.Dscal(nnz, scalar, result, 0, 1);
             return new TriangularUpper(result, this.Order);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, data, 0, 1);
+        public void ScaleIntoThis(double scalar) => Blas.Dscal(data.Length, scalar, data, 0, 1);
 
         /// <summary>
         /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
@@ -495,8 +495,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
-            CBlasTranspose transposeBlas = transposeThis ? CBlasTranspose.Transpose : CBlasTranspose.NoTranspose;
-            CBlas.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, transposeBlas, CBlasDiagonal.NonUnit, Order,
+            TransposeMatrix transposeBlas = transposeThis ? TransposeMatrix.Transpose : TransposeMatrix.NoTranspose;
+            Blas.Dtpsv(StoredTriangle.Upper, transposeBlas, DiagonalValues.NonUnit, Order,
                 this.data, 0, result, 0, 1);
             return Vector.CreateFromArray(result, false);
         }

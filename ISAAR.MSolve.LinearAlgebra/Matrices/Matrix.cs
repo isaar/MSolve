@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -333,7 +333,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -702,7 +702,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -741,7 +741,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -774,35 +774,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public Matrix MultiplyRight(Matrix other, bool transposeThis = false, bool transposeOther = false)
         {
             int leftRows, leftCols, rightRows, rightCols;
-            CBlasTranspose transposeLeft, transposeRight;
+            TransposeMatrix transposeLeft, transposeRight;
             if (transposeThis)
             {
-                transposeLeft = CBlasTranspose.Transpose;
+                transposeLeft = TransposeMatrix.Transpose;
                 leftRows = this.NumColumns;
                 leftCols = this.NumRows;
             }
             else
             {
-                transposeLeft = CBlasTranspose.NoTranspose;
+                transposeLeft = TransposeMatrix.NoTranspose;
                 leftRows = this.NumRows;
                 leftCols = this.NumColumns;
             }
             if (transposeOther)
             {
-                transposeRight = CBlasTranspose.Transpose;
+                transposeRight = TransposeMatrix.Transpose;
                 rightRows = other.NumColumns;
                 rightCols = other.NumRows;
             }
             else
             {
-                transposeRight = CBlasTranspose.NoTranspose;
+                transposeRight = TransposeMatrix.NoTranspose;
                 rightRows = other.NumRows;
                 rightCols = other.NumColumns;
             }
 
             Preconditions.CheckMultiplicationDimensions(leftCols, rightRows);
             double[] result = new double[leftRows * rightCols];
-            CBlas.Dgemm(CBlasLayout.ColMajor, transposeLeft, transposeRight, leftRows, rightCols, leftCols,
+            Blas.Dgemm(transposeLeft, transposeRight, leftRows, rightCols, leftCols,
                 1.0, this.data, 0, this.NumRows, other.data, 0, other.NumRows,
                 1.0, result, 0, leftRows);
             return new Matrix(result, leftRows, rightCols);
@@ -871,23 +871,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
             int leftRows, leftCols;
-            CBlasTranspose transpose;
+            TransposeMatrix transpose;
             if (transposeThis)
             {
-                transpose = CBlasTranspose.Transpose;
+                transpose = TransposeMatrix.Transpose;
                 leftRows = this.NumColumns;
                 leftCols = this.NumRows;
             }
             else
             {
-                transpose = CBlasTranspose.NoTranspose;
+                transpose = TransposeMatrix.NoTranspose;
                 leftRows = this.NumRows;
                 leftCols = this.NumColumns;
             }
 
             Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
-            CBlas.Dgemv(CBlasLayout.ColMajor, transpose, NumRows, NumColumns,
+            Blas.Dgemv(transpose, NumRows, NumColumns,
                 1.0, this.data, 0, NumRows, lhsVector.RawData, 0, 1,
                 0.0, rhsVector.RawData, 0, 1);
         }
@@ -937,14 +937,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Dscal(data.Length, scalar, result, 0, 1);
+            Blas.Dscal(data.Length, scalar, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, data, 0, 1);
+        public void ScaleIntoThis(double scalar) => Blas.Dscal(data.Length, scalar, data, 0, 1);
 
         /// <summary>
         /// Sets all entries of this matrix to be equal to <paramref name="value"/>.

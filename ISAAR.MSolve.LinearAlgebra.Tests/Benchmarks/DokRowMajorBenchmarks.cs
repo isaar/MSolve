@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             watch.Stop();
             long dokTime = watch.ElapsedMilliseconds;
 
-            LibrarySettings.SetSparseBlas(ManagedSparseBlasProvider.UniqueInstance);
+            LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.Managed;
             watch.Restart();
             Vector csrUnsortedTimesLhs = dok.BuildCsrMatrix(false).Multiply(lhs, false);
             watch.Stop();
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             watch.Stop();
             long csrSortedTime = watch.ElapsedMilliseconds;
 
-            LibrarySettings.SetSparseBlas(MklSparseBlasProvider.UniqueInstance);
+            LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.MKL;
             watch.Restart();
             Vector csrUnsortedMklTimesLhs = dok.BuildCsrMatrix(false).Multiply(lhs, false);
             watch.Stop();

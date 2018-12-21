@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 
 //TODO: These should be thread-safe.
@@ -12,25 +10,48 @@ using ISAAR.MSolve.LinearAlgebra.Providers;
 //      or vectors that need e.g. both a BLAS and a SuiteSparse provider?
 namespace ISAAR.MSolve.LinearAlgebra
 {
+    public enum LinearAlgebraProviderChoice
+    {
+        Managed, MKL
+    }
+
     public static class LibrarySettings
     {
-        public static void SetBlas(ICBlasProvider blasProvider)
+        private static LinearAlgebraProviderChoice providers;
+
+        public static LinearAlgebraProviderChoice LinearAlgebraProviders
         {
-            CBlas = blasProvider;
+            get => providers;
+            set
+            {
+                providers = value;
+                if (providers == LinearAlgebraProviderChoice.Managed)
+                {
+                    Blas = ManagedBlasProvider.UniqueInstance;
+                    BlasExtensions = ManagedBlasExtensionsProvider.UniqueInstance;
+                    SparseBlas = ManagedSparseBlasProvider.UniqueInstance;
+                    LapackLinearEquations = new LapackLinearEquationsFacade(ManagedLapackProvider.UniqueInstance);
+                    LapackLeastSquares = new LapackLeastSquaresFacadeDouble(ManagedLapackProvider.UniqueInstance);
+                }
+                else if (providers == LinearAlgebraProviderChoice.MKL)
+                {
+                    Blas = MklBlasProvider.UniqueInstance;
+                    BlasExtensions = MklBlasExtensionsProvider.UniqueInstance;
+                    SparseBlas = MklSparseBlasProvider.UniqueInstance;
+                    LapackLinearEquations = new LapackLinearEquationsFacade(MklLapackProvider.UniqueInstance);
+                    LapackLeastSquares = new LapackLeastSquaresFacadeDouble(MklLapackProvider.UniqueInstance);
+                }
+                else // This is useful to catch errors when adding new providers.
+                {
+                    throw new NotImplementedException("For now only managed and MKL providers are available.");
+                }
+            }
         }
 
-        public static void SetSparseBlas(ISparseBlasProvider sparseBlas)
-        {
-            SparseBlas = sparseBlas;
-        }
+        internal static IBlasProvider Blas { get; private set; } = ManagedBlasProvider.UniqueInstance;
 
-        public static void SetLapack(ILapackProvider lapackProvider)
-        {
-            LapackLinearEquations = new LapackLinearEquationsFacade(lapackProvider);
-            LapackLeastSquares = new LapackLeastSquaresFacadeDouble(lapackProvider);
-        }
-
-        internal static ICBlasProvider CBlas { get; private set; } = ManagedCBlasProvider.UniqueInstance;
+        internal static IBlasExtensionsProvider BlasExtensions { get; private set; } 
+            = ManagedBlasExtensionsProvider.UniqueInstance;
 
         internal static ISparseBlasProvider SparseBlas { get; private set; } = ManagedSparseBlasProvider.UniqueInstance;
 

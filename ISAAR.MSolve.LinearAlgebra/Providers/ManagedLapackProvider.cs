@@ -162,12 +162,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     for (int i = 0; i < nRhs; ++i)
                     {
                         // b = U^T \ b
-                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, 
-                            CBlasTranspose.Transpose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * nRhs, 1);
+                        ManagedBlasProvider.UniqueInstance.Dtpsv(StoredTriangle.Upper, TransposeMatrix.Transpose,
+                            DiagonalValues.NonUnit, n, a, offsetA, b, offsetB + i * nRhs, 1);
 
                         // b = U \ b
-                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Upper, 
-                            CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * nRhs, 1);
+                        ManagedBlasProvider.UniqueInstance.Dtpsv(StoredTriangle.Upper, TransposeMatrix.NoTranspose, 
+                            DiagonalValues.NonUnit, n, a, offsetA, b, offsetB + i * nRhs, 1);
                     }
                 }
                 else
@@ -176,12 +176,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
                     for (int i = 0; i < nRhs; ++i)
                     {
                         // b = L \ b
-                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, 
-                            CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * n, 1);
+                        ManagedBlasProvider.UniqueInstance.Dtpsv(StoredTriangle.Lower, TransposeMatrix.NoTranspose, 
+                            DiagonalValues.NonUnit, n, a, offsetA, b, offsetB + i * n, 1);
 
                         // b = L^T \ b
-                        ManagedCBlasProvider.UniqueInstance.Dtpsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, 
-                            CBlasTranspose.Transpose, CBlasDiagonal.NonUnit, n, a, offsetA, b, offsetB + i * n, 1);
+                        ManagedBlasProvider.UniqueInstance.Dtpsv(StoredTriangle.Lower, TransposeMatrix.Transpose, 
+                            DiagonalValues.NonUnit, n, a, offsetA, b, offsetB + i * n, 1);
                     }
                 }
                 info = 0; // TODO: needs more checks

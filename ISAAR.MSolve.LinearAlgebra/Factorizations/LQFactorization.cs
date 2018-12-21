@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int incC = 1; // step in rhs array
             double[] c = new double[NumColumns];
             rhsVector.CopyToArray(0, c, 0, NumRows);
-            CBlas.Dtrsv(CBlasLayout.ColMajor, CBlasTriangular.Lower, CBlasTranspose.NoTranspose, CBlasDiagonal.NonUnit,
+            Blas.Dtrsv(StoredTriangle.Lower, TransposeMatrix.NoTranspose, DiagonalValues.NonUnit,
                 NumRows, reflectorsAndL, 0, leadingDimA, c, 0, incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
 
