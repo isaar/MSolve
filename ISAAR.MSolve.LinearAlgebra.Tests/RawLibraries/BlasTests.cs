@@ -1,7 +1,7 @@
 ﻿using System;
 using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
+using ISAAR.MSolve.LinearAlgebra.Providers.MKL;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using Xunit;
@@ -130,7 +130,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             double[] A = Conversions.Array2DToFullColMajor(RectangularFullRank10by5.Matrix);
             double[] X = RectangularFullRank10by5.Lhs5;
             double[] Y = new double[m];
-            LAPACKE.Dgemv(layout, transA, m, n, alpha, A, ldA, X, incX, beta, Y, incY);
+            LapackePInvokes.Dgemv(layout, transA, m, n, alpha, A, ldA, X, incX, beta, Y, incY);
 
             comparer.AssertEqual(RectangularFullRank10by5.Rhs10, Y);
         }

@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using DotNumerics.LinearAlgebra.CSLapack;
 
 //TODO: perhaps custom implementations should be in a dedicated namespace. Or they shoudl be in the providers. Keep one design though.
 //TODO: Some of these could be done by calling other BLAS, LAPACK functions. See the LAPACK source.
-namespace ISAAR.MSolve.LinearAlgebra.Providers.Implementations
+namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
     /// <summary>
     /// Custom and unoptimized managed implementations of LAPACK like operations, for which I have not found 3rd party 

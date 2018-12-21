@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
     /// Platform Invoke methods for calling the SuiteSparse library via my custom C interface.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class SuiteSparse
+    internal static class SuiteSparsePInvokes
     {
         /// <summary>
         /// Allocates in heap and returns a handle with matrix settings that must be passed to all CHOLMOD functions. Returns

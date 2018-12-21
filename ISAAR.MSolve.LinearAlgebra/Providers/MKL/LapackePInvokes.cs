@@ -6,14 +6,14 @@ using IntelMKL.LP64;
 //TODO: This class works because the dlls are copied due to Compute.NET. If that library is removed or different dlls need to 
 //      be used, I must handle that. Ideally, this should be done using a nuget package for MKL bindings (actually 1 for x64 
 //      and 1 for x86).
-namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
+namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 {
     /// <summary>
     /// Platform invoke methods for Intel MKL's LAPACKE (C interface of LAPACK). These are not covered by any nuget packages.
     /// Also see the included "lapacke.h" C header file and MKL's C user guide.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class LAPACKE
+    internal static class LapackePInvokes
     {
         public const int LAPACK_ROW_MAJOR = 101;
         public const int LAPACK_COL_MAJOR = 102;

@@ -28,18 +28,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             double[] solution = new double[n];
 
             // Solve it using SuiteSparse
-            IntPtr handle = SuiteSparse.CreateCommon(0, 0);
-            int status = SuiteSparse.FactorizeCSCUpper(n, nnz, values, rowIndices, colOffsets, out IntPtr factor, handle);
+            IntPtr handle = SuiteSparsePInvokes.CreateCommon(0, 0);
+            int status = SuiteSparsePInvokes.FactorizeCSCUpper(n, nnz, values, rowIndices, colOffsets, out IntPtr factor, handle);
             Assert.True(status == -1);
-            int nnzFactor = SuiteSparse.GetFactorNonZeros(factor);
+            int nnzFactor = SuiteSparsePInvokes.GetFactorNonZeros(factor);
             Console.WriteLine($"Before factorization: nnz = {nnz}");
             Console.WriteLine($"After factorization: nnz = {nnzFactor}");
             
-            SuiteSparse.Solve(0, n, 1, factor, rhs, solution, handle);
+            SuiteSparsePInvokes.Solve(0, n, 1, factor, rhs, solution, handle);
             comparer.AssertEqual(solutionExpected, solution);
 
-            SuiteSparse.DestroyFactor(ref factor, handle);
-            SuiteSparse.DestroyCommon(ref handle);
+            SuiteSparsePInvokes.DestroyFactor(ref factor, handle);
+            SuiteSparsePInvokes.DestroyCommon(ref handle);
         }
 
         [Fact]
@@ -49,13 +49,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             int[] rowIndices = SparseSymm5by5.CscRowIndices;
             int[] colOffsets = SparseSymm5by5.CscColOffsets;
             int[] permutation = new int[order];
-            IntPtr common = SuiteSparse.CreateCommon(0, 0);
-            int status = SuiteSparse.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation,
+            IntPtr common = SuiteSparsePInvokes.CreateCommon(0, 0);
+            int status = SuiteSparsePInvokes.ReorderAMDUpper(order, rowIndices.Length, rowIndices, colOffsets, permutation,
                 out int factorNNZ, common);
             Assert.True(status == 1, "SuiteSparse reordering failed. A possible reason is the lack of enough available memory");
             comparer.AssertEqual(SparseSymm5by5.MatlabPermutationAMD, permutation);
            
-            SuiteSparse.DestroyCommon(ref common);
+            SuiteSparsePInvokes.DestroyCommon(ref common);
         }
     }
 }

@@ -4,7 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Providers;
+using ISAAR.MSolve.LinearAlgebra.Providers.Managed;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //also implement ISymmetricSparseMatrix.

@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             int[] cscColOffsets, int[] constraints)
         {
             var permutation = new int[order];
-            int status = SuiteSparse.ReorderCAMD(order, cscRowIndices, cscColOffsets, constraints, 
+            int status = SuiteSparsePInvokes.ReorderCAMD(order, cscRowIndices, cscColOffsets, constraints, 
                 denseThreshold, aggressiveAbsorption ? 1 : 0, 
                 permutation, out int nnzFactor, out int numMovedDense);
 

@@ -1,6 +1,6 @@
 ﻿using DotNumerics.LinearAlgebra.CSLapack;
 
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
     internal class ManagedBlasExtensionsProvider : IBlasExtensionsProvider
     {

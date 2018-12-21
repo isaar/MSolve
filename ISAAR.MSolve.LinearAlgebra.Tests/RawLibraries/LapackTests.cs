@@ -1,7 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Providers;
-using ISAAR.MSolve.LinearAlgebra.Providers.PInvoke;
+using ISAAR.MSolve.LinearAlgebra.Providers.MKL;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using Xunit;
@@ -19,8 +19,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
         [Fact]
         internal static void TestDgetrf_Dgetrs()
         {
-            int layout = LAPACKE.LAPACK_COL_MAJOR;
-            char transA = LAPACKE.LAPACK_NO_TRANSPOSE;
+            int layout = LapackePInvokes.LAPACK_COL_MAJOR;
+            char transA = LapackePInvokes.LAPACK_NO_TRANSPOSE;
             int m = SquareInvertible10by10.Order;
             int n = m;
             int minDim = m < n ? m : n;
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             int ldB = n;
 
             int infoFact = LapackUtilities.DefaultInfo;
-            infoFact = LAPACKE.Dgetrf(layout, m, n, A, ldA, iPiv);
+            infoFact = LapackePInvokes.Dgetrf(layout, m, n, A, ldA, iPiv);
             Assert.True(infoFact == 0);
             //Console.Write("LAPACKE.Dgetrf() result: ");
             //if (infoFact == MklUtilities.DefaultInfo)
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             //else Console.WriteLine("LAPACKE.Dgetrf() was successful");
 
             int infoSolve = LapackUtilities.DefaultInfo;
-            infoSolve = LAPACKE.Dgetrs(layout, transA, n, nRhs, A, ldA, iPiv, B, ldB);
+            infoSolve = LapackePInvokes.Dgetrs(layout, transA, n, nRhs, A, ldA, iPiv, B, ldB);
             Assert.True(infoSolve == 0);
             //Console.Write("LAPACKE.Dgetrs() result: ");
             //if (infoSolve == MklUtilities.DefaultInfo)

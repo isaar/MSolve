@@ -1,7 +1,7 @@
 ﻿using IntelMKL.LP64;
 
 //TODO: this should probably call the MKL dll directly, instead of using the package Compute.NET Bindings.
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 {
     internal class MklBlasProvider : IBlasProvider
     {

@@ -1,5 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Providers;
+using ISAAR.MSolve.LinearAlgebra.Providers.Managed;
+using ISAAR.MSolve.LinearAlgebra.Providers.MKL;
 
 //TODO: These should be thread-safe.
 //TODO: A different approach is to employ the Abstract Factory pattern. Clients would use factories to create matrices, instead
@@ -7,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Providers;
 //      Advantage: the client could use simultaneously more than one providers. Disadvantages: 1) A lot of methods would need 
 //      references to the factory objects (this could be circumvented with singletons/ enum classes) 2) What happens for matrices
 //      or vectors that need e.g. both a BLAS and a SuiteSparse provider?
+//TODO: The initialization should be done at the beginning of the program to avoid interference with timing.
 namespace ISAAR.MSolve.LinearAlgebra
 {
     public enum LinearAlgebraProviderChoice
@@ -17,6 +20,11 @@ namespace ISAAR.MSolve.LinearAlgebra
     public static class LibrarySettings
     {
         private static LinearAlgebraProviderChoice providers;
+
+        static LibrarySettings()
+        {
+            LinearAlgebraProviders = LinearAlgebraProviderChoice.Managed;
+        }
 
         public static LinearAlgebraProviderChoice LinearAlgebraProviders
         {
@@ -47,17 +55,14 @@ namespace ISAAR.MSolve.LinearAlgebra
             }
         }
 
-        internal static IBlasProvider Blas { get; private set; } = ManagedBlasProvider.UniqueInstance;
+        internal static IBlasProvider Blas { get; private set; }
 
         internal static IBlasExtensionsProvider BlasExtensions { get; private set; } 
-            = ManagedBlasExtensionsProvider.UniqueInstance;
 
-        internal static ISparseBlasProvider SparseBlas { get; private set; } = ManagedSparseBlasProvider.UniqueInstance;
+        internal static ISparseBlasProvider SparseBlas { get; private set; }
 
         internal static LapackLinearEquationsFacade LapackLinearEquations { get; private set; } 
-            = new LapackLinearEquationsFacade(ManagedLapackProvider.UniqueInstance);
 
         internal static LapackLeastSquaresFacadeDouble LapackLeastSquares { get; private set; }
-            = new LapackLeastSquaresFacadeDouble(ManagedLapackProvider.UniqueInstance);
     }
 }

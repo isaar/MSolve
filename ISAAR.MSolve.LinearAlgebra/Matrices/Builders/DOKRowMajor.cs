@@ -4,7 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Providers;
+using ISAAR.MSolve.LinearAlgebra.Providers.MKL;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: sorting the Dictionaries with Linq seems to take a lot of time.

@@ -42,13 +42,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             int[] cscColOffsets)
         {
             var permutation = new int[order];
-            IntPtr common = SuiteSparse.CreateCommon(0, 0);
+            IntPtr common = SuiteSparsePInvokes.CreateCommon(0, 0);
             if (common == IntPtr.Zero) throw new SuiteSparseException("Failed to initialize SuiteSparse.");
-            int status = SuiteSparse.ReorderAMDUpper(order, nonZerosUpper, cscRowIndices, cscColOffsets, permutation, 
+            int status = SuiteSparsePInvokes.ReorderAMDUpper(order, nonZerosUpper, cscRowIndices, cscColOffsets, permutation, 
                 out int nnzFactor, common);
             if (status == 0) throw new SuiteSparseException("AMD failed. This could be caused by the matrix being so large it"
                 + " cannot be processed with the available memory.");
-            SuiteSparse.DestroyCommon(ref common);
+            SuiteSparsePInvokes.DestroyCommon(ref common);
             return (permutation, new ReorderingStatistics(nnzFactor, -1));
         }
 

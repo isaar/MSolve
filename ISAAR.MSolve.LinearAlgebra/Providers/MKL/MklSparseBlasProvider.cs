@@ -1,7 +1,7 @@
 ﻿using System;
 using IntelMKL.LP64;
 
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 {
     /// <summary>
     /// Delegates BLAS operations to the highly optimized native dlls provided by Intel MKL.

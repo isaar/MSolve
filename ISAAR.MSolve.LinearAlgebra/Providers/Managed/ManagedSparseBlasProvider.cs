@@ -6,7 +6,7 @@ using System.Diagnostics;
 //      though.
 //TODO: At some point I should change my Skyline format to match the one used in MKL. Then the SparseBLAS operations can be 
 //      interchangeable.
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
     /// <summary>
     /// Uses managed C# code (usually unoptimized) to perform BLAS operations.

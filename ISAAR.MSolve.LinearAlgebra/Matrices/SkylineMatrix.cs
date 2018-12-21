@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Providers;
+using ISAAR.MSolve.LinearAlgebra.Providers.Managed;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;

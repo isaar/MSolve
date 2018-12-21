@@ -1,9 +1,8 @@
 ﻿using System;
 using DotNumerics.LinearAlgebra.CSLapack;
-using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 
 //TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
     internal class ManagedBlasProvider : IBlasProvider
     {
