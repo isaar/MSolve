@@ -12,9 +12,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     /// Uses managed C# code (usually unoptimized) to perform BLAS operations.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ManagedSparseBlasProvider : ISparseBlasProvider
+    internal class ManagedSparseBlasProvider : ISparseBlasProvider
     {
-        public static ManagedSparseBlasProvider UniqueInstance { get; } = new ManagedSparseBlasProvider();
+        internal static ManagedSparseBlasProvider UniqueInstance { get; } = new ManagedSparseBlasProvider();
 
         private ManagedSparseBlasProvider() { } // private constructor for singleton pattern
 

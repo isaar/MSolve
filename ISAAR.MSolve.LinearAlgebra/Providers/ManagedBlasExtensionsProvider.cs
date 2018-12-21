@@ -2,13 +2,13 @@
 
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public class ManagedBlasExtensionsProvider : IBlasExtensionsProvider
+    internal class ManagedBlasExtensionsProvider : IBlasExtensionsProvider
     {
         //TODO: perhaps these should not be static.
         private static readonly DAXPY daxpy = new DAXPY();
         private static readonly DSCAL dscal = new DSCAL();
 
-        public static ManagedBlasExtensionsProvider UniqueInstance { get; } = new ManagedBlasExtensionsProvider();
+        internal static ManagedBlasExtensionsProvider UniqueInstance { get; } = new ManagedBlasExtensionsProvider();
 
         private ManagedBlasExtensionsProvider() { } // private constructor for singleton pattern
 

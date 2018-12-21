@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 //      found. See LAPACK source for the checks. Error checking needs to be improved in general.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public class ManagedLapackProvider : ILapackProvider
+    internal class ManagedLapackProvider : ILapackProvider
     {
         private static readonly DGELQF dgelqf = new DGELQF();
         private static readonly DGEQRF dgeqrf = new DGEQRF();
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         private static readonly DGETRS dgetrs = new DGETRS();
         private static readonly DTRSM dtrsm = new DTRSM();
 
-        public static ManagedLapackProvider UniqueInstance { get; } = new ManagedLapackProvider();
+        internal static ManagedLapackProvider UniqueInstance { get; } = new ManagedLapackProvider();
 
         private ManagedLapackProvider() { } // private constructor for singleton pattern
 

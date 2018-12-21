@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
     /// Platform Invoke methods for calling the SuiteSparse library via my custom C interface.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class SuiteSparse
+    internal static class SuiteSparse
     {
         /// <summary>
         /// Allocates in heap and returns a handle with matrix settings that must be passed to all CHOLMOD functions. Returns
@@ -23,14 +23,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         /// <param name="orderingType">0 for no reordering, 1 for automatic reordering (let suitesparse try some alternatives and
         ///     keep the best), 2 for AMD.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_create_common")]
-        public static extern IntPtr CreateCommon(int factorizationType, int orderingType);
+        internal static extern IntPtr CreateCommon(int factorizationType, int orderingType);
 
         /// <summary>
         /// Frees the memory for the matrix settings in unmanaged memory.
         /// </summary>
         /// <param name="common">The matrix settings. It will be freed in unmanaged memory.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_destroy_common")]
-        public static extern void DestroyCommon(ref IntPtr common);
+        internal static extern void DestroyCommon(ref IntPtr common);
 
         /// <summary>
         /// Frees the memory for the factorized matrix in unmanaged memory
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         /// <param name="factorizedMatrix">The factorized matrix data. It will be freed in unmanaged memory.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_destroy_factor")]
-        public static extern void DestroyFactor(ref IntPtr factorizedMatrix, IntPtr common);
+        internal static extern void DestroyFactor(ref IntPtr factorizedMatrix, IntPtr common);
 
         /// <summary>
         /// Factorize a symmetric matrix using cholesky algorithm. The matrix is in csc form, with only the upper triangle stored.
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         /// <param name="factorizedMatrix"> Out parameter - the factorized upper triangle of the symmetric CSC matrix.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_factorize_cscupper")]
-        public static extern int FactorizeCSCUpper(int order, int nnz, double[] values, int[] rowIndices, int[] colOffsets, 
+        internal static extern int FactorizeCSCUpper(int order, int nnz, double[] values, int[] rowIndices, int[] colOffsets, 
             out IntPtr factorizedMatrix, IntPtr common);
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         /// </summary>
         /// <param name="factorization">Pointer to the factorized matrix, which is stored in unmanaged memory.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_get_factor_nonzeros")]
-        public static extern int GetFactorNonZeros(IntPtr factorization);
+        internal static extern int GetFactorNonZeros(IntPtr factorization);
 
         /// <summary>
         /// Caclulates a fill reducing ordering using the Approximate Minimum Degree algorithm for a symmetric sparse matrix.  
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         ///     be -1 if the ordering fails.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_reorder_amd_upper")]
-        public static extern int ReorderAMDUpper(int order, int nnz, int[] rowIndices, int[] colOffsets, int[] outPermutation,
+        internal static extern int ReorderAMDUpper(int order, int nnz, int[] rowIndices, int[] colOffsets, int[] outPermutation,
             [Out] out int outFactorNNZ, IntPtr common);
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         /// 	<paramref name="numRows"/> -by- <paramref name="numRhs"/>.</param>
         /// <param name="common">The matrix settings.</param>
         [DllImport("suitesparse_utilities.dll", EntryPoint = "util_solve")]
-        public static extern int Solve(int system, int numRows, int numRhs, IntPtr factorizedMatrix, 
+        internal static extern int Solve(int system, int numRows, int numRhs, IntPtr factorizedMatrix, 
             double[] rhs, double[] outSolution, IntPtr common);
     }
 }

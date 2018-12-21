@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using IntelMKL.LP64;
+﻿using IntelMKL.LP64;
 
 //TODO: this should probably call the MKL dll directly, instead of using the package Compute.NET Bindings.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public class MklLapackProvider : ILapackProvider
+    internal class MklLapackProvider : ILapackProvider
     {
-        public static MklLapackProvider UniqueInstance { get; } = new MklLapackProvider();
+        internal static MklLapackProvider UniqueInstance { get; } = new MklLapackProvider();
 
         private MklLapackProvider() { } // private constructor for singleton pattern
 

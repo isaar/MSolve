@@ -3,9 +3,9 @@
 //TODO: this should probably call the MKL dll directly, instead of using the package Compute.NET Bindings.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public class MklBlasExtensionsProvider : IBlasExtensionsProvider
+    internal class MklBlasExtensionsProvider : IBlasExtensionsProvider
     {
-        public static MklBlasExtensionsProvider UniqueInstance { get; } = new MklBlasExtensionsProvider();
+        internal static MklBlasExtensionsProvider UniqueInstance { get; } = new MklBlasExtensionsProvider();
 
         private MklBlasExtensionsProvider() { } // private constructor for singleton pattern
 

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
-// TODO: Perhaps I should have various info classes and wrap the LAPACK calls directly
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
-    /// Utility methods to use when calling methods from <see cref="LapackLinearEquationsFacade"/>.
+    /// Utility methods to use when calling methods from <see cref="ILapackProvider"/>
     /// Authors: Serafeim Bakalakos
     /// </summary>
     internal static class LapackUtilities

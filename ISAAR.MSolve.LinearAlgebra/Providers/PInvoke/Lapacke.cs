@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
     /// Also see the included "lapacke.h" C header file and MKL's C user guide.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class LAPACKE
+    internal static class LAPACKE
     {
         public const int LAPACK_ROW_MAJOR = 101;
         public const int LAPACK_COL_MAJOR = 102;
@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.PInvoke
         /// Covered by Compute.NET. I just implemented it for practice and testing purposes.
         /// </summary>
         [DllImport("mkl_rt", CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dgetrs")]
-        public static extern int Dgetrs(int matrixLayout, char transA, int n, int nRhs, 
+        internal static extern int Dgetrs(int matrixLayout, char transA, int n, int nRhs, 
             double[] A, int ldA, int[] iPiv, double[] B, int ldB);
 
         /// <summary>

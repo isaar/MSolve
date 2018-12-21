@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using IntelMKL.LP64;
 
-//TODO: Should I use transposeA flags instead of providing different methods. The caller would have to repeat checking this
-//      flag (granted, it is not that costly) and I would need to write a lot of nested if...else... clauses.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
     /// Delegates BLAS operations to the highly optimized native dlls provided by Intel MKL.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class MklSparseBlasProvider : ISparseBlasProvider
+    internal class MklSparseBlasProvider : ISparseBlasProvider
     {
-        public static MklSparseBlasProvider UniqueInstance { get; } = new MklSparseBlasProvider();
+        internal static MklSparseBlasProvider UniqueInstance { get; } = new MklSparseBlasProvider();
 
         private MklSparseBlasProvider() { } // private constructor for singleton pattern
 

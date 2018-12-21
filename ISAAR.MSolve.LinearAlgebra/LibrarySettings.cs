@@ -2,7 +2,6 @@
 using ISAAR.MSolve.LinearAlgebra.Providers;
 
 //TODO: These should be thread-safe.
-//TODO: The providers might be better as singletons.
 //TODO: A different approach is to employ the Abstract Factory pattern. Clients would use factories to create matrices, instead
 //      of constructors or static factory methods. These factories would have different implementations: MKL, Managed, CUDA, etc.
 //      Advantage: the client could use simultaneously more than one providers. Disadvantages: 1) A lot of methods would need 

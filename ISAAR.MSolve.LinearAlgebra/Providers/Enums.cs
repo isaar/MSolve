@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Runtime.CompilerServices;
 
-//TODO: these should be internal
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public enum MatrixLayout
+    internal enum MatrixLayout
     {
         /// <summary>
         /// Row major layout.
@@ -17,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         ColMajor
     }
 
-    public enum TransposeMatrix
+    internal enum TransposeMatrix
     {
         /// <summary>
         /// The stored matrix will be accessed normally.
@@ -36,7 +32,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         //ConjugateTranspose
     }
 
-    public enum StoredTriangle
+    internal enum StoredTriangle
     {
         /// <summary>
         /// The stored matrix is upper triangular.
@@ -49,7 +45,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         Lower
     }
 
-    public enum DiagonalValues
+    internal enum DiagonalValues
     {
         /// <summary>
         /// The entries of the diagonal are 1. Applicable to triangular matrices only. Therefore the matrix is upper unit 
@@ -63,7 +59,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         NonUnit
     }
 
-    public enum MultiplicationSide
+    internal enum MultiplicationSide
     {
         /// <summary>
         /// The corresponding matrix A will be multiplied on the left: A * whatever.

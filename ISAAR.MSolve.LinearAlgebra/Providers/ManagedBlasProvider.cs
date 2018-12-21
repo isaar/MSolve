@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Providers.Implementations;
 //TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public class ManagedBlasProvider : IBlasProvider
+    internal class ManagedBlasProvider : IBlasProvider
     {
         //TODO: perhaps these should not be static.
         private static readonly DAXPY daxpy = new DAXPY();
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         private static readonly DSCAL dscal = new DSCAL();
         private static readonly DTRSV dtrsv = new DTRSV();
 
-        public static ManagedBlasProvider UniqueInstance { get; } = new ManagedBlasProvider();
+        internal static ManagedBlasProvider UniqueInstance { get; } = new ManagedBlasProvider();
 
         private ManagedBlasProvider() { } // private constructor for singleton pattern
 

@@ -1,10 +1,8 @@
-﻿//TODO: this and its implementations should be internal. The user should select a Provider that will then specify different BLAS,
-//      SparseBLAS, LAPACK, etc. providers. The implementations should also be singletons or enums.
-//TODO: I could also provide a CBLAS like wrapper. However it is not as high a priority, since BLAS is easy to use. If I do so,
+﻿//TODO: I could also provide a CBLAS like wrapper. However it is not as high a priority, since BLAS is easy to use. If I do so,
 //      the enums should be transfered to the wrapper. Here I would need to use strings only.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public interface IBlasProvider
+    internal interface IBlasProvider
     {
         #region BLAS Level 1
 

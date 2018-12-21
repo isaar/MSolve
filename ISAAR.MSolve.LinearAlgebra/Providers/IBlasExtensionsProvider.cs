@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-//TODO: this should be internal
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+﻿namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public interface IBlasExtensionsProvider
+    internal interface IBlasExtensionsProvider
     {
         /// <summary>
         /// y = alpha * x + beta * y

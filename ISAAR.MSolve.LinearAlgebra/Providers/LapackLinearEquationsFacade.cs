@@ -1,7 +1,6 @@
 ﻿using System;
 using static ISAAR.MSolve.LinearAlgebra.Providers.LapackUtilities;
 
-//TODO: info codes from ILapackProvider should correspond to the agument indices taking into account the offset arguments.
 //TODO: provide versions of these methods where the user can provide the work arrays.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {

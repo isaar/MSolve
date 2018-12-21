@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-//TODO: Perhaps I should have providers for LAPACKE, rather than LAPACK, or both. LAPACKE seems to be a wrapper, but this whole 
-//      project does just that. LAPACKE functions may also explicitly transpose matrices, which should not be hidden
-//      from the matrix/vector classes. MKL provides both LAPACK and LAPACKE, but other major packages 
-//      (e.g. dotNumerics, cuSolver) only provide the LAPACK interface.
-//TODO: Even better would be to write my own LAPACK wrapper, similarly to LAPACKE, which would wrap all LAPACK providers and 
-//      be simple enough for regular use. It would handle the work arrays, the output codes and use enums as input. These enums 
-//      will be the same for BLAS and LAPACK. It will not support row major layout, unless that method does not require 
-//      explicit transposition. 
-namespace ISAAR.MSolve.LinearAlgebra.Providers
+﻿namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
-    public interface ILapackProvider
+    /// <summary>
+    /// </summary>
+    /// <remarks>
+    /// The LAPACK (Fortran) interface has been chosen over the LAPACKE (C) interface, since it is provided by many more 
+    /// libraries. Usually LAPACKE is implemented as a C wrapper over LAPACK that abstracts the use of work arrays and provides
+    /// row major versions of the LAPACK subroutines. The former functionality is provided here by 
+    /// <see cref="LapackLinearEquationsFacade"/> and <see cref="LapackLeastSquaresFacadeDouble"/>. The latter is deliberately 
+    /// avoided, since row major LAPACKE functions need to convert the matrix into column major layout by explicitly transposing,
+    /// call the LAPACK subroutine and then convert the matrix back to row major by transposing again. All this transposing 
+    /// should not be hidden from the matrix classes of the current Linear Algebra project or even the user.
+    /// </remarks>
+    internal interface ILapackProvider
     {
         /// <summary>
         /// QR factorization. The matrix is general, stored in full column major format. See
