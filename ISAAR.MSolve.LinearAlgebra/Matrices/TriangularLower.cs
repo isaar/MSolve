@@ -429,8 +429,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
             Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
             Array.Copy(lhsVector.RawData, rhsVector.RawData, Order);
-            Blas.Dtpmv(StoredTriangle.Lower, transpose, DiagonalValues.NonUnit, Order,
-                this.data, 0, rhsVector.RawData, 0, 1);
+            Blas.Dtpmv(StoredTriangle.Upper, transpose, DiagonalValues.NonUnit, Order, this.data, 0, rhsVector.RawData, 0, 1);
         }
 
         /// <summary>
@@ -490,8 +489,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             double[] result = rhs.CopyToArray();
             TransposeMatrix transposeBLAS = transposeThis ? TransposeMatrix.NoTranspose : TransposeMatrix.Transpose; // row major
-            Blas.Dtpsv(StoredTriangle.Lower, transposeBLAS, DiagonalValues.NonUnit, Order,
-                this.data, 0, result, 0, 1);
+            Blas.Dtpsv(StoredTriangle.Upper, transposeBLAS, DiagonalValues.NonUnit, Order, this.data, 0, result, 0, 1);
             return Vector.CreateFromArray(result, false);
         }
 
