@@ -7,6 +7,12 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 //      found. See LAPACK source for the checks. Error checking needs to be improved in general.
 namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
+    /// <summary>
+    /// Provides managed C# implementations of the linear algebra operations defined by <see cref="ILapackProvider"/>. Uses the 
+    /// library DotNumerics (see http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSLapack/Default.aspx) for the most
+    /// part. For LAPACK subroutines not provided by DotNumerics, custom C# implementations are used instead. 
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal class ManagedLapackProvider : ILapackProvider
     {
         private static readonly DGELQF dgelqf = new DGELQF();
@@ -24,38 +30,65 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 
         private ManagedLapackProvider() { } // private constructor for singleton pattern
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dgelqf.aspx
+        /// </summary>
         public void Dgelqf(int m, int n, double[] a, int offsetA, int ldA, double[] tau, int offsetTau, 
             double[] work, int offsetWork, int lWork, ref int info)
             => dgelqf.Run(m, n, ref a, offsetA, ldA, ref tau, offsetTau, ref work, offsetWork, lWork, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dgeqrf.aspx
+        /// </summary>
         public void Dgeqrf(int m, int n, double[] a, int offsetA, int ldA, double[] tau, int offsetTau,
             double[] work, int offsetWork, int lWork, ref int info)
             => dgeqrf.Run(m, n, ref a, offsetA, ldA, ref tau, offsetTau, ref work, offsetWork, lWork, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dgetrf.aspx
+        /// </summary>
         public void Dgetrf(int m, int n, double[] a, int offsetA, int ldA, int[] ipiv, int offsetIpiv, ref int info)
             => dgetrf.Run(m, n, ref a, offsetA, ldA, ref ipiv, offsetIpiv, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dgetri.aspx
+        /// </summary>
         public void Dgetri(int n, double[] a, int offsetA, int ldA, int[] ipiv, int offsetIpiv, 
             double[] work, int offsetWork, int lWork, ref int info)
             => dgetri.Run(n, ref a, offsetA, ldA, ipiv, offsetIpiv, ref work, offsetWork, lWork, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dgetrs.aspx
+        /// </summary>
         public void Dgetrs(string transA, int n, int nRhs, double[] a, int offsetA, int ldA, int[] ipiv, int offsetIpiv,
             double[] b, int offsetB, int ldB, ref int info)
             => dgetrs.Run(transA, n, nRhs, a, offsetA, ldA, ipiv, offsetIpiv, ref b, offsetB, ldB, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dorglq.aspx
+        /// </summary>
         public void Dorglq(int m, int n, int k, double[] a, int offsetA, int ldA, double[] tau, int offsetTau, 
             double[] work, int offsetWork, int lWork, ref int info)
             => dorglq.Run(m, n, k, ref a, offsetA, ldA, tau, offsetTau, ref work, offsetWork, lWork, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dorgqr.aspx
+        /// </summary>
         public void Dorgqr(int m, int n, int k, double[] a, int offsetA, int ldA, double[] tau, int offsetTau,
             double[] work, int offsetWork, int lWork, ref int info)
             => dorgqr.Run(m, n, k, ref a, offsetA, ldA, tau, offsetTau, ref work, offsetWork, lWork, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dormlq.aspx
+        /// </summary>
         public void Dormlq(string side, string transQ, int m, int n, int k, double[] a, int offsetA, int ldA, double[] tau, 
             int offsetTau, double[] c, int offsetC, int ldC, double[] work, int offsetWork, int lWork, ref int info)
             => dormlq.Run(side, transQ, m, n, k, ref a, offsetA, ldA, tau, offsetTau, ref c, offsetC, ldC,
                 ref work, offsetWork, lWork, ref info);
 
+        /// <summary>
+        /// See http://www.dotnumerics.com/NumericalLibraries/LinearAlgebra/CSharpCodeFiles/dormqr.aspx
+        /// </summary>
         public void Dormqr(string side, string transQ, int m, int n, int k, double[] a, int offsetA, int ldA, double[] tau,
             int offsetTau, double[] c, int offsetC, int ldC, double[] work, int offsetWork, int lWork, ref int info)
             => dormqr.Run(side, transQ, m, n, k, ref a, offsetA, ldA, tau, offsetTau, ref c, offsetC, ldC,

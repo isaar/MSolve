@@ -1,6 +1,9 @@
 ﻿namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
+    /// Provides linear algebra operations as defined by the LAPACK (Linear ALgebra PACKage) interface. These operations are 
+    /// more complex than the ones defined by BLAS, e.g. factorizations and operations with the produced factors.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <remarks>
     /// The LAPACK (Fortran) interface has been chosen over the LAPACKE (C) interface, since it is provided by many more 
@@ -14,7 +17,7 @@
     internal interface ILapackProvider
     {
         /// <summary>
-        /// QR factorization. The matrix is general, stored in full column major format. See
+        /// LQ factorization. The matrix is general, stored in full column major format. See
         /// http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_ga436228e38ef5c55e3229502afa2c4220.html#ga436228e38ef5c55e3229502afa2c4220
         /// </summary>
         void Dgelqf(int m, int n, double[] a, int offsetA, int ldA, double[] tau, int offsetTau,
@@ -70,7 +73,7 @@
             double[] work, int offsetWork, int lWork, ref int info);
 
         /// <summary>
-        /// Multiplies the QR factor Q with another matrix C, using the factorized data of 
+        /// Multiplies the LQ factor Q with another matrix C, using the factorized data of 
         /// <see cref="Dgelqf(int, int, double[], int, int, double[], int, double[], int, int, ref int)"/>.
         /// The matrix is general, stored in full column major format. See 
         /// http://www.netlib.org/lapack/explore-html/da/dba/group__double_o_t_h_e_rcomputational_ga99147464f79c5447c08eead5a06a90ce.html#ga99147464f79c5447c08eead5a06a90ce

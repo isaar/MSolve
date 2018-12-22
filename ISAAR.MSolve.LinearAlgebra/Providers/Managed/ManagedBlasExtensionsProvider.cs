@@ -2,6 +2,10 @@
 
 namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
+    /// <summary>
+    /// Provides managed C# implementations of the linear algebra operations defined by <see cref="IBlasExtensionsProvider"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal class ManagedBlasExtensionsProvider : IBlasExtensionsProvider
     {
         //TODO: perhaps these should not be static.

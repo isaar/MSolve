@@ -3,6 +3,13 @@
 //TODO: provide versions of these methods where the user can provide the work arrays.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
+    /// <summary>
+    /// Simplifies the use of LAPACK (see <see cref="ILapackProvider"/>) linear algebra operations that concern the solution of
+    /// least squares and minimum norm problems with double precision arithmetic. Such simplifications are error checking, 
+    /// handling workspace arrays, enums instead of string arguments etc. This facade is meant to provide a managed 
+    /// object-oriented alternative the LAPACKE library used in C.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal class LapackLeastSquaresFacadeDouble
     {
         internal LapackLeastSquaresFacadeDouble(ILapackProvider provider)

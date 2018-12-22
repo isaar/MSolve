@@ -2,6 +2,11 @@
 //      the enums should be transfered to the wrapper. Here I would need to use strings only.
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
+    /// <summary>
+    /// Provides linear algebra operations as defined by the BLAS (Basic Linear Algebra Subroutines) interface. These operations
+    /// concern vector-vector operations (level 1), matrix-vector operations (level 2) and matrix-matrix operations (level 3). 
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal interface IBlasProvider
     {
         #region BLAS Level 1

@@ -9,7 +9,7 @@ using IntelMKL.LP64;
 namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 {
     /// <summary>
-    /// Platform invoke methods for Intel MKL's LAPACKE (C interface of LAPACK). These are not covered by any nuget packages.
+    /// Platform Invoke methods for Intel MKL's LAPACKE (C interface of LAPACK). These are not covered by any nuget packages.
     /// Also see the included "lapacke.h" C header file and MKL's C user guide.
     /// Authors: Serafeim Bakalakos
     /// </summary>

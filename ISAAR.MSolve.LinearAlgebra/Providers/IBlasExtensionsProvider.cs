@@ -1,5 +1,10 @@
 ﻿namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
+    /// <summary>
+    /// Provides linear algebra operations that are variations of the usual BLAS subroutines (see <see cref="IBlasProvider"/>) 
+    /// or in the same spirit.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     internal interface IBlasExtensionsProvider
     {
         /// <summary>

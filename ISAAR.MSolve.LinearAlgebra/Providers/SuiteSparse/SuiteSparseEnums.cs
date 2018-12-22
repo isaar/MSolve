@@ -28,7 +28,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
     }
 
     /// <summary>
-    /// How to proceed after factorizing (triangulation) the linear system matrix: A=L*U.
+    /// Specifies whether to solve the linear system A * x = b with the original matrix A or with some factor produced by the 
+    /// factorization A = L * U or A = L * transpose(L).
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     internal enum SystemType
     {

@@ -4,7 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 namespace ISAAR.MSolve.LinearAlgebra.Providers
 {
     /// <summary>
-    /// Utility methods to use when calling methods from <see cref="ILapackProvider"/>
+    /// Utility methods to use when calling methods from <see cref="ILapackProvider"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     internal static class LapackUtilities
@@ -15,13 +15,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         /// </summary>
         internal const int DefaultInfo = int.MinValue;
 
+        /// <summary>
+        /// Abstracts LAPACK subroutines where workspace array management is needed.
+        /// </summary>
         internal delegate void RawLapackRoutine(double[] workArray, int offsetWork, int lengthWork);
 
         /// <summary>
         /// Most LAPACK functions return the same negative error codes for invalid parameters. Parameter <paramref name="info"/> 
         /// will not be checked to make sure it is negative.
         /// </summary>
-        /// <param name="info"></param>
         [Conditional("DEBUG")]
         internal static void ProcessNegativeInfo(int info)
         {
@@ -46,6 +48,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers
         }
 
         //TODO: The query info result is overwritten by the code from the second call and thus cannot be checked.
+        /// <summary>
+        /// For LAPACK subroutines where workspace array management is needed: First the subroutine is called to find a  
+        /// reasonably good (for optimality ILAENV must be installed for each system) size for the workspace array. Then the 
+        /// array is allocated and the subroutine is called again, but this time the actual operation is performed.
+        /// </summary>
         internal static void QueryWorkspaceAndExecute(RawLapackRoutine routine)
         {
             // Tell LAPACK query to calculate the optimum workspace size, instead of executing the operation

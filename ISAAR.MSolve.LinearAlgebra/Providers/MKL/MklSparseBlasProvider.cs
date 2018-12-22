@@ -4,7 +4,10 @@ using IntelMKL.LP64;
 namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 {
     /// <summary>
-    /// Delegates BLAS operations to the highly optimized native dlls provided by Intel MKL.
+    /// Implementation of <see cref="ISparseBlasProvider"/> that calls the native dlls of Intel Math Kernel Library. See
+    /// https://software.intel.com/en-us/mkl-developer-reference-fortran-blas-and-sparse-blas-routines, particularly
+    /// https://software.intel.com/en-us/mkl-developer-reference-fortran-sparse-blas-level-1-routines#08EF100F-3A3A-4CB2-90D3-48B91056BCAD,
+    /// https://software.intel.com/en-us/mkl-developer-reference-fortran-sparse-blas-level-2-and-level-3-routines#CCA50EB2-7851-48F7-9CD6-804D7EFD8481
     /// Authors: Serafeim Bakalakos
     /// </summary>
     internal class MklSparseBlasProvider : ISparseBlasProvider
@@ -13,34 +16,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 
         private MklSparseBlasProvider() { } // private constructor for singleton pattern
 
+        #region Sparse BLAS Level 1
+
+        /// <summary>
+        /// See https://software.intel.com/en-us/mkl-developer-reference-fortran-axpyi
+        /// </summary>
         public void Daxpyi(int nnz, double alpha, double[] valuesX, int[] indicesX, int offsetX, double[] vectorY, int offsetY)
             => CBlas.Daxpyi(nnz, alpha, ref valuesX[offsetX], ref indicesX[offsetX], ref vectorY[offsetY]);
 
-        public void Dcscgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] colOffsetsA,
-            int[] rowIndicesA, double[] matrixB, double[] matrixC)
-            => Dcsrgemm(!transposeA, numColsA, numColsB, numRowsA, valuesA, colOffsetsA, rowIndicesA, matrixB, matrixC);
+        /// <summary>
+        /// See https://software.intel.com/en-us/mkl-developer-reference-fortran-doti
+        /// </summary>
+        public double Ddoti(int nnz, double[] valuesX, int[] indicesX, int offsetX, double[] vectorY, int offsetY)
+            => CBlas.Ddoti(nnz, ref valuesX[offsetX], ref indicesX[offsetX], ref vectorY[offsetY]);
+        #endregion
+
+        #region Sparse BLAS Level 2
 
         public void Dcscgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] colOffsetsA, int[] rowIndicesA,
             double[] vectorX, int offsetX, double[] vectorY, int offsetY)
             => Dcsrgemv(!transposeA, numColsA, numRowsA, valuesA, colOffsetsA, rowIndicesA, vectorX, offsetX, vectorY, offsetY);
-        
-        public void Dcsrgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] rowOffsetsA,
-            int[] colIndicesA, double[] matrixB, double[] matrixC)
-        {
-            int ldB = transposeA ? numRowsA : numColsA;
-            int ldC = transposeA ? numColsA : numRowsA;
-
-            //TODO: This implementation uses level 2 BLAS. To leverage real lvl 3 BLAS, I would need a different CSR format or  
-            //      perhaps the inspector-executor interface.
-            for (int j = 0; j < numColsB; ++j)
-            {
-                Dcsrgemv(transposeA, numRowsA, numColsA, valuesA, rowOffsetsA, colIndicesA, matrixB, j * ldB, matrixC, j * ldC);
-            }
-        }
 
         /// <summary>
         /// See
-        /// https://software.intel.com/en-us/mkl-developer-reference-c-mkl-cspblas-csrgemv#D840F0E5-E41A-4E91-94D2-FEB320F93E91
+        /// https://software.intel.com/en-us/mkl-developer-reference-fortran-mkl-cspblas-csrgemv#9E1032C5-F844-42D4-A0F0-D62E52D77020
         /// </summary>
         public void Dcsrgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] rowOffsetsA, int[] colIndicesA,
             double[] vectorX, int offsetX, double[] vectorY, int offsetY)
@@ -74,9 +73,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
             }
         }
 
-        public double Ddoti(int nnz, double[] valuesX, int[] indicesX, int offsetX, double[] vectorY, int offsetY)
-            => CBlas.Ddoti(nnz, ref valuesX[offsetX], ref indicesX[offsetX], ref vectorY[offsetY]);
-
         /// <summary>
         /// Matrix vector multiplication y = A * x, with A being a triangular matrix in Skyline format. See
         /// https://software.intel.com/en-us/mkl-developer-reference-c-mkl-skymv#7C27501E-3893-4443-8257-0E5F4E905C29
@@ -97,6 +93,45 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
         }
 
         /// <summary>
+        /// Linear system solution x = inv(A) * b, with A being a triangular matrix in Skyline format. See
+        /// https://software.intel.com/node/0a9d506f-d424-4651-8e68-16625ed412e7#0A9D506F-D424-4651-8E68-16625ED412E7
+        /// Warning: Intel MKL's Skyline format uses 1-based indexing and the non zero entries of each column are ordered from
+        /// the top to the diagonal, if the upper triangle is stored. See
+        /// https://software.intel.com/en-us/mkl-developer-reference-c-sparse-blas-skyline-matrix-storage-format
+        /// In constrast, in the current version of our Skyline matrix, 0-based indexing is used and the entries of each column 
+        /// are ordered from the diagonal to the top.
+        /// </summary>
+        public void Dskysv(bool upper, int orderA, double[] valuesA, int[] colOffsetsA, double[] b, double[] x)
+        {
+            string trans = "N"; //TODO: not sure about this
+            string matdscrA = "SUNF"; // symmetric, upper, non-unit, fortran indexing
+            double alpha = 1.0;
+            SpBlas.MklDskysv(trans, ref orderA, ref alpha, matdscrA, ref valuesA[0], ref colOffsetsA[0],
+                ref b[0], ref x[0]);
+        }
+        #endregion
+
+        #region Sparse BLAS Level 3
+
+        public void Dcscgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] colOffsetsA,
+            int[] rowIndicesA, double[] matrixB, double[] matrixC)
+            => Dcsrgemm(!transposeA, numColsA, numColsB, numRowsA, valuesA, colOffsetsA, rowIndicesA, matrixB, matrixC);
+
+        public void Dcsrgemm(bool transposeA, int numRowsA, int numColsB, int numColsA, double[] valuesA, int[] rowOffsetsA,
+            int[] colIndicesA, double[] matrixB, double[] matrixC)
+        {
+            int ldB = transposeA ? numRowsA : numColsA;
+            int ldC = transposeA ? numColsA : numRowsA;
+
+            //TODO: This implementation uses level 2 BLAS. To leverage real lvl 3 BLAS, I would need a different CSR format or  
+            //      perhaps the inspector-executor interface.
+            for (int j = 0; j < numColsB; ++j)
+            {
+                Dcsrgemv(transposeA, numRowsA, numColsA, valuesA, rowOffsetsA, colIndicesA, matrixB, j * ldB, matrixC, j * ldC);
+            }
+        }
+
+        /// <summary>
         /// Solve multiple linear systems X = inv(A) * B, with A being a triangular matrix in Skyline format. See
         /// https://software.intel.com/node/0a9d506f-d424-4651-8e68-16625ed412e7#0A9D506F-D424-4651-8E68-16625ED412E7
         /// Warning: Intel MKL's Skyline format uses 1-based indexing and the non zero entries of each column are ordered from
@@ -114,24 +149,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
             SpBlas.MklDskysm(trans, ref n, ref nRhs, ref alpha, matdscrA, ref valuesA[0], ref colOffsetsA[0],
                 ref b[0], ref ldB, ref x[0], ref ldX);
         }
-
-        /// <summary>
-        /// Linear system solution x = inv(A) * b, with A being a triangular matrix in Skyline format. See
-        /// https://software.intel.com/node/0a9d506f-d424-4651-8e68-16625ed412e7#0A9D506F-D424-4651-8E68-16625ED412E7
-        /// Warning: Intel MKL's Skyline format uses 1-based indexing and the non zero entries of each column are ordered from
-        /// the top to the diagonal, if the upper triangle is stored. See
-        /// https://software.intel.com/en-us/mkl-developer-reference-c-sparse-blas-skyline-matrix-storage-format
-        /// In constrast, in the current version of our Skyline matrix, 0-based indexing is used and the entries of each column 
-        /// are ordered from the diagonal to the top.
-        /// </summary>
-        public void Dskysv(bool upper, int orderA, double[] valuesA, int[] colOffsetsA, double[] b, double[] x)
-        {
-            string trans = "N"; //TODO: not sure about this
-            string matdscrA = "SUNF"; // symmetric, upper, non-unit, fortran indexing
-            double alpha = 1.0;
-            SpBlas.MklDskysv(trans, ref orderA, ref alpha, matdscrA, ref valuesA[0], ref colOffsetsA[0],
-                ref b[0], ref x[0]);
-        }
+        #endregion
 
         //TODO: perhaps the 1-based indexing array can be stored in the matrix or cached here instead of rebuilding it 
         //      each time.
