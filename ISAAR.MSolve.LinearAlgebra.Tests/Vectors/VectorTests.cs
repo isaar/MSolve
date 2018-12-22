@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
+﻿using System;
+using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
@@ -13,36 +14,44 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-10);
 
-        [Fact]
-        private static void TestAddition()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestAddition(LinearAlgebraProviderChoice providers)
         {
-            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
-            var expected = Vector.CreateFromArray(TestVectors.Sum);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+                var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+                var expected = Vector.CreateFromArray(TestVectors.Sum);
 
-            // operator+
-            comparer.AssertEqual(expected, v1 + v2);
+                // operator+
+                comparer.AssertEqual(expected, v1 + v2);
 
-            // AddIntoThis()
-            var temp = Vector.CreateFromVector(v1);
-            temp.AddIntoThis(v2);
-            comparer.AssertEqual(expected, temp);
+                // AddIntoThis()
+                var temp = Vector.CreateFromVector(v1);
+                temp.AddIntoThis(v2);
+                comparer.AssertEqual(expected, temp);
+            });
         }
 
-        [Fact]
-        private static void TestAxpy()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestAxpy(LinearAlgebraProviderChoice providers)
         {
-            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
-            var expected = Vector.CreateFromArray(TestVectors.Vector1PlusVector2Times3);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+                var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+                var expected = Vector.CreateFromArray(TestVectors.Vector1PlusVector2Times3);
 
-            // Axpy()
-            comparer.AssertEqual(expected, v1.Axpy(v2, TestVectors.Scalar2));
+                // Axpy()
+                comparer.AssertEqual(expected, v1.Axpy(v2, TestVectors.Scalar2));
 
-            // AxpyIntoThis
-            var temp = Vector.CreateFromVector(v1);
-            temp.AxpyIntoThis(v2, TestVectors.Scalar2);
-            comparer.AssertEqual(expected, temp);
+                // AxpyIntoThis
+                var temp = Vector.CreateFromVector(v1);
+                temp.AxpyIntoThis(v2, TestVectors.Scalar2);
+                comparer.AssertEqual(expected, temp);
+            });
         }
 
         [Fact]
@@ -54,17 +63,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
             comparer.AssertEqual(zero, vector);
         }
 
-        [Fact]
-        private static void TestDotProduct()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestDotProduct(LinearAlgebraProviderChoice providers)
         {
-            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+                var v2 = Vector.CreateFromArray(TestVectors.Vector2);
 
-            // DotProduct()
-            comparer.AssertEqual(TestVectors.DotProduct, v1.DotProduct(v2));
+                // DotProduct()
+                comparer.AssertEqual(TestVectors.DotProduct, v1.DotProduct(v2));
 
-            // operator*
-            comparer.AssertEqual(TestVectors.DotProduct, v1 * v2);
+                // operator*
+                comparer.AssertEqual(TestVectors.DotProduct, v1 * v2);
+            });
         }
 
         [Fact]
@@ -83,64 +96,78 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Vectors
             comparer.AssertEqual(expected, temp);
         }
 
-        [Fact]
-        private static void TestLinearCombination()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestLinearCombination(LinearAlgebraProviderChoice providers)
         {
-            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
-            var expected = 2.5 * v1 + -3.5 * v2;
-            var comparer = new MatrixComparer();
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+                var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+                var expected = 2.5 * v1 + -3.5 * v2;
+                var comparer = new MatrixComparer();
 
-            // LinearCombination()
-            comparer.AssertEqual(expected, v1.LinearCombination(2.5, v2, -3.5));
+                // LinearCombination()
+                comparer.AssertEqual(expected, v1.LinearCombination(2.5, v2, -3.5));
 
-            // LinearCombinationIntoThis()
-            var temp = Vector.CreateFromVector(v1);
-            temp.LinearCombinationIntoThis(2.5, v2, -3.5);
-            comparer.AssertEqual(expected, temp);
+                // LinearCombinationIntoThis()
+                var temp = Vector.CreateFromVector(v1);
+                temp.LinearCombinationIntoThis(2.5, v2, -3.5);
+                comparer.AssertEqual(expected, temp);
+            });
         }
 
-        [Fact]
-        private static void TestNorm2()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestNorm2(LinearAlgebraProviderChoice providers)
         {
-            var vector = Vector.CreateFromArray(TestVectors.Vector1);
-
-            // Norm2()
-            comparer.AssertEqual(TestVectors.Norm2OfVector1, vector.Norm2());
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var vector = Vector.CreateFromArray(TestVectors.Vector1);
+                comparer.AssertEqual(TestVectors.Norm2OfVector1, vector.Norm2());
+            });
         }
 
-        [Fact]
-        private static void TestScaling()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestScaling(LinearAlgebraProviderChoice providers)
         {
-            var vector = Vector.CreateFromArray(TestVectors.Vector1);
-            var expected = Vector.CreateFromArray(TestVectors.Vector1Times2);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var vector = Vector.CreateFromArray(TestVectors.Vector1);
+                var expected = Vector.CreateFromArray(TestVectors.Vector1Times2);
 
-            // Scale()
-            comparer.AssertEqual(expected, vector.Scale(2.0));
+                // Scale()
+                comparer.AssertEqual(expected, vector.Scale(2.0));
 
-            // ScaleIntoThis()
-            var temp = Vector.CreateFromVector(vector);
-            temp.ScaleIntoThis(2.0);
-            comparer.AssertEqual(expected, temp);
+                // ScaleIntoThis()
+                var temp = Vector.CreateFromVector(vector);
+                temp.ScaleIntoThis(2.0);
+                comparer.AssertEqual(expected, temp);
 
-            // operator*
-            comparer.AssertEqual(expected, 2.0 * vector);
+                // operator*
+                comparer.AssertEqual(expected, 2.0 * vector);
+            });
         }
 
-        [Fact]
-        private static void TestSubtraction()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestSubtraction(LinearAlgebraProviderChoice providers)
         {
-            var v1 = Vector.CreateFromArray(TestVectors.Vector1);
-            var v2 = Vector.CreateFromArray(TestVectors.Vector2);
-            var expected = Vector.CreateFromArray(TestVectors.Difference);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var v1 = Vector.CreateFromArray(TestVectors.Vector1);
+                var v2 = Vector.CreateFromArray(TestVectors.Vector2);
+                var expected = Vector.CreateFromArray(TestVectors.Difference);
 
-            // operator-
-            comparer.AssertEqual(expected, v1 - v2);
+                // operator-
+                comparer.AssertEqual(expected, v1 - v2);
 
-            // SubtractIntoThis()
-            var temp = Vector.CreateFromVector(v1);
-            temp.SubtractIntoThis(v2);
-            comparer.AssertEqual(expected, temp);
+                // SubtractIntoThis()
+                var temp = Vector.CreateFromVector(v1);
+                temp.SubtractIntoThis(v2);
+                comparer.AssertEqual(expected, temp);
+            });
         }
     }
 }

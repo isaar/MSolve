@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
     /// Tests for Intel MKL library's LAPACK functions.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class LapackTests
+    public static class MklLapackTests
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 

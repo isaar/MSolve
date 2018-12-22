@@ -17,36 +17,44 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-5);
 
-        [Fact]
-        private static void TestDenseSystem()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestDenseSystem(LinearAlgebraProviderChoice providers)
         {
-            var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
-            var b = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
-            var xExpected = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
+                var b = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
+                var xExpected = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
 
-            var builder = new CGAlgorithm.Builder();
-            builder.ResidualTolerance = 1E-7;
-            builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
-            var cg = builder.Build();
-            var xComputed = Vector.CreateZero(A.NumRows);
-            CGStatistics stats = cg.Solve(A, b, xComputed, true);
-            comparer.AssertEqual(xExpected, xComputed);
+                var builder = new CGAlgorithm.Builder();
+                builder.ResidualTolerance = 1E-7;
+                builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
+                var cg = builder.Build();
+                var xComputed = Vector.CreateZero(A.NumRows);
+                CGStatistics stats = cg.Solve(A, b, xComputed, true);
+                comparer.AssertEqual(xExpected, xComputed);
+            });
         }
 
-        [Fact]
-        private static void TestSparseSystem()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestSparseSystem(LinearAlgebraProviderChoice providers)
         {
-            var A = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
-            var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
-            var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var A = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+                var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
+                var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
 
-            var builder = new CGAlgorithm.Builder();
-            builder.ResidualTolerance = 1E-7;
-            builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
-            var cg = builder.Build();
-            var xComputed = Vector.CreateZero(A.NumRows);
-            CGStatistics stats = cg.Solve(A, b, xComputed, true);
-            comparer.AssertEqual(xExpected, xComputed);
+                var builder = new CGAlgorithm.Builder();
+                builder.ResidualTolerance = 1E-7;
+                builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
+                var cg = builder.Build();
+                var xComputed = Vector.CreateZero(A.NumRows);
+                CGStatistics stats = cg.Solve(A, b, xComputed, true);
+                comparer.AssertEqual(xExpected, xComputed);
+            });
         }
     }
 }

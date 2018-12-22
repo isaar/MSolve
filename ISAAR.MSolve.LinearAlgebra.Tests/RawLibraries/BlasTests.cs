@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
     /// Tests for Intel MKL library's BLAS functions.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class BlasTests
+    public static class MklBlasTests
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 

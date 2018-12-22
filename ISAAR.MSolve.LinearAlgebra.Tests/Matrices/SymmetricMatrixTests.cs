@@ -35,22 +35,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             comparer.AssertEqual(zero, matrix);
         }
 
-        [Fact]
-        private static void TestMatrixVectorMultiplication()
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestMatrixVectorMultiplication(LinearAlgebraProviderChoice providers)
         {
-            // invertible
-            var A1 = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
-            var x1 = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
-            var b1Expected = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
-            Vector b1Computed = A1.Multiply(x1);
-            comparer.AssertEqual(b1Expected, b1Computed);
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                // invertible
+                var A1 = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+                var x1 = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
+                var b1Expected = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
+                Vector b1Computed = A1.Multiply(x1);
+                comparer.AssertEqual(b1Expected, b1Computed);
 
-            // singular
-            var A2 = SymmetricMatrix.CreateFromArray(SymmSingular10by10.Matrix);
-            var x2 = Vector.CreateFromArray(SymmSingular10by10.Lhs);
-            var b2Expected = Vector.CreateFromArray(SymmSingular10by10.Rhs);
-            Vector b2Computed = A2.Multiply(x1);
-            comparer.AssertEqual(b2Expected, b2Computed);
+                // singular
+                var A2 = SymmetricMatrix.CreateFromArray(SymmSingular10by10.Matrix);
+                var x2 = Vector.CreateFromArray(SymmSingular10by10.Lhs);
+                var b2Expected = Vector.CreateFromArray(SymmSingular10by10.Rhs);
+                Vector b2Computed = A2.Multiply(x1);
+                comparer.AssertEqual(b2Expected, b2Computed);
+            });
         }
 
         [Fact]
