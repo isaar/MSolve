@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Analyzers
         protected readonly Dictionary<int, IVector> du = new Dictionary<int, IVector>();
         protected readonly Dictionary<int, IVector> uPlusdu = new Dictionary<int, IVector>();
         protected Vector globalRhs; //TODO: This was originally readonly 
-        protected double globalRhsNorm; //TODO: This can probably be a local variable.
+        protected double globalRhsNormInitial; //TODO: This can probably be a local variable.
         protected INonLinearParentAnalyzer_v2 parentAnalyzer = null;
 
         internal NonLinearAnalyzerBase(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
@@ -54,6 +54,8 @@ namespace ISAAR.MSolve.Analyzers
         public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
         public TotalDisplacementsPerIterationLog TotalDisplacementsPerIterationLog { get; set; }
+        public Dictionary<int, TotalLoadsDisplacementsPerIncrementLog> IncrementalLogs { get; }
+            = new Dictionary<int, TotalLoadsDisplacementsPerIncrementLog>();
 
         public IParentAnalyzer ParentAnalyzer
         {
@@ -75,9 +77,11 @@ namespace ISAAR.MSolve.Analyzers
             solver.Initialize();
         }
 
-        protected double CalculateInternalRhs(int currentIncrement, int iteration)
+        //TODO: Internal Rhs vectors are created and destroyed at each iteration. It would be more efficient to store them as
+        //      vectors and then overwrite them.
+        protected Dictionary<int, IVector> CalculateInternalRhs(int currentIncrement, int iteration)
         {
-            globalRhs.Clear();
+            var internalRhsVectors = new Dictionary<int, IVector>();
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
@@ -113,13 +117,27 @@ namespace ISAAR.MSolve.Analyzers
                     internalRhs.AddIntoThis(otherRhsComponents);//TODOMaria this does nothing for the static problem
                 }
 
-                //new Vector<double>(u[subdomain.ID] + du[subdomain.ID]))));
+                internalRhsVectors.Add(id, internalRhs);
+            }
+
+            return internalRhsVectors; 
+        }
+
+        protected double UpdateResidualForcesAndNorm(int currentIncrement, Dictionary<int, IVector> internalRhs)
+        {
+            globalRhs.Clear();
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                int id = linearSystem.Subdomain.ID;
 
                 linearSystem.RhsVector.Clear(); //TODO: we can copy rhs[subdomain.ID] and then scale it instead of clearing and adding.
 
+                // External forces = loadFactor * total external forces
                 //TODO: the next line adds a vector to itself many times. This is called multiplication and is much faster.
                 for (int j = 0; j <= currentIncrement; j++) linearSystem.RhsVector.AddIntoThis(rhs[id]);//TODOMaria this adds the external forces 
-                linearSystem.RhsVector.SubtractIntoThis(internalRhs);
+
+                // Residual forces = external - internal
+                linearSystem.RhsVector.SubtractIntoThis(internalRhs[id]);
 
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRhs);
             }
@@ -151,13 +169,14 @@ namespace ISAAR.MSolve.Analyzers
                 uPlusdu.Add(id, linearSystem.CreateZeroVector());
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRhs);
             }
-            globalRhsNorm = provider.CalculateRhsNorm(globalRhs);
+            globalRhsNormInitial = provider.CalculateRhsNorm(globalRhs);
         }
 
         protected void InitializeLogs()
         {
             Logs.Clear();
             foreach (int id in LogFactories.Keys) Logs.Add(id, LogFactories[id].CreateLogs());
+            foreach (var log in IncrementalLogs.Values) log.Initialize();
         }
 
         protected void SaveMaterialStateAndUpdateSolution()
@@ -201,7 +220,7 @@ namespace ISAAR.MSolve.Analyzers
                 rhs[id] = r;
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRhs);
             }
-            globalRhsNorm = provider.CalculateRhsNorm(globalRhs);
+            globalRhsNormInitial = provider.CalculateRhsNorm(globalRhs);
         }
 
         protected void UpdateRhs(int step)

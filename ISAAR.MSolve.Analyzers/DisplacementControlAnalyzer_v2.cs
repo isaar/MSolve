@@ -46,9 +46,12 @@ namespace ISAAR.MSolve.Analyzers
                 {
                     AddEquivalentNodalLoadsToRHS(increment, iteration);
                     solver.Solve();
-                    errorNorm = CalculateInternalRhs(increment, iteration);
+
+                    Dictionary<int, IVector> internalRhsVectors = CalculateInternalRhs(increment, iteration);
+                    errorNorm = UpdateResidualForcesAndNorm(increment, internalRhsVectors); // This also sets the rhs vectors in linear systems.
                     if (iteration == 0) firstError = errorNorm;
                     if (errorNorm < residualTolerance) break;
+                    //Console.WriteLine($"Increment {increment}, iteration {iteration}: norm2(error) = {errorNorm}");
 
                     SplitResidualForcesToSubdomains();
                     if ((iteration + 1) % numIterationsForMatrixRebuild == 0)

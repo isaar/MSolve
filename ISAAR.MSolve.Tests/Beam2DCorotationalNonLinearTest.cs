@@ -242,7 +242,6 @@ namespace ISAAR.MSolve.Tests
             childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
 
             // Run the analysis
-            //parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 

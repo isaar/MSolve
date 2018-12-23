@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Interfaces;
 
@@ -35,8 +36,10 @@ namespace ISAAR.MSolve.Analyzers
                 for (iteration = 0; iteration < maxIterationsPerIncrement; iteration++)
                 {
                     solver.Solve();
-                    errorNorm = globalRhsNorm != 0 ? CalculateInternalRhs(increment, iteration) / globalRhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                    Console.WriteLine($"Increment {increment}, iteration {iteration}: norm2(error) = {errorNorm}");
+                    Dictionary<int, IVector> internalRhsVectors = CalculateInternalRhs(increment, iteration);
+                    double residualNormCurrent = UpdateResidualForcesAndNorm(increment, internalRhsVectors); // This also sets the rhs vectors in linear systems.
+                    errorNorm = globalRhsNormInitial != 0 ? residualNormCurrent / globalRhsNormInitial : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    //Console.WriteLine($"Increment {increment}, iteration {iteration}: norm2(error) = {errorNorm}");
 
                     if (iteration == 0) firstError = errorNorm;
 
@@ -44,7 +47,13 @@ namespace ISAAR.MSolve.Analyzers
 
                     if (errorNorm < residualTolerance)
                     {
-                        //TODO: Log increment data
+                        foreach (var subdomainLogPair in IncrementalLogs)
+                        {
+                            int subdomainID = subdomainLogPair.Key;
+                            TotalLoadsDisplacementsPerIncrementLog log = subdomainLogPair.Value;
+                            log.LogTotalDataForIncrement(increment, iteration, errorNorm,
+                                uPlusdu[subdomainID], internalRhsVectors[subdomainID]);
+                        }
                         break;
                     }
 
