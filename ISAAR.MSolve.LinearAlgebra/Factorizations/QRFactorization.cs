@@ -1,9 +1,9 @@
 ﻿using System;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: Perhaps I should use the QR with pivoting
 // TODO: Add the option to specify if the diagonal entries of A are non diagonal.
@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>
     /// QR factorization of a matrix A: A = Q * R, where A is an m-by-n matrix with m &gt;= n, Q is an m-by-m orthogonal matrix
-    /// and R is an m-by-n upper trapezoidal matrix. Uses Intel MKL.
+    /// and R is an m-by-n upper trapezoidal matrix. Uses LAPACK.
     /// For more see:
     /// https://software.intel.com/en-us/mkl-developer-reference-c-orthogonal-factorizations-lapack-computational-routines#E832D468-0891-40EC-9468- ,
     /// http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_ga3766ea903391b5cf9008132f7440ec7b.html#ga3766ea903391b5cf9008132f7440ec7b.
@@ -22,14 +22,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     public class QRFactorization
     {
         private readonly double[] reflectorsAndR;
-        private readonly double[] tau;
+        private readonly double[] reflectorScalars;
 
-        private QRFactorization(int numRows, int numCols, double[] reflectorsAndR, double[] tau)
+        private QRFactorization(int numRows, int numCols, double[] reflectorsAndR, double[] reflectorScalars)
         {
             this.NumRows = numRows;
             this.NumColumns = numCols;
             this.reflectorsAndR = reflectorsAndR;
-            this.tau = tau;
+            this.reflectorScalars = reflectorScalars;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         ///     be overwritten with the factorization data.</param>
         /// <exception cref="NotImplementedException">Thrown if <paramref name="numCols"/> &gt; <paramref name="numRows"/>.
         ///     </exception>
-        /// <exception cref="Exceptions.MklException">Thrown if tha call to Intel MKL fails due to an invalid 
+        /// <exception cref="Exceptions.LapackException">Thrown if tha call to LAPACK fails due to an invalid 
         ///     <paramref name="matrix"/>.</exception>
         public static QRFactorization Factorize(int numRows, int numCols, double[] matrix)
         {
@@ -61,18 +61,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
 
-            // Call MKL
-            int m = numRows;
-            int n = numCols;
-            int ldA = m;
-            int minDim = Math.Min(m, n); //TODO: this is known to be numCols (though it may change in the future)
-            double[] tau = new double[minDim];
-            int info = MklUtilities.DefaultInfo;
-            info = LAPACKE.Dgeqrf(LAPACKE.LAPACK_COL_MAJOR, m, n, matrix, ldA, tau);
 
-            // Check MKL execution
-            if (info == 0) return new QRFactorization(numRows, numCols, matrix, tau);
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            int leadingDimA = numRows;
+            int minDim = Math.Min(numRows, numCols); //TODO: this is known to be numCols (though it may change in the future)
+            double[] reflectorScalars = new double[minDim];
+            LapackLeastSquares.Dgeqrf(numRows, numCols, matrix, 0, leadingDimA, reflectorScalars, 0);
+
+            return new QRFactorization(numRows, numCols, matrix, reflectorScalars);
         }
 
         /// <summary>
@@ -93,15 +88,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int k = NumColumns;
             int ldA = m;
 
-            var q = new double[NumRows * NumColumns];
-            Array.Copy(reflectorsAndR, q, q.Length);
+            var matrixQ = new double[NumRows * NumColumns];
+            Array.Copy(reflectorsAndR, matrixQ, matrixQ.Length);
 
-            int info = MklUtilities.DefaultInfo;
-            info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
+            // Call Lapack
+            int numRowsQ = NumRows;
+            int numColsQ = NumColumns;
+            int numReflectors = NumColumns;
+            int leadingDimQ = numRowsQ;
+            LapackLeastSquares.Dorgqr(numRowsQ, numColsQ, numReflectors, matrixQ, 0, leadingDimQ, reflectorScalars, 0);
 
-            // Check MKL execution
-            if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumColumns, false);
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            return Matrix.CreateFromArray(matrixQ, NumRows, NumColumns, false);
         }
 
         /// <summary>
@@ -133,18 +130,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             {
                 throw new NotImplementedException("For now, the number of rows must be >= the number of columns");
             }
-            int m = NumRows;
-            int n = m;
-            int k = NumColumns;
-            int ldA = m;
-            // We need a larger buffer for Q (m-by-m) > reflectorsAndR (m-by-p)
-            double[] q = ArrayColMajor.ResizeCols(NumRows, NumColumns, NumRows, reflectorsAndR);
-            int info = MklUtilities.DefaultInfo;
-            info = LAPACKE.Dorgqr(LAPACKE.LAPACK_COL_MAJOR, m, n, k, q, ldA, tau);
 
-            // Check MKL execution
-            if (info == 0) return Matrix.CreateFromArray(q, NumRows, NumRows, false);
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            // We need a larger buffer for Q (m-by-m) > reflectorsAndR (m-by-p)
+            double[] matrixQ = ArrayColMajor.ResizeCols(NumRows, NumColumns, NumRows, reflectorsAndR);
+
+            // Call Lapack
+            int numRowsQ = NumRows;
+            int numColsQ = numRowsQ;
+            int numReflectors = NumColumns;
+            int leadingDimQ = numRowsQ;
+            LapackLeastSquares.Dorgqr(numRowsQ, numColsQ, numReflectors, matrixQ, 0, leadingDimQ, reflectorScalars, 0);
+
+            return Matrix.CreateFromArray(matrixQ, NumRows, NumRows, false);
         }
 
         /// <summary>
@@ -169,7 +166,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         /// <param name="rhsVector">The right hand side vector b. It may lie outside the column space of the original matrix. Its 
         ///     <see cref="IIndexable1D.Length"/> must be equal to this.<see cref="NumRows"/>.</param>
-        /// <exception cref="Exceptions.MklException">Thrown if tha call to Intel MKL fails due to <paramref name="rhsVector"/> 
+        /// <exception cref="Exceptions.LapackException">Thrown if the call to LAPACK fails due to <paramref name="rhsVector"/> 
         ///     having a different <see cref="IIndexable1D.Length"/> than this.<see cref="NumRows"/>.</exception>
         public Vector SolveLeastSquares(Vector rhsVector) //TODO: perhaps I should use the driver routines of LAPACKE
         {
@@ -182,18 +179,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             // Least squares: x = inv(A^T * A) * A^T * b = inv(R) * Q^T * b, where b is the right hand side vector. 
             // Step 1: c = Q^T * b. Q is m-by-m, b is m-by-1 => c is m-by-1
             double[] c = rhsVector.CopyToArray();
-            int m = rhsVector.Length;
-            int nRhs = 1; // rhs = m-by-1
-            int k = tau.Length;
-            int ldA = m;
-            int ldC = m;
-            int infoMult = MklUtilities.DefaultInfo;
-            infoMult = LAPACKE.Dormqr(LAPACKE.LAPACK_COL_MAJOR, LAPACKE.LAPACK_SIDE_LEFT, LAPACKE.LAPACK_TRANSPOSE,
-                m, nRhs, k, reflectorsAndR, ldA, tau, c, ldC);
+            int numRowsC = rhsVector.Length;
+            int numColsC = 1; // rhs = m-by-1
+            int numReflectors = reflectorScalars.Length;
+            int leadingDimA = numRowsC;
+            int leadingDimC = numRowsC;
+            LapackLeastSquares.Dormqr(MultiplicationSide.Left, TransposeMatrix.Transpose, numRowsC, numColsC, numReflectors, 
+                reflectorsAndR, 0, leadingDimA, reflectorScalars, 0, c, 0, leadingDimC);
 
-            // Check MKL execution
-            if (infoMult != 0) throw MklUtilities.ProcessNegativeInfo(infoMult); // info < 0. This function does not return info > 0
-            
             // Step 2: R * x = c, with R being m-by-n and upper trapezoidal (because m >= n).
             // Decomposing R: [R1; 0] * x = [c1 ; c2 ] => R1 * x = c1 => R1 * x = c1, with R1 being n-by-n, upper triangular
             // and stored in the factorized col major data. c1 and x are both n-by-1. The information stored in c2 is lost due to
@@ -204,8 +197,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             int n = NumColumns; // Order of matrix R1
             int ldR = NumRows; // R1 is stored in the upper trapezoid of a NumRows * NumColumns col major array.
             int incC = 1; // step in rhs array, which is the same c used for Q^T * b
-            CBlas.Dtrsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, CBLAS_TRANSPOSE.CblasNoTrans, CBLAS_DIAG.CblasNonUnit,
-                n, ref reflectorsAndR[0], ldR, ref c[0], incC);
+            Blas.Dtrsv(StoredTriangle.Upper, TransposeMatrix.NoTranspose, DiagonalValues.NonUnit,
+                n, reflectorsAndR, 0, ldR, c, 0, incC);
             // TODO: Check output of BLAS somehow. E.g. Zero diagonal entries will result in NaN in the result vector.
             return Vector.CreateFromArray(c, false);
         }

@@ -181,6 +181,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 
         //TODO: remove this. Its only purpose is to avoid calling IVectorView.CopyToArray() and needless copying, during the
         //      transition phase from the legacy linear algebra design.
-        public static double[] ToRawArray(this Vector vector) => vector.InternalData;
+        public static double[] ToRawArray(this Vector vector) => vector.RawData;
     }
 }

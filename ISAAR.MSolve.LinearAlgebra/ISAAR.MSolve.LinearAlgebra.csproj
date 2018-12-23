@@ -63,9 +63,11 @@
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  <TargetPath>suitesparse_utilities.dll</TargetPath>
 	</ContentWithTargetPath>
-    <Content Include="MKL\lapacke.h" />
+    <Content Include="Providers\MKL\lapacke.h" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Compute.Bindings.IntelMKL" Version="0.1.5" />
+    <PackageReference Include="CSparse" Version="3.2.3" />
+    <PackageReference Include="DotNumerics" Version="1.1.0" />
   </ItemGroup>
 </Project>

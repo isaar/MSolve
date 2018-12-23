@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Implement this: "If the tolerance is large, the residual need not be corrected at all" 
@@ -16,14 +13,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
     /// </summary>
     public class PeriodicResidualCorrection: IResidualCorrection
     {
-        private IMatrixView matrix;
+        private ILinearTransformation matrix;
         private int numIterationsBeforeCorrection; 
         private IVectorView rhs;
 
         /// <summary>
-        /// See <see cref="IResidualCorrection.Initialize(IMatrixView, IVectorView)"/>.
+        /// See <see cref="IResidualCorrection.Initialize(ILinearTransformation, IVectorView)"/>.
         /// </summary>
-        public void Initialize(IMatrixView matrix, IVectorView rhs)
+        public void Initialize(ILinearTransformation matrix, IVectorView rhs)
         {
             this.matrix = matrix;
             this.rhs = rhs;
@@ -38,10 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
             if ((iteration % numIterationsBeforeCorrection == 0) && (iteration != 0)) //The first iteration uses the correct residual.
             {
                 // Calculate the exact residual: r = b - A * x
-                residual.CopyFrom(rhs);
-                residual.SubtractIntoThis(matrix.MultiplyRight(solution));
-                //residual = rhs.Subtract(matrix.MultiplyRight(solution)); //This allocates a new vector r, copies b and GCs the existing r.
-
+                ExactResidual.Calculate(matrix, rhs, solution, residual);
                 return true;
             }
             else

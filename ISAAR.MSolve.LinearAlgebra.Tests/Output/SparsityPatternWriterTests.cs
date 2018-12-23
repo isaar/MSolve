@@ -17,16 +17,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         [Fact]
         private static void TestSparsePosDef()
         {
-            int n = SparsePosDef10by10.order;
+            int n = SparsePosDef10by10.Order;
             var pattern = SparsityPatternSymmetric.CreateEmpty(n);
             for (int i = 0; i < n; ++i)
             {
                 for (int j = 0; j < n; ++j)
                 {
-                    if (SparsePosDef10by10.matrix[i, j] != 0) pattern.AddEntry(i, j);
+                    if (SparsePosDef10by10.Matrix[i, j] != 0) pattern.AddEntry(i, j);
                 }
             }
-            TestWriteOperation(pattern, SparsePosDef10by10.patternPath);
+            TestWriteOperation(pattern, SparsePosDef10by10.PatternPath);
         }
 
         private static void TestWriteOperation(ISparsityPattern matrix, string referenceFile)

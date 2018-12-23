@@ -103,6 +103,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
         {
             string firstLine = reader.ReadLine();
             if (firstLine == null) throw new IOException("Empty file");
+
+            //TODO: The comment line has useful info about the symmetry etc.
+            //if (firstLine[0] == '%') firstLine = reader.ReadLine(); //ignore comment line. 
+
             return ParseHeader(firstLine);
         }
 

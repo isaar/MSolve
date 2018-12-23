@@ -17,27 +17,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         [Fact]
         private static void TestRectangularCSC()
         {
-            var matrix = CscMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.cscValues, SparseRectangular10by5.cscRowIndices, SparseRectangular10by5.cscColOffsets,
+            var matrix = CscMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CscValues, SparseRectangular10by5.CscRowIndices, SparseRectangular10by5.CscColOffsets,
                 true);
-            TestWriteOperation(matrix, SparseRectangular10by5.cscArraysPath);
+            TestWriteOperation(matrix, SparseRectangular10by5.CscArraysPath);
         }
 
         [Fact]
         private static void TestRectangularCSR()
         {
-            var matrix = CsrMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.csrValues, SparseRectangular10by5.csrColIndices, SparseRectangular10by5.csrRowOffsets,
+            var matrix = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
                 true);
-            TestWriteOperation(matrix, SparseRectangular10by5.csrArraysPath);
+            TestWriteOperation(matrix, SparseRectangular10by5.CsrArraysPath);
         }
 
         [Fact]
         private static void TestSkylinePosDef()
         {
-            var matrix = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.order, SparsePosDef10by10.skylineValues, 
-                SparsePosDef10by10.skylineDiagOffsets, true, true);
-            TestWriteOperation(matrix, SparsePosDef10by10.skylineArraysPath);
+            var matrix = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, SparsePosDef10by10.SkylineValues, 
+                SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            TestWriteOperation(matrix, SparsePosDef10by10.SkylineArraysPath);
         }
 
         private static void TestWriteOperation(ISparseMatrix matrix, string referenceFile)

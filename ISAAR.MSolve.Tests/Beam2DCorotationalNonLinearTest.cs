@@ -18,6 +18,9 @@ using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -218,13 +221,11 @@ namespace ISAAR.MSolve.Tests
             // Add nodal load values at the top nodes of the model
             model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
-            // Needed in order to make all the required data structures
-            //model.ConnectDataStructures();
-
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
+            // If we reorder, the expected displacements might correspond to different dofs
+            //solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
             SkylineSolver solver = solverBuilder.BuildSolver(model);
-            //solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
@@ -232,7 +233,6 @@ namespace ISAAR.MSolve.Tests
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
             var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static

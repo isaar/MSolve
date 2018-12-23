@@ -8,10 +8,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     /// </summary>
     internal static class GlobalMatrixAssembly
     {
-        internal const int subOrder = 4;
-        internal const int globalOrder = 8;
+        internal const int SubOrder = 4;
+        internal const int GlobalOrder = 8;
 
-        internal static readonly double[,] subMatrix1 =
+        internal static double[,] SubMatrix1 => new double[,]
         {
             { 20.1,  1.1,  2.1,  3.1 },
             {  1.1, 20.2,  2.2,  3.2 },
@@ -19,12 +19,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             {  3.1,  3.2,  3.3, 20.4 }
         };
 
-        internal static readonly int[] globalIndices1 = { 0, 1, 2, 3 };
+        internal static int[] GlobalIndices1 => new int[] { 0, 1, 2, 3 };
 
-        internal static readonly Dictionary<int, int> indicesDictionary1 = new Dictionary<int, int> {
+        internal static Dictionary<int, int> IndicesDictionary1 => new Dictionary<int, int> {
             { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 } };
 
-        internal static readonly double[,] subMatrix2 =
+        internal static double[,] SubMatrix2 => new double[,]
         {
             { 30.1,  1.1,  2.1,  3.1 },
             {  1.1, 30.2,  2.2,  3.2 },
@@ -32,12 +32,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             {  3.1,  3.2,  3.3, 30.4 }
         };
 
-        internal static readonly int[] globalIndices2 = { 2, 3, 4, 5 };
+        internal static int[] GlobalIndices2 => new int[] { 2, 3, 4, 5 };
 
-        internal static readonly Dictionary<int, int> indicesDictionary2 = new Dictionary<int, int> {
+        internal static Dictionary<int, int> IndicesDictionary2 => new Dictionary<int, int> {
             { 0, 2 }, { 1, 3 }, { 2, 4 }, { 3, 5 } };
 
-        internal static readonly double[,] subMatrix3 =
+        internal static double[,] SubMatrix3 => new double[,]
         {
             { 40.1,  1.1,  2.1,  3.1 },
             {  1.1, 40.2,  2.2,  3.2 },
@@ -45,12 +45,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             {  3.1,  3.2,  3.3, 40.4 }
         };
        
-        internal static readonly int[] globalIndices3 = { 4, 5, 6, 7 };
+        internal static int[] GlobalIndices3 => new int[] { 4, 5, 6, 7 };
 
-        internal static readonly Dictionary<int, int> indicesDictionary3 = new Dictionary<int, int> {
+        internal static Dictionary<int, int> IndicesDictionary3 => new Dictionary<int, int> {
             { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
 
-        internal static readonly double[,] globalMatrix =
+        internal static double[,] GlobalMatrix => new double[,]
         {
             { 20.1,  1.1,  2.1,  3.1,  0.0,  0.0,  0.0,  0.0 },
             {  1.1, 20.2,  2.2,  3.2,  0.0,  0.0,  0.0,  0.0 },

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh;
-using ISAAR.MSolve.XFEM.Geometry.Mesh.Providers;
+using ISAAR.MSolve.XFEM.Geometry.Mesh.SuiteSparse;
 
 namespace ISAAR.MSolve.XFEM.Tests.GRACM
 {

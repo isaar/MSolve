@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
@@ -23,9 +20,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
             => residualDotProduct <= limitDotResidual;
 
         /// <summary>
-        /// See <see cref="IResidualConvergence.Initialize(IMatrixView, IVectorView, double, double)"/>.
+        /// See <see cref="IResidualConvergence.Initialize(ILinearTransformation, IVectorView, double, double)"/>.
         /// </summary>
-        public void Initialize(IMatrixView matrix, IVectorView rhsVector, double residualTolerance, 
+        public void Initialize(ILinearTransformation matrix, IVectorView rhsVector, double residualTolerance, 
             double initialResidualDotProduct)
         {
             // ε^2 * δ0

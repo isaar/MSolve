@@ -6,7 +6,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Solvers.Interfaces
 {
-    public interface ISolver_v2
+    public interface ISolver_v2 : ISystemMatrixObserver
     {
         IDofOrderer DofOrderer { get; }
 

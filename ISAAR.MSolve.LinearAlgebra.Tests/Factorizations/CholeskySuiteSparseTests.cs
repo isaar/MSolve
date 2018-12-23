@@ -2,7 +2,7 @@
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -21,13 +21,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestRowAddition()
         {
-            Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.rhs);
+            Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
 
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
-            var dok = DokSymmetric.CreateIdentity(SparsePosDef10by10.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var dok = DokSymmetric.CreateIdentity(SparsePosDef10by10.Order);
+            var factor = CholeskySuiteSparse.Factorize(dok.BuildSymmetricCscMatrix(true), false);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -55,13 +55,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         //[Fact]
         private static void TestRowAdditionReverse()
         {
-            Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.rhs);
+            Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
 
             // Start the matrix as diagonal
             var matrixExpected = Matrix.CreateIdentity(original.NumColumns);
-            var dok = DokSymmetric.CreateIdentity(SparsePosDef10by10.order);
-            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var dok = DokSymmetric.CreateIdentity(SparsePosDef10by10.Order);
+            var factor = CholeskySuiteSparse.Factorize(dok.BuildSymmetricCscMatrix(true), false);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -82,12 +82,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void TestRowDeletion()
         {
-            Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.rhs);
+            Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
 
             // Start the matrix from the original
-            var matrixExpected = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
-            var dok = DokSymmetric.CreateEmpty(SparsePosDef10by10.order);
+            var matrixExpected = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
+            var dok = DokSymmetric.CreateEmpty(SparsePosDef10by10.Order);
             for (int j = 0; j < matrixExpected.NumColumns; ++j)
             {
                 for (int i = 0; i <= j; ++i)
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                     if (matrixExpected[i, j] != 0) dok[i, j] = matrixExpected[i, j];
                 }
             }
-            CholeskySuiteSparse factor = dok.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var factor = CholeskySuiteSparse.Factorize(dok.BuildSymmetricCscMatrix(true), false);
 
             for (int i = 0; i < matrixExpected.NumRows; ++i)
             {
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             //SymmetricCSC matrixCSC = new SymmetricCSC(values, rowIndices, colOffsets, false);
 
             //Solve it using SuiteSparse
-            using (CholeskySuiteSparse factor = matrixCSC.FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(matrixCSC, true))
             {
                 Vector solution = factor.SolveLinearSystem(rhs);
                 comparer.AssertEqual(solutionExpected, solution);
@@ -145,10 +145,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         [Fact]
         private static void CheckSystemSolution2()
         {
-            int order = SparsePosDef10by10.order;
+            int order = SparsePosDef10by10.Order;
 
             // Build the matrices and right hand sides
-            var dense = Matrix.CreateFromArray(SparsePosDef10by10.matrix);
+            var dense = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
             //var skyline = SkylineMatrix.CreateFromArrays(order, SparsePositiveDefinite.skylineValues, 
             //    SparsePositiveDefinite.skylineDiagOffsets, false);
             //var dok = DOKSymmetricColMajor.CreateFromSparseMatrix(skyline);
@@ -160,8 +160,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                     if (dense[i, j] != 0) dok[i, j] = dense[i, j];
                 }
             }
-            Vector b = Vector.CreateFromArray(SparsePosDef10by10.rhs);
-            Matrix B = Matrix.CreateFromArray(SquareInvertible10by10.matrix);
+            Vector b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
+            Matrix B = Matrix.CreateFromArray(SquareInvertible10by10.Matrix);
 
             // Solve using dense algebra
             CholeskyFull chol = dense.FactorCholesky();
@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             // Solve using SuiteSparse
             var (values, rowIndices, colOffsets) = dok.BuildSymmetricCscArrays(true);
             CholeskySuiteSparse factor = CholeskySuiteSparse.Factorize(order, values.Length, values, rowIndices, colOffsets,
-                true, SuiteSparseOrdering.Natural);
+                true);
             Vector xSolveComput = factor.SolveLinearSystem(b);
             Matrix XSolveComput = factor.SolveLinearSystems(B);
             Vector xBackComput = factor.BackSubstitution(b);

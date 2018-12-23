@@ -19,14 +19,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         private static void TestWriter1()
         {
             var matrix = SignedBooleanMatrixTests.CreateMatrix(SignedBoolean5by10.A1);
-            TestWriteOperation(matrix, SignedBoolean5by10.filePath1);
+            TestWriteOperation(matrix, SignedBoolean5by10.FilePath1);
         }
 
         [Fact]
         private static void TestWriter2()
         {
             var matrix = SignedBooleanMatrixTests.CreateMatrix(SignedBoolean5by10.A2);
-            TestWriteOperation(matrix, SignedBoolean5by10.filePath2);
+            TestWriteOperation(matrix, SignedBoolean5by10.FilePath2);
         }
 
         private static void TestWriteOperation(SignedBooleanMatrix matrix, string referenceFile)

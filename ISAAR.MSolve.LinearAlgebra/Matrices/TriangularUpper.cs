@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: Perhaps I should use row major for lower triangular, upper triangular or both.
 //TODO: Perhaps I should have an abstract class that handles everything except the lower/upper specific stuff and concrete
@@ -13,8 +14,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// Upper triangular square matrix in column major Packed storage format (only stores the n*(n+1)/2 non zeros). Uses Intel  
-    /// MKL. For the more information about the layout, see 
+    /// Upper triangular square matrix in column major Packed storage format (only stores the n*(n+1)/2 non zeros). Uses LAPACK.  
+    /// For the more information about the layout, see 
     /// <see cref="https://software.intel.com/en-us/mkl-developer-reference-c-matrix-storage-schemes-for-lapack-routines."/>
     /// Authors: Serafeim Bakalakos
     /// </summary>
@@ -46,6 +47,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// The number of rows/columns of the square matrix.
         /// </summary>
         public int Order { get; }
+
+        /// <summary>
+        /// The internal array that stores the entries of the upper triangle (packed storage format) in column major layout. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// </summary>
+        internal double[] RawData => data;
 
         /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
@@ -146,7 +153,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -173,7 +180,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -314,7 +321,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -343,7 +350,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -363,11 +370,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
+            if (vector is Vector dense) return Multiply(dense, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -381,14 +388,55 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than <see cref="Order"/> of this matrix.</exception>
-        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
+        public Vector Multiply(Vector vector, bool transposeThis = false)
         {
-            CBLAS_TRANSPOSE transpose = transposeThis ? CBLAS_TRANSPOSE.CblasTrans: CBLAS_TRANSPOSE.CblasNoTrans;
-            Preconditions.CheckMultiplicationDimensions(Order, vector.Length);
-            double[] result = vector.CopyToArray();
-            CBlas.Dtpmv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, transpose, CBLAS_DIAG.CblasNonUnit, Order,
-                ref data[0], ref result[0], 1);
-            return Vector.CreateFromArray(result, false);
+            //TODO: this performs redundant dimension checks
+            var result = Vector.CreateZero(Order);
+            MultiplyIntoResult(vector, result);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = oper(A) * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
+        {
+            TransposeMatrix transpose = transposeThis ? TransposeMatrix.Transpose : TransposeMatrix.NoTranspose;
+            Preconditions.CheckMultiplicationDimensions(Order, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(Order, rhsVector.Length);
+            Array.Copy(lhsVector.RawData, rhsVector.RawData, Order);
+            Blas.Dtpmv(StoredTriangle.Upper, transpose, DiagonalValues.NonUnit, Order,
+                this.data, 0, rhsVector.RawData, 0, 1);
         }
 
         /// <summary>
@@ -419,14 +467,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int nnz = this.data.Length;
             double[] result = new double[nnz];
             Array.Copy(this.data, result, nnz);
-            CBlas.Dscal(nnz, scalar, ref result[0], 1);
+            Blas.Dscal(nnz, scalar, result, 0, 1);
             return new TriangularUpper(result, this.Order);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
+        public void ScaleIntoThis(double scalar) => Blas.Dscal(data.Length, scalar, data, 0, 1);
 
         /// <summary>
         /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
@@ -443,13 +491,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rhs">The right hand side vector of the linear system. Constraints: 
         ///     <paramref name="rhs"/>.<see cref="Vector.Length"/> == this.<see cref="Order"/>.</param>
-        public Vector SolveLinearSystem(Vector rhs, bool transpose = false)
+        public Vector SolveLinearSystem(Vector rhs, bool transposeThis = false)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
-            CBLAS_TRANSPOSE transposeBLAS = transpose ? CBLAS_TRANSPOSE.CblasTrans : CBLAS_TRANSPOSE.CblasNoTrans;
             double[] result = rhs.CopyToArray();
-            CBlas.Dtpsv(CBLAS_LAYOUT.CblasColMajor, CBLAS_UPLO.CblasUpper, transposeBLAS, CBLAS_DIAG.CblasNonUnit, 
-                Order, ref data[0], ref result[0], 1);
+            TransposeMatrix transposeBlas = transposeThis ? TransposeMatrix.Transpose : TransposeMatrix.NoTranspose;
+            Blas.Dtpsv(StoredTriangle.Upper, transposeBlas, DiagonalValues.NonUnit, Order,
+                this.data, 0, result, 0, 1);
             return Vector.CreateFromArray(result, false);
         }
 

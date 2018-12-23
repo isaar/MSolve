@@ -64,8 +64,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             }
         }
 
-        protected override CGStatistics SolveInternal(IMatrixView matrix, IPreconditioner preconditioner, IVectorView rhs,
-            IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
+        protected override CGStatistics SolveInternal(ILinearTransformation matrix, IPreconditioner preconditioner,
+            IVectorView rhs, IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
         {
             int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
 
@@ -78,7 +78,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             preconditioner.SolveLinearSystem(residual, direction);
 
             // q = A * d
-            IVector matrixTimesDirection = matrix.MultiplyRight(direction);
+            IVector matrixTimesDirection = rhs.CreateZeroVectorWithSameFormat();
+            matrix.Multiply(direction, matrixTimesDirection);
             double directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
             // Update the direction vectors cache
@@ -137,7 +138,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 UpdateDirectionVector(preconditionedResidual, direction);
 
                 // q = A * d
-                matrixTimesDirection = matrix.MultiplyRight(direction); //TODO: this allocates a new vector and GCs the existing one
+                matrix.Multiply(direction, matrixTimesDirection);
                 directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
                 // Update the direction vectors cache

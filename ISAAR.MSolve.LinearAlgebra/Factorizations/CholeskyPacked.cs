@@ -1,10 +1,10 @@
 ﻿using System;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: check if the last minor is non-negative, during factorization. Is it possible that it isn't. Does it affect system 
 // solution or inversion?
@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
 {
     /// <summary>
     /// Cholesky factorization of a symmetric positive definite matrix, stored in packed column major format. Only the upper
-    /// triangle part of the matrix is stored and factorized. Uses Intel MKL.
+    /// triangle part of the matrix is stored and factorized. Uses LAPACK.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class CholeskyPacked: ITriangulation
@@ -45,19 +45,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not symmetric positive definite.</exception>
         public static CholeskyPacked Factorize(int order, double[] matrix)
         {
-            // Call MKL
-            int info = MklUtilities.DefaultInfo;
-            Lapack.Dpptrf("U", ref order, ref matrix[0], ref info);
+            // Call LAPACK
+            int indefiniteMinorIdx = LapackLinearEquations.Dpptrf(StoredTriangle.Upper, order, matrix, 0);
 
-            // Check MKL execution
-            if (info == 0) return new CholeskyPacked(order, matrix);
-            else if (info > 0)
+            // Check LAPACK execution
+            if (indefiniteMinorIdx < 0) return new CholeskyPacked(order, matrix);
+            else
             {
-                string msg = "The leading minor of order " + (info - 1) + " (and therefore the matrix itself) is not"
-                + " positive-definite, and the factorization could not be completed.";
+                string msg = $"The leading minor of order {indefiniteMinorIdx} (and therefore the matrix itself) is not"
+                    + " positive-definite, and the factorization could not be completed.";
                 throw new IndefiniteMatrixException(msg);
             }
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
         }
 
         /// <summary>
@@ -101,8 +99,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         {
             CheckOverwritten();
 
-            // Call MKL
-            int info = MklUtilities.DefaultInfo;
+            // Call LAPACK
             double[] inverse; // if A is posdef, so is inv(A)
             if (inPlace)
             {
@@ -114,38 +111,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 inverse = new double[data.Length];
                 Array.Copy(data, inverse, data.Length);
             }
-            info = LAPACKE.Dpptri(LAPACKE.LAPACK_COL_MAJOR, LAPACKE.LAPACK_UPPER, Order, inverse);
-            
-            // Check MKL execution
-            if (info == 0) return SymmetricMatrix.CreateFromArray(inverse, Order, DefiniteProperty.PositiveDefinite);
-            else if (info > 0) // this should not have happened
+            int indefiniteMinorIdx = LapackLinearEquations.Dpptri(StoredTriangle.Upper, Order, inverse, 0);
+
+            // Check LAPACK execution
+            if (indefiniteMinorIdx < 0)
             {
-                throw new IndefiniteMatrixException($"The leading minor of order {info - 1} (and therefore the matrix itself)"
-                + "is not positive-definite, and the factorization could not be completed.");
+                return SymmetricMatrix.CreateFromArray(inverse, Order, DefiniteProperty.PositiveDefinite);
             }
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
+            else  // this should not have happened
+            {
+                throw new IndefiniteMatrixException($"The entry ({indefiniteMinorIdx}, {indefiniteMinorIdx}) of the factor U"
+                    + " is 0 and the inverse could not be computed.");
+            }
         }
 
         /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid arguments.</exception>
         public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             CheckOverwritten();
             Preconditions.CheckSystemSolutionDimensions(Order, rhs.Length);
             Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
 
-            // Call MKL
-            int n = Order;
+            // Call LAPACK
             solution.CopyFrom(rhs);
-            int info = MklUtilities.DefaultInfo;
-            int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
-            int ldb = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dpptrs("U", ref n, ref nRhs, ref data[0], ref solution.InternalData[0], ref ldb, ref info);
-
-            // Check MKL execution
-            if (info != 0) throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            int numRhs = 1; // rhs is a n x nRhs matrix, stored in b
+            int leadingDimB = Order; // column major ordering: leading dimension of b is n 
+            LapackLinearEquations.Dpptrs(StoredTriangle.Upper, Order, numRhs, data, 0, solution.RawData, 0, leadingDimB);
         }
 
         private void CheckOverwritten()

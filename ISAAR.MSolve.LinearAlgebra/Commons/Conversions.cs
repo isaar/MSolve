@@ -6,6 +6,7 @@
 //      e.g. c=colMajor, p=packed, l=lower, 2=to etc. Optionally I could use OpenMP (CUDA is meaningless here) for some of these. 
 //      This also serves as OpenMP practice.
 //TODO: Have a separate conversions class for testing and use MKL (BLAS) routines.
+//TODO: Too many methods that are difficult to find. Organize them somehow.
 //TODO: See https://software.intel.com/en-us/mkl-developer-reference-c-lapack-auxiliary-routines "?tfttp" and beyond.
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
@@ -288,26 +289,55 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         }
 
         /// <summary>
-        /// Extract the upper part only. Both I/O are column major with full storage.
+        /// Extract the lower part only. Both I/O are column major with full storage.
         /// </summary>
-        /// <param name="full"></param>
-        /// <param name="order"></param>
-        /// <returns></returns>
-        internal static double[] FullColMajorToPackedUpperColMajor(double[] full, int order)
+        internal static double[] FullColMajorToPackedLowerColMajor(int order, double[] full)
         {
-            //int n = FullLengthToOrder(full.Length);
-            int n = order;
-            double[] upper = new double[(n * (n + 1)) / 2];
-            int counter = 0; // Simplifies indexing but the outer and inner loops cannot be interchanged
-            for (int j = 0; j < n; ++j)
+            double[] packedLower = new double[(order * (order + 1)) / 2];
+            FullColMajorToPackedLowerColMajor(order, full, packedLower, 0);
+            return packedLower;
+        }
+
+        /// <summary>
+        /// Extract the lower part only. Both I/O are column major with full storage.
+        /// </summary>
+        internal static void FullColMajorToPackedLowerColMajor(int order, double[] full, double[] packedLower, int offsetLower)
+        {
+            int counter = offsetLower; // Simplifies indexing but the outer and inner loops cannot be interchanged
+            for (int j = 0; j < order; ++j)
             {
-                for (int i = 0; i <= j; ++i)
+                for (int i = j; i < order; ++i) //TODO: this loop could be replaced by Array.Copy()
                 {
-                    upper[counter] = full[j * n + i];
+                    packedLower[counter] = full[j * order + i];
                     ++counter; // Clearer than post-incrementing during indexing.
                 }
             }
-            return upper;
+        }
+
+        /// <summary>
+        /// Extract the upper part only. Both I/O are column major with full storage.
+        /// </summary>
+        internal static double[] FullColMajorToPackedUpperColMajor(int order, double[] full)
+        {
+            double[] packedUpper = new double[(order * (order + 1)) / 2];
+            FullColMajorToPackedUpperColMajor(order, full, packedUpper, 0);
+            return packedUpper;
+        }
+
+        /// <summary>
+        /// Extract the upper part only. Both I/O are column major with full storage.
+        /// </summary>
+        internal static void FullColMajorToPackedUpperColMajor(int order, double[] full, double[] packedUpper, int offsetUpper)
+        {
+            int counter = offsetUpper; // Simplifies indexing but the outer and inner loops cannot be interchanged
+            for (int j = 0; j < order; ++j)
+            {
+                for (int i = 0; i <= j; ++i) //TODO: this loop could be replaced by Array.Copy()
+                {
+                    packedUpper[counter] = full[j * order + i];
+                    ++counter; // Clearer than post-incrementing during indexing.
+                }
+            }
         }
 
         internal static double[,] FullRowMajorToArray2D(double[] array1D, int numRows, int numColumns)

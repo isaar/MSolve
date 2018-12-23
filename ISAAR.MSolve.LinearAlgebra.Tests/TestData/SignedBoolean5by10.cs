@@ -8,10 +8,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     /// </summary>
     internal static class SignedBoolean5by10
     {
-        internal static readonly int numRows = 5;
-        internal static readonly int numCols = 10;
+        internal const int NumRows = 5;
+        internal const int NumCols = 10;
 
-        internal static readonly double[,] A1 =
+        internal static double[,] A1 => new double[,]
         {
             { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0, 0, 0, 0, 0, 0, 0,-1, 0, 0 }
         };
 
-        internal static readonly double[,] A2 =
+        internal static double[,] A2 => new double[,]
         {
             { 1,-1, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 1,-1, 0, 0, 0, 0, 0, 0, 0 },
@@ -29,17 +29,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0, 0, 0, 0, 1,-1, 0, 0, 0, 0 }
         };
 
-        internal static readonly double[] x10 = { 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.1 };
-        internal static readonly double[] A1TimesX10 = { 5.5, 0.0, -2.2, 0.0, -8.8 };
-        internal static readonly double[] A2TimesX10 = { -1.1, -1.1, -1.1, -1.1, -1.1 };
-        internal static readonly double[] x5 = { 1.1, 2.2, 3.3, 4.4, 5.5 };
-        internal static readonly double[] transpA1TimesX5 = { 0.0, -3.3, 0.0, 0.0, 1.1, 0.0, 0.0, -5.5, 0.0, 0.0 };
-        internal static readonly double[] transpA2TimesX5 = { 1.1, 1.1, 1.1, 1.1, 1.1, -5.5, 0.0, 0.0, 0.0, 0.0, };
+        internal static double[] X10 => new double[] { 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.1 };
+        internal static double[] A1TimesX10 => new double[] { 5.5, 0.0, -2.2, 0.0, -8.8 };
+        internal static double[] A2TimesX10 => new double[] { -1.1, -1.1, -1.1, -1.1, -1.1 };
+        internal static double[] X5 => new double[] { 1.1, 2.2, 3.3, 4.4, 5.5 };
+        internal static double[] TranspA1TimesX5 => new double[] { 0.0, -3.3, 0.0, 0.0, 1.1, 0.0, 0.0, -5.5, 0.0, 0.0 };
+        internal static double[] TranspA2TimesX5 => new double[] { 1.1, 1.1, 1.1, 1.1, 1.1, -5.5, 0.0, 0.0, 0.0, 0.0 };
 
-        internal static readonly string filePath1 = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+        internal static string FilePath1 => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
            + @"\Resources\SignedBoolean1.txt";
 
-        internal static readonly string filePath2 = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+        internal static string FilePath2 => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
            + @"\Resources\SignedBoolean2.txt";
     }
 }

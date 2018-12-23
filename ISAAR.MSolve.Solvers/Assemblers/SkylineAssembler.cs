@@ -33,6 +33,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //    this.linearSystem = linearSystems[0];
         //}
 
+        //TODO: This is for the case when we also number constrained dofs globally.
         //public (SkylineMatrix Kff, DokRowMajor Kfc) BuildGlobalMatrices(IEnumerable<IElement> elements,
         //    AllDofOrderer dofOrderer, IElementMatrixProvider matrixProvider)
         //{

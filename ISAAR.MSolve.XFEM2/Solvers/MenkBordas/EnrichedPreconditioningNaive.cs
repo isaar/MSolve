@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCscArrays(true);
             return CholeskySuiteSparse.Factorize(Kee.NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr,
-                colOffsetsEnr, true, SuiteSparseOrdering.Natural);
+                colOffsetsEnr, true);
             //TODO: perhaps I should discard Kee here, instead of in MenkBordasSystem.
         }
 
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
             public Vector QTimesVector(Vector x, bool transposeQ)
             {
-                return Q.MultiplyRight(x, transposeQ);
+                return Q.Multiply(x, transposeQ);
             }
         }
     }

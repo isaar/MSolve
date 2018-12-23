@@ -1,10 +1,10 @@
 ﻿using System;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.MKL;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: When returning L & U, use Triangular matrices. Also return P. Also L, U should be TriangularLower and TriangularUpper
 //TODO: Is the determinant affected by the permutation P? I think P changes the sign, depending on how many row exhanges there 
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
     /// <summary>
     /// The LU factorization of a matrix A with partial pivoting (row exchanges) consists of a lower triangular matrix L 
     /// (with 1 in its diagonal entries), an upper triangular matrix U and a permutation matrix P, such that A = P*L*U. This 
-    /// class stores L,U,P in an efficient manner and provides common methods to use them. A must be square. Uses Intel MKL.
+    /// class stores L,U,P in an efficient manner and provides common methods to use them. A must be square. Uses LAPACK.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class LUFactorization: ITriangulation
@@ -34,13 +34,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         private readonly int[] rowExchanges;
         private readonly int firstZeroPivot;
+        private readonly double pivotTolerance;
 
-        private LUFactorization(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot, bool isSingular)
+        private LUFactorization(int order, double[] lowerUpper, int[] permutation, int firstZeroPivot, bool isSingular, 
+            double pivotTolerance)
         {
             this.Order = order;
             this.lowerUpper = lowerUpper;
             this.rowExchanges = permutation;
             this.firstZeroPivot = firstZeroPivot;
+            this.pivotTolerance = pivotTolerance;
             this.IsSingular = isSingular;
             this.IsOverwritten = false;
         }
@@ -77,28 +80,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         public static LUFactorization Factorize(int order, double[] matrix,
             double pivotTolerance = LUFactorization.PivotTolerance)
         {
-            // Call MKL
-            int[] permutation = new int[order];
-            int info = MklUtilities.DefaultInfo;
-            Lapack.Dgetrf(ref order, ref order, ref matrix[0], ref order, ref permutation[0], ref info);
-
-            // Check MKL execution
-            int firstZeroPivot = int.MinValue;
-            if (info == 0) // Supposedly everything went ok
-            {
-                if (Math.Abs(matrix[order * order - 1]) <= pivotTolerance)
-                {
-                    // False Negative: info = 0, but LAPACK doesn't check the last diagonal entry!
-                    firstZeroPivot = order - 1;
-                }
-                return new LUFactorization(order, matrix, permutation, firstZeroPivot, (firstZeroPivot >= 0));
-            }
-            else if (info > 0)
-            {
-                firstZeroPivot = info - 1;
-                return new LUFactorization(order, matrix, permutation, firstZeroPivot, true);
-            }
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
+            int[] rowExchanges = new int[order];
+            int firstZeroPivot = LapackLinearEquations.Dgetrf(order, order, matrix, 0, order, rowExchanges, 0, pivotTolerance);
+            return new LUFactorization(order, matrix, rowExchanges, firstZeroPivot, firstZeroPivot > 0, pivotTolerance);
         }
 
         /// <summary>
@@ -170,8 +154,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             if (IsSingular) throw new SingularMatrixException("The factorization has been completed, but U is singular."
                 + $" The first zero pivot is U[{firstZeroPivot}, {firstZeroPivot}] = 0.");
 
-            // Call MKL
-            int info = MklUtilities.DefaultInfo;
+            // Copy if the matrix if the inversion will be in place.
             double[] inverse;
             if (inPlace)
             {
@@ -183,16 +166,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 inverse = new double[lowerUpper.Length];
                 Array.Copy(lowerUpper, inverse, lowerUpper.Length);
             }
-            info = LAPACKE.Dgetri(LAPACKE.LAPACK_COL_MAJOR, Order, inverse, Order, rowExchanges);
 
-            // Check MKL execution
-            if (info == 0) return Matrix.CreateFromArray(inverse, Order, Order, false);
-            else  if (info > 0) // This should not have happened though
+            // Call LAPACK
+            int firstZeroDiagonal = LapackLinearEquations.Dgetri(Order, inverse, 0, Order, rowExchanges, 0, pivotTolerance);
+            if (firstZeroDiagonal > 0) // This should not have happened though
             {
-                throw new SingularMatrixException($"The {info - 1} diagonal element of factor U is zero, U is singular and the"
-                    + "inversion could not be completed.");
+                throw new SingularMatrixException($"The ({firstZeroDiagonal}, {firstZeroDiagonal}) element of factor U is zero,"
+                    + " U is singular and the inversion could not be completed.");
             }
-            else throw MklUtilities.ProcessNegativeInfo(info); // info < 0
+
+            return Matrix.CreateFromArray(inverse, Order, Order, false);
         }
 
         /// <summary>
@@ -203,7 +186,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// with a singular matrix can be solved.
         /// </remarks>
         /// <exception cref="SingularMatrixException">Thrown if the original matrix is not invertible.</exception>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid arguments.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid arguments.</exception>
         public void SolveLinearSystem(Vector rhs, Vector solution)
         {
             CheckOverwritten();
@@ -218,17 +201,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 throw new SingularMatrixException(msg);
             }
 
-            // Back & forward substitution using MKL
+            // Back & forward substitution using LAPACK
             int n = Order;
             solution.CopyFrom(rhs); //double[] solution = rhs.CopyToArray();
-            int info = MklUtilities.DefaultInfo;
-            int nRhs = 1; // rhs is a n x nRhs matrix, stored in b
-            int ldb = n; // column major ordering: leading dimension of b is n 
-            Lapack.Dgetrs("N", ref n, ref nRhs, ref lowerUpper[0], ref n, ref rowExchanges[0], ref solution.InternalData[0], 
-                ref ldb, ref info);
-
-            // Check MKL execution
-            if (info != 0) throw MklUtilities.ProcessNegativeInfo(info); // info < 0. This function does not return info > 0
+            int numRhs = 1; // rhs is a n x nRhs matrix, stored in b
+            int leadingDimB = n; // column major ordering: leading dimension of b is n 
+            LapackLinearEquations.Dgetrs(TransposeMatrix.NoTranspose, n, numRhs, lowerUpper, 0, n, rowExchanges, 0, 
+                solution.RawData, 0, leadingDimB);
         }
 
         private void CheckOverwritten()

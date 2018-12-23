@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: perhaps I should name the Action<>
@@ -23,7 +20,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
         /// </summary>
         /// <param name="matrix">The linear system's matrix.</param>
         /// <param name="rhs">The linear system's right hand side vector.</param>
-        void Initialize(IMatrixView matrix, IVectorView rhs);
+        void Initialize(ILinearTransformation matrix, IVectorView rhs);
 
         /// <summary>
         /// Updates the residual vector and returns true if a correction was necessary. Correcting the residual vector means

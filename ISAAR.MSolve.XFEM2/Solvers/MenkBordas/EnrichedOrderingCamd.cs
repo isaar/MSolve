@@ -27,13 +27,13 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             int[] boundaryDofs = FindEnrichedBoundaryDofs(subdomain);
             if (boundaryDofs.Length == 0)
             {
-                var amd = new OrderingAmd();
-                (int[] permutation, ReorderingStatistics stats) = amd.FindPermutation(pattern);
-                subdomain.DofOrderer.ReorderSubdomainDofs(permutation, false);
+                var amd = new OrderingAmdSuiteSparse();
+                (int[] permutation, bool oldToNew) = amd.FindPermutation(pattern);
+                subdomain.DofOrderer.ReorderSubdomainDofs(permutation, oldToNew);
             }
             else // Constraints: move boundary dofs to the end
             {
-                var camd = new OrderingCamd(-1, true); // Make sure dense rows are not moved
+                var camd = new OrderingCamdSuiteSparse(-1, true); // Make sure dense rows are not moved
                 var constraints = new int[order]; // internal dofs have ordinal = 0, to end up first
                 foreach (var dof in boundaryDofs) constraints[dof] = 1; // boundary dofs have ordinal = 1
 

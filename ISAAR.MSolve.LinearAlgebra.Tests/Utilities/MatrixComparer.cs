@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Utilities
             return true;
         }
 
-        internal void AssertEqual(double a, double b) => Assert.True(AreEqual(a, b));
+        internal void AssertEqual(double a, double b) => Assert.True(AreEqual(a, b), $"a={a}, b={b}");
         internal void AssertEqual(int[] a, int[] b) => Assert.True(AreEqual(a, b));
         internal void AssertEqual(double[] a, double[] b) => Assert.True(AreEqual(a, b));
         internal void AssertEqual(double[,] a, double[,] b) => Assert.True(AreEqual(a, b));

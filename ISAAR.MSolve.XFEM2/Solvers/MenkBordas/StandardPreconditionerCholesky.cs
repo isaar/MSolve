@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 
@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCscArrays(true);
             Kss.Clear();  // No longer needed.
             factorU = CholeskySuiteSparse.Factorize(order, valuesStd.Length, valuesStd, rowIndicesStd, colOffsetsStd,
-                true, SuiteSparseOrdering.Natural);
+                true);
         }
 
         ~StandardPreconditionerCholesky()

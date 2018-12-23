@@ -10,7 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -87,10 +87,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = CalcEffectiveRhs(Kuc);
 
             int nnzOrderedFactor;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
-                Solution = factorization.SolveLinearSystem(rhs);
-                nnzOrderedFactor = factorization.NumNonZeros;
+                Solution = factor.SolveLinearSystem(rhs);
+                nnzOrderedFactor = factor.NumNonZerosUpper;
             }
 
             #region test
@@ -128,10 +128,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 pattern.ConnectIndices(allDofs, false);
             }
 
-            var orderingAlgorithm = new OrderingAmd();
-            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
+            var orderingAlgorithm = new OrderingAmdSuiteSparse();
+            (int[] permutation, bool oldToNew) = orderingAlgorithm.FindPermutation(pattern);
             permutationOldToNew = permutation;
-            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, oldToNew);
 
         }
 
@@ -149,10 +149,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
             Vector rhs = Fu - Kuc.MultiplyRight(uc);
             Vector unorderSolution;
             int nnzUnorderedFactor;
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural)) 
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true)) 
             {
-                unorderSolution = factorization.SolveLinearSystem(rhs);
-                nnzUnorderedFactor = factorization.NumNonZeros;
+                unorderSolution = factor.SolveLinearSystem(rhs);
+                nnzUnorderedFactor = factor.NumNonZerosUpper;
             }
             Vector solutionExpected = unorderSolution.Reorder(permutationOldToNew, false);
             double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();

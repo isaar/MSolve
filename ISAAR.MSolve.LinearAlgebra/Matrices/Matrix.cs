@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: align data using mkl_malloc
 //TODO: add inplace option for factorizations and leave all subsequent operations (determinant, system solution, etc.) to them
@@ -17,10 +18,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// General purpose matrix class. All entries are stored in an 1D column major array. Uses MKL for most operations. 
+    /// General purpose matrix class. All entries are stored in an 1D column major array. Uses LAPACK for most operations. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Matrix: IMatrix, ISliceable2D
+    public class Matrix : IMatrix, ISliceable2D
     {
         private readonly double[] data;
 
@@ -53,10 +54,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int NumRows { get; }
 
         /// <summary>
-        /// The internal array that stores the entries of the matrix. It should only be used for passing the raw array to linear 
-        /// algebra libraries.
+        /// It should only be used for passing the raw array to linear algebra libraries.
+        /// The internal array that stores the entries of the matrix in column major layout. 
         /// </summary>
-        internal double[] InternalData { get { return data; } }
+        internal double[] RawData { get { return data; } }
 
         /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
@@ -226,7 +227,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrixLeft"/>.<see cref="NumColumns"/> is 
         ///     different than <paramref name="vectorRight"/>.<see cref="Vector.Length"/>.</exception>
         public static Vector operator *(Matrix matrixLeft, Vector vectorRight)
-            => matrixLeft.MultiplyRight(vectorRight, false);
+            => matrixLeft.Multiply(vectorRight, false);
 
         /// <summary>
         /// Performs the matrix-vector multiplication: result = <paramref name="vectorLeft"/> * <paramref name="matrixRight"/>.
@@ -238,7 +239,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrixRight"/>.<see cref="NumRows"/> is 
         ///     different than <paramref name="vectorLeft"/>.<see cref="Vector.Length"/>.</exception>
         public static Vector operator *(Vector vectorLeft, Matrix matrixRight)
-            => matrixRight.MultiplyRight(vectorLeft, true);
+            => matrixRight.Multiply(vectorLeft, true);
         #endregion
 
         /// <summary>
@@ -276,7 +277,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) return Axpy(casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) return Axpy(dense, otherCoefficient);
             else return otherMatrix.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
         }
 
@@ -296,7 +297,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref result[0], 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -305,7 +306,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void AxpyIntoThis(IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) AxpyIntoThis(casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) AxpyIntoThis(dense, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -332,7 +333,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void AxpyIntoThis(Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpy(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, ref this.data[0], 1);
+            Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -383,7 +384,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (matrix is Matrix casted) return DoEntrywise(casted, binaryOperation);
+            if (matrix is Matrix dense) return DoEntrywise(dense, binaryOperation);
             else return matrix.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
         }
 
@@ -410,7 +411,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (matrix is Matrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (matrix is Matrix dense) DoEntrywiseIntoThis(dense, binaryOperation);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, matrix);
@@ -472,11 +473,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
         {
-            if (other is Matrix casted)
+            if (other is Matrix dense)
             {
                 //Check each dimension, rather than the lengths of the internal buffers
-                if (!Preconditions.AreSameMatrixDimensions(this, casted)) return false;
-                double[] otherData = casted.data;
+                if (!Preconditions.AreSameMatrixDimensions(this, dense)) return false;
+                double[] otherData = dense.data;
                 var comparer = new ValueComparer(tolerance);
                 for (int i = 0; i < this.data.Length; ++i)
                 {
@@ -494,7 +495,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not symmetric positive definite.</exception>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public CholeskyFull FactorCholesky()
         {
             Preconditions.CheckSquare(this);
@@ -508,7 +509,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = L * Q. Q is an orthogonal n-by-n matrix and L is a lower trapezoidal m-by-n matrix. Requires extra available  
         /// memory form * n + min(m, n) entries.
         /// </summary>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public LQFactorization FactorLQ()
         {
             return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
@@ -520,7 +521,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// permutation matrix. Requires extra available memory n^2 + n entries. 
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public LUFactorization FactorLU()
         {
             Preconditions.CheckSquare(this);
@@ -534,7 +535,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = Q * R. Q is an orthogonal m-by-m matrix and R is an upper trapezoidal m-by-n matrix. Requires extra 
         /// available memory for m * n + min(m, n) entries. 
         /// </summary>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public QRFactorization FactorQR()
         {
             return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
@@ -624,7 +625,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public Matrix Invert()
         {
             if ((NumRows == 2) && (NumColumns == 2))
@@ -646,7 +647,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
-        /// <exception cref="MklException">Thrown if the call to Intel MKL fails due to invalid input.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
         public (Matrix inverse, double determinant) InvertAndDetermninant()
         {
             if ((NumRows == 2) && (NumColumns == 2))
@@ -679,7 +680,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) return LinearCombination(thisCoefficient, dense, otherCoefficient);
             else return otherMatrix.LinearCombination(otherCoefficient, this, thisCoefficient); // To avoid accessing zero entries
         }
 
@@ -701,7 +702,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(this.data, result, data.Length);
-            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref result[0], 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -710,7 +711,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
-            if (otherMatrix is Matrix casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            if (otherMatrix is Matrix dense) LinearCombinationIntoThis(thisCoefficient, dense, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -740,7 +741,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            CBlas.Daxpby(data.Length, otherCoefficient, ref otherMatrix.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -773,48 +774,46 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public Matrix MultiplyRight(Matrix other, bool transposeThis = false, bool transposeOther = false)
         {
             int leftRows, leftCols, rightRows, rightCols;
-            CBLAS_TRANSPOSE transposeLeft, transposeRight;
+            TransposeMatrix transposeLeft, transposeRight;
             if (transposeThis)
             {
-                transposeLeft = CBLAS_TRANSPOSE.CblasTrans;
+                transposeLeft = TransposeMatrix.Transpose;
                 leftRows = this.NumColumns;
                 leftCols = this.NumRows;
             }
             else
             {
-                transposeLeft = CBLAS_TRANSPOSE.CblasNoTrans;
+                transposeLeft = TransposeMatrix.NoTranspose;
                 leftRows = this.NumRows;
                 leftCols = this.NumColumns;
             }
             if (transposeOther)
             {
-                transposeRight = CBLAS_TRANSPOSE.CblasTrans;
+                transposeRight = TransposeMatrix.Transpose;
                 rightRows = other.NumColumns;
                 rightCols = other.NumRows;
             }
             else
             {
-                transposeRight = CBLAS_TRANSPOSE.CblasNoTrans;
+                transposeRight = TransposeMatrix.NoTranspose;
                 rightRows = other.NumRows;
                 rightCols = other.NumColumns;
             }
 
             Preconditions.CheckMultiplicationDimensions(leftCols, rightRows);
             double[] result = new double[leftRows * rightCols];
-            CBlas.Dgemm(CBLAS_LAYOUT.CblasColMajor, transposeLeft, transposeRight,
-                leftRows, rightCols, leftCols,
-                1.0, ref this.data[0], this.NumRows, 
-                ref other.data[0], other.NumRows,
-                1.0, ref result[0], leftRows);
+            Blas.Dgemm(transposeLeft, transposeRight, leftRows, rightCols, leftCols,
+                1.0, this.data, 0, this.NumRows, other.data, 0, other.NumRows,
+                1.0, result, 0, leftRows);
             return new Matrix(result, leftRows, rightCols);
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.MultiplyRight(IVectorView, bool)"/>.
+        /// See <see cref="IMatrixView.Multiply(IVectorView, bool)"/>.
         /// </summary>
-        public IVector MultiplyRight(IVectorView vector, bool transposeThis = false)
+        public IVector Multiply(IVectorView vector, bool transposeThis = false)
         {
-            if (vector is Vector casted) return MultiplyRight(casted, transposeThis);
+            if (vector is Vector dense) return Multiply(dense, transposeThis);
             else throw new NotImplementedException();
         }
 
@@ -828,30 +827,69 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
-        public Vector MultiplyRight(Vector vector, bool transposeThis = false)
+        public Vector Multiply(Vector vector, bool transposeThis = false)
+        {
+            //TODO: this performs redundant dimension checks, including checking the transposeThis flag.
+            var result = Vector.CreateZero(transposeThis ? NumColumns : NumRows);
+            MultiplyIntoResult(vector, result, transposeThis);
+            return result;
+        }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.MultiplyIntoResult(IVectorView, IVector, bool)"/>.
+        /// </summary>
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
+        {
+            if ((lhsVector is Vector lhsDense) && (rhsVector is Vector rhsDense))
+            {
+                MultiplyIntoResult(lhsDense, rhsDense, transposeThis);
+            }
+            else throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
+        /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
+        /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector that will be multiplied by this matrix. It sits on the left hand side of the equation y = oper(A) * x.
+        /// Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="rhsVector">
+        /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
+        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
         {
             int leftRows, leftCols;
-            CBLAS_TRANSPOSE transpose;
+            TransposeMatrix transpose;
             if (transposeThis)
             {
-                transpose = CBLAS_TRANSPOSE.CblasTrans;
-                leftRows = NumColumns;
-                leftCols = NumRows;
+                transpose = TransposeMatrix.Transpose;
+                leftRows = this.NumColumns;
+                leftCols = this.NumRows;
             }
             else
             {
-                transpose = CBLAS_TRANSPOSE.CblasNoTrans;
-                leftRows = NumRows;
-                leftCols = NumColumns;
+                transpose = TransposeMatrix.NoTranspose;
+                leftRows = this.NumRows;
+                leftCols = this.NumColumns;
             }
 
-            Preconditions.CheckMultiplicationDimensions(leftCols, vector.Length);
-            double[] result = new double[leftRows];
-            CBlas.Dgemv(CBLAS_LAYOUT.CblasColMajor, transpose, NumRows, NumColumns,
-                1.0, ref data[0], NumRows,
-                ref vector.InternalData[0], 1,
-                0.0, ref result[0], 1);
-            return Vector.CreateFromArray(result, false);
+            Preconditions.CheckMultiplicationDimensions(leftCols, lhsVector.Length);
+            Preconditions.CheckSystemSolutionDimensions(leftRows, rhsVector.Length);
+            Blas.Dgemv(transpose, NumRows, NumColumns,
+                1.0, this.data, 0, NumRows, lhsVector.RawData, 0, 1,
+                0.0, rhsVector.RawData, 0, 1);
         }
 
         /// <summary>
@@ -899,14 +937,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Dscal(data.Length, scalar, ref result[0], 1);
+            Blas.Dscal(data.Length, scalar, result, 0, 1);
             return new Matrix(result, NumRows, NumColumns);
         }
 
         /// <summary>
         /// See <see cref="IMatrix.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(data.Length, scalar, ref data[0], 1);
+        public void ScaleIntoThis(double scalar) => Blas.Dscal(data.Length, scalar, data, 0, 1);
 
         /// <summary>
         /// Sets all entries of this matrix to be equal to <paramref name="value"/>.
@@ -938,7 +976,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckIndexCol(this, colIdx);
             if (rowStart + colValues.Length > this.NumRows) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this matrix's number of rows");
-            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, rowStart, colValues.InternalData);
+            ArrayColMajor.SetCol(NumRows, NumColumns, data, colIdx, rowStart, colValues.RawData);
         }
 
         /// <summary>
@@ -1004,7 +1042,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckIndexRow(this, rowIdx);
             if (colStart + rowValues.Length > this.NumRows) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this matrix's number of columns");
-            ArrayColMajor.SetRow(NumRows, NumColumns, data, rowIdx, colStart, rowValues.InternalData);
+            ArrayColMajor.SetRow(NumRows, NumColumns, data, rowIdx, colStart, rowValues.RawData);
         }
 
         /// <summary>
@@ -1037,7 +1075,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix Transpose()
         {
-            //TODO: The wrapper library does not include MKL's blas-like extensions yet. Create my own wrapper or 
+            //TODO: The wrapper library does not include LAPACK's CBlas-like extensions yet. Create my own wrapper or 
             // piggyback on another BLAS function.
             double[] transpose = Conversions.ColumnMajorToRowMajor(data, NumRows, NumColumns);
             return new Matrix(transpose, NumColumns, NumRows);

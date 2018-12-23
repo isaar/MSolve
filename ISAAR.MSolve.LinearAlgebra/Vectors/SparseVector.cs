@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
@@ -35,16 +35,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public int Length { get; }
 
         /// <summary>
-        /// The internal array that stores the indices of the non-zero entries of the vector. It should only be used for passing 
-        /// the raw array to linear algebra libraries.
+        /// The internal array that stores the indices of the non-zero entries of the vector. 
+        /// Its length is equal to the number of non-zero entries.
+        /// It should only be used for passing the raw array to linear algebra libraries.
         /// </summary>
-        internal int[] InternalIndices { get { return indices; } }
+        internal int[] RawIndices => indices;
 
         /// <summary>
-        /// The internal array that stores the values of the non-zero entries of the vector. It should only be used for passing 
-        /// the raw array to linear algebra libraries.
+        /// The internal array that stores the values of the non-zero entries of the vector.
+        /// Its length is equal to the number of non-zero entries.
+        /// It should only be used for passing the raw array to linear algebra libraries.
         /// </summary>
-        internal double[] InternalValues { get { return values; } }
+        internal double[] RawValues => values;
 
         /// <summary>
         /// See <see cref="IIndexable1D.this[int]"/>
@@ -147,7 +149,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <see cref="SparseVector"/>.
         /// </summary>
         /// <param name="denseVector">The original vector that will be converted to <see cref="SparseVector"/>.</param>
-        public static SparseVector CreateFromDense(Vector denseVector) => CreateFromDense(denseVector.InternalData);
+        public static SparseVector CreateFromDense(Vector denseVector) => CreateFromDense(denseVector.RawData);
 
         /// <summary>
         /// Creates a new instance of <see cref="SparseVector"/> with the entries of <paramref name="denseVector"/>. Only the
@@ -160,7 +162,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     <paramref name="tolerance"/> = 0 use <see cref="CreateFromDense(double[])"/>.</param>
         public static SparseVector CreateFromDense(Vector denseVector, double tolerance)
         {
-            return CreateFromDense(denseVector.InternalData, tolerance);
+            return CreateFromDense(denseVector.RawData, tolerance);
         }
 
         /// <summary>
@@ -243,7 +245,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] result = new double[this.values.Length];
                     Array.Copy(this.values, result, this.values.Length);
-                    CBlas.Daxpy(values.Length, otherCoefficient, ref otherSparse.values[0], 1, ref result[0], 1);
+                    Blas.Daxpy(values.Length, otherCoefficient, otherSparse.values, 0, 1, result, 0, 1);
                     return new SparseVector(Length, result, indices);
                 }
             }
@@ -286,8 +288,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             Preconditions.CheckVectorDimensions(this, otherVector);
             if (!HasSameIndexer(otherVector)) throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other vector has the same sparsity pattern");
-            
-            CBlas.Daxpy(values.Length, otherCoefficient, ref otherVector.values[0], 1, ref this.values[0], 1);
+
+            Blas.Daxpy(values.Length, otherCoefficient, otherVector.values, 0, 1, this.values, 0, 1);
         }
 
         /// <summary>
@@ -307,7 +309,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 int start = Array.FindIndex(this.indices, x => x >= destinationIndex);
                 int end = Array.FindIndex(this.indices, x => x >= destinationIndex + length);
                 int sparseLength = end - start;
-                CBlas.Daxpy(sparseLength, sourceCoefficient, ref otherSparse.values[start], 1, ref this.values[start], 1);
+                Blas.Daxpy(sparseLength, sourceCoefficient, otherSparse.values, start, 1, this.values, start, 1);
             }
             throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other vector has the same sparsity pattern");
@@ -405,6 +407,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public int CountNonZeros() => values.Length;
 
         /// <summary>
+        /// See <see cref="IVectorView.CreateZeroVectorWithSameFormat"/>
+        /// </summary>
+        public IVector CreateZeroVectorWithSameFormat() => new SparseVector(Length, new double[indices.Length], indices);
+
+        /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView otherVector, Func<double, double, double> binaryOperation)
@@ -485,6 +492,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public double DotProduct(IVectorView vector)
         {
             Preconditions.CheckVectorDimensions(this, vector);
+
+            if (vector is Vector dense) return SparseBlas.Ddoti(values.Length, values, indices, 0, dense.RawData, 0);
+            else if ((vector is SparseVector sparse) && HasSameIndexer(sparse))
+            {
+                return Blas.Ddot(values.Length, this.values, 0, 1, sparse.values, 0, 1);
+            }
+
             double sum = 0;
             for (int i = 0; i < values.Length; ++i) sum += values[i] * vector[indices[i]];
             return sum;
@@ -535,8 +549,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] result = new double[this.values.Length];
                     Array.Copy(this.values, result, this.values.Length);
-                    CBlas.Daxpby(values.Length, otherCoefficient, ref otherSparse.values[0], 1, 
-                        thisCoefficient, ref result[0], 1);
+                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
+                        thisCoefficient, result, 0, 1);
                     return new SparseVector(Length, result, indices);
                 }
             }
@@ -553,8 +567,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             Preconditions.CheckVectorDimensions(this, otherVector);
             if ((otherVector is SparseVector otherSparse) && HasSameIndexer(otherSparse))
             {
-                CBlas.Daxpby(values.Length, otherCoefficient, ref otherSparse.values[0], 1, 
-                    thisCoefficient, ref this.values[0], 1);
+                BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
+                    thisCoefficient, this.values, 0, 1);
             }
             throw new SparsityPatternModifiedException(
                  "This operation is legal only if the other vector has the same sparsity pattern");
@@ -588,14 +602,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             int nnz = this.values.Length;
             double[] resultValues = new double[nnz];
             Array.Copy(this.values, resultValues, nnz);
-            CBlas.Dscal(nnz, scalar, ref resultValues[0], 1);
+            Blas.Dscal(nnz, scalar, resultValues, 0, 1);
             return new SparseVector(Length, resultValues, this.indices); //TODO: perhaps I should also copy the indices
         }
 
         /// <summary>
         /// See <see cref="IVector.ScaleIntoThis(double)>
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(values.Length, scalar, ref values[0], 1);
+        public void ScaleIntoThis(double scalar) => Blas.Dscal(values.Length, scalar, values, 0, 1);
 
         /// <summary>
         /// See <see cref="IVector.Set(int, double)"/>

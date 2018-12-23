@@ -10,7 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -139,9 +139,9 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 pattern.ConnectIndices(allDofs, false);
             }
 
-            var orderingAlgorithm = new OrderingAmd();
-            (int[] permutationOldToNew, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
-            DofOrderer.ReorderUnconstrainedDofs(permutationOldToNew, false);
+            var orderingAlgorithm = new OrderingAmdSuiteSparse();
+            (int[] permutation, bool oldToNew) = orderingAlgorithm.FindPermutation(pattern);
+            DofOrderer.ReorderUnconstrainedDofs(permutation, oldToNew);
         }
 
         private void SolveFirstTime()
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
 
-            factorizedKff = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural); // DO NOT use using(){} here!
+            factorizedKff = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), false);
             Solution = factorizedKff.SolveLinearSystem(rhs);
 
             //CheckSolutionAndEnforce(1.0);
@@ -281,7 +281,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var assembler = new ReanalysisWholeAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
-            CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural);
+            var factorization = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), false);
             Vector solutionExpected = factorization.SolveLinearSystem(rhs);
             double error = Solution.Subtract(solutionExpected).Norm2() / solutionExpected.Norm2();
             Console.Write($"Normalized error = {error}");
@@ -316,7 +316,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //(DOKSymmetricColMajor Kuu, DOKRowMajor Kuc) = assembler.BuildGlobalMatrix(model.Elements, DofOrderer);
             //Vector rhs = CalcEffectiveRhs(Kuc);
             //Vector solutionExpected;
-            //using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            //using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCSCMatrix(true).FactorCholesky())
             //{
             //    solutionExpected = factorization.SolveLinearSystem(rhs);
             //}

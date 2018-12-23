@@ -7,7 +7,6 @@ using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,6 +16,7 @@ using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole.Logging
 {

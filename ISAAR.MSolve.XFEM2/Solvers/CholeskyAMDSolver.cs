@@ -4,7 +4,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
@@ -80,13 +80,13 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Linear system solution
             watch.Restart();
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 watch.Stop();
                 Logger.LogDuration(iteration, "Cholesky factorization", watch.ElapsedMilliseconds);
 
                 watch.Restart();
-                Solution = factorization.SolveLinearSystem(rhs);
+                Solution = factor.SolveLinearSystem(rhs);
                 watch.Stop();
                 Logger.LogDuration(iteration, "back & forward substitution", watch.ElapsedMilliseconds);
                 //Console.WriteLine($"Ordering {enumeratorName} + AMD, nnz after factorization = {factorization.NumNonZeros}");
@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         private void Reorder()
         {
-            var orderingAlgorithm = new OrderingAmd();
+            var orderingAlgorithm = new OrderingAmdSuiteSparse();
 
             int order = DofOrderer.NumStandardDofs + DofOrderer.NumEnrichedDofs;
             var pattern = SparsityPatternSymmetric.CreateEmpty(order);
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
                 }
                 pattern.ConnectIndices(allDofs, false);
             }
-            (int[] permutation, ReorderingStatistics stats) = orderingAlgorithm.FindPermutation(pattern);
+            (int[] permutation, bool oldToNew) = orderingAlgorithm.FindPermutation(pattern);
 
             #region DEBUG
             //var assembler = new GlobalDOKAssembler();
@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             //Console.WriteLine($"Ordering {enumeratorName} + AMD, factor nnz predicted = {stats.FactorizedNumNonZeros}");
             #endregion
 
-            DofOrderer.ReorderUnconstrainedDofs(permutation, false);
+            DofOrderer.ReorderUnconstrainedDofs(permutation, oldToNew);
         }
 
         private Vector CalcEffectiveRhs(DokRowMajor globalUnconstrainedConstrained)
@@ -149,10 +149,10 @@ namespace ISAAR.MSolve.XFEM.Solvers
         {
             var assembler = new GlobalDOKAssembler();
             (DokSymmetric Kuu, DokRowMajor Kuc) = assembler.BuildGlobalMatrix(model, unordered);
-            using (CholeskySuiteSparse factorization = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 //Solution = factorization.SolveLinearSystem(rhs);
-                Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factorization.NumNonZeros}");
+                Console.WriteLine($"Ordering {enumeratorName} unordered, nnz after factorization = {factor.NumNonZerosUpper}");
             }
         }
     }

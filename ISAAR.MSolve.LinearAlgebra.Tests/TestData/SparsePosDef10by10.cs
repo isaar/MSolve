@@ -8,9 +8,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     /// </summary>
     internal static class SparsePosDef10by10
     {
-        internal const int order = 10;
+        internal const int Order = 10;
 
-        internal static readonly double[,] matrix = {
+        internal static double[,] Matrix => new double[,] {
             { 21.0,  1.0,  0.0,  4.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 },
             {  1.0, 22.0,  2.0,  0.0,  0.0,  0.0,  1.0,  0.0,  0.0,  0.0 },
             {  0.0,  2.0, 23.0,  1.0,  3.0,  1.0,  0.0,  1.0,  0.0,  0.0 },
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             {  0.0,  0.0,  0.0,  0.0,  1.0,  3.0,  0.0,  2.0,  0.0, 30.0 }
         };
 
-        internal static readonly double[] skylineValues = {
+        internal static double[] SkylineValues => new double[] {
             21.0, 22.0, 1.0,
             23.0, 2.0,
             24.0, 1.0, 0.0, 4.0,
@@ -35,12 +35,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             30.0, 0.0, 2.0, 0.0, 3.0, 1.0
         };
 
-        internal static readonly int[] skylineDiagOffsets = { 0, 1, 3, 5, 9, 12, 16, 22, 28, 32, 38 };
+        internal static int[] SkylineDiagOffsets => new int[] { 0, 1, 3, 5, 9, 12, 16, 22, 28, 32, 38 };
 
         /// <summary>
         /// A = transpose(U) * U
         /// </summary>
-        internal static readonly double[,] choleskyU = {
+        internal static double[,] CholeskyU => new double[,] {
             { 4.582575694955840, 0.218217890235992, 0.000000000000000,  0.872871560943970, 0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000,  0.000000000000000 },
             { 0.000000000000000, 4.685336802448780, 0.426863656622231, -0.040653681583070, 0.000000000000000, 0.000000000000000,  0.213431828311116,  0.000000000000000, 0.000000000000000,  0.000000000000000 },
             { 0.000000000000000, 0.000000000000000, 4.776796773849092,  0.212978200107921, 0.628035929102890, 0.209345309700963, -0.019072674636530,  0.209345309700963, 0.000000000000000,  0.000000000000000 },
@@ -53,36 +53,36 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
             { 0.000000000000000, 0.000000000000000, 0.000000000000000,  0.000000000000000, 0.000000000000000, 0.000000000000000,  0.000000000000000,  0.000000000000000, 0.000000000000000,  5.429449618408797 }
         };
 
-        internal static readonly double[] lhs = {
+        internal static double[] Lhs => new double[] {
             7.5025, 9.8100, 2.3352, 0.9623, 3.8458, 5.0027, 5.7026, 9.7663, 4.9286, 4.0088 };
 
-        internal static readonly double[] rhs = {
+        internal static double[] Rhs => new double[] {
             171.2117, 233.6955, 100.5983, 83.1428, 145.5027, 177.3672, 200.7707, 320.6314, 192.0000, 158.6505 };
 
-        internal static readonly int[] matlabPermutationAMD = { 0, 1, 8, 9, 7, 2, 3, 4, 5, 6 };
+        internal static int[] MatlabPermutationAMD => new int[] { 0, 1, 8, 9, 7, 2, 3, 4, 5, 6 };
 
         /// <summary>
         /// Enforce indices order:
         /// First group: 0, 1, 7. Second group: 3, 5, 6, 9. Third group: 2, 4, 8.
         /// The new positions of these indices should be grouped, such as first group is before second before third.
         /// </summary>
-        internal static readonly int[] constraintsCAMD = { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
+        internal static int[] ConstraintsCAMD => new int[] { 0, 0, 2, 1, 2, 1, 1, 0, 2, 1 };
 
-        internal static readonly int[] permutationCAMD = { 0, 1, 7, 3, 6, 9, 5, 2, 4, 8 };
+        internal static int[] PermutationCAMD => new int[] { 0, 1, 7, 3, 6, 9, 5, 2, 4, 8 };
 
-        internal static readonly string fullFormatPath = 
+        internal static string FullFormatPath => 
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName 
             + @"\Resources\SparsePosDef10by10_FullFormat.txt";
 
-        internal static readonly string skylineArraysPath =
+        internal static string SkylineArraysPath =>
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
             + @"\Resources\SparsePosDef10by10_SkylineArrays.txt";
 
-        internal static readonly string coordinateFormatPath =
+        internal static string CoordinateFormatPath =>
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
             + @"\Resources\SparsePosDef10by10_CoordinateFormat.txt";
 
-        internal static readonly string patternPath =
+        internal static string PatternPath =>
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
             + @"\Resources\SparsePosDef10by10_Pattern.txt";
     }

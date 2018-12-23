@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: remove MenkBordasVector, MenkBordasCG, MenkBordasMINRES
 namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 {
-    class MenkBordasMatrix: ILinearTransformation<Vector>
+    class MenkBordasMatrix: ILinearTransformation
     {
         public readonly MenkBordasSystem.Dimensions dim;
         public readonly CsrMatrix Kss;
@@ -30,6 +30,10 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             this.Kse = Kse;
             this.B = B;
         }
+
+        public int NumColumns => dim.NumDofsAll;
+
+        public int NumRows => dim.NumDofsAll;
 
         public Matrix CopyToDense()
         {
@@ -83,21 +87,23 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             return K;
         }
 
-        public Vector Multiply(Vector x)
+        public void Multiply(IVectorView x, IVector y)
+            => Multiply((Vector)x, (Vector)y);
+
+        public Vector Multiply(Vector x, Vector y)
         {
-            var y = Vector.CreateZero(dim.NumDofsAll);
             var xs = x.GetSubvector(0, dim.NumDofsStd);
             var xc = x.GetSubvector(dim.EquationsStart, dim.NumDofsAll);
-            Vector ys = Kss.MultiplyRight(xs); // Rows correspond to global standard dofs
+            Vector ys = Kss.Multiply(xs); // Rows correspond to global standard dofs
             var yc = Vector.CreateZero(dim.NumEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
 
             foreach (var sub in dim.Subdomains)
             {
                 int i = sub.ID;
                 var xe = x.GetSubvector(dim.SubdomainStarts[sub], dim.SubdomainEnds[sub]);
-                ys.AddIntoThis(Kse[i].MultiplyRight(xe)); 
-                Vector ye = Kes[i].MultiplyRight(xs);
-                ye.AddIntoThis(Kee[i].MultiplyRight(xe));
+                ys.AddIntoThis(Kse[i].Multiply(xe)); 
+                Vector ye = Kes[i].Multiply(xs);
+                ye.AddIntoThis(Kee[i].Multiply(xe));
                 ye.AddIntoThis(B[i].MultiplyRight(xc, true));
                 yc.AddIntoThis(B[i].MultiplyRight(xe, false));
                 y.CopySubvectorFrom(dim.SubdomainStarts[sub], ye, 0, ye.Length);
@@ -109,14 +115,14 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         public MenkBordasVector MultiplyRight(MenkBordasVector vector)
         {
-            Vector ys = Kss.MultiplyRight(vector.Vs); // Rows correspond to global standard dofs
+            Vector ys = Kss.Multiply(vector.Vs); // Rows correspond to global standard dofs
             var ye = new Vector[dim.NumSubdomains]; // Rows correspond to subdomain enriched dofs
             var yc = Vector.CreateZero(dim.NumEquations); // Rows correspond to the continuity equations. TODO: try to avoid this
             for (int i = 0; i < dim.NumSubdomains; ++i)
             {
-                ys.AddIntoThis(Kse[i].MultiplyRight(vector.Ve[i]));
-                ye[i] = Kes[i].MultiplyRight(vector.Vs);
-                ye[i].AddIntoThis(Kee[i].MultiplyRight(vector.Ve[i]));
+                ys.AddIntoThis(Kse[i].Multiply(vector.Ve[i]));
+                ye[i] = Kes[i].Multiply(vector.Vs);
+                ye[i].AddIntoThis(Kee[i].Multiply(vector.Ve[i]));
                 ye[i].AddIntoThis(B[i].MultiplyRight(vector.Vc, true)); //TODO: verify that it is not needed
                 yc.AddIntoThis(B[i].MultiplyRight(vector.Ve[i], false)); // Pretty sure this will not be 0
             }

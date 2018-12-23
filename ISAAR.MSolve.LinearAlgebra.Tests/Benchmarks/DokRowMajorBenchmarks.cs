@@ -3,6 +3,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -27,25 +28,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks
             watch.Stop();
             long dokTime = watch.ElapsedMilliseconds;
 
-            CsrMatrix.UseMKL = false;
+            LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.Managed;
             watch.Restart();
-            Vector csrUnsortedTimesLhs = dok.BuildCsrMatrix(false).MultiplyRight(lhs, false);
+            Vector csrUnsortedTimesLhs = dok.BuildCsrMatrix(false).Multiply(lhs, false);
             watch.Stop();
             long csrUnsortedTime = watch.ElapsedMilliseconds;
 
             watch.Restart();
-            Vector csrSortedTimesLhs = dok.BuildCsrMatrix(true).MultiplyRight(lhs, false);
+            Vector csrSortedTimesLhs = dok.BuildCsrMatrix(true).Multiply(lhs, false);
             watch.Stop();
             long csrSortedTime = watch.ElapsedMilliseconds;
 
-            CsrMatrix.UseMKL = true;
+            LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.MKL;
             watch.Restart();
-            Vector csrUnsortedMklTimesLhs = dok.BuildCsrMatrix(false).MultiplyRight(lhs, false);
+            Vector csrUnsortedMklTimesLhs = dok.BuildCsrMatrix(false).Multiply(lhs, false);
             watch.Stop();
             long csrUnsortedMklTime = watch.ElapsedMilliseconds;
 
             watch.Restart();
-            Vector csrSortedMklTimesLhs = dok.BuildCsrMatrix(true).MultiplyRight(lhs, false);
+            Vector csrSortedMklTimesLhs = dok.BuildCsrMatrix(true).Multiply(lhs, false);
             watch.Stop();
             long csrSortedMklTime = watch.ElapsedMilliseconds;
 

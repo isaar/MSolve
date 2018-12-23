@@ -9,9 +9,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     /// </summary>
     internal static class LowerSingular10by10
     {
-        internal const int order = 10;
+        internal const int Order = 10;
 
-        internal static readonly double[,] matrix = new double[,] {
+        internal static double[,] Matrix => new double[,] {
             {4.2289,         0,         0,         0,         0,         0,         0,         0,         0,         0},
             {0.9423,    6.5445,         0,         0,         0,         0,         0,         0,         0,         0},
             {5.9852,    4.0762,    0.9082,         0,         0,         0,         0,         0,         0,         0},
@@ -25,18 +25,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
         };
 
         /// <summary>
-        /// A vector with length = 10, such that <see cref="matrix"/> * <see cref="lhs"/> = <see cref="rhs"/>
+        /// A vector with length = 10, such that <see cref="Matrix"/> * <see cref="Lhs"/> = <see cref="Rhs"/>
         /// </summary>
-        internal static readonly double[] lhs = {
+        internal static double[] Lhs => new double[] {
             0.5822, 0.5407, 0.8699, 0.2648, 0.3181, 0.1192, 0.9398, 0.6456, 0.4795, 0.6393
         };
 
         /// <summary>
-        /// A vector with length = 10, such that <see cref="matrix"/> * <see cref="lhs"/> = <see cref="rhs"/>
+        /// A vector with length = 10, such that <see cref="Matrix"/> * <see cref="Lhs"/> = <see cref="Rhs"/>
         /// </summary>
-        internal static readonly double[] rhs = MatrixOperations.MatrixTimesVector(matrix, lhs);
+        internal static double[] Rhs => MatrixOperations.MatrixTimesVector(Matrix, Lhs);
 
-        internal static readonly string filePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+        internal static string FilePath => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
             + @"\Resources\LowerSingular10by10.txt";
     }
 }

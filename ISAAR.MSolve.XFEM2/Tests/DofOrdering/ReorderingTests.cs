@@ -5,12 +5,13 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.XFEM.Assemblers;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Tests.GRACM;
 using ISAAR.MSolve.XFEM.Tests.Khoei;
+using ISAAR.MSolve.LinearAlgebra.Factorizations;
 
 namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
 {
@@ -59,48 +60,48 @@ namespace ISAAR.MSolve.XFEM.Tests.DofOrdering
             Console.WriteLine($"CSC non zeros = {Kuu.CountNonZeros()}");
 
             watch.Start();
-            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZeros}"
+                Console.WriteLine($"{unorderedName} ordering -> factorization: Non zeros = {factor.NumNonZerosUpper}"
                     + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
             }
 
             // After reorder
-            (int[] permutation, ReorderingStatistics stats) = (new OrderingAmd()).FindPermutation(Kuu);
+            (int[] permutation, ReorderingStatistics stats) = (new OrderingAmdSuiteSparse()).FindPermutation(Kuu);
             Console.WriteLine($"{unorderedName} ordering -> AMD : Non zeros predicted by AMD = {stats.SupFactorizedNumNonZeros}");
             IDofOrderer reorderedDofs = unorderedDofs.DeepCopy();
             reorderedDofs.ReorderUnconstrainedDofs(permutation, false);
             (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, reorderedDofs);
 
             watch.Restart();
-            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.Natural))
+            using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true))
             {
                 watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZeros}"
+                Console.WriteLine($"{unorderedName} ordering -> AMD -> factorization: Non zeros = {factor.NumNonZerosUpper}"
                     + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
             }
 
-            // Let SuiteSparse handle the AMD ordering
-            (Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
-            watch.Restart();
-            using (var factor = Kuu.BuildSymmetricCscMatrix(true).FactorCholesky(SuiteSparseOrdering.AMD))
-            {
-                watch.Stop();
-                Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZeros}"
-                    + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
+            // Deprecated: Let SuiteSparse handle the AMD ordering
+            //(Kuu, Kuc) = assembler.BuildGlobalMatrix(model, unorderedDofs);
+            //watch.Restart();
+            //using (var factor = CholeskySuiteSparse.Factorize(Kuu.BuildSymmetricCscMatrix(true), true, SuiteSparseOrdering.AMD))
+            //{
+            //    watch.Stop();
+            //    Console.WriteLine($"{unorderedName} ordering -> factorization (with hidden AMD): Non zeros = {factor.NumNonZerosUpper}"
+            //        + $" , time for factorization = {watch.ElapsedMilliseconds} ms");
 
-            }
+            //}
 
-            if (printEnumerations)
-            {
-                Console.WriteLine("\nPermutation: ");
-                PrintList(permutation);
-                Console.WriteLine("\nBefore reordering: ");
-                unorderedDofs.WriteToConsole();
-                Console.WriteLine("\nAfter reordering: ");
-                reorderedDofs.WriteToConsole();
-            }
+            //if (printEnumerations)
+            //{
+            //    Console.WriteLine("\nPermutation: ");
+            //    PrintList(permutation);
+            //    Console.WriteLine("\nBefore reordering: ");
+            //    unorderedDofs.WriteToConsole();
+            //    Console.WriteLine("\nAfter reordering: ");
+            //    reorderedDofs.WriteToConsole();
+            //}
         }
 
         private static Model2D CreateDcb3x1()

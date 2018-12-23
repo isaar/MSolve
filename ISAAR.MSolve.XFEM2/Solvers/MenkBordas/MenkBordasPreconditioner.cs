@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Output;
-using ISAAR.MSolve.LinearAlgebra.SuiteSparse;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Standard preconditioner = cholesky factor U
             var (valuesStd, rowIndicesStd, colOffsetsStd) = Kss.BuildSymmetricCscArrays(true);
             return CholeskySuiteSparse.Factorize(Kss.NumRows, valuesStd.Length, valuesStd, rowIndicesStd, colOffsetsStd,
-                true, SuiteSparseOrdering.Natural);
+                true);
         }
 
         public static CholeskySuiteSparse[] CreateEnrichedPreconditioners(MenkBordasSystem.Dimensions dimensions,
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
                 // Enriched preconditioner = cholesky factor U
                 var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee[i].BuildSymmetricCscArrays(true);
                 Pe[i] = CholeskySuiteSparse.Factorize(Kee[i].NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr, colOffsetsEnr,
-                    true, SuiteSparseOrdering.Natural);
+                    true);
             }
             return Pe;
         }
@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
             // Enriched preconditioner = cholesky factor U
             var (valuesEnr, rowIndicesEnr, colOffsetsEnr) = Kee.BuildSymmetricCscArrays(true);
             return CholeskySuiteSparse.Factorize(Kee.NumRows, valuesEnr.Length, valuesEnr, rowIndicesEnr, 
-                colOffsetsEnr, true, SuiteSparseOrdering.Natural);
+                colOffsetsEnr, true);
         }
 
         public static (Matrix L, Matrix Q) CreateContinuityEquationsPreconditioners(MenkBordasSystem.Dimensions dimensions,

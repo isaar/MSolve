@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using IntelMKL.LP64;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
+using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: align data using mkl_malloc
 //TODO: tensor product, vector2D, vector3D
@@ -32,10 +31,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public int Length { get; }
 
         /// <summary>
-        /// The internal array that stores the entries of the vector. It should only be used for passing the raw array to linear 
-        /// algebra libraries.
+        /// The internal array that stores the entries of the vector. 
+        /// It should only be used for passing the raw array to linear algebra libraries.
         /// </summary>
-        internal double[] InternalData { get { return data; } }
+        internal double[] RawData => data;
 
         /// <summary>
         /// See <see cref="IIndexable1D.this[int]"/>.
@@ -208,7 +207,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         {
             if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this vector's length");
-            CBlas.Daxpy(subvector.Length, 1.0, ref subvector.data[0], 1, ref this.data[destinationIndex], 1);
+            Blas.Daxpy(subvector.Length, 1.0, subvector.data, 0, 1, this.data, destinationIndex, 1);
         }
 
         /// <summary>
@@ -232,7 +231,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         public IVector Axpy(IVectorView otherVector, double otherCoefficient)
         {
-            if (otherVector is Vector casted) return Axpy(casted, otherCoefficient);
+            if (otherVector is Vector dense) return Axpy(dense, otherCoefficient);
+            else if (otherVector is SparseVector sparse)
+            {
+                Preconditions.CheckVectorDimensions(this, otherVector);
+                double[] result = new double[data.Length];
+                Array.Copy(data, result, data.Length);
+                SparseBlas.Daxpyi(sparse.RawIndices.Length, otherCoefficient, sparse.RawValues,
+                    sparse.RawIndices, 0, result, 0);
+                return Vector.CreateFromArray(result, false);
+            }
             else return otherVector.LinearCombination(otherCoefficient, this, 1.0); // To avoid accessing zero entries
         }
 
@@ -251,7 +259,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref result[0], 1);
+            Blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
             return new Vector(result);
         }
 
@@ -260,13 +268,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// </summary>
         public void AxpyIntoThis(IVectorView otherVector, double otherCoefficient)
         {
-            if (otherVector is Vector casted) AxpyIntoThis(casted, otherCoefficient);
+            if (otherVector is Vector dense) AxpyIntoThis(dense, otherCoefficient);
             else
             {
                 Preconditions.CheckVectorDimensions(this, otherVector);
-                for (int i = 0; i < Length; ++i)
+                if (otherVector is SparseVector sparse)
                 {
-                    this.data[i] += otherCoefficient * otherVector[i];
+                    SparseBlas.Daxpyi(sparse.RawIndices.Length, otherCoefficient, sparse.RawValues,
+                        sparse.RawIndices, 0, data, 0);
+                }
+                else
+                {
+                    for (int i = 0; i < Length; ++i) this.data[i] += otherCoefficient * otherVector[i];
                 }
             }
         }
@@ -283,7 +296,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void AxpyIntoThis(Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            CBlas.Daxpy(Length, otherCoefficient, ref otherVector.data[0], 1, ref this.data[0], 1);
+            Blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
         }
 
         /// <summary>
@@ -297,7 +310,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
 
             if (sourceVector is Vector casted)
             {
-                CBlas.Daxpy(Length, sourceCoefficient, ref casted.data[sourceIndex], 1, ref this.data[destinationIndex], 1);
+                Blas.Daxpy(Length, sourceCoefficient, casted.data, sourceIndex, 1, this.data, destinationIndex, 1);
             }
             else
             {
@@ -425,6 +438,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVectorView.CreateZeroVectorWithSameFormat"/>
+        /// </summary>
+        public IVector CreateZeroVectorWithSameFormat() => new Vector(new double[Length]);
+
+        /// <summary>
         /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
@@ -527,7 +545,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public double DotProduct(Vector vector)
         {
             Preconditions.CheckVectorDimensions(this, vector);
-            return CBlas.Ddot(Length, ref this.data[0], 1, ref vector.data[0], 1);
+            return Blas.Ddot(Length, this.data, 0, 1, vector.data, 0, 1);
         }
 
         /// <summary>
@@ -607,7 +625,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Daxpby(Length, otherCoefficient, ref otherVector.data[0], 1, thisCoefficient, ref result[0], 1);
+            BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
             return new Vector(result);
         }
 
@@ -640,7 +658,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void LinearCombinationIntoThis(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            CBlas.Daxpby(Length, otherCoefficient, ref otherVector.data[0], 1, thisCoefficient, ref this.data[0], 1);
+            BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
         }
 
         /// <summary>
@@ -674,7 +692,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
         /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
         /// </summary>
-        public double Norm2() => CBlas.Dnrm2(Length, ref data[0], 1);
+        public double Norm2() => Blas.Dnrm2(Length, data, 0, 1);
 
         /// <summary>
         /// This method is used to remove duplicate values of a Knot Value Vector and return the multiplicity up to
@@ -792,14 +810,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
             Array.Copy(data, result, data.Length);
-            CBlas.Dscal(Length, scalar, ref result[0], 1);
+            Blas.Dscal(Length, scalar, result, 0, 1);
             return new Vector(result);
         }
 
         /// <summary>
         /// See <see cref="IVector.ScaleIntoThis(double)"/>.
         /// </summary>
-        public void ScaleIntoThis(double scalar) => CBlas.Dscal(Length, scalar, ref data[0], 1);
+        public void ScaleIntoThis(double scalar) => Blas.Dscal(Length, scalar, data, 0, 1);
 
         /// <summary>
         /// Sets all entries of this vector to be equal to <paramref name="value"/>.

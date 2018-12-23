@@ -1,6 +1,7 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using System;
@@ -18,7 +19,6 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
 
         private StandardPreconditionerJacobi(DokRowMajor Kss)
         {
-            CsrMatrix.UseMKL = true; //TODO: this should be done elsewhere
             this.Kss = Kss.BuildCsrMatrix(true);
             this.order = Kss.NumColumns;
 
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.XFEM.Solvers.MenkBordas
         {
             // y = Ps^T * Kss * Ps * x = D * Kss * D * x
             Vector y = invDiagonalRoot.MultiplyEntrywise(x);
-            y = Kss.MultiplyRight(y, false);
+            y = Kss.Multiply(y, false);
             return y = invDiagonalRoot.MultiplyEntrywise(y);
 
             //TODO: perhaps I can do D^2 * Kss * x

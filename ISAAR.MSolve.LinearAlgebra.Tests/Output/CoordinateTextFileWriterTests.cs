@@ -17,9 +17,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         [Fact]
         private static void TestSparsePosDef()
         {
-            var matrix = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.order, SparsePosDef10by10.skylineValues,
-                SparsePosDef10by10.skylineDiagOffsets, true, true);
-            TestWriteOperation(matrix, SparsePosDef10by10.coordinateFormatPath);
+            var matrix = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, SparsePosDef10by10.SkylineValues,
+                SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            TestWriteOperation(matrix, SparsePosDef10by10.CoordinateFormatPath);
         }
 
         [Fact]
@@ -27,10 +27,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
         {
             // The reference file has been written by iterating the entries in CSC order.
             // Therefore it cannot be used for checking with a CSR matrix.
-            var matrix = CscMatrix.CreateFromArrays(SparseRectangular10by5.numRows, SparseRectangular10by5.numCols,
-                SparseRectangular10by5.cscValues, SparseRectangular10by5.cscRowIndices, SparseRectangular10by5.cscColOffsets,
+            var matrix = CscMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                SparseRectangular10by5.CscValues, SparseRectangular10by5.CscRowIndices, SparseRectangular10by5.CscColOffsets,
                 true);
-            TestWriteOperation(matrix, SparseRectangular10by5.coordinateFormatPath);
+            TestWriteOperation(matrix, SparseRectangular10by5.CoordinateFormatPath);
         }
 
         private static void TestWriteOperation(ISparseMatrix matrix, string referenceFile)

@@ -6,6 +6,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup>
+   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup> 
+  
   <ItemGroup>
     <PackageReference Include="Moq" Version="4.8.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0-preview-20180816-01" />
@@ -36,9 +40,20 @@
     <Folder Include="Analyzers\" />
     <Folder Include="Logging\" />
     <Folder Include="MaterialsTest\" />
-    <Folder Include="Solvers\" />
     <Folder Include="Problems\" />
     <Folder Include="Numerical\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>System</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

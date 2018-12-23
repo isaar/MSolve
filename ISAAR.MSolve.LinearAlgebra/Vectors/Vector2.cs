@@ -297,6 +297,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public double[] CopyToArray() => new double[] { data[0], data[1] };
 
         /// <summary>
+        /// See <see cref="IVectorView.CreateZeroVectorWithSameFormat"/>
+        /// </summary>
+        public IVector CreateZeroVectorWithSameFormat() => new Vector2(new double[2]);
+
+        /// <summary>
         /// Performs the operation: result = this[0] * other[1] - this[1] * other[0]. The result is a scalar value.  
         /// Also note that: other.Cross(this) = - this.Cross(other).
         /// </summary>

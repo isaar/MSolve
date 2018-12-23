@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Providers
+namespace ISAAR.MSolve.XFEM.Geometry.Mesh.SuiteSparse
 {
     class FineAtCenterRectilinearMeshGenerator
     {
