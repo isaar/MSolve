@@ -9,8 +9,6 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using System.Collections;
 using System.Linq;
-using System.IO;
-using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
@@ -21,9 +19,9 @@ namespace ISAAR.MSolve.Analyzers
         private readonly ISubdomainGlobalMapping[] mappings;
         private readonly int increments;
         private readonly int totalDOFs;
-        private int iterations = 1000;
+        private int maxSteps = 1000;
         private int stepsForMatrixRebuild = 1;
-        private readonly double tolerance = 1e-3;
+        private readonly double tolerance = 1e-8;
         private double rhsNorm;
         private INonLinearParentAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
@@ -51,13 +49,13 @@ namespace ISAAR.MSolve.Analyzers
             InitializeInternalVectors();
         }
 
-        public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
+        public TotalDisplacementsPerIterationLog IterativeDisplacementsLog { get; set; }
 
         public int SetMaxIterations
         {
             set
             {
-                if (value > 0) { this.iterations = value; }
+                if (value > 0) { this.maxSteps = value; }
                 else { throw new Exception("Iterations number cannot be negative or zero"); }
             }
         }
@@ -167,24 +165,26 @@ namespace ISAAR.MSolve.Analyzers
                 UpdateRHS(increment);//TODOMaria this copies the residuals stored in the class dictionary to the subdomains
 
                 double firstError = 0;
-                int iteration = 0;
-                for (iteration = 0; iteration < iterations; iteration++)
+                int step = 0;
+                for (step = 0; step < maxSteps; step++)
                 {
                     solver.Solve();
-                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
-                    if (iteration == 0) firstError = errorNorm;
-                    if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
-                    if (errorNorm < tolerance) break;               
+                    errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    //Console.WriteLine($"Increment {increment}, iteration {step}: norm2(error) = {errorNorm}");
+                    if (step == 0) firstError = errorNorm;
+                    if (IterativeDisplacementsLog != null) IterativeDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
+                    if (errorNorm < tolerance) break;
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
-                    if ((iteration + 1) % stepsForMatrixRebuild == 0)
+                    if ((step + 1) % stepsForMatrixRebuild == 0)
                     {
                         provider.Reset();
                         BuildMatrices();
                         solver.Initialize();
                     }
+
                 }
-                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
+                Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }
             CopySolutionToSubdomains();//TODOMaria Copy current displacement to subdomains

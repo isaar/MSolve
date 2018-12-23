@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             VectorExtensions.AssignTotalAffinityCount();
             double youngMod = 10e6;
-            double poisson = 0.3;
+            //double poisson = 0.3;
             double loadX = 500;
             double loadY = 300;
             double sectionArea = 1.5;

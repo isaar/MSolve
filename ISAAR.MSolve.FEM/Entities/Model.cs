@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -336,7 +337,10 @@ namespace ISAAR.MSolve.FEM.Entities
             EnumerateDOFs();
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
-            AssignLoads();//TODOMaria: Here is where the element loads are assembled
+
+            //TODOMaria: Here is where the element loads are assembled
+            AssignLoads();
+
             BuildConstraintDisplacementDictionary();
         }
         #endregion
