@@ -156,15 +156,6 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Solve()
         {
-            string path = @"E:\GEORGE_DATA\DESKTOP\MSolveResults\Load-Displacement Curve.dat";
-            if (!File.Exists(path))
-            {
-                using (TextWriter writer = File.CreateText(path))
-                {
-                    writer.WriteLine("Displacement - Load - errorNorm - Increment - Iterations");
-                }
-            }
-
             InitializeLogs();
 
             DateTime start = DateTime.Now;
@@ -183,18 +174,7 @@ namespace ISAAR.MSolve.Analyzers
                     errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, iteration) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
                     if (iteration == 0) firstError = errorNorm;
                     if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
-                    if (errorNorm < tolerance)
-                    {
-                        using (StreamWriter wr = new StreamWriter(path))
-                        {
-                            var displacement = linearSystems[0].Solution[8];
-                            var load = linearSystems[0].RHS[8];
-                            var internalForce = CalculateInternalRHS
-                            //wr.WriteLine(displacement, load, errorNorm, increment, iteration);
-                        }
-
-                        break;
-                    }                   
+                    if (errorNorm < tolerance) break;               
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
                     if ((iteration + 1) % stepsForMatrixRebuild == 0)
