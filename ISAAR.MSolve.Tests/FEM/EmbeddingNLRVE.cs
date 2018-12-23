@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void RunTest()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
-            TotalDisplacementsLog computedDisplacements = SolveModel();
+            TotalDisplacementsPerIterationLog computedDisplacements = SolveModel();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
@@ -37,11 +37,11 @@ namespace ISAAR.MSolve.Tests.FEM
         public static void RunTest_v2()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
-            TotalDisplacementsLog computedDisplacements = SolveModel_v2();
+            TotalDisplacementsPerIterationLog computedDisplacements = SolveModel_v2();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
-        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsLog computedDisplacements)
+        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsPerIterationLog computedDisplacements)
         {
             var comparer = new ValueComparer(1E-10); // for node major dof order and skyline solver
             //var comparer = new ValueComparer(1E-1); // for other solvers. It may require adjusting after visual inspection
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return expectedDisplacements;
         }
 
-        private static TotalDisplacementsLog SolveModel()
+        private static TotalDisplacementsPerIterationLog SolveModel()
         {
             Numerical.LinearAlgebra.VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
-            var log1 = new TotalDisplacementsLog(watchDofs);
+            var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
             childAnalyzer.IncrementalDisplacementsLog = log1;
 
 
@@ -120,7 +120,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return log1;
         }
 
-        private static TotalDisplacementsLog SolveModel_v2()
+        private static TotalDisplacementsPerIterationLog SolveModel_v2()
         {
             var model = new Model_v2();
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
@@ -148,8 +148,8 @@ namespace ISAAR.MSolve.Tests.FEM
             // Output
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
-            var log1 = new TotalDisplacementsLog(watchDofs);
-            childAnalyzer.IncrementalDisplacementsLog = log1;
+            var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
+            childAnalyzer.TotalDisplacementsPerIterationLog = log1;
 
             // Run the anlaysis 
             parentAnalyzer.Initialize();

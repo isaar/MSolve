@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Analyzers
         public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get; } = new Dictionary<int, LinearAnalyzerLogFactory>();
         public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-        public TotalDisplacementsLog IncrementalDisplacementsLog { get; set; }
+        public TotalDisplacementsPerIterationLog TotalDisplacementsPerIterationLog { get; set; }
 
         public IParentAnalyzer ParentAnalyzer
         {

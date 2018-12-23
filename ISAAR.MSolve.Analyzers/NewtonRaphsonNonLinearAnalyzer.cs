@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Analyzers
             InitializeInternalVectors();
         }
 
-        public TotalDisplacementsLog IncrementalDisplacementsLog { get; set; }
+        public TotalDisplacementsPerIterationLog IncrementalDisplacementsLog { get; set; }
 
         public int SetMaxIterations
         {

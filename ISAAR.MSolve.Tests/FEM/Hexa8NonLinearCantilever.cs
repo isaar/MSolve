@@ -23,11 +23,11 @@ namespace ISAAR.MSolve.Tests.FEM
         private static void RunTest()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
-            TotalDisplacementsLog computedDisplacements = SolveModel();
+            TotalDisplacementsPerIterationLog computedDisplacements = SolveModel();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
-        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsLog computedDisplacements)
+        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsPerIterationLog computedDisplacements)
         {
             var comparer = new ValueComparer(1E-13);
             for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return expectedDisplacements;
         }
 
-        private static TotalDisplacementsLog SolveModel()
+        private static TotalDisplacementsPerIterationLog SolveModel()
         {
             VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
-            var log1 = new TotalDisplacementsLog(watchDofs);
+            var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
             childAnalyzer.IncrementalDisplacementsLog = log1;
 
 

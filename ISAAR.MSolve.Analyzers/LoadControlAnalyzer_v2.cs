@@ -40,9 +40,13 @@ namespace ISAAR.MSolve.Analyzers
 
                     if (iteration == 0) firstError = errorNorm;
 
-                    if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements_v2(uPlusdu);
+                    if (TotalDisplacementsPerIterationLog != null) TotalDisplacementsPerIterationLog.StoreDisplacements_v2(uPlusdu);
 
-                    if (errorNorm < residualTolerance) break;
+                    if (errorNorm < residualTolerance)
+                    {
+                        //TODO: Log increment data
+                        break;
+                    }
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
                     if ((iteration + 1) % numIterationsForMatrixRebuild == 0) // Matrix rebuilding should be handled in another way. E.g. in modified NR, it must be done at each increment.
