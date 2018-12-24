@@ -150,7 +150,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
-			var paraviewOutput = new ParaviewResults2D(model,linearSystems[0]);
+			var paraviewOutput = new ParaviewNurbs2D(model,linearSystems[0]);
 			paraviewOutput.CreateParaview2DFile();
 
 

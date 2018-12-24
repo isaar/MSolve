@@ -99,15 +99,15 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void FindSpanTest()
 		{
-			var spanKsi=ParaviewResults2D.FindSpan(numberOfControlPointsKsi, degreeKsi, coordinateKsi, knotValueVectorKsi);
+			var spanKsi=ParaviewNurbs2D.FindSpan(numberOfControlPointsKsi, degreeKsi, coordinateKsi, knotValueVectorKsi);
 			Assert.Equal(4, spanKsi);
 		}
 
 		[Fact]
 		public void BasisFunctionsTest()
 		{
-			var spanKsi = ParaviewResults2D.FindSpan(numberOfControlPointsKsi, degreeKsi, coordinateKsi, knotValueVectorKsi);
-			var basisFunctionsKsi = ParaviewResults2D.BasisFunctions(spanKsi, coordinateKsi, degreeKsi, knotValueVectorKsi);
+			var spanKsi = ParaviewNurbs2D.FindSpan(numberOfControlPointsKsi, degreeKsi, coordinateKsi, knotValueVectorKsi);
+			var basisFunctionsKsi = ParaviewNurbs2D.BasisFunctions(spanKsi, coordinateKsi, degreeKsi, knotValueVectorKsi);
 
 			var expectedBasisFunctions=new Vector(new double[]{0.5,0.5,0});
 			for (int i = 0; i < basisFunctionsKsi.Length; i++)
@@ -120,7 +120,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void SurfacePoint2DTest()
 		{
-			var point=ParaviewResults2D.SurfacePoint2D(numberOfControlPointsKsi, degreeKsi, knotValueVectorKsi,
+			var point=ParaviewNurbs2D.SurfacePoint2D(numberOfControlPointsKsi, degreeKsi, knotValueVectorKsi,
 				numberOfControlPointsHeta, degreeHeta, knotValueVectorHeta, projectiveCoordinates, coordinateKsi, coordinateHeta);
 
 			var expectedPoint = new double[] {10, 0,0, 1};

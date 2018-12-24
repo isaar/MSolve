@@ -11,12 +11,12 @@ using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
-	public class ParaviewResults2D
+	public class ParaviewNurbs2D
 	{
 		private Model _model;
 		private ILinearSystem _linearSystem;
 
-		public ParaviewResults2D(Model model, ILinearSystem linearSystem)
+		public ParaviewNurbs2D(Model model, ILinearSystem linearSystem)
 		{
 			_model = model;
 			_linearSystem = linearSystem;
