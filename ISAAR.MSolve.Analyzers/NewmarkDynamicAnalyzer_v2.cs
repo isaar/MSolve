@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly double beta, gamma, timeStep, totalTime;
         private readonly double a0, a1, a2, a3, a4, a5, a6, a7;
         private readonly IStructuralModel_v2 model;
-        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
+        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly ISolver_v2 solver;
         private readonly IImplicitIntegrationProvider_v2 provider;
         private Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();
@@ -72,7 +72,10 @@ namespace ISAAR.MSolve.Analyzers
                 Damping = a1,
                 Stiffness = 1
             };
-            foreach (ILinearSystem_v2 linearSystem in linearSystems) provider.CalculateEffectiveMatrix(linearSystem, coeffs);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                provider.CalculateEffectiveMatrix(linearSystem, coeffs);
+            }
         }
 
         public IVector GetOtherRhsComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)
@@ -141,7 +144,10 @@ namespace ISAAR.MSolve.Analyzers
             model.AssignLoads();
 
             //TODO: this should be done elsewhere. It makes sense to assign the Rhs vector when the stiffness matrix is assigned
-            foreach (ILinearSystem_v2 linearSystem in linearSystems) linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+            }
 
             //InitializeCoefficients();
             InitializeInternalVectors();
@@ -170,7 +176,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void CalculateRhsImplicit()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 linearSystem.RhsVector = CalculateRhsImplicit(linearSystem, true);
 
@@ -217,7 +223,6 @@ namespace ISAAR.MSolve.Analyzers
         private IVector CalculateRhsImplicit(ILinearSystem_v2 linearSystem, bool addRhs)
         {
             //TODO: instead of creating a new Vector and then trying to set ILinearSystem.RhsVector, clear it and operate on it.
-
             int id = linearSystem.Subdomain.ID;
 
             // uu = a0 * v + a2 * v1 + a3 * v2
@@ -264,7 +269,7 @@ namespace ISAAR.MSolve.Analyzers
             v2.Clear();
             rhs.Clear();
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 uu.Add(id, linearSystem.CreateZeroVector());
@@ -290,7 +295,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 Mass = a0, Damping = a1, Stiffness = 1
             };
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 provider.ProcessRhs(linearSystem, coeffs);
                 int dofs = linearSystem.RhsVector.Length;
@@ -300,7 +305,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void UpdateResultStorages(DateTime start, DateTime end)
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 if (ResultStorages.ContainsKey(id))
@@ -315,7 +320,7 @@ namespace ISAAR.MSolve.Analyzers
             var externalVelocities = provider.GetVelocitiesOfTimeStep(timeStep);
             var externalAccelerations = provider.GetAccelerationsOfTimeStep(timeStep);
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 u[id].CopyFrom(v[id]); //TODO: this copy can be avoided by pointing to v[id] and then v[id] = null;

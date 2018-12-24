@@ -150,7 +150,9 @@ namespace ISAAR.MSolve.SamplesConsole
             //SeparateCodeCheckingClass.Check06();
             //CNTExamples.CNT_4_4_DisplacementControl();
             //CNTExamples.CNT_4_4_NewtonRaphson();
-            Tests.FEM.Shell8andCohesiveNonLinear.RunTest_v2();
+            //Tests.FEM.Shell8andCohesiveNonLinear.RunTest_v2();
+
+            Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();
         }
     }
 }

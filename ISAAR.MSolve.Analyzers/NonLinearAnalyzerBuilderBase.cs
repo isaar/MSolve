@@ -24,15 +24,8 @@ namespace ISAAR.MSolve.Analyzers
             this.model = model;
             this.solver = solver;
             this.provider = provider;
-
             this.numIncrements = numIncrements;
-
-            int numSubdomains = model.Subdomains.Count;
-            SubdomainUpdaters = new NonLinearSubdomainUpdater_v2[numSubdomains];
-            for (int i = 0; i < numSubdomains; ++i)
-            {
-                SubdomainUpdaters[i] = new NonLinearSubdomainUpdater_v2(model.Subdomains[i]);
-            }
+            SubdomainUpdaters = CreateDefaultSubdomainUpdaters();
         }
 
         public int MaxIterationsPerIncrement
@@ -65,6 +58,18 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
-        public INonLinearSubdomainUpdater_v2[] SubdomainUpdaters { get; set; }
+        public IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> SubdomainUpdaters { get; set; }
+
+        private IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> CreateDefaultSubdomainUpdaters()
+        {
+            int numSubdomains = model.Subdomains.Count;
+            var subdomainUpdaters = new Dictionary<int, INonLinearSubdomainUpdater_v2>(numSubdomains);
+            for (int i = 0; i < numSubdomains; ++i)
+            {
+                subdomainUpdaters[i] = new NonLinearSubdomainUpdater_v2(model.Subdomains[i]);
+            }
+            return subdomainUpdaters;
+
+        }
     }
 }

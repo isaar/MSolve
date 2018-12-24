@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -14,10 +15,11 @@ namespace ISAAR.MSolve.Analyzers
     /// </summary>
     public class DisplacementControlAnalyzer_v2: NonLinearAnalyzerBase
     {
-        private readonly IEquivalentLoadsAssembler_v2[] equivalentLoadsAssemblers;
+        private readonly IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers;
 
         private DisplacementControlAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
-            INonLinearSubdomainUpdater_v2[] subdomainUpdaters, IEquivalentLoadsAssembler_v2[] equivalentLoadsAssemblers,
+            IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> subdomainUpdaters,
+            IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers,
             int numIncrements, int maxIterationsPerIncrement, int numIterationsForMatrixRebuild, double residualTolerance) :
             base(model, solver, provider, subdomainUpdaters, numIncrements, maxIterationsPerIncrement,
                 numIterationsForMatrixRebuild, residualTolerance)
@@ -44,9 +46,12 @@ namespace ISAAR.MSolve.Analyzers
                 {
                     AddEquivalentNodalLoadsToRHS(increment, iteration);
                     solver.Solve();
-                    errorNorm = CalculateInternalRhs(increment, iteration);
+
+                    Dictionary<int, IVector> internalRhsVectors = CalculateInternalRhs(increment, iteration);
+                    errorNorm = UpdateResidualForcesAndNorm(increment, internalRhsVectors); // This also sets the rhs vectors in linear systems.
                     if (iteration == 0) firstError = errorNorm;
                     if (errorNorm < residualTolerance) break;
+                    //Console.WriteLine($"Increment {increment}, iteration {iteration}: norm2(error) = {errorNorm}");
 
                     SplitResidualForcesToSubdomains();
                     if ((iteration + 1) % numIterationsForMatrixRebuild == 0)
@@ -67,10 +72,10 @@ namespace ISAAR.MSolve.Analyzers
         protected override void InitializeInternalVectors()
         {
             base.InitializeInternalVectors();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                int idx = FindSubdomainIdx(linearSystems, linearSystem);
-                subdomainUpdaters[idx].ScaleConstraints(1 / (double)numIncrements);
+                //int idx = FindSubdomainIdx(linearSystems, linearSystem);
+                subdomainUpdaters[linearSystem.Subdomain.ID].ScaleConstraints(1 / (double)numIncrements);
             }
         }
 
@@ -79,13 +84,13 @@ namespace ISAAR.MSolve.Analyzers
             if (iteration != 0)
                 return;
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
-                int idx = FindSubdomainIdx(linearSystems, linearSystem);
+                //int idx = FindSubdomainIdx(linearSystems, linearSystem);
 
                 double scalingFactor = 1; //((double)currentIncrement + 2) / (currentIncrement + 1); //2; //
-                IVector equivalentNodalLoads = equivalentLoadsAssemblers[idx].GetEquivalentNodalLoads(u[id], scalingFactor);
+                IVector equivalentNodalLoads = equivalentLoadsAssemblers[id].GetEquivalentNodalLoads(u[id], scalingFactor);
                 linearSystem.RhsVector.SubtractIntoThis(equivalentNodalLoads);
 
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRhs);
@@ -98,25 +103,27 @@ namespace ISAAR.MSolve.Analyzers
             if (currentIncrement == 0)
                 return;
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems)
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                int idx = FindSubdomainIdx(linearSystems, linearSystem);
+                //int idx = FindSubdomainIdx(linearSystems, linearSystem);
                 double scalingFactor = 1; // ((double)currentIncrement + 2) / (currentIncrement + 1);
-                subdomainUpdaters[idx].ScaleConstraints(scalingFactor);
+                subdomainUpdaters[linearSystem.Subdomain.ID].ScaleConstraints(scalingFactor);
             }
         }
 
         public class Builder: NonLinearAnalyzerBuilderBase
         {
-            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, 
-                IEquivalentLoadsAssembler_v2[] equivalentLoadsAssemblers, int numIncrements):
+            private readonly IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers;
+
+            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
+                IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers, int numIncrements):
                 base(model, solver, provider, numIncrements)
             {
                 MaxIterationsPerIncrement = 1000;
                 NumIterationsForMatrixRebuild = 1;
                 ResidualTolerance = 1E-3;
 
-                this.EquivalentLoadsAssemblers = equivalentLoadsAssemblers;
+                this.equivalentLoadsAssemblers = equivalentLoadsAssemblers;
                 //int numSubdomains = model.Subdomains.Count;
                 //EquivalentLoadsAssemblers = new EquivalentLoadsAssembler_v2[numSubdomains];
                 //for (int i = 0; i < numSubdomains; ++i)
@@ -125,11 +132,9 @@ namespace ISAAR.MSolve.Analyzers
                 //}
             }
 
-            public IEquivalentLoadsAssembler_v2[] EquivalentLoadsAssemblers { get; set; }
-
             public DisplacementControlAnalyzer_v2 Build()
             {
-                return new DisplacementControlAnalyzer_v2(model, solver, provider, SubdomainUpdaters,EquivalentLoadsAssemblers,
+                return new DisplacementControlAnalyzer_v2(model, solver, provider, SubdomainUpdaters, equivalentLoadsAssemblers,
                     numIncrements, maxIterationsPerIncrement, numIterationsForMatrixRebuild, residualTolerance);
             }
         }

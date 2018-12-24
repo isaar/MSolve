@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             subdomain = model.Subdomains[0];
 
             linearSystem = new DenseSystem(subdomain);
-            LinearSystems = new ILinearSystem_v2[] { linearSystem };
+            LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
             this.DofOrderer = dofOrderer;
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
         public IDofOrderer DofOrderer { get; }
 
-        public IReadOnlyList<ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
         {

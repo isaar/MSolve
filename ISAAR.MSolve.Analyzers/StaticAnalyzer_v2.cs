@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class StaticAnalyzer_v2 : INonLinearParentAnalyzer_v2
     {
-        private readonly IReadOnlyList<ILinearSystem_v2> linearSystems;
+        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly IStructuralModel_v2 model;
         private readonly IStaticProvider_v2 provider;
         private readonly ISolver_v2 solver;
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public void BuildMatrices()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems) provider.CalculateMatrix(linearSystem);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values) provider.CalculateMatrix(linearSystem);
             //subdomain.Matrix = provider.Ks[subdomain.ID]; // setting is done by the assembler to avoid casting
         }
 
@@ -54,7 +54,10 @@ namespace ISAAR.MSolve.Analyzers
             model.AssignLoads();
 
             //TODO: this should be done elsewhere. It makes sense to assign the RHS vector when the stiffness matrix is assigned
-            foreach (ILinearSystem_v2 linearSystem in linearSystems) linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+            }
 
             ChildAnalyzer.Initialize();
         }

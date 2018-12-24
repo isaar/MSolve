@@ -113,7 +113,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             // Check output
             double endDeflectionExpected = benchmark.CalculateEndDeflectionWithEulerBeamTheory();
             double endDeflectionComputed = 
-                benchmark.CalculateAverageEndDeflectionFromSolution(solver.LinearSystems.First().Solution);
+                benchmark.CalculateAverageEndDeflectionFromSolution(solver.LinearSystems.First().Value.Solution);
             var comparer = new ValueComparer(1E-2);
             Assert.True(comparer.AreEqual(endDeflectionExpected, endDeflectionComputed));
         }
