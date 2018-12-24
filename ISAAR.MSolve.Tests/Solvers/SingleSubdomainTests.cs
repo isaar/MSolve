@@ -2,7 +2,9 @@
 using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Tests;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
@@ -17,12 +19,18 @@ namespace ISAAR.MSolve.Tests.Solvers
 {
     public static class SingleSubdomainTests
     {
-        [Fact]
+        [SkippableFact]
         internal static void TestDenseSolver()
         {
-            var solverBuilder = new DenseMatrixSolver.Builder();
-            solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
-            RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
+            Skip.IfNot(TestSettings.TestMkl, TestSettings.MessageWhenSkippingMKL);
+
+            // Dense solver is too slow for a ~17.000 dof linear system, without MKL
+            TestSettings.RunMultiproviderTest(LinearAlgebraProviderChoice.MKL, delegate ()
+            {
+                var solverBuilder = new DenseMatrixSolver.Builder();
+                solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+                RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
+            });
         }
 
         [Fact]
@@ -40,7 +48,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             var pcgBuilder = new PcgAlgorithm.Builder();
             var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
             solverBuilder.DofOrderer = new DofOrderer(
-                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 
@@ -57,24 +65,28 @@ namespace ISAAR.MSolve.Tests.Solvers
         {
             var solverBuilder = new SkylineSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(
-                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 
-        [Fact]
+        [SkippableFact]
         internal static void TestSuiteSparseSolver()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             var solverBuilder = new SuiteSparseSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 
-        [Fact]
+        [SkippableFact]
         internal static void TestSuiteSparseSolverWithAmdReordering()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             var solverBuilder = new SuiteSparseSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(
-                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
+                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 

@@ -1,24 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests
 {
     // Currently SuiteSparse dlls call MKL dll
-    internal enum TestSuiteSparseAndMklLibs
+    public enum TestSuiteSparseAndMklLibs
     {
-        None, MklOnly, MklAndSuiteSparse
+        Neither, MklOnly, Both
     }
 
-    internal class TestSettings
+    public class TestSettings
     {
         // Set the appropriate enums and flags here, in order to choose which native library tests will be run.
-        internal static readonly TestSuiteSparseAndMklLibs librariesToTest = TestSuiteSparseAndMklLibs.None;
+        private static readonly TestSuiteSparseAndMklLibs librariesToTest = TestSuiteSparseAndMklLibs.Neither;
 
-        internal const string MessageWhenSkippingMKL = "MKL is not set to be tested. See TestSettings.cs for more.";
+        public const string MessageWhenSkippingMKL = "MKL is not set to be tested. See TestSettings.cs for more.";
 
-        internal const string MessageWhenSkippingSuiteSparse
+        public const string MessageWhenSkippingSuiteSparse
             = "SuiteSparse is not set to be tested. See TestSettings.cs for more.";
 
         public static TheoryData<LinearAlgebraProviderChoice> ProvidersToTest
@@ -28,7 +26,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests
                 var theoryData = new TheoryData<LinearAlgebraProviderChoice>();
                 theoryData.Add(LinearAlgebraProviderChoice.Managed);
                 if ((librariesToTest == TestSuiteSparseAndMklLibs.MklOnly) 
-                    || (librariesToTest == TestSuiteSparseAndMklLibs.MklAndSuiteSparse))
+                    || (librariesToTest == TestSuiteSparseAndMklLibs.Both))
                 {
                     theoryData.Add(LinearAlgebraProviderChoice.MKL);
                 }
@@ -36,12 +34,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests
             }
         }
 
-        internal static bool TestMkl => (librariesToTest == TestSuiteSparseAndMklLibs.MklOnly) 
-            || (librariesToTest == TestSuiteSparseAndMklLibs.MklAndSuiteSparse);
+        public static bool TestMkl => (librariesToTest == TestSuiteSparseAndMklLibs.MklOnly) 
+            || (librariesToTest == TestSuiteSparseAndMklLibs.Both);
 
-        internal static bool TestSuiteSparse => (librariesToTest == TestSuiteSparseAndMklLibs.MklAndSuiteSparse);
+        public static bool TestSuiteSparse => (librariesToTest == TestSuiteSparseAndMklLibs.Both);
 
-        internal static void RunMultiproviderTest(LinearAlgebraProviderChoice providers, Action test)
+        public static void RunMultiproviderTest(LinearAlgebraProviderChoice providers, Action test)
         {
             LinearAlgebraProviderChoice defaultProviders = LibrarySettings.LinearAlgebraProviders; // Store it for later
             LibrarySettings.LinearAlgebraProviders = providers;
