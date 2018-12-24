@@ -27,35 +27,36 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			var uniqueKnotsKsi = _model.PatchesDictionary[0].KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity();
 			var uniqueKnotsHeta = _model.PatchesDictionary[0].KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity();
 
-			var numberOfKnotsKsi = uniqueKnotsKsi.Length;
-			var numberOfKnotsHeta = uniqueKnotsHeta.Length;
+			var numberOfKnotsKsi = uniqueKnotsKsi[0].Length;
+			var numberOfKnotsHeta = uniqueKnotsHeta[0].Length;
 
-			var knots = new double[numberOfKnotsKsi * numberOfKnotsHeta, 2];
-			var count = 1;
+			var knots = new double[numberOfKnotsKsi * numberOfKnotsHeta, 3];
+			var count = 0;
 			var patch = _model.PatchesDictionary[0];
 
 			var projectiveControlPoints = CalculateProjectiveControlPoints();
 
 			for (var knotKsiIndex = 0; knotKsiIndex < numberOfKnotsKsi; knotKsiIndex++)
 			{
-				var hetaCoordinate = uniqueKnotsKsi[0][knotKsiIndex];
 				for (var knotHetaIndex = 0; knotHetaIndex < numberOfKnotsHeta; knotHetaIndex++)
 				{
+					var hetaCoordinate = uniqueKnotsHeta[0][knotHetaIndex];
 					var ksiCoordinate = uniqueKnotsKsi[0][knotKsiIndex];
 					var point3D = SurfacePoint2D(patch.NumberOfControlPointsKsi - 1, patch.DegreeKsi,
-						patch.KnotValueVectorKsi, patch.NumberOfControlPointsHeta, patch.DegreeHeta,
+						patch.KnotValueVectorKsi, patch.NumberOfControlPointsHeta-1, patch.DegreeHeta,
 						patch.KnotValueVectorHeta, projectiveControlPoints, ksiCoordinate, hetaCoordinate);
-					knots[count, 0] = point3D[0] / point3D[2];
-					knots[count++, 1] = point3D[1] / point3D[2];
+					knots[count, 0] = point3D[0] / point3D[3];
+					knots[count, 1] = point3D[1] / point3D[3];
+					knots[count++, 2] = point3D[2] / point3D[3];
 				}
 			}
 
 			var incrementKsi = numberOfKnotsHeta;
 			var incrementHeta = 1;
-			var nodePattern = new int[] {1, incrementKsi + 1, incrementKsi + 2, 2};
-			var elementConnectivity = CreateElement2DConnectivity(nodePattern, uniqueKnotsKsi.Length,
-				uniqueKnotsHeta.Length, incrementKsi, incrementHeta);
-			var knotDisplacements= new double[knots.Length,2];
+			var nodePattern = new int[] {0, incrementKsi, incrementKsi + 1, 1};
+			var elementConnectivity = CreateElement2DConnectivity(nodePattern, uniqueKnotsKsi[0].Length-1,
+				uniqueKnotsHeta[0].Length-1, incrementKsi, incrementHeta);
+			var knotDisplacements= new double[knots.GetLength(0),2];
 
 
 			foreach (var element in _model.Elements)
@@ -67,13 +68,14 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 					var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
 					var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
 					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _linearSystem.Solution[dofX];
-					localDisplacements[counterCP++, 0] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofY];
+					localDisplacements[counterCP++, 1] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofY];
 				}
 				var elementKnotDisplacements=element.ElementType.CalculateDisplacementsForPostProcessing(element, localDisplacements);
 				for (int i = 0; i < elementConnectivity.GetLength(1); i++)
 				{
-					knotDisplacements[elementConnectivity[element.ID, i], 0] = elementKnotDisplacements[i, 0];
-					knotDisplacements[elementConnectivity[element.ID, i], 1] = elementKnotDisplacements[i, 1];
+					var knotConnectivity = elementConnectivity[element.ID, i];
+					knotDisplacements[knotConnectivity, 0] = elementKnotDisplacements[i, 0];
+					knotDisplacements[knotConnectivity, 1] = elementKnotDisplacements[i, 1];
 				}
 			}
 
@@ -83,8 +85,8 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		public void Write2DNurbsFile(double[,] nodeCoordinates, int[,] elementConnectivity, string elementType,double[,] displacements )
 		{
 			var dimensions = 2;
-			var numberOfNodes = nodeCoordinates.Length;
-			var numberOfCells = elementConnectivity.Length;
+			var numberOfNodes = nodeCoordinates.GetLength(0);
+			var numberOfCells = elementConnectivity.GetLength(0);
 
 			int numberOfVerticesPerCell=0;
 			int paraviewCellCode=0;
@@ -105,7 +107,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				outputFile.WriteLine("<Points>");
 				outputFile.WriteLine("<DataArray  type=\"Float64\"  NumberOfComponents=\"3\"  format=\"ascii\" >");
 				for (int i = 0; i < numberOfNodes; i++)
-					outputFile.WriteLine($"{nodeCoordinates[i,0]} {nodeCoordinates[i, 1]}");
+					outputFile.WriteLine($"{nodeCoordinates[i,0]} {nodeCoordinates[i, 1]} {nodeCoordinates[i, 2]}");
 
 				outputFile.WriteLine("</DataArray>");
 				outputFile.WriteLine("</Points>");
@@ -115,7 +117,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				for (int i = 0; i < numberOfCells; i++)
 				{
 					for (int j = 0; j < elementConnectivity.GetLength(1); j++)
-						outputFile.Write($"{elementConnectivity[i,j]-1} ");
+						outputFile.Write($"{elementConnectivity[i,j]} ");
 					outputFile.WriteLine("");
 				}
 
@@ -130,6 +132,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				}
 
 				outputFile.WriteLine("</DataArray>");
+				outputFile.WriteLine("<DataArray  type=\"UInt8\"  Name=\"types\"  format=\"ascii\">");
 				for (int i = 0; i < numberOfCells; i++)
 					outputFile.WriteLine(paraviewCellCode);
 
@@ -154,23 +157,19 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		private int[,] CreateElement2DConnectivity(int[] nodePattern, int numberOfElementsKsi, int numberOfElementsHeta,
 			int incrementKsi, int incrementHeta)
 		{
-			var increment = new int[nodePattern.Length];
+			var increment = 0;
 			var elementConnectivity = new int[numberOfElementsKsi * numberOfElementsHeta, nodePattern.Length];
-			var elementCounter = 1;
-			for (int elementHeta = 0; elementHeta < numberOfElementsHeta; elementHeta++)
+			var elementCounter = 0;
+			for (int elementKsi = 0; elementKsi < numberOfElementsKsi; elementKsi++) 
 			{
-				for (int elementKsi = 0; elementKsi < numberOfElementsKsi; elementKsi++)
+				increment = elementKsi * incrementKsi;
+				for (int elementHeta = 0; elementHeta < numberOfElementsHeta; elementHeta++)
 				{
 					for (int i = 0; i < nodePattern.Length; i++)
-						elementConnectivity[elementCounter, i] = nodePattern[i] + increment[i];
-
-					for (int i = 0; i < nodePattern.Length; i++)
-						increment[i] = increment[i] + incrementKsi;
-
+						elementConnectivity[elementCounter, i] = nodePattern[i] + increment;
+					increment += incrementHeta;
 					elementCounter++;
 				}
-				for (int i = 0; i < nodePattern.Length; i++)
-					increment[i] = elementHeta*incrementHeta;
 			}
 
 			return elementConnectivity;
@@ -182,19 +181,19 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <returns></returns>
 		private double[,] CalculateProjectiveControlPoints()
 		{
-			var projectiveCPs = new double[_model.PatchesDictionary[0].ControlPoints.Count,4];
+			var projectiveCPs = new double[_model.PatchesDictionary[0].ControlPoints.Count, 4];
 			foreach (var controlPoint in _model.PatchesDictionary[0].ControlPoints)
 			{
 				var weight = controlPoint.WeightFactor;
-				projectiveCPs[controlPoint.ID, 0] = controlPoint.Ksi* weight;
-				projectiveCPs[controlPoint.ID, 1] = controlPoint.Heta* weight;
-				projectiveCPs[controlPoint.ID, 2] = controlPoint.Zeta* weight;
+				projectiveCPs[controlPoint.ID, 0] = controlPoint.X * weight;
+				projectiveCPs[controlPoint.ID, 1] = controlPoint.Y * weight;
+				projectiveCPs[controlPoint.ID, 2] = controlPoint.Z * weight;
 				projectiveCPs[controlPoint.ID, 3] = weight;
 			}
 
 			return projectiveCPs;
 		}
-		
+
 		/// <summary>
 		/// NURBS Book Algorithm A2.1
 		/// Algorithm that performs binary search to locate the knot span

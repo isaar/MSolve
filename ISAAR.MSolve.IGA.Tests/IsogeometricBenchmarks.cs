@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -148,6 +149,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.BuildMatrices();
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+
+			var paraviewOutput = new ParaviewResults2D(model,linearSystems[0]);
+			paraviewOutput.CreateParaview2DFile();
 
 
 			//Test for Load Vector
