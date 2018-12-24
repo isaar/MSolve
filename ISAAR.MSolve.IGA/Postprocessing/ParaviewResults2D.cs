@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
 	public class ParaviewResults2D
 	{
 		private Model _model;
+		private ILinearSystem _linearSystem;
 
-		public ParaviewResults2D(Model model)
+		public ParaviewResults2D(Model model, ILinearSystem linearSystem)
 		{
 			_model = model;
+			_linearSystem = linearSystem;
 		}
 
 		public void CreateParaview2DFile()
@@ -51,16 +55,32 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			var nodePattern = new int[] {1, incrementKsi + 1, incrementKsi + 2, 2};
 			var elementConnectivity = CreateElement2DConnectivity(nodePattern, uniqueKnotsKsi.Length,
 				uniqueKnotsHeta.Length, incrementKsi, incrementHeta);
+			var knotDisplacements= new double[knots.Length,2];
 
 
-			
+			foreach (var element in _model.Elements)
+			{
+				var localDisplacements = new double[element.ControlPoints.Count, 2];
+				var counterCP = 0;
+				foreach (var controlPoint in element.ControlPoints)
+				{
+					var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
+					var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
+					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _linearSystem.Solution[dofX];
+					localDisplacements[counterCP++, 0] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofY];
+				}
+				var elementKnotDisplacements=element.ElementType.CalculateDisplacementsForPostProcessing(element, localDisplacements);
+				for (int i = 0; i < elementConnectivity.GetLength(1); i++)
+				{
+					knotDisplacements[elementConnectivity[element.ID, i], 0] = elementKnotDisplacements[i, 0];
+					knotDisplacements[elementConnectivity[element.ID, i], 1] = elementKnotDisplacements[i, 1];
+				}
+			}
 
-
-			
-
+			Write2DNurbsFile(knots, elementConnectivity,"Quad4",knotDisplacements);
 		}
 
-		public void Write2DNurbsFile(double[,] nodeCoordinates, int[,] elementConnectivity, string elementType,int[,] displacements )
+		public void Write2DNurbsFile(double[,] nodeCoordinates, int[,] elementConnectivity, string elementType,double[,] displacements )
 		{
 			var dimensions = 2;
 			var numberOfNodes = nodeCoordinates.Length;
