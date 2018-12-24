@@ -28,4 +28,8 @@
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="OutputFiles\" />
+  </ItemGroup>
+
 </Project>

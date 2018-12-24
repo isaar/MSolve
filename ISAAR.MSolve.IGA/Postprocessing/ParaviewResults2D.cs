@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			}
 
 			var dofPerVertex = 2;
-			using (StreamWriter outputFile = new StreamWriter("..\\..\\..\\InputFiles\\ParaviewOutput.vtu"))
+			using (StreamWriter outputFile = new StreamWriter("..\\..\\..\\OutputFiles\\ParaviewOutput.vtu"))
 			{
 				outputFile.WriteLine("<VTKFile type=\"UnstructuredGrid\"  version=\"0.1\"   >");
 				outputFile.WriteLine("<UnstructuredGrid>");
