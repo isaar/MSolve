@@ -151,9 +151,9 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 			bsplinesHeta.calculateBSPLinesAndDerivatives();
 
 
-			int supportKsi = element.Patch.DegreeKsi + 1;
-			int supportHeta = element.Patch.DegreeHeta + 1;
-			int numberOfElementControlPoints = supportKsi * supportHeta;
+			int supportKsi = parametricGaussPointKsi.Length;
+			int supportHeta = parametricGaussPointHeta.Length;
+			int numberOfElementControlPoints = (element.Patch.DegreeKsi + 1) * (element.Patch.DegreeHeta + 1);
 
 			NurbsValues = new Matrix2D(numberOfElementControlPoints, parametricPointsCount);
 			NurbsDerivativeValuesKsi = new Matrix2D(numberOfElementControlPoints, parametricPointsCount);
