@@ -149,6 +149,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			return stiffnessMatrixElement;
 		}
 
+
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
 			var nurbsElement = (NURBSElement2D)element;
@@ -156,12 +157,13 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			var knotParametricCoordinatesHeta = new Vector(new double[] { element.Knots[0].Heta, element.Knots[1].Heta });
 			NURBS2D nurbs = new NURBS2D(nurbsElement, nurbsElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 			var knotDisplacements = new double[4, 2];
+			var paraviewKnotRenumbering = new int[] {0, 3, 1, 2};
 			for (int j = 0; j < element.Knots.Count; j++)
 			{
 				for (int i = 0; i < element.ControlPoints.Count; i++)
 				{
-					knotDisplacements[j, 0] += nurbs.NurbsValues[i, j] * localDisplacements[i, 0];
-					knotDisplacements[j, 1] += nurbs.NurbsValues[i, j] * localDisplacements[i, 1];
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += nurbs.NurbsValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += nurbs.NurbsValues[i, j] * localDisplacements[i, 1];
 				}
 			}
 
