@@ -352,5 +352,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			GaussQuadrature gauss = new GaussQuadrature();
 			return gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Knots);
 		}
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

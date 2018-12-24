@@ -267,5 +267,10 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         {
             throw new NotSupportedException();
         }
-    }
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

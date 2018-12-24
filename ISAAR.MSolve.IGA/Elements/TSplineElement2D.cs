@@ -215,5 +215,10 @@ namespace ISAAR.MSolve.IGA.Elements
                     new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
                 });
 		}
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

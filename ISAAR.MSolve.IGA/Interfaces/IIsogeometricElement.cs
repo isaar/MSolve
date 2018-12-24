@@ -29,6 +29,7 @@ namespace ISAAR.MSolve.IGA.Interfaces
         Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForcesForLogging(Element element, double[] localDisplacements);
+		double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements);
         //double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads);
         //void SaveMaterialState();
         void ClearMaterialState();

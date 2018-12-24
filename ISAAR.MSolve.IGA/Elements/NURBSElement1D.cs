@@ -321,6 +321,11 @@ namespace ISAAR.MSolve.IGA.Elements
 		{
 			throw new NotImplementedException();
 		}
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			throw new NotImplementedException();
+		}
 		#endregion
 	}
 }
