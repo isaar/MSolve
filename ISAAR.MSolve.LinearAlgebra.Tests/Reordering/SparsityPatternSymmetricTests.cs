@@ -46,18 +46,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Reordering
             comparer.AssertEqual(SparsePosDef10by10.MatlabPermutationAMD, permutation);
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestReorderingAmdSuiteSparse()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.Matrix));
             var orderingAlg = new OrderingAmdSuiteSparse();
             (int[] permutation, bool oldToNew) = orderingAlg.FindPermutation(pattern);
             comparer.AssertEqual(SparsePosDef10by10.MatlabPermutationAMD, permutation);
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestReorderingCamdSuiteSparse()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             int n = SparsePosDef10by10.Order;
             var pattern = SparsityPatternSymmetric.CreateFromDense(Matrix.CreateFromArray(SparsePosDef10by10.Matrix));
             var orderingAlg = new OrderingCamdSuiteSparse();

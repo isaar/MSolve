@@ -18,9 +18,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-12);
 
-        [Fact]
+        [SkippableFact]
         private static void TestRowAddition()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
             Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
 
@@ -52,9 +54,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
         }
 
         // will probably not work since the matrix will not always be positive definite
-        //[Fact]
+        //[SkippableFact]
         private static void TestRowAdditionReverse()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
             Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
 
@@ -79,9 +83,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             }
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestRowDeletion()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             Matrix original = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);
             Vector rhs = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
 
@@ -114,9 +120,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             }
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestSystemSolution1()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             // Define linear system
             var rhs = Vector.CreateFromArray(new double[] { 6.0, 14.0, 11.0, 12.0 });
             var solutionExpected = Vector.CreateFromArray(new double[] { 1.0, 1.0, 1.0, 1.0 });
@@ -142,9 +150,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             }
         }
 
-        [Fact]
+        [SkippableFact]
         private static void CheckSystemSolution2()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             int order = SparsePosDef10by10.Order;
 
             // Build the matrices and right hand sides

@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using Xunit;
 
+
 namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
 {
     /// <summary>
@@ -16,9 +17,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
-        [Fact]
+        [SkippableFact]
         private static void RunComputeNetExample()
         {
+            Skip.IfNot(TestSettings.TestMkl, TestSettings.MessageWhenSkippingMKL);
+
             //Variable typeA is not used and it triggers a warning
 #pragma warning disable CS0219
 
@@ -89,9 +92,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             CBlas.Ssymm(layout, side, uplo, m, n, alpha, ref a[0], lda, ref b[0], ldb, beta, ref c[0], ldc);
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestAxpy()
         {
+            Skip.IfNot(TestSettings.TestMkl, TestSettings.MessageWhenSkippingMKL);
+
             int n = 5;
             double[] a = { 1, 2, 3, 4, 5 };
             double[] b = { 10, 20, 30, 40, 50 };
@@ -104,9 +109,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             comparer.AssertEqual(cExpected, cComputed);
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestDdot()
         {
+            Skip.IfNot(TestSettings.TestMkl, TestSettings.MessageWhenSkippingMKL);
+
             int n = 5;
             double[] a = { 1, 2, 3, 4, 5 };
             double[] b = { 10, 20, 30, 40, 50 };
@@ -115,9 +122,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             comparer.AssertEqual(dotExpected, dotComputed);
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestDgemv()
         {
+            Skip.IfNot(TestSettings.TestMkl, TestSettings.MessageWhenSkippingMKL);
+
             CBLAS_LAYOUT layout = CBLAS_LAYOUT.CblasColMajor;
             CBLAS_TRANSPOSE transA = CBLAS_TRANSPOSE.CblasNoTrans;
             double alpha = 1.0;
