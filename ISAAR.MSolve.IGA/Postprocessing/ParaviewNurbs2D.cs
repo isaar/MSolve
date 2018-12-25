@@ -15,11 +15,13 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 	{
 		private Model _model;
 		private ILinearSystem _linearSystem;
+		private string _filename;
 
-		public ParaviewNurbs2D(Model model, ILinearSystem linearSystem)
+		public ParaviewNurbs2D(Model model, ILinearSystem linearSystem, string filename)
 		{
 			_model = model;
 			_linearSystem = linearSystem;
+			_filename = filename;
 		}
 
 		public void CreateParaview2DFile()
@@ -98,7 +100,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			}
 
 			var dofPerVertex = 2;
-			using (StreamWriter outputFile = new StreamWriter("..\\..\\..\\OutputFiles\\ParaviewOutput.vtu"))
+			using (StreamWriter outputFile = new StreamWriter($"..\\..\\..\\OutputFiles\\{_filename}Paraview.vtu"))
 			{
 				outputFile.WriteLine("<VTKFile type=\"UnstructuredGrid\"  version=\"0.1\"   >");
 				outputFile.WriteLine("<UnstructuredGrid>");

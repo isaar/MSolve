@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Text;
 using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using MathNet.Numerics.Data.Matlab;
+using MathNet.Numerics.LinearAlgebra;
 using Xunit;
 
 namespace ISAAR.MSolve.IGA.Tests
@@ -124,6 +127,64 @@ namespace ISAAR.MSolve.IGA.Tests
 				numberOfControlPointsHeta, degreeHeta, knotValueVectorHeta, projectiveCoordinates, coordinateKsi, coordinateHeta);
 
 			var expectedPoint = new double[] {10, 0,0, 1};
+			for (int i = 0; i < point.Length; i++)
+			{
+				Utilities.AreValuesEqual(expectedPoint[i], point[i], 1e-14);
+			}
+		}
+
+		private int numberOfCPKsi3D = 20;
+		private int degreeKsi3D = 2;
+		private Vector knotValueVectorKsi3D = new Vector(new double[]
+		{
+			0,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,19,19
+		});
+		private double coordinateKsi3D = 0.052631578947368;
+
+		private int numberOfCPHeta3D = 6;
+		private int degreeHeta3D = 2;
+		private Vector knotValueVectorHeta3D = new Vector(new double[]
+		{
+			0,0,0,1,2,3,4,5,5,5
+		});
+		private double coordinateHeta3D = 0.0;
+
+		private int numberofCPZeta3D = 4;
+		private int degreeZeta3D = 2;
+		private Vector knotValueVectorZeta3D = new Vector(new double[]
+		{
+			0, 0, 0, 1, 2, 3, 3, 3
+		});
+		private double coordinateZeta3D = 0.0;
+
+		[Fact]
+		public void SolidPoint3D()
+		{
+			Matrix<double> projcoord = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SolidPointProjectiveCP.mat", "projcoord");
+
+			var projectiveCPCoordinates = new double[735, 4];
+			var counter = 0;
+			for (int i = 0; i < numberOfCPKsi3D+1; i++)
+			{
+				for (int j = 0; j < numberOfCPHeta3D+1; j++)
+				{
+					for (int k = 0; k < numberofCPZeta3D+1; k++)
+					{
+						var index = k * (numberOfCPHeta3D + 1) * (numberOfCPKsi3D + 1) + j * (numberOfCPKsi3D + 1) + i;
+						projectiveCPCoordinates[counter, 0] = projcoord.At(index, 0);
+						projectiveCPCoordinates[counter, 1] = projcoord.At(index, 1);
+						projectiveCPCoordinates[counter, 2] = projcoord.At(index, 2);
+						projectiveCPCoordinates[counter, 3] = projcoord.At(index, 3);
+					}
+				}
+			}
+
+
+			var point = ParaviewNurbs3D.SolidPoint3D(numberOfCPKsi3D, degreeKsi3D, knotValueVectorKsi3D,
+				numberOfCPHeta3D, degreeHeta3D, knotValueVectorHeta3D, numberofCPZeta3D, degreeZeta3D,
+				knotValueVectorZeta3D, projectiveCPCoordinates, coordinateKsi3D, coordinateHeta3D, coordinateZeta3D);
+
+			var expectedPoint = new double[] { 0.75, 0, 0, 1 };
 			for (int i = 0; i < point.Length; i++)
 			{
 				Utilities.AreValuesEqual(expectedPoint[i], point[i], 1e-14);
