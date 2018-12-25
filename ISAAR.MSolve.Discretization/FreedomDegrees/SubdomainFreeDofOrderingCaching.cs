@@ -11,8 +11,8 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
     public class SubdomainFreeDofOrderingCaching : ISubdomainFreeDofOrdering
     {
-        private readonly Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
-            elementDofsCache = new Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
+        private readonly Dictionary<IElement_v2, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
+            elementDofsCache = new Dictionary<IElement_v2, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
 
         public SubdomainFreeDofOrderingCaching(int numFreeDofs, DofTable subdomainFreeDofs)
         {
@@ -23,19 +23,19 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable FreeDofs { get; }
         public int NumFreeDofs { get; }
 
-        public void AddVectorElementToSubdomain(IElement element, IVectorView elementVector, IVector subdomainVector)
+        public void AddVectorElementToSubdomain(IElement_v2 element, IVectorView elementVector, IVector subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
             subdomainVector.AddNonContiguouslyFrom(subdomainDofIndices, elementVector, elementDofIndices);
         }
 
-        public int CountElementDofs(IElement element)
+        public int CountElementDofs(IElement_v2 element)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
             return numAllDofs;
         }
 
-        public void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector)
+        public void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
 
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             //return elementVector;
         }
 
-        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element)
+        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement_v2 element)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
             return (elementDofIndices, subdomainDofIndices);
@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             FreeDofs.ReorderNodeMajor(sortedNodes);
         }
 
-        private (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) GetElementData(IElement element)
+        private (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) GetElementData(IElement_v2 element)
         {
             bool isStored = elementDofsCache.TryGetValue(element, out (int, int[], int[]) elementData);
             if (isStored) return elementData;
@@ -91,10 +91,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
+        private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement_v2 element)
         {
-            IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing
             int allElementDofs = 0;

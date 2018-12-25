@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
 
 
         // Copied from the methods used by Subdomain and Model previously.
-        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
+        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement_v2> elements,
             IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
         {
             int totalDOFs = 0;

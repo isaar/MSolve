@@ -14,9 +14,9 @@ namespace ISAAR.MSolve.Analyzers
     public class EquivalentLoadsAssembler_v2 : IEquivalentLoadsAssembler_v2
     {
         private ISubdomain_v2 subdomain;
-        private IElementMatrixProvider elementProvider;
+        private IElementMatrixProvider_v2 elementProvider;
 
-        public EquivalentLoadsAssembler_v2(ISubdomain_v2 subdomain, IElementMatrixProvider elementProvider)
+        public EquivalentLoadsAssembler_v2(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementProvider)
         {
             this.subdomain = subdomain;
             this.elementProvider = elementProvider;
@@ -32,14 +32,15 @@ namespace ISAAR.MSolve.Analyzers
 
             //var subdomainEquivalentNodalForces = new double[subdomain.Forces.Length];
             var subdomainEquivalentForces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-            foreach (Element element in subdomain.Elements)
+            foreach (Element_v2 element in subdomain.Elements)
             {
                 //var elStart = DateTime.Now;
-                IMatrix elementK = elementProvider.Matrix(element).LegacyToNewMatrix();
+                IMatrix elementK = elementProvider.Matrix(element);
 
                 //double[] localSolution = subdomain.CalculateElementNodalDisplacements(element, solution);
                 //double[] localdSolution = subdomain.CalculateElementIcrementalConstraintDisplacements(element, constraintScalingFactor);
-                Vector localdSolution = subdomain.CalculateElementIncrementalConstraintDisplacements(element, constraintScalingFactor);
+                Vector localdSolution = 
+                    subdomain.CalculateElementIncrementalConstraintDisplacements(element, constraintScalingFactor);
 
                 //var equivalentNodalForces = new double[localSolution.Length];
                 //ElementK.Multiply(new Vector(localdSolution), equivalentNodalForces);

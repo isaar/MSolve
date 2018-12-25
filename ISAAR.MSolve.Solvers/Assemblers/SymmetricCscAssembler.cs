@@ -29,18 +29,18 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 
-        public SymmetricCscMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements,
-            IElementMatrixProvider matrixProvider)
+        public SymmetricCscMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
+            IElementMatrixProvider_v2 matrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
             var Kff = DokSymmetric.CreateEmpty(numFreeDofs);
 
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                Matrix k = matrixProvider.Matrix(element).LegacyToNewMatrix();
-                Kff.AddSubmatrixSymmetric(k, elementDofIndices, subdomainDofIndices);
+                IMatrix elementK = matrixProvider.Matrix(element);
+                Kff.AddSubmatrixSymmetric(elementK, elementDofIndices, subdomainDofIndices);
             }
 
             return Kff.BuildSymmetricCscMatrix(sortColsOfEachRow);

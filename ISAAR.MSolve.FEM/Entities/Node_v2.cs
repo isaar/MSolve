@@ -6,12 +6,12 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Node: INode
+    public class Node_v2: INode
 	{
         private readonly List<Constraint> constraints = new List<Constraint>();
-        private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();
-        private readonly Dictionary<int, Subdomain> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain>();
+        private readonly Dictionary<int, Element_v2> elementsDictionary = new Dictionary<int, Element_v2>();
+        private readonly Dictionary<int, Subdomain_v2> subdomainsDictionary = new Dictionary<int, Subdomain_v2>();
+        private readonly Dictionary<int, Subdomain_v2> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain_v2>();
 
         public override string ToString()
         {
@@ -52,37 +52,20 @@ namespace ISAAR.MSolve.FEM.Entities
             //    constraintsDescripton += c.ToString() + ", ";
             //}
             #endregion
-            constraintsDescripton = constraintsDescripton.Length > 1 ? constraintsDescripton.Substring(0, constraintsDescripton.Length - 2) : constraintsDescripton;
+            constraintsDescripton = constraintsDescripton.Length > 1 
+                ? constraintsDescripton.Substring(0, constraintsDescripton.Length - 2) 
+                : constraintsDescripton;
 
             return String.Format("{0} - Con ({1})", header, constraintsDescripton);
         }
 
-        #region removeMaria
-        //public List<DOFType> Constraints
-        //{
-        //    get { return constraints; }
-        //}
-        #endregion
+        public List<Constraint> Constraints => constraints;
 
-        public List<Constraint> Constraints
-        {
-            get { return constraints; }
-        }
+        public Dictionary<int, Element_v2> ElementsDictionary => elementsDictionary;
 
-        public Dictionary<int, Element> ElementsDictionary
-        {
-            get { return elementsDictionary; }
-        }
+        public Dictionary<int, Subdomain_v2> SubdomainsDictionary => subdomainsDictionary;
 
-        public Dictionary<int, Subdomain> SubdomainsDictionary
-        {
-            get { return subdomainsDictionary; }
-        }
-
-        public Dictionary<int, Subdomain> NonMatchingSubdomainsDictionary
-        {
-            get { return nonMatchingSubdomainsDictionary; }
-        }
+        public Dictionary<int, Subdomain_v2> NonMatchingSubdomainsDictionary => nonMatchingSubdomainsDictionary;
 
         //public Element EmbeddedInElement { get; set; }
         public int ID { get; set; }
@@ -92,7 +75,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void BuildSubdomainDictionary()
         {
-            foreach (Element element in elementsDictionary.Values)
+            foreach (Element_v2 element in elementsDictionary.Values)
                 if (!subdomainsDictionary.ContainsKey(element.Subdomain.ID))
                     subdomainsDictionary.Add(element.Subdomain.ID, element.Subdomain);
         }

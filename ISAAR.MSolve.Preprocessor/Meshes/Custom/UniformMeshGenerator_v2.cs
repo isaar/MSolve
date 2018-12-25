@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator : IMeshProvider2D<Node2D, CellConnectivity2D>
+    public class UniformMeshGenerator_v2 : IMeshProvider2D<Node_v2, CellConnectivity2D_v2>
     {
         private readonly double minX;
         private readonly double minY;
@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
         private readonly double dy;
         private readonly int vertexRows, vertexColumns, cellRows, cellColumns;
 
-        public UniformMeshGenerator(double minX, double minY, double maxX, double maxY, int cellsPerX, int cellsPerY)
+        public UniformMeshGenerator_v2(double minX, double minY, double maxX, double maxY, int cellsPerX, int cellsPerY)
         {
             this.minX = minX;
             this.minY = minY;
@@ -39,39 +39,39 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
         /// Generates a uniform mesh with the dimensions and density defined in the constructor.
         /// </summary>
         /// <returns></returns>
-        public (IReadOnlyList<Node2D> vertices, IReadOnlyList<CellConnectivity2D> cells) CreateMesh()
+        public (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity2D_v2> cells) CreateMesh()
         {
-            Node2D[] vertices = CreateVertices();
-            CellConnectivity2D[] cells = CreateCells(vertices);
+            Node_v2[] vertices = CreateVertices();
+            CellConnectivity2D_v2[] cells = CreateCells(vertices);
             return (vertices, cells);
         }
 
-        private Node2D[] CreateVertices()
+        private Node_v2[] CreateVertices()
         {
-            var vertices = new Node2D[vertexRows * vertexColumns];
+            var vertices = new Node_v2[vertexRows * vertexColumns];
             int id = 0;
             for (int row = 0; row < vertexRows; ++row)
             {
                 for (int col = 0; col < vertexColumns; ++col)
                 {
-                    vertices[id] = new Node2D(id, minX + col * dx, minY + row * dy);
+                    vertices[id] = new Node_v2 { ID = id, X = minX + col * dx , Y = minY + row * dy };
                     ++id;
                 }
             }
             return vertices;
         }
 
-        private CellConnectivity2D[] CreateCells(Node2D[] allVertices)
+        private CellConnectivity2D_v2[] CreateCells(Node_v2[] allVertices)
         {
-            var cells = new CellConnectivity2D[cellRows * cellColumns];
+            var cells = new CellConnectivity2D_v2[cellRows * cellColumns];
             for (int row = 0; row < cellRows; ++row)
             {
                 for (int col = 0; col < cellColumns; ++col)
                 {
                     int firstVertex = row * vertexColumns + col;
-                    Node2D[] verticesOfCell = { allVertices[firstVertex], allVertices[firstVertex+1],
+                    Node_v2[] verticesOfCell = { allVertices[firstVertex], allVertices[firstVertex+1],
                         allVertices[firstVertex + vertexColumns + 1], allVertices[firstVertex + vertexColumns] };
-                    cells[row * cellColumns + col] = new CellConnectivity2D(CellType2D.Quad4, verticesOfCell); // row major
+                    cells[row * cellColumns + col] = new CellConnectivity2D_v2(CellType2D.Quad4, verticesOfCell); // row major
                 }
             }
             return cells;

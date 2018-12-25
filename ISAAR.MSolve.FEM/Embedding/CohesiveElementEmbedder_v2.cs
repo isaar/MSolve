@@ -1,29 +1,29 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using System.Collections.Generic;
 using System.Linq;
 using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
-
+//TODO: All these casting should be avoided by injecting the correct type in the constructor.
 namespace ISAAR.MSolve.FEM.Embedding
 {
-
     /// <summary>
     /// This class should only be used with <see cref="FEM.Elements.cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk"/>
     /// </summary>
-    public class CohesiveElementEmbedder_v2 : IElementDOFEnumerator
+    public class CohesiveElementEmbedder_v2 : IElementDofEnumerator_v2
     {
         private readonly Model_v2 model;
-        private readonly IElement embeddedElement;
+        private readonly IElement_v2 embeddedElement;
         private readonly IEmbeddedDOFInHostTransformationVector transformation;
         private readonly Dictionary<SuperElementDOF, int> superElementMap = new Dictionary<SuperElementDOF, int>();
-        private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
-        private Matrix2D transformationMatrix; //TODO: use sparse CSC matrix for this
+        private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping 
+            = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
+        private Matrix transformationMatrix; //TODO: use sparse CSC matrix for this
 
-        public CohesiveElementEmbedder_v2(Model_v2 model, Element embeddedElement, IEmbeddedDOFInHostTransformationVector transformation)
+        public CohesiveElementEmbedder_v2(Model_v2 model, Element_v2 embeddedElement, IEmbeddedDOFInHostTransformationVector transformation)
         {
             this.model = model;
             this.embeddedElement = embeddedElement;
@@ -31,16 +31,15 @@ namespace ISAAR.MSolve.FEM.Embedding
             Initialize();            
         }
 
-       
         private void InitializeMappings()
         {
-            var e = embeddedElement.IElementType as IEmbeddedElement;
+            var e = (IEmbeddedElement)embeddedElement.ElementType;
             superElementMap.Clear();
             int index = 0;
             foreach (var embeddedNode in e.EmbeddedNodes)
             {
-                int nodeOrderInEmbeddedElement = embeddedElement.INodes.IndexOf(embeddedNode.Node);
-                var currentEmbeddedNodeDOFs = embeddedElement.IElementType.DOFEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(embeddedNode.Node);
+                var currentEmbeddedNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
                 //var currentNodeDOFs = currentEmbeddedNodeDOFs.Intersect(embeddedNode.DependentDOFs);
                 var independentEmbeddedDOFs = currentEmbeddedNodeDOFs.Except(embeddedNode.DependentDOFs);
 
@@ -75,10 +74,10 @@ namespace ISAAR.MSolve.FEM.Embedding
                 }
             }
 
-            foreach (var node in embeddedElement.INodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
+            foreach (var node in embeddedElement.Nodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
             {
-                int nodeOrderInEmbeddedElement = embeddedElement.INodes.IndexOf(node);
-                var currentNodeDOFs = embeddedElement.IElementType.DOFEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(node);
+                var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
                 foreach (var dof in currentNodeDOFs)
                 {
                     var superElementDOF = new SuperElementDOF() { DOF = dof, EmbeddedNode = node, HostNode = null, Element = null };
@@ -93,19 +92,19 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         private void CalculateTransformationMatrix()
         {
-            var e = embeddedElement.IElementType as IEmbeddedElement;
+            var e = (IEmbeddedElement)embeddedElement.ElementType;
             int row = 0;
             int col = 0;
-            int totalRows = embeddedElement.IElementType.DOFEnumerator.GetDOFTypes(embeddedElement).SelectMany(x => x).Count();
+            int totalRows = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement).SelectMany(x => x).Count();
             //var matrix = new double[totalRows, superElementMap.Count];
-            var transformationMatrixOriginal = new Matrix2D(totalRows, superElementMap.Count);
+            var transformationMatrixOriginal = Matrix.CreateZero(totalRows, superElementMap.Count);
 
             foreach (var embeddedNode in e.EmbeddedNodes)
             {
                 var localTransformationMatrix = transformation.GetTransformationVector(embeddedNode);
                 var localHostDOFs = transformation.GetDOFTypesOfHost(embeddedNode);
-                int nodeOrderInEmbeddedElement = embeddedElement.INodes.IndexOf(embeddedNode.Node);
-                var embeddedNodeDOFQuantity = embeddedElement.IElementType.DOFEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Count;
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(embeddedNode.Node);
+                var embeddedNodeDOFQuantity = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Count;
                 int dependentDOFs = transformation.GetDependentDOFTypes.Count;
 
                 for (int i = 0; i < dependentDOFs; i++)
@@ -123,7 +122,7 @@ namespace ISAAR.MSolve.FEM.Embedding
                 }
                 row += dependentDOFs;
 
-                var independentEmbeddedDOFs = embeddedElement.IElementType.DOFEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Except(embeddedNode.DependentDOFs).ToArray();
+                var independentEmbeddedDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Except(embeddedNode.DependentDOFs).ToArray();
                 for (int j = 0; j < independentEmbeddedDOFs.Length; j++)
                 {
                     var superelement = new SuperElementDOF() { DOF = independentEmbeddedDOFs[j], Element = null, HostNode = null, EmbeddedNode = embeddedNode.Node };
@@ -132,10 +131,10 @@ namespace ISAAR.MSolve.FEM.Embedding
                 }
             }
 
-            foreach (var node in embeddedElement.INodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
+            foreach (var node in embeddedElement.Nodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
             {
-                int nodeOrderInEmbeddedElement = embeddedElement.INodes.IndexOf(node);
-                var currentNodeDOFs = embeddedElement.IElementType.DOFEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(node);
+                var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
                 for (int j = 0; j < currentNodeDOFs.Count; j++)
                 {
                     var superelement = new SuperElementDOF() { DOF = currentNodeDOFs[j], Element = null, HostNode = null, EmbeddedNode = node };
@@ -159,7 +158,7 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         private void Initialize()
         {
-            var e = embeddedElement.IElementType as IEmbeddedElement;
+            var e = embeddedElement.ElementType as IEmbeddedElement;
             if (e == null) return;
             if (e.EmbeddedNodes.Count == 0) return;
 
@@ -177,43 +176,41 @@ namespace ISAAR.MSolve.FEM.Embedding
         //    return transformationMatrix.Transpose() * ((SymmetricMatrix2D<double>)matrix).ToMatrix2D() * transformationMatrix;
         //}
 
-        public IMatrix2D GetTransformedMatrix(IMatrix2D matrix)
+        public IMatrix GetTransformedMatrix(IMatrix matrix)
         {
-            var e = embeddedElement.IElementType as IEmbeddedElement;
+            var e = embeddedElement.ElementType as IEmbeddedElement;
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return matrix;
             if (e.EmbeddedNodes.Count == 0) return matrix;
 
-            return transformationMatrix.Transpose() * (Matrix2D)matrix * transformationMatrix;
-            //return transformationMatrix.MultiplyTransposeThisTimesOtherTimesThis((Matrix2D)matrix);
+            return transformationMatrix.ThisTransposeTimesOtherTimesThis(matrix);
         }
 
         public double[] GetTransformedDisplacementsVector(double[] vector)
         {
-            var e = embeddedElement.IElementType as IEmbeddedElement;
+            var e = embeddedElement.ElementType as IEmbeddedElement;
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            var result = new double[transformationMatrix.Rows];
-            transformationMatrix.Multiply(new Vector(vector), result);
+            var result = new double[transformationMatrix.NumRows];
+            transformationMatrix.MultiplyIntoResult(Vector.CreateFromArray(vector), Vector.CreateFromArray(result));
             return result;
         }
 
         public double[] GetTransformedForcesVector(double[] vector)
         {
-            var e = embeddedElement.IElementType as IEmbeddedElement;
+            var e = embeddedElement.ElementType as IEmbeddedElement;
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            Matrix2D transpose = transformationMatrix.Transpose();
-            var result = new double[transpose.Rows];
-            transpose.Multiply(new Vector(vector), result);
+            var result = new double[transformationMatrix.NumColumns];
+            transformationMatrix.MultiplyIntoResult(Vector.CreateFromArray(vector), Vector.CreateFromArray(result), true);
             return result;
         }
 
-        public IList<IList<DOFType>> GetDOFTypes(IElement element)
+        public IList<IList<DOFType>> GetDOFTypes(IElement_v2 element)
         {
             //return element.ElementType.GetElementDOFTypes(element);
 
@@ -240,20 +237,20 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement element)
+        public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement_v2 element)
         {
             //if (embeddedElement != element) throw new ArgumentException();
 
             var nodesDictionary = new Dictionary<INode, int>();
             int index = 0;
-            foreach (var node in element.INodes)
+            foreach (var node in element.Nodes)
             {
                 nodesDictionary.Add(node, index);
                 index++;
             }
             
             var dofs = new List<IList<DOFType>>();
-            for (int i = 0; i < element.INodes.Count; i++)
+            for (int i = 0; i < element.Nodes.Count; i++)
                 dofs.Add(new List<DOFType>());
 
             INode currentNode = null;
@@ -281,7 +278,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<INode> GetNodesForMatrixAssembly(IElement element)
+        public IList<INode> GetNodesForMatrixAssembly(IElement_v2 element)
         {
             var nodes = new List<INode>();
             INode currentNode = null;

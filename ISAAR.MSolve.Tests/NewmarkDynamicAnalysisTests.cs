@@ -90,20 +90,23 @@ namespace ISAAR.MSolve.Tests
             int subdomainID = 0;
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
-            var n = new Node() { ID = 0 };
-            var e = new Element() { ID = 0 };
+            var n = new Node_v2() { ID = 0 };
+            var e = new Element_v2() { ID = 0 };
             e.NodesDictionary.Add(0, n);
-            var m = new Mock<IFiniteElement>();
-            m.Setup(x => x.StiffnessMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 6, -2, 4 }));
-            m.Setup(x => x.MassMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 }));
-            m.Setup(x => x.DampingMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 0, 0, 0 }));
+            var m = new Mock<IFiniteElement_v2>();
+            m.Setup(x => x.StiffnessMatrix(e)).Returns(Matrix.CreateFromArray(new double[,] { { 6, -2, }, { -2, 4} }));
+            m.Setup(x => x.MassMatrix(e)).Returns(Matrix.CreateFromArray(new double[,] { { 2, 0, }, { 0, 1 } }));
+            m.Setup(x => x.DampingMatrix(e)).Returns(Matrix.CreateFromArray(new double[,] { { 0, 0, }, { 0, 0 } }));
+            //m.Setup(x => x.StiffnessMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 6, -2, 4 }));
+            //m.Setup(x => x.MassMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 }));
+            //m.Setup(x => x.DampingMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 0, 0, 0 }));
             m.Setup(x => x.GetElementDOFTypes(e)).Returns(new[] { new[] { DOFType.X, DOFType.Y } });
-            m.SetupGet(x => x.DOFEnumerator).Returns(new GenericDOFEnumerator());
+            m.SetupGet(x => x.DofEnumerator).Returns(new GenericDOFEnumerator_v2());
             e.ElementType = m.Object;
             model.NodesDictionary.Add(0, n);
             model.ElementsDictionary.Add(0, e);
             model.SubdomainsDictionary[subdomainID].Elements.Add(e);
-            model.Loads.Add(new Load() { Amount = 10, Node = n, DOF = DOFType.Y });
+            model.Loads.Add(new Load_v2() { Amount = 10, Node = n, DOF = DOFType.Y });
             var lX = new Mock<IMassAccelerationHistoryLoad>();
             lX.SetupGet(x => x.DOF).Returns(DOFType.X);
             lX.SetupGet(x => x[It.IsAny<int>()]).Returns(0);
@@ -113,16 +116,17 @@ namespace ISAAR.MSolve.Tests
             lY.SetupGet(x => x[It.IsInRange(1, 100, Range.Inclusive)]).Returns(0);
             model.MassAccelerationHistoryLoads.Add(lX.Object);
             model.MassAccelerationHistoryLoads.Add(lY.Object);
-            m.Setup(x => x.CalculateAccelerationForces(It.IsAny<Element>(), It.IsAny<IList<MassAccelerationLoad>>()))
+            m.Setup(x => x.CalculateAccelerationForces(It.IsAny<Element_v2>(), It.IsAny<IList<MassAccelerationLoad>>()))
                 .Returns<Element, IList<MassAccelerationLoad>>((element, loads) =>
                 {
-                    var accelerations = new Numerical.LinearAlgebra.Vector(2);
+                    var accelerations = Vector.CreateZero(2);
                     accelerations[0] = loads[0].Amount;
                     accelerations[1] = loads[1].Amount;
 
-                    var massMatrix = new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 });
+                    var massMatrix = Matrix.CreateFromArray(new double[,] { { 2, 0, }, { 0, 1 } });
+                    //var massMatrix = new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 });
                     double[] forces = new double[2];
-                    massMatrix.Multiply(accelerations, forces);
+                    massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces));
                     return forces;
                 }
             );

@@ -24,8 +24,9 @@ namespace ISAAR.MSolve.Problems
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
-        private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
-        private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
+        private ElementStructuralStiffnessProvider_v2 stiffnessProvider = new ElementStructuralStiffnessProvider_v2();
+        private ElementStructuralMassProvider_v2 massProvider = new ElementStructuralMassProvider_v2();
+        private ElementStructuralDampingProvider_v2 dampingProvider = new ElementStructuralDampingProvider_v2();
 
         public ProblemStructural_v2(IStructuralModel_v2 model, ISolver_v2 solver)
         {
@@ -73,7 +74,6 @@ namespace ISAAR.MSolve.Problems
         private void BuildKs()
         {
             ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            var stiffnessProvider = new ElementStructuralStiffnessProvider();
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
@@ -95,7 +95,6 @@ namespace ISAAR.MSolve.Problems
         private void BuildMs()
         {
             ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            var massProvider = new ElementStructuralMassProvider();
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
@@ -107,7 +106,7 @@ namespace ISAAR.MSolve.Problems
         private void BuildCs()
         {
             cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            var dampingProvider = new ElementStructuralDampingProvider();
+            
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));

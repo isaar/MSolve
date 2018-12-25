@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: The F = Ff - Kfc*Fc should not be done in the solver. The solver should only operate on the final linear systems.
 //      It could be done here or in the analyzer.
@@ -57,19 +54,19 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //    return (Kff.BuildSkylineMatrix(), Kfc);
         //}
 
-        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
-            IElementMatrixProvider matrixProvider)
+        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
+            IElementMatrixProvider_v2 matrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
             SkylineBuilder Kff = FindSkylineColumnHeights(elements, numFreeDofs, dofOrdering.FreeDofs);
 
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                Matrix k = matrixProvider.Matrix(element).LegacyToNewMatrix();
-                Kff.AddSubmatrixSymmetric(k, elementDofIndices, subdomainDofIndices);
+                IMatrix elementK = matrixProvider.Matrix(element);
+                Kff.AddSubmatrixSymmetric(elementK, elementDofIndices, subdomainDofIndices);
             }
 
             return Kff.BuildSkylineMatrix();
@@ -123,16 +120,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
         // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
         // though.
-        private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<IElement> elements,
+        private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<IElement_v2> elements,
             int numFreeDofs, DofTable freeDofs)
         {
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
                 //TODO: perhaps the 2 outer loops could be done at once to avoid a lot of dof indexing. Could I update minDof
                 //      and colHeights[] at once?
 
-                IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+                IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
 
                 // To determine the col height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0.0 entries in the element stiffness matrix.

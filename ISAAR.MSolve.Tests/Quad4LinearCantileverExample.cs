@@ -135,24 +135,24 @@ namespace ISAAR.MSolve.Tests
             };
 
             // Nodes
-            var nodes = new Node2D[]
+            var nodes = new Node_v2[]
             {
-                new Node2D(0, 0.0, 0.0),
-                new Node2D(1, 10.0, 0.0),
-                new Node2D(2, 10.0, 10.0),
-                new Node2D(3, 0.0, 10.0)
+                new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 },
+                new Node_v2 { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 },
+                new Node_v2 { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 },
+                new Node_v2 { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 }
             };
             for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
 
 
             // Elements
             var factory = new ContinuumElement2DFactory(thickness, material, null);
-            ContinuumElement2D elementType = factory.CreateElement(CellType2D.Quad4, nodes);
 
-            var elementWrapper = new Element()
+            var elementWrapper = new Element_v2()
             {
                 ID = 0,
-                ElementType = elementType,
+                //TODO: Uncomment this line
+                //ElementType = factory.CreateElement(CellType2D.Quad4, nodes)
             };
             elementWrapper.AddNodes(nodes);
             model.ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
@@ -167,8 +167,8 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
 
             // Nodal loads
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
+            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
+            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
             // Solver
             var pcgBuilder = new PcgAlgorithm.Builder();
