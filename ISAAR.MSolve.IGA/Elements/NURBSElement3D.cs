@@ -270,7 +270,25 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
-			throw new NotImplementedException();
+			var nurbsElement = (NURBSElement3D)element;
+			var knotParametricCoordinatesKsi = new Vector(new double[] { element.Knots[0].Ksi, element.Knots[4].Ksi });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { element.Knots[0].Heta, element.Knots[2].Heta });
+			var knotParametricCoordinatesΖeta = new Vector(new double[] { element.Knots[0].Zeta, element.Knots[1].Zeta });
+			NURBS3D nurbs = new NURBS3D(nurbsElement, nurbsElement.ControlPoints, knotParametricCoordinatesKsi,
+				knotParametricCoordinatesHeta, knotParametricCoordinatesΖeta);
+			var knotDisplacements = new double[8, 3];
+			var paraviewKnotRenumbering = new int[] { 0,4,2,6,1,5,3,7 };
+			for (int j = 0; j < element.Knots.Count; j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += nurbs.NurbsValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += nurbs.NurbsValues[i, j] * localDisplacements[i, 1];
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += nurbs.NurbsValues[i, j] * localDisplacements[i, 2];
+				}
+			}
+
+			return knotDisplacements;
 		}
 	}
 }
