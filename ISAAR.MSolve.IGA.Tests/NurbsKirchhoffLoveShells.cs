@@ -5,6 +5,7 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
@@ -218,8 +219,9 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
-			string filename = "..\\..\\..\\InputFiles\\SquareShell.txt";
-			IsogeometricShellReader modelReader = new IsogeometricShellReader(model, filename);
+			var filename = "SquareShell";
+			string filepath = $"..\\..\\..\\InputFiles\\{filename}.txt";
+			IsogeometricShellReader modelReader = new IsogeometricShellReader(model, filepath);
 			modelReader.CreateShellModelFromFile();
 
 
@@ -273,6 +275,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.BuildMatrices();
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+
+			var paraview = new ParaviewNurbsShells(model,linearSystems[0], filename);
+			paraview.CreateParaview2DFile();
 
 			Matrix<double> solutionVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "SolutionVector");
 
