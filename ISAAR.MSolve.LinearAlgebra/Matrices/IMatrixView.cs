@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Thrown if the storage format of <paramref name="rhsVector"/> does not support overwritting the entries that this 
         /// method will try to.
         /// </exception>
-        void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis);
+        void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false);
 
         /// <summary>
         /// Performs the following operation for all (i, j): result[i, j] = <paramref name="scalar"/> * this[i, j].

@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of a pyramid finite element with 13 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationPyra13:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of a pyramid finite element with 13 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationPyra13 : IsoparametricInterpolation3DBase
     {
 		private static readonly InterpolationPyra13 uniqueInstance=new InterpolationPyra13();
 
@@ -54,7 +54,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    /// </summary>
 	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) => throw new NotImplementedException("Iterative procedure required");
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) 
+            => throw new NotImplementedException("Iterative procedure required");
 
 	    protected override double[] EvaluateAt(double xi, double eta, double zeta)
 	    {
@@ -81,13 +82,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 
 		// TODO: verify derivatives of Pyra13
-	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
 		    var y = eta;
 		    var z = zeta;
 
-		    var derivatives = new double[13,3];
+		    var derivatives = Matrix.CreateZero(13, 3);
 
 		    derivatives[0, 0] = -((x - 1 / 2.0) * (x - y - z + 1)) / (2 * z - 2) -
 		                        ((x + y - z + 1) * (x - y - z + 1)) / (2 * z - 2) -

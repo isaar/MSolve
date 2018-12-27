@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
+//TODO: In XFEM I used dictionaries with nodes as keys, but it is less efficient and offers little extra safety, since the
+//      shape functions and derivatives will be used by classes that have direct access to the nodes.
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>
     /// Stores the shape functions, 1st order derivatives with respect to the global cartesian coordinates and the Jacobian
     /// of an interpolation, evaluated at a certain natural point of a finite element. These quantities are needed in many 
     /// places, thus passing an instance of this class is less verbose and error prone.
-    /// Authors: Dimitris Tsapetis
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class EvalInterpolation3D
+    public class EvalInterpolation2D_OLD
     {
-        public EvalInterpolation3D(Vector shapeFunctions, Matrix shapeGradientsNatural, IsoparametricJacobian3D jacobian)
+        public EvalInterpolation2D_OLD(Vector shapeFunctions, Matrix2D shapeGradientsNatural, IsoparametricJacobian2D_OLD jacobian)
         {
-            int numberOfNodes = shapeFunctions.Length;
-            if (shapeGradientsNatural.NumRows != numberOfNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
-                + $" evaluated shape functions, but {shapeGradientsNatural.NumRows} evaluated natural shape derivatives.");
+            int numNodes = shapeFunctions.Length;
+            if (shapeGradientsNatural.Rows != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
+               + $" evaluated shape functions, but {shapeGradientsNatural.Rows} evaluated natural shape derivatives.");
             this.ShapeFunctions = shapeFunctions;
             this.ShapeGradientsNatural = shapeGradientsNatural;
             this.Jacobian = jacobian;
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// The inverse Jacobian matrix of the interpolation and its determinant.
         /// </summary>
-        public IsoparametricJacobian3D Jacobian { get; }
+        public IsoparametricJacobian2D_OLD Jacobian { get; }
 
         /// <summary>
         /// A vector that contains the shape functions in the same order as the nodes of the interpolation.
@@ -43,7 +44,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
         /// coordinate.
         /// </summary>
-        public Matrix ShapeGradientsCartesian { get; }
+        public Matrix2D ShapeGradientsCartesian { get; }
 
         /// <summary>
         /// A matrix that contains the 1st order shape function derivatives with respect to the natural coordinate 
@@ -51,21 +52,21 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
         /// coordinate.
         /// </summary>
-        public Matrix ShapeGradientsNatural { get; }
+        public Matrix2D ShapeGradientsNatural { get; }
 
-        public CartesianPoint3D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalCoordinates)
+        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes)
         {
             if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
                 $"There are {ShapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
-            double x = 0, y = 0, z = 0;
-            for (int i = 0; i < ShapeFunctions.Length; i++)
+            double x = 0, y = 0;
+            for (int i = 0; i < ShapeFunctions.Length; ++i)
             {
-                Node_v2 node = nodes[i];
-                x += ShapeFunctions[i] * node.X;
-                y += ShapeFunctions[i] * node.Y;
-                z += ShapeFunctions[i] * node.Z;
+                Node2D node = nodes[i];
+                double val = ShapeFunctions[i];
+                x += val * node.X;
+                y += val * node.Y;
             }
-            return new CartesianPoint3D(x,y,z);
+            return new CartesianPoint2D(x, y);
         }
     }
 }

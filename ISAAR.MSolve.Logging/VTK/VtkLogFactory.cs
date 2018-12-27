@@ -15,9 +15,9 @@ namespace ISAAR.MSolve.Logging.VTK
     public class VtkLogFactory : ILogFactory
     {
         private readonly string directory;
-        private readonly Model model;
+        private readonly Model_v2 model;
 
-        public VtkLogFactory(Model model, string directory)
+        public VtkLogFactory(Model_v2 model, string directory)
         {
             this.model = model;
             this.directory = directory;

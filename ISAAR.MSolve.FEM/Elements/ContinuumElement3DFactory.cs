@@ -121,12 +121,12 @@ namespace ISAAR.MSolve.FEM.Elements
             this.commonMaterial = commonMaterial;
         }
 
-        public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node3D> nodes)
+        public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node_v2> nodes)
         {
             return CreateElement(cellType, nodes, commonMaterial, commonDynamicProperties);
         }
 
-        public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node3D> nodes,
+        public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node_v2> nodes,
             ElasticMaterial3D commonMaterial, DynamicMaterial commonDynamicProperties)
         {
             int numGPs = integrationsForStiffness[cellType].IntegrationPoints.Count;
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return CreateElement(cellType, nodes, materialsAtGaussPoints, commonDynamicProperties);
         }
 
-        public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node3D> nodes,
+        public ContinuumElement3D CreateElement(CellType3D cellType, IReadOnlyList<Node_v2> nodes,
             IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints, DynamicMaterial commonDynamicProperties)
         {
             return new ContinuumElement3D(nodes,interpolations[cellType],

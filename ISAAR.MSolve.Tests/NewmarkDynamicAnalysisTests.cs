@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.Tests
             //m.Setup(x => x.MassMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 }));
             //m.Setup(x => x.DampingMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 0, 0, 0 }));
             m.Setup(x => x.GetElementDOFTypes(e)).Returns(new[] { new[] { DOFType.X, DOFType.Y } });
-            m.SetupGet(x => x.DofEnumerator).Returns(new GenericDOFEnumerator_v2());
+            m.SetupGet(x => x.DofEnumerator).Returns(new GenericDofEnumerator_v2());
             e.ElementType = m.Object;
             model.NodesDictionary.Add(0, n);
             model.ElementsDictionary.Add(0, e);

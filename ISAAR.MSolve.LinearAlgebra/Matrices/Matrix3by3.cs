@@ -646,7 +646,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix MultiplyLeft(IMatrixView matrix, bool transposeThis = false, bool transposeOther = false)
         {
-            return matrix.MultiplyRight(this, transposeOther, transposeThis); //TODO: optimize this
+            // For now piggy back on Matrix. TODO: Optimize this
+            double[] colMajor = new double[] {
+                data[0, 0], data[1, 0], data[2, 0], data[0, 1], data[1, 1], data[2, 1], data[0, 2], data[1, 2], data[2, 2] };
+            return Matrix.CreateFromArray(colMajor, 3, 3, false).MultiplyLeft(matrix, transposeThis, transposeOther);
         }
 
         /// <summary>

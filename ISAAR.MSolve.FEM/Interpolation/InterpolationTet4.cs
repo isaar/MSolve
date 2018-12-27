@@ -1,6 +1,7 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using System;
 using System.Collections.Generic;
 
@@ -11,7 +12,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	/// Implements sigleton pattern.
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
-	public class InterpolationTet4:IsoparametricInterpolation3DBase
+	public class InterpolationTet4 : IsoparametricInterpolation3DBase
     {
 		private static readonly  InterpolationTet4 uniqueInstance= new InterpolationTet4();
 
@@ -43,7 +44,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 		/// <returns></returns>
 		// TODO: Find and implement inverse mapping for Tet4.
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) => throw new NotImplementedException("Not implemented yet.");
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) 
+            => throw new NotImplementedException("Not implemented yet.");
 
 		/// <summary>
 		/// Returns the shape functions a tetrahedral linear element evaluated on a single point.
@@ -64,9 +66,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    return values;
 	    }
 
-	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
-		    var derivatives = new double[4, 3];
+		    var derivatives = Matrix.CreateZero(4, 3);
 		    derivatives[0, 0] = -1.0;
 		    derivatives[0, 1] = -1.0;
 		    derivatives[0, 2] = -1.0;

@@ -4,7 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Discretization
 {
-	public class GenericDOFEnumerator_v2 : IElementDofEnumerator_v2
+	public class GenericDofEnumerator_v2 : IElementDofEnumerator_v2
 	{
 		public IList<IList<DOFType>> GetDOFTypes(IElement_v2 element) 
             => element.ElementType.GetElementDOFTypes(element);

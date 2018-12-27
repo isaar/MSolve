@@ -25,6 +25,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
         //TODO: What should it contain for constrained dofs?
         //TODOMaria: here is where the element displacements are assigned to zero if they are constrained
+        //TODO: It is useful to have an overload that just returns the Vector.
         void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector); 
 
         (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement_v2 element);

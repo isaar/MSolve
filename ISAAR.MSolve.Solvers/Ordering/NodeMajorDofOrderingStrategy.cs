@@ -28,13 +28,13 @@ namespace ISAAR.MSolve.Solvers.Ordering
         {
             int totalDOFs = 0;
             Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set isntead of List
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
-                for (int i = 0; i < element.INodes.Count; i++)
+                for (int i = 0; i < element.Nodes.Count; i++)
                 {
-                    if (!nodalDOFTypesDictionary.ContainsKey(element.INodes[i].ID))
-                        nodalDOFTypesDictionary.Add(element.INodes[i].ID, new List<DOFType>());
-                    nodalDOFTypesDictionary[element.INodes[i].ID].AddRange(element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
+                    if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
+                        nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<DOFType>());
+                    nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
                 }
             }
 
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     //}
                     #endregion
 
-                    foreach (var constraint in ((FEM.Entities.Node)node).Constraints) //TODO: access the constraints from the subdomain
+                    foreach (var constraint in ((FEM.Entities.Node_v2)node).Constraints) //TODO: access the constraints from the subdomain
                     {
                         if (constraint.DOF == dofType)
                         {

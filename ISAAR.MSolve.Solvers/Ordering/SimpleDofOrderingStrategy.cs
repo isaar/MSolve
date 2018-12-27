@@ -26,11 +26,11 @@ namespace ISAAR.MSolve.Solvers.Ordering
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
                 //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
-                IList<INode> elementNodes = element.INodes;
-                IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element);
+                IList<INode> elementNodes = element.Nodes;
+                IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element);
                 for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
                 {
                     bool isNodeConstrained = constraints.TryGetDataOfRow(elementNodes[nodeIdx],

@@ -134,12 +134,11 @@ namespace ISAAR.MSolve.Tests.Solvers
                 var factory = new ContinuumElement2DFactory(thickness, material, dynamicProperties);
                 for (int e = 0; e < cells.Count; ++e)
                 {
-                    //TODO: Uncomment this line
-                    //ContinuumElement2D_v2 element = factory.CreateElement(cells[e].CellType, cells[e].Vertices);
-                    //var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                    //foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
-                    //model.ElementsDictionary.Add(e, elementWrapper);
-                    //model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
+                    ContinuumElement2D element = factory.CreateElement(cells[e].CellType, cells[e].Vertices);
+                    var elementWrapper = new Element_v2() { ID = e, ElementType = element };
+                    foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                    model.ElementsDictionary.Add(e, elementWrapper);
+                    model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
                 }
 
                 // Clamp boundary condition at one end

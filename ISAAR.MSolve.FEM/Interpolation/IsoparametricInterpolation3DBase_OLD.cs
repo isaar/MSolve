@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
@@ -6,88 +8,88 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>
-    /// Basic implementation of <see cref="IIsoparametricInterpolation3D"/>
+    /// Basic implementation of <see cref="IIsoparametricInterpolation3D_OLD"/>
     /// Authors: Dimitris Tsapetis, Serafeim Bakalakos
     /// </summary>
-    public abstract class IsoparametricInterpolation3DBase : IIsoparametricInterpolation3D
+    public abstract class IsoparametricInterpolation3DBase_OLD : IIsoparametricInterpolation3D_OLD
     {
         private readonly Dictionary<IQuadrature3D, IReadOnlyList<Vector>> cachedFunctionsAtGPs;
-        private readonly Dictionary<IQuadrature3D, IReadOnlyList<Matrix>> cachedNaturalGradientsAtGPs;
+        private readonly Dictionary<IQuadrature3D, IReadOnlyList<Matrix2D>> cachedNaturalGradientsAtGPs;
 
-        public IsoparametricInterpolation3DBase(int numFunctions)
+        public IsoparametricInterpolation3DBase_OLD(int numFunctions)
         {
             this.NumFunctions = numFunctions;
             this.cachedFunctionsAtGPs = new Dictionary<IQuadrature3D, IReadOnlyList<Vector>>();
-            this.cachedNaturalGradientsAtGPs = new Dictionary<IQuadrature3D, IReadOnlyList<Matrix>>();
+            this.cachedNaturalGradientsAtGPs = new Dictionary<IQuadrature3D, IReadOnlyList<Matrix2D>>();
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.CellType"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.CellType"/>.
         /// </summary>
         public CellType3D CellType { get; }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.NumFunctions"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.NumFunctions"/>.
         /// </summary>
         public int NumFunctions { get; }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.NodalNaturalCoordinates"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.NodalNaturalCoordinates"/>.
         /// </summary>
         public abstract IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.CreateInverseMappingFor(IReadOnlyList{Node_v2})"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.CreateInverseMappingFor(IReadOnlyList{Node3D})"/>.
         /// </summary>
-        public abstract IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes);
+        public abstract IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes);
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAt(IReadOnlyList{Node_v2}, NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.EvaluateAllAt(IReadOnlyList{Node3D}, NaturalPoint3D)"/>.
         /// </summary>
-        public EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalPoint)
+        public EvalInterpolation3D_OLD EvaluateAllAt(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalPoint)
         {
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
             double zeta = naturalPoint.Zeta;
-            var shapeFunctions = Vector.CreateFromArray(EvaluateAt(xi, eta, zeta));
-            var naturalShapeDerivatives = EvaluateGradientsAt(xi, eta, zeta);
-            return new EvalInterpolation3D(shapeFunctions, naturalShapeDerivatives,
-                new IsoparametricJacobian3D(nodes, naturalShapeDerivatives));
+            var shapeFunctions = new Vector(EvaluateAt(xi, eta, zeta));
+            var naturalShapeDerivatives = new Matrix2D(EvaluateGradientsAt(xi, eta, zeta));
+            return new EvalInterpolation3D_OLD(shapeFunctions, naturalShapeDerivatives,
+                new IsoparametricJacobian3D_OLD(nodes, naturalShapeDerivatives));
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAtGaussPoints(IReadOnlyList{Node_v2}, IQuadrature3D)"/>
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.EvaluateAllAtGaussPoints(IReadOnlyList{Node3D}, IQuadrature3D)"/>
         /// </summary>
-        public IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node_v2> nodes, IQuadrature3D quadrature)
+        public IReadOnlyList<EvalInterpolation3D_OLD> EvaluateAllAtGaussPoints(IReadOnlyList<Node3D> nodes, IQuadrature3D quadrature)
         {
             // The shape functions and natural derivatives at each Gauss point are probably cached from previous calls
             IReadOnlyList<Vector> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
-            IReadOnlyList<Matrix> naturalShapeDerivativesAtGPs = EvaluateNaturalGradientsAtGaussPoints(quadrature);
+            IReadOnlyList<Matrix2D> naturalShapeDerivativesAtGPs = EvaluateNaturalGradientsAtGaussPoints(quadrature);
 
             // Calculate the Jacobians and shape derivatives w.r.t. global cartesian coordinates at each Gauss point
             int numGPs = quadrature.IntegrationPoints.Count;
-            var interpolationsAtGPs = new EvalInterpolation3D[numGPs];
+            var interpolationsAtGPs = new EvalInterpolation3D_OLD[numGPs];
             for (int gp = 0; gp < numGPs; ++gp)
             {
-                interpolationsAtGPs[gp] = new EvalInterpolation3D(shapeFunctionsAtGPs[gp],
-                    naturalShapeDerivativesAtGPs[gp], new IsoparametricJacobian3D(nodes, naturalShapeDerivativesAtGPs[gp]));
+                interpolationsAtGPs[gp] = new EvalInterpolation3D_OLD(shapeFunctionsAtGPs[gp],
+                    naturalShapeDerivativesAtGPs[gp], new IsoparametricJacobian3D_OLD(nodes, naturalShapeDerivativesAtGPs[gp]));
             }
             return interpolationsAtGPs;
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateFunctionsAt(NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.EvaluateFunctionsAt(NaturalPoint3D)"/>.
         /// </summary>
         public Vector EvaluateFunctionsAt(NaturalPoint3D naturalPoint)
-            => Vector.CreateFromArray(EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta));
+            => new Vector(EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta));
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateFunctionsAtGaussPoints(IQuadrature3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.EvaluateFunctionsAtGaussPoints(IQuadrature3D)"/>.
         /// </summary>
         public IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature)
         {
@@ -101,8 +103,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
                     GaussPoint3D gaussPoint = quadrature.IntegrationPoints[gp];
-                    shapeFunctionsAtGPsArray[gp] = Vector.CreateFromArray(
-                        EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta));
+                    shapeFunctionsAtGPsArray[gp] = new Vector(EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta));
                 }
                 cachedFunctionsAtGPs.Add(quadrature, shapeFunctionsAtGPsArray);
                 return shapeFunctionsAtGPsArray;
@@ -110,28 +111,29 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateNaturalGradientsAt(NaturalPoint3D)".
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.EvaluateNaturalGradientsAt(NaturalPoint3D)".
         /// </summary>
-        public Matrix EvaluateNaturalGradientsAt(NaturalPoint3D naturalPoint)
-            => EvaluateGradientsAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
+        public Matrix2D EvaluateNaturalGradientsAt(NaturalPoint3D naturalPoint)
+            => new Matrix2D(EvaluateGradientsAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta));
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D)"/>.
         /// </summary>
         /// <param name="quadrature"></param>
-        public IReadOnlyList<Matrix> EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D quadrature)
+        public IReadOnlyList<Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D quadrature)
         {
             bool isCached = cachedNaturalGradientsAtGPs.TryGetValue(quadrature,
-                out IReadOnlyList<Matrix> naturalGradientsAtGPs);
+                out IReadOnlyList<Matrix2D> naturalGradientsAtGPs);
             if (isCached) return naturalGradientsAtGPs;
             else
             {
                 int numGPs = quadrature.IntegrationPoints.Count;
-                var naturalGradientsAtGPsArray = new Matrix[numGPs];
+                var naturalGradientsAtGPsArray = new Matrix2D[numGPs];
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
                     GaussPoint3D gaussPoint = quadrature.IntegrationPoints[gp];
-                    naturalGradientsAtGPsArray[gp] = EvaluateGradientsAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta);
+                    naturalGradientsAtGPsArray[gp] = new Matrix2D(
+                        EvaluateGradientsAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta));
                 }
                 cachedNaturalGradientsAtGPs.Add(quadrature, naturalGradientsAtGPsArray);
                 return naturalGradientsAtGPsArray;
@@ -139,9 +141,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.TransformNaturalToCartesian(IReadOnlyList{Node_v2}, NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D_OLD.TransformNaturalToCartesian(IReadOnlyList{Node3D}, NaturalPoint3D)"/>.
         /// </summary>
-        public CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalPoint)
+        public CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalPoint)
         {
             double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
             double x = 0, y = 0, z = 0;
@@ -173,6 +175,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="eta">The coordinate of the point along local axis Eta.</param>
         /// <param name="zeta">The coordinate of the point along local axis Zeta.</param>
         /// <returns></returns>
-        protected abstract Matrix EvaluateGradientsAt(double xi, double eta, double zeta);
+        protected abstract double[,] EvaluateGradientsAt(double xi, double eta, double zeta);
     }
 }

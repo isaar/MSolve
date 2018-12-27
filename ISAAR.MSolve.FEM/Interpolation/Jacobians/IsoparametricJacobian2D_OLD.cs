@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
-//TODO: use Matrix2by2 after benchmarking it.
+//TODO: need special 2x2 Matrix class
 //TODO: once we know that an exception will be thrown, try to pinpoint the error: wrong node order, clockwise node order, the  
 //      element's shape is too distorted, midpoints are too close to corners in quadratic elements, etc...
 namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
     /// inverse of the Jacobian matrix. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class IsoparametricJacobian2D
+    public class IsoparametricJacobian2D_OLD
     {
         private const double determinantTolerance = 1E-8; // This needs to be in a static settings class.
 
@@ -26,12 +26,11 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         /// </summary>
         /// <param name="nodes">The nodes used for the interpolation.</param>
         /// <param name="naturalDerivatives">The shape function derivatives at a specific integration point.</param>
-        public IsoparametricJacobian2D(IReadOnlyList<Node_v2> nodes, Matrix naturalDerivatives)
+        public IsoparametricJacobian2D_OLD(IReadOnlyList<Node2D> nodes, Matrix2D naturalDerivatives)
         {
             // The original matrix is not stored. Only the inverse and the determinant
             DirectMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
-            (InverseMatrix, DirectDeterminant) = DirectMatrix.InvertAndDetermninant();
-            //(InverseMatrix, DirectDeterminant) = InvertAndDeterminant(DirectMatrix);
+            (InverseMatrix, DirectDeterminant) = InvertAndDeterminant(DirectMatrix);
             if (DirectDeterminant < determinantTolerance)
             {
                 throw new ArgumentException("Jacobian determinant is negative or under the allowed tolerance"
@@ -48,13 +47,13 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         /// The Jacobian matrix of the direct mapping. Numerator layout is used:
         /// J = [df_1/dx_1 df_1/dx_2; df_2/dx_1 df_2/dx_2].
         /// </summary>
-        public Matrix DirectMatrix { get; }
+        public Matrix2D DirectMatrix { get; }
 
         /// <summary>
         /// The inverse of the Jacobian matrix. Numerator layout used is used:
         /// inv(J) = [dx_1/df_1 dx_1/df_2 ; dx_2/df_1 dx_2/df_2]
         /// </summary>
-        public Matrix InverseMatrix { get; }
+        public Matrix2D InverseMatrix { get; }
 
         /// <summary>
         /// Transforms the gradient of a vector-valued function from the natural to the global cartesian coordinate system.
@@ -62,8 +61,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         /// <param name="naturalGradient">The gradient of a vector-valued function in the natural coordinate system. Each row 
         ///     corresponds to the gradient of a single component of the vector function. Each column corresponds to the 
         ///     derivatives of all components with respect to a single coordinate.</param>
-        public Matrix TransformNaturalDerivativesToCartesian(Matrix naturalGradient)
-            => InverseMatrix.MultiplyLeft(naturalGradient);
+        public Matrix2D TransformNaturalDerivativesToCartesian(Matrix2D naturalGradient) => naturalGradient * InverseMatrix;
 
         /// <summary>
         /// Transforms the gradient of a scalar-valued function from the natural to the global cartesian coordinate system.
@@ -79,11 +77,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return result;
         }
 
-        private static Matrix CalculateJacobianMatrix(IReadOnlyList<Node_v2> nodes, Matrix naturalDerivatives)
+        private static Matrix2D CalculateJacobianMatrix(IReadOnlyList<Node2D> nodes, Matrix2D naturalDerivatives)
         {
             //TODO: describe this as a matrix operation
-            var jacobianMatrix = Matrix.CreateZero(2, 2);
-            //var J = new double[2, 2];
+            var J = new double[2, 2];
             for (int nodeIndex = 0; nodeIndex < nodes.Count; ++nodeIndex)
             {
                 double x = nodes[nodeIndex].X;
@@ -91,30 +88,29 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                 double N_xi = naturalDerivatives[nodeIndex, 0];
                 double N_eta = naturalDerivatives[nodeIndex, 1];
 
-                jacobianMatrix[0, 0] += N_xi * x;
-                jacobianMatrix[0, 1] += N_eta * x;
-                jacobianMatrix[1, 0] += N_xi * y;
-                jacobianMatrix[1, 1] += N_eta * y;
+                J[0, 0] += N_xi * x;
+                J[0, 1] += N_eta * x;
+                J[1, 0] += N_xi * y;
+                J[1, 1] += N_eta * y;
             }
-            return jacobianMatrix;
-            //return Matrix2by2.CreateFromArray(J);
+            return new Matrix2D(J);
         }
 
-        //private static (Matrix inverse, double det) InvertAndDeterminant(Matrix directMatrix)
-        //{
-        //    // Leibniz formula:
-        //    double det = directMatrix[0, 0] * directMatrix[1, 1] - directMatrix[0, 1] * directMatrix[1, 0];
-        //    if (Math.Abs(det) < determinantTolerance) throw new Exception(
-        //        $"|Determinant| = {Math.Abs(det)} < tolerance = {determinantTolerance}. The matrix is singular");
+        private static (Matrix2D inverse, double det) InvertAndDeterminant(Matrix2D directMatrix)
+        {
+            // Leibniz formula:
+            double det = directMatrix[0, 0] * directMatrix[1, 1] - directMatrix[0, 1] * directMatrix[1, 0];
+            if (Math.Abs(det) < determinantTolerance) throw new Exception(
+                $"|Determinant| = {Math.Abs(det)} < tolerance = {determinantTolerance}. The matrix is singular");
 
-        //    // Cramer's rule: inverse = 1/det * [a11 -a01; -a10 a00]
-        //    double[,] inverse = new double[,]
-        //    {
-        //        { directMatrix[1, 1] / det, -directMatrix[0, 1] / det },
-        //        { -directMatrix[1, 0] / det, directMatrix[0, 0] / det }
-        //    };
+            // Cramer's rule: inverse = 1/det * [a11 -a01; -a10 a00]
+            double[,] inverse = new double[,] 
+            { 
+                { directMatrix[1, 1] / det, -directMatrix[0, 1] / det }, 
+                { -directMatrix[1, 0] / det, directMatrix[0, 0] / det }
+            };
 
-        //    return (new Matrix2D(inverse), det);
-        //}
+            return (new Matrix2D(inverse), det);
+        }
     }
 }

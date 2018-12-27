@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Logging.VTK
     public class VtkLog2D : IAnalyzerLog
     {
         private readonly VtkMesh2D mesh;
-        private readonly Model model;
+        private readonly Model_v2 model;
         private readonly string pathNoExtension;
         private readonly bool logDisplacements, logStrains, logStresses;
         private readonly IVonMisesStress2D vonMisesStressCalculator;
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Logging.VTK
         /// <param name="logStresses">If true, the stress field will also be written to the output file.</param>
         /// <param name="vonMisesStressCalculator">The strategy used for calculating von Mises equivalent stress. If null is 
         ///     passed, then von Mises equivalent stresses will not be written to the output file.</param>
-        public VtkLog2D(string directory, string filename, Model model, VtkMesh2D mesh, 
+        public VtkLog2D(string directory, string filename, Model_v2 model, VtkMesh2D mesh, 
             bool logDisplacements, bool logStrains, bool logStresses, IVonMisesStress2D vonMisesStressCalculator)
         {
             this.pathNoExtension = directory + "\\" + filename;
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Logging.VTK
                 writer.WriteMesh(mesh.Points, mesh.Cells);
 
                 //TODO: this should be abstracted, especially the nodes.
-                IList<Node> nodes = model.Nodes;
+                IList<Node_v2> nodes = model.Nodes;
                 int numPoints = mesh.Points.Count;
                 if (nodes.Count != numPoints)
                 {

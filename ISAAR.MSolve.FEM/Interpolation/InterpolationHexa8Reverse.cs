@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationHexa8Reverse: IsoparametricInterpolation3DBase
+    public class InterpolationHexa8Reverse: IsoparametricInterpolation3DBase_OLD
     {
         private static readonly InterpolationHexa8Reverse uniqueInstance = new InterpolationHexa8Reverse();
 

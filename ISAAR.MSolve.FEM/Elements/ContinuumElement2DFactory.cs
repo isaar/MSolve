@@ -91,12 +91,12 @@ namespace ISAAR.MSolve.FEM.Elements
             this.commonDynamicProperties = commonDynamicProperties;
         }
 
-        public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes)
+        public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node_v2> nodes)
         {
             return CreateElement(cellType, nodes, commonThickness, commonMaterial, commonDynamicProperties);
         }
 
-        public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes, double thickness,
+        public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node_v2> nodes, double thickness,
             ElasticMaterial2D material, DynamicMaterial dynamicProperties)
         {
             int numGPs = integrationsForStiffness[cellType].IntegrationPoints.Count;
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return CreateElement(cellType, nodes, thickness, materialsAtGaussPoints, dynamicProperties);
         }
 
-        public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node2D> nodes, double thickness,
+        public ContinuumElement2D CreateElement(CellType2D cellType, IReadOnlyList<Node_v2> nodes, double thickness,
             IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             //TODO: check if nodes - interpolation and Gauss points - materials match

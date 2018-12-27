@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 // Quad4 nodes:
 // 3 -- 2
@@ -49,7 +48,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes)
             => new InverseInterpolationQuad4(nodes);
 
         protected override sealed double[] EvaluateAt(double xi, double eta)
@@ -62,9 +61,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return values;
         }
 
-        protected override sealed double[,] EvaluateGradientsAt(double xi, double eta)
+        protected override sealed Matrix EvaluateGradientsAt(double xi, double eta)
         {
-            var derivatives = new double[4, 2];
+            var derivatives = Matrix.CreateZero(4, 2);
             derivatives[0, 0] = -0.25 * (1 - eta);
             derivatives[0, 1] = -0.25 * (1 - xi);
             derivatives[1, 0] = 0.25 * (1 - eta);
