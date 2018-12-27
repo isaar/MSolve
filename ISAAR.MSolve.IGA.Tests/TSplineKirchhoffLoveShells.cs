@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -22,8 +23,9 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
-			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
-			IGAFileReader modelReader = new IGAFileReader(model, filename);
+			var filename = "CantileverShell";
+			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
+			IGAFileReader modelReader = new IGAFileReader(model, filepath);
 			modelReader.CreateTSplineShellsModelFromFile();
 
 			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
@@ -61,6 +63,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.BuildMatrices();
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+
+			var paraview = new ParaviewTsplineShells(model, linearSystems[0], filename);
+			paraview.CreateParaviewFile();
 
 			var expectedSolutionVector = new Vector(new double[]
 			{
