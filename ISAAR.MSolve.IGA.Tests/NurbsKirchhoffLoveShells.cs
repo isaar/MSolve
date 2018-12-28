@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -217,73 +218,87 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void IsogeometricSquareShell()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
-			var filename = "SquareShell";
-			string filepath = $"..\\..\\..\\InputFiles\\{filename}.txt";
-			IsogeometricShellReader modelReader = new IsogeometricShellReader(model, filepath);
-			modelReader.CreateShellModelFromFile();
-
-
-			Matrix<double> loadVector = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "LoadVector");
-
-
-			for (int i = 0; i < loadVector.ColumnCount; i+=3)
+			using (StreamWriter outputFile = new StreamWriter($"..\\..\\..\\OutputFiles\\SquareShellTimes.txt"))
 			{
-				var indexCP = i / 3;
-				model.Loads.Add(new Load()
-				{
-					Amount = loadVector.At(0,i),
-					ControlPoint = model.ControlPoints[indexCP],
-					DOF = DOFType.X
-				});
-				model.Loads.Add(new Load()
-				{
-					Amount = loadVector.At(0, i+1),
-					ControlPoint = model.ControlPoints[indexCP],
-					DOF = DOFType.Y
-				});
-				model.Loads.Add(new Load()
-				{
-					Amount = loadVector.At(0, i+2),
-					ControlPoint = model.ControlPoints[indexCP],
-					DOF = DOFType.Z
-				});
+				var watch = System.Diagnostics.Stopwatch.StartNew();
 
-			}
+				VectorExtensions.AssignTotalAffinityCount();
+				Model model = new Model();
+				var filename = "SquareShell";
+				string filepath = $"..\\..\\..\\InputFiles\\{filename}.txt";
+				IsogeometricShellReader modelReader = new IsogeometricShellReader(model, filepath);
+				modelReader.CreateShellModelFromFile();
 
-			foreach (var edge in model.PatchesDictionary[0].EdgesDictionary.Values)
-			{
-				foreach (var controlPoint in edge.ControlPointsDictionary.Values)
+
+				Matrix<double> loadVector = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "LoadVector");
+
+
+				for (int i = 0; i < loadVector.ColumnCount; i += 3)
 				{
-					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+					var indexCP = i / 3;
+					model.Loads.Add(new Load()
+					{
+						Amount = loadVector.At(0, i),
+						ControlPoint = model.ControlPoints[indexCP],
+						DOF = DOFType.X
+					});
+					model.Loads.Add(new Load()
+					{
+						Amount = loadVector.At(0, i + 1),
+						ControlPoint = model.ControlPoints[indexCP],
+						DOF = DOFType.Y
+					});
+					model.Loads.Add(new Load()
+					{
+						Amount = loadVector.At(0, i + 2),
+						ControlPoint = model.ControlPoints[indexCP],
+						DOF = DOFType.Z
+					});
+
 				}
+
+				foreach (var edge in model.PatchesDictionary[0].EdgesDictionary.Values)
+				{
+					foreach (var controlPoint in edge.ControlPointsDictionary.Values)
+					{
+						model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+						model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+						model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+					}
+				}
+
+				model.ConnectDataStructures();
+				watch.Stop();
+				outputFile.WriteLine($"Read model: {watch.ElapsedMilliseconds}");
+				watch= System.Diagnostics.Stopwatch.StartNew(); ;
+
+				// Solvers
+				var linearSystems = new Dictionary<int, ILinearSystem>();
+				linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+				SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+				ProblemStructural provider = new ProblemStructural(model, linearSystems);
+				LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+				StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+				parentAnalyzer.BuildMatrices();
+				watch.Stop();
+				outputFile.WriteLine($"Matrices assembly: {watch.ElapsedMilliseconds}");
+				watch= System.Diagnostics.Stopwatch.StartNew(); 
+
+				parentAnalyzer.Initialize();
+				parentAnalyzer.Solve();
+
+				watch.Stop();
+				outputFile.WriteLine($"System solution: {watch.ElapsedMilliseconds}");
+
+				var paraview = new ParaviewNurbsShells(model, linearSystems[0], filename);
+				paraview.CreateParaview2DFile();
+
+				Matrix<double> solutionVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "SolutionVector");
+
+				for (int i = 0; i < solutionVectorExpected.ColumnCount; i++)
+					Assert.True(Utilities.AreValuesEqual(solutionVectorExpected.At(0, i), linearSystems[0].Solution[i], 1e-9));
 			}
-
-			model.ConnectDataStructures();
-
-			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
-
-			parentAnalyzer.BuildMatrices();
-			parentAnalyzer.Initialize();
-			parentAnalyzer.Solve();
-
-			var paraview = new ParaviewNurbsShells(model,linearSystems[0], filename);
-			paraview.CreateParaview2DFile();
-
-			Matrix<double> solutionVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\SquareShell.mat", "SolutionVector");
-
-			for (int i = 0; i < solutionVectorExpected.ColumnCount; i++)
-				Assert.True(Utilities.AreValuesEqual(solutionVectorExpected.At(0, i), linearSystems[0].Solution[i], 1e-9));
-
 		}
 
 	}
