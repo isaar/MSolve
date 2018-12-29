@@ -13,6 +13,7 @@ using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
 using Xunit;
 using ISAAR.MSolve.Numerical.Commons;
 

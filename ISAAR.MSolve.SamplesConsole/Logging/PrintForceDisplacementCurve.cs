@@ -10,6 +10,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.FEM;

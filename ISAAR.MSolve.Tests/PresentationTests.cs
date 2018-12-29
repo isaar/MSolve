@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using System.Linq;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;

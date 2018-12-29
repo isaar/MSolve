@@ -158,6 +158,76 @@ namespace ISAAR.MSolve.IGA.Tests
 		}
 
 		[Fact]
+		public void CantileverShellMaterialBenchmark_v2()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model_v2 model = new Model_v2();
+			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
+			IGAFileReader_v2 modelReader = new IGAFileReader_v2(model, filename);
+
+			var thickness = 1.0;
+
+			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader_v2.TSplineShellTypes.ThicknessMaterial, new ShellElasticMaterial2D
+			{
+				PoissonRatio = 0.0,
+				YoungModulus = 100,
+			}, thickness);
+			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X < 3))
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+			}
+
+			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X > 49.8))
+			{
+				model.Loads.Add(new Load()
+				{
+					Amount = -0.5,
+					ControlPoint = model.ControlPointsDictionary[controlPoint.ID],
+					DOF = DOFType.Z
+				});
+			}
+
+			var solverBuilder = new SuiteSparseSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+
+			// Structural problem provider
+			var provider = new ProblemStructural_v2(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+
+			var expectedSolutionVector = new Vector(new double[]
+			{
+				0, 0, -306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924153, 0, 0, -8702.62361, 0, 0,
+				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0,
+				-3454.810407, 0, 0, -5881.924117, 0, 0, -8702.623683, 0, 0, -11785.71423, 0, 0, -13928.57093, 0, 0,
+				-15000.00025, 0, 0, -306.1224493, 0, 0, -1552.478088, 0, 0, -3454.810449, 0, 0, -5881.924038, 0, 0,
+				-8702.623837, 0, 0, -11785.71389, 0, 0, -13928.57157, 0, 0, -14999.99909, 0, 0, -306.1224494, 0, 0,
+				-1552.478088, 0, 0, -3454.810449, 0, 0, -5881.924038, 0, 0, -8702.623837, 0, 0, -11785.71389, 0, 0,
+				-13928.57157, 0, 0, -14999.99909, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0, -3454.810407, 0, 0,
+				-5881.924117, 0, 0, -8702.623683, 0, 0, -11785.71423, 0, 0, -13928.57093, 0, 0, -15000.00025, 0, 0,
+				-306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924154, 0, 0, -8702.62361, 0, 0,
+				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008
+			});
+			for (int i = 0; i < expectedSolutionVector.Length; i++)
+			{
+				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], solver.LinearSystems[0].Solution[i],
+					1e-6));
+			}
+
+		}
+
+		[Fact]
 		public void SimpleHoodBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
@@ -225,23 +295,26 @@ namespace ISAAR.MSolve.IGA.Tests
 			Model_v2 model = new Model_v2();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
-			//IGAFileReader modelReader = new IGAFileReader(model, filepath);
+			IGAFileReader_v2 modelReader = new IGAFileReader_v2(model, filepath);
 
-			//var thickness = 1.0;
+			var thickness = 1.0;
 
 			//modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.LinearMaterial,new ShellElasticMaterial2D
 			//{
 			//	PoissonRatio = 0.3,
 			//	YoungModulus = 1e5,
 			//}, thickness);
-			//modelReader.CreateTSplineShellsModelFromFile();
-
-			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader_v2.TSplineShellTypes.ThicknessMaterial,new ShellElasticMaterial2D()
 			{
 				PoissonRatio = 0.3,
 				YoungModulus = 10000
-			};
-			model.PatchesDictionary[0].Thickness = 1;
+			}, thickness);
+
+			//model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			//{
+				
+			//};
+			//model.PatchesDictionary[0].Thickness = 1;
 
 			for (int i = 0; i < 100; i++)
 			{
@@ -261,19 +334,6 @@ namespace ISAAR.MSolve.IGA.Tests
 					DOF = DOFType.Z
 				});
 			}
-
-			//model.ConnectDataStructures();
-
-			//var linearSystems = new Dictionary<int, ILinearSystem>();
-			//linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			//SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			//ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			//LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			//StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
-
-			//parentAnalyzer.BuildMatrices();
-			//parentAnalyzer.Initialize();
-			//parentAnalyzer.Solve();
 			var solverBuilder = new SuiteSparseSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());

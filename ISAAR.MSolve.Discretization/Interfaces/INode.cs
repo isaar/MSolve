@@ -10,5 +10,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		double X { get; set; }
 		double Y { get; set; }
 		double Z { get; set; }
-	}
+
+		List<Constraint> Constraints { get; }
+    }
 }

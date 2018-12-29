@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     //}
                     #endregion
 
-                    foreach (var constraint in ((FEM.Entities.Node)node).Constraints) //TODO: access the constraints from the subdomain
+                    foreach (var constraint in (node).Constraints) //TODO: access the constraints from the subdomain
                     {
                         if (constraint.DOF == dofType)
                         {

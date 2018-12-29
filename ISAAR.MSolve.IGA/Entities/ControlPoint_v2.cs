@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.IGA.Entities
 {

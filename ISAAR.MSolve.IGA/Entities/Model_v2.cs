@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -23,7 +23,6 @@ namespace ISAAR.MSolve.IGA.Entities
 		private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
 		private readonly Dictionary<int, Patch_v2> patchesDictionary = new Dictionary<int, Patch_v2>();
 
-		private readonly Dictionary<int, Dictionary<DOFType, int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
 		private readonly IList<Load> loads = new List<Load>();
 		private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads = new List<IMassAccelerationHistoryLoad>();
 
@@ -42,11 +41,17 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public IList<ControlPoint_v2> ControlPoints => controlPointsDictionary.Values.ToList();
 		IReadOnlyList<INode> IStructuralModel_v2.Nodes => controlPointsDictionary.Values.ToList();
-		public Dictionary<int, ControlPoint> ControlPointsDictionary { get; } = new Dictionary<int, ControlPoint>();
+		public Dictionary<int, ControlPoint_v2> ControlPointsDictionary
+		{
+			get => controlPointsDictionary;
+		} 
 
 		IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => patchesDictionary.Values.ToList();
 		public IList<Patch_v2> Patches => patchesDictionary.Values.ToList();
-		public Dictionary<int, Patch_v2> PatchesDictionary { get; } = new Dictionary<int, Patch_v2>();
+		public Dictionary<int, Patch_v2> PatchesDictionary
+		{
+			get => patchesDictionary;
+		}
 
 		public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
 

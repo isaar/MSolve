@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		protected readonly List<DOFType> constrains = new List<DOFType>();
         protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
-        
-        public List<DOFType> Constrains
+        private readonly List<Constraint> constraints = new List<Constraint>();
+
+		public List<DOFType> Constrains
         {
             get { return constrains; }
         }
@@ -37,7 +39,9 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Heta { get; set; }
         public double Zeta { get; set; }
 
-        public void BuildPatchesDictionary()
+		public List<Constraint> Constraints => constraints;
+
+		public void BuildPatchesDictionary()
         {
             foreach (Element element in elementsDictionary.Values)
                 if (!patchesDictionary.ContainsKey(element.Patch.ID))

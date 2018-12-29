@@ -18,6 +18,7 @@ using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.Discretization.Providers;
 using System.IO;
 using System.Linq;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
