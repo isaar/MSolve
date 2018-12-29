@@ -736,5 +736,10 @@ namespace ISAAR.MSolve.IGA.Elements
 
 			return medianSurfaceGP;
 		}
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
