@@ -1,5 +1,6 @@
 ﻿//TODO: Move the operators here when C# supports extension operators
 using System;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
@@ -90,6 +91,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public static void AddSubvectorIntoThis(this IVector destinationVector, int destinationIndex, IVectorView sourceVector,
             int sourceIndex, int length) 
             => destinationVector.AxpySubvectorIntoThis(destinationIndex, sourceVector, 1.0, sourceIndex, length);
+
+        /// <summary>
+        /// Performs the operation: a x b = { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]}.
+        /// The result is a vector. Also note that: other.Cross(this) = - this.Cross(other).
+        /// </summary>
+        /// <param name="vector1">A vector with three entries.</param>
+        /// <param name="vector2">A vector with three entries.</param>
+        public static Vector CrossProduct(this Vector vector1, Vector vector2) //TODO: Should this be a member method? It breaks encapsulation as it is
+        {
+            if (vector1.Length != 3) throw new NonMatchingDimensionsException(
+                $"Vector 1 has length = {vector1.Length} instead of 3");
+            if (vector2.Length != 3) throw new NonMatchingDimensionsException(
+                $"Vector 2 has length = {vector1.Length} instead of 3");
+
+            double[] vector1Data = vector1.RawData;
+            double[] vector2Data = vector2.RawData;
+
+            return Vector.CreateFromArray(new double[]
+            {
+                vector1Data[1] * vector2Data[2] - vector1Data[2] * vector2Data[1],
+                vector1Data[2] * vector2Data[0] - vector1Data[0] * vector2Data[2],
+                vector1Data[0] * vector2Data[1] - vector1Data[1] * vector2Data[0]
+            });
+        }
 
         // TODO: implement this in each concrete vector.
         public static double Norm2(this IVectorView thisVector) => Math.Sqrt(thisVector.DotProduct(thisVector));

@@ -82,6 +82,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 if (i <= j) return data[Find1DIndex(i, j)];
                 else return data[Find1DIndex(j, i)];
             }
+            set
+            {
+                if (i <= j) data[Find1DIndex(i, j)] = value;
+                else data[Find1DIndex(j, i)] = value;
+            }
         }
 
         /// <summary>
@@ -243,7 +248,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             else
             {
-                return CopyToGeneralMatrix().FactorLU().CalcDeterminant(); //TODO: Find how to do it with Bunch-Kaufman
+                return CopyToFullMatrix().FactorLU().CalcDeterminant(); //TODO: Find how to do it with Bunch-Kaufman
             }
         }
 
@@ -270,7 +275,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Conversions.PackedUpperColMajorToArray2DSymm(data, Order);
         }
 
-        public Matrix CopyToGeneralMatrix()
+        public Matrix CopyToFullMatrix()
         {
             double[] fullData = Conversions.PackedUpperColMajorToFullSymmColMajor(data, Order);
             return Matrix.CreateFromArray(fullData, Order, Order, false);

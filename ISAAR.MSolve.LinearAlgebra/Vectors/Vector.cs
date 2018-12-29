@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
@@ -832,6 +833,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// See <see cref="IVector.Set(int, double)"/>.
         /// </summary>
         public void Set(int index, double value) => data[index] = value;
+
+        /// <summary>
+        /// Calculates the tensor product of this vector with <paramref name="vector"/>:
+        /// result[i, j] = this[i] * vector[j], for all valid i, j.
+        /// </summary>
+        /// <param name="vector">The other vector.</param>
+        public Matrix TensorProduct(Vector vector)
+        {
+            //TODO: perhaps I should store them directly in a 1D col major array. That is more efficient but then I should move 
+            //      this method elsewhere, so that it doesn't break the encapsulation of Matrix.
+            var result = Matrix.CreateZero(this.Length, vector.Length);
+            for (int i = 0; i < this.Length; ++i)
+            {
+                for (int j = 0; j < vector.Length; ++j) result[i, j] = this.data[i] * vector.data[j];
+            }
+            return result;
+        }
 
         /// <summary>
         /// Creates a new instance of the legacy vector class <see cref="Numerical.LinearAlgebra.Vector"/> with the same internal
