@@ -1,14 +1,16 @@
-﻿using ISAAR.MSolve.Numerical.Interfaces;
-using System;
+﻿using System;
+using System.Diagnostics;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Numerical.LinearAlgebra
+namespace ISAAR.MSolve.Geometry
 {
     /**
      * Class for quaternions to represent finite rotations.
      *
      * @author Theofilos Manitaras
      */
-    public class Quaternion
+    public class Quaternion_v2
     {
 
         private static int VECTOR_COMPONENT_COUNT = 3;
@@ -22,9 +24,9 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 	     *            The vector part
 	     * @return The new quaternion
 	     */
-        public static Quaternion CreateFromIndividualParts(double scalarPart, Vector vectorPart)
+        public static Quaternion_v2 CreateFromIndividualParts(double scalarPart, Vector vectorPart)
         {
-            return new Quaternion(scalarPart, vectorPart);
+            return new Quaternion_v2(scalarPart, vectorPart);
         }
 
         /**
@@ -32,15 +34,15 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 	     *
 	     * @return The new quaternion
 	     */
-        public static Quaternion OfZeroAngle()
+        public static Quaternion_v2 OfZeroAngle()
         {
-            return new Quaternion(1.0, new Vector(VECTOR_COMPONENT_COUNT));
+            return new Quaternion_v2(1.0, Vector.CreateZero(VECTOR_COMPONENT_COUNT));
         }
 
         private double scalarPart;
         private readonly Vector vectorPart;
 
-        public Quaternion(double scalarPart, Vector vectorPart)
+        public Quaternion_v2(double scalarPart, Vector vectorPart)
         {
             this.scalarPart = scalarPart;
             this.vectorPart = vectorPart;
@@ -54,20 +56,25 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 	     */
         public void ApplyIncrementalRotation(Vector incrementalRotation)
         {
-            var vectorPartIncrement = new Vector(VECTOR_COMPONENT_COUNT);
-            incrementalRotation.CopyTo(vectorPartIncrement.Data, 0);
-            vectorPartIncrement.Scale(0.5);
+            Debug.Assert(incrementalRotation.Length == VECTOR_COMPONENT_COUNT);
+            Vector vectorPartIncrement = incrementalRotation.Copy();
+            //var vectorPartIncrement = new Vector(VECTOR_COMPONENT_COUNT);
+            //incrementalRotation.CopyTo(vectorPartIncrement.Data, 0);
+            vectorPartIncrement.ScaleIntoThis(0.5);
             double squareRootArgument = 1.0 - vectorPartIncrement * vectorPartIncrement;
             //Preconditions.checkArgument(squareRootArgument > 0.0, "Very large rotation increment applied");
             double scalarPartIncrement = Math.Sqrt(squareRootArgument);
             double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement * (this.vectorPart);
+
+            //TODO: Is the following correct? Vector updatedVectorPart = this.vectorPart; does not copy the original vector.
+            //TODO: Why not use this.vectorPart for all the next? 
             Vector updatedVectorPart = this.vectorPart;
-            updatedVectorPart.Scale(scalarPartIncrement);
-            updatedVectorPart.Add(scalarPart * vectorPartIncrement);
-            Vector incrementCrossVectorPart = vectorPartIncrement ^ this.vectorPart;
-            updatedVectorPart.Add(incrementCrossVectorPart);
+            updatedVectorPart.ScaleIntoThis(scalarPartIncrement);
+            updatedVectorPart.AddIntoThis(scalarPart * vectorPartIncrement);
+            Vector incrementCrossVectorPart = vectorPartIncrement.CrossProduct(this.vectorPart);
+            updatedVectorPart.AddIntoThis(incrementCrossVectorPart);
             this.scalarPart = updatedScalarPart;
-            updatedVectorPart.CopyTo(this.vectorPart.Data, 0);
+            this.vectorPart.CopyFrom(updatedVectorPart); //TODO: This does nothing. updatedVectorPart is a reference to the same memory as this.vectorPart
         }
 
         /**
@@ -77,28 +84,29 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
 	     *            The incremental rotation
 	     * @return The rotated quaternion
 	     */
-        public Quaternion ApplyIncrementalRotationToNew(Vector incrementalRotation)
+        public Quaternion_v2 ApplyIncrementalRotationToNew(Vector incrementalRotation)
         {
-            var vectorPartIncrement = new Vector(VECTOR_COMPONENT_COUNT);
-            incrementalRotation.CopyTo(vectorPartIncrement.Data, 0);
-            vectorPartIncrement.Scale(0.5);
+            Debug.Assert(incrementalRotation.Length == VECTOR_COMPONENT_COUNT);
+            Vector vectorPartIncrement = incrementalRotation.Copy();
+            vectorPartIncrement.ScaleIntoThis(0.5);
             double squareRootArgument = 1.0 - vectorPartIncrement * vectorPartIncrement;
             //Preconditions.checkArgument(squareRootArgument > 0.0, "Very large rotation increment applied");
             double scalarPartIncrement = Math.Sqrt(squareRootArgument);
             double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement * (this.vectorPart);
 
-            //TODO: The next part creates a new Quaternion, but the existing ones is not copied as per the author's intention
+            //TODO: Is the following correct? Vector updatedVectorPart = this.vectorPart; does not copy the original vector.
+            //TODO: The next part creates a new Quaternion (using legacy linear algebra classes), but the existing ones is not copied as per the author's intention
             Vector updatedVectorPart = this.vectorPart;
-            updatedVectorPart.Scale(scalarPartIncrement);
-            updatedVectorPart.Add(scalarPart * vectorPartIncrement);
-            Vector incrementCrossVectorPart = vectorPartIncrement ^ this.vectorPart;
-            updatedVectorPart.Add(incrementCrossVectorPart);
-            return new Quaternion(updatedScalarPart, updatedVectorPart);
+            updatedVectorPart.ScaleIntoThis(scalarPartIncrement);
+            updatedVectorPart.AddIntoThis(scalarPart * vectorPartIncrement);
+            Vector incrementCrossVectorPart = vectorPartIncrement.CrossProduct(this.vectorPart);
+            updatedVectorPart.AddIntoThis(incrementCrossVectorPart);
+            return new Quaternion_v2(updatedScalarPart, updatedVectorPart);
         }
 
-        public Matrix2D GetRotationMatrix()
+        public Matrix GetRotationMatrix()
         {
-            Matrix2D rotationMatrix = new Matrix2D(VECTOR_COMPONENT_COUNT, VECTOR_COMPONENT_COUNT);
+            var rotationMatrix = Matrix.CreateZero(VECTOR_COMPONENT_COUNT, VECTOR_COMPONENT_COUNT);
             double r0 = this.scalarPart;
             double r1 = this.vectorPart[0];
             double r2 = this.vectorPart[1];
@@ -121,7 +129,7 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return rotationMatrix;
         }
 
-        public double ScalarPart { get { return this.scalarPart; } }
-        public Vector VectorPart { get { return this.vectorPart; } }
+        public double ScalarPart => this.scalarPart;
+        public Vector VectorPart => this.vectorPart;
     }
 }
