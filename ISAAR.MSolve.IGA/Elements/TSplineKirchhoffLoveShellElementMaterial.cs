@@ -15,9 +15,9 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
-    public class TSplineKirchhoffLoveShellElementMaterial: Element, IStructuralIsogeometricElement
+	public class TSplineKirchhoffLoveShellElementMaterial : Element, IStructuralIsogeometricElement
 	{
-	    public Matrix2D ExtractionOperator { get; set; } 
+		public Matrix2D ExtractionOperator { get; set; }
 		public int DegreeKsi { get; set; }
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		private Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>
 			materialsAtThicknessGP =
 				new Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>();
-		
+
 
 		public TSplineKirchhoffLoveShellElementMaterial(int id, Patch patch, int degreeKsi, int degreeHeta,
 			double thickness, Matrix2D extractionOperator, IShellMaterial shellMaterial)
@@ -95,35 +95,51 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
 
-				var surfaceBasisVector3 = surfaceBasisVector1 ^ surfaceBasisVector2;
-				var J1 = surfaceBasisVector3.Norm;
-				surfaceBasisVector3.Multiply(1 / J1);
+				var surfaceBasisVector3 = new[]
+				{
+					surfaceBasisVector1[1] * surfaceBasisVector2[2] - surfaceBasisVector1[2] * surfaceBasisVector2[1],
+					surfaceBasisVector1[2] * surfaceBasisVector2[0] - surfaceBasisVector1[0] * surfaceBasisVector2[2],
+					surfaceBasisVector1[0] * surfaceBasisVector2[1] - surfaceBasisVector1[1] * surfaceBasisVector2[0]
+				};
+
+				double norm = 0;
+				for (int i = 0; i < surfaceBasisVector3.Length; i++)
+					norm += surfaceBasisVector3[i] * surfaceBasisVector3[i];
+				var J1 = Math.Sqrt(norm);
+
+				for (int i = 0; i < surfaceBasisVector3.Length; i++)
+					surfaceBasisVector3[i] = surfaceBasisVector3[i] / J1;
 
 				var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
 				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
 				var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
 
 				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
-				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);				
+				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
 
 				var (MembraneForces, BendingMoments) =
 					IntegratedStressesOverThickness(gaussPoints, j);
 
-				var Fmembrane = Bmembrane.Transpose() * MembraneForces;
-				Fmembrane.Scale(J1 * gaussPoints[j].WeightFactor);
-
-				var Fbending = Bbending.Transpose() * BendingMoments;
-				Fbending.Scale(J1 *gaussPoints[j].WeightFactor);
-				               				
-				ElementNodalForces.Add(Fmembrane);
-				ElementNodalForces.Add(Fbending);
-				
+				var wfactor = J1 * gaussPoints[j].WeightFactor;
+				for (int i = 0; i < Bmembrane.GetLength(1); i++)
+				{
+					for (int k = 0; k < Bmembrane.GetLength(0); k++)
+					{
+						ElementNodalForces[i] += Bmembrane[k, i] * MembraneForces[k] * wfactor +
+												 Bbending[k, i] * BendingMoments[k] * wfactor;
+					}
+				}
 			}
 
 			return ElementNodalForces.Data;
 		}
-		
+
 		public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SaveMaterialState()
 		{
 			throw new NotImplementedException();
 		}
@@ -165,9 +181,17 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
 
-				var surfaceBasisVector3 = surfaceBasisVector1 ^ surfaceBasisVector2;
-				var J1 = surfaceBasisVector3.Norm;
-				surfaceBasisVector3.Multiply(1 / J1);
+				var surfaceBasisVector3 = new[]
+				{
+					surfaceBasisVector1[1] * surfaceBasisVector2[2] - surfaceBasisVector1[2] * surfaceBasisVector2[1],
+					surfaceBasisVector1[2] * surfaceBasisVector2[0] - surfaceBasisVector1[0] * surfaceBasisVector2[2],
+					surfaceBasisVector1[0] * surfaceBasisVector2[1] - surfaceBasisVector1[1] * surfaceBasisVector2[0]
+				};
+
+				double norm = 0;
+				for (int i = 0; i < surfaceBasisVector3.Length; i++)
+					norm += surfaceBasisVector3[i] * surfaceBasisVector3[i];
+				var J1 = Math.Sqrt(norm);
 
 				var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
 				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
@@ -178,18 +202,27 @@ namespace ISAAR.MSolve.IGA.Elements
 					surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2,
 					surfaceBasisVectorDerivative12, shellElement);
 
-				var membraneStrain = Bmembrane.Transpose() * new Vector(localDisplacements);
-				var bendingStrain = Bbending.Transpose() * (new Vector(localDisplacements));
-				
+				var membraneStrain = new double[Bmembrane.GetLength(0)];
+				var bendingStrain = new double[Bmembrane.GetLength(0)];
+				for (int i = 0; i < Bmembrane.GetLength(1); i++)
+				{
+					for (int k = 0; k < Bmembrane.GetLength(0); k++)
+					{
+						membraneStrain[i] += Bmembrane[k, i] * localDisplacements[k];
+						bendingStrain[i] += Bbending[k, i] * localDisplacements[k];
+					}
+				}
+
 				foreach (var keyValuePair in materialsAtThicknessGP[materialsAtThicknessGP.Keys.ToList()[j]])
 				{
 					var thicknessPoint = keyValuePair.Key;
 					var material = keyValuePair.Value;
-
-					var bendingStrainContribution= new Vector(bendingStrain.Length);
-					bendingStrain.CopyTo(bendingStrainContribution.Data,0);
-					bendingStrainContribution.Scale(-thicknessPoint.Zeta);
-					var gpStrain = membraneStrain + bendingStrainContribution;
+					var gpStrain = new double[bendingStrain.Length];
+					var z = -thicknessPoint.Zeta;
+					for (int i = 0; i < bendingStrain.Length; i++)
+					{
+						gpStrain[i] += membraneStrain[i] + bendingStrain[i] * z;
+					}
 					material.UpdateMaterial(gpStrain);
 				}
 
@@ -200,6 +233,11 @@ namespace ISAAR.MSolve.IGA.Elements
 		}
 
 		public void ClearMaterialState()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void ClearMaterialStresses()
 		{
 			throw new NotImplementedException();
 		}
@@ -230,14 +268,100 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
+		//public IMatrix2D StiffnessMatrix(IElement element)
+		//{
+		//	var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
+		//	Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
+		//	var gaussPoints = materialsAtThicknessGP.Keys.ToArray();
+		//	ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
+
+
+		//	var bRows = 3;
+		//	var bCols = shellElement.ControlPoints.Count * 3;
+		//	var stiffnessMatrix = new double[bCols, bCols];
+		//	var BmTranspose = new double[bCols, bRows];
+		//	var BbTranspose = new double[bCols, bRows];
+		//	var BmbTranspose = new double[bCols, bRows];
+		//	var BbmTranspose = new double[bCols, bRows];
+
+		//	var BmTransposeMultStiffness = new double[bCols, bRows];
+		//	var BbTransposeMultStiffness = new double[bCols, bRows];
+		//	var BmbTransposeMultStiffness = new double[bCols, bRows];
+		//	var BbmTransposeMultStiffness = new double[bCols, bRows];
+
+		//	for (int j = 0; j < gaussPoints.Length; j++)
+		//	{
+		//		var jacobianMatrix = CalculateJacobian(shellElement, tsplines, j);
+
+		//		var hessianMatrix = CalculateHessian(shellElement, tsplines, j);
+		//		var surfaceBasisVector1 = CalculateSurfaceBasisVector1(jacobianMatrix, 0);
+
+		//		var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
+
+		//		var surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
+
+		//		foreach (var integrationPointMaterial in materialsAtThicknessGP[gaussPoints[j]].Values)
+		//		{
+		//			integrationPointMaterial.TangentVectorV1 = surfaceBasisVector1.Data;
+		//			integrationPointMaterial.TangentVectorV2 = surfaceBasisVector2.Data;
+		//			integrationPointMaterial.NormalVectorV3 = surfaceBasisVector3.Data;
+		//		}
+		//		var J1 = surfaceBasisVector3.Norm;
+		//		surfaceBasisVector3.Multiply(1 / J1);
+
+		//		var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
+		//		var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
+		//		var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
+
+		//		var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
+		//		var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2,
+		//			surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2,
+		//			surfaceBasisVectorDerivative12, shellElement);
+
+		//		var (MembraneConstitutiveMatrix, BendingConstitutiveMatrix, CouplingConstitutiveMatrix) =
+		//			IntegratedConstitutiveOverThickness(gaussPoints, j);
+
+		//		var Kmembrane = Bmembrane.Transpose() * MembraneConstitutiveMatrix * Bmembrane  * J1 *
+		//		                gaussPoints[j].WeightFactor;
+		//		var Kbending = Bbending.Transpose() * BendingConstitutiveMatrix * Bbending  * J1 *
+		//					   gaussPoints[j].WeightFactor;
+
+		//		var KMembraneBending = Bmembrane.Transpose() * CouplingConstitutiveMatrix * Bbending * J1 *
+		//		                       gaussPoints[j].WeightFactor;
+
+		//		var KBendingMembrane = Bbending.Transpose() * CouplingConstitutiveMatrix * Bmembrane * J1 *
+		//		                       gaussPoints[j].WeightFactor;
+
+
+		//		stiffnessMatrixElement.Add(Kmembrane);
+		//		stiffnessMatrixElement.Add(Kbending);
+		//		stiffnessMatrixElement.Add(KMembraneBending);
+		//		stiffnessMatrixElement.Add(KBendingMembrane);
+		//	}
+		//	return stiffnessMatrixElement;
+		//}
+
+
 		public IMatrix2D StiffnessMatrix(IElement element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
-			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
-			var gaussPoints = materialsAtThicknessGP.Keys.ToList();
-			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
+			var gaussPoints = materialsAtThicknessGP.Keys.ToArray();
+			ShapeTSplines2DFromBezierExtraction tsplines =
+				new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
 
-			for (int j = 0; j < gaussPoints.Count; j++)
+
+			var bRows = 3;
+			var bCols = shellElement.ControlPoints.Count * 3;
+			var stiffnessMatrix = new double[bCols, bCols];
+			var BmTranspose = new double[bCols, bRows];
+			var BbTranspose = new double[bCols, bRows];
+
+			var BmTransposeMultStiffness = new double[bCols, bRows];
+			var BbTransposeMultStiffness = new double[bCols, bRows];
+			var BmbTransposeMultStiffness = new double[bCols, bRows];
+			var BbmTransposeMultStiffness = new double[bCols, bRows];
+
+			for (int j = 0; j < gaussPoints.Length; j++)
 			{
 				var jacobianMatrix = CalculateJacobian(shellElement, tsplines, j);
 
@@ -246,16 +370,27 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
 
-				var surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
+				var surfaceBasisVector3 = new[]
+				{
+					surfaceBasisVector1[1] * surfaceBasisVector2[2] - surfaceBasisVector1[2] * surfaceBasisVector2[1],
+					surfaceBasisVector1[2] * surfaceBasisVector2[0] - surfaceBasisVector1[0] * surfaceBasisVector2[2],
+					surfaceBasisVector1[0] * surfaceBasisVector2[1] - surfaceBasisVector1[1] * surfaceBasisVector2[0]
+				};
 
 				foreach (var integrationPointMaterial in materialsAtThicknessGP[gaussPoints[j]].Values)
 				{
-					integrationPointMaterial.TangentVectorV1 = surfaceBasisVector1.Data;
-					integrationPointMaterial.TangentVectorV2 = surfaceBasisVector2.Data;
-					integrationPointMaterial.NormalVectorV3 = surfaceBasisVector3.Data;
+					integrationPointMaterial.TangentVectorV1 = surfaceBasisVector1;
+					integrationPointMaterial.TangentVectorV2 = surfaceBasisVector2;
+					integrationPointMaterial.NormalVectorV3 = surfaceBasisVector3;
 				}
-				var J1 = surfaceBasisVector3.Norm;
-				surfaceBasisVector3.Multiply(1 / J1);
+
+				double norm = 0;
+				for (int i = 0; i < surfaceBasisVector3.Length; i++)
+					norm += surfaceBasisVector3[i] * surfaceBasisVector3[i];
+				var J1 = Math.Sqrt(norm);
+
+				for (int i = 0; i < surfaceBasisVector3.Length; i++)
+					surfaceBasisVector3[i] = surfaceBasisVector3[i] / J1;
 
 				var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
 				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
@@ -269,97 +404,153 @@ namespace ISAAR.MSolve.IGA.Elements
 				var (MembraneConstitutiveMatrix, BendingConstitutiveMatrix, CouplingConstitutiveMatrix) =
 					IntegratedConstitutiveOverThickness(gaussPoints, j);
 
-				var Kmembrane = Bmembrane.Transpose() * MembraneConstitutiveMatrix * Bmembrane  * J1 *
-				                gaussPoints[j].WeightFactor;
-				var Kbending = Bbending.Transpose() * BendingConstitutiveMatrix * Bbending  * J1 *
-							   gaussPoints[j].WeightFactor;
+				double wFactor = J1 * gaussPoints[j].WeightFactor;
+				double tempb = 0;
+				double tempm = 0;
+				Array.Clear(BmTranspose, 0, bRows * bCols);
+				Array.Clear(BbTranspose, 0, bRows * bCols);
+				for (int i = 0; i < bRows; i++)
+				{
+					for (int k = 0; k < bCols; k++)
+					{
+						BmTranspose[k, i] = Bmembrane[i, k] * wFactor;
+						BbTranspose[k, i] = Bbending[i, k] * wFactor;
+					}
+				}
 
-				var KMembraneBending = Bmembrane.Transpose() * CouplingConstitutiveMatrix * Bbending * J1 *
-				                       gaussPoints[j].WeightFactor;
+				double tempcm = 0;
+				double tempcb = 0;
+				double tempcc = 0;
+				Array.Clear(BmTransposeMultStiffness, 0, bRows * bCols);
+				Array.Clear(BbTransposeMultStiffness, 0, bRows * bCols);
+				Array.Clear(BmbTransposeMultStiffness, 0, bRows * bCols);
+				Array.Clear(BbmTransposeMultStiffness, 0, bRows * bCols);
+				for (int i = 0; i < bCols; i++)
+				{
+					for (int k = 0; k < bRows; k++)
+					{
+						tempm = BmTranspose[i, k];
+						tempb = BbTranspose[i, k];
+						for (int m = 0; m < bRows; m++)
+						{
+							tempcm = MembraneConstitutiveMatrix[k, m];
+							tempcb = BendingConstitutiveMatrix[k, m];
+							tempcc = CouplingConstitutiveMatrix[k, m];
 
-				var KBendingMembrane = Bbending.Transpose() * CouplingConstitutiveMatrix * Bmembrane * J1 *
-				                       gaussPoints[j].WeightFactor;
+							BmTransposeMultStiffness[i, m] += tempm * tempcm;
+							BbTransposeMultStiffness[i, m] += tempb * tempcb;
+							BmbTransposeMultStiffness[i, m] += tempm * tempcc;
+							BbmTransposeMultStiffness[i, m] += tempb * tempcc;
+						}
+					}
+				}
 
+				double tempmb = 0;
+				double tempbm = 0;
+				double mem = 0;
+				double ben = 0;
+				for (int i = 0; i < bCols; i++)
+				{
+					for (int k = 0; k < bRows; k++)
+					{
+						tempm = BmTransposeMultStiffness[i, k];
+						tempb = BbTransposeMultStiffness[i, k];
+						tempmb = BmbTransposeMultStiffness[i, k];
+						tempbm = BbmTransposeMultStiffness[i, k];
 
-				stiffnessMatrixElement.Add(Kmembrane);
-				stiffnessMatrixElement.Add(Kbending);
-				stiffnessMatrixElement.Add(KMembraneBending);
-				stiffnessMatrixElement.Add(KBendingMembrane);
+						for (int m = 0; m < bCols; m++)
+						{
+							mem = Bmembrane[k, m];
+							ben = Bbending[k, m];
+							stiffnessMatrix[i, m] += tempm * mem + tempb * ben + tempmb * ben + tempbm * mem;
+						}
+					}
+				}
 			}
-			return stiffnessMatrixElement;
+			return new Matrix2D(stiffnessMatrix);
 		}
 
-		public (Matrix2D MembraneConstitutiveMatrix, Matrix2D BendingConstitutiveMatrix, Matrix2D CouplingConstitutiveMatrix) IntegratedConstitutiveOverThickness(IList<GaussLegendrePoint3D> gaussPoints, int j)
+		public (double[,] MembraneConstitutiveMatrix, double[,] BendingConstitutiveMatrix, double[,] CouplingConstitutiveMatrix) IntegratedConstitutiveOverThickness(IList<GaussLegendrePoint3D> gaussPoints, int j)
 		{
-			var MembraneConstitutiveMatrix = new Matrix2D(3, 3);
-			var BendingConstitutiveMatrix = new Matrix2D(3, 3);
-			var CouplingConstitutiveMatrix = new Matrix2D(3, 3);
+			var MembraneConstitutiveMatrix = new double[3, 3];
+			var BendingConstitutiveMatrix = new double[3, 3];
+			var CouplingConstitutiveMatrix = new double[3, 3];
 
 			foreach (var keyValuePair in materialsAtThicknessGP[gaussPoints[j]])
 			{
 				var thicknessPoint = keyValuePair.Key;
 				var material = keyValuePair.Value;
-				var constitutiveMatrixM= CopyConstitutiveMatrix((Matrix2D)material.ConstitutiveMatrix);
-				MembraneConstitutiveMatrix.Add(constitutiveMatrixM * thicknessPoint.WeightFactor);
-				var constitutiveMatrixB = CopyConstitutiveMatrix((Matrix2D)material.ConstitutiveMatrix);
-				BendingConstitutiveMatrix.Add(constitutiveMatrixB * thicknessPoint.WeightFactor *
-											  Math.Pow(thicknessPoint.Zeta, 2));
-				var constitutiveMatrixC = CopyConstitutiveMatrix((Matrix2D)material.ConstitutiveMatrix);
-				CouplingConstitutiveMatrix.Add(constitutiveMatrixC * thicknessPoint.WeightFactor *
-											   thicknessPoint.Zeta);
+				var constitutiveMatrixM = ((Matrix2D)material.ConstitutiveMatrix).Data;
+				double tempc = 0;
+				double w = thicknessPoint.WeightFactor;
+				double z = thicknessPoint.Zeta;
+				for (int i = 0; i < 3; i++)
+				{
+					for (int k = 0; k < 3; k++)
+					{
+						tempc = constitutiveMatrixM[i, k];
+						MembraneConstitutiveMatrix[i, k] += tempc * w;
+						CouplingConstitutiveMatrix[i, k] += tempc * w * z;
+						BendingConstitutiveMatrix[i, k] += tempc * w * z * z;
+					}
+				}
 			}
 
-			return (MembraneConstitutiveMatrix, BendingConstitutiveMatrix,CouplingConstitutiveMatrix);
+			return (MembraneConstitutiveMatrix, BendingConstitutiveMatrix, CouplingConstitutiveMatrix);
 		}
 
-		private Matrix2D CopyConstitutiveMatrix(Matrix2D f)
+		private double[,] CopyConstitutiveMatrix(double[,] f)
 		{
-			double [,] g= new double[f.Rows,f.Columns];
-			Array.Copy(f.Data, 0, g, 0, f.Data.Length);
-			return new Matrix2D(g);
+			var g = new double[f.GetLength(0), f.GetLength(1)];
+			Array.Copy(f, 0, g, 0, f.Length);
+			return g;
 		}
 
-		public (Vector MembraneForces, Vector BendingMoments ) IntegratedStressesOverThickness(
+		public (double[] MembraneForces, Double[] BendingMoments) IntegratedStressesOverThickness(
 			IList<GaussLegendrePoint3D> gaussPoints, int j)
 		{
-			var MembraneForces = new Vector(3);
-			var BendingMoments = new Vector(3);
+			var MembraneForces = new double[3];
+			var BendingMoments = new double[3];
 
 			foreach (var keyValuePair in materialsAtThicknessGP[gaussPoints[j]])
 			{
 				var thicknessPoint = keyValuePair.Key;
 				var material = keyValuePair.Value;
-				var gpForces = new Vector(material.Stresses);
-				gpForces.Scale(thicknessPoint.WeightFactor * (Thickness / 2));
-				MembraneForces.Add(gpForces);
-
-				var gpMoments = new Vector(material.Stresses);
-				gpMoments.Scale(thicknessPoint.WeightFactor *
-				                Math.Pow(thicknessPoint.Zeta, 2) * (Thickness / 2));
-				BendingMoments.Add(gpMoments);
-
+				var w = thicknessPoint.WeightFactor;
+				var z = thicknessPoint.Zeta;
+				for (int i = 0; i < 3; i++)
+				{
+					MembraneForces[i] += material.Stresses[i] * w * Thickness / 2;
+					BendingMoments[i] += material.Stresses[i] * w * z * z * Thickness / 2;
+				}
 			}
 
 			return (MembraneForces, BendingMoments);
 		}
 
-		
-		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
-			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
-			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElementMaterial element)
+
+		private double[,] CalculateBendingDeformationMatrix(double[] surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
+			double[] surfaceBasisVector2, double[] surfaceBasisVectorDerivative1, double[] surfaceBasisVector1, double J1,
+			double[] surfaceBasisVectorDerivative2, double[] surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElementMaterial element)
 		{
-			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
-			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
+			var Bbending = new double[3, element.ControlPoints.Count * 3];
+			var s1 = new Vector(surfaceBasisVector1);
+			var s2 = new Vector(surfaceBasisVector2);
+			var s3 = new Vector(surfaceBasisVector3);
+			var s11 = new Vector(surfaceBasisVectorDerivative1);
+			var s22 = new Vector(surfaceBasisVectorDerivative2);
+			var s12 = new Vector(surfaceBasisVectorDerivative12);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column += 3)
 			{
 				#region BI1
 
-				var BI1 = surfaceBasisVector3^surfaceBasisVector3;
+				var BI1 = s3 ^ s3;
 				BI1.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				var auxVector = surfaceBasisVector2^surfaceBasisVector3;
+				var auxVector = s2 ^ s3;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
 				BI1.Add(auxVector);
-				BI1.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative1));
-				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative1;
+				BI1.Multiply(s3.DotProduct(s11));
+				auxVector = s1 ^ s11;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
 				BI1.Add(auxVector);
 				BI1.Multiply(1 / J1);
@@ -373,16 +564,16 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				#region BI2
 
-				Vector BI2 = surfaceBasisVector3^surfaceBasisVector3;
+				Vector BI2 = s3 ^ s3;
 				BI2.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				auxVector = surfaceBasisVector2^surfaceBasisVector3;
+				auxVector = s2 ^ s3;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
 				BI2.Add(auxVector);
-				BI2.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative2));
-				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative2;
+				BI2.Multiply(s3.DotProduct(s22));
+				auxVector = s1 ^ s22;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
 				BI2.Add(auxVector);
-				auxVector = surfaceBasisVectorDerivative2^surfaceBasisVector2;
+				auxVector = s22 ^ s2;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
 				BI2.Add(auxVector);
 				BI2.Multiply(1 / J1);
@@ -396,16 +587,16 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				#region BI3
 
-				Vector BI3 = surfaceBasisVector3^surfaceBasisVector3;
+				Vector BI3 = s3 ^ s3;
 				BI3.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				auxVector = surfaceBasisVector2^surfaceBasisVector3;
+				auxVector = s2 ^ s3;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
 				BI3.Add(auxVector);
-				BI3.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative12));
-				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative12;
+				BI3.Multiply(s3.DotProduct(s12));
+				auxVector = s1 ^ s12;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
 				BI3.Add(auxVector);
-				auxVector = surfaceBasisVectorDerivative2^surfaceBasisVector2;
+				auxVector = s22 ^ s2;
 				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
 				BI3.Add(auxVector);
 				BI3.Multiply(1 / J1);
@@ -433,10 +624,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			return Bbending;
 		}
 
-		private Matrix2D CalculateMembraneDeformationMatrix(ShapeTSplines2DFromBezierExtraction tsplines, int j, Vector surfaceBasisVector1,
-			Vector surfaceBasisVector2, TSplineKirchhoffLoveShellElementMaterial element)
+		private double[,] CalculateMembraneDeformationMatrix(ShapeTSplines2DFromBezierExtraction tsplines, int j, double[] surfaceBasisVector1,
+			double[] surfaceBasisVector2, TSplineKirchhoffLoveShellElementMaterial element)
 		{
-			Matrix2D dRIa = new Matrix2D(3, element.ControlPoints.Count * 3);
+			var dRIa = new double[3, element.ControlPoints.Count * 3];
 			for (int i = 0; i < element.ControlPoints.Count; i++)
 			{
 				for (int m = 0; m < 3; m++)
@@ -446,8 +637,8 @@ namespace ISAAR.MSolve.IGA.Elements
 				}
 			}
 
-			Matrix2D Bmembrane = new Matrix2D(3, element.ControlPoints.Count * 3);
-			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
+			var Bmembrane = new double[3, element.ControlPoints.Count * 3];
+			for (int column = 0; column < element.ControlPoints.Count * 3; column += 3)
 			{
 				Bmembrane[0, column] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[0];
 				Bmembrane[0, column + 1] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[1];
@@ -465,18 +656,18 @@ namespace ISAAR.MSolve.IGA.Elements
 			return Bmembrane;
 		}
 
-		private static Vector CalculateSurfaceBasisVector1(Matrix2D Matrix, int row)
+		private static double[] CalculateSurfaceBasisVector1(double[,] Matrix, int row)
 		{
-			Vector surfaceBasisVector1 = new Vector(3);
+			var surfaceBasisVector1 = new double[3];
 			surfaceBasisVector1[0] = Matrix[row, 0];
 			surfaceBasisVector1[1] = Matrix[row, 1];
 			surfaceBasisVector1[2] = Matrix[row, 2];
 			return surfaceBasisVector1;
 		}
 
-		private static Matrix2D CalculateHessian(TSplineKirchhoffLoveShellElementMaterial shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
+		private static double[,] CalculateHessian(TSplineKirchhoffLoveShellElementMaterial shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
-			Matrix2D hessianMatrix = new Matrix2D(3, 3);
+			double[,] hessianMatrix = new double[3, 3];
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
 			{
 				hessianMatrix[0, 0] += tsplines.TSplineSecondDerivativesValueKsi[k, j] * shellElement.ControlPoints[k].X;
@@ -493,9 +684,9 @@ namespace ISAAR.MSolve.IGA.Elements
 			return hessianMatrix;
 		}
 
-		private static Matrix2D CalculateJacobian(TSplineKirchhoffLoveShellElementMaterial shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
+		private static double[,] CalculateJacobian(TSplineKirchhoffLoveShellElementMaterial shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
-			Matrix2D jacobianMatrix = new Matrix2D(2, 3);
+			double[,] jacobianMatrix = new double[2, 3];
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
 			{
 				jacobianMatrix[0, 0] += tsplines.TSplineDerivativeValuesKsi[k, j] * shellElement.ControlPoints[k].X;
@@ -511,44 +702,39 @@ namespace ISAAR.MSolve.IGA.Elements
 
 
 		const int thicknessIntegrationDegree = 2;
-		Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>> thicknessIntegrationPoints= new Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>>();
+		Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>> thicknessIntegrationPoints = new Dictionary<GaussLegendrePoint3D, List<GaussLegendrePoint3D>>();
 		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(TSplineKirchhoffLoveShellElementMaterial element)
-        {
-            GaussQuadrature gauss = new GaussQuadrature();
-	        var medianSurfaceGP= gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, new List<Knot>
-	        {
-		        new Knot() {ID = 0, Ksi = -1, Heta = -1, Zeta = 0},
-		        new Knot() {ID = 1, Ksi = -1, Heta = 1, Zeta = 0},
-		        new Knot() {ID = 2, Ksi = 1, Heta = -1, Zeta = 0},
-		        new Knot() {ID = 3, Ksi = 1, Heta = 1, Zeta = 0},
-	        });
+		{
+			GaussQuadrature gauss = new GaussQuadrature();
+			var medianSurfaceGP = gauss.CalculateElementGaussPoints(element.DegreeKsi, element.DegreeHeta, new List<Knot>
+			{
+				new Knot() {ID = 0, Ksi = -1, Heta = -1, Zeta = 0},
+				new Knot() {ID = 1, Ksi = -1, Heta = 1, Zeta = 0},
+				new Knot() {ID = 2, Ksi = 1, Heta = -1, Zeta = 0},
+				new Knot() {ID = 3, Ksi = 1, Heta = 1, Zeta = 0},
+			});
 
-	        foreach (var point in medianSurfaceGP)
-	        {
+			foreach (var point in medianSurfaceGP)
+			{
 				thicknessIntegrationPoints.Add(point, gauss.CalculateElementGaussPoints(thicknessIntegrationDegree,
 					new List<Knot>
 					{
 						new Knot() {ID = 0, Ksi = -Thickness / 2, Heta = point.Heta },
 						new Knot() {ID = 1, Ksi = Thickness / 2, Heta = point.Heta},
 					}).Select(gp => new GaussLegendrePoint3D(point.Ksi, point.Heta, gp.Ksi, null, gp.WeightFactor)).ToList());
-	        }
+			}
 
-	        //new Knot() { ID = 0, Ksi = -1, Heta = -1, Zeta = -Thickness / 2 },
-	        //new Knot() { ID = 1, Ksi = -1, Heta = -1, Zeta = Thickness / 2 },
-	        //new Knot() { ID = 2, Ksi = -1, Heta = 1, Zeta = -Thickness / 2 },
-	        //new Knot() { ID = 3, Ksi = -1, Heta = 1, Zeta = Thickness / 2 },
-	        //new Knot() { ID = 4, Ksi = 1, Heta = -1, Zeta = -Thickness / 2 },
-	        //new Knot() { ID = 5, Ksi = 1, Heta = -1, Zeta = Thickness / 2 },
-	        //new Knot() { ID = 6, Ksi = 1, Heta = 1, Zeta = -Thickness / 2 },
-	        //new Knot() { ID = 7, Ksi = 1, Heta = 1, Zeta = Thickness / 2 }
+			//new Knot() { ID = 0, Ksi = -1, Heta = -1, Zeta = -Thickness / 2 },
+			//new Knot() { ID = 1, Ksi = -1, Heta = -1, Zeta = Thickness / 2 },
+			//new Knot() { ID = 2, Ksi = -1, Heta = 1, Zeta = -Thickness / 2 },
+			//new Knot() { ID = 3, Ksi = -1, Heta = 1, Zeta = Thickness / 2 },
+			//new Knot() { ID = 4, Ksi = 1, Heta = -1, Zeta = -Thickness / 2 },
+			//new Knot() { ID = 5, Ksi = 1, Heta = -1, Zeta = Thickness / 2 },
+			//new Knot() { ID = 6, Ksi = 1, Heta = 1, Zeta = -Thickness / 2 },
+			//new Knot() { ID = 7, Ksi = 1, Heta = 1, Zeta = Thickness / 2 }
 
 
-	        return medianSurfaceGP;
-        }
-
-		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
-		{
-			throw new NotImplementedException();
+			return medianSurfaceGP;
 		}
 	}
 }
