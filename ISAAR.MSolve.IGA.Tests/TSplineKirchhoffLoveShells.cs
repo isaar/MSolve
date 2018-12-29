@@ -10,7 +10,10 @@ using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
@@ -213,6 +216,79 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			var paraview= new ParaviewTsplineShells(model, linearSystems[0],filename);
 			paraview.CreateParaviewFile();
+		}
+
+		[Fact]
+		public void SimpleHoodBenchmarkMKL()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model_v2 model = new Model_v2();
+			var filename = "attempt2";
+			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
+			//IGAFileReader modelReader = new IGAFileReader(model, filepath);
+
+			//var thickness = 1.0;
+
+			//modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.LinearMaterial,new ShellElasticMaterial2D
+			//{
+			//	PoissonRatio = 0.3,
+			//	YoungModulus = 1e5,
+			//}, thickness);
+			//modelReader.CreateTSplineShellsModelFromFile();
+
+			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			{
+				PoissonRatio = 0.3,
+				YoungModulus = 10000
+			};
+			model.PatchesDictionary[0].Thickness = 1;
+
+			for (int i = 0; i < 100; i++)
+			{
+				var id = model.ControlPoints[i].ID;
+				model.ControlPointsDictionary[id].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Z);
+			}
+
+			for (int i = model.ControlPoints.Count - 100; i < model.ControlPoints.Count; i++)
+			{
+				var id = model.ControlPoints[i].ID;
+				model.Loads.Add(new Load()
+				{
+					Amount = 100,
+					ControlPoint = model.ControlPointsDictionary[id],
+					DOF = DOFType.Z
+				});
+			}
+
+			//model.ConnectDataStructures();
+
+			//var linearSystems = new Dictionary<int, ILinearSystem>();
+			//linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
+			//SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+			//ProblemStructural provider = new ProblemStructural(model, linearSystems);
+			//LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+			//StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+
+			//parentAnalyzer.BuildMatrices();
+			//parentAnalyzer.Initialize();
+			//parentAnalyzer.Solve();
+			var solverBuilder = new SuiteSparseSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+
+			// Structural problem provider
+			var provider = new ProblemStructural_v2(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
 		}
 	}
 }

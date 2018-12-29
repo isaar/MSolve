@@ -9,9 +9,9 @@ namespace ISAAR.MSolve.IGA.Entities
 {
     public class ControlPoint:INode
 	{
-        private readonly List<DOFType> constrains = new List<DOFType>();
-        private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        private readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
+		protected readonly List<DOFType> constrains = new List<DOFType>();
+        protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
+        protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
         
         public List<DOFType> Constrains
         {

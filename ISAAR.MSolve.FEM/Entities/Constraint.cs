@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 
-namespace ISAAR.MSolve.FEM.Entities
+namespace ISAAR.MSolve.FEM.Entities//TODO: move to discretization
 {
     public class Constraint
     {

@@ -21,7 +21,9 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public Patch Patch { get; set; }
 
-        public Dictionary<int,IVector> KnotValueVectors =new Dictionary<int, IVector>();
+        public Patch_v2 Patch_v2 { get; set; }
+
+		public Dictionary<int,IVector> KnotValueVectors =new Dictionary<int, IVector>();
 
         private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 
