@@ -190,13 +190,21 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return new Vector(c);
         }
 
+        //public static Matrix2D operator *(Matrix2D A, double b)
+        //{
+        //    Matrix2D AA = new Matrix2D(A.data as double[,]);
+        //    for (int i = 0; i < A.Rows; i++)
+        //        for (int j = 0; j < A.Columns; j++)
+        //            AA[i, j] = AA[i, j] * b;
+        //    return AA;
+        //}
+
         public static Matrix2D operator *(Matrix2D A, double b)
         {
-            Matrix2D AA = new Matrix2D(A.data as double[,]);
-            for (int i = 0; i < A.Rows; i++)
-                for (int j = 0; j < A.Columns; j++)
-                    AA[i, j] = AA[i, j] * b;
-            return AA;
+            var scaled = new Matrix2D(new double[A.Rows, A.Columns]);
+            Array.Copy(A.data, scaled.data, A.data.Length);
+            scaled.Scale(b);
+            return scaled;
         }
 
         public void SVD(double[] w, double[,] v)

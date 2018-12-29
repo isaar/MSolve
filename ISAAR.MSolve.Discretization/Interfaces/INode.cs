@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
-    public interface INode
+    public interface INode: IDiscretePoint
     {
 		int ID { get; set; }
 		double X { get; set; }

@@ -96,9 +96,9 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Fix cantilever left end node of the model
-            model.NodesDictionary[0].Constraints.Add(DOFType.X);
-            model.NodesDictionary[0].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[0].Constraints.Add(DOFType.RotZ);
+            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X });
+            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
 
             for (int i = 0; i < model.NodesDictionary.Count - 1; i++)
             {
@@ -140,15 +140,19 @@ namespace ISAAR.MSolve.SamplesConsole
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
         
-
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
             //TrussExample.Run();
             //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
-            FEM.WallWithOpenings.Run();
+            //FEM.WallWithOpenings.Run();
             //SeparateCodeCheckingClass.Check06();
+            //CNTExamples.CNT_4_4_DisplacementControl();
+            //CNTExamples.CNT_4_4_NewtonRaphson();
+            //Tests.FEM.Shell8andCohesiveNonLinear.RunTest_v2();
+
+            Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();
         }
     }
 }
