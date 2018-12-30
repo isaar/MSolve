@@ -288,7 +288,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     GL[npoint][m, m] += -1;
                 }
-                GL[npoint].Scale(0.5);
+                GL[npoint].ScaleIntoThis(0.5);
                 
                 //
                 for (int m = 0; m < 3; m++)
@@ -376,7 +376,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
                 //
                 BL1112sun01_hexa[npoint] = BL11[npoint] * BL12_hexa[npoint];
-                BL1112sun01_hexa[npoint].Add(BL01_hexa[npoint]);
+                BL1112sun01_hexa[npoint].AddIntoThis(BL01_hexa[npoint]);
                 
                 // 
                 BL[npoint] = BL1112sun01_hexa[npoint] * BL13_hexa[npoint];
@@ -387,7 +387,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                fxk1[nGaussPoints].Add(fxk1[npoint]);                
+                fxk1[nGaussPoints].AddIntoThis(fxk1[npoint]);                
             }
 
             return fxk1[nGaussPoints].ToLegacyVector().Data;
@@ -464,7 +464,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
                 // 
                 BL1112sun01_hexa[npoint] = BL11[npoint] * BL12_hexa[npoint];
-                BL1112sun01_hexa[npoint].Add(BL01_hexa[npoint]);
+                BL1112sun01_hexa[npoint].AddIntoThis(BL01_hexa[npoint]);
                 
                 //
                 BL[npoint] = BL1112sun01_hexa[npoint] * BL13_hexa[npoint];
@@ -793,8 +793,8 @@ namespace ISAAR.MSolve.FEM.Elements
             return new Tuple<double[,], double[,], double>(faJ, faJInv, fDetJ);
         }
 
-        public EmbeddedNode_v2 BuildHostElementEmbeddedNode(Element_v2 element, Node_v2 node, 
-            IEmbeddedDOFInHostTransformationVector transformationVector)
+        public EmbeddedNode_v2 BuildHostElementEmbeddedNode(Element_v2 element, Node_v2 node,
+            IEmbeddedDOFInHostTransformationVector_v2 transformationVector)
         {
             var points = GetNaturalCoordinates(element, node);
             if (points.Length == 0) return null;

@@ -532,8 +532,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #region IEmbeddedHostElement Members
 
-        public EmbeddedNode_v2 BuildHostElementEmbeddedNode(Element_v2 element, Node_v2 node, 
-            IEmbeddedDOFInHostTransformationVector transformationVector)
+        public EmbeddedNode_v2 BuildHostElementEmbeddedNode(Element_v2 element, Node_v2 node,
+            IEmbeddedDOFInHostTransformationVector_v2 transformationVector)
         {
             var points = GetNaturalCoordinates(element, node);
             if (points.Length == 0) return null;

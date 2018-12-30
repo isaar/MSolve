@@ -1,25 +1,23 @@
-﻿using ISAAR.MSolve.FEM.Embedding;
-using ISAAR.MSolve.FEM.Entities;
+﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
-//TODO: this and EmbeddedGrouping have most things in common. Use a base class for them and template method or use polymorhism from the composed classes.
 namespace ISAAR.MSolve.FEM.Embedding
 {
-    public class EmbeddedCohesiveGrouping_v2
+    public class EmbeddedGrouping_v2
     {
         private readonly Model_v2 model;
         private readonly IEnumerable<Element_v2> hostGroup;
         private readonly IEnumerable<Element_v2> embeddedGroup;
         private readonly bool hasEmbeddedRotations = false;
 
-        public IEnumerable<Element_v2> HostGroup => hostGroup;
-        public IEnumerable<Element_v2> EmbeddedGroup => embeddedGroup;
+        public IEnumerable<Element_v2> HostGroup { get { return hostGroup; } }
+        public IEnumerable<Element_v2> EmbeddedGroup { get { return embeddedGroup; } }
 
-        public EmbeddedCohesiveGrouping_v2(Model_v2 model, IEnumerable<Element_v2> hostGroup, 
-            IEnumerable<Element_v2> embeddedGroup, bool hasEmbeddedRotations = false)
+        public EmbeddedGrouping_v2(Model_v2 model, IEnumerable<Element_v2> hostGroup, IEnumerable<Element_v2> embeddedGroup, bool hasEmbeddedRotations)
         {
             this.model = model;
             this.hostGroup = hostGroup;
@@ -38,19 +36,23 @@ namespace ISAAR.MSolve.FEM.Embedding
             UpdateNodesBelongingToEmbeddedElements();
         }
 
+        public EmbeddedGrouping_v2(Model_v2 model, IEnumerable<Element_v2> hostGroup, IEnumerable<Element_v2> embeddedGroup)
+            : this(model, hostGroup, embeddedGroup, false)
+        {
+        }
+
         private void UpdateNodesBelongingToEmbeddedElements()
         {
             IEmbeddedDOFInHostTransformationVector_v2 transformer;
             if (hasEmbeddedRotations)
-                //transformer = new Hexa8TranslationAndRotationTransformationVector_v2();
-                throw new NotImplementedException();
+                transformer = new Hexa8TranslationAndRotationTransformationVector_v2();
             else
                 transformer = new Hexa8LAndNLTranslationTransformationVector_v2();
 
             foreach (var embeddedElement in embeddedGroup)
             {
                 var elType = (IEmbeddedElement_v2)embeddedElement.ElementType;
-                foreach (var node in embeddedElement.Nodes.Skip(8))
+                foreach (var node in embeddedElement.Nodes)
                 {
                     var embeddedNodes = hostGroup
                         .Select(e => ((IEmbeddedHostElement_v2)e.ElementType).BuildHostElementEmbeddedNode(e, node, transformer))
@@ -68,13 +70,13 @@ namespace ISAAR.MSolve.FEM.Embedding
                                 if (!currentElementType.EmbeddedNodes.Contains(embeddedNode))
                                 {
                                     currentElementType.EmbeddedNodes.Add(embeddedNode);
-                                    element.ElementType.DofEnumerator = new CohesiveElementEmbedder_v2(model, element, transformer);
+                                    element.ElementType.DofEnumerator = new ElementEmbedder_v2(model, element, transformer);
                                 }
                             }
                     }
                 }
 
-                embeddedElement.ElementType.DofEnumerator = new CohesiveElementEmbedder_v2(model, embeddedElement, transformer);
+                embeddedElement.ElementType.DofEnumerator = new ElementEmbedder_v2(model, embeddedElement, transformer);
             }
         }
     }
