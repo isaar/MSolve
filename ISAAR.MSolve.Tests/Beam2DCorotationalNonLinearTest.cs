@@ -202,8 +202,7 @@ namespace ISAAR.MSolve.Tests
                 var element = new Element_v2()
                 {
                     ID = iElem + 1,
-                    //TODO: Uncomment this line
-                    //ElementType = new Beam2DCorotational(elementNodes, material, 7.85, beamSection)
+                    ElementType = new Beam2DCorotational_v2(elementNodes, material, 7.85, beamSection)
                 };
 
                 // Add nodes to the created element
@@ -425,13 +424,12 @@ namespace ISAAR.MSolve.Tests
 
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection2D(area, inertia);
-                //TODO: Uncomment this line
 
                 // Create elements
                 var element = new Element_v2()
                 {
                     ID = iElem + 1,
-                    //ElementType = new Beam2DCorotational(elementNodes, material, 7.85, beamSection)
+                    ElementType = new Beam2DCorotational_v2(elementNodes, material, 7.85, beamSection)
                 };
 
                 // Add nodes to the created element

@@ -82,9 +82,9 @@ namespace ISAAR.MSolve.FEM.Entities
                 {
                     foreach (Element_v2 element in subdomain.Elements)
                     {
+                        double[] accelerationForces = element.ElementType.CalculateAccelerationForces(element, m);
                         subdomain.DofOrdering.AddVectorElementToSubdomain(element,
-                            Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(element, m)),
-                            subdomain.Forces);
+                            Vector.CreateFromArray(accelerationForces), subdomain.Forces);
                     }
                 }
             }

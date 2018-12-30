@@ -118,9 +118,9 @@ namespace ISAAR.MSolve.Problems
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                foreach (IElement element in subdomain.Elements)
+                foreach (IElement_v2 element in subdomain.Elements)
                 {
-                    ((IFiniteElement)element.IElementType).ClearMaterialState();
+                    ((IFiniteElement_v2)element.ElementType).ClearMaterialState();
                 }
             }
 

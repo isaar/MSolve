@@ -488,12 +488,11 @@ namespace ISAAR.MSolve.Tests.FEM
             e1 = new Element_v2()
             {
                 ID = 1,
-                //TODO: Uncomment this line
-                //ElementType = new Shell8NonLinear(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))// 3, 3, 3
-                //{
-                //    oVn_i = VH,
-                //    tk = Tk_vec,
-                //}
+                ElementType = new Shell8NonLinear_v2(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
+                {
+                    oVn_i = VH,
+                    tk = Tk_vec,
+                }
             };
             e1.NodesDictionary.Add(8, model.NodesDictionary[8]);
             e1.NodesDictionary.Add(3, model.NodesDictionary[3]);
@@ -516,13 +515,12 @@ namespace ISAAR.MSolve.Tests.FEM
             e2 = new Element_v2()
             {
                 ID = 2,
-                //TODO: Uncomment this line
-                //ElementType = new CohesiveShell8ToHexa20(material1, GaussLegendre2D.GetQuadratureWithOrder(3, 3))
-                //{
-                //    oVn_i = VH,
-                //    tk = Tk_vec,
-                //    ShellElementSide = 0,
-                //}
+                ElementType = new CohesiveShell8ToHexa20_v2(material1, GaussLegendre2D.GetQuadratureWithOrder(3, 3))
+                {
+                    oVn_i = VH,
+                    tk = Tk_vec,
+                    ShellElementSide = 0,
+                }
             };
 
             for (int j = 0; j < 16; j++)

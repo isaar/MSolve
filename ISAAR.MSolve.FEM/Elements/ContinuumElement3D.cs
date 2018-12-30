@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int gp = 0; gp < QuadratureForConsistentMass.IntegrationPoints.Count; ++gp)
             {
                 Matrix shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gp]);
-                Matrix partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
+                Matrix partial = shapeFunctionMatrix.MultiplyRight(shapeFunctionMatrix, true, false);
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gp]);
                 double dA = jacobian.DirectDeterminant * QuadratureForConsistentMass.IntegrationPoints[gp].Weight;
                 mass.AxpyIntoThis(partial,dA);
@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
                 Matrix deformation = BuildDeformationMatrix(shapeGradientsCartesian);
 
-                Matrix partial = deformation.Transpose() * (constitutive * deformation);
+                Matrix partial = deformation.ThisTransposeTimesOtherTimesThis(constitutive);
                 double dA = jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight;
                 stiffness.AxpyIntoThis(partial,dA);
             }

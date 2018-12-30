@@ -151,8 +151,7 @@ namespace ISAAR.MSolve.Tests
             var elementWrapper = new Element_v2()
             {
                 ID = 0,
-                //TODO: Uncomment this line
-                //ElementType = factory.CreateElement(CellType2D.Quad4, nodes)
+                ElementType = factory.CreateElement(CellType2D.Quad4, nodes)
             };
             elementWrapper.AddNodes(nodes);
             model.ElementsDictionary.Add(elementWrapper.ID, elementWrapper);

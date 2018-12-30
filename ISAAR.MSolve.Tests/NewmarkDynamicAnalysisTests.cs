@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.Tests
             model.MassAccelerationHistoryLoads.Add(lX.Object);
             model.MassAccelerationHistoryLoads.Add(lY.Object);
             m.Setup(x => x.CalculateAccelerationForces(It.IsAny<Element_v2>(), It.IsAny<IList<MassAccelerationLoad>>()))
-                .Returns<Element, IList<MassAccelerationLoad>>((element, loads) =>
+                .Returns<Element_v2, IList<MassAccelerationLoad>>((element, loads) =>
                 {
                     var accelerations = Vector.CreateZero(2);
                     accelerations[0] = loads[0].Amount;
