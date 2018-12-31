@@ -10,14 +10,13 @@ namespace ISAAR.MSolve.IGA.Entities
 {
     public class ControlPoint:INode
 	{
-		protected readonly List<DOFType> constrains = new List<DOFType>();
         protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
+        protected readonly Dictionary<int, Patch_v2> patchesDictionary =new Dictionary<int, Patch_v2>();
         private readonly List<Constraint> constraints = new List<Constraint>();
 
-		public List<DOFType> Constrains
+		public List<Constraint> Constrains
         {
-            get { return constrains; }
+            get { return constraints; }
         }
 
         public Dictionary<int, Element> ElementsDictionary
@@ -25,7 +24,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, Patch> PatchesDictionary
+        public Dictionary<int, Patch_v2> PatchesDictionary
         {
             get { return patchesDictionary; }
         }
@@ -42,21 +41,21 @@ namespace ISAAR.MSolve.IGA.Entities
 		public List<Constraint> Constraints => constraints;
 
 		public void BuildPatchesDictionary()
-        {
-            foreach (Element element in elementsDictionary.Values)
-                if (!patchesDictionary.ContainsKey(element.Patch.ID))
-                    patchesDictionary.Add(element.Patch.ID, element.Patch);
-        }
+		{
+			foreach (Element element in elementsDictionary.Values)
+				if (!patchesDictionary.ContainsKey(element.Patch_v2.ID))
+					patchesDictionary.Add(element.Patch_v2.ID, element.Patch_v2);
+		}
 
 
-        public override string ToString()
+		public override string ToString()
         {
             var header = String.Format("{0}: ({1}, {2}, {3})", ID, X, Y, Z);
             string constrainsDescription = string.Empty;
-            foreach (var c in constrains)
+            foreach (var c in constraints)
             {
                 string con = string.Empty;
-                switch (c)
+                switch (c.DOF)
                 {
                     case DOFType.Unknown:
                         con = "?";
