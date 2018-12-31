@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.IGA.Readers
 
 			String[] text = System.IO.File.ReadAllLines(Filename);
 
-			Model.PatchesDictionary.Add(0, new Patch_v2());
+			Model.PatchesDictionary.Add(0, new Patch());
 			for (int i = 0; i < text.Length; i++)
 			{
 				String[] line = text[i].Split(delimeters, StringSplitOptions.RemoveEmptyEntries);
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						numberOfElements = Int32.Parse(line[1]);
 						break;
 					case Attributes.node:
-						Model.ControlPointsDictionary.Add(controlPointIDcounter, new ControlPoint_v2
+						Model.ControlPointsDictionary.Add(controlPointIDcounter, new ControlPoint
 						{
 							ID = controlPointIDcounter++,
 							X = Double.Parse(line[1], CultureInfo.InvariantCulture),
@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.IGA.Readers
 							Element element = new TSplineElement2D()
 							{
 								ID = elementIDCounter,
-								Patch_v2 = Model.PatchesDictionary[0],
+								Patch = Model.PatchesDictionary[0],
 								ElementType = new TSplineElement2D(),
 								DegreeKsi = elementDegreeKsi,
 								DegreeHeta = elementDegreeHeta,
@@ -162,7 +162,7 @@ namespace ISAAR.MSolve.IGA.Readers
 			Element element = new TSplineKirchhoffLoveShellElement()
 			{
 				ID = elementIDCounter,
-				Patch_v2 = Model.PatchesDictionary[0],
+				Patch = Model.PatchesDictionary[0],
 				ElementType = new TSplineKirchhoffLoveShellElement(),
 				DegreeKsi = elementDegreeKsi,
 				DegreeHeta = elementDegreeHeta,
@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.IGA.Readers
 			Element element = new TSplineKirchhoffLoveShellSectionElement()
 			{
 				ID = elementIDCounter,
-				Patch_v2 = Model.PatchesDictionary[0],
+				Patch = Model.PatchesDictionary[0],
 				ElementType = new TSplineKirchhoffLoveShellSectionElement(),
 				DegreeKsi = elementDegreeKsi,
 				DegreeHeta = elementDegreeHeta,

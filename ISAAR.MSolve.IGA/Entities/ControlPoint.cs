@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.IGA.Entities
     public class ControlPoint:INode
 	{
         protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        protected readonly Dictionary<int, Patch_v2> patchesDictionary =new Dictionary<int, Patch_v2>();
+        protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
         private readonly List<Constraint> constraints = new List<Constraint>();
 
 		public List<Constraint> Constrains
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, Patch_v2> PatchesDictionary
+        public Dictionary<int, Patch> PatchesDictionary
         {
             get { return patchesDictionary; }
         }
@@ -43,8 +43,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		public void BuildPatchesDictionary()
 		{
 			foreach (Element element in elementsDictionary.Values)
-				if (!patchesDictionary.ContainsKey(element.Patch_v2.ID))
-					patchesDictionary.Add(element.Patch_v2.ID, element.Patch_v2);
+				if (!patchesDictionary.ContainsKey(element.Patch.ID))
+					patchesDictionary.Add(element.Patch.ID, element.Patch);
 		}
 
 

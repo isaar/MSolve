@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public int[] Degrees = new int[2];
 
-        public Patch Patch { get; set; }
+        //public Patch Patch { get; set; }
 
-        public Patch_v2 Patch_v2 { get; set; }
+        public Patch Patch { get; set; }
 
 		public Dictionary<int,IVector> KnotValueVectors =new Dictionary<int, IVector>();
 

@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Entities\ControlPoint_v2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Elements\TSplineKirchhoffLoveShellElementMaterial.cs~RF102c8e6.TMP" />
   </ItemGroup>
 

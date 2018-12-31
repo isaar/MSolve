@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.IGA.Entities
         public int Degree { get; set; }
 
         public Patch Patch { get; set; }
-        public Patch_v2 Patch_v2 { get; set; }
+        //public Patch_v2 Patch_v2 { get; set; }
 
 		public IVector KnotValueVector { get; set; }
 

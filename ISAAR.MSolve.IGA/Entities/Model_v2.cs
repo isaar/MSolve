@@ -19,9 +19,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		private int numberOfPatches = 0;
 		private int numberOfInterfaces = 0;
 
-		private readonly Dictionary<int, ControlPoint_v2> controlPointsDictionary = new Dictionary<int, ControlPoint_v2>();
+		private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 		private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-		private readonly Dictionary<int, Patch_v2> patchesDictionary = new Dictionary<int, Patch_v2>();
+		private readonly Dictionary<int, Patch> patchesDictionary = new Dictionary<int, Patch>();
 
 		private readonly IList<Load> loads = new List<Load>();
 		private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads = new List<IMassAccelerationHistoryLoad>();
@@ -39,16 +39,16 @@ namespace ISAAR.MSolve.IGA.Entities
 		public IList<Load> Loads { get; } = new List<Load>();
 		public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } = new List<IMassAccelerationHistoryLoad>();
 
-		public IList<ControlPoint_v2> ControlPoints => controlPointsDictionary.Values.ToList();
+		public IList<ControlPoint> ControlPoints => controlPointsDictionary.Values.ToList();
 		IReadOnlyList<INode> IStructuralModel_v2.Nodes => controlPointsDictionary.Values.ToList();
-		public Dictionary<int, ControlPoint_v2> ControlPointsDictionary
+		public Dictionary<int, ControlPoint> ControlPointsDictionary
 		{
 			get => controlPointsDictionary;
 		} 
 
 		IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => patchesDictionary.Values.ToList();
-		public IList<Patch_v2> Patches => patchesDictionary.Values.ToList();
-		public Dictionary<int, Patch_v2> PatchesDictionary
+		public IList<Patch> Patches => patchesDictionary.Values.ToList();
+		public Dictionary<int, Patch> PatchesDictionary
 		{
 			get => patchesDictionary;
 		}
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.IGA.Entities
 			set
 			{
 				globalDofOrdering = value;
-				foreach (Patch_v2 patch in Patches)
+				foreach (Patch patch in Patches)
 				{
 					patch.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
 					patch.Forces = Vector.CreateZero(patch.DofOrdering.NumFreeDofs);
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public void AssignLoads()
 		{
-			foreach (Patch_v2 patch in PatchesDictionary.Values) patch.Forces.Clear();
+			foreach (Patch patch in PatchesDictionary.Values) patch.Forces.Clear();
 			AssignControlPointLoads();
 			AssignBoundaryLoads();
 		}
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		private void AssignBoundaryLoads()
 		{
-			foreach (Patch_v2 patch in patchesDictionary.Values)
+			foreach (Patch patch in patchesDictionary.Values)
 			{
 				foreach (Edge edge in patch.EdgesDictionary.Values)
 				{
@@ -104,23 +104,23 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		private void AssignControlPointLoads()
 		{
-			foreach (Patch_v2 patch in PatchesDictionary.Values)
+			foreach (Patch patch in PatchesDictionary.Values)
 			{
-				patch.ControlPointLoads = new Table<ControlPoint_v2, DOFType, double>();
+				patch.ControlPointLoads = new Table<ControlPoint, DOFType, double>();
 			}
 
 			foreach (Load load in Loads)
 			{
-				var cp = ((ControlPoint_v2) load.ControlPoint);
-				double amountPerPatch = load.Amount / cp.PatchesDictionary_v2.Count;
-				foreach (Patch_v2 patch in cp.PatchesDictionary_v2.Values)
+				var cp = ((ControlPoint) load.ControlPoint);
+				double amountPerPatch = load.Amount / cp.PatchesDictionary.Count;
+				foreach (Patch patch in cp.PatchesDictionary.Values)
 				{
 					bool wasNotContained = patch.ControlPointLoads.TryAdd(cp, load.DOF, amountPerPatch);
 				}
 			}
 
 			//TODO: this should be done by the subdomain when the analyzer decides.
-			foreach (Patch_v2 patch in PatchesDictionary.Values)
+			foreach (Patch patch in PatchesDictionary.Values)
 			{
 				foreach ((ControlPoint node, DOFType dofType, double amount) in patch.ControlPointLoads)
 				{
@@ -156,13 +156,13 @@ namespace ISAAR.MSolve.IGA.Entities
 		//      It is too easy to access the wrong instance of the constraint. 
 		private void AssignConstraints()
 		{
-			foreach (ControlPoint_v2 controlPoint in ControlPointsDictionary.Values)
+			foreach (ControlPoint controlPoint in ControlPointsDictionary.Values)
 			{
-				if (controlPoint.Constraints_v2 == null) continue;
-				foreach (Constraint constraint in controlPoint.Constraints_v2) Constraints[controlPoint, constraint.DOF] = constraint.Amount;
+				if (controlPoint.Constraints == null) continue;
+				foreach (Constraint constraint in controlPoint.Constraints) Constraints[controlPoint, constraint.DOF] = constraint.Amount;
 			}
 
-			foreach (Patch_v2 patch in PatchesDictionary.Values) patch.ExtractConstraintsFromGlobal(Constraints);
+			foreach (Patch patch in PatchesDictionary.Values) patch.ExtractConstraintsFromGlobal(Constraints);
 		}
 		
 		private void BuildElementDictionaryOfEachControlPoint()
@@ -176,14 +176,14 @@ namespace ISAAR.MSolve.IGA.Entities
 		{
 			BuildPatchOfEachElement();
 			BuildElementDictionaryOfEachControlPoint();
-			foreach (ControlPoint_v2 controlPoint in ControlPointsDictionary.Values) controlPoint.BuildPatchesDictionary_v2();
+			foreach (ControlPoint controlPoint in ControlPointsDictionary.Values) controlPoint.BuildPatchesDictionary();
 			
-			foreach (Patch_v2 patch in PatchesDictionary.Values) patch.DefineControlPointsFromElements();
+			foreach (Patch patch in PatchesDictionary.Values) patch.DefineControlPointsFromElements();
 		}
 
 		private void BuildPatchOfEachElement()
 		{
-			foreach (Patch_v2 patch in patchesDictionary.Values)
+			foreach (Patch patch in patchesDictionary.Values)
 			foreach (Element element in patch.Elements)
 				element.Patch_v2 = patch;
 		}
