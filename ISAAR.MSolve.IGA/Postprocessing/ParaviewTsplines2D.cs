@@ -49,8 +49,12 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				var counterCP = 0;
 				foreach (var controlPoint in element.ControlPoints)
 				{
-					var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
-					var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
+					//var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
+					//var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
+
+					var dofX = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X];
+					var dofY = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y];
+
 					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _linearSystem.Solution[dofX];
 					localDisplacements[counterCP++, 1] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofY];
 				}

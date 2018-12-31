@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 {
 	public class ParaviewTsplineShells
 	{
-		private Model_v2 _model;
+		private Model _model;
 		private IVectorView _solution;
 		private string _filename;
 
-		public ParaviewTsplineShells(Model_v2 model, IVectorView solution, string filename)
+		public ParaviewTsplineShells(Model model, IVectorView solution, string filename)
 		{
 			_model = model;
 			_solution = solution;

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
@@ -11,13 +12,13 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 	public class ParaviewNurbsShells
 	{
 		private Model _model;
-		private ILinearSystem _linearSystem;
+		private IVectorView _solution;
 		private string _filename;
 
-		public ParaviewNurbsShells(Model model, ILinearSystem linearSystem, string filename)
+		public ParaviewNurbsShells(Model model, IVectorView solution, string filename)
 		{
 			_model = model;
-			_linearSystem = linearSystem;
+			_solution = solution;
 			_filename = filename;
 		}
 
@@ -64,12 +65,13 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				var counterCP = 0;
 				foreach (var controlPoint in element.ControlPoints)
 				{
-					var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
-					var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
-					var dofZ = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Z];
-					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _linearSystem.Solution[dofX];
-					localDisplacements[counterCP, 1] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofY];
-					localDisplacements[counterCP++, 2] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofZ];
+					var dofX = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X];
+					var dofY = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y];
+					var dofZ = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Z];
+
+					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _solution[dofX];
+					localDisplacements[counterCP, 1] = (dofY == -1) ? 0.0 : _solution[dofY];
+					localDisplacements[counterCP++, 2] = (dofY == -1) ? 0.0 : _solution[dofZ];
 				}
 				var elementKnotDisplacements = element.ElementType.CalculateDisplacementsForPostProcessing(element, localDisplacements);
 				for (int i = 0; i < elementConnectivity.GetLength(1); i++)

@@ -27,11 +27,11 @@ namespace ISAAR.MSolve.IGA.Readers
 			LinearMaterial, SectionMaterial, ThicknessMaterial
 		}
 
-		public Model_v2 Model { get; }
+		public Model Model { get; }
 		public string Filename { get; private set; }
 
 
-		public IGAFileReader(Model_v2 model, string filename)
+		public IGAFileReader(Model model, string filename)
 		{
 			Model = model;
 			Filename = filename;

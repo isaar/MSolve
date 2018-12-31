@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void CantileverShellBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model_v2 model = new Model_v2();
+			Model model = new Model();
 			var filename = "CantileverShell";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);
@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void CantileverShellMaterialBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model_v2 model = new Model_v2();
+			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 			
@@ -128,7 +128,6 @@ namespace ISAAR.MSolve.IGA.Tests
 					DOF = DOFType.Z
 				});
 			}
-			model.ConnectDataStructures();
 
 			var solverBuilder = new SuiteSparseSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
@@ -171,7 +170,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void CantileverShellMaterialBenchmark_v2()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model_v2 model = new Model_v2();
+			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 
@@ -241,7 +240,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void SimpleHoodBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model_v2 model = new Model_v2();
+			Model model = new Model();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);
@@ -305,7 +304,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void SimpleHoodBenchmarkMKL()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model_v2 model = new Model_v2();
+			Model model = new Model();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);

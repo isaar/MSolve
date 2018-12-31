@@ -222,9 +222,13 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
 				for (int k = 0; k < element.ControlPoints.Count; k++)
 				{
-					int dofIDX = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
-					int dofIDY = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
-					int dofIDZ = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+					//int dofIDX = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
+					//int dofIDY = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+					//int dofIDZ = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+					int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.X];
+					int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Y];
+					int dofIDZ = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Z];
+
 					if (neumannLoad.ContainsKey(dofIDX))
 						neumannLoad[dofIDX] += nurbs.NurbsValues[k, j] * jacdet * gaussPoints[j].WeightFactor *
 						                       neumann.Value(xGaussPoint, yGaussPoint, zGaussPoint)[0] *
@@ -308,7 +312,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 				{
 					for (int m = 0; m < 3; m++)
 					{
-						int dofID = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][dofs[m]];
+						int dofID = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k],dofs[m]];
 						;
 						if (pressureLoad.ContainsKey(dofID))
 						{

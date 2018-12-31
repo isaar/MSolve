@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.IGA.Entities.BoundaryConditions
         
         public DirichletBoundaryCondition(Model model, Func<double, double, double, double>dirichletValues, int[] dirichletSides)
         {
-            double[] loadVector = new double[model.ControlPointDOFsDictionary.Count];
+            //double[] loadVector = new double[model.ControlPointDOFsDictionary.Count];
 
             ArrayList dofs = new ArrayList();
             int numberOfValues = 0;
