@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Postprocessing;
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void CantileverShellBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
+			Model_v2 model = new Model_v2();
 			var filename = "CantileverShell";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);
@@ -40,9 +41,9 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp=>cp.X<3))
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint(){ DOF = DOFType.X});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
 			}
 
 			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X >49.8))
@@ -54,20 +55,24 @@ namespace ISAAR.MSolve.IGA.Tests
 					DOF = DOFType.Z
 				});
 			}
-			model.ConnectDataStructures();
 
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SuiteSparseSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural_v2(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
-			var paraview = new ParaviewTsplineShells(model, linearSystems[0], filename);
+			var paraview = new ParaviewTsplineShells(model, solver.LinearSystems[0].Solution, filename);
 			paraview.CreateParaviewFile();
 
 			var expectedSolutionVector = new Vector(new double[]
@@ -85,7 +90,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			});
 			for (int i = 0; i < expectedSolutionVector.Length; i++)
 			{
-				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], linearSystems[0].Solution[i],
+				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], solver.LinearSystems[0].Solution[i],
 					1e-9));
 			}
 			
@@ -96,7 +101,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void CantileverShellMaterialBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
+			Model_v2 model = new Model_v2();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 			
@@ -109,9 +114,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			}, thickness);
 			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X < 3))
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint(){DOF = DOFType.X});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
 			}
 
 			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X > 49.8))
@@ -125,14 +130,19 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 			model.ConnectDataStructures();
 
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SuiteSparseSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural_v2(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -151,7 +161,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			});
 			for (int i = 0; i < expectedSolutionVector.Length; i++)
 			{
-				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], linearSystems[0].Solution[i],
+				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], solver.LinearSystems[0].Solution[i],
 					1e-6));
 			}
 
@@ -163,20 +173,20 @@ namespace ISAAR.MSolve.IGA.Tests
 			VectorExtensions.AssignTotalAffinityCount();
 			Model_v2 model = new Model_v2();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
-			IGAFileReader_v2 modelReader = new IGAFileReader_v2(model, filename);
+			IGAFileReader modelReader = new IGAFileReader(model, filename);
 
 			var thickness = 1.0;
 
-			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader_v2.TSplineShellTypes.ThicknessMaterial, new ShellElasticMaterial2D
+			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.ThicknessMaterial, new ShellElasticMaterial2D
 			{
 				PoissonRatio = 0.0,
 				YoungModulus = 100,
 			}, thickness);
 			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X < 3))
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint(){DOF = DOFType.X});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
 			}
 
 			foreach (var controlPoint in model.ControlPointsDictionary.Values.Where(cp => cp.X > 49.8))
@@ -231,7 +241,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void SimpleHoodBenchmark()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
+			Model_v2 model = new Model_v2();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);
@@ -255,9 +265,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			for (int i = 0; i < 100; i++)
 			{
 				var id = model.ControlPoints[i].ID;
-				model.ControlPointsDictionary[id].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[id].Constrains.Add(new Constraint(){DOF = DOFType.X});
+				model.ControlPointsDictionary[id].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[id].Constrains.Add(new Constraint() { DOF = DOFType.Z });
 			}
 
 			for (int i = model.ControlPoints.Count-100; i < model.ControlPoints.Count; i++)
@@ -271,20 +281,23 @@ namespace ISAAR.MSolve.IGA.Tests
 				});
 			}
 
-			model.ConnectDataStructures();
+			var solverBuilder = new SuiteSparseSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			// Structural problem provider
+			var provider = new ProblemStructural_v2(model, solver);
 
-			parentAnalyzer.BuildMatrices();
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
-			var paraview= new ParaviewTsplineShells(model, linearSystems[0],filename);
+			var paraview= new ParaviewTsplineShells(model, solver.LinearSystems[0].Solution,filename);
 			paraview.CreateParaviewFile();
 		}
 
@@ -295,7 +308,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			Model_v2 model = new Model_v2();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
-			IGAFileReader_v2 modelReader = new IGAFileReader_v2(model, filepath);
+			IGAFileReader modelReader = new IGAFileReader(model, filepath);
 
 			var thickness = 1.0;
 
@@ -304,7 +317,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			//	PoissonRatio = 0.3,
 			//	YoungModulus = 1e5,
 			//}, thickness);
-			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader_v2.TSplineShellTypes.ThicknessMaterial,new ShellElasticMaterial2D()
+			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.ThicknessMaterial,new ShellElasticMaterial2D()
 			{
 				PoissonRatio = 0.3,
 				YoungModulus = 10000
@@ -319,9 +332,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			for (int i = 0; i < 100; i++)
 			{
 				var id = model.ControlPoints[i].ID;
-				model.ControlPointsDictionary[id].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[id].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[id].Constrains.Add(new Constraint(){DOF = DOFType.X});
+				model.ControlPointsDictionary[id].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[id].Constrains.Add(new Constraint() { DOF = DOFType.Z });
 			}
 
 			for (int i = model.ControlPoints.Count - 100; i < model.ControlPoints.Count; i++)
