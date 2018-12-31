@@ -123,8 +123,8 @@ namespace ISAAR.MSolve.IGA.Elements
 
                 for (int k = 0; k < element.ControlPoints.Count; k++)
                 {
-                    int dofIDX = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
-                    int dofIDY = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+                    int dofIDX = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
+                    int dofIDY = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
                     if (neumannLoad.ContainsKey(dofIDX))
                         neumannLoad[dofIDX] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPoint[0];
                     else
@@ -228,8 +228,8 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				for (int k = 0; k < element.ControlPoints.Count; k++)
                 {
-                    int dofIDX = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
-                    int dofIDY = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+                    int dofIDX = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
+                    int dofIDY = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
                     if (pressureLoad.ContainsKey(dofIDX))
                         pressureLoad[dofIDX] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPointX;
                     else
