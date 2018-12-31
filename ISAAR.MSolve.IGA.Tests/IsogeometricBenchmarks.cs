@@ -1700,7 +1700,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		}
 
 		
-		[Fact]
+		//[Fact]
 		public void IsogeometricBeam3D()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
