@@ -35,7 +35,8 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		IReadOnlyList<IElement> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
 		public IList<Element> Elements => ElementsDictionary.Values.ToList();
-		public Dictionary<int, Element> ElementsDictionary { get; } = new Dictionary<int, Element>();
+		public Dictionary<int, Element> ElementsDictionary=> elementsDictionary;
+		
 		public IList<Load> Loads { get; } = new List<Load>();
 		public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } = new List<IMassAccelerationHistoryLoad>();
 
@@ -188,8 +189,8 @@ namespace ISAAR.MSolve.IGA.Entities
 			BuildPatchOfEachElement();
 			BuildElementDictionaryOfEachControlPoint();
 			foreach (ControlPoint controlPoint in ControlPointsDictionary.Values) controlPoint.BuildPatchesDictionary();
-			
-			foreach (Patch patch in PatchesDictionary.Values) patch.DefineControlPointsFromElements();
+
+			//foreach (Patch patch in PatchesDictionary.Values) patch.DefineControlPointsFromElements();
 		}
 
 		private void BuildPatchOfEachElement()

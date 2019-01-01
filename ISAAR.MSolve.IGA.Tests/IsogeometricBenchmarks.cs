@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
 			}
 
-			var solverBuilder = new SuiteSparseSolver.Builder();
+			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
@@ -240,9 +240,9 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() { DOF = DOFType.Y });
 
-			var solverBuilder = new SuiteSparseSolver.Builder();
+			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+				new SimpleDofOrderingStrategy(), new NullReordering());
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
@@ -313,7 +313,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			#endregion
 		}
 		
-		[Fact]
+		//[Fact]
 		public void IsogeometricPlaneStrainMixedBC()
 		{
 			// Model
