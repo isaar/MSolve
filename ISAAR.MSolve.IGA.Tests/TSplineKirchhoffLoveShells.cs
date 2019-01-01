@@ -56,9 +56,9 @@ namespace ISAAR.MSolve.IGA.Tests
 				});
 			}
 
-			var solverBuilder = new SuiteSparseSolver.Builder();
+			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			for (int i = 0; i < expectedSolutionVector.Length; i++)
 			{
 				Assert.True(Utilities.AreValuesEqual(expectedSolutionVector[i], solver.LinearSystems[0].Solution[i],
-					1e-9));
+					1e-8));
 			}
 			
 		}
@@ -131,7 +131,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			var solverBuilder = new SuiteSparseSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider

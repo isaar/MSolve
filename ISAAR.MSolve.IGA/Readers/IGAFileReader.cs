@@ -84,14 +84,17 @@ namespace ISAAR.MSolve.IGA.Readers
 						numberOfElements = Int32.Parse(line[1]);
 						break;
 					case Attributes.node:
-						Model.ControlPointsDictionary.Add(controlPointIDcounter, new ControlPoint
+						var controlPoint = new ControlPoint
 						{
-							ID = controlPointIDcounter++,
+							ID = controlPointIDcounter,
 							X = Double.Parse(line[1], CultureInfo.InvariantCulture),
 							Y = Double.Parse(line[2], CultureInfo.InvariantCulture),
 							Z = Double.Parse(line[3], CultureInfo.InvariantCulture),
 							WeightFactor = Double.Parse(line[4], CultureInfo.InvariantCulture)
-						});
+						};
+						Model.ControlPointsDictionary.Add(controlPointIDcounter, controlPoint);
+						((List<ControlPoint>)Model.PatchesDictionary[0].ControlPoints).Add(controlPoint);
+						controlPointIDcounter++;
 						break;
 					case Attributes.belem:
 						var numberOfElementNodes = Int32.Parse(line[1]);
