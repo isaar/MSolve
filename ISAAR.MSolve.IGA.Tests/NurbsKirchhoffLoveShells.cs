@@ -498,8 +498,6 @@ namespace ISAAR.MSolve.IGA.Tests
 				}
 			}
 
-			model.ConnectDataStructures();
-
 			// Solvers
 			var solverBuilder = new SuiteSparseSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(

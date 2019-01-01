@@ -242,7 +242,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
-				new SimpleDofOrderingStrategy(), new NullReordering());
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
@@ -313,7 +313,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			#endregion
 		}
 		
-		//[Fact]
+		[Fact]
 		public void IsogeometricPlaneStrainMixedBC()
 		{
 			// Model

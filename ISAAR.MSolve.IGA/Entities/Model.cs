@@ -148,6 +148,7 @@ namespace ISAAR.MSolve.IGA.Entities
 			{
 				foreach ((ControlPoint node, DOFType dofType, double amount) in patch.ControlPointLoads)
 				{
+					if (!patch.DofOrdering.FreeDofs.Contains(node, dofType)) continue;
 					int patchDofIdx = patch.DofOrdering.FreeDofs[node, dofType];
 					patch.Forces[patchDofIdx] = amount;
 				}

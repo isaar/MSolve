@@ -65,13 +65,18 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				var counterCP = 0;
 				foreach (var controlPoint in element.ControlPoints)
 				{
-					var dofX = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X];
-					var dofY = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y];
-					var dofZ = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Z];
-
-					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _solution[dofX];
-					localDisplacements[counterCP, 1] = (dofY == -1) ? 0.0 : _solution[dofY];
-					localDisplacements[counterCP++, 2] = (dofY == -1) ? 0.0 : _solution[dofZ];
+					localDisplacements[counterCP, 0] =
+						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.X))
+							? 0.0
+							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X]];
+					localDisplacements[counterCP, 1] =
+						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.Y))
+							? 0.0
+							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y]];
+					localDisplacements[counterCP++, 2] =
+						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.Z))
+							? 0.0
+							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Z]];
 				}
 				var elementKnotDisplacements = element.ElementType.CalculateDisplacementsForPostProcessing(element, localDisplacements);
 				for (int i = 0; i < elementConnectivity.GetLength(1); i++)
