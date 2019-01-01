@@ -1,9 +1,9 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Postprocessing
 {
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             this.data = new Dictionary<Node_v2, double[]>(model.Nodes.Count);
         }
 
-        public void FindNodalDisplacements(IVector solution)
+        public void FindNodalDisplacements(IVectorView solution)
         {
             foreach (var idxNodePair in model.NodesDictionary)
             {

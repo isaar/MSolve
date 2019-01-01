@@ -7,11 +7,43 @@ using System.Globalization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
+using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.Logging
 {
-    public class NEUWriter
+    public enum NEUOutputVector
+    {
+        TranslationX = 2,
+        TranslationY,
+        TranslationZ,
+        RotationX = 6,
+        RotationY,
+        RotationZ
+    }
+
+    public class NEUOutputVectorProperties
+    {
+        private readonly int id;
+        private readonly string title;
+        private readonly string componentVector;
+        private readonly DOFType dofType;
+
+        public int ID { get { return id; } }
+        public string Title { get { return title; } }
+        public string ComponentVector { get { return componentVector; } }
+        public DOFType DOFType { get { return dofType; } }
+
+        public NEUOutputVectorProperties(int id, string title, string componentVector, DOFType dofType)
+        {
+            this.id = id;
+            this.title = title;
+            this.componentVector = componentVector;
+            this.dofType = dofType;
+        }
+    }
+
+    public class NEUWriter_v2
     {
         private const int outputSet = 1;
         private const string BlockMarker = "   -1";
@@ -25,10 +57,10 @@ namespace ISAAR.MSolve.Logging
             { NEUOutputVector.RotationZ, new NEUOutputVectorProperties(8, "Z Rotation", "0,0,8", DOFType.RotZ) }
         };
 
-        private readonly ILinearSystem subdomain;
-        private readonly Model model;
+        private readonly ILinearSystem_v2 subdomain;
+        private readonly Model_v2 model;
 
-        public NEUWriter(Model model, ILinearSystem subdomain)
+        public NEUWriter_v2(Model_v2 model, ILinearSystem_v2 subdomain)
         {
             this.model = model;
             this.subdomain = subdomain;
@@ -63,26 +95,24 @@ namespace ISAAR.MSolve.Logging
             lines.Add("0,1,1,");
 
             var embeddedNodeValues = CalculateEmbeddedNodeValues();
-            foreach (var node in model.NodalDOFsDictionary)
+            foreach (var node in model.Nodes)
             {
-                var key = new Tuple<int, DOFType>(node.Key, vectorProperties.DOFType);
+                var key = new Tuple<int, DOFType>(node.ID, vectorProperties.DOFType);
                 if (embeddedNodeValues.ContainsKey(key))
-                    lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.Key, embeddedNodeValues[key]));
+                    lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.ID, embeddedNodeValues[key]));
                 else
                 {
-                    //if (node.Value.ContainsKey(vectorProperties.DOFType) && node.Value[vectorProperties.DOFType] > -1)
-                    //    lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.Key, subdomain.Solution[node.Value[vectorProperties.DOFType]]));
-                    if (!node.Value.ContainsKey(vectorProperties.DOFType)) continue;
-
-                    if (node.Value[vectorProperties.DOFType] > -1)
-                        lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.Key, subdomain.Solution[node.Value[vectorProperties.DOFType]]));
+                    bool nodeExists = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(node,
+                        out IReadOnlyDictionary<DOFType, int> dofTypesIndices);
+                    if (nodeExists)
+                    {
+                        if (!dofTypesIndices.ContainsKey(vectorProperties.DOFType)) continue;
+                        lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", 
+                            node.ID, subdomain.Solution[dofTypesIndices[vectorProperties.DOFType]]));
+                    }
+                        
                 }
-                //else
-                //{
-                //    var key = new Tuple<int, DOFType>(node.Key, vectorProperties.DOFType);
-                //    if (embeddedNodeValues.ContainsKey(key))
-                //        lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.Key, embeddedNodeValues[key]));
-                //}
+               
             }
             lines.Add("-1,0.,");
 
@@ -95,20 +125,20 @@ namespace ISAAR.MSolve.Logging
 
             foreach (var element in model.Elements)
             {
-                IEmbeddedElement e = element.ElementType as IEmbeddedElement;
+                IEmbeddedElement_v2 e = element.ElementType as IEmbeddedElement_v2;
                 if (e == null) continue;
 
-                var superElementNodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-                var superElementDOFs = element.ElementType.DOFEnumerator.GetDOFTypes(element);
+                var superElementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+                var superElementDOFs = element.ElementType.DofEnumerator.GetDOFTypes(element);
                 var superElementVector = new double[superElementDOFs.SelectMany(x => x).Count()];
 
                 int index = 0;
                 for (int i = 0; i < superElementDOFs.Count; i++)
                     for (int j = 0; j < superElementDOFs[i].Count; j++)
                     {
-                        int dof = model.NodalDOFsDictionary[superElementNodes[i].ID][superElementDOFs[i][j]];
-                        if (dof > -1)
-                            superElementVector[index] = subdomain.Solution[dof];
+                        bool isDofFree = model.GlobalDofOrdering.GlobalFreeDofs.TryGetValue(
+                            superElementNodes[i], superElementDOFs[i][j], out int dof);
+                        if (isDofFree) superElementVector[index] = subdomain.Solution[dof];
                         index++;
                     }
 
@@ -174,12 +204,20 @@ namespace ISAAR.MSolve.Logging
             lines.Add("0,");
             lines.Add(String.Format("{0},{1},1,7,", 0, 0));
             lines.Add("1,1,1,");
-            foreach (var node in model.NodalDOFsDictionary)
+            foreach (var node in model.Nodes)
             {
                 double translation = 0;
-                foreach (var dof in node.Value.Where(x => x.Key == DOFType.X || x.Key == DOFType.Y || x.Key == DOFType.Z).Select(x => x.Value).Where(x => x > -1))
-                    translation += Math.Pow(subdomain.Solution[dof], 2);
-                lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.Key, Math.Sqrt(translation)));
+                bool nodeExists = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(node, 
+                    out IReadOnlyDictionary<DOFType, int> dofTypesIndices);
+                if (nodeExists)
+                {
+                    foreach (var dof in dofTypesIndices.Where(
+                        x => x.Key == DOFType.X || x.Key == DOFType.Y || x.Key == DOFType.Z).Select(x => x.Value))
+                    {
+                        translation += Math.Pow(subdomain.Solution[dof], 2);
+                    }
+                }
+                lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.ID, Math.Sqrt(translation)));
             }
             lines.Add("-1,0.,");
 
@@ -191,12 +229,20 @@ namespace ISAAR.MSolve.Logging
             lines.Add("0,");
             lines.Add(String.Format("{0},{1},1,7,", 0, 0));
             lines.Add("1,1,1,");
-            foreach (var node in model.NodalDOFsDictionary)
+            foreach (var node in model.Nodes)
             {
                 double translation = 0;
-                foreach (var dof in node.Value.Where(x => x.Key == DOFType.RotX || x.Key == DOFType.RotY || x.Key == DOFType.RotZ).Select(x => x.Value).Where(x => x > -1))
-                    translation += Math.Pow(subdomain.Solution[dof], 2);
-                lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.Key, Math.Sqrt(translation)));
+                bool nodeExists = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(node, 
+                    out IReadOnlyDictionary<DOFType, int> dofTypesIndices);
+                if (nodeExists)
+                {
+                    foreach (var dof in dofTypesIndices.Where(
+                        x => x.Key == DOFType.RotX || x.Key == DOFType.RotY || x.Key == DOFType.RotZ).Select(x => x.Value))
+                    {
+                        translation += Math.Pow(subdomain.Solution[dof], 2);
+                    }
+                }
+                lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.ID, Math.Sqrt(translation)));
             }
             lines.Add("-1,0.,");
 

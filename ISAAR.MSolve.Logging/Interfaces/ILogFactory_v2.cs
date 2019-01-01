@@ -9,8 +9,8 @@ namespace ISAAR.MSolve.Logging.Interfaces
     /// <summary>
     /// Used by the analyzers to create the logs.
     /// </summary>
-    public interface ILogFactory
+    public interface ILogFactory_v2
     {
-        IAnalyzerLog[] CreateLogs();
+        IAnalyzerLog_v2[] CreateLogs();
     }
 }

@@ -1,12 +1,10 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Postprocessing;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials.VonMisesStress;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.Logging.VTK
 {
@@ -15,7 +13,7 @@ namespace ISAAR.MSolve.Logging.VTK
     /// analysis step).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class VtkLog2D : IAnalyzerLog
+    public class VtkLog2D : IAnalyzerLog_v2
     {
         private readonly VtkMesh2D mesh;
         private readonly Model_v2 model;
@@ -57,7 +55,7 @@ namespace ISAAR.MSolve.Logging.VTK
             iteration = 0;
         }
 
-        public void StoreResults(DateTime startTime, DateTime endTime, IVector solution)
+        public void StoreResults(DateTime startTime, DateTime endTime, IVectorView solution)
         {
             string path = pathNoExtension + $"_{iteration}.vtk";
             using (var writer = new VtkFileWriter(path))

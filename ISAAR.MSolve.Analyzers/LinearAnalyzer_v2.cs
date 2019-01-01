@@ -22,8 +22,8 @@ namespace ISAAR.MSolve.Analyzers
             this.linearSystems = solver.LinearSystems;
         }
 
-        public Dictionary<int, ILogFactory> LogFactories { get; } = new Dictionary<int, ILogFactory>();
-        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
+        public Dictionary<int, ILogFactory_v2> LogFactories { get; } = new Dictionary<int, ILogFactory_v2>();
+        public Dictionary<int, IAnalyzerLog_v2[]> Logs { get; } = new Dictionary<int, IAnalyzerLog_v2[]>();
 
         public IParentAnalyzer ParentAnalyzer { get; set; }
 
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             foreach (int id in Logs.Keys)
                 foreach (var l in Logs[id])
-                    l.StoreResults(start, end, linearSystems[id].Solution.ToLegacyVector());
+                    l.StoreResults(start, end, linearSystems[id].Solution);
         }
     }
 }

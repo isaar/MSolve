@@ -1,9 +1,7 @@
-﻿using ISAAR.MSolve.FEM.Entities;
+﻿using System;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Logging.VTK;
-using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.VonMisesStress;
-using System;
 
 //TODO: this should take as input the PreprocessorModel and get the problem type and materials from there.
 namespace ISAAR.MSolve.Preprocessor.UI
@@ -45,7 +43,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// </summary>
         public bool StressesVonMises { get; set; } = false;
 
-        internal ILogFactory CreateLogFactory(PreprocessorModel model)
+        internal ILogFactory_v2 CreateLogFactory(PreprocessorModel model)
         {
             var logFactory = new VtkLogFactory(model.CoreModel, outputDirectory)
             {

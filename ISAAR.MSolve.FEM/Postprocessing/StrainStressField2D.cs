@@ -2,8 +2,7 @@
 using System.Diagnostics;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: should it be reused between analysis iterations (Clear method, store the node multiplicities)?
 namespace ISAAR.MSolve.FEM.Postprocessing
@@ -36,9 +35,8 @@ namespace ISAAR.MSolve.FEM.Postprocessing
         /// <param name="model"></param>
         /// <param name="freeDisplacements"></param>
         /// <returns></returns>
-        public void CalculateNodalTensors(IVector freeDisplacements)
+        public void CalculateNodalTensors(IVectorView freeDisplacements)
         {
-            var freeDisplacementsCasted = LinearAlgebra.Vectors.Vector.CreateFromArray(((Vector)freeDisplacements).Data);
             var nodeMultiplicities = new Dictionary<Node_v2, int>();
             foreach (Node_v2 node in model.Nodes) nodeMultiplicities.Add(node, 0); // how many elements each node belongs to
 
@@ -50,8 +48,8 @@ namespace ISAAR.MSolve.FEM.Postprocessing
 
                     // Find local displacement vector
                     var localDisplacements = new double[subdomain.DofOrdering.CountElementDofs(element)];
-                    subdomain.DofOrdering.ExtractVectorElementFromSubdomain(element, freeDisplacementsCasted,
-                        LinearAlgebra.Vectors.Vector.CreateFromArray(localDisplacements));
+                    subdomain.DofOrdering.ExtractVectorElementFromSubdomain(element, freeDisplacements,
+                        Vector.CreateFromArray(localDisplacements));
 
                     // Calculate strains, stresses at Gauss points and extrapolate to nodes
                     (IReadOnlyList<double[]> strainsAtGPs, IReadOnlyList<double[]> stressesAtGPs) = 

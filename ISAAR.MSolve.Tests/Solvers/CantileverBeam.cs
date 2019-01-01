@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.Tests.Solvers
                 // Generate mesh
                 var meshGenerator = new UniformMeshGenerator_v2(0.0, 0.0, Length, Height, 
                     numElementsAlongLength, numElementsAlongHeight);
-                (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity2D_v2> cells) = meshGenerator.CreateMesh();
+                (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
 
                 // Add nodes to the model
                 for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);

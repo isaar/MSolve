@@ -238,14 +238,14 @@ namespace ISAAR.MSolve.Tests
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 4 }); 
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(146.5587362562, log.DOFValues[4], 3);
         }
 
@@ -468,14 +468,14 @@ namespace ISAAR.MSolve.Tests
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 3 });
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 3 });
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(-72.090605787610343, log.DOFValues[3], 8);
         }
     }

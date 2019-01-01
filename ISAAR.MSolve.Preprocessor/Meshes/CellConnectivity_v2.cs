@@ -12,9 +12,9 @@ namespace ISAAR.MSolve.Preprocessor.Meshes
     /// dependencies, it can be used to transfer cell/element geometry data from one module to another.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CellConnectivity2D_v2
+    public class CellConnectivity_v2
     {
-        public CellConnectivity2D_v2(CellType2D cellType, IReadOnlyList<Node_v2> vertices)
+        public CellConnectivity_v2(CellType2D cellType, IReadOnlyList<Node_v2> vertices)
         {
             this.CellType = cellType;
             this.Vertices = vertices;

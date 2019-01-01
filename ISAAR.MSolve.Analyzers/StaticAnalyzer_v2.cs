@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Analyzers
             this.ChildAnalyzer.ParentAnalyzer = this;
         }
 
-        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
+        public Dictionary<int, IAnalyzerLog_v2[]> Logs { get; } = new Dictionary<int, IAnalyzerLog_v2[]>();
 
         public IChildAnalyzer ChildAnalyzer { get; }
 

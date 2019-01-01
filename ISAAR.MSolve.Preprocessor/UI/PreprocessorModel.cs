@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="material">The common material of all elements in the mesh.</param>
         /// <param name="dynamicProperties">Optional material properties for dynamic analysis. Common for all elements in the 
         ///     mesh.</param>
-        public void AddMesh2D(IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity2D_v2> elements, 
+        public void AddMesh2D(IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements, 
             IFiniteElementMaterial material, DynamicMaterial dynamicProperties = null)
         {
             if (Dimensions == ProblemDimensions.ThreeDimensional)
@@ -153,12 +153,11 @@ namespace ISAAR.MSolve.Preprocessor.UI
             var factory = new ContinuumElement2DFactory(thickness, (ElasticMaterial2D)material, dynamicProperties); //TODO: extend the factory to other materials
             for (int i = 0; i < elements.Count; ++i)
             {
-                //TODO: Uncomment this line
-                //ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
-                //var elementWrapper = new Element() { ID = numElementsCurrent + i, ElementType = element };
-                //foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
-                //model.ElementsDictionary.Add(numElementsCurrent + i, elementWrapper);
-                //model.SubdomainsDictionary[0].ElementsDictionary.Add(numElementsSubdomain + i, elementWrapper); //TODO: let the user decide which subdomain it will be added to.
+                ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
+                var elementWrapper = new Element_v2() { ID = numElementsCurrent + i, ElementType = element };
+                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                model.ElementsDictionary.Add(numElementsCurrent + i, elementWrapper);
+                model.SubdomainsDictionary[0].Elements.Add(elementWrapper); //TODO: let the user decide which subdomain it will be added to.
             }
         }
 

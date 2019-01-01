@@ -151,14 +151,14 @@ namespace ISAAR.MSolve.Tests
             NewmarkDynamicAnalyzer_v2 parentAnalyzer = parentAnalyzerBuilder.Build();
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0, 1 });
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 0, 1 });
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             //Check output
-            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(2.2840249264795207, log.DOFValues[0], 8);
             Assert.Equal(2.4351921891904156, log.DOFValues[1], 8);
         }

@@ -50,10 +50,10 @@ namespace ISAAR.MSolve.Analyzers
             this.residualTolerance = residualTolerance;
         }
 
-        public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get; } = new Dictionary<int, LinearAnalyzerLogFactory>();
-        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
+        public Dictionary<int, LinearAnalyzerLogFactory_v2> LogFactories { get; } = new Dictionary<int, LinearAnalyzerLogFactory_v2>();
+        public Dictionary<int, IAnalyzerLog_v2[]> Logs { get; } = new Dictionary<int, IAnalyzerLog_v2[]>();
 
-        public TotalDisplacementsPerIterationLog TotalDisplacementsPerIterationLog { get; set; }
+        public TotalDisplacementsPerIterationLog_v2 TotalDisplacementsPerIterationLog { get; set; }
         public Dictionary<int, TotalLoadsDisplacementsPerIncrementLog> IncrementalLogs { get; }
             = new Dictionary<int, TotalLoadsDisplacementsPerIncrementLog>();
 
@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             foreach (int id in Logs.Keys)
                 foreach (var l in Logs[id])
-                    l.StoreResults(start, end, u[id].ToLegacyVector());
+                    l.StoreResults(start, end, u[id]);
         }
 
         protected void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector

@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator_v2 : IMeshProvider2D<Node_v2, CellConnectivity2D_v2>
+    public class UniformMeshGenerator_v2 : IMeshProvider2D<Node_v2, CellConnectivity_v2>
     {
         private readonly double minX;
         private readonly double minY;
@@ -39,10 +39,10 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
         /// Generates a uniform mesh with the dimensions and density defined in the constructor.
         /// </summary>
         /// <returns></returns>
-        public (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity2D_v2> cells) CreateMesh()
+        public (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) CreateMesh()
         {
             Node_v2[] vertices = CreateVertices();
-            CellConnectivity2D_v2[] cells = CreateCells(vertices);
+            CellConnectivity_v2[] cells = CreateCells(vertices);
             return (vertices, cells);
         }
 
@@ -61,9 +61,9 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
             return vertices;
         }
 
-        private CellConnectivity2D_v2[] CreateCells(Node_v2[] allVertices)
+        private CellConnectivity_v2[] CreateCells(Node_v2[] allVertices)
         {
-            var cells = new CellConnectivity2D_v2[cellRows * cellColumns];
+            var cells = new CellConnectivity_v2[cellRows * cellColumns];
             for (int row = 0; row < cellRows; ++row)
             {
                 for (int col = 0; col < cellColumns; ++col)
@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                     int firstVertex = row * vertexColumns + col;
                     Node_v2[] verticesOfCell = { allVertices[firstVertex], allVertices[firstVertex+1],
                         allVertices[firstVertex + vertexColumns + 1], allVertices[firstVertex + vertexColumns] };
-                    cells[row * cellColumns + col] = new CellConnectivity2D_v2(CellType2D.Quad4, verticesOfCell); // row major
+                    cells[row * cellColumns + col] = new CellConnectivity_v2(CellType2D.Quad4, verticesOfCell); // row major
                 }
             }
             return cells;
