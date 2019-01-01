@@ -24,7 +24,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		private readonly Dictionary<int, Patch> patchesDictionary = new Dictionary<int, Patch>();
 
 		private readonly IList<Load> loads = new List<Load>();
-		private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads = new List<IMassAccelerationHistoryLoad>();
+
+		private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads =
+			new List<IMassAccelerationHistoryLoad>();
 
 		private IGlobalFreeDofOrdering globalDofOrdering;
 
@@ -35,13 +37,16 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		IReadOnlyList<IElement> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
 		public IList<Element> Elements => ElementsDictionary.Values.ToList();
-		public Dictionary<int, Element> ElementsDictionary=> elementsDictionary;
-		
+		public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
+
 		public IList<Load> Loads { get; } = new List<Load>();
-		public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } = new List<IMassAccelerationHistoryLoad>();
+
+		public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } =
+			new List<IMassAccelerationHistoryLoad>();
 
 		public IList<ControlPoint> ControlPoints => controlPointsDictionary.Values.ToList();
 		IReadOnlyList<INode> IStructuralModel_v2.Nodes => controlPointsDictionary.Values.ToList();
+
 		public Dictionary<int, ControlPoint> ControlPointsDictionary
 		{
 			get => controlPointsDictionary;
@@ -52,6 +57,7 @@ namespace ISAAR.MSolve.IGA.Entities
 			get { return numberOfPatches; }
 			set { numberOfPatches = value; }
 		}
+
 		public int NumberOfInterfaces
 		{
 			get { return numberOfInterfaces; }
@@ -60,12 +66,14 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => patchesDictionary.Values.ToList();
 		public IList<Patch> Patches => patchesDictionary.Values.ToList();
+
 		public Dictionary<int, Patch> PatchesDictionary
 		{
 			get => patchesDictionary;
 		}
 
-		public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
+		public Table<INode, DOFType, double> Constraints { get; private set; } =
+			new Table<INode, DOFType, double>(); //TODOMaria: maybe it's useless in model class
 
 		public IGlobalFreeDofOrdering GlobalDofOrdering
 		{
@@ -78,6 +86,7 @@ namespace ISAAR.MSolve.IGA.Entities
 					patch.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
 					patch.Forces = Vector.CreateZero(patch.DofOrdering.NumFreeDofs);
 				}
+
 				//EnumerateSubdomainLagranges();
 				//EnumerateDOFMultiplicity();
 			}
@@ -103,13 +112,16 @@ namespace ISAAR.MSolve.IGA.Entities
 				{
 					Dictionary<int, double> edgeLoadDictionary = edge.CalculateLoads();
 					foreach (int dof in edgeLoadDictionary.Keys)
-						if (dof != -1) patch.Forces[dof] += edgeLoadDictionary[dof];
+						if (dof != -1)
+							patch.Forces[dof] += edgeLoadDictionary[dof];
 				}
+
 				foreach (Face face in patch.FacesDictionary.Values)
 				{
 					Dictionary<int, double> faceLoadDictionary = face.CalculateLoads();
 					foreach (int dof in faceLoadDictionary.Keys)
-						if (dof != -1) patch.Forces[dof] += faceLoadDictionary[dof];
+						if (dof != -1)
+							patch.Forces[dof] += faceLoadDictionary[dof];
 				}
 			}
 		}
@@ -171,12 +183,13 @@ namespace ISAAR.MSolve.IGA.Entities
 			foreach (ControlPoint controlPoint in ControlPointsDictionary.Values)
 			{
 				if (controlPoint.Constraints == null) continue;
-				foreach (Constraint constraint in controlPoint.Constraints) Constraints[controlPoint, constraint.DOF] = constraint.Amount;
+				foreach (Constraint constraint in controlPoint.Constraints)
+					Constraints[controlPoint, constraint.DOF] = constraint.Amount;
 			}
 
 			foreach (Patch patch in PatchesDictionary.Values) patch.ExtractConstraintsFromGlobal(Constraints);
 		}
-		
+
 		private void BuildElementDictionaryOfEachControlPoint()
 		{
 			foreach (Element element in elementsDictionary.Values)
@@ -184,7 +197,8 @@ namespace ISAAR.MSolve.IGA.Entities
 				controlPoint.ElementsDictionary.Add(element.ID, element);
 		}
 
-		private void BuildInterconnectionData()//TODOMaria: maybe I have to generate the constraints dictionary for each subdomain here
+		private void
+			BuildInterconnectionData() //TODOMaria: maybe I have to generate the constraints dictionary for each subdomain here
 		{
 			BuildPatchOfEachElement();
 			BuildElementDictionaryOfEachControlPoint();
@@ -197,8 +211,10 @@ namespace ISAAR.MSolve.IGA.Entities
 		{
 			foreach (Patch patch in patchesDictionary.Values)
 			foreach (Element element in patch.Elements)
+			{
 				element.Patch = patch;
+				element.Model = this;
+			}
 		}
-		
 	}
 }

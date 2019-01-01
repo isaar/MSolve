@@ -195,7 +195,8 @@ namespace ISAAR.MSolve.IGA.Entities
                     {
                         ID = elementID,
                         ElementType = new NURBSElement2D(),
-						Patch = Patch
+						Patch = Patch,
+						Model=Patch.Elements[0].Model
                     };
                     element.AddKnots(knotsOfElement);
                     element.AddControlPoints(elementControlPoints);
