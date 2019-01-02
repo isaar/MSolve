@@ -255,6 +255,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, 4); //TODO: would it be faster to do it myself?
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Matrix2by2"/> by copying the entries of this instance.
         /// </summary>
         public Matrix2by2 Copy() => new Matrix2by2(new double[,] { { data[0, 0], data[0, 1] }, { data[1, 0], data[1, 1] } });

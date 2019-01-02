@@ -229,6 +229,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(values, 0, values.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy(copyIndexingData);
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
+        public CscMatrix Copy(bool copyIndexingData)
+        {
+            var valuesCopy = new double[this.values.Length];
+            Array.Copy(this.values, valuesCopy, this.values.Length);
+
+            if (!copyIndexingData) return new CscMatrix(NumRows, NumColumns, valuesCopy, this.rowIndices, this.colOffsets);
+            else
+            {
+                var rowIndicesCopy = new int[this.rowIndices.Length];
+                Array.Copy(this.rowIndices, rowIndicesCopy, this.rowIndices.Length);
+                var colOffsetsCopy = new int[this.colOffsets.Length];
+                Array.Copy(this.colOffsets, colOffsetsCopy, this.colOffsets.Length);
+                return new CscMatrix(NumRows, NumColumns, valuesCopy, rowIndicesCopy, colOffsetsCopy);
+            }
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CscMatrix"/>. 
         /// Warning: there may not be enough memory.
         /// </summary>

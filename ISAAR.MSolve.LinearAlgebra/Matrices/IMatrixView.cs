@@ -28,6 +28,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
         IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient);
 
+        /// <summary>
+        /// Copies this <see cref="IMatrixView"/> object. A new matrix of the same type as this object is initialized and 
+        /// returned.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array(s) containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
+        IMatrix Copy(bool copyIndexingData = false);
 
         /// <summary>
         /// Performs a binary operation on each pair of entries: 

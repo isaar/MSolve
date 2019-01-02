@@ -248,6 +248,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(values, 0, values.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy(copyIndexingData);
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
+        public CsrMatrix Copy(bool copyIndexingData)
+        {
+            var valuesCopy = new double[this.values.Length];
+            Array.Copy(this.values, valuesCopy, this.values.Length);
+
+            if (!copyIndexingData) return new CsrMatrix(NumRows, NumColumns, valuesCopy, this.colIndices, this.rowOffsets);
+            else
+            {
+                var colIndicesCopy = new int[this.colIndices.Length];
+                Array.Copy(this.colIndices, colIndicesCopy, this.colIndices.Length);
+                var rowOffsetsCopy = new int[this.rowOffsets.Length];
+                Array.Copy(this.rowOffsets, rowOffsetsCopy, this.rowOffsets.Length);
+                return new CsrMatrix(NumRows, NumColumns, valuesCopy, colIndicesCopy, rowOffsetsCopy);
+            }
+        }
+
+        /// <summary>
         /// See <see cref="ISparseMatrix.CountNonZeros"/>
         /// </summary>
         public int CountNonZeros() => values.Length;

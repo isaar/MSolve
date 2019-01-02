@@ -257,9 +257,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(values, 0, values.Length);
 
         /// <summary>
-        /// Initializes a new <see cref="SkylineMatrix"/> instance by copying the entries of this <see cref="SkylineMatrix"/>. 
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
         /// </summary>
-        public SkylineMatrix Copy() => CreateFromArrays(NumColumns, values, diagOffsets, false, true);
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy(copyIndexingData);
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
+        public SkylineMatrix Copy(bool copyIndexingData)
+        {
+            var valuesCopy = new double[this.values.Length];
+            Array.Copy(this.values, valuesCopy, this.values.Length);
+
+            if (!copyIndexingData) return new SkylineMatrix(NumColumns, valuesCopy, this.diagOffsets);
+            else
+            {
+                var diagOffsetsCopy = new int[this.diagOffsets.Length];
+                Array.Copy(this.diagOffsets, diagOffsetsCopy, this.diagOffsets.Length);
+                return new SkylineMatrix(NumColumns, valuesCopy, diagOffsetsCopy);
+            }
+        }
 
         /// <summary>
         /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = <see cref="NumRows"/> 
@@ -783,7 +804,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="IMatrixView.Transpose"/>.
         /// </summary>
-        public IMatrix Transpose() => Copy();
+        public IMatrix Transpose() => Copy(false);
 
         /// <summary>
         /// Perhaps this should be manually inlined. Testing needed.

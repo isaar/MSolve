@@ -257,6 +257,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void Clear() => Array.Clear(data, 0, data.Length);
 
+        /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
         public SymmetricMatrix Copy()
         {
             double[] clone = new double[data.Length];

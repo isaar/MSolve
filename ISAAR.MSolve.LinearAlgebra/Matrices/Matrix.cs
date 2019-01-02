@@ -360,6 +360,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, data.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Matrix"/> by copying the entries of this instance.
         /// </summary>
         public Matrix Copy()

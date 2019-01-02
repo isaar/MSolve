@@ -183,9 +183,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(values, 0, values.Length);
 
         /// <summary>
-        /// Initializes a new <see cref="SymmetricCscMatrix"/> instance by copying the entries of this 
-        /// <see cref="SymmetricCscMatrix"/>. 
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
         /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy(copyIndexingData);
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
         public SymmetricCscMatrix Copy(bool copyIndexingArrays)
         {
             var valuesCopy = new double[values.Length];

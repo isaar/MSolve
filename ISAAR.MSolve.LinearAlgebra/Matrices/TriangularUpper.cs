@@ -200,6 +200,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, data.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        public TriangularUpper Copy()
+        {
+            var clone = new double[this.data.Length];
+            Array.Copy(this.data, clone, this.data.Length);
+            return new TriangularUpper(clone, Order);
+        }
+
+        /// <summary>
         /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = length(1) = 
         /// <see cref="Order"/>. 
         /// </summary>

@@ -298,6 +298,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, 9); //TODO: would it be faster to do it myself?
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Matrix3by3"/> by copying the entries of this instance.
         /// </summary>
         public Matrix3by3 Copy()
