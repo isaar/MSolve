@@ -737,9 +737,60 @@ namespace ISAAR.MSolve.IGA.Elements
 			return medianSurfaceGP;
 		}
 
+
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
-			throw new NotImplementedException();
+			var tsplineElement = (TSplineKirchhoffLoveShellElementMaterial)element;
+			var knotParametricCoordinatesKsi = new Vector(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { -1, 1 });
+
+			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+
+			var knotDisplacements = new double[4, 3];
+			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };
+			for (int j = 0; j < knotDisplacements.GetLength(0); j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += tsplines.TSplineValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += tsplines.TSplineValues[i, j] * localDisplacements[i, 1];
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += tsplines.TSplineValues[i, j] * localDisplacements[i, 2];
+				}
+			}
+
+			return knotDisplacements;
 		}
+
+		public double[,] CalculatePointsForPostProcessing(TSplineKirchhoffLoveShellElementMaterial element)
+		{
+			var localCoordinates = new double[4, 2]
+			{
+				{-1, -1},
+				{-1, 1},
+				{1, -1},
+				{1, 1}
+			};
+
+			var knotParametricCoordinatesKsi = new Vector(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { -1, 1 });
+
+			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(element, element.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+
+			var knotDisplacements = new double[4, 3];
+			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };
+			for (int j = 0; j < localCoordinates.GetLength(0); j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += tsplines.TSplineValues[i, j] * element.ControlPoints[i].X;
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += tsplines.TSplineValues[i, j] * element.ControlPoints[i].Y;
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += tsplines.TSplineValues[i, j] * element.ControlPoints[i].Z;
+				}
+			}
+
+			return knotDisplacements;
+
+		}
+
 	}
 }

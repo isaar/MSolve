@@ -10,11 +10,18 @@ using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
+
+	public enum TSplineShellType
+	{
+		Linear, Section, Thickness
+	}
+
 	public class ParaviewTsplineShells
 	{
 		private Model _model;
 		private IVectorView _solution;
 		private string _filename;
+
 
 		public ParaviewTsplineShells(Model model, IVectorView solution, string filename)
 		{
@@ -23,7 +30,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			_filename = filename;
 		}
 
-		public void CreateParaviewFile()
+		public void CreateParaviewFile(TSplineShellType shellType=TSplineShellType.Linear)
 		{
 			var projectiveControlPoints = CalculateProjectiveControlPoints();
 			var numberOfPointsPerElement = 4;
@@ -31,8 +38,28 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			var pointIndex = 0;
 			foreach (var element in _model.Elements)
 			{
-				var tsplineElement = element as TSplineKirchhoffLoveShellElement;
+				//double[,] elementPoints;
+				//switch (shellType)
+				//{
+				//	case TSplineShellType.Thickness:
+				//		elementPoints =
+				//			(element as TSplineKirchhoffLoveShellElementMaterial).CalculatePointsForPostProcessing(
+				//				element as TSplineKirchhoffLoveShellElementMaterial);
+				//		break;
+				//	case TSplineShellType.Section:
+				//		elementPoints =
+				//			(element as TSplineKirchhoffLoveShellSectionElement).CalculatePointsForPostProcessing(
+				//				element as TSplineKirchhoffLoveShellSectionElement);
+				//		break;
+				//	default:
+				//		elementPoints =
+				//			(element as TSplineKirchhoffLoveShellSectionElement).CalculatePointsForPostProcessing(
+				//				element as TSplineKirchhoffLoveShellSectionElement);
+				//		break;
+				//}
+				var tsplineElement = element as TSplineKirchhoffLoveShellElementMaterial;
 				var elementPoints = tsplineElement.CalculatePointsForPostProcessing(tsplineElement);
+
 				for (int i = 0; i < elementPoints.GetLength(0); i++)
 				{
 					nodes[pointIndex, 0] = elementPoints[i, 0];

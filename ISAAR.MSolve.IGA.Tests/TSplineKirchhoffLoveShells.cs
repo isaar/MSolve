@@ -300,7 +300,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			paraview.CreateParaviewFile();
 		}
 
-		//[Fact]
+		[Fact]
 		public void SimpleHoodBenchmarkMKL()
 		{
 			VectorExtensions.AssignTotalAffinityCount();
@@ -310,23 +310,13 @@ namespace ISAAR.MSolve.IGA.Tests
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);
 
 			var thickness = 1.0;
-
-			//modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.LinearMaterial,new ShellElasticMaterial2D
-			//{
-			//	PoissonRatio = 0.3,
-			//	YoungModulus = 1e5,
-			//}, thickness);
+			
 			modelReader.CreateTSplineShellsModelFromFile(IGAFileReader.TSplineShellTypes.ThicknessMaterial,new ShellElasticMaterial2D()
 			{
 				PoissonRatio = 0.3,
 				YoungModulus = 10000
 			}, thickness);
-
-			//model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
-			//{
-				
-			//};
-			//model.PatchesDictionary[0].Thickness = 1;
+			
 
 			for (int i = 0; i < 100; i++)
 			{
@@ -361,6 +351,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+
+			//var paraview = new ParaviewTsplineShells(model, solver.LinearSystems[0].Solution, filename);
+			//paraview.CreateParaviewFile();
 		}
 	}
 }
