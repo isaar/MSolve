@@ -575,6 +575,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// See <see cref="IVectorView.Norm2"/>
+        /// </summary>
+        public double Norm2() => Blas.Dnrm2(values.Length, values, 0, 1);
+
+        /// <summary>
         /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.
         /// </summary>
         public double Reduce(double identityValue, ProcessEntry processEntry, ProcessZeros processZeros, Finalize finalize)

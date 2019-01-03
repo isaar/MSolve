@@ -116,9 +116,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             });
         }
 
-        // TODO: implement this in each concrete vector.
-        public static double Norm2(this IVectorView thisVector) => Math.Sqrt(thisVector.DotProduct(thisVector));
-
         /// <summary>
         /// Performs the operation: 
         /// result[i] = <paramref name="thisVector"/>[i] - <paramref name="otherVector"/>[i], for 

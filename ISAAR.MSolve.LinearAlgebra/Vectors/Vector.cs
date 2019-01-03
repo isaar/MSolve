@@ -690,8 +690,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
-        /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
+        /// See <see cref="IVectorView.Norm2"/>
         /// </summary>
         public double Norm2() => Blas.Dnrm2(Length, data, 0, 1);
 

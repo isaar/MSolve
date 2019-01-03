@@ -88,6 +88,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         IVector LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
+        /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
+        /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
+        /// </summary>
+        double Norm2();
+
+        /// <summary>
         /// Performs the following operation for all i: result[i] = <paramref name="scalar"/> * this[i].
         /// The resulting vector is written in a new object and then returned.
         /// </summary>
