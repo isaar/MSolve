@@ -113,7 +113,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         IVector Multiply(IVectorView vector, bool transposeThis = false);
 
         /// <summary>
-        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="lhsVector"/>.
         /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </param>
         /// <param name="rhsVector">
         /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
-        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// equation y = oper(A) * x. Constraints: <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> 
         /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
         /// </param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
@@ -138,6 +138,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// method will try to.
         /// </exception>
         void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false);
+        //TODO: this is NOT a specialization of a version with offsets. It is defined only if the vectors have exactly the matching lengths.
 
         /// <summary>
         /// Performs the following operation for all (i, j): result[i, j] = <paramref name="scalar"/> * this[i, j].

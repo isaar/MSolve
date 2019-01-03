@@ -36,6 +36,7 @@ namespace ISAAR.MSolve.Tests.Solvers
         [Fact]
         internal static void TestPcgJacobiSolver()
         {
+            //LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.MKL;
             var pcgBuilder = new PcgAlgorithm.Builder();
             var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
             solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());

@@ -5,6 +5,8 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: this should not be in the same folder with the actual matrices and their interfaces
+//TODO: Split this into many classes: IMatrixExtensions, MatrixExtensions, CsrMatrixExtensions (or collectively 
+//      SparseMatrixExtensions, etc).
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -121,8 +123,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return true;
         }
-
-        
 
         /// <summary>
         /// Performs the multiplication operation: 

@@ -874,7 +874,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// violate the described contraints.
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
-        {
+        {   //TODO: this is NOT a specialization of the version with offsets. It is defined only if the vectors have exactly the matching lengths.
             int leftRows, leftCols;
             TransposeMatrix transpose;
             if (transposeThis)
@@ -895,6 +895,53 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Blas.Dgemv(transpose, NumRows, NumColumns,
                 1.0, this.data, 0, NumRows, lhsVector.RawData, 0, 1,
                 0.0, rhsVector.RawData, 0, 1);
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication y = alpha * oper(A) * x + beta * y, where:
+        /// alpha = <paramref name="lhsScale"/>, x = <paramref name="lhsVector"/>, beta = <paramref name="rhsScale"/>,
+        /// y = <paramref name="rhsScale"/>, oper(A) = this (if <paramref name="transposeThis"/> == false) or transpose(this)
+        /// (if <paramref name="transposeThis"/> == true).
+        /// The input vectors can be longer (taking into account the offsets) than the corresponding dimensions of this matrix. 
+        /// The resulting vector will overwrite <paramref name="lhsVector"/> starting from <paramref name="rhsOffset"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector x that will be multiplied by this matrix. Constraints: 
+        /// <paramref name="lhsOffset"/> + <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// &lt;= oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="lhsOffset">The index into <paramref name="lhsVector"/> from which to start the operations.</param>
+        /// <param name="lhsScale">The scalar alpha that will multiply <paramref name="lhsVector"/>.</param>
+        /// <param name="rhsVector">
+        /// The vector y that will be overwritten by the result of the operation. Constraints: 
+        /// <paramref name="rhsOffset"/> + <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// &lt;= oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="rhsOffset">The index into <paramref name="rhsVector"/> from which to start the operations.</param>
+        /// <param name="rhsScale">The scalar beta that will multiply <paramref name="rhsVector"/>.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        /// <exception cref="PatternModifiedException">
+        /// Thrown if the storage format of <paramref name="rhsVector"/> does not support overwritting the entries that this 
+        /// method will try to.
+        /// </exception>
+        public void MultiplySubvectorIntoResult(Vector lhsVector, int lhsOffset, double lhsScale, Vector rhsVector, int rhsOffset,
+            double rhsScale, bool transposeThis = false)
+        {
+            Preconditions.CheckMultiplicationDimensions(this, lhsVector, lhsOffset, rhsVector, rhsOffset, transposeThis);
+            if (transposeThis)
+            {
+                Blas.Dgemv(TransposeMatrix.Transpose, NumColumns, NumRows, lhsScale, this.data, 0, NumRows,
+                    lhsVector.RawData, lhsOffset, 1, rhsScale, rhsVector.RawData, rhsOffset, 1);
+            }
+            else
+            {
+                Blas.Dgemv(TransposeMatrix.NoTranspose, NumRows, NumColumns, lhsScale, this.data, 0, NumRows,
+                    lhsVector.RawData, lhsOffset, 1, rhsScale, rhsVector.RawData, rhsOffset, 1);
+            }
         }
 
         /// <summary>
