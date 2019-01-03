@@ -1,24 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Runtime;
-using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Input;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Logging.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
-using System.IO;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class MonteCarloAnalyzerWithStochasticMaterial : IAnalyzer
+    public enum StiffnessMatrixProductionMode
+    {
+        Normal = 0,
+        StoreToDisk,
+        LoadFromDiskAndCalculate,
+        StoreToDiskAndCalculate
+    }
+
+    public class MonteCarloAnalyzerWithStochasticMaterial_v2 : IParentAnalyzer
     {
         private int currentSimulation = -1;
         private readonly int blockSize = 5;
@@ -26,68 +33,63 @@ namespace ISAAR.MSolve.Analyzers
         private readonly int simulations;
         private readonly int simulationStartFrom = 0;
         private readonly int randomFileSimulations = 50000;
-        private readonly IDictionary<int, ILinearSystem> subdomains;
-        //private readonly IDictionary<int, IMatrix2D<double>> matrices;
-        private readonly IDictionary<int, IMatrix2D>[] matrices;
-        private readonly IDictionary<int, SkylineMatrix2D> factorizedMatrices = new Dictionary<int, SkylineMatrix2D>();
-        private readonly Model model;
-        private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
+        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
+        //private readonly IDictionary<int, IMatrix<double>> matrices;
+        private readonly IDictionary<int, IMatrix>[] matrices;
+        private readonly Model_v2 model;
         private readonly IAnalyzerProvider provider;
         private double[][] randomNumbers;
         private readonly StiffnessMatrixProductionMode stiffnessMatrixProductionMode = StiffnessMatrixProductionMode.Normal;
         private readonly string stiffnessMatrixPath = String.Empty;
         private readonly string randomsReadFileName = String.Empty;
-        //private readonly double[] stochasticDomain;
-        private IAnalyzer childAnalyzer;
-        private IAnalyzer parentAnalyzer = null;
         private readonly string fileNameForLogging = "monteCarlo";
         private readonly IStochasticMaterialCoefficientsProvider coefficientsProvider;
         private readonly List<int> matrixOrder = new List<int>();
         private readonly List<double> matrixMagnitudes = new List<double>();
-        
-        public IDictionary<int, SkylineMatrix2D> FactorizedMatrices { get { return factorizedMatrices; } }
 
-        public MonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticMaterialCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
+        public IDictionary<int, CholeskySkyline> FactorizedMatrices { get; } = new Dictionary<int, CholeskySkyline>();
+
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
         {
-            this.childAnalyzer = embeddedAnalyzer;
+            this.ChildAnalyzer = embeddedAnalyzer;
             this.provider = provider;
             this.model = model;
-            this.subdomains = subdomains;
+            this.linearSystems = solver.LinearSystems;
             this.expansionOrder = expansionOrder;
             this.simulations = simulations;
-            this.childAnalyzer.ParentAnalyzer = this;
-            //this.matrices = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
-            this.matrices = new Dictionary<int, IMatrix2D>[expansionOrder + 1];
+            this.ChildAnalyzer.ParentAnalyzer = this;
+            //this.matrices = new Dictionary<int, IMatrix<double>>(subdomains.Count);
+            this.matrices = new Dictionary<int, IMatrix>[expansionOrder + 1];
             this.coefficientsProvider = coefficientsProvider;
             //this.stochasticDomain = stochasticDomain;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
             int expansionOrder, int simulations, string fileNameForLogging)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, expansionOrder, simulations)
+            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations)
         {
             this.fileNameForLogging = fileNameForLogging;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
             int expansionOrder, int simulations, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, expansionOrder, simulations, fileNameForLogging)
+            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, fileNameForLogging)
         {
             this.stiffnessMatrixPath = stiffnessMatrixPath;
             this.stiffnessMatrixProductionMode = stiffnessMatrixProductionMode;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
             int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, expansionOrder, simulations, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {
             this.blockSize = blockSize;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
             int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName, 
             int simulationStartFrom)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, expansionOrder, simulations, blockSize, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, blockSize, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {
             this.randomsReadFileName = randomsReadFileName;
             this.simulationStartFrom = simulationStartFrom;
@@ -104,22 +106,13 @@ namespace ISAAR.MSolve.Analyzers
 
         #region IAnalyzer Members
 
-        public Dictionary<int, IAnalyzerLog[]> Logs { get { return logs; } }
-        public IAnalyzer ParentAnalyzer
-        {
-            get { return parentAnalyzer; }
-            set { parentAnalyzer = value; }
-        }
+        public Dictionary<int, IAnalyzerLog_v2[]> Logs { get; } = new Dictionary<int, IAnalyzerLog_v2[]>();
 
-        public IAnalyzer ChildAnalyzer
-        {
-            get { return childAnalyzer; }
-            set { childAnalyzer = value; }
-        }
+        public IChildAnalyzer ChildAnalyzer { get; set; }
 
         public void BuildMatrices()
         {
-            if (childAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
             if (currentSimulation < 0)
             {
                 if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.LoadFromDiskAndCalculate)
@@ -139,7 +132,7 @@ namespace ISAAR.MSolve.Analyzers
             else
             {
                 provider.Reset();
-                childAnalyzer.BuildMatrices();
+                ChildAnalyzer.BuildMatrices();
             }
             WriteMatricesToFile(currentSimulation);
         }
@@ -148,18 +141,18 @@ namespace ISAAR.MSolve.Analyzers
         //{
         //    var currentRandomNumbers = randomNumbers[currentSimulation];
         //    var coefficients = new double[] { 1 }.Concat(currentRandomNumbers).ToList<double>();
-        //    var matricesPerSubdomain = new Dictionary<int, IMatrix2D<double>[]>();
+        //    var matricesPerSubdomain = new Dictionary<int, IMatrix<double>[]>();
         //    foreach (var subdomain in subdomains.Values)
         //    {
         //        int id = subdomain.ID;
-        //        var tempMatrices = new IMatrix2D<double>[expansionOrder + 1];
+        //        var tempMatrices = new IMatrix<double>[expansionOrder + 1];
         //        for (int i = 0; i <= expansionOrder; i++)
         //            tempMatrices[i] = matrices[i][id];
         //        matricesPerSubdomain.Add(id, tempMatrices);
         //    }
 
         //    foreach (var subdomain in subdomains.Values)
-        //        subdomain.Matrix = (SkylineMatrix2D<double>)((SkylineMatrix2D<double>)matrices[0][subdomain.ID]).Clone();
+        //        subdomain.Matrix = (SkylineMatrix<double>)((SkylineMatrix<double>)matrices[0][subdomain.ID]).Clone();
         //    foreach (var subdomain in subdomains.Values)
         //        subdomain.Matrix.LinearCombination(coefficients, matricesPerSubdomain[subdomain.ID]);
 
@@ -168,15 +161,15 @@ namespace ISAAR.MSolve.Analyzers
         //    //{
         //    //    foreach (var subdomain in subdomains.Values)
         //    //    {
-        //    //        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)matrices[i + 1][subdomain.ID];
-        //    //        subdomain.Matrix.LinearCombination(new double[] { randomNumbers[currentSimulation][i] }, new IMatrix2D<double>[] { k });
+        //    //        SkylineMatrix<double> k = (SkylineMatrix<double>)matrices[i + 1][subdomain.ID];
+        //    //        subdomain.Matrix.LinearCombination(new double[] { randomNumbers[currentSimulation][i] }, new IMatrix<double>[] { k });
         //    //    }
         //    //}
         //}
 
         public void Initialize()
         {
-            if (childAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
 
             if (String.IsNullOrEmpty(randomsReadFileName))
             {
@@ -216,7 +209,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public void Solve()
         {
-            if (childAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
 
             if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.LoadFromDiskAndCalculate)
                 SolveWithOrder();
@@ -228,7 +221,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[10][DOFType.Y];
+            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[10], DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
@@ -261,16 +254,16 @@ namespace ISAAR.MSolve.Analyzers
                 if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.StoreToDisk) continue;
 
                 e = DateTime.Now;
-                childAnalyzer.Initialize();
+                ChildAnalyzer.Initialize();
                 times["factorize"] += DateTime.Now - e;
                 GCSettings.LatencyMode = GCLatencyMode.LowLatency;
                 e = DateTime.Now;
-                childAnalyzer.Solve();
+                ChildAnalyzer.Solve();
 
                 times["solution"] += DateTime.Now - e;
                 GCSettings.LatencyMode = GCLatencyMode.Batch;
-                values[i - simulationStartFrom] = subdomains[0].Solution[dofNo].ToString();
-                numberValues[i - simulationStartFrom] = subdomains[0].Solution[dofNo];
+                values[i - simulationStartFrom] = linearSystems[0].Solution[dofNo].ToString();
+                numberValues[i - simulationStartFrom] = linearSystems[0].Solution[dofNo];
                 //values[i] = subdomains[36].Solution[dofNo].ToString();
 
                 //values[i] = matrixMagnitudes[i].ToString();
@@ -297,6 +290,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public double MonteCarloMeanValue { get; set; }
         public double MonteCarloStandardDeviation { get; set; }
+
         private void MakePreconditioner(int simulation)
         {
             int matrixNo = matrixOrder[simulation + blockSize / 2];
@@ -305,21 +299,19 @@ namespace ISAAR.MSolve.Analyzers
             string nameOnly = Path.GetFileNameWithoutExtension(name);
             string ext = Path.GetExtension(name);
 
-            foreach (var sub in subdomains)
+            foreach (var linearSystem in linearSystems)
             {
-                var m = new SkylineMatrix2D(new int[0]);
-                m.ReadFromFile(String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, matrixNo));
-                m.Factorize(1e-8, new List<IVector>(), new List<int>());
-                if (factorizedMatrices.ContainsKey(sub.Key))
-                    factorizedMatrices[sub.Key] = m;
-                else
-                    factorizedMatrices.Add(sub.Key, m);
+                SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
+                    String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, linearSystem.Key, matrixNo));
+                CholeskySkyline factor = m.FactorCholesky(true, 1e-8);
+                if (FactorizedMatrices.ContainsKey(linearSystem.Key)) FactorizedMatrices[linearSystem.Key] = factor;
+                else FactorizedMatrices.Add(linearSystem.Key, factor);
             }
         }
 
         private void SolveWithOrder()
         {
-            int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
+            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[6051], DOFType.Y];
             string[] values = new string[simulations];
             var fileName = String.Format(@"{0}-{1}-{2}.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
             StreamWriter sw = File.CreateText(fileName);
@@ -347,10 +339,10 @@ namespace ISAAR.MSolve.Analyzers
                 if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.StoreToDisk) continue;
 
                 e = DateTime.Now;
-                childAnalyzer.Initialize();
-                childAnalyzer.Solve();
+                ChildAnalyzer.Initialize();
+                ChildAnalyzer.Solve();
                 times["solution"] += DateTime.Now - e;
-                values[i] = subdomains[1].Solution[dofNo].ToString();
+                values[i] = linearSystems[1].Solution[dofNo].ToString();
 
                 //using (sw = File.AppendText(fileName))
                 //{
@@ -389,12 +381,12 @@ namespace ISAAR.MSolve.Analyzers
             string nameOnly = Path.GetFileNameWithoutExtension(name);
             string ext = Path.GetExtension(name);
 
-            foreach (var sub in subdomains)
+            foreach (var linearSystem in linearSystems.Values)
             {
-                if (sub.Value.Matrix == null)
-                    sub.Value.Matrix = new SkylineMatrix2D(new int[0]);
-                var m = (SkylineMatrix2D)sub.Value.Matrix;
-                m.ReadFromFile(String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, simulation));
+                int id = linearSystem.Subdomain.ID;
+                SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
+                    String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, id, simulation));
+                linearSystem.SetMatrix(m);
 
                 //double d = 0;
                 //for (int i = 0; i < m.RowIndex.Length - 1; i++)
