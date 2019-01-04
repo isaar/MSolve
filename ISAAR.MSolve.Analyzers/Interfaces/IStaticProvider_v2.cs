@@ -6,6 +6,6 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
     {
         //TODO: this should calculate and return the matrix and the analyzer should set it. Perhaps that convention should hold 
         //      for all matrices, rhs vectors.
-        void CalculateMatrix(ILinearSystem_v2 subdomain);
+        void CalculateMatrix(ILinearSystem_v2 linearSYstem);
     }
 }

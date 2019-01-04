@@ -12,10 +12,10 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
     {
         //TODO: This should not exist at all. The provider should return the 0th order (stiffness), 1st order (damping) and 2nd
         //      order matrices (or some matrix representations that can be combined between them and multiplied with vectors).
-        void CalculateEffectiveMatrix(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients);
+        void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients);
 
         //TODO: Way too generic name. Probably needs refactoring as well.
-        void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients);
+        void ProcessRhs(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients);
 
         //TODO: I think the analyzer is responsible for these. E.g. Newmark has the formulas with beta and gamma, Euler has the
         //      central differences formulas, etc.

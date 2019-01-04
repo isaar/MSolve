@@ -106,7 +106,6 @@ namespace ISAAR.MSolve.Problems
         private void BuildCs()
         {
             cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
@@ -152,7 +151,7 @@ namespace ISAAR.MSolve.Problems
             linearSystem.SetMatrix(this.Ks[id]);
         }
 
-        public void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
+        public void ProcessRhs(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
         {
             // Method intentionally left empty.
         }
@@ -268,7 +267,7 @@ namespace ISAAR.MSolve.Problems
 
         public double CalculateRhsNorm(IVectorView rhs) => rhs.Norm2();
 
-        public void ProcessInternalRhs(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution) {}
+        public void ProcessInternalRhs(ILinearSystem_v2 linearSystem, IVector rhs, IVectorView solution) {}
 
         #endregion
     }
