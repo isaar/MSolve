@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -36,6 +37,8 @@ namespace ISAAR.MSolve.Analyzers
                 for (iteration = 0; iteration < maxIterationsPerIncrement; iteration++)
                 {
                     solver.Solve();
+                    //double rhsNormIt = solver.LinearSystems.First().Value.RhsVector.Norm2();
+                    //double xNormIt = solver.LinearSystems.First().Value.Solution.Norm2();
                     Dictionary<int, IVector> internalRhsVectors = CalculateInternalRhs(increment, iteration);
                     double residualNormCurrent = UpdateResidualForcesAndNorm(increment, internalRhsVectors); // This also sets the rhs vectors in linear systems.
                     errorNorm = globalRhsNormInitial != 0 ? residualNormCurrent / globalRhsNormInitial : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
@@ -64,6 +67,8 @@ namespace ISAAR.MSolve.Analyzers
                         BuildMatrices();
                     }
                 }
+                //double rhsNormInc = solver.LinearSystems.First().Value.RhsVector.Norm2();
+                //double xNormInc = solver.LinearSystems.First().Value.Solution.Norm2();
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", iteration, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();
             }

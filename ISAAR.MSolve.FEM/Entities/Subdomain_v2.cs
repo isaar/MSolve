@@ -81,6 +81,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void DefineNodesFromElements()
         {
+            nodes.Clear();
             var nodeComparer = Comparer<Node_v2>.Create((Node_v2 node1, Node_v2 node2) => node1.ID - node2.ID);
             var nodeSet = new SortedSet<Node_v2>(nodeComparer);
             foreach (Element_v2 element in Elements)

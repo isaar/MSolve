@@ -120,6 +120,8 @@ namespace ISAAR.MSolve.FEM.Entities
             MassAccelerationLoads.Clear();
         }
 
+        // Warning: This is called by the analyzer, so that the user does not have to call it explicitly. However, it is must be 
+        // called explicitly before the AutomaticDomainDecompositioner is used.
         public void ConnectDataStructures()
         {
             BuildInterconnectionData();

@@ -21,6 +21,7 @@ namespace ISAAR.MSolve.Tests
 {
     public class PCGSkylineTest
     {
+        //TODO: Remove this. PCG is tested in LinearAlgebra.Tests
         [Fact]
         public void TestPCGSkylineExample()
         {

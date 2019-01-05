@@ -146,7 +146,6 @@ namespace ISAAR.MSolve.Tests.FEM
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
             //var solverBuilder = new Solvers.Dense.DenseMatrixSolver.Builder();
-            solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
             //solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NullReordering());
             var solver = solverBuilder.BuildSolver(model);
 

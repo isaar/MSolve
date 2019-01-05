@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Geometry
 
             // @Theo
             rotationMatrix.AxpyIntoThis(rotatedVectorLocal.TensorProduct(initialVectorLocal), 2.0);
-            rotationMatrix.AxpyIntoThis(rotatedVectorLocal.TensorProduct(vectorSum), -2.0 / (vectorSumNorm * vectorSumNorm));
+            rotationMatrix.AxpyIntoThis(vectorSum.TensorProduct(vectorSum), -2.0 / (vectorSumNorm * vectorSumNorm));
             //rotationMatrix.LinearCombinationGOAT(new[] { 2d }, new[] { Matrix2D.FromVector(rotatedVectorLocal.Data) * Matrix2D.FromVectorTranspose(initialVectorLocal.Data) });
             //rotationMatrix.LinearCombinationGOAT(new[] { -2d / (vectorSumNorm * vectorSumNorm) }, new[] { Matrix2D.FromVector(vectorSum.Data) * Matrix2D.FromVectorTranspose(vectorSum.Data) });
 
