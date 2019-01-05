@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double EIL2 = EIL / L;
             double EIL3 = EIL2 / L;
             int order = 6;
-            return DofEnumerator.GetTransformedMatrix(SymmetricMatrix.CreateFromArray(new double[]
+            return DofEnumerator.GetTransformedMatrix(SymmetricMatrix.CreateFromPackedRowMajorArray(new double[]
             {
                 c2 * EAL + 12 * s2 * EIL3, c * s * EAL - 12 * c * s * EIL3, -6 * s * EIL2, -c2 * EAL - 12 * s2 * EIL3, -c * s * EAL + 12 * c * s * EIL3, -6 * s * EIL2,
                 s2 * EAL + 12 * c2 * EIL3, 6 * c * EIL2, -s * c * EAL + 12 * c * s * EIL3, -s2 * EAL - 12 * c2 * EIL3,  6 * c * EIL2,

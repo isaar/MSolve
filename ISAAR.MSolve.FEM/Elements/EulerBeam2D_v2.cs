@@ -72,9 +72,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //TODO: optimize this
             int order = 6;
-            var k = SymmetricMatrix.CreateFromArray(new double[]
+            var k = SymmetricMatrix.CreateFromPackedRowMajorArray(new double[]
             {
-                c2 *EAL+12*s2*EIL3, c*s*EAL-12*c*s*EIL3, -6*s*EIL2, -c2*EAL-12*s2*EIL3, -c*s*EAL+12*c*s*EIL3, -6*s*EIL2,
+                c2*EAL+12*s2*EIL3, c*s*EAL-12*c*s*EIL3, -6*s*EIL2, -c2*EAL-12*s2*EIL3, -c*s*EAL+12*c*s*EIL3, -6*s*EIL2,
                 s2*EAL+12*c2*EIL3, 6*c*EIL2, -s*c*EAL+12*c*s*EIL3, -s2*EAL-12*c2*EIL3, 6*c*EIL2,
                 4*EIL, 6*s*EIL2, -6*c*EIL2, 2*EIL,
                 c2*EAL+12*s2*EIL3, s*c*EAL-12*c*s*EIL3, 6*s*EIL2,
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //TODO: optimize this
             int order = 6;
-            return SymmetricMatrix.CreateFromArray(new double[] 
+            return SymmetricMatrix.CreateFromPackedRowMajorArray(new double[] 
             {
                 dAL420 *(140*c2+156*s2)*scale, 0, 0, 0, 0, 0,
                 dAL420*(140*s2+156*c2)*scale, 0, 0, 0, 0,

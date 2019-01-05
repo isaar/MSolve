@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
             double[] faK = new double[300];
             CalcH8K(ref iInt, afE, faB, faWeight, faK);
-            return dofEnumerator.GetTransformedMatrix(SymmetricMatrix.CreateFromArray(faK));
+            return dofEnumerator.GetTransformedMatrix(SymmetricMatrix.CreateFromPackedRowMajorArray(faK));
         }
 
         private double[] GetStochasticPoints(IElement_v2 element, int iX, int iY, int iZ)

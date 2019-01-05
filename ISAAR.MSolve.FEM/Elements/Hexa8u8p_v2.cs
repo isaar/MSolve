@@ -183,7 +183,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] faK = new double[300];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH8K(ref iInt, afE, faB, faWeight, faK);
-            return dofEnumerator.GetTransformedMatrix(SymmetricMatrix.CreateFromArray(faK));
+            return dofEnumerator.GetTransformedMatrix(SymmetricMatrix.CreateFromPackedRowMajorArray(faK));
         }
 
         public IMatrix MassMatrix(IElement_v2 element)
@@ -199,7 +199,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double fDensity = Density;
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH8MLumped(ref iInt, ref fDensity, faWeight, faM);
-            return SymmetricMatrix.CreateFromArray(faM);
+            return SymmetricMatrix.CreateFromPackedRowMajorArray(faM);
         }
 
         public IMatrix DampingMatrix(IElement_v2 element)
@@ -369,7 +369,7 @@ namespace ISAAR.MSolve.FEM.Elements
             ////double[] solidAndFluidForces = q * fluidDisplacements + (new Vector<double>(solidForces));
             // H correction
             fluidDisplacements.ScaleIntoThis(-1.0);
-            double[] fluidDrags = SymmetricMatrix.CreateFromArray(faH).Multiply(fluidDisplacements).CopyToArray();
+            double[] fluidDrags = SymmetricMatrix.CreateFromPackedRowMajorArray(faH).Multiply(fluidDisplacements).CopyToArray();
 
             double[] totalForces = new double[GetAllDOFs()];
             ScatterFromFluidVector(fluidDrags, totalForces);
@@ -512,7 +512,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] faH = new double[36];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH20u8pH(ref iInt, faPermeability, faS, faB, faWeight, faH);
-            return SymmetricMatrix.CreateFromArray(faH);
+            return SymmetricMatrix.CreateFromPackedRowMajorArray(faH);
         }
 
         // Rows are fluid DOFs and columns are solid DOFs
@@ -548,7 +548,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] faSaturation = new double[36];
             CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             CalcH20u8pS(ref iInt, faXwDivQ, faS, faWeight, faSaturation);
-            return SymmetricMatrix.CreateFromArray(faSaturation);
+            return SymmetricMatrix.CreateFromPackedRowMajorArray(faSaturation);
         }
 
         #endregion

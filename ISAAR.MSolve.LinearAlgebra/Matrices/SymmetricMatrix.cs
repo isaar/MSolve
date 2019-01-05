@@ -124,8 +124,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     during creation of the <see cref="SymmetricMatrix"/> object.</param>
         /// <param name="copyArray">True to make a deep copy of <see cref="array1D"/>. 
         ///     False (default) to use <see cref="array1D"/> as its internal storage.</param>
-        /// <returns></returns>
-        public static SymmetricMatrix CreateFromArray(double[] array1D, int order = 0,
+        public static SymmetricMatrix CreateFromPackedColumnMajorArray(double[] array1D, int order = 0,
             DefiniteProperty definiteness = DefiniteProperty.Unknown, bool copyArray = false)
         {
             int n = (order == 0) ? Conversions.PackedLengthToOrder(array1D.Length) : order;
@@ -136,6 +135,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 return new SymmetricMatrix(clone, n, definiteness);
             }
             else return new SymmetricMatrix(array1D, n, definiteness);
+        }
+
+        /// <summary>
+        /// Create a new <see cref="SymmetricMatrix"/> from a provided array. The array can be copied (for extra safety)
+        /// or not (for extra performance).
+        /// </summary>
+        /// <param name="array1D">A 1-dimensional array containing the elements of the upper triangle of the matrix in row 
+        ///     major order.</param>
+        /// <param name="order"> The order of the matrix. It must be positive and match the length of <see cref="array1D"/>. If a 
+        ///     value is provided, these will not be checked. If no value is provided, the order will be calculated from 
+        ///     <see cref="array1D"/> instead.</param>
+        /// <param name="definiteness">If the caller knows that the matrix is positive definite etc., he can set this property 
+        ///     during creation of the <see cref="SymmetricMatrix"/> object.</param>
+        public static SymmetricMatrix CreateFromPackedRowMajorArray(double[] array1D, int order = 0,
+            DefiniteProperty definiteness = DefiniteProperty.Unknown)
+        {
+            int n = (order == 0) ? Conversions.PackedLengthToOrder(array1D.Length) : order;
+            double[] columnMajor = Conversions.PackedUpperRowMajorPackedUpperColMajor(n, array1D);
+            return new SymmetricMatrix(columnMajor, n, definiteness);
         }
 
         /// <summary>
@@ -157,7 +175,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <returns></returns>
         public static SymmetricMatrix CreateZero(int order)
         {
-            double[] data = new double[order * order];
+            double[] data = new double[((order + 1) * order) / 2];
             //This matrix will be used as a canvas, thus we cannot infer that it is indefinite yet.
             return new SymmetricMatrix(data, order, DefiniteProperty.Unknown); 
         }
@@ -570,7 +588,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public SymmetricMatrix Transpose(bool copyInternalArray)
         {
-            return SymmetricMatrix.CreateFromArray(data, Order, Definiteness, copyInternalArray);
+            return SymmetricMatrix.CreateFromPackedColumnMajorArray(data, Order, Definiteness, copyInternalArray);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

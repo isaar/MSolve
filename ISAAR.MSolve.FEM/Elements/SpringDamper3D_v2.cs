@@ -75,15 +75,26 @@ namespace ISAAR.MSolve.FEM.Elements
             double x = (springDirections == SpringDirections.X || springDirections == SpringDirections.XY || springDirections == SpringDirections.XZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
             double y = (springDirections == SpringDirections.Y || springDirections == SpringDirections.XY || springDirections == SpringDirections.YZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
             double z = (springDirections == SpringDirections.Z || springDirections == SpringDirections.XZ || springDirections == SpringDirections.YZ || springDirections == SpringDirections.XYZ) ? springCoefficient : 0;
-            return SymmetricMatrix.CreateFromArray(new double[] 
-            {
-                x, 0, 0, -x, 0, 0,
-                y, 0, 0, -y, 0, 
-                z, 0, 0, -z,
-                x, 0, 0,
-                y, 0,
-                z
-            });
+            return Matrix.CreateFromArray(new double[,]
+                {
+                   { x, 0, 0, -x, 0, 0 },
+                   { 0, y, 0, 0, -y, 0 },
+                   { 0, 0, z, 0, 0, -z },
+                   {-x, 0, 0, x, 0, 0 },
+                   { 0,-y, 0, 0, y, 0 },
+                   { 0, 0,-z, 0, 0, z }
+                }
+                );
+
+            //return SymmetricMatrix.CreateFromArray(new double[] 
+            //{
+            //    x, 0, 0, -x, 0, 0,
+            //       y, 0, 0, -y, 0, 
+            //          z, 0, 0, -z,
+            //             x, 0, 0,
+            //                y, 0,
+            //                   z
+            //});
         }
 
         public IMatrix MassMatrix(IElement_v2 element) => Matrix.CreateZero(6, 6);
@@ -93,15 +104,27 @@ namespace ISAAR.MSolve.FEM.Elements
             double x = (dampingDirections == SpringDirections.X || dampingDirections == SpringDirections.XY || dampingDirections == SpringDirections.XZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
             double y = (dampingDirections == SpringDirections.Y || dampingDirections == SpringDirections.XY || dampingDirections == SpringDirections.YZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
             double z = (dampingDirections == SpringDirections.Z || dampingDirections == SpringDirections.XZ || dampingDirections == SpringDirections.YZ || dampingDirections == SpringDirections.XYZ) ? dampingCoefficient : 0;
-            return SymmetricMatrix.CreateFromArray(new double[] 
-            {
-                x, 0, 0, -x, 0, 0,
-                y, 0, 0, -y, 0, 
-                z, 0, 0, -z,
-                x, 0, 0,
-                y, 0,
-                z
-            });
+
+            return Matrix.CreateFromArray(new double[,]
+                {
+                   { x, 0, 0, -x, 0, 0 },
+                   { 0, y, 0, 0, -y, 0 },
+                   { 0, 0, z, 0, 0, -z },
+                   {-x, 0, 0, x, 0, 0 },
+                   { 0,-y, 0, 0, y, 0 },
+                   { 0, 0,-z, 0, 0, z }
+                }
+                );
+
+            //return SymmetricMatrix.CreateFromArray(new double[] 
+            //{
+            //    x, 0, 0, -x, 0, 0,
+            //    y, 0, 0, -y, 0, 
+            //    z, 0, 0, -z,
+            //    x, 0, 0,
+            //    y, 0,
+            //    z
+            //});
         }
 
         public void ResetMaterialModified() { }

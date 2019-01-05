@@ -422,7 +422,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //TODO: optimize this
             int order = 12;
-            Matrix stiffnessMatrix = SymmetricMatrix.CreateFromArray(new double[] 
+            Matrix stiffnessMatrix = SymmetricMatrix.CreateFromPackedRowMajorArray(new double[] 
             {
                 EAL, 0, 0, 0, 0, 0, -EAL, 0, 0, 0, 0, 0,
                 12*EIz*L3, 0, 0, 0, 6*EIz*L2, 0, -12*EIz*L3, 0, 0, 0, 6*EIz*L2,
@@ -583,7 +583,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //});
             double halfMass = Density * SectionArea / L / 6d;
             int order = 12;
-            Matrix massMatrix = SymmetricMatrix.CreateFromArray(
+            Matrix massMatrix = SymmetricMatrix.CreateFromPackedRowMajorArray(
                 new double[] { halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 halfMass, 0, 0, 0, 0, 0, 0, 0, 0, 0,
