@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Analyzers
             var subdomainUpdaters = new Dictionary<int, INonLinearSubdomainUpdater_v2>(numSubdomains);
             for (int i = 0; i < numSubdomains; ++i)
             {
-                subdomainUpdaters[i] = new NonLinearSubdomainUpdater_v2(model.Subdomains[i]);
+                subdomainUpdaters[model.Subdomains[i].ID] = new NonLinearSubdomainUpdater_v2(model.Subdomains[i]);
             }
             return subdomainUpdaters;
 
