@@ -1,20 +1,15 @@
-﻿using ISAAR.MSolve.Analyzers;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
-using System.Linq;
 using ISAAR.MSolve.Logging.VTK;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
+using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole

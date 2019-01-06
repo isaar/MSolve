@@ -68,7 +68,6 @@ namespace ISAAR.MSolve.Tests
             parentAnalyzer.Solve();
         }
 
-        [Fact]
         public void SolveNLBeam_v2()
         {
             var m = new Model_v2();

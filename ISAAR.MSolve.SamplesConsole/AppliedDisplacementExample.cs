@@ -6,6 +6,7 @@ using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using System;
@@ -16,23 +17,20 @@ namespace ISAAR.MSolve.SamplesConsole
 {
     public class AppliedDisplacementExample
     {
-        /// <summary>
-        /// Create nodes
-        /// </summary>
-        /// <returns></returns>
-        private static IList<Node> CreateNodes()
+        private const int subdomainID = 0;
+
+        private static IList<Node_v2> CreateNodes()
         {
-            IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 1.0, Y = 0.0, Z = 0.0 };
+            IList<Node_v2> nodes = new List<Node_v2>();
+            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node_v2 node2 = new Node_v2 { ID = 2, X = 1.0, Y = 0.0, Z = 0.0 };
             nodes.Add(node1);
             nodes.Add(node2);
             return nodes;
         }
 
-        public void check()
+        public static void Run()
         {
-            VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 200.0e06;
             double poissonRatio = 0.3;
             double nodalLoad = 25.0;
@@ -45,13 +43,13 @@ namespace ISAAR.MSolve.SamplesConsole
             };
 
             // Node creation
-            IList<Node> nodes = CreateNodes();
+            IList<Node_v2> nodes = CreateNodes();
 
             // Model creation
-            Model model = new Model();
+            Model_v2 model = new Model_v2();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+            model.SubdomainsDictionary.Add(0, new Subdomain_v2(subdomainID));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -67,14 +65,14 @@ namespace ISAAR.MSolve.SamplesConsole
             model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = -4.16666666666667E-07 });
 
             //Create a new Beam2D element
-            var beam = new EulerBeam2D(youngModulus)
+            var beam = new EulerBeam2D_v2(youngModulus)
             {
                 SectionArea = 1,
                 MomentOfInertia = .1
             };
 
 
-            var element = new Element()
+            var element = new Element_v2()
             {
                 ID = 1,
                 ElementType = beam
@@ -88,38 +86,36 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Add Hexa element to the element and subdomains dictionary of the model
             model.ElementsDictionary.Add(element.ID, element);
-            model.SubdomainsDictionary[0].ElementsDictionary.Add(element.ID, element);
+            model.SubdomainsDictionary[subdomainID].Elements.Add(element);
 
             // Add nodal load values at the top nodes of the model
             //model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
 
-            // Needed in order to make all the required data structures
-            model.ConnectDataStructures();
+            // Solver
+            var solverBuilder = new SkylineSolver.Builder();
+            SkylineSolver solver = solverBuilder.BuildSolver(model);
 
+            // Structural problem provider
+            var provider = new ProblemStructural_v2(model, solver);
 
-            var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[0] = new SkylineLinearSystem(0, model.SubdomainsDictionary[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            // Linear static analysis
+            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-
-            // Choose dof types X, Y, Z to log for node 5
-            childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] {
-                model.NodalDOFsDictionary[2][DOFType.X],
-                model.NodalDOFsDictionary[2][DOFType.RotZ]});
-
-            // Analyze the problem
-            parentAnalyzer.BuildMatrices();
+            // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Dictionary<int, double> results = (childAnalyzer.Logs[0][0] as DOFSLog).DOFValues;
+            // Choose dof types X, Y, rotZ to log for node 5
+            double ux = solver.LinearSystems[subdomainID].Solution[
+                 model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], DOFType.X]];
+            double rz = solver.LinearSystems[subdomainID].Solution[
+                             model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], DOFType.RotZ]];
+            double[] results = { ux, rz };
+
             double[] expected = new double[] { 0, -4.16666666666667E-07, -6.25E-07 };
 
-            for (int i = 0; i < expected.Length-1; i++)
+            for (int i = 0; i < expected.Length - 1; i++)
             {
                 //if (Math.Abs(expected[i] - results[i]) > 1e-14)
                 //{
