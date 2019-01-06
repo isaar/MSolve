@@ -163,10 +163,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             return forces;
         }
 
-        public void SaveMaterialState()
-        {
-            throw new NotImplementedException();
-        }
+        public void SaveMaterialState() { }
 
         #endregion
 
