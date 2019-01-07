@@ -90,17 +90,15 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
         public class Builder
         {
-            private readonly PcgAlgorithm pcg;
-
-            public Builder(PcgAlgorithm pcg) => this.pcg = pcg;
-
             public IDofOrderer DofOrderer { get; set; }
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+
+            public PcgAlgorithm PcgAlgorithm { get; set; } = (new PcgAlgorithm.Builder()).Build();
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model) 
-                => new PcgSolver(model, pcg, PreconditionerFactory, DofOrderer);
+                => new PcgSolver(model, PcgAlgorithm, PreconditionerFactory, DofOrderer);
         }
 
         private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>

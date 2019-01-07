@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             TestSettings.RunMultiproviderTest(LinearAlgebraProviderChoice.MKL, delegate ()
             {
                 var solverBuilder = new DenseMatrixSolver.Builder();
-                solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+                //solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()); // default
                 RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
             });
         }
@@ -37,17 +37,19 @@ namespace ISAAR.MSolve.Tests.Solvers
         internal static void TestPcgJacobiSolver()
         {
             //LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.MKL;
-            var pcgBuilder = new PcgAlgorithm.Builder();
-            var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
-            solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            var solverBuilder = new PcgSolver.Builder();
+            //var pcgBuilder = new PcgAlgorithm.Builder();
+            //solverBuilder.PcgAlgorithm = pcgBuilder.Build(); // default
+            //solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()); // default
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 
         [Fact]
         internal static void TestPcgJacobiSolverWithAmdReordering()
         {
-            var pcgBuilder = new PcgAlgorithm.Builder();
-            var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
+            var solverBuilder = new PcgSolver.Builder();
+            //var pcgBuilder = new PcgAlgorithm.Builder();
+            //solverBuilder.PcgAlgorithm = pcgBuilder.Build();
             solverBuilder.DofOrderer = new DofOrderer(
                 new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
@@ -57,7 +59,7 @@ namespace ISAAR.MSolve.Tests.Solvers
         internal static void TestSkylineSolver()
         {
             var solverBuilder = new SkylineSolver.Builder();
-            solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            //solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()); // default
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 
@@ -86,8 +88,8 @@ namespace ISAAR.MSolve.Tests.Solvers
             Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
 
             var solverBuilder = new SuiteSparseSolver.Builder();
-            solverBuilder.DofOrderer = new DofOrderer(
-                new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
+            //solverBuilder.DofOrderer = new DofOrderer(
+            //    new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd()); // default
             RunCantileverBenchmark(model => solverBuilder.BuildSolver(model));
         }
 

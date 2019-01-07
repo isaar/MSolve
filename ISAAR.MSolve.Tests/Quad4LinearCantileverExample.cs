@@ -174,7 +174,8 @@ namespace ISAAR.MSolve.Tests
             var pcgBuilder = new PcgAlgorithm.Builder();
             pcgBuilder.ResidualTolerance = 1E-6;
             pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(0.5);
-            var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
+            var solverBuilder = new PcgSolver.Builder();
+            solverBuilder.PcgAlgorithm = pcgBuilder.Build();
             PcgSolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type

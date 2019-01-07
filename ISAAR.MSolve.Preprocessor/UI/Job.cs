@@ -170,8 +170,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
             else if (Solver == SolverOptions.IterativePcg)
             {
-                var pcgBuilder = new PcgAlgorithm.Builder();
-                var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
+                var solverBuilder = new PcgSolver.Builder();
                 solver = solverBuilder.BuildSolver(model.CoreModel);
             }
             else
