@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly int totalDOFs;
         private int maxSteps = 1000;
         private int stepsForMatrixRebuild = 1;
-        private readonly double tolerance = 1e-8;
+        private readonly double tolerance = 1e-4;
         private double rhsNorm;
         private INonLinearParentAnalyzer parentAnalyzer = null;
         private readonly ISolver solver;
@@ -50,6 +50,8 @@ namespace ISAAR.MSolve.Analyzers
         }
 
         public TotalDisplacementsPerIterationLog IterativeDisplacementsLog { get; set; }
+        public Dictionary<int, TotalLoadsDisplacementsPerIncrementLog_v1> IncrementalLogs { get; }
+            = new Dictionary<int, TotalLoadsDisplacementsPerIncrementLog_v1>();
 
         public int SetMaxIterations
         {
@@ -60,7 +62,6 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
-
         public int SetIterationsForMatrixRebuild
         {
             set
@@ -70,11 +71,11 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
-
         private void InitializeLogs()
         {
             logs.Clear();
             foreach (int id in logFactories.Keys) logs.Add(id, logFactories[id].CreateLogs());
+            foreach (var log in IncrementalLogs.Values) log.Initialize();
         }
 
         private void StoreLogResults(DateTime start, DateTime end)
@@ -173,7 +174,18 @@ namespace ISAAR.MSolve.Analyzers
                     //Console.WriteLine($"Increment {increment}, iteration {step}: norm2(error) = {errorNorm}");
                     if (step == 0) firstError = errorNorm;
                     if (IterativeDisplacementsLog != null) IterativeDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
-                    if (errorNorm < tolerance) break;
+
+                    if (errorNorm < tolerance)
+                    {
+                        //foreach (var subdomainLogPair in IncrementalLogs)
+                        //{
+                        //    int subdomainID = subdomainLogPair.Key;
+                        //    TotalLoadsDisplacementsPerIncrementLog_v1 log = subdomainLogPair.Value;
+                        //    log.LogTotalDataForIncrement(increment, step, errorNorm,
+                        //        uPlusdu[subdomainID], internalRhsVectors[subdomainID]);
+                        //}
+                        break;
+                    }
 
                     SplitResidualForcesToSubdomains();//TODOMaria scatter residuals to subdomains
                     if ((step + 1) % stepsForMatrixRebuild == 0)
@@ -182,7 +194,6 @@ namespace ISAAR.MSolve.Analyzers
                         BuildMatrices();
                         solver.Initialize();
                     }
-
                 }
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);
                 SaveMaterialStateAndUpdateSolution();

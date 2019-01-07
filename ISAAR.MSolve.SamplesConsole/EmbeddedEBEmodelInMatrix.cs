@@ -25,12 +25,12 @@ using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
-    public class CNTembeddedInMatrixExample
+    public class EmbeddedEBEmodelInMatrix
     {
         private const string outputDirectory = @"E:\GEORGE_DATA\DESKTOP\MSolveResults";
         private const int subdomainID = 0;
 
-        public static void EmbeddedCNTinMatrix_NewtonRaphson()
+        public static void EmbeddedEBEinMatrix_NewtonRaphson()
         {
             VectorExtensions.AssignTotalAffinityCount();
 
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.SamplesConsole
             DOFType monitorDof = DOFType.Y;
 
             // Choose model
-            EmbeddedModelBuilder.EmbeddedExample(model);
+            EmbeddedEBEModelBuilder.EmbeddedExampleBuilder(model);
 
             //-----------------------------------------------------------------------------------------------------------
             // Model_v2
@@ -79,48 +79,28 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
         }
 
-        public static void EmbeddedCNTinMatrix_DisplacementControl()
+        public static class EmbeddedEBEModelBuilder
         {
-
-        }
-
-        public static class EmbeddedModelBuilder
-        {
-            public static void EmbeddedExample(Model_v2 model)
+            public static void EmbeddedExampleBuilder(Model_v2 model)
             {
-                HostElementsBuilder(model);
-                EmbeddedElementsBuilder(model);
-                //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 2500000).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 2500000).Select(kv => kv.Value), true);
-                //var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 2500).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 2500).Select(kv => kv.Value), true);
-                //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 312500).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 312500).Select(kv => kv.Value), true);
-                //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 1250).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 1250).Select(kv => kv.Value), true);
-                //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 90).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 90).Select(kv => kv.Value), true);
+                MatrixModelBuilder(model);
+                EBEModelBuilder(model);
                 var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 90).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 90).Select(kv => kv.Value), true);
             }
 
-            public static void HostElementsBuilder(Model_v2 model)
+            public static void MatrixModelBuilder(Model_v2 model)
             {
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
 
-                string MatrixGeometryFileName = "MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-Geometry_MSolve.inp";
-                //"MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-Geometry_MSolve.inp"; 
-                //"MATRIX_3D-L_x=5-L_y=5-L_z=100-5x5x100-Geometry_MSolve.inp"; 
-                //"MATRIX_3D-L_x=5-L_y=5-L_z=100-25x25x500-Geometry_MSolve.inp";
-                //"MATRIX_3D-L_x=1-L_y=1-L_z=10-5x5x50-Geometry_MSolve.inp";
-                //"MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-Geometry_MSolve.inp";
-
+                string MatrixGeometryFileName = "MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-Geometry-2_MSolve.inp";
+                
                 string MatrixGonnectivityFileName = "MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-ConnMatr_MSolve.inp";
-                //"MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-ConnMatr_MSolve.inp"; 
-                //"MATRIX_3D-L_x=5-L_y=5-L_z=100-5x5x100-ConnMatr_MSolve.inp"; 
-                //"MATRIX_3D-L_x=5-L_y=5-L_z=100-25x25x500-ConnMatr_MSolve.inp";
-                //"MATRIX_3D-L_x=1-L_y=1-L_z=10-5x5x50-ConnMatr_MSolve.inp";
-                //"MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-ConnMatr_MSolve.inp";
-
+                
                 double nodalLoad = 10.0; //0.40;
 
                 int matrixNodes = File.ReadLines(workingDirectory + '\\' + MatrixGeometryFileName).Count();
                 int matrixElements = File.ReadLines(workingDirectory + '\\' + MatrixGonnectivityFileName).Count();
-                
+
                 // Nodes Geometry                
                 using (TextReader reader = File.OpenText(workingDirectory + '\\' + MatrixGeometryFileName))
                 {
@@ -134,7 +114,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeZ = double.Parse(bits[3]);
                         model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
-                }                
+                }
 
                 // Create Material
                 ElasticMaterial3D solidMaterial = new ElasticMaterial3D()
@@ -178,7 +158,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         model.ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
                         //model.SubdomainsDictionary[0].ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
                         model.SubdomainsDictionary[0].Elements.Add(hexa8NLelement);
-                    }                    
+                    }
                 }
 
                 // Boundary Conditions
@@ -197,38 +177,34 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Y });
                 }
-                //model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1801], DOF = DOFType.Y });
-                //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1802], DOF = DOFType.Y });
-                //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1803], DOF = DOFType.Y });
-                //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1804], DOF = DOFType.Y });
-                //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1805], DOF = DOFType.Y });
-                //model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1806], DOF = DOFType.Y });
             }
 
-            public static void EmbeddedElementsBuilder(Model_v2 model)
+            public static void EBEModelBuilder(Model_v2 model)
             {
                 // define mechanical properties
-                double youngModulus = 5490; // 16710.0;
-                double shearModulus = 871; // 8080.0;
-                double poissonRatio = 2.15; // 0.034; //(youngModulus / (2 * shearModulus)) - 1;
-                double area = 5.594673861218848d - 003;  // CNT(20,20)-LinearEBE-TBT-L = 10nm
-                double inertiaY = 2.490804749753243D - 006; //1058.55;
-                double inertiaZ = 2.490804749753243D - 006; // 1058.55;
-                double torsionalInertia = 4.981609499506486D - 006; //496.38;
+                double youngModulus = 1.0;
+                double shearModulus = 1.0;
+                double poissonRatio = 0.30; // 0.034; //(youngModulus / (2 * shearModulus)) - 1;
+                double area = 1218.11; //CNT(8,8)-LinearEBE-EBT-L=10nm 
+                             //694.77; //CNT(8,8)-LinearEBE-TBT-L=10nm
+
+                double inertiaY = 177.51; //CNT(8,8)-LinearEBE-EBT-L=10nm
+                                //100.18; //CNT(8,8)-LinearEBE-TBT-L=10nm
+
+                double inertiaZ = 177.51; //CNT(8,8)-LinearEBE-EBT-L=10nm
+                                //100.18; //CNT(8,8)-LinearEBE-TBT-L=10nm
+
+                double torsionalInertia = 168.25; //CNT(8,8)-LinearEBE-EBT-L=10nm
+                                        //68.77 //CNT(8,8)-LinearEBE-TBT-L=10nm
+
                 double effectiveAreaY = area;
                 double effectiveAreaZ = area;
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
 
-                string CNTgeometryFileName = "CNT-8-8-L=100-h=3-Geometry.inp";
-                //"CNT-8-8-L=100-Geometry-2.inp"; 
-                //"EmbeddedCNT-8-8-L=100-h=0-k=1-EBE-L=1-NumberOfCNTs=1-Geometry_beam.inp"; 
-                //"CNT-8-8-L=100-h=3-Geometry.inp";
-
-                string CNTconnectivityFileName = "CNT-8-8-L=100-h=3-ConnMatr.inp";
-                //"CNT-8-8-L=100-ConnMatr-2.inp"; 
-                //"EmbeddedCNT-8-8-L=100-h=0-k=1-EBE-L=1-NumberOfCNTs=1-ConnMatr_beam.inp"; 
-                //"CNT-8-8-L=100-h=3-ConnMatr.inp";
-
+                string CNTgeometryFileName = "EmbeddedCNT-8-8-L=100-h=3-k=1-EBE-L=10-NumberOfCNTs=1-Geometry_beam.inp";
+                
+                string CNTconnectivityFileName = "EmbeddedCNT-8-8-L=100-h=3-k=1-EBE-L=10-NumberOfCNTs=1-ConnMatr_beam.inp";
+                
                 int CNTNodes = File.ReadLines(workingDirectory + '\\' + CNTgeometryFileName).Count();
                 int CNTElems = File.ReadLines(workingDirectory + '\\' + CNTconnectivityFileName).Count();
 
@@ -267,6 +243,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         int elementID = int.Parse(bits[0]) + 90; // matrixElements
                         int node1 = int.Parse(bits[1]) + 176; // matrixNodes
                         int node2 = int.Parse(bits[2]) + 176; // matrixNodes
+                                                    
                         // element nodes
                         IList<Node> elementNodes = new List<Node>();
                         elementNodes.Add(model.NodesDictionary[node1]);
@@ -283,9 +260,10 @@ namespace ISAAR.MSolve.SamplesConsole
                         model.ElementsDictionary.Add(beamElement.ID, beamElement);
                         //model.SubdomainsDictionary[0].ElementsDictionary.Add(beamElement.ID, beamElement);
                         model.SubdomainsDictionary[0].Elements.Add(beamElement);
-                    }                    
+                    }
                 }
-            }            
-        }
+            }
+
+        }        
     }
 }

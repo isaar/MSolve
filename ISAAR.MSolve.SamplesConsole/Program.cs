@@ -149,12 +149,13 @@ namespace ISAAR.MSolve.SamplesConsole
             //FEM.WallWithOpenings.Run();
             //SeparateCodeCheckingClass.Check06();
             //CNTExamples.CNT_4_4_DisplacementControl();
-            //CNTExamples.CNT_4_4_NewtonRaphson();
-            //CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_DisplacementControl();
-            CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_NewtonRaphson();
+            //CNTExamples.CNT_4_4_NewtonRaphson();   
             //Tests.FEM.Shell8andCohesiveNonLinear.RunTest_v2();
 
-            Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();
+            //Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();            
+            CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_NewtonRaphson();
+            //EmbeddedEBEmodelInMatrix.EmbeddedEBEinMatrix_NewtonRaphson();
+            
         }
     }
 }
