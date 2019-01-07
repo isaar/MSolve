@@ -10,7 +10,6 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// <summary>
     /// Free dofs are assigned global / subdomain indices in a node major fashion: The dofs of the first node are 
     /// numbered, then the dofs of the second node, etc. Constrained dofs are ignored.
-    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class NodeMajorDofOrderingStrategy : IDofOrderingStrategy
     {
@@ -67,7 +66,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     //}
                     #endregion
 
-                    foreach (var constraint in ((FEM.Entities.Node_v2)node).Constraints) //TODO: access the constraints from the subdomain
+                    foreach (var constraint in node.Constraints) //TODO: access the constraints from the subdomain
                     {
                         if (constraint.DOF == dofType)
                         {

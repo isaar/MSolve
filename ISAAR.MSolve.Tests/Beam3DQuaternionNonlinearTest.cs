@@ -16,6 +16,7 @@ using Xunit;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Tests
 {

@@ -14,6 +14,7 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Tests
 {

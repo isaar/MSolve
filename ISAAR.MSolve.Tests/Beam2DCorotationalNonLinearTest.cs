@@ -21,6 +21,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Tests
 {

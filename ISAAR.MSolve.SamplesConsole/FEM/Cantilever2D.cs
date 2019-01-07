@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -17,8 +17,6 @@ using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {

@@ -26,6 +26,7 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.Solvers.Iterative;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Tests
 {
