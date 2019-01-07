@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.Tests
 
             int elementID = startElementID;
             Element_v2 e;
-            ElasticMaterial3D material = new ElasticMaterial3D()
+            var material = new ElasticMaterial3D_v2()
             {
                 YoungModulus = 2.0e7,
                 PoissonRatio = 0.3

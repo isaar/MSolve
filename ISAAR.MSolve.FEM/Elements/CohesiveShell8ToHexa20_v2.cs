@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,
             nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected readonly ICohesiveZoneMaterial3D[] materialsAtGaussPoints;
+        protected readonly ICohesiveZoneMaterial3D_v2[] materialsAtGaussPoints;
         private readonly InterpolationShell8Cohesive_v2 interpolation = InterpolationShell8Cohesive_v2.UniqueInstance;
         private readonly List<EmbeddedNode_v2> embeddedNodes = new List<EmbeddedNode_v2>();
         protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
@@ -63,11 +63,11 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[] bk_total = new double[8];
         public bool MatrixIsNotInitialized = true;
 
-        public CohesiveShell8ToHexa20_v2(ICohesiveZoneMaterial3D material, IQuadrature2D quadratureForStiffness)
+        public CohesiveShell8ToHexa20_v2(ICohesiveZoneMaterial3D_v2 material, IQuadrature2D quadratureForStiffness)
         {
             this.QuadratureForStiffness = quadratureForStiffness;
             this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
-            materialsAtGaussPoints = new ICohesiveZoneMaterial3D[nGaussPoints];
+            materialsAtGaussPoints = new ICohesiveZoneMaterial3D_v2[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
         }
 
@@ -692,29 +692,29 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (ICohesiveZoneMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (ICohesiveZoneMaterial3D_v2 material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void ClearMaterialState()
         {
-            foreach (ICohesiveZoneMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            foreach (ICohesiveZoneMaterial3D_v2 m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
         {
-            foreach (ICohesiveZoneMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (ICohesiveZoneMaterial3D_v2 m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (ICohesiveZoneMaterial3D m in materialsAtGaussPoints) m.ClearTractions();
+            foreach (ICohesiveZoneMaterial3D_v2 m in materialsAtGaussPoints) m.ClearTractions();
         }
 
         public bool MaterialModified
         {
             get
             {
-                foreach (ICohesiveZoneMaterial3D material in materialsAtGaussPoints)
+                foreach (ICohesiveZoneMaterial3D_v2 material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }

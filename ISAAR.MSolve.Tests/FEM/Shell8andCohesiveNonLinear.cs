@@ -469,7 +469,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //perioxh constraints ews edw
 
             // perioxh materials 
-            BenzeggaghKenaneCohesiveMaterial material1 = new BenzeggaghKenaneCohesiveMaterial()
+            var material1 = new BenzeggaghKenaneCohesiveMaterial_v2()
             {
                 T_o_3 = 57, // New load case argurhs NR_shell_coh.m
                 D_o_3 = 5.7e-5,
@@ -485,7 +485,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //    YoungModulus = 1353000,
             //    PoissonRatio = 0.3,
             //};
-            ShellElasticMaterial material2 = new ShellElasticMaterial()
+            var material2 = new ShellElasticMaterial_v2()
             {
                 YoungModulus = 1353000,
                 PoissonRatio = 0.3,

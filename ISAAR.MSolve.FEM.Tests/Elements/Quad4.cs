@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         #region reproducible tests
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D material0 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material0 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 2.1e5,
             PoissonRatio = 0.3
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             // reduced integration rule - bad idea
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(1, 1);
-            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             // full integration rule
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(2, 2);
-            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -225,13 +225,13 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         #endregion
 
         #region older tests (source has been long lost)
-        private static readonly ElasticMaterial2D material1 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material1 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 2e6,
             PoissonRatio = 0.3
         };
 
-        private static readonly ElasticMaterial2D material2 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material2 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 1.0,
             PoissonRatio = 0.25

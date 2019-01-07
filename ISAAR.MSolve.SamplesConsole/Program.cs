@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             IStochasticMaterialCoefficientsProvider coefficientProvider = 
                 new PowerSpectrumTargetEvaluatorCoefficientsProvider(10, 0.1, .05, 20, 200, DOFType.X, 0.1, 200, 1e-10);
-            StochasticElasticMaterial material = new StochasticElasticMaterial(coefficientProvider)
+            var material = new StochasticElasticMaterial_v2(coefficientProvider)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

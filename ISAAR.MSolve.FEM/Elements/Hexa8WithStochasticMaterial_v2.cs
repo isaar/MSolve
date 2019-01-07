@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
     public class Hexa8WithStochasticMaterial_v2 : Hexa8_v2
     {
-        protected readonly new IStochasticContinuumMaterial3D[] materialsAtGaussPoints;
+        protected readonly new IStochasticContinuumMaterial3D_v2[] materialsAtGaussPoints;
         protected readonly Hexa8Memoizer memoizer;
 
         private static double[][] integrationPoints = new double[][] 
@@ -38,14 +38,14 @@ namespace ISAAR.MSolve.FEM.Elements
             new double[] { -0.8611363115941, -0.3399810435849, 0.3399810435849, 0.8611363115941 } 
         };
 
-        public Hexa8WithStochasticMaterial_v2(IStochasticContinuumMaterial3D material)
+        public Hexa8WithStochasticMaterial_v2(IStochasticContinuumMaterial3D_v2 material)
         {
-            //materialsAtGaussPoints = new IStochasticContinuumMaterial3D[iInt3];
+            //materialsAtGaussPoints = new IStochasticContinuumMaterial3D_v2[iInt3];
             //for (int i = 0; i < iInt3; i++)
-            //    materialsAtGaussPoints[i] = (IStochasticContinuumMaterial3D)material.Clone();
+            //    materialsAtGaussPoints[i] = (IStochasticContinuumMaterial3D_v2)material.Clone();
         }
 
-        public Hexa8WithStochasticMaterial_v2(IStochasticContinuumMaterial3D material, Hexa8Memoizer memoizer) : this(material)
+        public Hexa8WithStochasticMaterial_v2(IStochasticContinuumMaterial3D_v2 material, Hexa8Memoizer memoizer) : this(material)
         {
             this.memoizer = memoizer;
         }
@@ -65,8 +65,8 @@ namespace ISAAR.MSolve.FEM.Elements
                     for (int i3 = 0; i3 < iInt; i3++)
                     {
                         iPos = i1 * iInt2 + i2 * iInt + i3;
-                        double[,] e = materialsAtGaussPoints[iPos].GetConstitutiveMatrix(
-                            GetStochasticPoints(element, i1, i2, i3)).Data;
+                        IMatrixView e = materialsAtGaussPoints[iPos].GetConstitutiveMatrix(
+                            GetStochasticPoints(element, i1, i2, i3));
                         for (int j = 0; j < 6; j++)
                             for (int k = 0; k < 6; k++)
                                 afE[iPos, j, k] = e[j, k];

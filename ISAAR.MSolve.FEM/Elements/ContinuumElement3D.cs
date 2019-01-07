@@ -25,12 +25,12 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] {DOFType.X, DOFType.Y, DOFType.Z};
         private readonly DOFType[][] dofTypes;
         private DynamicMaterial dynamicProperties;
-        private readonly IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints;
+        private readonly IReadOnlyList<ElasticMaterial3D_v2> materialsAtGaussPoints;
 
         public ContinuumElement3D(IReadOnlyList<Node_v2> nodes, IIsoparametricInterpolation3D interpolation,
             IQuadrature3D quadratureForStiffness, IQuadrature3D quadratureForMass,
             IGaussPointExtrapolation3D gaussPointExtrapolation,
-            IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+            IReadOnlyList<ElasticMaterial3D_v2> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             this.dynamicProperties = dynamicProperties;
             this.materialsAtGaussPoints = materialsAtGaussPoints;
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int gp = 0; gp < QuadratureForStiffness.IntegrationPoints.Count; ++gp)
             {
-                Matrix constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix.LegacyToNewMatrix();
+                IMatrixView constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gp]);
                 Matrix shapeGradientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
@@ -194,7 +194,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (ElasticMaterial3D material in materialsAtGaussPoints)
+                foreach (ElasticMaterial3D_v2 material in materialsAtGaussPoints)
                     if (material.Modified)
                         return true;
                 return false;
@@ -229,7 +229,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int gp = 0; gp < numberOfGPs; gp++)
             {
-                IMatrix constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix.LegacyToNewMatrix();
+                IMatrixView constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gp]);
                 Matrix shapeGrandientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);

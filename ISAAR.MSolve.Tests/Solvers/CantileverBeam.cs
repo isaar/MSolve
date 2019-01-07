@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             {
                 // Material and section properties
                 double thickness = Width;
-                var material = new ElasticMaterial2D(StressState2D.PlaneStress)
+                var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
                 {
                     YoungModulus = this.YoungModulus,
                     PoissonRatio = this.PoissonRatio

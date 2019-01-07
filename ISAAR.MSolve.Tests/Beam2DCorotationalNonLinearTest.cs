@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 2D material
-            ElasticMaterial material = new ElasticMaterial
+            var material = new ElasticMaterial
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
@@ -377,7 +377,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 2D material
-            ElasticMaterial material = new ElasticMaterial
+            var material = new ElasticMaterial
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

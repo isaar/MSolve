@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000.0;
             int totalNodes = 2;
 
-            ElasticMaterial material = new ElasticMaterial()
+            var material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

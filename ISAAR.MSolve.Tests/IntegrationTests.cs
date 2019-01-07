@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.Tests
         [Fact]
         public void TestSolveHexaCantileverBeam_v2()
         {
-            Model_v2 model = new Model_v2();
+            var model = new Model_v2();
             model.SubdomainsDictionary.Add(1, new Subdomain_v2(1));
 
             HexaSimpleCantileverBeam.MakeCantileverBeam_v2(model, 0, 0, 0, model.NodesDictionary.Count + 1, model.ElementsDictionary.Count + 1, 1);
@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.Tests
             double poissonRatio = 0.3;
             double nodalLoad = 10.0;
 
-            ElasticMaterial material = new ElasticMaterial()
+            var material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
@@ -457,13 +457,14 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
+
             // Model creation
-            Model_v2 model = new Model_v2();
+            var model = new Model_v2();
 
             // Add a single subdomain to the model
             model.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
@@ -647,11 +648,12 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
+
             // Model creation
             Model_v2 model = new Model_v2();
 
@@ -836,11 +838,12 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
+
             // Model creation
             Model_v2 model = new Model_v2();
 
@@ -1014,7 +1017,7 @@ namespace ISAAR.MSolve.Tests
             double loadY = 300;
             double sectionArea = 1.5;
 
-            Model_v2 trussModel = new Model_v2();
+            var trussModel = new Model_v2();
 
             trussModel.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
 

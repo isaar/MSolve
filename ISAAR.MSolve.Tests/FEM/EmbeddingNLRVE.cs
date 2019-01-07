@@ -725,7 +725,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //Perioxh Eisagwgh elements
             int elementCounter = 0;
 
-            ElasticMaterial3D material1 = new ElasticMaterial3D()
+            var material1 = new ElasticMaterial3D_v2()
             {
                 YoungModulus = E_disp,
                 PoissonRatio = ni_disp,
@@ -1397,7 +1397,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //    YoungModulus = E_shell,
             //    PoissonRatio = ni_shell,
             //};
-            ShellElasticMaterial material2 = new ShellElasticMaterial()
+            var material2 = new ShellElasticMaterial_v2()
             {
                 YoungModulus = E_shell,
                 PoissonRatio = ni_shell,
@@ -1476,7 +1476,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //
 
             //orismos elements katw strwshs
-            BenzeggaghKenaneCohesiveMaterial material3 = new Materials.BenzeggaghKenaneCohesiveMaterial()
+            var material3 = new BenzeggaghKenaneCohesiveMaterial_v2()
             {
                 T_o_3 = T_o_3,
                 D_o_3 = D_o_3,

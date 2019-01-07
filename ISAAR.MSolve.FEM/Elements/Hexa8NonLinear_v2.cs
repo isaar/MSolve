@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected readonly IContinuumMaterial3D[] materialsAtGaussPoints;
+        protected readonly IContinuumMaterial3D_v2[] materialsAtGaussPoints;
         protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
         
         private readonly int nGaussPoints;
@@ -37,15 +37,15 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public Hexa8NonLinear_v2(IContinuumMaterial3D material, IQuadrature3D quadratureForStiffness)
+        public Hexa8NonLinear_v2(IContinuumMaterial3D_v2 material, IQuadrature3D quadratureForStiffness)
         {
             this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
             this.QuadratureForStiffness = quadratureForStiffness;
             this.Interpolation = InterpolationHexa8Reverse_v2.UniqueInstance;
 
-            materialsAtGaussPoints = new IContinuumMaterial3D[nGaussPoints];
+            materialsAtGaussPoints = new IContinuumMaterial3D_v2[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++)
-                materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
+                materialsAtGaussPoints[i] = (IContinuumMaterial3D_v2)material.Clone();
 
         }
 
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (IContinuumMaterial3D material in materialsAtGaussPoints)
+                foreach (IContinuumMaterial3D_v2 material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -329,7 +329,7 @@ namespace ISAAR.MSolve.FEM.Elements
             BL01_hexa = GetBL01_hexa(J_0inv_hexa);
 
             //INITIALIZATION of MAtrixes that are currently not cached
-            Vector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
+            IVector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
             Matrix[] BL = new Matrix[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
@@ -337,7 +337,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 BL[gpoint] = Matrix.CreateZero(6, 24);
             }
 
-            Vector[] fxk1 = new Vector[nGaussPoints + 1];
+            IVector[] fxk1 = new Vector[nGaussPoints + 1];
             for (int npoint = 0; npoint < nGaussPoints + 1; npoint++)
             {
                 fxk1[npoint] = Vector.CreateZero(24);
@@ -354,8 +354,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
 
-                integrCoeff_Spkvec[npoint] = 
-                    integrationCoeffs[npoint] * Vector.CreateFromLegacyVector(materialsAtGaussPoints[npoint].Stresses);
+                integrCoeff_Spkvec[npoint] = materialsAtGaussPoints[npoint].Stresses.Scale(integrationCoeffs[npoint]);
                 
                 //
                 Matrix l_cyrcumflex = Matrix.CreateZero(3, 3);
@@ -381,8 +380,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 // 
                 BL[npoint] = BL1112sun01_hexa[npoint] * BL13_hexa[npoint];
                 
-                // 
-                fxk1[npoint] = BL[npoint].Transpose() * integrCoeff_Spkvec[npoint];                
+                //              
+                fxk1[npoint] = BL[npoint].Multiply(integrCoeff_Spkvec[npoint], true);
             }
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
@@ -390,7 +389,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 fxk1[nGaussPoints].AddIntoThis(fxk1[npoint]);                
             }
 
-            return fxk1[nGaussPoints].ToLegacyVector().Data;
+            return fxk1[nGaussPoints].ToRawArray();
         }
 
         private Matrix UpdateKmatrices(IElement_v2 element)
@@ -399,7 +398,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
             // initialization of matrices that are not cached currently
-            Vector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
+            IVector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
             Matrix[] BL = new Matrix[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
@@ -442,8 +441,7 @@ namespace ISAAR.MSolve.FEM.Elements
             {
 
                 // 
-                integrCoeff_Spkvec[npoint] = 
-                    integrationCoeffs[npoint] * Vector.CreateFromLegacyVector(materialsAtGaussPoints[npoint].Stresses);
+                integrCoeff_Spkvec[npoint] = materialsAtGaussPoints[npoint].Stresses.Scale(integrationCoeffs[npoint]);
                 
                 //
                 Matrix l_cyrcumflex = Matrix.CreateZero(3, 3);
@@ -519,7 +517,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 integrCoeff_Spk[npoint][2, 2] = integrCoeff_Spkvec[npoint][2];
 
                 //
-                double[,] consDisp = materialsAtGaussPoints[npoint].ConstitutiveMatrix.Data;
+                IMatrixView consDisp = materialsAtGaussPoints[npoint].ConstitutiveMatrix;
 
                 for (int m = 0; m < 6; m++)
                 {
@@ -592,12 +590,11 @@ namespace ISAAR.MSolve.FEM.Elements
                     GLvec[npoint][4]- GLvec_last_converged[npoint][4],
                     GLvec[npoint][5]- GLvec_last_converged[npoint][5]
                 };
-                materialsAtGaussPoints[npoint].UpdateMaterial(new Numerical.LinearAlgebra.StressStrainVectorContinuum3D(
-                    GLvec_strain_minus_last_converged_value)); 
+                materialsAtGaussPoints[npoint].UpdateMaterial(Vector.CreateFromArray(GLvec_strain_minus_last_converged_value)); 
                 //To update with total strain simply: materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
             }
             return new Tuple<double[], double[]>(GLvec_strain_minus_last_converged_value, 
-                materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
+                materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
             //TODO return data with total strains data would be:
             //return new Tuple<double[], double[]>(GLvec[materialsAtGaussPoints.Length - 1], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
             //TODO: why return only the strain- stress of the gausspoint that is last on the array, Where is it needed?
@@ -625,13 +622,13 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IContinuumMaterial3D_v2 material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void ClearMaterialState()
         {
             //TODO: the next throws an exception. Investigate. Possible changes in Analyzers may be the cause.
-            //foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            //foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
@@ -642,12 +639,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 { GLvec_last_converged[npoint][i1] = GLvec[npoint][i1]; }
             }
 
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;

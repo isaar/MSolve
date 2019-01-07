@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected readonly IShellMaterial[] materialsAtGaussPoints; 
+        protected readonly IShellMaterial_v2[] materialsAtGaussPoints; 
         protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
         
         public double[][] oVn_i { get; set; }
@@ -39,12 +39,12 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[][] GLvec; // TODO possibly gl_vec_last_converged can be saved too if strains aren't handled in tthe current way by shell material classes
         private int stiffnessCase = 1;
 
-        public Shell8NonLinear_v2(IShellMaterial material, IQuadrature3D quadratureForStiffness)
+        public Shell8NonLinear_v2(IShellMaterial_v2 material, IQuadrature3D quadratureForStiffness)
         {
             this.Interpolation = InterpolationShell8_v2.UniqueInstance;
             this.QuadratureForStiffness = quadratureForStiffness;
             this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
-            materialsAtGaussPoints = new IShellMaterial[nGaussPoints];
+            materialsAtGaussPoints = new IShellMaterial_v2[nGaussPoints];
             for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
         }
 
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (IShellMaterial material in materialsAtGaussPoints)
+                foreach (IShellMaterial_v2 material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -687,22 +687,22 @@ namespace ISAAR.MSolve.FEM.Elements
         //IstructuralElement concerning material
         public void ClearMaterialState()
         {
-            foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearState();
+            foreach (IShellMaterial_v2 m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
         {
-            foreach (IShellMaterial m in materialsAtGaussPoints) m.SaveState();
+            foreach (IShellMaterial_v2 m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IShellMaterial_v2 m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         public void ResetMaterialModified()
         {
-            foreach (IShellMaterial material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IShellMaterial_v2 material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localTotalDisplacements, double[] localdDisplacements)
@@ -711,10 +711,10 @@ namespace ISAAR.MSolve.FEM.Elements
             this.CalculateStrains(element, tx_i);
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
-                materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+                materialsAtGaussPoints[npoint].UpdateMaterial(Vector.CreateFromArray(GLvec[npoint]));
             }
            
-            return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
+            return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
         }
 
         //Istructural: dynamic
@@ -750,7 +750,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
                 for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
                 {
-                    materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+                    materialsAtGaussPoints[npoint].UpdateMaterial(Vector.CreateFromArray(GLvec[npoint]));
                 }
 
                 this.UpdateForces(element); 

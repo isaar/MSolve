@@ -162,7 +162,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 3D material
-            ElasticMaterial3D material = new ElasticMaterial3D
+            var material = new ElasticMaterial3D_v2
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

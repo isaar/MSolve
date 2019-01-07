@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double youngModulus = 2.1e09;
             double poissonRatio = 0.3;
 
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -326,7 +326,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double poissonRatio = 0.3;
             double density = 20;
 
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -720,7 +720,7 @@ namespace ISAAR.MSolve.SamplesConsole
             int numberOfElements = elements.Count;
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -815,7 +815,7 @@ namespace ISAAR.MSolve.SamplesConsole
             int numberOfElements = elements.Count;
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -913,16 +913,16 @@ namespace ISAAR.MSolve.SamplesConsole
             int numberOfElements = elements.Count;
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
-            DynamicMaterial dynamicMaterial = new DynamicMaterial(25, 0.05, 0.05);
+            var dynamicMaterial = new DynamicMaterial(25, 0.05, 0.05);
 
             // Subdomains
-            Model_v2 model = new Model_v2();
+            var model = new Model_v2();
             model.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
 
             // Nodes
@@ -1019,7 +1019,7 @@ namespace ISAAR.MSolve.SamplesConsole
             #endregion
 
             #region material
-            var material = new ElasticMaterial2D(StressState2D.PlaneStress);
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress);
             material.YoungModulus = 3e7;
             material.PoissonRatio = 0.2;
             #endregion

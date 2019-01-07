@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.FEM.Elements
          * @param beamSection
          *            The beam section.
          */
-        public Beam3DCorotationalQuaternion_v2(IList<Node_v2> nodes, IIsotropicContinuumMaterial3D material, double density, 
+        public Beam3DCorotationalQuaternion_v2(IList<Node_v2> nodes, IIsotropicContinuumMaterial3D_v2 material, double density, 
             BeamSection3D beamSection)
             : base(nodes, material, density, beamSection)
         {

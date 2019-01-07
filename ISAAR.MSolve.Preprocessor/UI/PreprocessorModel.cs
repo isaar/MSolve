@@ -150,7 +150,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             // Elements
             int numElementsCurrent = model.Elements.Count;
             int numElementsSubdomain = model.Subdomains[0].Elements.Count;
-            var factory = new ContinuumElement2DFactory(thickness, (ElasticMaterial2D)material, dynamicProperties); //TODO: extend the factory to other materials
+            var factory = new ContinuumElement2DFactory(thickness, (ElasticMaterial2D_v2)material, dynamicProperties); //TODO: extend the factory to other materials
             for (int i = 0; i < elements.Count; ++i)
             {
                 ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);

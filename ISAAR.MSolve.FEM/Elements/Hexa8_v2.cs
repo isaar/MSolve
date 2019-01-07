@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected readonly IContinuumMaterial3D[] materialsAtGaussPoints;
+        protected readonly IContinuumMaterial3D_v2[] materialsAtGaussPoints;
         protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 
         #region Fortran imports
@@ -68,14 +68,14 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public Hexa8_v2(IContinuumMaterial3D material)
+        public Hexa8_v2(IContinuumMaterial3D_v2 material)
         {
-			materialsAtGaussPoints = new IContinuumMaterial3D[iInt3];
+			materialsAtGaussPoints = new IContinuumMaterial3D_v2[iInt3];
 			for (int i = 0; i < iInt3; i++)
-				materialsAtGaussPoints[i] = (IContinuumMaterial3D)material.Clone();
+				materialsAtGaussPoints[i] = (IContinuumMaterial3D_v2)material.Clone();
 		}
 
-        public Hexa8_v2(IContinuumMaterial3D material, IElementDofEnumerator_v2 dofEnumerator)
+        public Hexa8_v2(IContinuumMaterial3D_v2 material, IElementDofEnumerator_v2 dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
@@ -347,7 +347,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (GaussLegendrePoint3D intPoint in integrationPoints)
             {
                 pointId++;
-                double[,] constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix.Data;
+                IMatrixView constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix;
                 double[,] b = intPoint.DeformationMatrix;
                 for (int i = 0; i < 24; i++)
                 {
@@ -438,10 +438,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(new Numerical.LinearAlgebra.StressStrainVectorContinuum3D(dStrains));
+                materialsAtGaussPoints[i].UpdateMaterial(Vector.CreateFromArray(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
@@ -496,17 +496,17 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ClearMaterialState()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         #endregion
@@ -517,7 +517,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (IContinuumMaterial3D material in materialsAtGaussPoints)
+                foreach (IContinuumMaterial3D_v2 material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -525,7 +525,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IContinuumMaterial3D_v2 material in materialsAtGaussPoints) material.ResetModified();
         }
 
         #endregion

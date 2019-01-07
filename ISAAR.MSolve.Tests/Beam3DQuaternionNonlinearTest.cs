@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.Tests
             m.ElementsDictionary.Add(1, new Element_v2()
             {
                 ID = 1,
-                ElementType = new Beam3DCorotationalQuaternion_v2(m.Nodes, new ElasticMaterial3D() { YoungModulus = 2.1e6, PoissonRatio = 0.2 }, 1,
+                ElementType = new Beam3DCorotationalQuaternion_v2(m.Nodes, new ElasticMaterial3D_v2() { YoungModulus = 2.1e6, PoissonRatio = 0.2 }, 1,
                 new BeamSection3D(0.06, 0.0002, 0.00045, 0.000818, 0.05, 0.05))
             });
             m.ElementsDictionary[1].AddNodes(m.Nodes);
@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 3D material
-            ElasticMaterial3D material = new ElasticMaterial3D
+            var material = new ElasticMaterial3D_v2
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
@@ -488,7 +488,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 2;
 
             // Create new 3D material
-            ElasticMaterial3D material = new ElasticMaterial3D
+            var material = new ElasticMaterial3D_v2
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

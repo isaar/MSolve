@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new material
-            ElasticMaterial material = new ElasticMaterial()
+            var material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

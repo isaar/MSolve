@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole

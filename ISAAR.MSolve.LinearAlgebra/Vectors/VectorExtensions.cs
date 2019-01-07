@@ -201,8 +201,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public static Numerical.LinearAlgebra.Vector ToLegacyVector(this IVectorView vector)
             => Vector.CreateFromVector(vector).ToLegacyVector();
 
-        //TODO: remove this. Its only purpose is to avoid calling IVectorView.CopyToArray() and needless copying, during the
+        //TODO: remove this. Its only purpose is to avoid calling Vector.CopyToArray() and needless copying, during the
         //      transition phase from the legacy linear algebra design.
         public static double[] ToRawArray(this Vector vector) => vector.RawData;
+
+        //TODO: remove this. Its only purpose is to avoid calling IVectorView.CopyToArray() and needless copying, during the
+        //      transition phase from the legacy linear algebra design.
+        public static double[] ToRawArray(this IVectorView vector)
+        {
+            if (vector is Vector denseVector) return denseVector.RawData;
+            else return vector.CopyToArray();
+        }
+
     }
 }

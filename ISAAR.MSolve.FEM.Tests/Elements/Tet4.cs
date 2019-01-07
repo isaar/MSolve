@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 	/// </summary>
 	public class Tet4
 	{
-		private static readonly ElasticMaterial3D Material0 = new ElasticMaterial3D()
+		private static readonly ElasticMaterial3D_v2 Material0 = new ElasticMaterial3D_v2()
 		{
 			YoungModulus = 480,
 			PoissonRatio = 1.0 / 3.0

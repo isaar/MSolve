@@ -24,19 +24,19 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes,nodalDOFTypes}; 
 
-        protected readonly ElasticMaterial2D[] materialsAtGaussPoints;
+        protected readonly ElasticMaterial2D_v2[] materialsAtGaussPoints;
 
         protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 
         protected Quad4_v2() { }
 
-        public Quad4_v2(ElasticMaterial2D material)
+        public Quad4_v2(ElasticMaterial2D_v2 material)
         {
-            materialsAtGaussPoints = new ElasticMaterial2D[iInt2];
+            materialsAtGaussPoints = new ElasticMaterial2D_v2[iInt2];
             for (int i = 0; i < iInt2; i++)
-                materialsAtGaussPoints[i] = (ElasticMaterial2D)material.Clone();
+                materialsAtGaussPoints[i] = (ElasticMaterial2D_v2)material.Clone();
         }
-        public Quad4_v2(ElasticMaterial2D material, IElementDofEnumerator_v2 dofEnumerator)
+        public Quad4_v2(ElasticMaterial2D_v2 material, IElementDofEnumerator_v2 dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
@@ -287,7 +287,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (GaussLegendrePoint3D intPoint in integrationPoints)
             {
                 pointId++;
-                double[,] constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix.Data;
+                IMatrixView constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix;
                 double[,] b = intPoint.DeformationMatrix;
                 for (int i = 0; i < 8; i++)
                 {
@@ -370,10 +370,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(new Numerical.LinearAlgebra.StressStrainVectorContinuum2D(dStrains));
+                materialsAtGaussPoints[i].UpdateMaterial(Vector.CreateFromArray(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)

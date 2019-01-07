@@ -224,13 +224,13 @@ namespace ISAAR.MSolve.SamplesConsole
             int monitorNode_2 = nNodes;
 
             // Create new 3D material
-            ElasticMaterial3D material_1 = new ElasticMaterial3D
+            var material_1 = new ElasticMaterial3D_v2
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
-            ElasticMaterial3D material_2 = new ElasticMaterial3D
+            var material_2 = new ElasticMaterial3D_v2
             {
                 YoungModulus = 100.0 * youngModulus,
                 PoissonRatio = poissonRatio,
@@ -574,13 +574,13 @@ namespace ISAAR.MSolve.SamplesConsole
             int monitorNode_2 = nNodes;
 
             // Create new 3D material
-            ElasticMaterial3D material_1 = new ElasticMaterial3D
+            var material_1 = new ElasticMaterial3D_v2
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
-            ElasticMaterial3D material_2 = new ElasticMaterial3D
+            var material_2 = new ElasticMaterial3D_v2
             {
                 YoungModulus = 100.0 * youngModulus,
                 PoissonRatio = poissonRatio,

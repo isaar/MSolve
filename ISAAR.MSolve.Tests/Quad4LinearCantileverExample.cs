@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.Tests
             double poissonRatio = 0.3779;
             double thickness = 1.0;
             double nodalLoad = 500.0;
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio

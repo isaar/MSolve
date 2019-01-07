@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.Pore };
         private readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
-        protected IIsotropicContinuumMaterial3D[] materialsAtGaussPoints;
+        protected IIsotropicContinuumMaterial3D_v2[] materialsAtGaussPoints;
         protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 
         #region Fortran imports
@@ -100,15 +100,15 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public Hexa8u8p_v2(IIsotropicContinuumMaterial3D material)
+        public Hexa8u8p_v2(IIsotropicContinuumMaterial3D_v2 material)
         {
             throw new NotImplementedException();
-            //materialsAtGaussPoints = new IIsotropicContinuumMaterial3D[Hexa8u8p.iInt3];
+            //materialsAtGaussPoints = new IIsotropicContinuumMaterial3D_v2[Hexa8u8p.iInt3];
             //for (int i = 0; i < Hexa8u8p.iInt3; i++)
-            //    materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D)material.Clone();
+            //    materialsAtGaussPoints[i] = (IIsotropicContinuumMaterial3D_v2)material.Clone();
         }
 
-        public Hexa8u8p_v2(IIsotropicContinuumMaterial3D material, IElementDofEnumerator_v2 dofEnumerator) : this(material)
+        public Hexa8u8p_v2(IIsotropicContinuumMaterial3D_v2 material, IElementDofEnumerator_v2 dofEnumerator) : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.FEM.Elements
             
             for (int i = 0; i < iInt3; i++)
             {
-                double[,] constitutive = materialsAtGaussPoints[i].ConstitutiveMatrix.Data;
+                IMatrixView constitutive = materialsAtGaussPoints[i].ConstitutiveMatrix;
                 for (int j = 0; j < 6; j++)
                 {
                     for (int k = 0; k < 6; k++) afE[i, j, k] = constitutive[j, k];
@@ -322,10 +322,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(new Numerical.LinearAlgebra.StressStrainVectorContinuum3D(dStrains));
+                materialsAtGaussPoints[i].UpdateMaterial(Vector.CreateFromArray(dStrains));
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
