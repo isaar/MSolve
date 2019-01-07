@@ -9,7 +9,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
-    public interface INonLinearProvider_v2 : IAnalyzerProvider
+    public interface INonLinearProvider_v2 : IAnalyzerProvider_v2
     {
         double CalculateRhsNorm(IVectorView rhs);
         void ProcessInternalRhs(ILinearSystem_v2 linearSystem, IVector rhs, IVectorView solution); //TODO: this does nothing

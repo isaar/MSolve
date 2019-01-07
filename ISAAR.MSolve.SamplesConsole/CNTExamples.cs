@@ -346,14 +346,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[1]) };
-            var equivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler_v2>
-            {
-                { 1, new EquivalentLoadsAssembler_v2(model.SubdomainsDictionary[1],
-                                                               new ElementStructuralStiffnessProvider_v2()) }
-            };
-
-            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider,
-                equivalentLoadsAssemblers, increments);
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, increments);
             var childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static

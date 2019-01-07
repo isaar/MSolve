@@ -2,7 +2,7 @@
 
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
-    public interface IStaticProvider_v2 : IAnalyzerProvider
+    public interface IStaticProvider_v2 : IAnalyzerProvider_v2
     {
         //TODO: this should calculate and return the matrix and the analyzer should set it. Perhaps that convention should hold 
         //      for all matrices, rhs vectors.

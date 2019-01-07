@@ -15,17 +15,12 @@ namespace ISAAR.MSolve.Analyzers
     /// </summary>
     public class DisplacementControlAnalyzer_v2: NonLinearAnalyzerBase
     {
-        private readonly IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers;
-
         private DisplacementControlAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
             IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> subdomainUpdaters,
-            IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers,
             int numIncrements, int maxIterationsPerIncrement, int numIterationsForMatrixRebuild, double residualTolerance) :
             base(model, solver, provider, subdomainUpdaters, numIncrements, maxIterationsPerIncrement,
                 numIterationsForMatrixRebuild, residualTolerance)
-        {
-            this.equivalentLoadsAssemblers = equivalentLoadsAssemblers;
-        }
+        { }
 
         public override void Solve()
         {
@@ -90,7 +85,8 @@ namespace ISAAR.MSolve.Analyzers
                 //int idx = FindSubdomainIdx(linearSystems, linearSystem);
 
                 double scalingFactor = 1; //((double)currentIncrement + 2) / (currentIncrement + 1); //2; //
-                IVector equivalentNodalLoads = equivalentLoadsAssemblers[id].GetEquivalentNodalLoads(u[id], scalingFactor);
+                IVector equivalentNodalLoads = provider.DirichletLoadsAssembler.GetEquivalentNodalLoads(linearSystem.Subdomain, 
+                    u[id], scalingFactor);
                 linearSystem.RhsVector.SubtractIntoThis(equivalentNodalLoads);
 
                 model.GlobalDofOrdering.AddVectorSubdomainToGlobal(linearSystem.Subdomain, linearSystem.RhsVector, globalRhs);
@@ -113,28 +109,17 @@ namespace ISAAR.MSolve.Analyzers
 
         public class Builder: NonLinearAnalyzerBuilderBase
         {
-            private readonly IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers;
-
-            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
-                IReadOnlyDictionary<int, IEquivalentLoadsAssembler_v2> equivalentLoadsAssemblers, int numIncrements):
+            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, int numIncrements):
                 base(model, solver, provider, numIncrements)
             {
                 MaxIterationsPerIncrement = 1000;
                 NumIterationsForMatrixRebuild = 1;
                 ResidualTolerance = 1E-3;
-
-                this.equivalentLoadsAssemblers = equivalentLoadsAssemblers;
-                //int numSubdomains = model.Subdomains.Count;
-                //EquivalentLoadsAssemblers = new EquivalentLoadsAssembler_v2[numSubdomains];
-                //for (int i = 0; i < numSubdomains; ++i)
-                //{
-                //    EquivalentLoadsAssemblers[i] = new EquivalentLoadsAssembler_v2(subdomain, ???); //TODO: ??? must be defined by the provider
-                //}
             }
 
             public DisplacementControlAnalyzer_v2 Build()
             {
-                return new DisplacementControlAnalyzer_v2(model, solver, provider, SubdomainUpdaters, equivalentLoadsAssemblers,
+                return new DisplacementControlAnalyzer_v2(model, solver, provider, SubdomainUpdaters,
                     numIncrements, maxIterationsPerIncrement, numIterationsForMatrixRebuild, residualTolerance);
             }
         }

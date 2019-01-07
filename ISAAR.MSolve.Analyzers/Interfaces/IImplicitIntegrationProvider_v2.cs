@@ -8,7 +8,7 @@ using System.Collections.Generic;
 //      the analyzers (or the vectors/matrices would be passed in and overwritten).
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
-    public interface IImplicitIntegrationProvider_v2 : IAnalyzerProvider
+    public interface IImplicitIntegrationProvider_v2 : IAnalyzerProvider_v2
     {
         //TODO: This should not exist at all. The provider should return the 0th order (stiffness), 1st order (damping) and 2nd
         //      order matrices (or some matrix representations that can be combined between them and multiplied with vectors).

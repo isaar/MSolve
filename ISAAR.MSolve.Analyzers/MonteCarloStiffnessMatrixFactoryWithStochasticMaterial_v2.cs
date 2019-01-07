@@ -21,11 +21,11 @@ namespace ISAAR.MSolve.Analyzers
         //private readonly IDictionary<int, IMatrix<double>> matrices;
         private readonly IDictionary<int, IMatrix>[] matrices;
         private readonly Model_v2 model;
-        private readonly IAnalyzerProvider provider;
+        private readonly IAnalyzerProvider_v2 provider;
         private readonly double[][] randomNumbers;
         private readonly IStochasticMaterialCoefficientsProvider coefficientsProvider;
 
-        public MonteCarloAnalyzerStiffnessMatrixFactoryWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, 
+        public MonteCarloAnalyzerStiffnessMatrixFactoryWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
             GaussianFileStochasticCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
         {

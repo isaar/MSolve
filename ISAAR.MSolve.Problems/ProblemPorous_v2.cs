@@ -41,6 +41,8 @@ namespace ISAAR.MSolve.Problems
             this.linearSystems = solver.LinearSystems;
         }
 
+        public IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler => throw new NotImplementedException();
+
         private IDictionary<int, IMatrix> Ms
         {
             get

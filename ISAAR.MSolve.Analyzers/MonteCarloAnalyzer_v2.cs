@@ -23,12 +23,12 @@ namespace ISAAR.MSolve.Analyzers
         private readonly IDictionary<int, IMatrix>[] matrices;
         private readonly Model_v2 model;
         private readonly Dictionary<int, IAnalyzerLog_v2[]> logs = new Dictionary<int, IAnalyzerLog_v2[]>();
-        private readonly IAnalyzerProvider provider;
+        private readonly IAnalyzerProvider_v2 provider;
         private readonly double[][] randomNumbers;
         private readonly GaussianFileStochasticCoefficientsProvider coefficientsProvider;
 
-        //public MonteCarloAnalyzer(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, double[] stochasticDomain, int expansionOrder, int simulations)
-        public MonteCarloAnalyzer_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, 
+        //public MonteCarloAnalyzer(Model model, IAnalyzerProvider_v2 provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, double[] stochasticDomain, int expansionOrder, int simulations)
+        public MonteCarloAnalyzer_v2(Model_v2 model, IAnalyzerProvider_v2 provider, IChildAnalyzer embeddedAnalyzer, 
             ISolver_v2 solver, GaussianFileStochasticCoefficientsProvider coefficientsProvider, 
             int expansionOrder, int simulations)
         {

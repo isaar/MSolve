@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.Analyzers
         //private readonly IDictionary<int, IMatrix<double>> matrices;
         private readonly IDictionary<int, IMatrix>[] matrices;
         private readonly Model_v2 model;
-        private readonly IAnalyzerProvider provider;
+        private readonly IAnalyzerProvider_v2 provider;
         private double[][] randomNumbers;
         private readonly StiffnessMatrixProductionMode stiffnessMatrixProductionMode = StiffnessMatrixProductionMode.Normal;
         private readonly string stiffnessMatrixPath = String.Empty;
@@ -49,7 +49,9 @@ namespace ISAAR.MSolve.Analyzers
 
         public IDictionary<int, CholeskySkyline> FactorizedMatrices { get; } = new Dictionary<int, CholeskySkyline>();
 
-        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
+            IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider, 
+            int expansionOrder, int simulations)
         {
             this.ChildAnalyzer = embeddedAnalyzer;
             this.provider = provider;
@@ -64,30 +66,39 @@ namespace ISAAR.MSolve.Analyzers
             //this.stochasticDomain = stochasticDomain;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
+            IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
             int expansionOrder, int simulations, string fileNameForLogging)
             : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations)
         {
             this.fileNameForLogging = fileNameForLogging;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
-            int expansionOrder, int simulations, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
-            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, fileNameForLogging)
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
+            IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+            int expansionOrder, int simulations, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, 
+            string fileNameForLogging, string stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, 
+                  fileNameForLogging)
         {
             this.stiffnessMatrixPath = stiffnessMatrixPath;
             this.stiffnessMatrixProductionMode = stiffnessMatrixProductionMode;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
-            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
-            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
+            IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, 
+            string fileNameForLogging, string stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, 
+                  stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {
             this.blockSize = blockSize;
         }
 
-        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
-            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName, 
+        public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
+            IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider,
+            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, 
+            string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName, 
             int simulationStartFrom)
             : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, blockSize, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {

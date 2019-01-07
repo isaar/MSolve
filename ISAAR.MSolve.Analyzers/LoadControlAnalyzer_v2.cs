@@ -17,8 +17,7 @@ namespace ISAAR.MSolve.Analyzers
             int numIncrements, int maxIterationsPerIncrement, int numIterationsForMatrixRebuild, double residualTolerance) : 
             base(model, solver, provider, subdomainUpdaters, numIncrements, maxIterationsPerIncrement, 
                 numIterationsForMatrixRebuild, residualTolerance)
-        {
-        }
+        { }
         
         public override void Solve()
         {

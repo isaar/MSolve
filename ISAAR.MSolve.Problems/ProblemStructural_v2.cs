@@ -33,10 +33,13 @@ namespace ISAAR.MSolve.Problems
             this.model = model;
             this.linearSystems = solver.LinearSystems;
             this.solver = solver;
+            this.DirichletLoadsAssembler = new DirichletEquivalentLoadsStructural(stiffnessProvider);
         }
 
-        public double AboserberE { get; set; }
-        public double Aboseberv { get; set; }
+        //public double AboserberE { get; set; }
+        //public double Aboseberv { get; set; }
+
+        public IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler { get; } 
 
         private IDictionary<int, IMatrix> Ms
         {

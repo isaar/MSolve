@@ -455,14 +455,7 @@ namespace ISAAR.MSolve.Tests
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
             int numIncrements = 10;
-            var equivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler_v2>
-            {
-                { subdomainID, new EquivalentLoadsAssembler_v2(model.SubdomainsDictionary[subdomainID], 
-                                                               new ElementStructuralStiffnessProvider_v2()) }
-            };
-
-            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider,
-                equivalentLoadsAssemblers, numIncrements);
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, numIncrements);
             var childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static

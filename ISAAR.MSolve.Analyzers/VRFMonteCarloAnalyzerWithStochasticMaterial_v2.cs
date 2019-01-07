@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Analyzers
         //private readonly IDictionary<int, IMatrix<double>> matrices;
         private readonly IDictionary<int, IMatrix>[] matrices;
         private readonly Model_v2 model;
-        private readonly IAnalyzerProvider provider;
+        private readonly IAnalyzerProvider_v2 provider;
         private double[][] randomNumbers;
         //private readonly StiffnessMatrixProductionMode stiffnessMatrixProductionMode = StiffnessMatrixProductionMode.Normal;
         private readonly string stiffnessMatrixPath = String.Empty;
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public IDictionary<int, CholeskySkyline> FactorizedMatrices { get; } = new Dictionary<int, CholeskySkyline>();
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, 
+        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
             PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
             IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider, int expansionOrder, int simulations)
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Analyzers
             //this.stochasticDomain = stochasticDomain;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, 
+        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
             PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
             IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
@@ -75,7 +75,7 @@ namespace ISAAR.MSolve.Analyzers
             this.fileNameForLogging = fileNameForLogging;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, 
+        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
             PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
             IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.Analyzers
             //this.stiffnessMatrixProductionMode = stiffnessMatrixProductionMode;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, 
+        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
             PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
             IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.Analyzers
             this.blockSize = blockSize;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider provider, 
+        public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
             PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
             IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,

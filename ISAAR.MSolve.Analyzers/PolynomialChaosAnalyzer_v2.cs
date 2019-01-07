@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly IDictionary<int, IMatrix>[] matrices;
         private readonly Model_v2 model;
-        private readonly IAnalyzerProvider provider;
+        private readonly IAnalyzerProvider_v2 provider;
         private readonly double[][] randomNumbers;
         //private readonly LognormalPCFileStochasticCoefficientsProvider coefficientsProvider;
         private readonly IPCCoefficientsProvider coefficientsProvider;
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Analyzers
         public IDictionary<int, IMatrix>[] Matrices { get { return matrices; } }
         public IList<Dictionary<int, CholeskySkyline>> FactorizedMatrices { get; } = new List<Dictionary<int, CholeskySkyline>>();
 
-        public PolynomialChaosAnalyzer_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, 
+        public PolynomialChaosAnalyzer_v2(Model_v2 model, IAnalyzerProvider_v2 provider, IChildAnalyzer embeddedAnalyzer, 
             ISolver_v2 solver, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations, 
             bool shouldFactorizeMatrices)
         {
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.Analyzers
             //File.WriteAllLines(String.Format(@"randoms.txt", expansionOrder), randoms);
         }
 
-        public PolynomialChaosAnalyzer_v2(Model_v2 model, IAnalyzerProvider provider, IChildAnalyzer embeddedAnalyzer, 
+        public PolynomialChaosAnalyzer_v2(Model_v2 model, IAnalyzerProvider_v2 provider, IChildAnalyzer embeddedAnalyzer, 
             ISolver_v2 solver, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations)
             : this(model, provider, embeddedAnalyzer, solver, coefficientsProvider, expansionOrder, simulations, true)
         {

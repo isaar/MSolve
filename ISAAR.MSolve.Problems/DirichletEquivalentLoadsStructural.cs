@@ -1,28 +1,28 @@
 ﻿using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
+//TODO: _v2 delete FEM.EquivalentLoadsAssembler
 //TODO: time logging must be refactored
-namespace ISAAR.MSolve.Analyzers
+//TODO: perhaps this belongs to Solvers.Assemblers, since the vector type depends on the solver. In that case, the 
+//      elementMatrixProvider should be injected by the problem/provider.
+namespace ISAAR.MSolve.Problems
 {
-    public class EquivalentLoadsAssembler_v2 : IEquivalentLoadsAssembler_v2
+    /// <summary>
+    /// Calculates the equivalent nodal forces (at the subdomain level) due to Dirichlet boundary conditions.
+    /// Authors: Maria Tavlaki
+    /// </summary>
+    public class DirichletEquivalentLoadsStructural : IDirichletEquivalentLoadsAssembler
     {
-        private ISubdomain_v2 subdomain;
-        private IElementMatrixProvider_v2 elementProvider;
+        private IElementMatrixProvider_v2 elementProvider; //TODO: not sure if df = K * du is the best way to calcuate df.
 
-        public EquivalentLoadsAssembler_v2(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementProvider)
+        public DirichletEquivalentLoadsStructural(IElementMatrixProvider_v2 elementProvider)
         {
-            this.subdomain = subdomain;
             this.elementProvider = elementProvider;
         }
 
-        public IVector GetEquivalentNodalLoads(IVectorView solution, double constraintScalingFactor) 
+        public IVector GetEquivalentNodalLoads(ISubdomain_v2 subdomain, IVectorView solution, double constraintScalingFactor) 
         {
             //var times = new Dictionary<string, TimeSpan>();
             //var totalStart = DateTime.Now;
@@ -30,9 +30,8 @@ namespace ISAAR.MSolve.Analyzers
             //times.Add("element", TimeSpan.Zero);
             //times.Add("addition", TimeSpan.Zero);
 
-            //var subdomainEquivalentNodalForces = new double[subdomain.Forces.Length];
             var subdomainEquivalentForces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-            foreach (Element_v2 element in subdomain.Elements)
+            foreach (IElement_v2 element in subdomain.Elements)
             {
                 //var elStart = DateTime.Now;
                 IMatrix elementK = elementProvider.Matrix(element);
@@ -42,11 +41,8 @@ namespace ISAAR.MSolve.Analyzers
                 Vector localdSolution = 
                     subdomain.CalculateElementIncrementalConstraintDisplacements(element, constraintScalingFactor);
 
-                //var equivalentNodalForces = new double[localSolution.Length];
-                //ElementK.Multiply(new Vector(localdSolution), equivalentNodalForces);
                 var elementEquivalentForces = elementK.Multiply(localdSolution);
 
-                //subdomain.AddLocalVectorToGlobal(element, equivalentNodalForces, subdomainEquivalentNodalForces);
                 subdomain.DofOrdering.AddVectorElementToSubdomain(element, elementEquivalentForces, subdomainEquivalentForces);
 
                 //times["addition"] += DateTime.Now - elStart;
