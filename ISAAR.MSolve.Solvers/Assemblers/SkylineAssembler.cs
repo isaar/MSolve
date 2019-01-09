@@ -4,13 +4,13 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 //TODO: The F = Ff - Kfc*Fc should not be done in the solver. The solver should only operate on the final linear systems.
 //      It could be done here or in the analyzer.
 //TODO: Optimizations should be available when building matrices with the same sparsity pattern. These optimizations should work
 //      for all assemblers, not only skyline.
+//TODO: checking whether the indexer is null is not enough. The assembler should rebuild the indexer whenever the dof ordering
+//      changes.
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
@@ -22,12 +22,17 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     {
         private const string name = "SkylineAssembler"; // for error messages
 
-        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
+        private int[] skylineColHeights; //TODO: better have reusable Skyline matrix builders
+
+        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
             IElementMatrixProvider_v2 matrixProvider)
         {
-            int numFreeDofs = dofOrdering.NumFreeDofs;
-            SkylineBuilder subdomainMatrix = FindSkylineColumnHeights(elements, numFreeDofs, dofOrdering.FreeDofs);
+            if (skylineColHeights == null)
+            {
+                skylineColHeights = FindSkylineColumnHeights(elements, dofOrdering.NumFreeDofs, dofOrdering.FreeDofs);
+            }
 
+            var subdomainMatrix = SkylineBuilder.Create(dofOrdering.NumFreeDofs, skylineColHeights);
             foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
@@ -43,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
         // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
         // though.
-        private static SkylineBuilder FindSkylineColumnHeights(IEnumerable<IElement_v2> elements,
+        private static int[] FindSkylineColumnHeights(IEnumerable<IElement_v2> elements,
             int numFreeDofs, DofTable freeDofs)
         {
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
@@ -72,7 +77,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                     }
                 }
             }
-            return SkylineBuilder.Create(numFreeDofs, colHeights);
+            return colHeights;
         }
     }
 }

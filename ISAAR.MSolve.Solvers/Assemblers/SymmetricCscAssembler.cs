@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.Solvers.Utilities;
 
+//TODO: Instead of storing the raw CSC arrays, use a reusable DOK or SymmCscIndexer class. That class should provide methods to 
+//      assemble the values part of the global matrix more efficiently than the general purpose DOK. The general purpose DOK 
+//      should only be used to assemble the first global matrix and whenever the dof ordering changes. Now it is used everytime 
+//      and the indexing arrays are discarded.
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
@@ -16,6 +21,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     {
         private const string name = "SymmetricCscAssembler"; // for error messages
         private readonly bool sortColsOfEachRow;
+
+        private int[] cachedRowIndices, cachedColOffsets;
 
         /// <summary>
         /// 
@@ -43,7 +50,20 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 subdomainMatrix.AddSubmatrixSymmetric(elementK, elementDofIndices, subdomainDofIndices);
             }
 
-            return subdomainMatrix.BuildSymmetricCscMatrix(sortColsOfEachRow);
+            (double[] values, int[] rowIndices, int[] colOffsets) = subdomainMatrix.BuildSymmetricCscArrays(sortColsOfEachRow);
+
+            if (cachedColOffsets == null)
+            {
+                Debug.Assert(cachedRowIndices == null);
+                cachedRowIndices = rowIndices;
+                cachedColOffsets = colOffsets;
+            }
+            else
+            {
+                Debug.Assert(ArrayChecks.AreEqual(cachedRowIndices, rowIndices));
+                Debug.Assert(ArrayChecks.AreEqual(cachedColOffsets, colOffsets));
+            }
+            return SymmetricCscMatrix.CreateFromArrays(numFreeDofs, values, cachedRowIndices, cachedColOffsets, false);
         }
     }
 }

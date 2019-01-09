@@ -1,21 +1,29 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using ISAAR.MSolve.Solvers.Utilities;
 
-//TODO: this should work with MatrixProviders instead of asking the elements directly.
+//TODO: Instead of storing the raw CSR arrays, use a reusable DOK or CsrIndexer class. That class should provide methods to 
+//      assemble the values part of the global matrix more efficiently than the general purpose DOK. The general purpose DOK 
+//      should only be used to assemble the first global matrix and whenever the dof ordering changes. Now it is used everytime 
+//      and the indexing arrays are discarded.
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
-    /// Builds the global matrix of the linear system that will be solved. This matrix is in CSR format, which is suitable for
-    /// matrix/vector multiplications, therefore it can be combined with many iterative solvers.
+    /// Builds the global matrix of the linear system that will be solved. This matrix is square and stored in CSR format, but
+    /// both triangles are explicitly stored. This format is suitable for matrix/vector multiplications, therefore it can be 
+    /// combined with many iterative solvers. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class CsrAssembler : IGlobalMatrixAssembler<CsrMatrix>
     {
         private const string name = "CsrAssembler"; // for error messages
         private readonly bool sortColsOfEachRow;
+
+        private int[] cachedColIndices, cachedRowOffsets;
 
         /// <summary>
         /// 
@@ -42,7 +50,22 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 subdomainMatrix.AddSubmatrixSymmetric(elementMatrix, elementDofIndices, subdomainDofIndices);
             }
 
-            return subdomainMatrix.BuildCsrMatrix(sortColsOfEachRow);
+            (double[] values, int[] colIndices, int[] rowOffsets) = subdomainMatrix.BuildCsrArrays(sortColsOfEachRow);
+
+            if (cachedRowOffsets == null)
+            {
+                Debug.Assert(cachedColIndices == null);
+                cachedColIndices = colIndices;
+                cachedRowOffsets = rowOffsets;
+            }
+            else
+            {
+                Debug.Assert(ArrayChecks.AreEqual(cachedColIndices, colIndices));
+                Debug.Assert(ArrayChecks.AreEqual(cachedRowOffsets, rowOffsets));
+            }
+            return CsrMatrix.CreateFromArrays(numFreeDofs, numFreeDofs, values, cachedColIndices, cachedRowOffsets, false);
         }
+
+        
     }
 }
