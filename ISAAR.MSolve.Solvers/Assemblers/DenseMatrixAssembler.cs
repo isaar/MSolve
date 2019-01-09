@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -7,25 +6,29 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
-    public class DenseMatrixAssembler
+    /// <summary>
+    /// Builds the global matrix of the linear system that will be solved. This matrix is full column major format. It can be 
+    /// symmetric, but both triangles will be stored explicitly.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class DenseMatrixAssembler: IGlobalMatrixAssembler<Matrix>
     {
-        public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
+        public Matrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
             IElementMatrixProvider_v2 elementMatrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
-            var Kff = Matrix.CreateZero(numFreeDofs, numFreeDofs);
+            var subdomainMatrix = Matrix.CreateZero(numFreeDofs, numFreeDofs);
 
             foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                IMatrix elementK = elementMatrixProvider.Matrix(element);
-                //AddElementToGlobalMatrix(Kff, elementK, mapStandard, mapStandard);
-                AddElementToGlobalMatrix(Kff, elementK, elementDofIndices, subdomainDofIndices);
+                IMatrix elementMatrix = elementMatrixProvider.Matrix(element);
+                AddElementToGlobalMatrix(subdomainMatrix, elementMatrix, elementDofIndices, subdomainDofIndices);
             }
 
-            return Kff;
+            return subdomainMatrix;
         }
 
         private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrixView elementMatrix,

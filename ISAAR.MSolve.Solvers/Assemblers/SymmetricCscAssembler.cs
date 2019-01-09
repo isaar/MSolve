@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
     /// Builds the global matrix of the linear system that will be solved. This matrix is in symmetric CSC format, namely only 
-    /// the upper triangle is explicitly stored.
+    /// the upper triangle is explicitly stored. This format is suitable for the SuiteSparse library and solvers that use it.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class SymmetricCscAssembler : IGlobalMatrixAssembler<SymmetricCscMatrix>
@@ -33,22 +33,17 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             IElementMatrixProvider_v2 matrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
-            var Kff = DokSymmetric.CreateEmpty(numFreeDofs);
+            var subdomainMatrix = DokSymmetric.CreateEmpty(numFreeDofs);
 
             foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 IMatrix elementK = matrixProvider.Matrix(element);
-                Kff.AddSubmatrixSymmetric(elementK, elementDofIndices, subdomainDofIndices);
+                subdomainMatrix.AddSubmatrixSymmetric(elementK, elementDofIndices, subdomainDofIndices);
             }
 
-            return Kff.BuildSymmetricCscMatrix(sortColsOfEachRow);
-        }
-
-        public SymmetricCscMatrix BuildGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider matrixProvider)
-        {
-            throw new NotImplementedException();
+            return subdomainMatrix.BuildSymmetricCscMatrix(sortColsOfEachRow);
         }
     }
 }
