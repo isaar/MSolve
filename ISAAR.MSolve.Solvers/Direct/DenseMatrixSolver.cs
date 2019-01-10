@@ -1,51 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Output;
-using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 namespace ISAAR.MSolve.Solvers.Direct
 {
-    public class DenseMatrixSolver: ISolver_v2
+    public class DenseMatrixSolver: SingleSubdomainSolverBase<Matrix>
     {
-        private const string name = "SkylineSolver"; // for error messages
-        private readonly DenseMatrixAssembler assembler = new DenseMatrixAssembler();
-        private readonly IDofOrderer dofOrderer;
-        private readonly IStructuralModel_v2 model;
-        private readonly ISubdomain_v2 subdomain;
-        private readonly SingleSubdomainSystem<Matrix> linearSystem;
-
         private bool mustFactorize = true;
         private CholeskyFull factorizedMatrix;
 
-        public DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer)
-        {
-            if (model.Subdomains.Count != 1) throw new InvalidSolverException(
-                $"{name} can be used if there is only 1 subdomain");
-            this.model = model;
-            subdomain = model.Subdomains[0];
+        private DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer):
+            base(model, dofOrderer, new DenseMatrixAssembler(), "DenseMatrixSolver")
+        { }
 
-            linearSystem = new SingleSubdomainSystem<Matrix>(subdomain);
-            LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
-            linearSystem.MatrixObservers.Add(this);
-
-            this.dofOrderer = dofOrderer;
-        }
-
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
-
-        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        public override IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
         {
             #region Code to facilitate debugging
             //var writer = new FullMatrixWriter();
@@ -98,38 +70,18 @@ namespace ISAAR.MSolve.Solvers.Direct
                 elementMatrixProvider);
         }
 
-        public void Initialize() {}
+        public override void Initialize() {}
 
-        public void OnMatrixSetting()
+        public override void OnMatrixSetting()
         {
             mustFactorize = true;
             factorizedMatrix = null;
         }
 
-        public void OrderDofsAndClearLinearSystem()
-        {
-            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
-            assembler.OnDofOrderingModified();
-            OnMatrixSetting();
-            linearSystem.Clear();
-            linearSystem.Size = globalOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
-
-            model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                subdomain.DofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
-
-                // If we decide subdomain.Forces will always be a Vector or double[] then this process could be done elsewhere.
-                subdomain.Forces = linearSystem.CreateZeroVector();
-            }
-            //EnumerateSubdomainLagranges();
-            //EnumerateDOFMultiplicity();
-        }
-
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
-        public void Solve()
+        public override void Solve()
         {
 
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();

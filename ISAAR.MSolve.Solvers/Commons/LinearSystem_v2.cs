@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Solvers.Commons
 {
     public abstract class LinearSystem_v2<TMatrix, TVector> : ILinearSystem_v2
-        where TMatrix : class, IMatrixView //TODO: perhaps this should be IMatrix
+        where TMatrix : class, IMatrix //TODO: perhaps this should be IMatrixView
         where TVector : class, IVector
     {
         private const int initialSize = int.MinValue;

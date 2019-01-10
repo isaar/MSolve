@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
@@ -20,34 +16,18 @@ namespace ISAAR.MSolve.Solvers.Direct
     /// The default behaviour is to apply AMD reordering before Cholesky factorization.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SuiteSparseSolver : ISolver_v2, IDisposable
+    public class SuiteSparseSolver : SingleSubdomainSolverBase<SymmetricCscMatrix>, IDisposable
     {
-        private const string name = "SkylineSolver"; // For error messages
         private const bool useSuperNodalFactorization = true; // For faster back/forward substitutions.
-
-        private readonly SymmetricCscAssembler assembler = new SymmetricCscAssembler();
-        private readonly IDofOrderer dofOrderer;
-        private readonly IStructuralModel_v2 model;
-        private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
-        private readonly SingleSubdomainSystem<SymmetricCscMatrix> linearSystem;
 
         private bool mustFactorize = true;
         private CholeskySuiteSparse factorization;
 
-        private SuiteSparseSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer)
+        private SuiteSparseSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
+            base(model, dofOrderer, new SymmetricCscAssembler(), "SkylineSolver")
         {
-            if (model.Subdomains.Count != 1) throw new InvalidSolverException(
-                $"{name} can be used if there is only 1 subdomain");
-            this.model = model;
-            subdomain = model.Subdomains[0];
-
-            linearSystem = new SingleSubdomainSystem<SymmetricCscMatrix>(subdomain);
-            LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
-            linearSystem.MatrixObservers.Add(this);
-
             this.factorizationPivotTolerance = factorizationPivotTolerance;
-            this.dofOrderer = dofOrderer;
         }
 
         ~SuiteSparseSolver()
@@ -55,23 +35,15 @@ namespace ISAAR.MSolve.Solvers.Direct
             ReleaseResources();
         }
 
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
-
-        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
-            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
-
-        /// <summary>
-        /// See <see cref="IDisposable.Dispose"/>.
-        /// </summary>
         public void Dispose()
         {
             ReleaseResources();
             GC.SuppressFinalize(this);
         }
 
-        public void Initialize() { }
+        public override void Initialize() { }
 
-        public void OnMatrixSetting()
+        public override void OnMatrixSetting()
         {
             mustFactorize = true;
             if (factorization != null)
@@ -82,30 +54,10 @@ namespace ISAAR.MSolve.Solvers.Direct
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
 
-        public void OrderDofsAndClearLinearSystem()
-        {
-            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
-            assembler.OnDofOrderingModified();
-            OnMatrixSetting();
-            linearSystem.Clear();
-            linearSystem.Size = globalOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
-
-            model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                subdomain.DofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
-
-                // If we decide subdomain.Forces will always be a Vector or double[] then this process could be done elsewhere.
-                subdomain.Forces = linearSystem.CreateZeroVector();
-            }
-            //EnumerateSubdomainLagranges();
-            //EnumerateDOFMultiplicity();
-        }
-
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
-        public void Solve()
+        public override void Solve()
         {
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver

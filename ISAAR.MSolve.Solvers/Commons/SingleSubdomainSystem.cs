@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Solvers.Commons
 {
     public class SingleSubdomainSystem<TMatrix> : LinearSystem_v2<TMatrix, Vector>
-        where TMatrix : class, IMatrixView //TODO: perhaps this should be IMatrix
+        where TMatrix : class, IMatrix
     {
         internal SingleSubdomainSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
         internal override Vector CreateZeroVector() => Vector.CreateZero(this.Size);
