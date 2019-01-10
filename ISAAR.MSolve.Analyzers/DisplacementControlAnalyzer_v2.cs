@@ -5,6 +5,7 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 
@@ -49,10 +50,24 @@ namespace ISAAR.MSolve.Analyzers
 
                     Dictionary<int, IVector> internalRhsVectors = CalculateInternalRhs(increment, iteration);
                     errorNorm = UpdateResidualForcesAndNorm(increment, internalRhsVectors); // This also sets the rhs vectors in linear systems.
-                    if (iteration == 0) firstError = errorNorm;
-                    if (errorNorm < residualTolerance) break;
                     //Console.WriteLine($"Increment {increment}, iteration {iteration}: norm2(error) = {errorNorm}");
 
+                    if (iteration == 0) firstError = errorNorm;
+
+                    if (TotalDisplacementsPerIterationLog != null) TotalDisplacementsPerIterationLog.StoreDisplacements_v2(uPlusdu);
+
+                    if (errorNorm < residualTolerance)
+                    {
+                        foreach (var subdomainLogPair in IncrementalLogs)
+                        {
+                            int subdomainID = subdomainLogPair.Key;
+                            TotalLoadsDisplacementsPerIncrementLog log = subdomainLogPair.Value;
+                            log.LogTotalDataForIncrement(increment, iteration, errorNorm,
+                                uPlusdu[subdomainID], internalRhsVectors[subdomainID]);
+                        }
+                        break;
+                    }
+                    
                     SplitResidualForcesToSubdomains();
                     if ((iteration + 1) % numIterationsForMatrixRebuild == 0)
                     {

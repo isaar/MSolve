@@ -81,7 +81,62 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static void EmbeddedCNTinMatrix_DisplacementControl()
         {
+            VectorExtensions.AssignTotalAffinityCount();
 
+            // Model creation
+            var model = new Model_v2();
+
+            // Subdomains
+            //model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = 1 });
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+
+            // Variables
+            int monitorNode = 161;
+            DOFType monitorDof = DOFType.Y;
+
+            // Choose model
+            EmbeddedModelBuilder.EmbeddedExample(model);
+
+            //-----------------------------------------------------------------------------------------------------------
+            // Model_v2
+
+            // Choose linear equation system solver
+            //var solverBuilder = new SkylineSolver.Builder();
+            //SkylineSolver solver = solverBuilder.BuildSolver(model);
+            var solverBuilder = new SuiteSparseSolver.Builder();
+            SuiteSparseSolver solver = solverBuilder.BuildSolver(model);
+
+            // Choose the provider of the problem -> here a structural problem
+            var provider = new ProblemStructural_v2(model, solver);
+
+            // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
+            int increments = 100;
+            // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
+            int numIncrements = 10;
+            var equivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler_v2>
+            {
+                { subdomainID, new EquivalentLoadsAssembler_v2(model.SubdomainsDictionary[subdomainID],
+                                                               new ElementStructuralStiffnessProvider())
+                }
+            };
+
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, 
+                equivalentLoadsAssemblers, increments);
+            DisplacementControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+
+            // Choose parent analyzer -> Parent: Static
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+            // Request output
+            string outputFile = outputDirectory + "\\CNT-Embedded-3D_Results.txt";
+            var logger = new TotalLoadsDisplacementsPerIncrementLog(model.SubdomainsDictionary[subdomainID], increments,
+                model.NodesDictionary[monitorNode], monitorDof, outputFile);
+            childAnalyzer.IncrementalLogs.Add(subdomainID, logger);
+
+            // Run the analysis
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
         }
 
         public static class EmbeddedModelBuilder
@@ -179,30 +234,43 @@ namespace ISAAR.MSolve.SamplesConsole
                         //model.SubdomainsDictionary[0].ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
                         model.SubdomainsDictionary[0].Elements.Add(hexa8NLelement);
                     }                    
-                }
+                }               
 
-                // Boundary Conditions
+                // Boundary Conditions - Left End
                 for (int iNode = 1; iNode <= 16; iNode++) //(int iNode = 1; iNode <= 676; iNode++) //
                 {
                     model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
                     model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
                     model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                    //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                    //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                    //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                }
+
+                // Boundary Conditions - Bottom End
+                for (int iNode = 1; iNode <= 161; iNode += 16) //(int iNode = 1; iNode <= 676; iNode++) //
+                {
+                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                    model.NodesDictionary[iNode + 1].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                    model.NodesDictionary[iNode + 2].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                    model.NodesDictionary[iNode + 3].Constraints.Add(new Constraint { DOF = DOFType.Z });
                 }
 
                 // Add nodal load values at the top nodes of the model
-                for (int iNode = 161; iNode <= 164; iNode++) //(int iNode = 338001; iNode <= 338026; iNode++) //(int iNode = 3601; iNode <= 3606; iNode++) //(int iNode = 2603551; iNode < 2603601; iNode++)
-                {
-                    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Y });
-                }
+                //for (int iNode = 161; iNode <= 164; iNode++) //(int iNode = 338001; iNode <= 338026; iNode++) //(int iNode = 3601; iNode <= 3606; iNode++) //(int iNode = 2603551; iNode < 2603601; iNode++)
+                //{
+                //    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Y });
+                //}
                 //model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1801], DOF = DOFType.Y });
                 //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1802], DOF = DOFType.Y });
                 //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1803], DOF = DOFType.Y });
                 //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1804], DOF = DOFType.Y });
                 //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1805], DOF = DOFType.Y });
                 //model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1806], DOF = DOFType.Y });
+
+                // Applied Displacements
+                double nodalDisplacement = -10.0;
+                for (int iNode = 1; iNode <= 16; iNode++) //(int iNode = 1; iNode <= 676; iNode++) //
+                {
+                    model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Z, Amount = nodalDisplacement });
+                }
             }
 
             public static void EmbeddedElementsBuilder(Model_v2 model)
