@@ -21,6 +21,7 @@ namespace ISAAR.MSolve.Solvers.Direct
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly DenseMatrixAssembler assembler = new DenseMatrixAssembler();
+        private readonly IDofOrderer dofOrderer;
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly DenseSystem linearSystem;
@@ -39,16 +40,14 @@ namespace ISAAR.MSolve.Solvers.Direct
             LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
-            this.DofOrderer = dofOrderer;
+            this.dofOrderer = dofOrderer;
         }
-
-        public IDofOrderer DofOrderer { get; }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
         {
-            // DEBUG
+            #region Code to facilitate debugging
             //var writer = new FullMatrixWriter();
             //writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
 
@@ -93,8 +92,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             //var writer = new FullMatrixWriter();
             //writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
             //writer.WriteToConsole(matrix);
-
-            // END DEBUG
+            #endregion
 
             return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, 
                 elementMatrixProvider);
@@ -108,6 +106,15 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix = null;
         }
 
+        public void OrderDofsAndClearLinearSystem()
+        {
+            assembler.OnDofOrderingModified();
+            model.GlobalDofOrdering = dofOrderer.OrderDofs(model);
+            OnMatrixSetting();
+            linearSystem.Clear();
+            linearSystem.Size = model.GlobalDofOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
+        }
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
@@ -115,8 +122,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         {
 
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
-            //else linearSystem.Solution.Clear(); // no need to waste computational time on this
+            //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             if (mustFactorize)
             {
@@ -127,12 +133,6 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
-
-        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        /// <summary>
-        /// The number of dofs might have been changed since the previous Solution vector had been created.
-        /// </summary>
-        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
@@ -148,8 +148,8 @@ namespace ISAAR.MSolve.Solvers.Direct
         private class DenseSystem : LinearSystem_v2<Matrix, Vector>
         {
             internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
+            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

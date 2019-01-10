@@ -23,6 +23,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         private const string name = "CsrAssembler"; // for error messages
         private readonly bool sortColsOfEachRow;
 
+        bool isIndexerCached = false;
         private int[] cachedColIndices, cachedRowOffsets;
 
         /// <summary>
@@ -52,11 +53,11 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 
             (double[] values, int[] colIndices, int[] rowOffsets) = subdomainMatrix.BuildCsrArrays(sortColsOfEachRow);
 
-            if (cachedRowOffsets == null)
+            if (!isIndexerCached)
             {
-                Debug.Assert(cachedColIndices == null);
                 cachedColIndices = colIndices;
                 cachedRowOffsets = rowOffsets;
+                isIndexerCached = true;
             }
             else
             {
@@ -66,6 +67,12 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return CsrMatrix.CreateFromArrays(numFreeDofs, numFreeDofs, values, cachedColIndices, cachedRowOffsets, false);
         }
 
-        
+        public void OnDofOrderingModified()
+        {
+            //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
+            cachedColIndices = null;
+            cachedRowOffsets = null;
+            isIndexerCached = false;
+        }
     }
 }

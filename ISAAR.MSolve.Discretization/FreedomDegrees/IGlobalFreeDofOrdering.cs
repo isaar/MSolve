@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Perhaps the ISubdomainDofOrderings should be accessed through IClusterDofOrdering. For now they are stored in Subdomain
+//TODO: Perhaps this doulbe be IObservable and noty observers (e.g. solver, assembler) when the ordering changes.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
     public interface IGlobalFreeDofOrdering

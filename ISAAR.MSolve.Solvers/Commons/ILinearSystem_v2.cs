@@ -48,6 +48,8 @@ namespace ISAAR.MSolve.Solvers.Commons
     // matrices with the same sparsity pattern.
     public interface ILinearSystem_v2
     {
+        int Size { get; }
+
         //TODO: these are error prone. The implementation should manage the state, by restricting access to the matrix.
         //When a mutating method is called, observers (analyzers, solvers, providers) are notified  
         bool IsMatrixOverwrittenBySolver { get; }
@@ -62,6 +64,8 @@ namespace ISAAR.MSolve.Solvers.Commons
         //TODO: setters should be removed, since they force the implementation (or the solver) to cast. Currently there is no
         //      way around it
         IVector RhsVector { get; set; }
+
+        void Clear();
 
         /// <summary>
         /// The freedom degrees must be ordered before this method can be called. Attention when the freedom degrees change 

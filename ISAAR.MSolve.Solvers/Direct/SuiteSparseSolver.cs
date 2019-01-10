@@ -25,6 +25,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         private const bool useSuperNodalFactorization = true; // For faster back/forward substitutions.
 
         private readonly SymmetricCscAssembler assembler = new SymmetricCscAssembler();
+        private readonly IDofOrderer dofOrderer;
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
@@ -45,15 +46,13 @@ namespace ISAAR.MSolve.Solvers.Direct
             linearSystem.MatrixObservers.Add(this);
 
             this.factorizationPivotTolerance = factorizationPivotTolerance;
-            this.DofOrderer = dofOrderer;
+            this.dofOrderer = dofOrderer;
         }
 
         ~SuiteSparseSolver()
         {
             ReleaseResources();
         }
-
-        public IDofOrderer DofOrderer { get; }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
@@ -82,14 +81,22 @@ namespace ISAAR.MSolve.Solvers.Direct
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
 
+        public void OrderDofsAndClearLinearSystem()
+        {
+            assembler.OnDofOrderingModified();
+            model.GlobalDofOrdering = dofOrderer.OrderDofs(model);
+            OnMatrixSetting();
+            linearSystem.Clear();
+            linearSystem.Size = model.GlobalDofOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
+        }
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
         public void Solve()
         {
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
-            //else linearSystem.Solution.Clear(); // no need to waste computational time on this
+            //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             if (mustFactorize)
             {
@@ -99,12 +106,6 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             factorization.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
-
-        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        /// <summary>
-        /// The number of dofs might have been changed since the previous Solution vector had been created.
-        /// </summary>
-        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         private void ReleaseResources()
         {
@@ -131,8 +132,8 @@ namespace ISAAR.MSolve.Solvers.Direct
         private class SuiteSparseSystem : LinearSystem_v2<SymmetricCscMatrix, Vector>
         {
             internal SuiteSparseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
+            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

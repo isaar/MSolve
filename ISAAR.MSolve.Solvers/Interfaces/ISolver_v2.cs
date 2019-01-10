@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 {
     public interface ISolver_v2 : ISystemMatrixObserver
     {
-        IDofOrderer DofOrderer { get; }
+        void OrderDofsAndClearLinearSystem();
 
         IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 

@@ -10,6 +10,7 @@ using ISAAR.MSolve.Solvers.Utilities;
 //      assemble the values part of the global matrix more efficiently than the general purpose DOK. The general purpose DOK 
 //      should only be used to assemble the first global matrix and whenever the dof ordering changes. Now it is used everytime 
 //      and the indexing arrays are discarded.
+//TODO: I could also cache the symbolic factorization of SuiteSparse and reuse it. That would really speed up things.
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
@@ -22,6 +23,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         private const string name = "SymmetricCscAssembler"; // for error messages
         private readonly bool sortColsOfEachRow;
 
+        bool isIndexerCached = false;
         private int[] cachedRowIndices, cachedColOffsets;
 
         /// <summary>
@@ -52,11 +54,11 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 
             (double[] values, int[] rowIndices, int[] colOffsets) = subdomainMatrix.BuildSymmetricCscArrays(sortColsOfEachRow);
 
-            if (cachedColOffsets == null)
+            if (!isIndexerCached)
             {
-                Debug.Assert(cachedRowIndices == null);
                 cachedRowIndices = rowIndices;
                 cachedColOffsets = colOffsets;
+                isIndexerCached = true;
             }
             else
             {
@@ -64,6 +66,14 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 Debug.Assert(ArrayChecks.AreEqual(cachedColOffsets, colOffsets));
             }
             return SymmetricCscMatrix.CreateFromArrays(numFreeDofs, values, cachedRowIndices, cachedColOffsets, false);
+        }
+
+        public void OnDofOrderingModified()
+        {
+            //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
+            cachedRowIndices = null;
+            cachedColOffsets = null;
+            isIndexerCached = false;
         }
     }
 }

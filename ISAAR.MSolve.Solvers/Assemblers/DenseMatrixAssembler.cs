@@ -31,6 +31,11 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return subdomainMatrix;
         }
 
+        public void OnDofOrderingModified()
+        {
+           // Do nothing, since there are no idexing arrays to cache.
+        }
+
         private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrixView elementMatrix,
             int[] elementIndices, int[] globalIndices)
         {

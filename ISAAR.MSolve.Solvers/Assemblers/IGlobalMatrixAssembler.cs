@@ -12,5 +12,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     {
         TMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
             IElementMatrixProvider_v2 matrixProvider);
+
+        //TODO: document if this is called before or after the event. Even better name it appropriately
+        void OnDofOrderingModified();
     }
 }

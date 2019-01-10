@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -28,6 +29,7 @@ namespace ISAAR.MSolve.Solvers.Direct
     {
         private const string name = "SkylineSolver"; // for error messages
         private readonly SkylineAssembler assembler = new SkylineAssembler();
+        private readonly IDofOrderer dofOrderer;
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
@@ -48,10 +50,9 @@ namespace ISAAR.MSolve.Solvers.Direct
             linearSystem.MatrixObservers.Add(this);
 
             this.factorizationPivotTolerance = factorizationPivotTolerance;
-            this.DofOrderer = dofOrderer;
+            this.dofOrderer = dofOrderer;
         }
 
-        public IDofOrderer DofOrderer { get; }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
@@ -66,16 +67,22 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix = null;
         }
 
+        public void OrderDofsAndClearLinearSystem()
+        {
+            assembler.OnDofOrderingModified();
+            model.GlobalDofOrdering = dofOrderer.OrderDofs(model);
+            OnMatrixSetting();
+            linearSystem.Clear();
+            linearSystem.Size = model.GlobalDofOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
+        }
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
         public void Solve()
         {
-            //TODO: This should be handled by the linear system when the dof ordering changes. Here we should just call 
-            //      Solution.Clear() (or nothing at all for release builds, Solution.Clear() for debug builds.).
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
-            //else linearSystem.Solution.Clear(); // no need to waste computational time on this
+            //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             if (mustFactorize)
             {
@@ -86,12 +93,6 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
-
-        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        /// <summary>
-        /// The number of dofs might have been changed since the previous Solution vector had been created.
-        /// </summary>
-        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         //TODO: Copied from Stavroulakis code. Find out what the purpose of this is. I suspect he wanted to compare with some 
         //      old solution that used single precision.
@@ -126,8 +127,8 @@ namespace ISAAR.MSolve.Solvers.Direct
         private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>
         {
             internal SkylineSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
+            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

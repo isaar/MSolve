@@ -22,14 +22,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     {
         private const string name = "SkylineAssembler"; // for error messages
 
+        bool isIndexerCached = false;
         private int[] skylineColHeights; //TODO: better have reusable Skyline matrix builders
 
         public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
             IElementMatrixProvider_v2 matrixProvider)
         {
-            if (skylineColHeights == null)
+            if (!isIndexerCached)
             {
                 skylineColHeights = FindSkylineColumnHeights(elements, dofOrdering.NumFreeDofs, dofOrdering.FreeDofs);
+                isIndexerCached = true;
             }
 
             var subdomainMatrix = SkylineBuilder.Create(dofOrdering.NumFreeDofs, skylineColHeights);
@@ -37,12 +39,18 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 IMatrix elementMatrix = matrixProvider.Matrix(element);
                 subdomainMatrix.AddSubmatrixSymmetric(elementMatrix, elementDofIndices, subdomainDofIndices);
             }
 
             return subdomainMatrix.BuildSkylineMatrix();
+        }
+
+        public void OnDofOrderingModified()
+        {
+            //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
+            skylineColHeights = null;
+            isIndexerCached = false;
         }
 
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
@@ -54,8 +62,12 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
             foreach (IElement_v2 element in elements)
             {
+                //TODO: perhaps I could use dofOrdering.MapFreeDofsElementToSubdomain(element). This way they can be cached,
+                //      which would speed up the code when building the values array. However, if there is not enough memory for 
+                //      caching, performance may take a hit since building the mapping arrays does redundant stuff (probably?).
+                //      In any case, benchmarking is needed.
                 //TODO: perhaps the 2 outer loops could be done at once to avoid a lot of dof indexing. Could I update minDof
-                //      and colHeights[] at once?
+                //      and colHeights[] at once? At least I could store the dofIndices somewhere
 
                 IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
 

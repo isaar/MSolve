@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using ISAAR.MSolve.Solvers.Interfaces;
+using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Logging.Interfaces;
-using System.Diagnostics;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Solvers.Interfaces;
 
 //TODO: Optimization: I could avoid initialization and GC of some vectors by reusing existing ones.
 //TODO: Use a base class for implicit time integration methods (perhaps to together with explicit)
@@ -140,7 +139,7 @@ namespace ISAAR.MSolve.Analyzers
         public void Initialize()
         {
             model.ConnectDataStructures();
-            model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model);
+            solver.OrderDofsAndClearLinearSystem();
             model.AssignLoads();
 
             //TODO: this should be done elsewhere. It makes sense to assign the Rhs vector when the stiffness matrix is assigned

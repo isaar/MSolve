@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Analyzers
             //InitalizeMatrices();
 
             model.ConnectDataStructures();
-            model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model);
+            solver.OrderDofsAndClearLinearSystem();
             model.AssignLoads();
 
             //TODO: this should be done elsewhere. It makes sense to assign the RHS vector when the stiffness matrix is assigned

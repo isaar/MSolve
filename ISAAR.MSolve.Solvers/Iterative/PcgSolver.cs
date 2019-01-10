@@ -24,6 +24,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
     {
         private const string name = "PcgSolver"; // for error messages
         private readonly CsrAssembler assembler = new CsrAssembler(true);
+        private readonly IDofOrderer dofOrderer;
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly CsrSystem linearSystem;
@@ -45,13 +46,10 @@ namespace ISAAR.MSolve.Solvers.Iterative
             LinearSystems = new Dictionary<int, ILinearSystem_v2>(){ { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
-
             this.pcgAlgorithm = pcgAlgorithm;
             this.preconditionerFactory = preconditionerFactory;
-            this.DofOrderer = dofOrderer;
+            this.dofOrderer = dofOrderer;
         }
-
-        public IDofOrderer DofOrderer { get; }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
@@ -66,14 +64,22 @@ namespace ISAAR.MSolve.Solvers.Iterative
             preconditioner = null;
         }
 
+        public void OrderDofsAndClearLinearSystem()
+        {
+            assembler.OnDofOrderingModified();
+            model.GlobalDofOrdering = dofOrderer.OrderDofs(model);
+            OnMatrixSetting();
+            linearSystem.Clear();
+            linearSystem.Size = model.GlobalDofOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
+        }
+
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.
         /// </summary>
         public void Solve()
         {
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else linearSystem.Solution.Clear(); // In iterative algorithms we initialize the solution vector to 0.
+            else linearSystem.Solution.Clear();
 
             if (mustUpdatePreconditioner)
             {
@@ -84,9 +90,6 @@ namespace ISAAR.MSolve.Solvers.Iterative
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
         }
-
-        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
@@ -104,8 +107,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
         private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>
         {
             internal CsrSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
             public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
+            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

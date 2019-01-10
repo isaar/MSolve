@@ -1,12 +1,11 @@
 ﻿using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
 
+//TODO: Not sure if this is needed.
 namespace ISAAR.MSolve.Solvers.Ordering
 {
     public interface IDofOrderer
     {
-        IReorderingAlgorithm Reordering { get; set; }
         IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model);
     }
 }
