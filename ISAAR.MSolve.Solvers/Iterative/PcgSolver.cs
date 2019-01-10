@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
         private readonly IDofOrderer dofOrderer;
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
-        private readonly CsrSystem linearSystem;
+        private readonly SingleSubdomainSystem<CsrMatrix> linearSystem;
         private readonly PcgAlgorithm pcgAlgorithm;
         private readonly IPreconditionerFactory preconditionerFactory;
 
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
             this.model = model;
             subdomain = model.Subdomains[0];
 
-            linearSystem = new CsrSystem(subdomain);
+            linearSystem = new SingleSubdomainSystem<CsrMatrix>(subdomain);
             LinearSystems = new Dictionary<int, ILinearSystem_v2>(){ { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
@@ -114,12 +114,6 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model) 
                 => new PcgSolver(model, PcgAlgorithm, PreconditionerFactory, DofOrderer);
-        }
-
-        private class CsrSystem : LinearSystem_v2<CsrMatrix, Vector>
-        {
-            internal CsrSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

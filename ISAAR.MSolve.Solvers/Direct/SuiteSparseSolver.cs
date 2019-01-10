@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
-        private readonly SuiteSparseSystem linearSystem;
+        private readonly SingleSubdomainSystem<SymmetricCscMatrix> linearSystem;
 
         private bool mustFactorize = true;
         private CholeskySuiteSparse factorization;
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             this.model = model;
             subdomain = model.Subdomains[0];
 
-            linearSystem = new SuiteSparseSystem(subdomain);
+            linearSystem = new SingleSubdomainSystem<SymmetricCscMatrix>(subdomain);
             LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
@@ -139,12 +139,6 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public SuiteSparseSolver BuildSolver(IStructuralModel_v2 model)
                 => new SuiteSparseSolver(model, FactorizationPivotTolerance, DofOrderer);
-        }
-
-        private class SuiteSparseSystem : LinearSystem_v2<SymmetricCscMatrix, Vector>
-        {
-            internal SuiteSparseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

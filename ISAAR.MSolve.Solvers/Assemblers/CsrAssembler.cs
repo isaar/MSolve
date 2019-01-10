@@ -4,7 +4,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.Solvers.Utilities;
+using ISAAR.MSolve.Solvers.Commons;
 
 //TODO: Instead of storing the raw CSR arrays, use a reusable DOK or CsrIndexer class. That class should provide methods to 
 //      assemble the values part of the global matrix more efficiently than the general purpose DOK. The general purpose DOK 
@@ -61,8 +61,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             }
             else
             {
-                Debug.Assert(ArrayChecks.AreEqual(cachedColIndices, colIndices));
-                Debug.Assert(ArrayChecks.AreEqual(cachedRowOffsets, rowOffsets));
+                Debug.Assert(Utilities.AreEqual(cachedColIndices, colIndices));
+                Debug.Assert(Utilities.AreEqual(cachedRowOffsets, rowOffsets));
             }
             return CsrMatrix.CreateFromArrays(numFreeDofs, numFreeDofs, values, cachedColIndices, cachedRowOffsets, false);
         }

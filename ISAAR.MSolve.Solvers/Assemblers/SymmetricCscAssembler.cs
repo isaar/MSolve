@@ -4,7 +4,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.Solvers.Utilities;
+using ISAAR.MSolve.Solvers.Commons;
 
 //TODO: Instead of storing the raw CSC arrays, use a reusable DOK or SymmCscIndexer class. That class should provide methods to 
 //      assemble the values part of the global matrix more efficiently than the general purpose DOK. The general purpose DOK 
@@ -62,8 +62,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             }
             else
             {
-                Debug.Assert(ArrayChecks.AreEqual(cachedRowIndices, rowIndices));
-                Debug.Assert(ArrayChecks.AreEqual(cachedColOffsets, colOffsets));
+                Debug.Assert(Utilities.AreEqual(cachedRowIndices, rowIndices));
+                Debug.Assert(Utilities.AreEqual(cachedColOffsets, colOffsets));
             }
             return SymmetricCscMatrix.CreateFromArrays(numFreeDofs, values, cachedRowIndices, cachedColOffsets, false);
         }

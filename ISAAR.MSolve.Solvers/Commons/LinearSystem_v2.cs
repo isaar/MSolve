@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: add state management
+//TODO: should this and its implementations be internal? Analyzers and providers should work with ILinearSystem only. 
 namespace ISAAR.MSolve.Solvers.Commons
 {
     public abstract class LinearSystem_v2<TMatrix, TVector> : ILinearSystem_v2

@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         private readonly IDofOrderer dofOrderer;
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
-        private readonly DenseSystem linearSystem;
+        private readonly SingleSubdomainSystem<Matrix> linearSystem;
 
         private bool mustFactorize = true;
         private CholeskyFull factorizedMatrix;
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             this.model = model;
             subdomain = model.Subdomains[0];
 
-            linearSystem = new DenseSystem(subdomain);
+            linearSystem = new SingleSubdomainSystem<Matrix>(subdomain);
             LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
@@ -154,12 +154,6 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
                 => new DenseMatrixSolver(model, DofOrderer);
-        }
-
-        private class DenseSystem : LinearSystem_v2<Matrix, Vector>
-        {
-            internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }

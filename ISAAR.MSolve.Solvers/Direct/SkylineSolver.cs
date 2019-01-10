@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         private readonly IStructuralModel_v2 model;
         private readonly ISubdomain_v2 subdomain;
         private readonly double factorizationPivotTolerance;
-        private readonly SkylineSystem linearSystem;
+        private readonly SingleSubdomainSystem<SkylineMatrix> linearSystem;
 
         private bool mustFactorize = true;
         private CholeskySkyline factorizedMatrix;
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             this.model = model;
             subdomain = model.Subdomains[0];
 
-            linearSystem = new SkylineSystem(subdomain);
+            linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
             LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
@@ -134,12 +134,6 @@ namespace ISAAR.MSolve.Solvers.Direct
             {
                 return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }
-        }
-
-        private class SkylineSystem : LinearSystem_v2<SkylineMatrix, Vector>
-        {
-            internal SkylineSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }
 }
