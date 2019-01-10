@@ -24,6 +24,7 @@ namespace ISAAR.MSolve.Solvers.Direct
     {
         private readonly double factorizationPivotTolerance;
 
+        private bool factorizeInPlace = true;
         private bool mustFactorize = true;
         private CholeskySkyline factorizedMatrix;
 
@@ -41,6 +42,8 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix = null;
         }
 
+        public override void PreventFromOverwrittingMatrix() => factorizeInPlace = false;
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
@@ -51,9 +54,8 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky(true, factorizationPivotTolerance); 
+                factorizedMatrix = linearSystem.Matrix.FactorCholesky(factorizeInPlace, factorizationPivotTolerance); 
                 mustFactorize = false;
-                linearSystem.IsMatrixOverwrittenBySolver = true;
             }
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);

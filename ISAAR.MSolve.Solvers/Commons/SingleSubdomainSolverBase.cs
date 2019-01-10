@@ -62,6 +62,7 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         public abstract void Initialize();
         public abstract void OnMatrixSetting();
+        public abstract void PreventFromOverwrittingMatrix();
         public abstract void Solve();
     }
 }

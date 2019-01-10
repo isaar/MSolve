@@ -20,19 +20,10 @@ namespace ISAAR.MSolve.Solvers.Commons
         {
             this.Subdomain = subdomain;
         }
-        
-        public ISubdomain_v2 Subdomain { get; }
-
-        public HashSet<ISystemMatrixObserver> MatrixObservers { get; } = new HashSet<ISystemMatrixObserver>();
-
-        public int Size { get; internal set; } = int.MinValue;
-
-        //TODO: I do not like this at all. However the providers are a mess right now, so this should be refactored after them.
-        public bool IsMatrixOverwrittenBySolver { get; internal set; }
 
         IMatrixView ILinearSystem_v2.Matrix => Matrix;
 
-        internal TMatrix Matrix { get; set; }
+        public HashSet<ISystemMatrixObserver> MatrixObservers { get; } = new HashSet<ISystemMatrixObserver>();
 
         IVector ILinearSystem_v2.RhsVector
         {
@@ -41,17 +32,25 @@ namespace ISAAR.MSolve.Solvers.Commons
             {
                 if (value.Length != this.Size)
                 {
-                    throw new NonMatchingDimensionsException("The provided vector does not match the dimensions or pattern of" 
-                        + " this linear system. Make sure that it is initialization was delegated to this linear system" 
+                    throw new NonMatchingDimensionsException("The provided vector does not match the dimensions or pattern of"
+                        + " this linear system. Make sure that it is initialization was delegated to this linear system"
                         + " after the latest dof ordering.");
                 }
                 RhsVector = (TVector)value;
             }
         }
 
-        internal TVector RhsVector { get; set; }
+        public int Size { get; internal set; } = int.MinValue;
+
+        public ISubdomain_v2 Subdomain { get; }
 
         IVectorView ILinearSystem_v2.Solution { get => Solution; }
+
+
+        internal TMatrix Matrix { get; set; }
+
+        internal TVector RhsVector { get; set; }
+
         internal TVector Solution { get; set; }
 
         public virtual void Clear()
@@ -81,7 +80,6 @@ namespace ISAAR.MSolve.Solvers.Commons
             }
             foreach (var observer in MatrixObservers) observer.OnMatrixSetting();
             Matrix = (TMatrix)matrix;
-            IsMatrixOverwrittenBySolver = false;
         }
 
         internal abstract TVector CreateZeroVector();

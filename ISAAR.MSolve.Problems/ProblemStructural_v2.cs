@@ -136,8 +136,6 @@ namespace ISAAR.MSolve.Problems
 
         public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
         {
-            int id = linearSystem.Subdomain.ID;
-
             //TODO: 1) Why do we want Ks to be built only if it has not been factorized? 
             //      2) When calling Ks[id], the matrix will be built anyway, due to the annoying side effects of the property.
             //         Therefore, if the matrix was indeed factorized it would be built twice!
@@ -145,9 +143,13 @@ namespace ISAAR.MSolve.Problems
             //         that the matrix has been altered by the solver could be implemented by observers, if necessary.
             //      4) The analyzer should decide when global matrices need to be rebuilt, not the provider.
             //      5) The need to rebuild the system matrix if the solver has modified it might be avoidable if the analyzer 
-            //         uses and appropriate order of operations. However, that may not always be possible. Such a feature 
+            //         uses the appropriate order of operations. However, that may not always be possible. Such a feature 
             //         (rebuild or store) is nice to have. Whow would be responsible, the solver, provider or assembler?
-            if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
+            //      6) If the analyzer needs the system matrix, then it can call solver.PreventFromOverwritingMatrix(). E.g.
+            //          explicit dynamic analyzers would need to do that.
+            //if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
+
+            int id = linearSystem.Subdomain.ID;
             IMatrix matrix = this.Ks[id];
             matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);

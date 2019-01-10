@@ -54,6 +54,11 @@ namespace ISAAR.MSolve.Solvers.Direct
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
 
+        public override void PreventFromOverwrittingMatrix()
+        {
+            // The factorization is done over different memory.
+        }
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>

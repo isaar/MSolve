@@ -19,6 +19,8 @@ namespace ISAAR.MSolve.Solvers.Interfaces
 
         void OrderDofsAndClearLinearSystem();
 
+        void PreventFromOverwrittingMatrix();
+
         void Solve();
     }
 }

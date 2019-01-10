@@ -40,6 +40,11 @@ namespace ISAAR.MSolve.Solvers.Iterative
             preconditioner = null;
         }
 
+        public override void PreventFromOverwrittingMatrix()
+        {
+            // No factorization is done.
+        }
+
         /// <summary>
         /// Solves the linear system with PCG method. If the matrix has been modified, a new preconditioner will be computed.
         /// </summary>
