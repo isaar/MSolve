@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             var assembler = new GlobalSkylineAssembler();
             (Matrix Kuu, Matrix Kuc) = GlobalDenseAssembler.BuildGlobalMatrix(model, DofOrderer);
             Vector rhs = CalcEffectiveRhs(Kuc);
-            Solution = Kuu.FactorCholesky().SolveLinearSystem(rhs);
+            Solution = Kuu.FactorCholesky(true).SolveLinearSystem(rhs);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
 
                 // Solve new linear system
-                Vector solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
+                Vector solutionExpected = matrixExpected.FactorCholesky(false).SolveLinearSystem(rhs);
                 Vector solutionComputed = factor.SolveLinearSystem(rhs);
                 comparer.AssertEqual(solutionExpected, solutionComputed);
             }
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 factor.AddRow(i, SparseVector.CreateFromDense(newRowVector));
 
                 // Solve new linear system
-                Vector solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
+                Vector solutionExpected = matrixExpected.FactorCholesky(true).SolveLinearSystem(rhs);
                 Vector solutionComputed = factor.SolveLinearSystem(rhs);
                 comparer.AssertEqual(solutionExpected, solutionComputed);
             }
@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 factor.DeleteRow(i);
 
                 // Solve new linear system
-                Vector solutionExpected = matrixExpected.FactorCholesky().SolveLinearSystem(rhs);
+                Vector solutionExpected = matrixExpected.FactorCholesky(false).SolveLinearSystem(rhs);
                 Vector solutionComputed = factor.SolveLinearSystem(rhs);
                 comparer.AssertEqual(solutionExpected, solutionComputed);
             }
@@ -174,7 +174,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             Matrix B = Matrix.CreateFromArray(SquareInvertible10by10.Matrix);
 
             // Solve using dense algebra
-            CholeskyFull chol = dense.FactorCholesky();
+            CholeskyFull chol = dense.FactorCholesky(false);
             Matrix U = chol.GetFactorU();
             Matrix L = U.Transpose();
             Vector xSolveExpect = chol.SolveLinearSystem(b);

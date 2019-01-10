@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 comparer.AssertEqual(expectedU1, computedU1);
 
                 // singular
-                var A2 = Matrix.CreateFromArray(SquareSingular10by10.Matrix);
+                var A2 = SymmetricMatrix.CreateFromArray(SquareSingular10by10.Matrix);
                 Assert.Throws<IndefiniteMatrixException>(() => A2.FactorCholesky());
             });
         }

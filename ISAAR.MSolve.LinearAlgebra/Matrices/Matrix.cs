@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix : IMatrix, ISliceable2D
     {
-        private readonly double[] data;
+        private double[] data;
 
         private Matrix(double[] data, int numRows, int numColumns)
         {
@@ -498,15 +498,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <see cref="NumColumns"/>, such that A = L^T * L. L is a lower triangular n-by-n matrix. This only works if the matrix
         /// is symmetric positive definite. Requires extra available memory n^2 entries. 
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not symmetric positive definite.</exception>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public CholeskyFull FactorCholesky()
+        public CholeskyFull FactorCholesky(bool inPlace = false)
         {
             Preconditions.CheckSquare(this);
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-            // To avoid these, set "inPlace=true".
-            return CholeskyFull.Factorize(NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = CholeskyFull.Factorize(NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return CholeskyFull.Factorize(NumColumns, CopyInternalData());
         }
 
         /// <summary>
