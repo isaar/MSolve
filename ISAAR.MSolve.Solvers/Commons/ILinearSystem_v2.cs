@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-//using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: perhaps this, the providers and analyzers should be generic.
@@ -68,13 +65,10 @@ namespace ISAAR.MSolve.Solvers.Commons
         void Clear();
 
         /// <summary>
-        /// The freedom degrees must be ordered before this method can be called. Attention when the freedom degrees change 
-        /// during the analysis (e.g. adaptive FEM, XFEM). 
+        /// The freedom degrees must be ordered before this method can be called. Attention is needed if the freedom degrees 
+        /// change during the analysis (e.g. adaptive FEM, XFEM). 
         /// </summary>
         IVector CreateZeroVector();
-
-        //TODO: not sure about this one. Its current usecase should be refactored anyway
-        void GetRhsFromSubdomain();
 
         //TODO: setters should be removed, since they force the implementation (or the solver) to cast. Currently there is no
         //      way around it

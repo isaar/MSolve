@@ -239,8 +239,8 @@ namespace ISAAR.MSolve.Problems
                 // This also violates the assumption that providers do not know the concrete type of the linear system vectors.
                 //l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
 
-                //This works fine in this case, but what if we want a vector other than Subdomain.Forces?
-                l.GetRhsFromSubdomain();
+                // This works fine and if we want a vector other than Vector, then Subdomain.Forces could be IVector.
+                l.RhsVector = l.Subdomain.Forces;
             }
         }
 

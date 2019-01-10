@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
         IReadOnlyList<IElement_v2> Elements { get; } //TODO: perhaps this should be a set
 
-        Vector Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
+        Vector Forces { get; set; } //TODO: this should be a Vector or IVector and stored elsewhere.
 
         int ID { get; }
 

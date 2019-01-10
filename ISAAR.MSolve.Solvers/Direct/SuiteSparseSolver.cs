@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -83,11 +84,22 @@ namespace ISAAR.MSolve.Solvers.Direct
 
         public void OrderDofsAndClearLinearSystem()
         {
+            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
             assembler.OnDofOrderingModified();
-            model.GlobalDofOrdering = dofOrderer.OrderDofs(model);
             OnMatrixSetting();
             linearSystem.Clear();
-            linearSystem.Size = model.GlobalDofOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
+            linearSystem.Size = globalOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
+
+            model.GlobalDofOrdering = globalOrdering;
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                subdomain.DofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+
+                // If we decide subdomain.Forces will always be a Vector or double[] then this process could be done elsewhere.
+                subdomain.Forces = linearSystem.CreateZeroVector();
+            }
+            //EnumerateSubdomainLagranges();
+            //EnumerateDOFMultiplicity();
         }
 
         /// <summary>
@@ -132,7 +144,6 @@ namespace ISAAR.MSolve.Solvers.Direct
         private class SuiteSparseSystem : LinearSystem_v2<SymmetricCscMatrix, Vector>
         {
             internal SuiteSparseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
             internal override Vector CreateZeroVector() => Vector.CreateZero(Size);
         }
     }

@@ -83,7 +83,6 @@ namespace ISAAR.MSolve.Solvers.Commons
             IsMatrixOverwrittenBySolver = false;
         }
 
-        public abstract void GetRhsFromSubdomain();
         internal abstract TVector CreateZeroVector();
     }
 }

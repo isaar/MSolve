@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
@@ -8,7 +7,6 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
-using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 //TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
 //      cannot be correct.
@@ -45,21 +43,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
 
-        public IGlobalFreeDofOrdering GlobalDofOrdering
-        {
-            get => globalDofOrdering;
-            set
-            {
-                globalDofOrdering = value;
-                foreach (Subdomain_v2 subdomain in Subdomains)
-                {
-                    subdomain.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[subdomain];
-                    subdomain.Forces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-                }
-                //EnumerateSubdomainLagranges();
-                //EnumerateDOFMultiplicity();
-            }
-        }
+        public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 
         public void AssignLoads()
         {
