@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public void BuildMatrices()
         {
-            ImplicitIntegrationCoefficients coeffs = new ImplicitIntegrationCoefficients
+            var coeffs = new ImplicitIntegrationCoefficients
             {
                 Mass = a0,
                 Damping = a1,
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.Analyzers
             };
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                provider.CalculateEffectiveMatrix(linearSystem, coeffs);
+                linearSystem.Matrix = provider.LinearCombinationOfMatricesIntoStiffness(coeffs, linearSystem.Subdomain);
             }
         }
 
@@ -130,8 +130,8 @@ namespace ISAAR.MSolve.Analyzers
             #endregion
 
             // result = a0 * (M * u) + a1 * (C * u) 
-            IVector result = provider.MassMatrixVectorProduct(linearSystem, currentSolution);
-            IVector temp = provider.DampingMatrixVectorProduct(linearSystem, currentSolution);
+            IVector result = provider.MassMatrixVectorProduct(linearSystem.Subdomain, currentSolution);
+            IVector temp = provider.DampingMatrixVectorProduct(linearSystem.Subdomain, currentSolution);
             result.LinearCombinationIntoThis(a0, temp, a1);
             return result;
         }
@@ -162,12 +162,16 @@ namespace ISAAR.MSolve.Analyzers
             for (int i = 0; i < numTimeSteps; ++i)
             {
                 Debug.WriteLine("Newmark step: {0}", i);
-                provider.GetRhsFromHistoryLoad(i);
+
+                IDictionary<int, IVector> rhsVectors = provider.GetRhsFromHistoryLoad(i);
+                foreach (var l in linearSystems.Values) l.RhsVector = rhsVectors[l.Subdomain.ID];
                 InitializeRhs();
                 CalculateRhsImplicit();
+
                 DateTime start = DateTime.Now;
                 ChildAnalyzer.Solve();
                 DateTime end = DateTime.Now;
+
                 UpdateVelocityAndAcceleration(i);
                 UpdateResultStorages(start, end);
             }
@@ -232,8 +236,8 @@ namespace ISAAR.MSolve.Analyzers
             uc[id] = v[id].LinearCombination(a1, v1[id], a4);
             uc[id].AxpyIntoThis(v2[id], a5);
 
-            uum[id] = provider.MassMatrixVectorProduct(linearSystem, uu[id]);
-            ucc[id] = provider.DampingMatrixVectorProduct(linearSystem, uc[id]);
+            uum[id] = provider.MassMatrixVectorProduct(linearSystem.Subdomain, uu[id]);
+            ucc[id] = provider.DampingMatrixVectorProduct(linearSystem.Subdomain, uc[id]);
 
             IVector rhsResult = uum[id].Add(ucc[id]);
             if (addRhs) rhsResult.AddIntoThis(rhs[id]);
@@ -296,7 +300,7 @@ namespace ISAAR.MSolve.Analyzers
             };
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                provider.ProcessRhs(linearSystem, coeffs);
+                provider.ProcessRhs(coeffs, linearSystem.Subdomain, linearSystem.RhsVector);
                 int dofs = linearSystem.RhsVector.Length;
                 rhs[linearSystem.Subdomain.ID] = linearSystem.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
             }

@@ -33,8 +33,10 @@ namespace ISAAR.MSolve.Analyzers
 
         public void BuildMatrices()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values) provider.CalculateMatrix(linearSystem);
-            //subdomain.Matrix = provider.Ks[subdomain.ID]; // setting is done by the assembler to avoid casting
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                linearSystem.Matrix = provider.CalculateMatrix(linearSystem.Subdomain);
+            }
         }
 
         public IVector GetOtherRhsComponents(ILinearSystem_v2 linearSystem, IVector currentSolution)

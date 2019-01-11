@@ -1,11 +1,10 @@
-﻿using ISAAR.MSolve.Solvers.Commons;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IStaticProvider_v2 : IAnalyzerProvider_v2
     {
-        //TODO: this should calculate and return the matrix and the analyzer should set it. Perhaps that convention should hold 
-        //      for all matrices, rhs vectors.
-        void CalculateMatrix(ILinearSystem_v2 linearSYstem);
+        IMatrixView CalculateMatrix(ISubdomain_v2 subdomain);
     }
 }

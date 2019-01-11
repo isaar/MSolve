@@ -134,7 +134,8 @@ namespace ISAAR.MSolve.Problems
 
         #region IImplicitIntegrationProvider Members
 
-        public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
+        public IMatrixView LinearCombinationOfMatricesIntoStiffness(ImplicitIntegrationCoefficients coefficients, 
+            ISubdomain_v2 subdomain)
         {
             //TODO: 1) Why do we want Ks to be built only if it has not been factorized? 
             //      2) When calling Ks[id], the matrix will be built anyway, due to the annoying side effects of the property.
@@ -149,14 +150,15 @@ namespace ISAAR.MSolve.Problems
             //          explicit dynamic analyzers would need to do that.
             //if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
 
-            int id = linearSystem.Subdomain.ID;
+            int id = subdomain.ID;
             IMatrix matrix = this.Ks[id];
-            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
+            if (coefficients.Stiffness == 1.0) matrix.AxpyIntoThis(Ms[id], coefficients.Mass);
+            else matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            linearSystem.Matrix = this.Ks[id];
+            return this.Ks[id];
         }
 
-        public void ProcessRhs(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
+        public void ProcessRhs(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain, IVector rhs)
         {
             // Method intentionally left empty.
         }
@@ -226,40 +228,32 @@ namespace ISAAR.MSolve.Problems
             return d;
         }
 
-        public void GetRhsFromHistoryLoad(int timeStep)
+        public IDictionary<int, IVector> GetRhsFromHistoryLoad(int timeStep)
         {
-            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear();
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear(); //TODO: this is also done by model.AssignLoads()
 
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
-            foreach (var l in linearSystems.Values)
-            {
-                // This causes a redundant(?) copy and forces the provider to go through each subdomain.
-                //l.Value.RhsVector.CopyFrom(Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces, false));
-
-                // This also violates the assumption that providers do not know the concrete type of the linear system vectors.
-                //l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
-
-                // This works fine and if we want a vector other than Vector, then Subdomain.Forces could be IVector.
-                l.RhsVector = l.Subdomain.Forces;
-            }
+            var rhsVectors = new Dictionary<int, IVector>();
+            foreach (Subdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
+            return rhsVectors;
         }
 
-        public IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Ms[linearSystem.Subdomain.ID].Multiply(lhsVector);
+        public IVector MassMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
+            => this.Ms[subdomain.ID].Multiply(vector);
 
-        public IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Cs[linearSystem.Subdomain.ID].Multiply(lhsVector);
+        public IVector DampingMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
+            => this.Cs[subdomain.ID].Multiply(vector);
 
         #endregion
 
         #region IStaticProvider Members
 
-        public void CalculateMatrix(ILinearSystem_v2 linearSystem)
+        public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
         {
             if (ks == null) BuildKs();
-            linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
+            return ks[subdomain.ID];
         }
 
         #endregion
@@ -268,7 +262,7 @@ namespace ISAAR.MSolve.Problems
 
         public double CalculateRhsNorm(IVectorView rhs) => rhs.Norm2();
 
-        public void ProcessInternalRhs(ILinearSystem_v2 linearSystem, IVector rhs, IVectorView solution) {}
+        public void ProcessInternalRhs(ISubdomain_v2 subdomain, IVectorView solution, IVector rhs) {}
 
         #endregion
     }

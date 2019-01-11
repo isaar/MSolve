@@ -177,22 +177,22 @@ namespace ISAAR.MSolve.Problems
             return qSubdomain.BuildCsrMatrix(true);
         }
 
-        private void ScaleSubdomainSolidVector(ILinearSystem_v2 linearSystem, IVector vector)
+        private void ScaleSubdomainSolidVector(ISubdomain_v2 subdomain, IVector vector)
         {
-            int id = linearSystem.Subdomain.ID;
-            foreach ((INode node, DOFType dofType, int dofIdx) in model.SubdomainsDictionary[id].DofOrdering.FreeDofs)
+            foreach ((INode node, DOFType dofType, int dofIdx) in subdomain.DofOrdering.FreeDofs)
             {
                 if (dofType!= DOFType.Pore) vector.Set(dofIdx, vector[dofIdx] * this.scalingCoefficient);
             }
         }
 
-        private void CalculateEffectiveMatrixInternal(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
+        private IMatrixView CalculateEffectiveMatrixInternal(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain)
         {
-            int id = linearSystem.Subdomain.ID;
+            int id = subdomain.ID;
             IMatrix matrix = this.Ks[id];
-            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
+            if (coefficients.Stiffness == 1.0) matrix.AxpyIntoThis(Ms[id], coefficients.Mass);
+            else matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            linearSystem.Matrix = this.Ks[id];
+            return matrix;
         }
 
         #region IAnalyzerProvider Members
@@ -210,25 +210,30 @@ namespace ISAAR.MSolve.Problems
 
         #region IImplicitIntegrationProvider Members
 
-        public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
+        public IMatrixView LinearCombinationOfMatricesIntoStiffness(ImplicitIntegrationCoefficients coefficients, 
+            ISubdomain_v2 subdomain)
         {
             InitializeProvidersAndBuildQs(coefficients);
             scalingCoefficient = coefficients.Damping;
-            CalculateEffectiveMatrixInternal(linearSystem, coefficients);
+            return CalculateEffectiveMatrixInternal(coefficients, subdomain);
         }
 
-        public void ProcessRhs(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
+        public void ProcessRhs(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain, IVector rhs)
         {
             scalingCoefficient = coefficients.Damping;
-            ScaleSubdomainSolidVector(linearSystem, linearSystem.RhsVector);
+            ScaleSubdomainSolidVector(subdomain, rhs);
         }
 
-        public void GetRhsFromHistoryLoad(int timeStep)
+        public IDictionary<int, IVector> GetRhsFromHistoryLoad(int timeStep)
         {
-            foreach (Subdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear();
+            foreach (Subdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear(); //TODO: this is also done by model.AssignLoads()
 
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
+
+            var rhsVectors = new Dictionary<int, IVector>();
+            foreach (Subdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
+            return rhsVectors;
         }
 
         public IDictionary<int, IVector> GetAccelerationsOfTimeStep(int timeStep)
@@ -282,14 +287,13 @@ namespace ISAAR.MSolve.Problems
             return d;
         }
 
-        public IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Ms[linearSystem.Subdomain.ID].Multiply(lhsVector);
+        public IVector MassMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
+            => this.Ms[subdomain.ID].Multiply(vector);
 
-        public IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
+        public IVector DampingMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
         {
-            int id = linearSystem.Subdomain.ID;
-            IVector result = this.Cs[id].Multiply(lhsVector);
-            result.SubtractIntoThis(qs[id].Multiply(lhsVector));
+            IVector result = this.Cs[subdomain.ID].Multiply(vector);
+            result.SubtractIntoThis(qs[subdomain.ID].Multiply(vector));
             return result;
         }
 
@@ -297,7 +301,7 @@ namespace ISAAR.MSolve.Problems
 
         #region IStaticProvider Members
 
-        public void CalculateMatrix(ILinearSystem_v2 linearSystem)
+        public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
         {
             throw new NotImplementedException();
         }
@@ -324,13 +328,10 @@ namespace ISAAR.MSolve.Problems
             return Math.Sqrt(norm);
         }
 
-        public void ProcessInternalRhs(ILinearSystem_v2 linearSystem, IVector rhs, IVectorView solution)
+        public void ProcessInternalRhs(ISubdomain_v2 subdomain, IVectorView solution, IVector rhs)
         {
-            //ScaleSubdomainSolidVector(subdomain, new Vector<double>(rhs));
-            //return;
-
-            rhs.AddIntoThis(qs[linearSystem.Subdomain.ID].Multiply(solution));
-            ScaleSubdomainSolidVector(linearSystem, rhs);
+            rhs.AddIntoThis(qs[subdomain.ID].Multiply(solution));
+            ScaleSubdomainSolidVector(subdomain, rhs);
         }
 
         #endregion

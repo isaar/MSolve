@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.Analyzers
 
                 //TODO: remove cast
                 IVector internalRhs = subdomainUpdaters[id].GetRhsFromSolution(uPlusdu[id], du[id]);//TODOMaria this calculates the internal forces
-                provider.ProcessInternalRhs(linearSystem, internalRhs, uPlusdu[id]);//TODOMaria this does nothing
+                provider.ProcessInternalRhs(linearSystem.Subdomain, uPlusdu[id], internalRhs);//TODOMaria this does nothing
                 //(new Vector<double>(u[subdomain.ID] + du[subdomain.ID])).Data);
 
                 if (parentAnalyzer != null)
