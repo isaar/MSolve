@@ -14,9 +14,8 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
-    /// Builds the global matrix of the linear system that will be solved. This matrix is symmetric and stored in Skyline format, 
-    /// which is suitable for the Cholesky factorization (e.g. in a direct solver).
-    /// Authors: Serafeim Bakalakos
+    /// Builds the global matrix of the linear system that will be solved. This matrix is symmetric and stored in Skyline 
+    /// format, which is suitable for the Cholesky factorization (e.g. in a direct solver).
     /// </summary>
     public class SkylineAssembler : IGlobalMatrixAssembler<SkylineMatrix>
     {
