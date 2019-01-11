@@ -6,13 +6,6 @@ using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
-//TODO: factorization should be done during Solve() to time correctly. Alternatively, an observer should record the durations.
-//TODO: investigate if it is possible to avoid casting the matrix provided by the analyzer/assembler into skyline. Perhaps the
-//      the matrix could be obtained directly from the assembler and the analyzer could provide delegates with the operations it 
-//      wants done on the matrix, instead of doing them itself.
-//TODO: try to abstract the subdomain logic from ther analyzers. I doubt it is possible though.
-//TODO: directly pass the single linear system instead of a list that must be checked. The same holds for all solvers and 
-//      assemblers.
 namespace ISAAR.MSolve.Solvers.Direct
 {
     /// <summary>
@@ -42,7 +35,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix = null;
         }
 
-        public override void PreventFromOverwrittingMatrix() => factorizeInPlace = false;
+        public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.

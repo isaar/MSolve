@@ -8,6 +8,12 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 namespace ISAAR.MSolve.Solvers.Direct
 {
+    /// <summary>
+    /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on symmetric positive definite matrices
+    /// stored in full format. Its purpose is mainly for testing, since it is inefficient for large linear systems resulting 
+    /// from FEM .
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class DenseMatrixSolver: SingleSubdomainSolverBase<Matrix>
     {
         private bool factorizeInPlace = true;
@@ -79,7 +85,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix = null;
         }
 
-        public override void PreventFromOverwrittingMatrix() => factorizeInPlace = false;
+        public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.

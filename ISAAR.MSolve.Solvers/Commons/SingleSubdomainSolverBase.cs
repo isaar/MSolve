@@ -9,6 +9,11 @@ using ISAAR.MSolve.Solvers.Ordering;
 //TODO: not sure this class should be in this namespace
 namespace ISAAR.MSolve.Solvers.Commons
 {
+    /// <summary>
+    /// Base implementation for solver that do not use domain decomposition.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    /// <typeparam name="TMatrix">The type of the linear system's matrix.</typeparam>
     public abstract class SingleSubdomainSolverBase<TMatrix> : ISolver_v2
         where TMatrix : class, IMatrix
     {
@@ -40,7 +45,7 @@ namespace ISAAR.MSolve.Solvers.Commons
         public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
 
-        public virtual void OrderDofsAndClearLinearSystem()
+        public virtual void OrderDofsAndClearLinearSystems()
         {
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
             assembler.HandleDofOrderingWillBeModified();
@@ -62,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         public abstract void Initialize();
         public abstract void HandleMatrixWillBeSet();
-        public abstract void PreventFromOverwrittingMatrix();
+        public abstract void PreventFromOverwrittingSystemMatrices();
         public abstract void Solve();
     }
 }

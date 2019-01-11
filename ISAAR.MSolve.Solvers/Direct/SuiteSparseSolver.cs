@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
 
-        public override void PreventFromOverwrittingMatrix()
+        public override void PreventFromOverwrittingSystemMatrices()
         {
             // The factorization is done over different memory.
         }

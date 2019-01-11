@@ -7,9 +7,6 @@ using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
-//TODO: Improve CG, PCG with strategy patterns(for seach directions, beta calculation, etc), avoid the first r=b-A*0 
-//TODO: IIndexable2D is not a good choice if all solvers must cast it to the matrix types the operate on.
-//TODO: perhaps the internal vectors of PCG can be cleared and reused.
 namespace ISAAR.MSolve.Solvers.Iterative
 {
     /// <summary>
@@ -40,7 +37,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
             preconditioner = null;
         }
 
-        public override void PreventFromOverwrittingMatrix()
+        public override void PreventFromOverwrittingSystemMatrices()
         {
             // No factorization is done.
         }
