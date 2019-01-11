@@ -397,7 +397,7 @@ namespace ISAAR.MSolve.Analyzers
                 int id = linearSystem.Subdomain.ID;
                 SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
                     String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, id, simulation));
-                linearSystem.SetMatrix(m);
+                linearSystem.Matrix = m;
 
                 //double d = 0;
                 //for (int i = 0; i < m.RowIndex.Length - 1; i++)

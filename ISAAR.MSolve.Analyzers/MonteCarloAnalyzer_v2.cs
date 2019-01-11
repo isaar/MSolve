@@ -147,7 +147,7 @@ namespace ISAAR.MSolve.Analyzers
                 int id = linearSystem.Subdomain.ID;
                 IMatrix combo = matricesPerSubdomain[id][0].Scale(coefficients[0]);
                 for (int i = 1; i < coefficients.Count; ++i) combo.AxpyIntoThis(matricesPerSubdomain[id][i], coefficients[i]);
-                linearSystem.SetMatrix(combo);
+                linearSystem.Matrix = combo;
             }
 
             //for (int i = 0; i < expansionOrder; i++)

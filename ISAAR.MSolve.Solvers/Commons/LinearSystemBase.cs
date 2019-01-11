@@ -10,18 +10,38 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: should this and its implementations be internal? Analyzers and providers should work with ILinearSystem only. 
 namespace ISAAR.MSolve.Solvers.Commons
 {
-    public abstract class LinearSystem_v2<TMatrix, TVector> : ILinearSystem_v2
+    /// <summary>
+    /// Base implementation of <see cref="ILinearSystem_v2"/>.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    /// <typeparam name="TMatrix">The type of the system's matrix.</typeparam>
+    /// <typeparam name="TVector">The type of the system's right hand side and solution vectors.</typeparam>
+    public abstract class LinearSystemBase<TMatrix, TVector> : ILinearSystem_v2
         where TMatrix : class, IMatrix //TODO: perhaps this should be IMatrixView
         where TVector : class, IVector
     {
         private const int initialSize = int.MinValue;
 
-        protected LinearSystem_v2(ISubdomain_v2 subdomain)
+        protected LinearSystemBase(ISubdomain_v2 subdomain)
         {
             this.Subdomain = subdomain;
         }
 
-        IMatrixView ILinearSystem_v2.Matrix => Matrix;
+        IMatrixView ILinearSystem_v2.Matrix
+        {
+            get => Matrix;
+            set
+            {
+                if ((value.NumRows != this.Size) || (value.NumColumns != this.Size))
+                {
+                    throw new NonMatchingDimensionsException("The provided matrix does not match the dimensions or pattern of"
+                        + " this linear system. Make sure that it is initialization was delegated to this linear system"
+                        + " after the latest dof ordering.");
+                }
+                foreach (var observer in MatrixObservers) observer.HandleMatrixWillBeSet();
+                Matrix = (TMatrix)value;
+            }
+        }
 
         public HashSet<ISystemMatrixObserver> MatrixObservers { get; } = new HashSet<ISystemMatrixObserver>();
 
@@ -46,7 +66,6 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         IVectorView ILinearSystem_v2.Solution { get => Solution; }
 
-
         internal TMatrix Matrix { get; set; }
 
         internal TVector RhsVector { get; set; }
@@ -68,18 +87,6 @@ namespace ISAAR.MSolve.Solvers.Commons
             if (Size == initialSize) throw new InvalidOperationException(
                 "The linear system size must be set before creating vectors.");
             return CreateZeroVector();
-        }
-
-        public void SetMatrix(IMatrixView matrix)
-        {
-            if ((matrix.NumRows != this.Size) || (matrix.NumColumns != this.Size))
-            {
-                throw new NonMatchingDimensionsException("The provided matrix does not match the dimensions or pattern of"
-                    + " this linear system. Make sure that it is initialization was delegated to this linear system"
-                    + " after the latest dof ordering.");
-            }
-            foreach (var observer in MatrixObservers) observer.HandleMatrixWillBeSet();
-            Matrix = (TMatrix)matrix;
         }
 
         internal abstract TVector CreateZeroVector();

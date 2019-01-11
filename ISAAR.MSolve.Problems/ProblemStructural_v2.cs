@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.Problems
             IMatrix matrix = this.Ks[id];
             matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            linearSystem.SetMatrix(this.Ks[id]);
+            linearSystem.Matrix = this.Ks[id];
         }
 
         public void ProcessRhs(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
@@ -259,11 +259,7 @@ namespace ISAAR.MSolve.Problems
         public void CalculateMatrix(ILinearSystem_v2 linearSystem)
         {
             if (ks == null) BuildKs();
-            linearSystem.SetMatrix(this.ks[linearSystem.Subdomain.ID]);
-
-            //if (ks == null) BuildKs();
-            //linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
-            //linearSystem.IsMatrixModified = true;
+            linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
         }
 
         #endregion

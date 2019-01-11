@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.Problems
             IMatrix matrix = this.Ks[id];
             matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            linearSystem.SetMatrix(this.Ks[id]);
+            linearSystem.Matrix = this.Ks[id];
         }
 
         #region IAnalyzerProvider Members
