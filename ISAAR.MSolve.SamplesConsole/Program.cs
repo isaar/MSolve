@@ -6,10 +6,12 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.SamplesConsole.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
@@ -37,6 +39,9 @@ namespace ISAAR.MSolve.SamplesConsole
             //AppliedDisplacementExample.Run();
 
             //Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();
+
+            //SuiteSparseBenchmarks.MemoryConsumptionDebugging();
+            SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
         }
 
         private static void SolveBuildingInNoSoilSmall()
