@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return SymmetricCscMatrix.CreateFromArrays(numFreeDofs, values, cachedRowIndices, cachedColOffsets, false);
         }
 
-        public void OnDofOrderingModified()
+        public void HandleDofOrderingWillBeModified()
         {
             //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
             cachedRowIndices = null;

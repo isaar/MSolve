@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
         public override void Initialize() { }
 
-        public override void OnMatrixSetting()
+        public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
             factorizedMatrix = null;

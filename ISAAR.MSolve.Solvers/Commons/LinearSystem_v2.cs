@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.Commons
 
         public virtual void Clear()
         {
-            foreach (var observer in MatrixObservers) observer.OnMatrixSetting();
+            foreach (var observer in MatrixObservers) observer.HandleMatrixWillBeSet();
 
             // Override the method if memory needs to be disposed in a more complicated way.
             RhsVector = null;
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Solvers.Commons
                     + " this linear system. Make sure that it is initialization was delegated to this linear system"
                     + " after the latest dof ordering.");
             }
-            foreach (var observer in MatrixObservers) observer.OnMatrixSetting();
+            foreach (var observer in MatrixObservers) observer.HandleMatrixWillBeSet();
             Matrix = (TMatrix)matrix;
         }
 

@@ -3,8 +3,8 @@
     public interface ISystemMatrixObserver
     {
         /// <summary>
-        /// It will be called immediately before setting the system matrix.
+        /// It will be called before setting the system matrix.
         /// </summary>
-        void OnMatrixSetting();
+        void HandleMatrixWillBeSet();
     }
 }

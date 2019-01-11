@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return CsrMatrix.CreateFromArrays(numFreeDofs, numFreeDofs, values, cachedColIndices, cachedRowOffsets, false);
         }
 
-        public void OnDofOrderingModified()
+        public void HandleDofOrderingWillBeModified()
         {
             //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
             cachedColIndices = null;

@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return subdomainMatrix.BuildSkylineMatrix();
         }
 
-        public void OnDofOrderingModified()
+        public void HandleDofOrderingWillBeModified()
         {
             //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
             skylineColHeights = null;

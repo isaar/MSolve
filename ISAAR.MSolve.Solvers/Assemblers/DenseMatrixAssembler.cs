@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return subdomainMatrix;
         }
 
-        public void OnDofOrderingModified()
+        public void HandleDofOrderingWillBeModified()
         {
            // Do nothing, since there are no idexing arrays to cache.
         }

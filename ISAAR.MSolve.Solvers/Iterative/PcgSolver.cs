@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
         public override void Initialize() { }
 
-        public override void OnMatrixSetting()
+        public override void HandleMatrixWillBeSet()
         {
             mustUpdatePreconditioner = true;
             preconditioner = null;

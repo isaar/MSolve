@@ -43,8 +43,8 @@ namespace ISAAR.MSolve.Solvers.Commons
         public virtual void OrderDofsAndClearLinearSystem()
         {
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
-            assembler.OnDofOrderingModified();
-            OnMatrixSetting();
+            assembler.HandleDofOrderingWillBeModified();
+            HandleMatrixWillBeSet();
             linearSystem.Clear();
             linearSystem.Size = globalOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
 
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.Solvers.Commons
         }
 
         public abstract void Initialize();
-        public abstract void OnMatrixSetting();
+        public abstract void HandleMatrixWillBeSet();
         public abstract void PreventFromOverwrittingMatrix();
         public abstract void Solve();
     }
