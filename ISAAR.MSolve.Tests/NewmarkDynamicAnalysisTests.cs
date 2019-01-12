@@ -119,15 +119,10 @@ namespace ISAAR.MSolve.Tests
             m.Setup(x => x.CalculateAccelerationForces(It.IsAny<Element_v2>(), It.IsAny<IList<MassAccelerationLoad>>()))
                 .Returns<Element_v2, IList<MassAccelerationLoad>>((element, loads) =>
                 {
-                    var accelerations = Vector.CreateZero(2);
-                    accelerations[0] = loads[0].Amount;
-                    accelerations[1] = loads[1].Amount;
-
+                    double[] accelerations = { loads[0].Amount, loads[1].Amount };
                     var massMatrix = Matrix.CreateFromArray(new double[,] { { 2, 0, }, { 0, 1 } });
                     //var massMatrix = new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 });
-                    double[] forces = new double[2];
-                    massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces));
-                    return forces;
+                    return massMatrix.Multiply(accelerations);
                 }
             );
 
@@ -135,7 +130,7 @@ namespace ISAAR.MSolve.Tests
             var solverBuilder = new SkylineSolver.Builder();
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
-            //TODO: These overwrite the corresponding data extracted by the Model. Either set these up or the Model.
+            //TODO: These overwrite the corresponding data extracted by the Model. Either set up these or the Model.
             //solver.LinearSystems[subdomainID].SetMatrix(
             //    SkylineMatrix.CreateFromArrays(2, new double[] { 6, 4, -2 }, new int[] { 0, 1, 3 }, true)); // K = [6 -2; -2 4]
             //solver.LinearSystems[subdomainID].RhsVector = Vector.CreateFromArray(new double[] { 0, 10 });

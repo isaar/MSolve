@@ -139,10 +139,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             IMatrix stiffnessMatrix = StiffnessMatrix(element);
-            var disps = Vector.CreateFromArray(localDisplacements);
-            double[] forces = new double[localDisplacements.Length];
-            stiffnessMatrix.MultiplyIntoResult(disps, Vector.CreateFromArray(forces));
-            return forces;
+            return stiffnessMatrix.Multiply(localDisplacements);
         }
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads) => new double[6];

@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            return transformationMatrix.Multiply(Vector.CreateFromArray(vector), false).ToRawArray();
+            return transformationMatrix.Multiply(vector, false);
         }
 
         public double[] GetTransformedForcesVector(double[] vector) //compa prosthiki msolve
@@ -187,7 +187,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            return transformationMatrix.Multiply(Vector.CreateFromArray(vector), true).ToRawArray();
+            return transformationMatrix.Multiply(vector, true);
         }
 
 

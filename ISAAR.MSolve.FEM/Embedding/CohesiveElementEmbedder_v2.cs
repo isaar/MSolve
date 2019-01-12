@@ -193,9 +193,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            var result = new double[transformationMatrix.NumRows];
-            transformationMatrix.MultiplyIntoResult(Vector.CreateFromArray(vector), Vector.CreateFromArray(result));
-            return result;
+            return transformationMatrix.Multiply(vector);
         }
 
         public double[] GetTransformedForcesVector(double[] vector)
@@ -205,9 +203,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
 
-            var result = new double[transformationMatrix.NumColumns];
-            transformationMatrix.MultiplyIntoResult(Vector.CreateFromArray(vector), Vector.CreateFromArray(result), true);
-            return result;
+            return transformationMatrix.Multiply(vector, true);
         }
 
         public IList<IList<DOFType>> GetDOFTypes(IElement_v2 element)

@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
         {
             double[] globalStresses = CalculateStresses(element, localDisplacements, local_d_Displacements).Item2; // item1 = strains
             IMatrix transformation = TransformationMatrix(element);
-            IVector localStresses = transformation.Multiply(Vector.CreateFromArray(globalStresses)); // In local natural system there are 2 dofs
+            double[] localStresses = transformation.Multiply(globalStresses); // In local natural system there are 2 dofs
             // If Stress1 = localStresses[1] > 0 => tension. Else compression
             return localStresses[1];
         }
@@ -139,14 +139,12 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             IMatrix stiffness = StiffnessMatrix(element);
-            double[] forces = new double[localDisplacements.Length];
-            stiffness.MultiplyIntoResult(Vector.CreateFromArray(localDisplacements), Vector.CreateFromArray(forces));
-            return forces;
+            return stiffness.Multiply(localdDisplacements);
         }
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
-            var accelerations = Vector.CreateZero(4);
+            var accelerations = new double[4];
             IMatrix massMatrix = MassMatrix(element);
 
             int index = 0;
@@ -158,9 +156,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
                         index++;
                     }
 
-            double[] forces = new double[4];
-            massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces));
-            return forces;
+            return massMatrix.Multiply(accelerations);
         }
 
         public void SaveMaterialState() { }

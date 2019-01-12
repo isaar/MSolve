@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
             int numDofs = 2 * Nodes.Count;
-            var accelerations = Vector.CreateZero(numDofs);
+            var accelerations = new double[numDofs];
             IMatrix massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
@@ -162,9 +162,8 @@ namespace ISAAR.MSolve.FEM.Elements
                         index++;
                     }
             }
-            double[] forces = new double[numDofs];
-            massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces), false);
-            return forces;
+
+            return massMatrix.Multiply(accelerations);
         }
 
         public double[] CalculateForces(Element_v2 element, double[] localTotalDisplacements, double[] localdDisplacements)
@@ -283,7 +282,6 @@ namespace ISAAR.MSolve.FEM.Elements
         public (IReadOnlyList<double[]> strains, IReadOnlyList<double[]> stresses) UpdateStrainsStressesAtGaussPoints(
             double[] localDisplacements)
         {
-            var localDisplVector = Vector.CreateFromArray(localDisplacements);
             int numGPs = QuadratureForStiffness.IntegrationPoints.Count;
             var strains = new double[numGPs][];
             var stresses = new double[numGPs][];
@@ -298,10 +296,8 @@ namespace ISAAR.MSolve.FEM.Elements
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
                 Matrix deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
 
-                strains[gp] = new double[3];
-                deformation.MultiplyIntoResult(localDisplVector, Vector.CreateFromArray(strains[gp]));
-                stresses[gp] = new double[3];
-                constitutive.MultiplyIntoResult(Vector.CreateFromArray(strains[gp]), Vector.CreateFromArray(stresses[gp]));
+                strains[gp] = deformation.Multiply(localDisplacements);
+                stresses[gp] = constitutive.Multiply(strains[gp]);
             }
 
             return (strains, stresses);

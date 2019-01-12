@@ -110,7 +110,6 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
             var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static

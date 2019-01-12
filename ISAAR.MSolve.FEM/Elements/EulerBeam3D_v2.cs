@@ -647,28 +647,26 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             CalculateRotTranformation(element);
             IMatrix stiffnessMatrix = StiffnessMatrixPure(element);
-            Vector disps = rotTransformation * Vector.CreateFromArray(localDisplacements);
-            double[] forces = new double[disps.Length];
-            stiffnessMatrix.MultiplyIntoResult(disps, Vector.CreateFromArray(forces));
-            return forces;
+            return stiffnessMatrix.Multiply(rotTransformation.Multiply(localDisplacements));
         }
 
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
-            //TODO: something is wrong here. Why aren't the displacements rotated like in CalculateForcesForLogging()?
+            //TODO: something is wrong here. Why aren't the displacements rotated like in CalculateForcesForLogging()? Actually CalculateForcesForLogging() is likely wrong.
             IMatrix stiffnessMatrix = StiffnessMatrix(element);
-            var disps = Vector.CreateZero(localDisplacements.Length);
-            double[] forces = new double[localDisplacements.Length];
-            for (int i = 0; i < localDisplacements.Length; i++)
-                //disps[i] = localDisplacements[i] + localdDisplacements[i];
-                disps[i] = localDisplacements[i];
-            stiffnessMatrix.MultiplyIntoResult(disps, Vector.CreateFromArray(forces));
-            return forces;
+            //var disps = new double[localDisplacements.Length];
+            //for (int i = 0; i < localDisplacements.Length; i++)
+            //{
+            //    //disps[i] = localDisplacements[i] + localdDisplacements[i];
+            //    disps[i] = localDisplacements[i];
+            //}
+
+            return stiffnessMatrix.Multiply(localDisplacements /*disps*/);
         }
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
-            var accelerations = Vector.CreateZero(noOfDOFs);
+            var accelerations = new double[noOfDOFs];
             IMatrix massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
@@ -681,9 +679,8 @@ namespace ISAAR.MSolve.FEM.Elements
                         index++;
                     }
             }
-            double[] forces = new double[accelerations.Length];
-            massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces));
-            return forces;
+
+            return massMatrix.Multiply(accelerations);
         }
 
         public void ClearMaterialState() {}

@@ -165,7 +165,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
-            var accelerations = Vector.CreateZero(6);
+            var accelerations = new double[6];
 
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
@@ -177,9 +177,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     }
 
             IMatrix massMatrix = MassMatrix(element);
-            double[] forces = new double[6];
-            massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces));
-            return forces;
+            return massMatrix.Multiply(accelerations);
         }
 
         public void SaveMaterialState() => throw new NotImplementedException();

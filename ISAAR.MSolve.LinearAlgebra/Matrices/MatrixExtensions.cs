@@ -144,6 +144,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new Numerical.LinearAlgebra.Matrix2D(result.CopyToArray2D());
         }
 
+        public static double[] Multiply(this IMatrixView matrix, double[] vector, bool transposeMatrix = false)
+        {
+            var result = new double[transposeMatrix ? matrix.NumColumns : matrix.NumRows];
+            matrix.MultiplyIntoResult(Vector.CreateFromArray(vector), Vector.CreateFromArray(result), transposeMatrix);
+            return result;
+        }
+
+        public static void MultiplyIntoResult(this IMatrixView matrix, double[] vector, double[] result,
+            bool transposeMatrix = false)
+            => matrix.MultiplyIntoResult(Vector.CreateFromArray(vector), Vector.CreateFromArray(result), transposeMatrix);
+
         /// <summary>
         /// Creates a new <see cref="Matrix"/> that contains the entries of <paramref name="matrix"/> with a different order,
         /// which is specified by the provided <paramref name="permutation"/> and <paramref name="oldToNew"/>.

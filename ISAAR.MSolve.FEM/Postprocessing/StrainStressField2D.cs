@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             {
                 foreach (Element_v2 element in subdomain.Elements)
                 {
-                    ContinuumElement2D elementType = (ContinuumElement2D)(element.ElementType); //TODO: remove the element types. Connectivity should be handled via interface inheritance.
+                    ContinuumElement2D elementType = (ContinuumElement2D)(element.ElementType); //TODO: remove cast
 
                     // Find local displacement vector
                     var localDisplacements = new double[subdomain.DofOrdering.CountElementDofs(element)];

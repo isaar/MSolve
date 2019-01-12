@@ -430,8 +430,6 @@ namespace ISAAR.MSolve.FEM.Elements
                 throw new Exception("There must have been " + gaussPointsCount + " material points, but there are "
                    + materialsAtGaussPoints.Length);
 
-            var nodalDisplacements = Vector.CreateFromArray(localDisplacements);
-            var nodalDeltaDisplacements = Vector.CreateFromArray(localdDisplacements);
             double[] deltaStrains = new double[6];
             double[] strains = new double[6];
             for (int gp = 0; gp < gaussPointsCount; ++gp)
@@ -444,8 +442,8 @@ namespace ISAAR.MSolve.FEM.Elements
                         deformationMatrix[i, j] = gaussMatrices[gp].DeformationMatrix[i, j];
                     }
                 }
-                deformationMatrix.MultiplyIntoResult(nodalDisplacements, Vector.CreateFromArray(strains));
-                deformationMatrix.MultiplyIntoResult(nodalDeltaDisplacements, Vector.CreateFromArray(deltaStrains));
+                deformationMatrix.MultiplyIntoResult(localDisplacements, strains);
+                deformationMatrix.MultiplyIntoResult(localdDisplacements, deltaStrains);
                 materialsAtGaussPoints[gp].UpdateMaterial(Vector.CreateFromArray(deltaStrains));
             }
             return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
@@ -486,7 +484,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
-            var accelerations = Vector.CreateZero(24);
+            var accelerations = new double[24];
             IMatrix massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
@@ -499,9 +497,8 @@ namespace ISAAR.MSolve.FEM.Elements
                         index++;
                     }
             }
-            double[] forces = new double[24];
-            massMatrix.MultiplyIntoResult(accelerations, Vector.CreateFromArray(forces));
-            return forces;
+
+            return massMatrix.Multiply(accelerations);
         }
 
         public void ClearMaterialState()

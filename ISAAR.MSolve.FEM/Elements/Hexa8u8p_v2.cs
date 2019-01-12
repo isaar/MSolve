@@ -369,7 +369,7 @@ namespace ISAAR.MSolve.FEM.Elements
             ////double[] solidAndFluidForces = q * fluidDisplacements + (new Vector<double>(solidForces));
             // H correction
             fluidDisplacements.ScaleIntoThis(-1.0);
-            double[] fluidDrags = SymmetricMatrix.CreateFromPackedRowMajorArray(faH).Multiply(fluidDisplacements).CopyToArray();
+            double[] fluidDrags = SymmetricMatrix.CreateFromPackedRowMajorArray(faH).Multiply(fluidDisplacements).ToRawArray();
 
             double[] totalForces = new double[GetAllDOFs()];
             ScatterFromFluidVector(fluidDrags, totalForces);
@@ -379,7 +379,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
-            var accelerations = Vector.CreateZero(24);
+            var accelerations = new double[24];
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
                 switch (load.DOF)
@@ -396,8 +396,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     default:
                         throw new InvalidOperationException("Cannot handle global acceleration for water pore when NOT translational.");
                 }
-            double[] solidForces = new double[24];
-            MassMatrix(element).MultiplyIntoResult(accelerations, Vector.CreateFromArray(solidForces));
+            double[] solidForces = MassMatrix(element).Multiply(accelerations);
 
             double[,] faXYZ = GetCoordinates(element);
             double[,] faDS = new double[iInt3, 24];
@@ -458,10 +457,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateSolidForcesFromPorePressures(Element_v2 element, double[] porePressures)
         {
-            double[] solidForces = new double[24];
-            IMatrix transposeQ = CouplingMatrix(element);
-            transposeQ.MultiplyIntoResult(Vector.CreateFromArray(porePressures), Vector.CreateFromArray(solidForces), true);
-            return solidForces;
+            IMatrix Q = CouplingMatrix(element);
+            return Q.Multiply(porePressures, true);
         }
 
         public bool MaterialModified

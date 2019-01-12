@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double dY = ((nodes[1].Y - nodes[0].Y) + this.currentDisplacements[7]) - this.currentDisplacements[1];
             double dZ = ((nodes[1].Z - nodes[0].Z) + this.currentDisplacements[8]) - this.currentDisplacements[2];
             this.currentLength = Math.Sqrt((dX * dX) + (dY * dY) + (dZ * dZ));
-            var delta = Vector.CreateFromArray(new[] { dX, dY, dZ });
+            //var delta = new[] { dX, dY, dZ };
             this.currentBeamAxis[0] = dX / currentLength + beamAxisX[0];
             this.currentBeamAxis[1] = dY / currentLength + beamAxisX[1];
             this.currentBeamAxis[2] = dZ / currentLength + beamAxisX[2];
