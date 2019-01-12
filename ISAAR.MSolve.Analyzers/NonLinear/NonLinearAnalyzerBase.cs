@@ -4,8 +4,8 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: It would be clearer and less error prone if incrementing the loading conditions doesn't alter the model's/subdomain's 
 //      loads and constraints.

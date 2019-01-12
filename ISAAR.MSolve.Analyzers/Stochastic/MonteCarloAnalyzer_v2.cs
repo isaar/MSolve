@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Stochastic;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 using Troschuetz.Random.Distributions.Continuous;
 
 namespace ISAAR.MSolve.Analyzers

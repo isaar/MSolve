@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -8,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: add state management
 //TODO: should this and its implementations be internal? Analyzers and providers should work with ILinearSystem only. 
-namespace ISAAR.MSolve.Solvers.Commons
+namespace ISAAR.MSolve.Solvers.LinearSystems
 {
     /// <summary>
     /// Base implementation of <see cref="ILinearSystem_v2"/>.

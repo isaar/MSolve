@@ -2,8 +2,8 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Iterative;
 
 //TODO: figure out how to set up different problem types. Only ProblemStructual is supported now.

@@ -13,8 +13,8 @@ using ISAAR.MSolve.FEM.Providers;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Problems
 {

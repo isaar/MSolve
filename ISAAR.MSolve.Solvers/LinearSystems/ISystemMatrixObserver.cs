@@ -1,4 +1,4 @@
-﻿namespace ISAAR.MSolve.Solvers.Commons
+﻿namespace ISAAR.MSolve.Solvers.LinearSystems
 {
     /// <summary>
     /// Objects implementing this interface will be notifying before <see cref="ILinearSystem_v2.Matrix"/> is modified.

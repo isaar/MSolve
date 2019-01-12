@@ -13,7 +13,6 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 

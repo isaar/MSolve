@@ -1,14 +1,11 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Tests;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Iterative;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;

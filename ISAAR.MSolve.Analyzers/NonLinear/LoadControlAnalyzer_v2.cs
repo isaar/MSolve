@@ -4,7 +4,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
 
 namespace ISAAR.MSolve.Analyzers.NonLinear
 {

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Logging
 {

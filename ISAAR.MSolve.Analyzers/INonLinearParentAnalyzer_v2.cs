@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Analyzers.NonLinear
 {

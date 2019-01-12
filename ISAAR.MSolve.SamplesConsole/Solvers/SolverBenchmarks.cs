@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Analyzers;
+﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Tests.Solvers;
 
 namespace ISAAR.MSolve.SamplesConsole.Solvers

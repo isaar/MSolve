@@ -6,8 +6,8 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Optimization: I could avoid initialization and GC of some vectors by reusing existing ones.
 //TODO: Use a base class for implicit time integration methods (perhaps to together with explicit)

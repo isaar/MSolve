@@ -3,11 +3,12 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.Assemblers;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: not sure this class should be in this namespace
-namespace ISAAR.MSolve.Solvers.Commons
+namespace ISAAR.MSolve.Solvers
 {
     /// <summary>
     /// Base implementation for solver that do not use domain decomposition.

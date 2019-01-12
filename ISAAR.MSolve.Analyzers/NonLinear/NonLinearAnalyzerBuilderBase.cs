@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
 
 namespace ISAAR.MSolve.Analyzers.NonLinear
 {

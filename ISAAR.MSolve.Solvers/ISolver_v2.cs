@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
-namespace ISAAR.MSolve.Solvers.Interfaces
+namespace ISAAR.MSolve.Solvers
 {
     /// <summary>
     /// Helps translate the physical model into a linear system and then solves the latter. 

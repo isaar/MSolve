@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Analyzers.NonLinear
 {

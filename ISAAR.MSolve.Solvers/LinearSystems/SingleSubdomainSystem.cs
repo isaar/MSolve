@@ -2,7 +2,7 @@
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Solvers.Commons
+namespace ISAAR.MSolve.Solvers.LinearSystems
 {
     /// <summary>
     /// Implementation of <see cref="ILinearSystem_v2"/> that can be used with solvers withour domain decomposition.

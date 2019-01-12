@@ -44,7 +44,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 // created and use that registry to accept setting its rhs vector. A similar logic can be used for operations between
 // matrices with the same sparsity pattern.
 #endregion
-namespace ISAAR.MSolve.Solvers.Commons
+namespace ISAAR.MSolve.Solvers.LinearSystems
 {
     /// <summary>
     /// A system of linear equations. It consists of a square matrix, a right hand side vector and a solution (or left 

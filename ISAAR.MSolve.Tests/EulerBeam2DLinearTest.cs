@@ -1,20 +1,16 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
-using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Tests
 {
