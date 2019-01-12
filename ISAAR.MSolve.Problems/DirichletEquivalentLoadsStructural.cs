@@ -1,4 +1,4 @@
-﻿using ISAAR.MSolve.Analyzers.Interfaces;
+﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;

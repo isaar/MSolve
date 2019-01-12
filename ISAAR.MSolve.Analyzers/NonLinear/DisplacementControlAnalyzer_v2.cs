@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Interfaces;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     /// <summary>
     /// This only works if there are no nodal loads or any loading condition other than prescribed displacements.

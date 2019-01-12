@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     public abstract class NonLinearAnalyzerBuilderBase
     {

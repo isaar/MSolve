@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.LinearAlgebra.Tests.Benchmarks;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;

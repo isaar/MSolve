@@ -17,6 +17,7 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Analyzers.NonLinear;
 
 namespace ISAAR.MSolve.Tests
 {

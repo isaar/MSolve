@@ -22,6 +22,7 @@ using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Analyzers.NonLinear;
 
 namespace ISAAR.MSolve.Tests
 {

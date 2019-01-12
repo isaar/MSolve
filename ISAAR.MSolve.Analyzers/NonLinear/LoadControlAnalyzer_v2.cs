@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Solvers.Interfaces;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     public class LoadControlAnalyzer_v2 : NonLinearAnalyzerBase
     {

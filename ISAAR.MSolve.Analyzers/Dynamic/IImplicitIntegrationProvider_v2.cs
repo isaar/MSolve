@@ -1,7 +1,7 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using System.Collections.Generic;
 
 //TODO: This should be called second order provider. The matrices, coefficients, etc. should be named 0th-order, 1st-order, 
 //      2nd-order. 
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 //TODO: Perhaps the providers should not hold references to the linear systems. Instead they would return vectors/matrices to 
 //      the analyzers (or the vectors/matrices would be passed in and overwritten).
 //TODO: Rename the Get~ methods to Calculate or something similar.
-namespace ISAAR.MSolve.Analyzers.Interfaces
+namespace ISAAR.MSolve.Analyzers.Dynamic
 {
     public interface IImplicitIntegrationProvider_v2 : IAnalyzerProvider_v2
     {

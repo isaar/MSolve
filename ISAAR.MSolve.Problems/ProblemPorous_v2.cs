@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Analyzers.Dynamic;
+using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.FEM.Providers;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Solvers.Assemblers;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.FEM.Providers;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.Problems
 {

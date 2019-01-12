@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
@@ -11,7 +9,7 @@ using ISAAR.MSolve.Solvers.Interfaces;
 
 //TODO: It would be clearer and less error prone if incrementing the loading conditions doesn't alter the model's/subdomain's 
 //      loads and constraints.
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     public abstract class NonLinearAnalyzerBase : IChildAnalyzer
     {

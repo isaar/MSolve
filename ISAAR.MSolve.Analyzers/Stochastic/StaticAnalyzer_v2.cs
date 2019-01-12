@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 {

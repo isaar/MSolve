@@ -1,18 +1,16 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Analyzers;
-using System;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Analyzers.Dynamic;
+using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.Interfaces;
 
 //TODO: Usually the LinearSystem is passed in, but for GetRHSFromHistoryLoad() it is stored as a field. Decide on one method.
 //TODO: I am not too fond of the provider storing global sized matrices.

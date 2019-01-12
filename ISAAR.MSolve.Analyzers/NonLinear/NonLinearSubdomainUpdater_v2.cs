@@ -1,13 +1,7 @@
-﻿using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     public class NonLinearSubdomainUpdater_v2 : INonLinearSubdomainUpdater_v2
     {

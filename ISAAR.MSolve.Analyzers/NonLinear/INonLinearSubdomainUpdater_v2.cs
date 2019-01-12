@@ -1,7 +1,6 @@
-﻿
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Analyzers.Interfaces
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     public interface INonLinearSubdomainUpdater_v2
     {

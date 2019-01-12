@@ -1,11 +1,8 @@
-﻿using ISAAR.MSolve.Logging.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Logging.Interfaces;
 
 //TODO: should child analyzers hold references to their parent analyzers?
-namespace ISAAR.MSolve.Analyzers.Interfaces
+namespace ISAAR.MSolve.Analyzers
 {
     public interface IAnalyzer_v2
     {

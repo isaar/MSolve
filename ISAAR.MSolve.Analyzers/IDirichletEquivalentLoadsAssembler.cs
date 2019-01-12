@@ -2,7 +2,7 @@
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: _v2 delete the original one (IEquivalentLoadsAssembler) in FEM.Interfaces
-namespace ISAAR.MSolve.Analyzers.Interfaces
+namespace ISAAR.MSolve.Analyzers
 {
     public interface IDirichletEquivalentLoadsAssembler
     {

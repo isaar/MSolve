@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ISAAR.MSolve.Analyzers.Interfaces
+﻿namespace ISAAR.MSolve.Analyzers
 {
     public interface IParentAnalyzer: IAnalyzer_v2
     {
