@@ -110,19 +110,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Matrix"/> by copying the entries of <paramref name="matrix"/>.
-        /// </summary>
-        /// <param name="matrix">The entries of the legacy matrix instance <see cref="Numerical.LinearAlgebra.Matrix2D"/>.</param>
-        public static Matrix CreateFromLegacyMatrix(Numerical.LinearAlgebra.Matrix2D matrix)
-        {
-            // The other matrix might be transposed internally.
-            bool isTransposed = (matrix.Data[0, 1] != matrix[0, 1]);
-            double[] data = isTransposed ? 
-                Conversions.Array2DToFullRowMajor(matrix.Data) : Conversions.Array2DToFullColMajor(matrix.Data);
-            return new Matrix(data, matrix.Rows, matrix.Columns);
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="Matrix"/> that is equal to the identity matrix, namely a square matrix with 
         /// non-diagonal entries being equal to 0 and diagonal entries being equal to 1.
         /// </summary>
@@ -1115,15 +1102,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void SVD(double[] w, double[,] v)
         {
             DenseStrategies.SVD(this, w, v);
-        }
-
-        /// <summary>
-        /// Creates a new instance of the legacy matrix class <see cref="Numerical.LinearAlgebra.Matrix"/>, by copying the 
-        /// entries of this <see cref="Matrix"/> instance. 
-        /// </summary>
-        public Numerical.LinearAlgebra.Interfaces.IMatrix2D ToLegacyMatrix()
-        {
-            return new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
         }
 
         /// <summary>

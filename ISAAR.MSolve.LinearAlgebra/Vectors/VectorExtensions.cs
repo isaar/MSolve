@@ -197,10 +197,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             IVectorView sourceVector, int sourceIndex, int length)
             => destinationVector.AxpySubvectorIntoThis(destinationIndex, sourceVector, -1.0, sourceIndex, length);
 
-        //TODO: remove this
-        public static Numerical.LinearAlgebra.Vector ToLegacyVector(this IVectorView vector)
-            => Vector.CreateFromVector(vector).ToLegacyVector();
-
         //TODO: remove this. Its only purpose is to avoid calling Vector.CopyToArray() and needless copying, during the
         //      transition phase from the legacy linear algebra design.
         public static double[] ToRawArray(this Vector vector) => vector.RawData;

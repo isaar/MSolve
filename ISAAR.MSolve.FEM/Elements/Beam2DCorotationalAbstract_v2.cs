@@ -262,7 +262,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             var internalForces = this.CalculateForcesInGlobalSystem();
-            return internalForces.ToLegacyVector().Data;
+            return internalForces.ToRawArray();
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)

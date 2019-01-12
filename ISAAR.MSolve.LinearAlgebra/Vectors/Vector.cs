@@ -65,9 +65,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             else return new Vector(data);
         }
 
-        public static Vector CreateFromLegacyVector(ISAAR.MSolve.Numerical.LinearAlgebra.Vector vector)
-            => CreateFromArray(vector.Data, false);
-
         /// <summary>
         /// Initializes a new instance of <see cref="Vector"/> by copying the entries of an existing vector: 
         /// <paramref name="original"/>.
@@ -849,11 +846,5 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             }
             return result;
         }
-
-        /// <summary>
-        /// Creates a new instance of the legacy vector class <see cref="Numerical.LinearAlgebra.Vector"/> with the same internal
-        /// array as this <see cref="Vector"/> instance. Doesn't copy anything.
-        /// </summary>
-        public Numerical.LinearAlgebra.Vector ToLegacyVector() => new Numerical.LinearAlgebra.Vector(data);
     }
 }

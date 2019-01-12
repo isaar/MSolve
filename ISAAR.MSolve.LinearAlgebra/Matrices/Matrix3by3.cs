@@ -911,13 +911,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value) => data[rowIdx, colIdx] = value;
 
         /// <summary>
-        /// Creates a new instance of the legacy matrix class <see cref="Numerical.LinearAlgebra.Matrix"/>, by copying the 
-        /// entries of this <see cref="Matrix3by3"/> instance. 
-        /// </summary>
-        public Numerical.LinearAlgebra.Interfaces.IMatrix2D ToLegacyMatrix()
-            => new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
-
-        /// <summary>
         /// See <see cref="IMatrixView.Transpose"/>.
         /// </summary>
         IMatrix IMatrixView.Transpose() => Transpose();
