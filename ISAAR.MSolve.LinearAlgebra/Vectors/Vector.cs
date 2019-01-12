@@ -622,8 +622,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             Preconditions.CheckVectorDimensions(this, otherVector);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
-            Array.Copy(data, result, data.Length);
-            BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Array.Copy(data, result, data.Length);
+                Blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
+            }
+            else if (otherCoefficient == 1.0)
+            {
+                Array.Copy(otherVector.data, result, data.Length);
+                Blas.Daxpy(data.Length, thisCoefficient, this.data, 0, 1, result, 0, 1);
+            }
+            else
+            {
+                Array.Copy(data, result, data.Length);
+                BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
+            }
             return new Vector(result);
         }
 
@@ -656,7 +669,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void LinearCombinationIntoThis(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
+            }
+            else
+            {
+                BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            }
         }
 
         /// <summary>

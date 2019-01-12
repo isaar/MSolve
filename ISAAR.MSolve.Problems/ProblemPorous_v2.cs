@@ -189,8 +189,7 @@ namespace ISAAR.MSolve.Problems
         {
             int id = subdomain.ID;
             IMatrix matrix = this.Ks[id];
-            if (coefficients.Stiffness == 1.0) matrix.AxpyIntoThis(Ms[id], coefficients.Mass);
-            else matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
+            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
             return matrix;
         }

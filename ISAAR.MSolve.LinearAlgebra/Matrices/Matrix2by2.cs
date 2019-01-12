@@ -421,6 +421,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix2by2 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else if (thisCoefficient == 1.0) return Axpy(otherMatrix, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -449,7 +450,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public Matrix2by2 LinearCombination(double thisCoefficient, Matrix2by2 otherMatrix, double otherCoefficient)
         {
-            return new Matrix2by2(new double[,]
+            if (thisCoefficient == 1.0) return Axpy(otherMatrix, otherCoefficient);
+            else return new Matrix2by2(new double[,]
             {
                 {
                     thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0],
@@ -468,6 +470,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix2by2 casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else if (thisCoefficient == 1.0) AxpyIntoThis(otherMatrix, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -489,10 +492,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix2by2 otherMatrix, double otherCoefficient)
         {
-            this.data[0, 0] = thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0];
-            this.data[0, 1] = thisCoefficient * this.data[0, 1] + otherCoefficient * otherMatrix.data[0, 1];
-            this.data[1, 0] = thisCoefficient * this.data[1, 0] + otherCoefficient * otherMatrix.data[1, 0];
-            this.data[1, 1] = thisCoefficient * this.data[1, 1] + otherCoefficient * otherMatrix.data[1, 1];
+            if (thisCoefficient == 1.0) AxpyIntoThis(otherMatrix, otherCoefficient);
+            else
+            {
+                this.data[0, 0] = thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0];
+                this.data[0, 1] = thisCoefficient * this.data[0, 1] + otherCoefficient * otherMatrix.data[0, 1];
+                this.data[1, 0] = thisCoefficient * this.data[1, 0] + otherCoefficient * otherMatrix.data[1, 0];
+                this.data[1, 1] = thisCoefficient * this.data[1, 1] + otherCoefficient * otherMatrix.data[1, 1];
+            }
         }
 
         /// <summary>

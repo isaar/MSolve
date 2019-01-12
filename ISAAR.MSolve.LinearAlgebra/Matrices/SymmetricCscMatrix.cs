@@ -331,10 +331,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
                 //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
                 double[] resultValues = new double[values.Length];
-                Array.Copy(this.values, resultValues, values.Length);
 
-                BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1, 
-                    thisCoefficient, resultValues, 0, 1);
+                if (thisCoefficient == 1.0)
+                {
+                    Array.Copy(this.values, resultValues, values.Length);
+                    Blas.Daxpy(values.Length, otherCoefficient, otherCSC.values, 0, 1, resultValues, 0, 1);
+                }
+                else if (otherCoefficient == 1.0)
+                {
+                    Array.Copy(otherCSC.values, resultValues, values.Length);
+                    Blas.Daxpy(values.Length, thisCoefficient, this.values, 0, 1, resultValues, 0, 1);
+                }
+                else
+                {
+                    Array.Copy(this.values, resultValues, values.Length);
+                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1,
+                        thisCoefficient, resultValues, 0, 1);
+                }
 
                 // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                 return new SymmetricCscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);

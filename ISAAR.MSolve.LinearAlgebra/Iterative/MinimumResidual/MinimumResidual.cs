@@ -428,7 +428,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.MinimumResidual
                     // vv = b - (A - shift * I) * x
                     IVector vv = b.CreateZeroVectorWithSameFormat();
                     ShiftedMatrixVectorMult(A, x, vv, shift);
-                    vv.LinearCombinationIntoThis(-1.0, b, 1.0);
+                    vv.SubtractIntoThis(b);
 
                     // ww = (A - shift * I) * vv = "Ar"
                     IVector ww = b.CreateZeroVectorWithSameFormat();

@@ -601,9 +601,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 {
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
-                    Array.Copy(this.values, resultValues, values.Length);
-                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSKY.values, 0, 1, 
-                        thisCoefficient, this.values, 0, 1);
+                    if (thisCoefficient == 1.0)
+                    {
+                        Array.Copy(this.values, resultValues, values.Length);
+                        Blas.Daxpy(values.Length, otherCoefficient, otherSKY.values, 0, 1, this.values, 0, 1);
+                    }
+                    else if (otherCoefficient == 1.0)
+                    {
+                        Array.Copy(otherSKY.values, resultValues, values.Length);
+                        Blas.Daxpy(values.Length, thisCoefficient, this.values, 0, 1, resultValues, 0, 1);
+                    }
+                    else
+                    {
+                        Array.Copy(this.values, resultValues, values.Length);
+                        BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSKY.values, 0, 1,
+                            thisCoefficient, this.values, 0, 1);
+                    }
                     return new SkylineMatrix(NumColumns, resultValues, this.diagOffsets);
                 }
             }
@@ -638,8 +651,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             if (HasSameIndexer(otherMatrix)) // no need to check dimensions if the indexing arrays are the same
             {
-                BlasExtensions.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1, 
-                    thisCoefficient, this.values, 0, 1);
+                if (thisCoefficient == 1.0)
+                {
+                    Blas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, this.values, 0, 1);
+                }
+                else
+                {
+                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1,
+                        thisCoefficient, this.values, 0, 1);
+                }
             }
             else
             {
