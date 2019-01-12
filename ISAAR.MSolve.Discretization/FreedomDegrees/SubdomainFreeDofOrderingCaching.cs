@@ -35,11 +35,12 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return numAllDofs;
         }
 
-        public void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector)
+        public Vector ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-
+            var elementVector = Vector.CreateZero(numAllDofs);
             elementVector.CopyNonContiguouslyFrom(elementDofIndices, subdomainVector, subdomainDofIndices);
+            return elementVector;
 
             //double[] elementVector = new double[numAllDofs];
             //for (int i = 0; i < elementDofIndices.Length; ++i)

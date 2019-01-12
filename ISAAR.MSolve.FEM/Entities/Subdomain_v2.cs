@@ -68,8 +68,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public Vector CalculateElementDisplacements(Element_v2 element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            var elementNodalDisplacements = Vector.CreateZero(DofOrdering.CountElementDofs(element));
-            DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector, elementNodalDisplacements);
+            Vector elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
             ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }

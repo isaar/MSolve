@@ -49,6 +49,31 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return numElementDofs;
         }
 
+        public Vector ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
+        {
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+
+            int numElementDofs = 0;
+            for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
+            var elementVector = new double[numElementDofs];
+
+            int elementDofIdx = 0;
+            for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
+            {
+                for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
+                {
+                    bool isFree = FreeDofs.TryGetValue(elementNodes[nodeIdx], elementDofs[nodeIdx][dofIdx],
+                        out int subdomainDofIdx);
+                    if (isFree) elementVector[elementDofIdx] = subdomainVector[subdomainDofIdx];
+                    // Else, the quantity of interest is 0.0 at all constrained dofs.
+                    ++elementDofIdx; // This must be incremented for constrained dofs as well
+                }
+            }
+
+            return Vector.CreateFromArray(elementVector);
+        }
+
         public void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
