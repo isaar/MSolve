@@ -10,7 +10,7 @@ using System.Text;
 //TODO: rename IsoparametricInterpolation3DBase. It works for shells as well.
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationShell8 : IsoparametricInterpolation3DBase
+    public class InterpolationShell8 : IsoparametricInterpolation3DBase_OLD
     {
         private static readonly InterpolationShell8 uniqueInstance = new InterpolationShell8();
 

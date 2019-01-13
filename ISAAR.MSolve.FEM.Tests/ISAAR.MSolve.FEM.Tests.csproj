@@ -7,7 +7,12 @@
     <StartupObject />
   </PropertyGroup>
 
+  <PropertyGroup>
+   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup> 
+  
   <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
@@ -23,4 +28,16 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>System</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
 </Project>

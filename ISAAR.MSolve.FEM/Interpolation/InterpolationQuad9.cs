@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 // Quad9 nodes:
 // 3 -- 6 -- 2
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes)
             => throw new NotImplementedException("Requires an iterative procedure.");
 
         protected override sealed double[] EvaluateAt(double xi, double eta)
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return values;
         }
 
-        protected override sealed double[,] EvaluateGradientsAt(double xi, double eta)
+        protected override sealed Matrix EvaluateGradientsAt(double xi, double eta)
         {
             double xi2 = xi * 2.0;
             double eta2 = eta * 2.0;
@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double etaSq = eta * eta;
             double xiEta = xi * eta;
 
-            var derivatives = new double[9, 2];
+            var derivatives = Matrix.CreateZero(9, 2);
             derivatives[0, 0] = 0.25 * eta * (1 - xi2) * (1 - eta);
             derivatives[0, 1] = 0.25 * xi * (1 - xi) * (1 - eta2);
             derivatives[1, 0] = -0.25 * eta * (1 + xi2) * (1 - eta);

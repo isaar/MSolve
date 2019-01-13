@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator : IMeshProvider2D<Node2D>
+    public class UniformMeshGenerator : IMeshProvider2D<Node2D, CellConnectivity2D>
     {
         private readonly double minX;
         private readonly double minY;

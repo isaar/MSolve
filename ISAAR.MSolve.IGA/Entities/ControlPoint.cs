@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class ControlPoint:INode
+    public class ControlPoint : INode
 	{
         private readonly List<DOFType> constrains = new List<DOFType>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
@@ -36,6 +37,8 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Ksi { get; set; }
         public double Heta { get; set; }
         public double Zeta { get; set; }
+
+        public List<Constraint> Constraints => throw new NotImplementedException("When merging Dimitris and Serafeim's code, keep Dimitris.");
 
         public void BuildPatchesDictionary()
         {

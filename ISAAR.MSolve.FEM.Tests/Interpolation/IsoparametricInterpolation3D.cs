@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Interpolation
 {
 	/// <summary>
-	/// Unit testing implementations of <see cref="IIsoparametricInterpolation3D"/>
+	/// Unit testing implementations of <see cref="IIsoparametricInterpolation3D_OLD"/>
 	/// </summary>
     public class IsoparametricInterpolation3D
 	{

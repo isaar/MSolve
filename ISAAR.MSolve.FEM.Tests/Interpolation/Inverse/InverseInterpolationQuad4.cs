@@ -16,12 +16,12 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet = new Node_v2[]
         {
-            new Node2D(0, 0.7, 2.0),
-            new Node2D(1, 0.2, 0.3),
-            new Node2D(2, 2.0, 0.9),
-            new Node2D(3, 3.0, 2.7)
+            new Node_v2 { ID = 0, X = 0.7, Y = 2.0 },
+            new Node_v2 { ID = 1, X = 0.2, Y = 0.3 },
+            new Node_v2 { ID = 2, X = 2.0, Y = 0.9 },
+            new Node_v2 { ID = 3, X = 3.0, Y = 2.7 }
         };
         
         private static bool Coincide(NaturalPoint2D point1, NaturalPoint2D point2)
@@ -31,9 +31,9 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         /// Reorders the nodes such that the 1st one becomes the 2nd, the 2nd one becomes the 3rd, etc.
         /// </summary>
         /// <param name="originalOrder"></param>
-        private static Node2D[] CycleNodes(IReadOnlyList<Node2D> originalOrder)
+        private static Node_v2[] CycleNodes(IReadOnlyList<Node_v2> originalOrder)
         {
-            var cycled = new Node2D[originalOrder.Count];
+            var cycled = new Node_v2[originalOrder.Count];
             cycled[0] = originalOrder[originalOrder.Count - 1];
             for (int i = 0; i < originalOrder.Count - 1; ++i) cycled[i + 1] = originalOrder[i];
             return cycled;
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
             var directMapping = InterpolationQuad4.UniqueInstance;
             int numRandomPoints = 10;
             NaturalPoint2D[] naturalPoints = GenerateRandomPointsInSquare(numRandomPoints);
-            IReadOnlyList<Node2D> elementNodes = nodeSet;
+            IReadOnlyList<Node_v2> elementNodes = nodeSet;
 
             for (int i = 0; i < 4; ++i)
             {

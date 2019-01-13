@@ -9,13 +9,6 @@ using ISAAR.MSolve.FEM.Interfaces;
 //      2) The order of the nodes should be defined by what is now called ElementType
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public enum AbsorptionType
-    {
-        Unknown = 0,
-        Compressional = 1,
-        Shear = 2
-    }
-
     public class Element: IElement
 	{
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();

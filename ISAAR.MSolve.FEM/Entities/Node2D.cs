@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
@@ -9,7 +7,8 @@ namespace ISAAR.MSolve.FEM.Entities
     /// Vertex of a finite element in a 2-dimensional space. Immutable.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    //public class Node2D: CartesianPoint2D, IComparable<Node2D>
+using System.Text;
+    //public class Node2D: CartesianPoint2D, IDiscretizationPoint, IComparable<Node2D>
     public class Node2D: Node, IComparable<Node2D> // temporary, till I create the rest 2D entities
     {
         ///// <summary>

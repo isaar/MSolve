@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using System;
 using System.Collections.Generic;
 using System.Text;

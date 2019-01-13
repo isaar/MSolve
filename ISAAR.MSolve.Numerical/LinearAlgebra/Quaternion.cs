@@ -86,6 +86,8 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             //Preconditions.checkArgument(squareRootArgument > 0.0, "Very large rotation increment applied");
             double scalarPartIncrement = Math.Sqrt(squareRootArgument);
             double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement * (this.vectorPart);
+
+            //TODO: The next part creates a new Quaternion, but the existing ones is not copied as per the author's intention
             Vector updatedVectorPart = this.vectorPart;
             updatedVectorPart.Scale(scalarPartIncrement);
             updatedVectorPart.Add(scalarPart * vectorPartIncrement);

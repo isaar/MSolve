@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             PreprocessorModel model = PreprocessorModel.Create2DPlaneStress(thickness);
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            ElasticMaterial2D_v2 material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -47,9 +47,9 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Read mesh from GMSH file
             string meshPath = workingDirectory + "\\wall.msh";
-            IReadOnlyList<Node2D> nodes;
-            IReadOnlyList<CellConnectivity2D> elements;
-            using (var reader = new GmshReader2D(meshPath))
+            IReadOnlyList<Node_v2> nodes;
+            IReadOnlyList<CellConnectivity_v2> elements;
+            using (var reader = new GmshReader_v2(meshPath))
             {
                 (nodes, elements) = reader.CreateMesh();
             }
@@ -57,12 +57,12 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Prescribed displacements
             double tol = 1E-10;
-            IEnumerable<Node2D> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
+            IEnumerable<Node_v2> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
 
             // Loads
-            Node2D[] loadedNodes = nodes.Where(
+            Node_v2[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
             model.ApplyNodalLoad(loadedNodes[0], DOFType.X, horizontalLoad);
@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             PreprocessorModel model = PreprocessorModel.Create2DPlaneStress(thickness);
 
             // Materials
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            ElasticMaterial2D_v2 material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -106,9 +106,9 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Read mesh from GMSH file
             string meshPath = workingDirectory + "\\wall.msh";
-            IReadOnlyList<Node2D> nodes;
-            IReadOnlyList<CellConnectivity2D> elements;
-            using (var reader = new GmshReader2D(meshPath))
+            IReadOnlyList<Node_v2> nodes;
+            IReadOnlyList<CellConnectivity_v2> elements;
+            using (var reader = new GmshReader_v2(meshPath))
             {
                 (nodes, elements) = reader.CreateMesh();
             }
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Prescribed displacements
             double tol = 1E-10;
-            IEnumerable<Node2D> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
+            IEnumerable<Node_v2> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
 

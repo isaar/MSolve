@@ -1,16 +1,13 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Points;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 //TODO: Add tests for wrong node orders, too distorted shapes, etc.
@@ -27,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         #region reproducible tests
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D material0 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material0 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 2.1e5,
             PoissonRatio = 0.3
@@ -38,23 +35,23 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet0 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
         {
-            new Node2D(0, 0.7, 2.0),
-            new Node2D(1, 0.2, 0.3),
-            new Node2D(2, 2.0, 0.9),
-            new Node2D(3, 3.0, 2.7)
+            new Node_v2 { ID = 0, X = 0.7, Y = 2.0 },
+            new Node_v2 { ID = 1, X = 0.2, Y = 0.3 },
+            new Node_v2 { ID = 2, X = 2.0, Y = 0.9 },
+            new Node_v2 { ID = 3, X = 3.0, Y = 2.7 }
         };
 
         /// <summary>
         /// Rectangle.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet1 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet1 = new Node_v2[]
         {
-            new Node2D(0,  0.0,  0.0),
-            new Node2D(1, 20.0,  0.0),
-            new Node2D(2, 20.0, 10.0),
-            new Node2D(3,  0.0, 10.0)
+            new Node_v2 { ID = 0, X =  0.0, Y =  0.0 },
+            new Node_v2 { ID = 1, X = 20.0, Y =  0.0 },
+            new Node_v2 { ID = 2, X = 20.0, Y = 10.0 },
+            new Node_v2 { ID = 3, X =  0.0, Y = 10.0 }
         };
 
         /// <summary>
@@ -66,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             // reduced integration rule - bad idea
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(1, 1);
-            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -74,9 +71,9 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             var quad4 = new ContinuumElement2D(thickness, nodeSet1, InterpolationQuad4.UniqueInstance,
                 GaussLegendre2D.GetQuadratureWithOrder(2, 2), quadratureForMass,
                 ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicMaterial);
-            IMatrix2D M = quad4.BuildConsistentMassMatrix();
+            IMatrix M = quad4.BuildConsistentMassMatrix();
 
-            Matrix2D expectedM = new Matrix2D(new double[,]
+            Matrix expectedM = Matrix.CreateFromArray(new double[,]
             {
                 { 1, 0, 1, 0, 1, 0, 1, 0 },
                 { 0, 1, 0, 1, 0, 1, 0, 1 },
@@ -93,9 +90,9 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             // For some reason , only half the thickness is used for Quad4 elements, as shown in Fig. 31.9. Therefore the 
             // coefficient 1/16 (full thickness) became 1/32 (half thickness). Here 1/16 is used.
             double scalar = dynamicMaterial.Density * thickness * lengthX * lengthY / 16.0;
-            expectedM.Scale(scalar);
+            expectedM.ScaleIntoThis(scalar);
 
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
+            Assert.True(M.Equals(expectedM, 1e-10));
         }
 
         /// <summary>
@@ -107,7 +104,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             // full integration rule
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(2, 2);
-            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -115,9 +112,9 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             var quad4 = new ContinuumElement2D(thickness, nodeSet1, InterpolationQuad4.UniqueInstance,
                 GaussLegendre2D.GetQuadratureWithOrder(2, 2), quadratureForMass,
                 ExtrapolationGaussLegendre2x2.UniqueInstance, materialsAtGaussPoints, dynamicMaterial);
-            IMatrix2D M = quad4.BuildConsistentMassMatrix();
+            IMatrix M = quad4.BuildConsistentMassMatrix();
 
-            Matrix2D expectedM = new Matrix2D(new double[,]
+            Matrix expectedM = Matrix.CreateFromArray(new double[,]
             {
                 { 4, 0, 2, 0, 1, 0, 2, 0 },
                 { 0, 4, 0, 2, 0, 1, 0, 2 },
@@ -133,9 +130,9 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             // For some reason , only half the thickness is used for Quad4 elements, as shown in Fig. 31.9. Therefore the 
             // coefficient 1/36 (full thickness) became 1/72 (half thickness). Here 1/36 is used.
             double scalar = dynamicMaterial.Density * thickness * lengthX * lengthY / 36.0;
-            expectedM.Scale(scalar);
+            expectedM.ScaleIntoThis(scalar);
 
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
+            Assert.True(M.Equals(expectedM, 1e-10));
         }
 
         /// <summary>
@@ -147,7 +144,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
             ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet0);
-            IMatrix2D K = quad4.BuildStiffnessMatrix();
+            IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 { 181603.19122884000, -89089.52288016200, -4991.10465483030, 7519.91442892909, -126789.16986973000, 70773.21914644800, -49822.91670427800, 10796.38930478500 },
@@ -159,7 +156,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -49822.91670427800, 5027.15853555400, -1731.32765106900, -27922.91753234200, -7482.65108024430, 14121.70445878300, 59036.89543559100, 8774.05453800470 },
                 { 10796.38930478500, 22205.01889457400, -27922.91753234200, -2404.09221927070, 8352.47368955240, -88763.16216664000, 8774.05453800470, 68962.23549133600 }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
         }
 
         /// <summary>
@@ -228,32 +225,32 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         #endregion
 
         #region older tests (source has been long lost)
-        private static readonly ElasticMaterial2D material1 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material1 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 2e6,
             PoissonRatio = 0.3
         };
 
-        private static readonly ElasticMaterial2D material2 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material2 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 1.0,
             PoissonRatio = 0.25
         };
 
-        private static readonly IReadOnlyList<Node2D> nodeSet2 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet2 = new Node_v2[]
         {
-            new Node2D(0, -1.0, -1.0),
-            new Node2D(1, +1.0, -1.0),
-            new Node2D(2, +1.0, +1.0),
-            new Node2D(3, -1.0, +1.0)
+            new Node_v2 { ID = 0, X = -1.0, Y = -1.0 },
+            new Node_v2 { ID = 1, X = +1.0, Y = -1.0 },
+            new Node_v2 { ID = 2, X = +1.0, Y = +1.0 },
+            new Node_v2 { ID = 3, X = -1.0, Y = +1.0 }
         };
 
-        private static readonly IReadOnlyList<Node2D> nodeSet3 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet3 = new Node_v2[]
         {
-            new Node2D(0, 0.2, 0.3),
-            new Node2D(1, 2.2, 1.5),
-            new Node2D(2, 3.0, 2.7),
-            new Node2D(3, 0.7, 2.0)
+            new Node_v2 { ID = 0, X = 0.2, Y = 0.3 },
+            new Node_v2 { ID = 1, X = 2.2, Y = 1.5 },
+            new Node_v2 { ID = 2, X = 3.0, Y = 2.7 },
+            new Node_v2 { ID = 3, X = 0.7, Y = 2.0 }
         };
 
         [Fact]
@@ -261,7 +258,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
             ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet2);
-            IMatrix2D K = quad4.BuildStiffnessMatrix();
+            IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 {  989010.98901099,  357142.85714286, -604395.60439561, -27472.527472528, -494505.49450549, -357142.85714286,  109890.10989011,  27472.527472528 },
@@ -273,7 +270,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 {  109890.10989011, -27472.527472528, -494505.49450549,  357142.85714286, -604395.60439561,  27472.527472528,  989010.98901099, -357142.85714286 },
                 {  27472.527472528, -604395.60439561,  357142.85714286, -494505.49450549, -27472.527472528,  109890.10989011, -357142.85714286,  989010.98901099 }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
         }
 
         [Fact]
@@ -281,7 +278,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
             ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet1);
-            IMatrix2D K = quad4.BuildStiffnessMatrix();
+            IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 {  879120.87912088,  357142.85714286, -109890.10989011, -27472.527472527, -439560.43956044, -357142.85714286, -329670.32967033,  27472.527472527 },
@@ -293,7 +290,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -329670.32967033, -27472.527472528, -439560.43956044,  357142.85714286, -109890.10989011,  27472.527472528,  879120.87912088, -357142.85714286 },
                 {  27472.527472527, -1401098.9010989,  357142.85714286, -796703.29670329, -27472.527472527,  604395.60439560, -357142.85714286,  1593406.5934066 }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
         }
 
         [Fact]
@@ -301,7 +298,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
             ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet3);
-            IMatrix2D K = quad4.BuildStiffnessMatrix();
+            IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 {  514198.06499808, -10764.170693892, -403744.28140248,  6179.6240659003,  136202.13267487, -257206.34711690, -246655.91627047,  261790.89374489 },
@@ -313,14 +310,14 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -246655.91627047,  206845.83879984, -1565900.8459791,  835115.99431770, -179060.57675182, -31446.954414592,  1991617.3390014, -1010514.8787030 },
                 {  261790.89374489, -1069040.8505824,  835115.99431770, -1780587.0431835, -86392.009359646,  527514.44191615, -1010514.8787030,  2322113.4518497 }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
         }
 
         private static void TestStiffness4()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
             ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet3);
-            IMatrix2D K = quad4.BuildStiffnessMatrix();
+            IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 { 0.2592059570522744,       -0.005023279657148771,  -0.1906544880785286,    -0.017628995948735127,  0.06474697564228854,    -0.12002962865455298,   -0.13329844461603435,   0.1426819042604369      },
@@ -332,7 +329,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -0.13329844461603435,     0.0760152375937702,     -0.77702615325769,      0.3897207973482628,     -0.07874347496586184,   0.005837575119343828,   0.9890680728395862,     -0.4715736100613768     },
                 { 0.1426819042604369,       -0.5170780806282538,    0.3897207973482628,     -0.8772130452864011,    -0.060829091547322856,  0.25099153374585864,    -0.4715736100613768,    1.1432995921687963      }
             }; // from Solverize
-            //Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            //Assert.True(Utilities.AreMatricesEqual(K, new Matrix(expectedK), 1e-10));
         }
 
         [Fact]

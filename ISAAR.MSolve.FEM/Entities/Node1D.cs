@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.FEM.Entities
@@ -9,7 +8,7 @@ namespace ISAAR.MSolve.FEM.Entities
     /// Vertex of a finite element in a 1-dimensional space. Immutable.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Node1D : CartesianPoint1D, IComparable<Node1D>
+    public class Node1D : CartesianPoint1D, IDiscretePoint, IComparable<Node1D>
     {
         /// <summary>
         /// Instantiates a <see cref="Node1D"/>.
