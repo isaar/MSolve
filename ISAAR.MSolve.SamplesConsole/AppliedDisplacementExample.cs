@@ -6,6 +6,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 
@@ -98,16 +99,22 @@ namespace ISAAR.MSolve.SamplesConsole
             var childAnalyzer = new LinearAnalyzer_v2(solver);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
+            // Output requests
+            var logFactory = new TotalDisplacementsLog.Factory(model.SubdomainsDictionary[subdomainID]);
+            logFactory.WatchDof(model.NodesDictionary[2], DOFType.X);
+            logFactory.WatchDof(model.NodesDictionary[2], DOFType.RotZ);
+            childAnalyzer.LogFactories[subdomainID] = logFactory;
+
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Choose dof types X, Y, rotZ to log for node 5
-            double ux = solver.LinearSystems[subdomainID].Solution[
-                 model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], DOFType.X]];
-            double rz = solver.LinearSystems[subdomainID].Solution[
-                             model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], DOFType.RotZ]];
-            double[] results = { ux, rz };
+            var logger = (TotalDisplacementsLog)(childAnalyzer.Logs[subdomainID][0]); //There is a list of logs for each subdomain and we want the first one
+            double[] results = {
+                logger.GetDisplacementAt(model.NodesDictionary[2], DOFType.X),
+                logger.GetDisplacementAt(model.NodesDictionary[2], DOFType.RotZ) };
+            
 
             double[] expected = new double[] { 0, -4.16666666666667E-07, -6.25E-07 };
 

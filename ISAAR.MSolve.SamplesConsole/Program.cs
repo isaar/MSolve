@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            //TrussExample.Run();
+            TrussExample.Run();
             //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.SamplesConsole
             //Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();
 
             //SuiteSparseBenchmarks.MemoryConsumptionDebugging();
-            SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
+            //SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
         }
 
         private static void SolveBuildingInNoSoilSmall()

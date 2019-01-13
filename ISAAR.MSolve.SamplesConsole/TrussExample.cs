@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 
@@ -91,15 +92,20 @@ namespace ISAAR.MSolve.SamplesConsole
             var childAnalyzer = new LinearAnalyzer_v2(solver);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
+            // Output requests
+            var logFactory = new TotalDisplacementsLog.Factory(model.SubdomainsDictionary[subdomainID]);
+            logFactory.WatchDof(model.NodesDictionary[3], DOFType.X);
+            logFactory.WatchDof(model.NodesDictionary[3], DOFType.Y);
+            childAnalyzer.LogFactories[subdomainID] = logFactory;
+
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            // Output
-            double ux = solver.LinearSystems[subdomainID].Solution[
-                model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[3], DOFType.X]];
-            double uy = solver.LinearSystems[subdomainID].Solution[
-                model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[3], DOFType.Y]];
+            // Print output
+            var logger = (TotalDisplacementsLog)(childAnalyzer.Logs[subdomainID][0]); //There is a list of logs for each subdomain and we want the first one
+            double ux = logger.GetDisplacementAt(model.NodesDictionary[3], DOFType.X);
+            double uy = logger.GetDisplacementAt(model.NodesDictionary[3], DOFType.Y);
             Console.WriteLine($"Displacements of Node 3: Ux = {ux}, Uy = {uy}");
         }
     }
