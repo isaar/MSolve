@@ -42,8 +42,8 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             // Variables
-            int monitorNode = 161;
-            DOFType monitorDof = DOFType.Y;
+            int monitorNode = 10001;
+            DOFType monitorDof = DOFType.Z;
 
             // Choose model
             EmbeddedModelBuilder.EmbeddedExample(model);
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 100;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments) { ResidualTolerance = 1E-03 };
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
@@ -91,14 +91,11 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             // Variables
-            int monitorNode = 161;
-            DOFType monitorDof = DOFType.Y;
+            int monitorNode = 10001;
+            DOFType monitorDof = DOFType.Z;
 
             // Choose model
             EmbeddedModelBuilder.EmbeddedExample(model);
-
-            //-----------------------------------------------------------------------------------------------------------
-            // Model_v2
 
             // Choose linear equation system solver
             //var solverBuilder = new SkylineSolver.Builder();
@@ -110,17 +107,14 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            int increments = 100;
-            // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
-            int numIncrements = 10;
+            int increments = 100;
             var equivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler_v2>
             {
                 { subdomainID, new EquivalentLoadsAssembler_v2(model.SubdomainsDictionary[subdomainID],
                                                                new ElementStructuralStiffnessProvider())
                 }
             };
-
             var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, 
                 equivalentLoadsAssemblers, increments);
             DisplacementControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
@@ -150,28 +144,33 @@ namespace ISAAR.MSolve.SamplesConsole
                 //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 312500).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 312500).Select(kv => kv.Value), true);
                 //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 1250).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 1250).Select(kv => kv.Value), true);
                 //var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 90).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 90).Select(kv => kv.Value), true);
-                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 90).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 90).Select(kv => kv.Value), true);
+                //var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 90).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 90).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 8100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 8100).Select(kv => kv.Value), true);
             }
 
             public static void HostElementsBuilder(Model_v2 model)
             {
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
 
-                string MatrixGeometryFileName = "MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-Geometry_MSolve.inp";
+                string MatrixGeometryFileName = "MATRIX_3D-L_x=10-L_y=10-L_z=100-9x9x100-Geometry_MSolve.inp";
                 //"MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-Geometry_MSolve.inp"; 
                 //"MATRIX_3D-L_x=5-L_y=5-L_z=100-5x5x100-Geometry_MSolve.inp"; 
                 //"MATRIX_3D-L_x=5-L_y=5-L_z=100-25x25x500-Geometry_MSolve.inp";
                 //"MATRIX_3D-L_x=1-L_y=1-L_z=10-5x5x50-Geometry_MSolve.inp";
                 //"MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-Geometry_MSolve.inp";
+                //"MATRIX_3D-L_x=30-L_y=30-L_z=100-29x29x100-Geometry_MSolve.inp";
+                //"MATRIX_3D-L_x=10-L_y=10-L_z=100-19x19x200-Geometry_MSolve.inp";
+                //"MATRIX_3D-L_x=10-L_y=10-L_z=100-9x9x100-Geometry_MSolve.inp";
 
-                string MatrixGonnectivityFileName = "MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-ConnMatr_MSolve.inp";
+                string MatrixGonnectivityFileName = "MATRIX_3D-L_x=10-L_y=10-L_z=100-9x9x100-ConnMatr_MSolve.inp";
                 //"MATRIX_3D-L_x=5-L_y=5-L_z=100-50x50x1000-ConnMatr_MSolve.inp"; 
                 //"MATRIX_3D-L_x=5-L_y=5-L_z=100-5x5x100-ConnMatr_MSolve.inp"; 
                 //"MATRIX_3D-L_x=5-L_y=5-L_z=100-25x25x500-ConnMatr_MSolve.inp";
                 //"MATRIX_3D-L_x=1-L_y=1-L_z=10-5x5x50-ConnMatr_MSolve.inp";
                 //"MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-ConnMatr_MSolve.inp";
-
-                double nodalLoad = 10.0; //0.40;
+                //"MATRIX_3D-L_x=30-L_y=30-L_z=100-29x29x100-ConnMatr_MSolve.inp";
+                //"MATRIX_3D-L_x=10-L_y=10-L_z=100-19x19x200-ConnMatr_MSolve.inp";
+                //"MATRIX_3D-L_x=10-L_y=10-L_z=100-9x9x100-ConnMatr_MSolve.inp";
 
                 int matrixNodes = File.ReadLines(workingDirectory + '\\' + MatrixGeometryFileName).Count();
                 int matrixElements = File.ReadLines(workingDirectory + '\\' + MatrixGonnectivityFileName).Count();
@@ -236,21 +235,21 @@ namespace ISAAR.MSolve.SamplesConsole
                     }                    
                 }               
 
-                // Boundary Conditions - Left End
-                for (int iNode = 1; iNode <= 16; iNode++) //(int iNode = 1; iNode <= 676; iNode++) //
+                // Boundary Conditions - Left End [End-1]
+                for (int iNode = 1; iNode <= 100; iNode++)
                 {
-                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
-                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                    //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                    //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
                     model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
                 }
 
-                // Boundary Conditions - Bottom End
-                for (int iNode = 1; iNode <= 161; iNode += 16) //(int iNode = 1; iNode <= 676; iNode++) //
+                // Boundary Conditions - Bottom End [End-3]
+                for (int iNode = 1; iNode <= 10001; iNode += 100)
                 {
-                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                    model.NodesDictionary[iNode + 1].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                    model.NodesDictionary[iNode + 2].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                    model.NodesDictionary[iNode + 3].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                    for (int j = 0; j < 10; j++)
+                    {
+                        model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                    }
                 }
 
                 // Add nodal load values at the top nodes of the model
@@ -265,19 +264,26 @@ namespace ISAAR.MSolve.SamplesConsole
                 //model.Loads.Add(new Load() { Amount = 2, Node = model.NodesDictionary[1805], DOF = DOFType.Y });
                 //model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1806], DOF = DOFType.Y });
 
-                // Applied Displacements
-                double nodalDisplacement = -10.0;
-                for (int iNode = 1; iNode <= 16; iNode++) //(int iNode = 1; iNode <= 676; iNode++) //
+                // Compression Loading
+                double nodalLoad = -1.0; //0.40;
+                for (int iNode = 10001; iNode <= 10100; iNode++) //[End-4]
                 {
-                    model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Z, Amount = nodalDisplacement });
+                    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
                 }
+
+                // Applied Displacements
+                //double nodalDisplacement = -10.0;
+                //for (int iNode = 161; iNode <= 176; iNode++) //(int iNode = 1; iNode <= 676; iNode++) //
+                //{
+                //    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z, Amount = nodalDisplacement });
+                //}
             }
 
             public static void EmbeddedElementsBuilder(Model_v2 model)
             {
                 // define mechanical properties
-                double youngModulus = 5490; // 16710.0;
-                double shearModulus = 871; // 8080.0;
+                double youngModulus = 16710.0; // 5490; // 
+                double shearModulus = 8080.0; // 871; // 
                 double poissonRatio = 2.15; // 0.034; //(youngModulus / (2 * shearModulus)) - 1;
                 double area = 5.594673861218848d - 003;  // CNT(20,20)-LinearEBE-TBT-L = 10nm
                 double inertiaY = 2.490804749753243D - 006; //1058.55;
@@ -307,7 +313,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     {
                         string text = reader.ReadLine();
                         string[] bits = text.Split(',');
-                        int nodeID = int.Parse(bits[0]) + 176; // matrixNodes
+                        int nodeID = int.Parse(bits[0]) + 10100; // matrixNodes
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
@@ -332,9 +338,9 @@ namespace ISAAR.MSolve.SamplesConsole
                     {
                         string text = reader.ReadLine();
                         string[] bits = text.Split(',');
-                        int elementID = int.Parse(bits[0]) + 90; // matrixElements
-                        int node1 = int.Parse(bits[1]) + 176; // matrixNodes
-                        int node2 = int.Parse(bits[2]) + 176; // matrixNodes
+                        int elementID = int.Parse(bits[0]) + 8100; // matrixElements
+                        int node1 = int.Parse(bits[1]) + 10100; // matrixNodes
+                        int node2 = int.Parse(bits[2]) + 10100; // matrixNodes
                         // element nodes
                         IList<Node> elementNodes = new List<Node>();
                         elementNodes.Add(model.NodesDictionary[node1]);
