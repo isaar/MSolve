@@ -61,13 +61,13 @@ namespace ISAAR.MSolve.FEM.Elements
             InitializeDOFsWhenNoRotations();
         }
 
-        public EulerBeam3D_v2(double youngModulus, double poissonRatio, IElementDofEnumerator_v2 dofEnumerator) : 
+        public EulerBeam3D_v2(double youngModulus, double poissonRatio, IElementDofEnumerator_v2 dofEnumerator) :
             this(youngModulus, poissonRatio)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public EulerBeam3D_v2(double youngModulus, double poissonRatio, Node_v2[] rot1Nodes, Node_v2[] rot2Nodes, 
+        public EulerBeam3D_v2(double youngModulus, double poissonRatio, Node_v2[] rot1Nodes, Node_v2[] rot2Nodes,
             IElementDofEnumerator_v2 dofEnumerator)
             : this(youngModulus, poissonRatio, rot1Nodes, rot2Nodes)
         {
@@ -422,7 +422,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //TODO: optimize this
             int order = 12;
-            Matrix stiffnessMatrix = SymmetricMatrix.CreateFromPackedRowMajorArray(new double[] 
+            Matrix stiffnessMatrix = SymmetricMatrix.CreateFromPackedRowMajorArray(new double[]
             {
                 EAL, 0, 0, 0, 0, 0, -EAL, 0, 0, 0, 0, 0,
                 12*EIz*L3, 0, 0, 0, 6*EIz*L2, 0, -12*EIz*L3, 0, 0, 0, 6*EIz*L2,
@@ -652,7 +652,6 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
-            //TODO: something is wrong here. Why aren't the displacements rotated like in CalculateForcesForLogging()? Actually CalculateForcesForLogging() is likely wrong.
             IMatrix stiffnessMatrix = StiffnessMatrix(element);
             //var disps = new double[localDisplacements.Length];
             //for (int i = 0; i < localDisplacements.Length; i++)
@@ -683,7 +682,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return massMatrix.Multiply(accelerations);
         }
 
-        public void ClearMaterialState() {}
+        public void ClearMaterialState() { }
 
         public void SaveMaterialState()
         {
@@ -692,9 +691,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public bool MaterialModified => false;
 
-        public void ResetMaterialModified() {}
+        public void ResetMaterialModified() { }
 
-        public void ClearMaterialStresses() {}
+        public void ClearMaterialStresses() { }
 
         #endregion
 
