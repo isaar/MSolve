@@ -4,7 +4,7 @@
 // which should be hidden from the user. Besides, I am not sure if first factorizing the matrix is more efficient than 
 // Gauss-Jordan.
 //TODO: also specify dimensions. For now this triangulation only works for square matrices.
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
     /// Represents the factorization of a square matrix into triangular and possible diagonal matrices. Such factorizations are 

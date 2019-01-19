@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Providers;
@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
 
-namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
 {
     /// <summary>
     /// Tests for <see cref="CholeskySuiteSparse"/>.

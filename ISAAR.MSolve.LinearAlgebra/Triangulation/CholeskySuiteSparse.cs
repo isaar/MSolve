@@ -14,7 +14,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      then use that reordering during other system solutions with the same dofs (e.g. during a non linear analysis). As it is
 //      now, the option to try various reorderings is only possible during factorization. Thus, during each linear system 
 //      solution, the rhs and solution vectors must be permuted and the same pattern must be processed to find a good reordering.
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
     /// Cholesky factorization of a sparse symmetric positive definite matrix using the SuiteSparse library. The original matrix 

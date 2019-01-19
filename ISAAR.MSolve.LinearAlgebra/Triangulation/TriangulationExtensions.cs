@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     public static class TriangulationExtensions
     {

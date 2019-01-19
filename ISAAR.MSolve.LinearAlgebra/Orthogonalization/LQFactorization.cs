@@ -10,7 +10,7 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 // TODO: Supposedly LAPACK's LQ is much slower than QR of transpose(A) (see 
 // https://software.intel.com/en-us/forums/intel-math-kernel-library/topic/505731). Since they both solve the same problem, it 
 // might be worth looking into it.
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Orthogonalization
 {
     /// <summary>
     /// LQ factorization of a matrix A: A = L * Q, where A is an m-by-n matrix with m &lt;= n, L is an m-by-n lower trapezoidal 

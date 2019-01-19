@@ -11,7 +11,7 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 //      are. I did not take it into account in the implementation or the documentation.
 //TODO: Computing the determinant may overflow the double variable. It should be done in a C .dll and the overflow should be 
 //      handled there by having a naive (fast) and a safe version.
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
     /// The LU factorization of a matrix A with partial pivoting (row exchanges) consists of a lower triangular matrix L 

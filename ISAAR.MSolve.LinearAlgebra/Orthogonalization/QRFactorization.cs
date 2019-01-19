@@ -9,7 +9,7 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 // TODO: Add the option to specify if the diagonal entries of A are non diagonal.
 // TODO: Handle the case when m < n. That would be a RQ factorization. Also update the documentation when necessary.
 // TODO: I think least squares only work if the columns of A are independent. This is not taken care of so far.
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Orthogonalization
 {
     /// <summary>
     /// QR factorization of a matrix A: A = Q * R, where A is an m-by-n matrix with m &gt;= n, Q is an m-by-m orthogonal matrix

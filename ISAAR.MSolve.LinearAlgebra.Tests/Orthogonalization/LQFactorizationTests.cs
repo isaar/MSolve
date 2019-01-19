@@ -1,11 +1,11 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Factorizations;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Orthogonalization;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
 
-namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Tests.Orthogonalization
 {
     /// <summary>
     /// Tests for <see cref="LQFactorization"/>.

@@ -8,7 +8,7 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 // TODO: check if the last minor is non-negative, during factorization. Is it possible that it isn't. Does it affect system 
 // solution or inversion?
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
     /// Cholesky factorization of a symmetric positive definite matrix, stored in full column major format. Only the upper

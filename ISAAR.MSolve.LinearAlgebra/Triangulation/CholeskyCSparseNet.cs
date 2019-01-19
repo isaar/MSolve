@@ -10,7 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Allow other orderings, as I do in CholeskySuiteSparse
 //TODO: CSparse.NET also provides matrix update and downdate operations.
 //TODO: Improve error checking
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
     /// Cholesky factorization of a sparse symmetric positive definite matrix using the CSparse.NET library. The original matrix 

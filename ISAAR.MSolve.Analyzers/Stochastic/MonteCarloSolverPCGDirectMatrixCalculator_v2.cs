@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Analyzers
 
         public ILinearSystem_v2 LinearSystem { get; set; }
 
-        public void Precondition(IVectorView rhs, IVector lhs)
+        public void Precondition(Vector rhs, Vector lhs)
         {
             //if (analyzer.FactorizedMatrices.Count != 1)
             //    throw new InvalidOperationException("Cannot precondition with more than one subdomains");

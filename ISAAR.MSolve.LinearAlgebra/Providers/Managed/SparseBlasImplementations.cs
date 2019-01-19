@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
         {
             // Copied from Stavroulakis code.
 
-            // Copy the y vector
+            // Copy the b vector
             Array.Copy(vectorB, vectorX, order);
 
             // RHS vector reduction

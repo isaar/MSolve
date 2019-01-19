@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //also implement ISymmetricSparseMatrix.
 //TODO: the heavy operations should be ported to a C dll. and called from there..
-namespace ISAAR.MSolve.LinearAlgebra.Factorizations
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
     /// Cholesky factorization of a symmetric positive definite matrix, stored in skyline format. Only the active columns of the
@@ -80,20 +80,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             var zems = new List<double[]>();
 
             int kFix = 0;
+
+            #region factorization of positive definite matrix
             for (int n = 0; n < order; n++)
             {
                 int KN = skyDiagOffsets[n];
                 int KL = KN + 1;
                 int KU = skyDiagOffsets[n + 1] - 1;
-                int KH = KU - KL;
-                if (KH < 0) continue;
+                int KH = KU - KL; // height of current column
+                if (KH < 0) continue; // TODO: Shouldn't this throw an exception? The height of Skyline columns should be at least 0
 
                 int K;
                 if (KH > 0)
                 {
-                    K = n - KH;
+                    K = n - KH; // index of top entry in column n
                     //int IC = 0;
-                    int KLT = KU;
+                    int KLT = KU; // Offset of non-zero entries in column n. Starts from the top (KU-1) and goes down till the diagonal.
                     for (int j = 0; j < KH; j++)
                     {
                         //IC++;
@@ -118,7 +120,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                 {
                     K--;
                     int KI = skyDiagOffsets[K];
-                    //if (d[KI] == 0) throw new InvalidOperationException(String.Format("Zero element in diagonal at index {0}.", KI));
                     if (Math.Abs(skyValues[KI]) < tolerance)
                     {
                         throw new IndefiniteMatrixException($"Near-zero element in diagonal at index {KI}.");
@@ -128,7 +129,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                     skyValues[KK] = C;
                 }
                 skyValues[KN] -= B;
+                #endregion
 
+                #region partial extraction of zero energy modes (aka rigid body motions / nullspace) during factorization
                 if (Math.Abs(skyValues[KN]) < tolerance)
                 {
                     skyValues[KN] = 1;
@@ -149,10 +152,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
                     }
                     kFix++;
                 }
+                #endregion
             }
             //isFactorized = true; // not needed here
             if (order < 2) return new CholeskySkyline(order, skyValues, skyDiagOffsets);
 
+            #region back substitution to finish the calculation of the zero energy modes
             for (int ifl = 0; ifl < kFix; ifl++)
             {
                 int n = order - 1;
@@ -176,6 +181,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             {
                 throw new IndefiniteMatrixException("Cholesky factorization can only applied to positive definite matrices.");
             }
+            #endregion
+
             return new CholeskySkyline(order, skyValues, skyDiagOffsets);
         }
 
@@ -262,19 +269,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
         /// </summary>
         public SparseFormat GetSparseFormat()
             => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
-
-        /// <summary>
-        /// Same as <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
-        /// </summary>
-        /// <exception cref="SparsityPatternModifiedException">
-        /// Thrown if overwritting the <paramref name="solution"/> is not supported by its strorage format.
-        /// </exception>
-        public void SolveLinearSystem(IVectorView rhs, IVector solution)
-        {
-            Preconditions.CheckSystemSolutionDimensions(this, rhs);
-            Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
-            SkylineSubstitutions.SolveLinearSystem(NumColumns, values, diagOffsets, rhs, solution);
-        }
 
         /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
