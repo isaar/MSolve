@@ -1,0 +1,384 @@
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+
+//also implement ISymmetricSparseMatrix.
+//TODO: the heavy operations should be ported to a C dll. and called from there..
+namespace ISAAR.MSolve.LinearAlgebra.Triangulation
+{
+    /// <summary>
+    /// LDL factorization of a symmetric matrix: A = L * D * transpose(L) = transpose(U) * D * U. The matrix is stored in 
+    /// skyline format. Only the active columns of the upper triangle part of the matrix is stored and factorized. 
+    /// LDL factorization is unique and stable for symmetric positive definite matrices. It may also succeed even if the matrix 
+    /// is indefinite, but generally pivoting is required, which is not implemented by <see cref="LdlSkyline"/>. 
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class LdlSkyline : IIndexable2D, ISparseMatrix, ITriangulation
+    {
+        /// <summary>
+        /// The default value under which a diagonal entry (pivot) is considered to be 0 during LDL factorization.
+        /// </summary>
+        public const double PivotTolerance = 1e-15;
+
+        private readonly double[] values;
+        private readonly int[] diagOffsets;
+
+        private LdlSkyline(int order, double[] values, int[] diagOffsets)
+        {
+            this.NumColumns = order;
+            this.values = values;
+            this.diagOffsets = diagOffsets;
+        }
+
+        /// <summary>
+        /// The number of columns of the matrix. 
+        /// </summary>
+        public int NumColumns { get; }
+
+        /// <summary>
+        /// The number of rows of the matrix.
+        /// </summary>
+        public int NumRows { get { return NumColumns; } }
+
+        /// <summary>
+        /// See <see cref="IIndexable2D.this[int, int]"/>.
+        /// </summary>
+        public double this[int rowIdx, int colIdx]
+        {
+            get
+            {
+                SkylineMatrix.ProcessIndices(ref rowIdx, ref colIdx);
+                int entryHeight = colIdx - rowIdx; // excluding diagonal
+                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffsets[colIdx] - 1; // excluding diagonal
+                if (entryHeight > maxColumnHeight) return 0.0; // outside stored non zero pattern
+                else return values[diagOffsets[colIdx] + entryHeight];
+            }
+        }
+
+        /// <summary>
+        /// Calculates the LDL factorization of a symmetric matrix, such that A = transpose(U) * D * U. 
+        /// Does not need any extra memory.
+        /// </summary>
+        /// <param name="order">The number of rows/ columns of the square matrix.</param>
+        /// <param name="skyValues">The non-zero entries of the original <see cref="SkylineMatrix"/>. Ths array will be
+        ///     overwritten during the factorization.</param>
+        /// <param name="skyDiagOffsets">The indexes of the diagonal entries into <paramref name="skyValues"/>. The new 
+        ///     <see cref="LdlSkyline"/> instance will hold a reference to <paramref name="skyDiagOffsets"/>. However they 
+        ///     do not need copying, since they will not be altered during or after the factorization.</param>
+        /// <param name="pivotTolerance">If a diagonal entry is &lt;= <paramref name="pivotTolerance"/> it means that the 
+        ///     original matrix is not invertible and an <see cref="SingularMatrixException"/> will be thrown.</param>
+        ///<exception cref="SingularMatrixException">Thrown if the original skyline matrix turns out to be singular.</exception>
+        public static LdlSkyline Factorize(int order, double[] skyValues, int[] skyDiagOffsets, 
+            double pivotTolerance = LdlSkyline.PivotTolerance)
+        {
+            // Copied from Stavroulakis code.
+            var zemCols = new List<int>();
+            var zems = new List<double[]>();
+
+            int kFix = 0;
+
+            #region factorization of positive definite matrix
+            for (int n = 0; n < order; n++)
+            {
+                int KN = skyDiagOffsets[n];
+                int KL = KN + 1;
+                int KU = skyDiagOffsets[n + 1] - 1;
+                int KH = KU - KL; // height of current column
+                if (KH < 0) continue; // TODO: Shouldn't this throw an exception? The height of Skyline columns should be at least 0
+
+                int K;
+                if (KH > 0)
+                {
+                    K = n - KH; // index of top entry in column n
+                    //int IC = 0;
+                    int KLT = KU; // Offset of non-zero entries in column n. Starts from the top (KU-1) and goes down till the diagonal.
+                    for (int j = 0; j < KH; j++)
+                    {
+                        //IC++;
+                        KLT--;
+                        int KI = skyDiagOffsets[K];
+                        int ND = skyDiagOffsets[K + 1] - KI - 1;
+                        if (ND > 0)
+                        {
+                            //int KK = Math.Min(IC, ND);
+                            int KK = Math.Min(j + 1, ND);
+                            double C = 0;
+                            for (int l = 1; l <= KK; l++)
+                                C += skyValues[KI + l] * skyValues[KLT + l];
+                            skyValues[KLT] -= C;
+                        }
+                        K++;
+                    }
+                }
+                K = n;
+                double B = 0;
+                for (int KK = KL; KK <= KU; KK++)
+                {
+                    K--;
+                    int KI = skyDiagOffsets[K];
+                    if (Math.Abs(skyValues[KI]) < pivotTolerance)
+                    {
+                        throw new SingularMatrixException($"Near-zero element in diagonal at index {KI}."); //TODO: Not sure if this happens only to singular matrices.
+                    }
+                    double C = skyValues[KK] / skyValues[KI];
+                    B += C * skyValues[KK];
+                    skyValues[KK] = C;
+                }
+                skyValues[KN] -= B;
+                #endregion
+
+                #region partial extraction of zero energy modes (aka rigid body motions / nullspace) during factorization
+                if (Math.Abs(skyValues[KN]) < pivotTolerance)
+                {
+                    skyValues[KN] = 1;
+                    zemCols.Add(n);
+                    int j1 = n;
+                    zems.Add(new double[order]);
+                    zems[kFix][j1] = 1;
+                    for (int i1 = KN + 1; i1 <= KU; i1++)
+                    {
+                        j1--;
+                        zems[kFix][j1] = -skyValues[i1];
+                        skyValues[i1] = 0;
+                    }
+                    for (int irest = n + 1; irest < order; irest++)
+                    {
+                        int m1 = skyDiagOffsets[irest] + irest - n;
+                        if (m1 <= skyDiagOffsets[irest + 1]) skyValues[m1] = 0;
+                    }
+                    kFix++;
+                }
+                #endregion
+            }
+            //isFactorized = true; // not needed here
+            if (order < 2) return new LdlSkyline(order, skyValues, skyDiagOffsets);
+
+            #region back substitution to finish the calculation of the zero energy modes
+            for (int ifl = 0; ifl < kFix; ifl++)
+            {
+                int n = order - 1;
+                for (int l = 1; l < order; l++)
+                {
+                    int KL = skyDiagOffsets[n] + 1;
+                    int KU = skyDiagOffsets[n + 1] - 1;
+                    if (KU - KL >= 0)
+                    {
+                        int k = n;
+                        for (int KK = KL; KK <= KU; KK++)
+                        {
+                            k--;
+                            zems[ifl][k] -= skyValues[KK] * zems[ifl][n];
+                        }
+                    }
+                    n--;
+                }
+            }
+            if (zemCols.Count > 0)
+            {
+                throw new SingularMatrixException("The matrix is singular.");
+            }
+            #endregion
+
+            return new LdlSkyline(order, skyValues, skyDiagOffsets);
+        }
+
+        /// <summary>
+        /// See <see cref="ITriangulation.CalcDeterminant"/>.
+        /// </summary>
+        public double CalcDeterminant()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// See <see cref="ISparseMatrix.CountNonZeros"/>.
+        /// </summary>
+        public int CountNonZeros() => values.Length;
+
+        /// <summary>
+        /// See <see cref="ISparseMatrix.EnumerateNonZeros"/>.
+        /// </summary>
+        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
+            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).EnumerateNonZeros();
+
+        /// <summary>
+        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
+        /// </summary>
+        public bool Equals(IIndexable2D other, double tolerance = 1E-13)
+            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).Equals(other, tolerance);
+
+        /// <summary>
+        /// Copies the upper triangular matrix U and diagonal matrix D that resulted from the Cholesky factorization: 
+        /// A = transpose(U) * D * U to a new <see cref="TriangularUpper"/> matrix.
+        /// </summary>
+        public (Vector diagonal, TriangularUpper upper) GetFactorsDU() //TODO: not sure if this is ever needed.
+        {
+            double[] diag = new double[NumColumns];
+            var upper = TriangularUpper.CreateZero(NumColumns);
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int diagOffset = diagOffsets[j];
+                int colTop = j - diagOffsets[j + 1] + diagOffset + 1;
+                diag[j] = values[diagOffset];
+                upper[j, j] = 1.0;
+                for (int i = j - 1; i >= colTop; --i)
+                {
+                    int offset = diagOffset + j - i;
+                    upper[i, j] = values[offset];
+                }
+
+            }
+            return (Vector.CreateFromArray(diag, false), upper);
+        }
+
+        /// <summary>
+        /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
+        /// </summary>
+        public SparseFormat GetSparseFormat()
+            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
+
+        /// <summary>
+        /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
+        /// </summary>
+        public void SolveLinearSystem(Vector rhs, Vector solution)
+        {
+            Preconditions.CheckSystemSolutionDimensions(this, rhs);
+            Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
+            Solve(NumColumns, values, diagOffsets, rhs.RawData, solution.RawData);
+        }
+
+        /// <summary>
+        /// Solves the linear systems A * X = B, where A is the original matrix (before the factorization), 
+        /// B = <paramref name="rhsVectors"/> and X is the matrix containing the solution vectors, which will overwrite the 
+        /// provided <paramref name="solutionVectors"/>.
+        /// </summary>
+        /// <param name="rhsVectors">
+        /// A matrix that contains the right hand side vectors as its columns. Constraints: 
+        /// a) Its <see cref="IIndexable2D.NumRows"/> must be equal to the <see cref="IIndexable2D.NumRows"/> of the original 
+        /// matrix A. b) Its <see cref="IIndexable2D.NumColumns"/> must be equal to the <see cref="IIndexable2D.NumColumns"/> of
+        /// <paramref name="solutionVectors"/>.
+        /// </param>
+        /// <param name="solutionVectors">
+        /// Output matrix that will be overwritten with the solutions of the linear system as its columns. Constraints:
+        /// a) Its <see cref="IIndexable2D.NumRows"/> must be equal to the <see cref="IIndexable2D.NumRows"/> of the original 
+        /// matrix A. b) Its <see cref="IIndexable2D.NumColumns"/> must be equal to the <see cref="IIndexable2D.NumColumns"/> of
+        /// <paramref name="rhsVectors"/>.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="rhsVectors"/> or <paramref name="solutionVectors"/> violate the described constraints.
+        /// </exception>
+        public void SolveLinearSystems(Matrix rhsVectors, Matrix solutionVectors)
+        {
+            Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVectors.NumRows);
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, solutionVectors.NumRows);
+            Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
+
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int offset = j * NumColumns;
+                SolveWithOffsets(NumColumns, values, diagOffsets, rhsVectors.RawData, offset, solutionVectors.RawData, offset);
+            }
+        }
+
+        private static void Solve(int order, double[] valuesA, int[] diagOffsetsA, double[] vectorB, double[] vectorX)
+        {
+            // Copied from Stavroulakis code.
+
+            // Copy the b vector
+            Array.Copy(vectorB, vectorX, order);
+
+            // RHS vector reduction
+            int n;
+            for (n = 0; n < order; n++)
+            {
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
+                if (KU >= KL)
+                {
+                    int k = n;
+                    double C = 0;
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        C += valuesA[KK] * vectorX[k];
+                    }
+                    vectorX[n] -= C;
+                }
+            }
+
+            // Back substitution
+            for (n = 0; n < order; n++) vectorX[n] /= valuesA[diagOffsetsA[n]];
+
+            n = order - 1;
+            for (int l = 1; l < order; l++)
+            {
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
+                if (KU >= KL)
+                {
+                    int k = n;
+                    double xn = vectorX[n];
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        vectorX[k] -= valuesA[KK] * xn;
+                    }
+                }
+                n--;
+            }
+        }
+
+        private static void SolveWithOffsets(int order, double[] valuesA, int[] diagOffsetsA,
+            double[] vectorB, int offsetB, double[] vectorX, int offsetX)
+        {
+            // Copied from Stavroulakis code.
+
+            // Copy the y vector
+            Array.Copy(vectorB, offsetB, vectorX, offsetX, order);
+
+            // RHS vector reduction
+            int n;
+            for (n = 0; n < order; n++)
+            {
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
+                if (KU >= KL) //TODO: can't I avoid this check, by accessing the entries in a smarter way?
+                {
+                    int k = offsetX + n;
+                    double C = 0;
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        C += valuesA[KK] * vectorX[k];
+                    }
+                    vectorX[offsetX + n] -= C;
+                }
+            }
+
+            // Back substitution
+            for (n = 0; n < order; n++) vectorX[offsetX + n] /= valuesA[diagOffsetsA[n]];
+
+            n = order - 1;
+            for (int l = 1; l < order; l++)
+            {
+                int KL = diagOffsetsA[n] + 1;
+                int KU = diagOffsetsA[n + 1] - 1;
+                if (KU >= KL) //TODO: can't I avoid this check, by accessing the entries in a smarter way?
+                {
+                    int k = offsetX + n;
+                    double xn = vectorX[k];
+                    for (int KK = KL; KK <= KU; KK++)
+                    {
+                        k--;
+                        vectorX[k] -= valuesA[KK] * xn;
+                    }
+                }
+                n--;
+            }
+        }
+    }
+}

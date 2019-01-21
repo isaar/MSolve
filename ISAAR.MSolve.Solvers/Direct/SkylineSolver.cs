@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
         private bool factorizeInPlace = true;
         private bool mustFactorize = true;
-        private CholeskySkyline factorizedMatrix;
+        private LdlSkyline factorizedMatrix;
 
         private SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
             base(model, dofOrderer, new SkylineAssembler(), "SkylineSolver")
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky(factorizeInPlace, factorizationPivotTolerance); 
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance); 
                 mustFactorize = false;
             }
 

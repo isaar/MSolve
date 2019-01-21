@@ -491,23 +491,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Calculate the cholesky factorization. The matrix must be positive definite, otherwise an
-        /// <see cref="IndefiniteMatrixException"/> will be thrown. If inPlace is set to true, this object must not be used 
-        /// again, otherwise a <see cref="NullReferenceException"/> will be thrown.
+        /// Calculate the LDL factorization. The matrix must be invertible, otherwise a <see cref="SingularMatrixException"/> 
+        /// will be thrown. This method succeeds for all symmetric positive definite matrices, but not for all symmetric ones. 
+        /// If inPlace is set to true, this object must not be used again, otherwise a <see cref="NullReferenceException"/> will 
+        /// be thrown.
         /// </summary>
-        /// <param name="inPlace">False, to copy the internal non zero entries before factorization. True, to overwrite them with
-        ///     the factorized data, thus saving memory and time. However, that will make this object unusable, so you MUST NOT 
-        ///     call any other members afterwards.</param>
-        /// <param name="tolerance">If a diagonal entry is closer to zero than this tolerance, an 
-        ///     <see cref="IndefiniteMatrixException"/> exception will be thrown.</param>
-        /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not positive definite.</exception>
-        /// <exception cref="NullReferenceException">Thrown if a member of his instance is accessed after this method is 
-        ///     called.</exception>"
-        public CholeskySkyline FactorCholesky(bool inPlace, double tolerance = CholeskySkyline.PivotTolerance)
+        /// <param name="inPlace">
+        /// False, to copy the internal non zero entries before factorization. True, to overwrite them with the factorized data, 
+        /// thus saving memory and time. However, that will make this object unusable, so you MUST NOT call any other members 
+        /// afterwards.
+        /// </param>
+        /// <param name="tolerance">
+        /// If a diagonal entry is closer to zero than this tolerance, an <see cref="SingularMatrixException"/> exception will 
+        /// be thrown.
+        /// </param>
+        /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
+        /// <exception cref="NullReferenceException">
+        /// Thrown if a member of his instance is accessed after this method is called.
+        /// </exception>"
+        public LdlSkyline FactorLdl(bool inPlace, double tolerance = LdlSkyline.PivotTolerance)
         {
             if (inPlace)
             {
-                var factor = CholeskySkyline.Factorize(NumColumns, values, diagOffsets);
+                var factor = LdlSkyline.Factorize(NumColumns, values, diagOffsets);
                 // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
@@ -518,7 +524,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 double[] valuesCopy = new double[values.Length];
                 Array.Copy(values, valuesCopy, values.Length);
-                return CholeskySkyline.Factorize(NumColumns, values, diagOffsets);
+                return LdlSkyline.Factorize(NumColumns, values, diagOffsets);
             }
         }
 

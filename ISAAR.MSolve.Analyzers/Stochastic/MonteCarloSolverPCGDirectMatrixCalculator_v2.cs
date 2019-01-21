@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.Analyzers
     public class MonteCarloSolverPCGDirectMatrixCalculator_v2
     {
         private MonteCarloAnalyzerWithStochasticMaterial analyzer;
-        private CholeskySkyline preconditioner;
+        private LdlSkyline preconditioner;
 
         public int VectorSize => LinearSystem.RhsVector.Length;
 
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Analyzers
 
                 if (preconditioner == null)
                 {
-                    preconditioner = ((SkylineMatrix)linearSystem.Matrix).FactorCholesky(false, 1e-8);
+                    preconditioner = ((SkylineMatrix)linearSystem.Matrix).FactorLdl(false, 1e-8);
                 }
             }
 

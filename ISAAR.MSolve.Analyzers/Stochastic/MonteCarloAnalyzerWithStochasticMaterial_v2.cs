@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly List<int> matrixOrder = new List<int>();
         private readonly List<double> matrixMagnitudes = new List<double>();
 
-        public IDictionary<int, CholeskySkyline> FactorizedMatrices { get; } = new Dictionary<int, CholeskySkyline>();
+        public IDictionary<int, LdlSkyline> FactorizedMatrices { get; } = new Dictionary<int, LdlSkyline>();
 
         public MonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, IStochasticMaterialCoefficientsProvider coefficientsProvider, 
@@ -313,7 +313,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
                     String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, linearSystem.Key, matrixNo));
-                CholeskySkyline factor = m.FactorCholesky(true, 1e-8);
+                LdlSkyline factor = m.FactorLdl(true, 1e-8);
                 if (FactorizedMatrices.ContainsKey(linearSystem.Key)) FactorizedMatrices[linearSystem.Key] = factor;
                 else FactorizedMatrices.Add(linearSystem.Key, factor);
             }

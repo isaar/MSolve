@@ -8,10 +8,10 @@ using Xunit;
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
 {
     /// <summary>
-    /// Tests for <see cref="CholeskySkyline"/>.
+    /// Tests for <see cref="LdlSkyline"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class CholeskySkylineTests
+    public static class LdlSkylineTests
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
         //    });
         //}
 
-        //TODO: Skyline operations are not part of the MKL SparseBLAS provider yet. There are only provided by the managed provider 
+        //TODO: Skyline operations are not part of the MKL SparseBLAS provider yet. They are only provided by the managed provider 
         //[Theory]
         //[MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
         [Fact]
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
 
             var skyline = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, SparsePosDef10by10.SkylineValues,
                  SparsePosDef10by10.SkylineDiagOffsets, true, true);
-            CholeskySkyline factor = skyline.FactorCholesky(false);
+            LdlSkyline factor = skyline.FactorLdl(false);
             var identity = Matrix.CreateIdentity(SparsePosDef10by10.Order);
             var inverse = Matrix.CreateZero(SparsePosDef10by10.Order, SparsePosDef10by10.Order);
             factor.SolveLinearSystems(identity, inverse);
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
                  SparsePosDef10by10.SkylineDiagOffsets, true, true);
             var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
-            CholeskySkyline factor = skyline.FactorCholesky(false);
+            LdlSkyline factor = skyline.FactorLdl(false);
             Vector xComputed = factor.SolveLinearSystem(b);
             comparer.AssertEqual(xExpected, xComputed);
 
