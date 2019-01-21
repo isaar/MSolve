@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             {
                 int KL = diagOffsetsA[n] + 1;
                 int KU = diagOffsetsA[n + 1] - 1;
-                if (KU >= KL)
+                if (KU >= KL) //TODO: Is it possible that this doesn't hold? Then something is wrong with the skyline format
                 {
                     int k = n;
                     double C = 0;
@@ -318,7 +318,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             {
                 int KL = diagOffsetsA[n] + 1;
                 int KU = diagOffsetsA[n + 1] - 1;
-                if (KU >= KL)
+                if (KU >= KL) //TODO: Is it possible that this doesn't hold? Then something is wrong with the skyline format
                 {
                     int k = n;
                     double xn = vectorX[n];

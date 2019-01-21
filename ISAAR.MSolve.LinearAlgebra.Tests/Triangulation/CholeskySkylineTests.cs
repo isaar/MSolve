@@ -8,32 +8,26 @@ using Xunit;
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
 {
     /// <summary>
-    /// Tests for <see cref="LdlSkyline"/>.
+    /// Tests for <see cref="CholeskySkyline"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class LdlSkylineTests
+    public static class CholeskySkylineTests
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
-        //TODO: Skyline operations are not part of the MKL SparseBLAS provider yet. They are only provided by the managed provider 
         //[Theory]
         //[MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
         [Fact]
-        private static void TestMultipleSystemsSolution(/*LinearAlgebraProviderChoice providers*/)
+        private static void TestFactorization()
         {
             //TestSettings.RunMultiproviderTest(providers, delegate () {
             //
-
             var skyline = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, SparsePosDef10by10.SkylineValues,
-                 SparsePosDef10by10.SkylineDiagOffsets, true, true);
-            LdlSkyline factor = skyline.FactorLdl(false);
-            var identity = Matrix.CreateIdentity(SparsePosDef10by10.Order);
-            var inverse = Matrix.CreateZero(SparsePosDef10by10.Order, SparsePosDef10by10.Order);
-            factor.SolveLinearSystems(identity, inverse);
-
-            var matrixTimesInverse = MatrixOperations.MatrixTimesMatrix(SparsePosDef10by10.Matrix, inverse.CopyToArray2D());
-            comparer.AssertEqual(identity.CopyToArray2D(), matrixTimesInverse);
-
+                SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            var expectedU = Matrix.CreateFromArray(SparsePosDef10by10.CholeskyU);
+            CholeskySkyline factorization = skyline.FactorCholesky(false);
+            TriangularUpper computedU = factorization.GetFactorU();
+            comparer.AssertEqual(expectedU, computedU);
             //});
         }
 
@@ -50,7 +44,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
                  SparsePosDef10by10.SkylineDiagOffsets, true, true);
             var b = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
             var xExpected = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
-            LdlSkyline factor = skyline.FactorLdl(false);
+            CholeskySkyline factor = skyline.FactorCholesky(false);
             Vector xComputed = factor.SolveLinearSystem(b);
             comparer.AssertEqual(xExpected, xComputed);
 
