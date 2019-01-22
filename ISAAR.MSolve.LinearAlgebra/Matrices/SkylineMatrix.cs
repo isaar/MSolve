@@ -550,46 +550,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return format;
         }
 
-        //TODO: Copied from Stavroulakis code. Find out what the purpose of this is
-        public void LessenAccuracy(double tolerance)
-        {
-            var valueDictionary = new SortedDictionary<double, List<int>>();
-            for (int i = 0; i < values.Length; i++)
-            {
-                double difference = Double.MaxValue;
-                double targetValue = values[i];
-                int index = 0;
-                int count = 0;
-                foreach (var v in valueDictionary.Keys)
-                {
-                    if (Math.Abs(values[i] - v) < difference)
-                    {
-                        difference = Math.Abs(values[i] - v);
-                        // Minimize error by taking mean value of these values?
-                        targetValue = v;
-                        index = count;
-                    }
-                    count++;
-                }
-                if (difference > tolerance)
-                    valueDictionary.Add(values[i], new List<int>(new[] { i }));
-                else
-                    valueDictionary[targetValue].Add(i);
-            }
-
-            for (int i = 0; i < values.Length; i++)
-            {
-                foreach (var v in valueDictionary.Keys)
-                {
-                    if (Math.Abs(values[i] - v) < tolerance)
-                    {
-                        values[i] = v;
-                        break;
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
         /// </summary>
