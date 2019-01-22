@@ -105,11 +105,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// The resulting vector will be written in a new vector and returned.
         /// </summary>
-        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
-        ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
+        /// <param name="vector">
+        /// A vector with <see cref="IIndexable1D.Length"/> being equal to the <see cref="IIndexable2D.NumColumns"/> of 
+        /// oper(this).
+        /// </param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
-        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
-        ///     <paramref name="vector"/> is different than the <see cref="IIndexable2D.NumColumns"/> of oper(this).</exception>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="vector"/> is different than the 
+        /// <see cref="IIndexable2D.NumColumns"/> of oper(this).
+        /// </exception>
         IVector Multiply(IVectorView vector, bool transposeThis = false);
 
         /// <summary>
@@ -131,7 +135,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">
         /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
-        /// violate the described contraints.
+        /// violate the described constraints.
         /// </exception>
         /// <exception cref="Exceptions.PatternModifiedException">
         /// Thrown if the storage format of <paramref name="rhsVector"/> does not support overwritting the entries that this 

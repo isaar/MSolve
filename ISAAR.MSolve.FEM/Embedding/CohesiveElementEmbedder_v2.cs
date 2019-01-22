@@ -1,10 +1,10 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using System.Collections.Generic;
-using System.Linq;
 
 //TODO: All these casting should be avoided by injecting the correct type in the constructor.
 namespace ISAAR.MSolve.FEM.Embedding

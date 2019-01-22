@@ -2,22 +2,16 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
     public enum SpringDirections
     {
-        X = 0,
-        Y,
-        Z,
-        XY,
-        YZ,
-        XZ,
-        XYZ
+        X = 0, Y, Z, XY, YZ, XZ, XYZ
     }
 
     public class SpringDamper3D_v2 : IStructuralFiniteElement_v2

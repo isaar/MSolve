@@ -208,6 +208,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
+        public static void CheckVectorDimensions(double[] vector1, double[] vector2)
+        {
+            if (vector1.Length != vector2.Length)
+            {
+                string message = string.Format("Vector1 has length of {0}, while vector2 has length of {1}",
+                    vector1.Length, vector2.Length);
+                throw new NonMatchingDimensionsException(message);
+            }
+
+        }
+
         public static void CheckVectorDimensions(IIndexable1D vector1, IIndexable1D vector2)
         {
             if (vector1.Length != vector2.Length)
