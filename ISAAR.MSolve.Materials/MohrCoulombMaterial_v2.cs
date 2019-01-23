@@ -7,10 +7,10 @@
 //------------------------------------------------------------------------
 
 
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Materials.Interfaces;
 using System;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 
 //TODO: Use the Matrix and Vector operations instead of implementing them again for double[,] and double[] here
 namespace ISAAR.MSolve.FEM.Materials
@@ -49,13 +49,13 @@ namespace ISAAR.MSolve.FEM.Materials
 
         }
 
-        public IVectorView Stresses => Vector.CreateFromArray(stressesNew);
+        public double[] Stresses => stressesNew;
 
         public IMatrixView ConstitutiveMatrix => Matrix.CreateFromArray(constitutiveMatrix); //TODO: this copies stuff and is not efficient.
 
-        public void UpdateMaterial(IVectorView strainsIncrement)
+        public void UpdateMaterial(double[] strainsIncrement)
         {
-            Vector.CreateFromArray(this.incrementalStrains).CopyFrom(strainsIncrement);
+            this.incrementalStrains.CopyFrom(strainsIncrement);
             this.CalculateNextStressStrainPoint();
         }
 

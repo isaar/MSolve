@@ -1,6 +1,5 @@
 ﻿using System;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Materials
@@ -36,7 +35,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public bool Modified => false;
 
-        public IVectorView Stresses => throw new NotImplementedException();
+        public double[] Stresses => throw new NotImplementedException();
 
         public IMatrixView ConstitutiveMatrix => throw new NotImplementedException();
 
@@ -58,7 +57,7 @@ namespace ISAAR.MSolve.FEM.Materials
             throw new NotImplementedException();
         }
 
-        public void UpdateMaterial(IVectorView strains)
+        public void UpdateMaterial(double[] strains)
         {
             throw new NotImplementedException();
         }

@@ -10,7 +10,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 //TODO: get rid of Hexa8.cs
 
@@ -445,9 +444,9 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
                 deformationMatrix.MultiplyIntoResult(localDisplacements, strains);
                 deformationMatrix.MultiplyIntoResult(localdDisplacements, deltaStrains);
-                materialsAtGaussPoints[gp].UpdateMaterial(Vector.CreateFromArray(deltaStrains));
+                materialsAtGaussPoints[gp].UpdateMaterial(deltaStrains);
             }
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
@@ -469,7 +468,7 @@ namespace ISAAR.MSolve.FEM.Elements
                    + materialsAtGaussPoints.Length);
 
             int dofsCount = 24; // 8 nodes * 3 dofs per node
-            var internalForces = Vector.CreateZero(dofsCount);
+            var internalForces = new double[dofsCount];
             for (int gp = 0; gp < gaussPointsCount; ++gp)
             {
                 var stressVector = materialsAtGaussPoints[gp].Stresses; // Risky if stressVector is modified
@@ -477,10 +476,10 @@ namespace ISAAR.MSolve.FEM.Elements
                                                                                                        //Array.Copy(materialsAtGaussPoints[gp].Stresses, stressesClone, tensorComponentsCount);
                                                                                                        //Vector stressVector = new Vector(stressesClone);
                 Matrix deformationMatrix = Matrix.CreateFromArray(gaussMatrices[gp].DeformationMatrix);
-                IVectorView transposeBtimesStress = deformationMatrix.Multiply(stressVector, true);
+                double[] transposeBtimesStress = deformationMatrix.Multiply(stressVector, true);
                 internalForces.AxpyIntoThis(transposeBtimesStress, gaussMatrices[gp].WeightFactor);
             }
-            return internalForces.ToRawArray();
+            return internalForces;
         }
 
         public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)

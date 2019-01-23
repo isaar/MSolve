@@ -7,7 +7,6 @@ using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -213,7 +212,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] E;
             double[] ni;
 
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);            
             (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations_v2.Getll1AndJ_0a(
                 QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
@@ -300,7 +299,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private void CalculateStrains(IElement_v2 element, double[][] tx_i)
         {
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations_v2.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
 
@@ -346,7 +345,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private double [] UpdateForces(IElement_v2 element)
         {
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations_v2.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             
@@ -467,7 +466,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[][] BL01plus1_2tSPKvec;
 
 
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations_v2.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             (Matrix[] J_0inv, double[] detJ_0) =
@@ -711,10 +710,10 @@ namespace ISAAR.MSolve.FEM.Elements
             this.CalculateStrains(element, tx_i);
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
-                materialsAtGaussPoints[npoint].UpdateMaterial(Vector.CreateFromArray(GLvec[npoint]));
+                materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
             }
            
-            return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
+            return new Tuple<double[], double[]>(new double[123], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
         //Istructural: dynamic
@@ -750,7 +749,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
                 for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
                 {
-                    materialsAtGaussPoints[npoint].UpdateMaterial(Vector.CreateFromArray(GLvec[npoint]));
+                    materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
                 }
 
                 this.UpdateForces(element); 

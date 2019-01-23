@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Geometry
 {
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Geometry
 	     *            The vector part
 	     * @return The new quaternion
 	     */
-        public static Quaternion_v2 CreateFromIndividualParts(double scalarPart, Vector vectorPart)
+        public static Quaternion_v2 CreateFromIndividualParts(double scalarPart, double[] vectorPart)
         {
             return new Quaternion_v2(scalarPart, vectorPart);
         }
@@ -36,13 +36,13 @@ namespace ISAAR.MSolve.Geometry
 	     */
         public static Quaternion_v2 OfZeroAngle()
         {
-            return new Quaternion_v2(1.0, Vector.CreateZero(VECTOR_COMPONENT_COUNT));
+            return new Quaternion_v2(1.0, new double[VECTOR_COMPONENT_COUNT]);
         }
 
         private double scalarPart;
-        private readonly Vector vectorPart;
+        private readonly double[] vectorPart;
 
-        public Quaternion_v2(double scalarPart, Vector vectorPart)
+        public Quaternion_v2(double scalarPart, double[] vectorPart)
         {
             this.scalarPart = scalarPart;
             this.vectorPart = vectorPart;
@@ -54,24 +54,24 @@ namespace ISAAR.MSolve.Geometry
 	     * @param incrementalRotation
 	     *            The incremental rotation
 	     */
-        public void ApplyIncrementalRotation(Vector incrementalRotation)
+        public void ApplyIncrementalRotation(double[] incrementalRotation)
         {
             Debug.Assert(incrementalRotation.Length == VECTOR_COMPONENT_COUNT);
-            Vector vectorPartIncrement = incrementalRotation.Copy();
+            double[] vectorPartIncrement = incrementalRotation.Copy();
             //var vectorPartIncrement = new Vector(VECTOR_COMPONENT_COUNT);
             //incrementalRotation.CopyTo(vectorPartIncrement.Data, 0);
             vectorPartIncrement.ScaleIntoThis(0.5);
-            double squareRootArgument = 1.0 - vectorPartIncrement * vectorPartIncrement;
+            double squareRootArgument = 1.0 - vectorPartIncrement.DotProduct(vectorPartIncrement);
             //Preconditions.checkArgument(squareRootArgument > 0.0, "Very large rotation increment applied");
             double scalarPartIncrement = Math.Sqrt(squareRootArgument);
-            double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement * (this.vectorPart);
+            double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement.DotProduct(this.vectorPart);
 
             //TODO: Is the following correct? Vector updatedVectorPart = this.vectorPart; does not copy the original vector.
             //TODO: Why not use this.vectorPart for all the next? 
-            Vector updatedVectorPart = this.vectorPart;
+            double[] updatedVectorPart = this.vectorPart;
             updatedVectorPart.ScaleIntoThis(scalarPartIncrement);
-            updatedVectorPart.AddIntoThis(scalarPart * vectorPartIncrement);
-            Vector incrementCrossVectorPart = vectorPartIncrement.CrossProduct(this.vectorPart);
+            updatedVectorPart.AddIntoThis(vectorPartIncrement.Scale(scalarPart));
+            double[] incrementCrossVectorPart = vectorPartIncrement.CrossProduct(this.vectorPart);
             updatedVectorPart.AddIntoThis(incrementCrossVectorPart);
             this.scalarPart = updatedScalarPart;
             this.vectorPart.CopyFrom(updatedVectorPart); //TODO: This does nothing. updatedVectorPart is a reference to the same memory as this.vectorPart
@@ -84,22 +84,22 @@ namespace ISAAR.MSolve.Geometry
 	     *            The incremental rotation
 	     * @return The rotated quaternion
 	     */
-        public Quaternion_v2 ApplyIncrementalRotationToNew(Vector incrementalRotation)
+        public Quaternion_v2 ApplyIncrementalRotationToNew(double[] incrementalRotation)
         {
             Debug.Assert(incrementalRotation.Length == VECTOR_COMPONENT_COUNT);
-            Vector vectorPartIncrement = incrementalRotation.Copy();
+            double[] vectorPartIncrement = incrementalRotation.Copy();
             vectorPartIncrement.ScaleIntoThis(0.5);
-            double squareRootArgument = 1.0 - vectorPartIncrement * vectorPartIncrement;
+            double squareRootArgument = 1.0 - vectorPartIncrement.DotProduct(vectorPartIncrement);
             //Preconditions.checkArgument(squareRootArgument > 0.0, "Very large rotation increment applied");
             double scalarPartIncrement = Math.Sqrt(squareRootArgument);
-            double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement * (this.vectorPart);
+            double updatedScalarPart = (scalarPartIncrement * this.scalarPart) - vectorPartIncrement.DotProduct(this.vectorPart);
 
             //TODO: Is the following correct? Vector updatedVectorPart = this.vectorPart; does not copy the original vector.
             //TODO: The next part creates a new Quaternion (using legacy linear algebra classes), but the existing ones is not copied as per the author's intention
-            Vector updatedVectorPart = this.vectorPart;
+            double[] updatedVectorPart = this.vectorPart;
             updatedVectorPart.ScaleIntoThis(scalarPartIncrement);
-            updatedVectorPart.AddIntoThis(scalarPart * vectorPartIncrement);
-            Vector incrementCrossVectorPart = vectorPartIncrement.CrossProduct(this.vectorPart);
+            updatedVectorPart.AddIntoThis(vectorPartIncrement.Scale(scalarPart));
+            double[] incrementCrossVectorPart = vectorPartIncrement.CrossProduct(this.vectorPart);
             updatedVectorPart.AddIntoThis(incrementCrossVectorPart);
             return new Quaternion_v2(updatedScalarPart, updatedVectorPart);
         }
@@ -130,6 +130,6 @@ namespace ISAAR.MSolve.Geometry
         }
 
         public double ScalarPart => this.scalarPart;
-        public Vector VectorPart => this.vectorPart;
+        public double[] VectorPart => this.vectorPart;
     }
 }

@@ -11,7 +11,6 @@ using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 
 //TODO: Damping matrix calculation needs redesign for all of MSolve. For this class, see DampingMatrix().
@@ -73,7 +72,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numDofs = 2 * Nodes.Count;
             var mass = Matrix.CreateZero(numDofs, numDofs);
-            IReadOnlyList<Vector> shapeFunctions =
+            IReadOnlyList<double[]> shapeFunctions =
                 Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForConsistentMass);
             IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
@@ -324,7 +323,7 @@ namespace ISAAR.MSolve.FEM.Elements
         /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
         /// row 1 to dof Y.
         /// </summary>
-        private Matrix BuildShapeFunctionMatrix(Vector shapeFunctions)
+        private Matrix BuildShapeFunctionMatrix(double[] shapeFunctions)
         {
             var shapeFunctionMatrix = Matrix.CreateZero(2, 2 * shapeFunctions.Length);
             for (int i = 0; i < shapeFunctions.Length; ++i)

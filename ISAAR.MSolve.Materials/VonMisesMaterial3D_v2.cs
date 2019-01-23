@@ -6,10 +6,10 @@
 //   Class for 3D Von Mises materials.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Materials.Interfaces;
 using System;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 
 
 namespace ISAAR.MSolve.FEM.Materials
@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <remarks>
         ///   <a href = "http://en.wikipedia.org/wiki/Deformation_%28engineering%29">Deformation (engineering)</a>
         /// </remarks>
-        private Vector incrementalStrains = Vector.CreateZero(6);
+        private double[] incrementalStrains = new double[6];
 
         /// <summary>
         ///   Indicates whether this <see cref = "IFiniteElementMaterial" /> is modified.
@@ -122,12 +122,12 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <summary>
         ///   The array of stresses.
         /// </summary>
-        private Vector stresses = Vector.CreateZero(6);
+        private double[] stresses = new double[6];
 
         /// <summary>
         ///   The array of new stresses.
         /// </summary>
-        private Vector stressesNew = Vector.CreateZero(6);
+        private double[] stressesNew = new double[6];
 
         /// <summary>
         ///   Initializes a new instance of the <see cref = "VonMisesMaterial3D" /> class.
@@ -191,7 +191,7 @@ namespace ISAAR.MSolve.FEM.Materials
         {
             get
             {
-                if (this.constitutiveMatrix == null) UpdateMaterial(Vector.CreateZero(6));
+                if (this.constitutiveMatrix == null) UpdateMaterial(new double[6]);
                 return constitutiveMatrix;
             }
         }
@@ -213,7 +213,7 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <remarks>
         ///   <a href = "http://en.wikipedia.org/wiki/Deformation_%28engineering%29">Deformation (engineering)</a>
         /// </remarks>
-        public IVectorView IncrementalStrains => this.incrementalStrains;
+        public double[] IncrementalStrains => this.incrementalStrains;
 
         /// <summary>
         ///   Gets a value indicating whether this <see cref = "IFiniteElementMaterial" /> is modified.
@@ -261,7 +261,7 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <remarks>
         ///   <a href = "http://en.wikipedia.org/wiki/Stress_%28mechanics%29">Stress (mechanics)</a>
         /// </remarks>
-        public IVectorView Stresses => this.stressesNew;
+        public double[] Stresses => this.stressesNew;
 
         /// <summary>
         ///   Gets the Young's Modulus.
@@ -333,7 +333,7 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Updates the element's material with the provided incremental strains.
         /// </summary>
         /// <param name = "strainsIncrement">The incremental strains to use for the next step.</param>
-        public void UpdateMaterial(IVectorView strainsIncrement)
+        public void UpdateMaterial(double[] strainsIncrement)
         {
             incrementalStrains.CopyFrom(strainsIncrement);
             this.CalculateNextStressStrainPoint();
@@ -401,7 +401,7 @@ namespace ISAAR.MSolve.FEM.Materials
         /// <exception cref = "InvalidOperationException"> When the new plastic strain is less than the previous one.</exception>
         private void CalculateNextStressStrainPoint()
         {
-            var stressesElastic = Vector.CreateZero(6);
+            var stressesElastic = new double[6];
             for (int i = 0; i < 6; i++)
             {
                 stressesElastic[i] = this.stresses[i];
@@ -450,19 +450,19 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Calculates and returns the first stress invariant (I1).
         /// </summary>
         /// <returns> The first stress invariant (I1).</returns>
-        public double GetFirstStressInvariant(Vector stresses) => stresses[0] + stresses[1] + stresses[2];
+        public double GetFirstStressInvariant(double[] stresses) => stresses[0] + stresses[1] + stresses[2];
 
         /// <summary>
         ///   Calculates and returns the mean hydrostatic stress.
         /// </summary>
         /// <returns> The mean hydrostatic stress.</returns>
-        public double GetMeanStress(Vector stresses) => GetFirstStressInvariant(stresses) / 3.0;
+        public double GetMeanStress(double[] stresses) => GetFirstStressInvariant(stresses) / 3.0;
 
         /// <summary>
         ///   Calculates and returns the second stress invariant (I2).
         /// </summary>
         /// <returns> The second stress invariant (I2).</returns>
-        public double GetSecondStressInvariant(Vector stresses) 
+        public double GetSecondStressInvariant(double[] stresses) 
             => (stresses[0] * stresses[1]) + (stresses[1] * stresses[2]) + (stresses[0] * stresses[2]) 
             - Math.Pow(stresses[5], 2) - Math.Pow(stresses[3], 2) - Math.Pow(stresses[4], 2);
 
@@ -470,7 +470,7 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Calculates and returns the stress deviator tensor in vector form.
         /// </summary>
         /// <returns> The stress deviator tensor in vector form.</returns>
-        public double[] GetStressDeviator(Vector stresses)
+        public double[] GetStressDeviator(double[] stresses)
         {
             var hydrostaticStress = this.GetMeanStress(stresses);
             var stressDeviator = new double[]
@@ -490,7 +490,7 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Calculates and returns the third stress invariant (I3).
         /// </summary>
         /// <returns> The third stress invariant (I3). </returns>
-        public double GetThirdStressInvariant(Vector stresses) 
+        public double GetThirdStressInvariant(double[] stresses) 
             => (stresses[0] * stresses[1] * stresses[2]) + (2 * stresses[5] * stresses[3] * stresses[4]) 
             - (Math.Pow(stresses[5], 2) * stresses[2]) -(Math.Pow(stresses[3], 2) * stresses[0]) 
             - (Math.Pow(stresses[4], 2) * stresses[1]);
@@ -505,7 +505,7 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Calculates and returns the second stress invariant of the stress deviator tensor (J2).
         /// </summary>
         /// <returns> The second stress invariant of the stress deviator tensor (J2). </returns>
-        public double GetDeviatorSecondStressInvariant(Vector stresses)
+        public double GetDeviatorSecondStressInvariant(double[] stresses)
         {
             double i1 = this.GetFirstStressInvariant(stresses);
             double i2 = this.GetSecondStressInvariant(stresses);
@@ -518,7 +518,7 @@ namespace ISAAR.MSolve.FEM.Materials
         ///   Calculates and returns the third stress invariant of the stress deviator tensor (J3).
         /// </summary>
         /// <returns> The third deviator stress invariant (J3). </returns>
-        public double GetDeviatorThirdStressInvariant(Vector stresses)
+        public double GetDeviatorThirdStressInvariant(double[] stresses)
         {
             double i1 = this.GetFirstStressInvariant(stresses);
             double i2 = this.GetSecondStressInvariant(stresses);

@@ -1,6 +1,6 @@
 ﻿using System;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Geometry
 {
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Geometry
          *            The vector along the Z axis
          * @return The rotation matrix
          */
-        public static Matrix CalculateFromOrthonormalVectors(Vector vectorX, Vector vectorY, Vector vectorZ)
+        public static Matrix CalculateFromOrthonormalVectors(double[] vectorX, double[] vectorY, double[] vectorZ)
         {
             var rotationMatrix = Matrix.CreateZero(3, 3);
             rotationMatrix[0, 0] = vectorX[0];
@@ -44,17 +44,17 @@ namespace ISAAR.MSolve.Geometry
          *            The rotated vector
          * @return The rotation matrix
          */
-        public static Matrix CalculateRotationMatrix(Vector initialVector, Vector rotatedVector)
+        public static Matrix CalculateRotationMatrix(double[] initialVector, double[] rotatedVector)
         {
-            Vector initialVectorLocal = initialVector.Copy();
-            Vector rotatedVectorLocal = rotatedVector.Copy();
+            double[] initialVectorLocal = initialVector.Copy();
+            double[] rotatedVectorLocal = rotatedVector.Copy();
 
             double normInitial = initialVector.Norm2();
             double normRotated = rotatedVector.Norm2();
             initialVectorLocal.ScaleIntoThis(1d / normInitial);
             rotatedVectorLocal.ScaleIntoThis(1d / normRotated);
 
-            Vector vectorSum = initialVectorLocal + rotatedVectorLocal;
+            double[] vectorSum = initialVectorLocal.Add(rotatedVectorLocal);
             double vectorSumNorm = vectorSum.Norm2();
 
             var rotationMatrix = Matrix.CreateZero(3, 3);

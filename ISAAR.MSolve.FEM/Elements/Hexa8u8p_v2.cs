@@ -7,7 +7,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
@@ -323,10 +322,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(Vector.CreateFromArray(dStrains));
+                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
@@ -364,13 +363,13 @@ namespace ISAAR.MSolve.FEM.Elements
 
             // Changed! Check for errors...
             //Vector<double> fluidDisplacements = new Vector<double>(ExtractFluidVector(localDisplacements));
-            var fluidDisplacements = Vector.CreateFromArray(ExtractFluidVector(localTotalDisplacements));
+            var fluidDisplacements = ExtractFluidVector(localTotalDisplacements);
             
             //double[] solidAndFluidForces = solidForces;
             ////double[] solidAndFluidForces = q * fluidDisplacements + (new Vector<double>(solidForces));
             // H correction
             fluidDisplacements.ScaleIntoThis(-1.0);
-            double[] fluidDrags = SymmetricMatrix.CreateFromPackedRowMajorArray(faH).Multiply(fluidDisplacements).ToRawArray();
+            double[] fluidDrags = SymmetricMatrix.CreateFromPackedRowMajorArray(faH).Multiply(fluidDisplacements);
 
             double[] totalForces = new double[GetAllDOFs()];
             ScatterFromFluidVector(fluidDrags, totalForces);

@@ -4,7 +4,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -16,7 +15,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation3D
     {
-        public EvalInterpolation3D(Vector shapeFunctions, Matrix shapeGradientsNatural, IsoparametricJacobian3D jacobian)
+        public EvalInterpolation3D(double[] shapeFunctions, Matrix shapeGradientsNatural, IsoparametricJacobian3D jacobian)
         {
             int numberOfNodes = shapeFunctions.Length;
             if (shapeGradientsNatural.NumRows != numberOfNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
@@ -35,7 +34,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// A vector that contains the shape functions in the same order as the nodes of the interpolation.
         /// </summary>
-        public Vector ShapeFunctions { get; }
+        public double[] ShapeFunctions { get; }
 
         /// <summary>
         /// A matrix that contains the 1st order shape function derivatives with respect to the global cartesian coordinate 

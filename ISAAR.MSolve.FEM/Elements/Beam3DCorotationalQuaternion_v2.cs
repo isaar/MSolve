@@ -1,29 +1,25 @@
-﻿using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Geometry;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.Matrices;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Geometry;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class Beam3DCorotationalQuaternion_v2 : Beam3DCorotationalAbstract_v2
     {
-        private readonly Vector lastDisplacements;
-        private readonly Vector currentDisplacements;
-        private readonly Vector displacementsOfCurrentIncrement;
-        private readonly Vector initialAxisY;
-        private readonly Vector initialAxisZ;
-        private readonly Vector initialAxisX;
+        private readonly double[] lastDisplacements;
+        private readonly double[] currentDisplacements;
+        private readonly double[] displacementsOfCurrentIncrement;
+        private readonly double[] initialAxisY;
+        private readonly double[] initialAxisZ;
+        private readonly double[] initialAxisX;
         private Quaternion_v2 quaternionCurrentNodeA;
         private Quaternion_v2 quaternionCurrentNodeB;
-        private readonly Vector currentBeamAxis;
+        private readonly double[] currentBeamAxis;
         private Quaternion_v2 quaternionLastNodeA;
         private Quaternion_v2 quaternionLastNodeB;
 
@@ -43,17 +39,17 @@ namespace ISAAR.MSolve.FEM.Elements
             BeamSection3D beamSection)
             : base(nodes, material, density, beamSection)
         {
-            this.displacementsOfCurrentIncrement = Vector.CreateZero(FREEDOM_DEGREE_COUNT);
-            this.lastDisplacements = Vector.CreateZero(FREEDOM_DEGREE_COUNT);
-            this.currentDisplacements = Vector.CreateZero(FREEDOM_DEGREE_COUNT);
+            this.displacementsOfCurrentIncrement = new double[FREEDOM_DEGREE_COUNT];
+            this.lastDisplacements = new double[FREEDOM_DEGREE_COUNT];
+            this.currentDisplacements = new double[FREEDOM_DEGREE_COUNT];
             this.quaternionLastNodeA = Quaternion_v2.OfZeroAngle();
             this.quaternionLastNodeB = Quaternion_v2.OfZeroAngle();
             this.quaternionCurrentNodeA = Quaternion_v2.OfZeroAngle();
             this.quaternionCurrentNodeB = Quaternion_v2.OfZeroAngle();
-            this.initialAxisX = Vector.CreateZero(AXIS_COUNT);
-            this.initialAxisY = Vector.CreateZero(AXIS_COUNT);
-            this.initialAxisZ = Vector.CreateZero(AXIS_COUNT);
-            this.currentBeamAxis = Vector.CreateZero(AXIS_COUNT);
+            this.initialAxisX = new double[AXIS_COUNT];
+            this.initialAxisY = new double[AXIS_COUNT];
+            this.initialAxisZ = new double[AXIS_COUNT];
+            this.currentBeamAxis = new double[AXIS_COUNT];
             this.InitializeElementAxes();
         }
 
@@ -63,8 +59,8 @@ namespace ISAAR.MSolve.FEM.Elements
             //displacementsOfCurrentIncrement.ScaleIntoThis(0d); 
             lastDisplacements.CopyFrom(currentDisplacements);
 
-            Vector qA = quaternionCurrentNodeA.VectorPart.Copy();
-            Vector qB = quaternionCurrentNodeB.VectorPart.Copy();
+            double[] qA = quaternionCurrentNodeA.VectorPart.Copy();
+            double[] qB = quaternionCurrentNodeB.VectorPart.Copy();
             this.quaternionLastNodeA = new Quaternion_v2(quaternionCurrentNodeA.ScalarPart, qA);
             this.quaternionLastNodeB = new Quaternion_v2(quaternionCurrentNodeB.ScalarPart, qB);
         }
@@ -77,12 +73,11 @@ namespace ISAAR.MSolve.FEM.Elements
 
             //this.currentDisplacements.addIntoThis(this.lastDisplacements, incrementalNodeDisplacements);
             currentDisplacements.CopyFrom(lastDisplacements);
-            var incrementalNodeDisplacementsVector = Vector.CreateFromArray(incrementalNodeDisplacements);
-            currentDisplacements.AddIntoThis(incrementalNodeDisplacementsVector);
-            displacementsOfCurrentIncrement.CopyFrom(incrementalNodeDisplacementsVector);
+            currentDisplacements.AddIntoThis(incrementalNodeDisplacements);
+            displacementsOfCurrentIncrement.CopyFrom(incrementalNodeDisplacements);
 
-            var incrementalRotationsA = Vector.CreateZero(AXIS_COUNT);
-            var incrementalRotationsB = Vector.CreateZero(AXIS_COUNT);
+            var incrementalRotationsA = new double[AXIS_COUNT];
+            var incrementalRotationsB = new double[AXIS_COUNT];
 
             incrementalRotationsA[0] = displacementsOfCurrentIncrement[3];
             incrementalRotationsA[1] = displacementsOfCurrentIncrement[4];
@@ -91,8 +86,8 @@ namespace ISAAR.MSolve.FEM.Elements
             incrementalRotationsB[1] = displacementsOfCurrentIncrement[10];
             incrementalRotationsB[2] = displacementsOfCurrentIncrement[11];
 
-            Vector qA = quaternionLastNodeA.VectorPart.Copy();
-            Vector qB = quaternionLastNodeB.VectorPart.Copy();
+            double[] qA = quaternionLastNodeA.VectorPart.Copy();
+            double[] qB = quaternionLastNodeB.VectorPart.Copy();
             this.quaternionCurrentNodeA = new Quaternion_v2(quaternionLastNodeA.ScalarPart, qA);
             this.quaternionCurrentNodeB = new Quaternion_v2(quaternionLastNodeB.ScalarPart, qB);
             this.quaternionCurrentNodeA.ApplyIncrementalRotation(incrementalRotationsA);
@@ -102,17 +97,17 @@ namespace ISAAR.MSolve.FEM.Elements
             double scalarB = this.quaternionCurrentNodeB.ScalarPart;
             var vectorPartA = this.quaternionCurrentNodeA.VectorPart;
             var vectorPartB = this.quaternionCurrentNodeB.VectorPart;
-            Vector sumOfVectorParts = vectorPartA.Copy();
+            double[] sumOfVectorParts = vectorPartA.Copy();
             sumOfVectorParts.AddIntoThis(vectorPartB);
             double sumOfVectorPartsNorm = sumOfVectorParts.Norm2();
             double scalarPartDifference = 0.5 * Math.Sqrt(((scalarA + scalarB) * (scalarA + scalarB)) + (sumOfVectorPartsNorm * sumOfVectorPartsNorm));
             double meanRotationScalarPart = (0.5 * (scalarA + scalarB)) / scalarPartDifference;
-            Vector meanRotationVectorPart = vectorPartA.Copy();
+            double[] meanRotationVectorPart = vectorPartA.Copy();
             meanRotationVectorPart.AddIntoThis(vectorPartB);
             meanRotationVectorPart.ScaleIntoThis(1d / (2d * scalarPartDifference));
-            Vector vectorPartDifference = vectorPartB.Copy();
+            double[] vectorPartDifference = vectorPartB.Copy();
             vectorPartDifference.ScaleIntoThis(scalarA);
-            vectorPartDifference.AddIntoThis(-scalarB * vectorPartA);
+            vectorPartDifference.AddIntoThis(vectorPartA.Scale(-scalarB));
             //vectorPartDifference.doPointwise(vectorPartA, DoubleBinaryOps.alphaPlusScaledBeta(-scalarB));
             vectorPartDifference.AddIntoThis(vectorPartA.CrossProduct(vectorPartB));
             vectorPartDifference.ScaleIntoThis(1d / (2d * scalarPartDifference));
@@ -148,16 +143,16 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private void InitializeElementAxes()
         {
-            var globalVectorX = Vector.CreateZero(AXIS_COUNT);
-            var globalVectorY = Vector.CreateZero(AXIS_COUNT);
-            var globalVectorZ = Vector.CreateZero(AXIS_COUNT);
+            var globalVectorX = new double[AXIS_COUNT];
+            var globalVectorY = new double[AXIS_COUNT];
+            var globalVectorZ = new double[AXIS_COUNT];
             globalVectorX[0] = 1d;
             globalVectorY[1] = 1d;
             globalVectorZ[2] = 1d;
             double deltaX = nodes[1].X - nodes[0].X;
             double deltaY = nodes[1].Y - nodes[0].Y;
             double deltaZ = nodes[1].Z - nodes[0].Z;
-            var elementAxis = Vector.CreateZero(3);
+            var elementAxis = new double[3];
             elementAxis[0] = deltaX;
             elementAxis[1] = deltaY;
             elementAxis[2] = deltaZ;
@@ -172,11 +167,11 @@ namespace ISAAR.MSolve.FEM.Elements
             beamAxisZ.CopyFrom(initialAxisZ);
         }
 
-        private void UpdateNaturalDeformations(Vector vectorPartDifference)
+        private void UpdateNaturalDeformations(double[] vectorPartDifference)
         {
             double extension = this.currentLength - this.initialLength;
-            Vector symmetricRotation = currentRotationMatrix.Multiply(vectorPartDifference, true);
-            Vector antisymmetricRotation = 
+            double[] symmetricRotation = currentRotationMatrix.Multiply(vectorPartDifference, true);
+            double[] antisymmetricRotation = 
                 currentRotationMatrix.Multiply(this.beamAxisX.CrossProduct(this.currentBeamAxis), true);
 
             //currentRotationMatrix.Transpose().Multiply(vectorPartDifference, symmetricRotation.Data);
@@ -203,7 +198,7 @@ namespace ISAAR.MSolve.FEM.Elements
             rotationMatrixLocal.AxpyIntoThis(currentBeamAxis.TensorProduct(currentBeamAxis), -2d);
             //rotationMatrixLocal.LinearCombinationGOAT(new[] { -2d }, new[] { Matrix2D.FromVector(currentBeamAxis.Data) * Matrix2D.FromVectorTranspose(currentBeamAxis.Data) });
 
-            Vector minusBeamAxisX = beamAxisX.Scale(-1.0);
+            double[] minusBeamAxisX = beamAxisX.Scale(-1.0);
             var tempBeamAxisY = beamAxisY.Copy();
             var tempBeamAxisZ = beamAxisZ.Copy();
             rotationMatrixLocal.MultiplyIntoResult(minusBeamAxisX, beamAxisX);

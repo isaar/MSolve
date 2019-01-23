@@ -9,10 +9,9 @@ using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -62,7 +61,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int numberOfDofs = 3 * Nodes.Count;
             var mass = Matrix.CreateZero(numberOfDofs,numberOfDofs);
-            IReadOnlyList<Vector> shapeFunctions =
+            IReadOnlyList<double[]> shapeFunctions =
                 Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForConsistentMass);
             IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
@@ -277,7 +276,7 @@ namespace ISAAR.MSolve.FEM.Elements
         /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
         /// row 1 to dof Y, etc.
         /// </summary>
-        private Matrix BuildShapeFunctionMatrix(Vector shapeFunctions)
+        private Matrix BuildShapeFunctionMatrix(double[] shapeFunctions)
         {
             var shapeFunctionMatrix = Matrix.CreateZero(3, 3 * shapeFunctions.Length);
             for (int i = 0; i < shapeFunctions.Length; i++)

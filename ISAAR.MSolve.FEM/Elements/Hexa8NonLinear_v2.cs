@@ -9,8 +9,8 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
@@ -329,18 +329,18 @@ namespace ISAAR.MSolve.FEM.Elements
             BL01_hexa = GetBL01_hexa(J_0inv_hexa);
 
             //INITIALIZATION of MAtrixes that are currently not cached
-            IVector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
+            double[][] integrCoeff_Spkvec = new double[nGaussPoints][];
             Matrix[] BL = new Matrix[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                integrCoeff_Spkvec[gpoint] = Vector.CreateZero(6);
+                integrCoeff_Spkvec[gpoint] = new double[6];
                 BL[gpoint] = Matrix.CreateZero(6, 24);
             }
 
-            IVector[] fxk1 = new Vector[nGaussPoints + 1];
+            double[][] fxk1 = new double[nGaussPoints + 1][];
             for (int npoint = 0; npoint < nGaussPoints + 1; npoint++)
             {
-                fxk1[npoint] = Vector.CreateZero(24);
+                fxk1[npoint] = new double[24];
             }
 
             Matrix[] BL11 = new Matrix[nGaussPoints];
@@ -389,7 +389,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 fxk1[nGaussPoints].AddIntoThis(fxk1[npoint]);                
             }
 
-            return fxk1[nGaussPoints].ToRawArray();
+            return fxk1[nGaussPoints];
         }
 
         private Matrix UpdateKmatrices(IElement_v2 element)
@@ -398,11 +398,11 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
             // initialization of matrices that are not cached currently
-            IVector[] integrCoeff_Spkvec = new Vector[nGaussPoints];
+            double[][] integrCoeff_Spkvec = new double[nGaussPoints][];
             Matrix[] BL = new Matrix[nGaussPoints];
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
             {
-                integrCoeff_Spkvec[gpoint] = Vector.CreateZero(6);
+                integrCoeff_Spkvec[gpoint] = new double[6];
                 BL[gpoint] = Matrix.CreateZero(6, 24);
 
             }
@@ -590,11 +590,11 @@ namespace ISAAR.MSolve.FEM.Elements
                     GLvec[npoint][4]- GLvec_last_converged[npoint][4],
                     GLvec[npoint][5]- GLvec_last_converged[npoint][5]
                 };
-                materialsAtGaussPoints[npoint].UpdateMaterial(Vector.CreateFromArray(GLvec_strain_minus_last_converged_value)); 
+                materialsAtGaussPoints[npoint].UpdateMaterial(GLvec_strain_minus_last_converged_value); 
                 //To update with total strain simply: materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
             }
             return new Tuple<double[], double[]>(GLvec_strain_minus_last_converged_value, 
-                materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
+                materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
             //TODO return data with total strains data would be:
             //return new Tuple<double[], double[]>(GLvec[materialsAtGaussPoints.Length - 1], materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
             //TODO: why return only the strain- stress of the gausspoint that is last on the array, Where is it needed?

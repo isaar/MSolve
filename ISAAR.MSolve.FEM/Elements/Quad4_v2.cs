@@ -9,7 +9,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
@@ -371,10 +370,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(Vector.CreateFromArray(dStrains));
+                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.ToRawArray());
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)

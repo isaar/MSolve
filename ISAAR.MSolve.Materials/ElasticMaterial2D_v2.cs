@@ -1,14 +1,14 @@
 ﻿using System;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Materials
 {
     public class ElasticMaterial2D_v2 : IIsotropicContinuumMaterial2D_v2
     {
-        private readonly Vector strains = Vector.CreateZero(3);
-        private readonly Vector stresses = Vector.CreateZero(3);
+        private readonly double[] strains = new double[3];
+        private readonly double[] stresses = new double[3];
         private Matrix constitutiveMatrix = null;
 
         public double[] Coordinates { get; set; }
@@ -27,12 +27,12 @@ namespace ISAAR.MSolve.Materials
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(Vector.CreateZero(3));
+                if (constitutiveMatrix == null) UpdateMaterial(new double[3]);
                 return constitutiveMatrix;
             }
         }
 
-        public IVectorView Stresses => stresses;
+        public double[] Stresses => stresses;
 
         public void ClearState()
         {
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Materials
             throw new NotImplementedException();
         }
 
-        public void UpdateMaterial(IVectorView strains)
+        public void UpdateMaterial(double[] strains)
         {
             this.strains.CopyFrom(strains);
             constitutiveMatrix = Matrix.CreateZero(3, 3); //TODO: This should be cached in the constitutive matrix property and used here.

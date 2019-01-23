@@ -1,4 +1,6 @@
-﻿using ISAAR.MSolve.Discretization;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
@@ -7,10 +9,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
-using System;
-using System.Collections.Generic;
 
 //TODO: current nodal coordinates should be managed by the analyzer, instead of each element calculting and storing them independently. The same applies for direction vectors of shells. 
 //TODO: direction vectors creation and update could be handled by a dedicated class that will be composed into this element. Which element would update them then?
@@ -151,7 +150,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[][] UpdateCoordinateDataAndCalculateDisplacementVector(double[] localdisplacements)
         {
             IReadOnlyList<Matrix> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Matrix> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
 
             double[,] u_prok = new double[3, 8];
@@ -282,7 +281,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private Tuple<Matrix[], double[]> CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations()
         {
-            IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
             IReadOnlyList<Matrix> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
             IReadOnlyList<Matrix> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             

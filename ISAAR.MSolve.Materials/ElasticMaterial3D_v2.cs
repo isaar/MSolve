@@ -1,20 +1,20 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using System;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using System;
 
 namespace ISAAR.MSolve.FEM.Materials
 {
     public class ElasticMaterial3D_v2 : IIsotropicContinuumMaterial3D_v2
     {
-        //private readonly Vector strains = Vector.CreateZero(6);
-        private readonly Vector stresses = Vector.CreateZero(6);
+        //private readonly double[] strains = new double[6];
+        private readonly double[] stresses = new double[6];
         private Matrix constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
         public double[] Coordinates { get; set; }
-        private readonly Vector incrementalStrains = Vector.CreateZero(6);
-        private Vector stressesNew = Vector.CreateZero(6);
+        private readonly double[] incrementalStrains = new double[6];
+        private double[] stressesNew = new double[6];
 
         private Matrix GetConstitutiveMatrix()
         {
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         private void CalculateNextStressStrainPoint()
         {
-            var stressesElastic = Vector.CreateZero(6);
+            var stressesElastic = new double[6];
             for (int i = 0; i < 6; i++)
             {
                 stressesElastic[i] = this.stresses[i];
@@ -64,18 +64,18 @@ namespace ISAAR.MSolve.FEM.Materials
 
         #region IFiniteElementMaterial3D Members
 
-        public IVectorView Stresses => stressesNew;
+        public double[] Stresses => stressesNew;
 
         public IMatrixView ConstitutiveMatrix
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(Vector.CreateZero(6));
+                if (constitutiveMatrix == null) UpdateMaterial(new double[6]);
                 return constitutiveMatrix;
             }
         }
 
-        public void UpdateMaterial(IVectorView strainsIncrement)
+        public void UpdateMaterial(double[] strainsIncrement)
         {
             //throw new NotImplementedException();
             this.incrementalStrains.CopyFrom(strainsIncrement);

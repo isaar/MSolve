@@ -7,7 +7,7 @@ using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+
 namespace ISAAR.MSolve.FEM.Interpolation
 {
     /// <summary>
@@ -16,13 +16,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public abstract class IsoparametricInterpolation3DBase : IIsoparametricInterpolation3D
     {
-        private readonly Dictionary<IQuadrature3D, IReadOnlyList<Vector>> cachedFunctionsAtGPs;
+        private readonly Dictionary<IQuadrature3D, IReadOnlyList<double[]>> cachedFunctionsAtGPs;
         private readonly Dictionary<IQuadrature3D, IReadOnlyList<Matrix>> cachedNaturalGradientsAtGPs;
 
         public IsoparametricInterpolation3DBase(int numFunctions)
         {
             this.NumFunctions = numFunctions;
-            this.cachedFunctionsAtGPs = new Dictionary<IQuadrature3D, IReadOnlyList<Vector>>();
+            this.cachedFunctionsAtGPs = new Dictionary<IQuadrature3D, IReadOnlyList<double[]>>();
             this.cachedNaturalGradientsAtGPs = new Dictionary<IQuadrature3D, IReadOnlyList<Matrix>>();
         }
 
@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
             double zeta = naturalPoint.Zeta;
-            var shapeFunctions = Vector.CreateFromArray(EvaluateAt(xi, eta, zeta));
+            var shapeFunctions = EvaluateAt(xi, eta, zeta);
             var naturalShapeDerivatives = EvaluateGradientsAt(xi, eta, zeta);
             return new EvalInterpolation3D(shapeFunctions, naturalShapeDerivatives,
                 new IsoparametricJacobian3D(nodes, naturalShapeDerivatives));
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         public IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node_v2> nodes, IQuadrature3D quadrature)
         {
             // The shape functions and natural derivatives at each Gauss point are probably cached from previous calls
-            IReadOnlyList<Vector> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
+            IReadOnlyList<double[]> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
             IReadOnlyList<Matrix> naturalShapeDerivativesAtGPs = EvaluateNaturalGradientsAtGaussPoints(quadrature);
 
             // Calculate the Jacobians and shape derivatives w.r.t. global cartesian coordinates at each Gauss point
@@ -83,26 +83,25 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.EvaluateFunctionsAt(NaturalPoint3D)"/>.
         /// </summary>
-        public Vector EvaluateFunctionsAt(NaturalPoint3D naturalPoint)
-            => Vector.CreateFromArray(EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta));
+        public double[] EvaluateFunctionsAt(NaturalPoint3D naturalPoint)
+            => EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
 
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.EvaluateFunctionsAtGaussPoints(IQuadrature3D)"/>.
         /// </summary>
-        public IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature)
+        public IReadOnlyList<double[]> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature)
         {
             bool isCached = cachedFunctionsAtGPs.TryGetValue(quadrature,
-                out IReadOnlyList<Vector> shapeFunctionsAtGPs);
+                out IReadOnlyList<double[]> shapeFunctionsAtGPs);
             if (isCached) return shapeFunctionsAtGPs;
             else
             {
                 int numGPs = quadrature.IntegrationPoints.Count;
-                var shapeFunctionsAtGPsArray = new Vector[numGPs];
+                var shapeFunctionsAtGPsArray = new double[numGPs][];
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
                     GaussPoint3D gaussPoint = quadrature.IntegrationPoints[gp];
-                    shapeFunctionsAtGPsArray[gp] = Vector.CreateFromArray(
-                        EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta));
+                    shapeFunctionsAtGPsArray[gp] = EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta);
                 }
                 cachedFunctionsAtGPs.Add(quadrature, shapeFunctionsAtGPsArray);
                 return shapeFunctionsAtGPsArray;

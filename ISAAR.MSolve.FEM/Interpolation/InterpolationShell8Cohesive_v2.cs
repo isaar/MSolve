@@ -6,7 +6,6 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -88,14 +87,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
             if (isCached) return N3AtGPs;
             else
             {
-                IReadOnlyList<Vector> N1 = EvaluateFunctionsAtGaussPoints(quadrature);
+                IReadOnlyList<double[]> N1 = EvaluateFunctionsAtGaussPoints(quadrature);
                 N3AtGPs = GetN3ShapeFunctionsReorganized(quadrature, N1);
                 cachedN3AtGPs.Add(quadrature, N3AtGPs);
                 return N3AtGPs;
             }
         }
 
-        private IReadOnlyList<Matrix> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature, IReadOnlyList<Vector> N1)
+        private IReadOnlyList<Matrix> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature, IReadOnlyList<double[]> N1)
         {
             //TODO reorganize cohesive shell  to use only N1 (not reorganised)
 

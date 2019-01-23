@@ -5,7 +5,6 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -69,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        Vector EvaluateFunctionsAt(NaturalPoint3D naturalPoint);
+        double[] EvaluateFunctionsAt(NaturalPoint3D naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions at the integration points defined by a given quadrature. 
@@ -83,7 +82,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions are calculated. 
         ///     The integration points of this instance of <see cref="IQuadrature2D"/> are always the same.</param>
-        IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature);
+        IReadOnlyList<double[]> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 

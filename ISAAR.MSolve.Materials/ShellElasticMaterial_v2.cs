@@ -1,7 +1,6 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using System;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using System;
 
 namespace ISAAR.MSolve.Materials
 {
@@ -19,7 +18,7 @@ namespace ISAAR.MSolve.Materials
 
         private bool modified; // as in MohrCoulomb for modified
         private Matrix ConsCartes;
-        private Vector SPKvec = Vector.CreateZero(6);
+        private double[] SPKvec = new double[6];
 
         object ICloneable.Clone() => Clone();
 
@@ -33,7 +32,7 @@ namespace ISAAR.MSolve.Materials
             };
         }
 
-        public void UpdateMaterial(IVectorView greenLagrangeStrains)
+        public void UpdateMaterial(double[] greenLagrangeStrains)
         {
             // Check for initialize matrices
             if (ConsCartes == null)
@@ -54,13 +53,13 @@ namespace ISAAR.MSolve.Materials
         private bool CheckIfConstitutiveMatrixChanged() => false;
 
         // as used in mohrcoulomb and hexa8
-        public IVectorView Stresses => SPKvec;
+        public double[] Stresses => SPKvec;
 
         public IMatrixView ConstitutiveMatrix
         {
             get
             {
-                if (ConsCartes == null) UpdateMaterial(Vector.CreateZero(6));
+                if (ConsCartes == null) UpdateMaterial(new double[6]);
                 return ConsCartes;
             } 
         }

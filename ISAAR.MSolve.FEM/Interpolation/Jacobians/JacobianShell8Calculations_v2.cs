@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //J_0a and ll1 can only be calculated during initialization (at the first configuration) and then cached
 namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
@@ -55,7 +54,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         }
 
         public static (Matrix[] ll1, Matrix[] J_0a) Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, 
-            IReadOnlyList<Vector> shapeFunctions, IReadOnlyList<Matrix> shapeFunctionDerivatives)
+            IReadOnlyList<double[]> shapeFunctions, IReadOnlyList<Matrix> shapeFunctionDerivatives)
         {
             int nGaussPoints = quadrature.IntegrationPoints.Count;
             Matrix[] ll1;

@@ -5,7 +5,6 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: perhaps I should return lists instead of Dictionaries with Gauss points as keys. It would be faster. The order of GPs is
 //      defined by the interpolation anyway.
@@ -71,7 +70,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        Vector EvaluateFunctionsAt(NaturalPoint2D naturalPoint);
+        double[] EvaluateFunctionsAt(NaturalPoint2D naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions at the integration points defined by a given quadrature. 
@@ -84,7 +83,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions are calculated. 
         ///     The integration points of this instance of <see cref="IQuadrature2D"/> are always the same.</param>
-        IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature2D quadrature);
+        IReadOnlyList<double[]> EvaluateFunctionsAtGaussPoints(IQuadrature2D quadrature);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
