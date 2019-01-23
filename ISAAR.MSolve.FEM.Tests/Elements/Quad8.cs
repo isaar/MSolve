@@ -1,16 +1,13 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Points;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 //TODO: Add tests for wrong node orders, too distorted shapes, etc.
@@ -25,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
     {
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D material0 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material0 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 2.1e5,
             PoissonRatio = 0.3
@@ -36,17 +33,17 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet0 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
         {
-            new Node2D(0, 0.7, 2.0),
-            new Node2D(1, 0.2, 0.3),
-            new Node2D(2, 2.0, 0.9),
-            new Node2D(3, 3.0, 2.7),
+            new Node_v2 { ID = 0, X = 0.7, Y = 2.0 },
+            new Node_v2 { ID = 1, X = 0.2, Y = 0.3 },
+            new Node_v2 { ID = 2, X = 2.0, Y = 0.9 },
+            new Node_v2 { ID = 3, X = 3.0, Y = 2.7 },
 
-            new Node2D(4, 0.7, 1.1),
-            new Node2D(5, 1.3, 0.1),
-            new Node2D(6, 2.1, 1.9),
-            new Node2D(7, 1.8, 2.5),
+            new Node_v2 { ID = 4, X = 0.7, Y = 1.1 },
+            new Node_v2 { ID = 5, X = 1.3, Y = 0.1 },
+            new Node_v2 { ID = 6, X = 2.1, Y = 1.9 },
+            new Node_v2 { ID = 7, X = 1.8, Y = 2.5 },
         };
 
         /// <summary>
@@ -58,7 +55,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(3, 3);
 
-            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -68,8 +65,8 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 ExtrapolationGaussLegendre3x3.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
 
-            IMatrix2D M = quad8.BuildConsistentMassMatrix();
-            Matrix2D expectedM = new Matrix2D(new double[,]
+            IMatrix M = quad8.BuildConsistentMassMatrix();
+            Matrix expectedM = Matrix.CreateFromArray(new double[,]
             {
                 { 9.115245555556, 0.000000000000, 1.881383333333, 0.000000000000, 3.914882222222, 0.000000000000, 2.417800000000, 0.000000000000, -7.376906666667, 0.000000000000, -11.056637777778, 0.000000000000, -9.104604444445, 0.000000000000, -7.444940000000, 0.000000000000      },
                 { 0.000000000000, 9.115245555556, 0.000000000000, 1.881383333333, 0.000000000000, 3.914882222222, 0.000000000000, 2.417800000000, 0.000000000000, -7.376906666667, 0.000000000000, -11.056637777778, 0.000000000000, -9.104604444445, 0.000000000000, -7.444940000000      },
@@ -88,7 +85,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -7.444940000000, 0.000000000000, -11.077571111111, 0.000000000000, -11.150837777778, 0.000000000000, -8.941673333334, 0.000000000000, 28.734488888889, 0.000000000000, 22.134208888889, 0.000000000000, 24.924622222223, 0.000000000000, 49.869480000000, 0.000000000000 },
                 { 0.000000000000, -7.444940000000, 0.000000000000, -11.077571111111, 0.000000000000, -11.150837777778, 0.000000000000, -8.941673333334, 0.000000000000, 28.734488888889, 0.000000000000, 22.134208888889, 0.000000000000, 24.924622222223, 0.000000000000, 49.869480000000 }
             }); // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
+            Assert.True(M.Equals(expectedM, 1e-10));
         }
 
         /// <summary>
@@ -100,7 +97,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
             ContinuumElement2D quad8 = factory.CreateElement(CellType2D.Quad8, nodeSet0);
-            IMatrix2D K = quad8.BuildStiffnessMatrix();
+            IMatrix K = quad8.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 { 375957.1179055000, -130889.8953535400, 150398.7276607000, -30577.4536395990, 256263.9470137800, -74238.0130438120, 120262.5252654800, -29264.7336935000, -201002.5528104600, 86903.8674540020, -257013.8069723100, 62503.0900498910, -46878.8680758500, 18155.7769717120, -397987.0899868400, 97407.3612548510    },
@@ -120,7 +117,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -397987.0899868400, 89715.0535625430, -223088.2652062900, 28203.4681606430, -369501.4588269600, 80846.5228748690, -238606.5333264100, 46807.1790152900, 248546.5122279100, -109471.2691841800, 382069.8695706200, -56216.0532405820, -259183.6700493400, 155979.7323525500, 857750.6355973100, -235864.6335411300 },
                 { 97407.3612548510, -180243.1181380300, 28203.4681606430, -87313.6274002970, 80846.5228748690, -134967.1662165300, 39114.8713229830, -66452.2299622090, -109471.2691841800, 110589.9799349400, -56216.0532405820, 79632.1594897160, 155979.7323525500, -358201.2487112100, -235864.6335411300, 636955.2510036100    }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
         }
 
         /// <summary>

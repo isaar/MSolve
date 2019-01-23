@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of a hexahedral finite element with 8 nodes. Linear shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationHexa8:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of a hexahedral finite element with 8 nodes. Linear shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationHexa8 : IsoparametricInterpolation3DBase
     {
 		private static readonly InterpolationHexa8 uniqueInstance= new InterpolationHexa8();
 
@@ -48,7 +47,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    /// </summary>
 	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes) =>
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes) =>
 		    new InverseInterpolationHexa8(nodes);
 
 	    protected sealed  override double[] EvaluateAt(double xi, double eta, double zeta)
@@ -65,13 +64,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    return values;
 	    }
 
-	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
 		    var y = eta;
 		    var z = zeta;
 
-		    var derivatives = new double[8, 3];
+		    var derivatives = Matrix.CreateZero(8, 3);
 		    derivatives[0, 0] = -((y - 1) * (z - 1)) / 8;
 		    derivatives[1, 0] = ((y - 1) * (z - 1)) / 8;
 		    derivatives[2, 0] = -((y + 1) * (z - 1)) / 8;

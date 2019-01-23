@@ -14,15 +14,15 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 	public abstract class GaussPointExtrapolation3DBase:IGaussPointExtrapolation3D
     {
 		/// <summary>
-		/// Each <see cref="IIsoparametricInterpolation3D"/> is mapped to a 2D array that contains the values of the 
+		/// Each <see cref="IIsoparametricInterpolation3D_OLD"/> is mapped to a 2D array that contains the values of the 
 		/// extrapolation functions calculated at the nodes of the finite element using that interpolation. Each row corresponds
 		/// to a different node. Each columns corresponds to a different extrapolation function.
 		/// </summary>
-		private Dictionary<IIsoparametricInterpolation3D, double[][]> cachedExtrapolationFunctionsAtNodes;
+		private Dictionary<IIsoparametricInterpolation3D_OLD, double[][]> cachedExtrapolationFunctionsAtNodes;
 
 		protected GaussPointExtrapolation3DBase(IQuadrature3D quadrature)
 	    {
-			this.cachedExtrapolationFunctionsAtNodes= new Dictionary<IIsoparametricInterpolation3D, double[][]>();
+			this.cachedExtrapolationFunctionsAtNodes= new Dictionary<IIsoparametricInterpolation3D_OLD, double[][]>();
 		    this.Quadrature = quadrature;
 	    }
 
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
 		/// <returns></returns>
 		public IReadOnlyList<double> ExtrapolateScalarFromGaussPointsToNodes(IReadOnlyList<double> scalarsAtGaussPoints,
-		    IIsoparametricInterpolation3D interpolation)
+		    IIsoparametricInterpolation3D_OLD interpolation)
 	    {
 		    double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
 		    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
@@ -118,7 +118,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
 		/// <returns></returns>
 		public IReadOnlyList<double[]> ExtrapolateTensorFromGaussPointsToNodes(
-		    IReadOnlyList<double[]> tensorsAtGaussPoints, IIsoparametricInterpolation3D interpolation)
+		    IReadOnlyList<double[]> tensorsAtGaussPoints, IIsoparametricInterpolation3D_OLD interpolation)
 	    {
 		    double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
 		    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
@@ -175,7 +175,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
 		/// <returns></returns>
 		public IReadOnlyList<double[]> ExtrapolateVectorFromGaussPointsToNodes(
-		    IReadOnlyList<double[]> vectorsAtGaussPoints, IIsoparametricInterpolation3D interpolation)
+		    IReadOnlyList<double[]> vectorsAtGaussPoints, IIsoparametricInterpolation3D_OLD interpolation)
 	    {
 		    double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
 		    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
@@ -205,7 +205,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <returns></returns>
 		protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint3D naturalPoint);
 
-	    private double[][] EvaluateExtrapolationFunctionsAtNodes(IIsoparametricInterpolation3D interpolation)
+	    private double[][] EvaluateExtrapolationFunctionsAtNodes(IIsoparametricInterpolation3D_OLD interpolation)
 	    {
 		    bool isCached =
 			    cachedExtrapolationFunctionsAtNodes.TryGetValue(interpolation, out double[][] nodalExtrapolationFunctions);

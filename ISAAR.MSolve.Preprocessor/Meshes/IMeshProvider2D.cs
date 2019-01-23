@@ -13,8 +13,8 @@ namespace ISAAR.MSolve.Preprocessor.Meshes
     /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TVertex"></typeparam>
-    public interface IMeshProvider2D<TVertex> //where TVertex:IPoint2D 
+    public interface IMeshProvider2D<TVertex, TCell> //where TVertex:IPoint2D 
     {
-        (IReadOnlyList<TVertex> vertices, IReadOnlyList<CellConnectivity2D> cells) CreateMesh();
+        (IReadOnlyList<TVertex> vertices, IReadOnlyList<TCell> cells) CreateMesh();
     }
 }

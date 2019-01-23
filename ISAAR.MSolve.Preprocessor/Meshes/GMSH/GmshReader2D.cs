@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
     /// in the .msh file, therefore some care is needed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class GmshReader2D: IDisposable, IMeshProvider2D<Node2D>
+    public class GmshReader2D: IDisposable, IMeshProvider2D<Node2D, CellConnectivity2D>
     {
         private readonly StreamReader reader;
 

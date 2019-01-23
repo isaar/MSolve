@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         private static int[] CalculateRowIndex(ISubdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary)
         {
             int[] rowHeights = new int[subdomain.TotalDOFs];
-            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            foreach (IElement element in subdomain.ElementsDictionary.Values)
             {
                 int minDOF = Int32.MaxValue;
                 foreach (INode node in element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element))
@@ -39,8 +39,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 rowIndex[i + 1] = rowIndex[i] + rowHeights[i] + 1;
             return rowIndex;
         }
-		
-        public static SkylineMatrix2D CalculateGlobalMatrix(ISubdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateFreeFreeGlobalMatrix(ISubdomain subdomain, Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary, IElementMatrixProvider elementProvider) //TODOMaria this is where the free-free matrix is calculated 
         {
             // TODO: should encapsulate DOF logic into a separate entity that will manage things if embedded or not (should return element matrix and globaldofs correspondence list
             var times = new Dictionary<string, TimeSpan>();
@@ -49,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             times.Add("rowIndexCalculation", DateTime.Now - totalStart);
             times.Add("element", TimeSpan.Zero);
             times.Add("addition", TimeSpan.Zero);
-            foreach (IElement element in subdomain.ΙElementsDictionary.Values)
+            foreach (IElement element in subdomain.ElementsDictionary.Values)
             {
                 var isEmbeddedElement = element.IElementType is IEmbeddedElement;
                 var elStart = DateTime.Now;
@@ -94,9 +93,9 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return K;
         }
 
-        public static SkylineMatrix2D CalculateGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementProvider)
+        public static SkylineMatrix2D CalculateFreeFreeGlobalMatrix(ISubdomain subdomain, IElementMatrixProvider elementProvider)
         {
-            return CalculateGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
+            return CalculateFreeFreeGlobalMatrix(subdomain, subdomain.NodalDOFsDictionary, elementProvider);
         }
     }
 }

@@ -49,9 +49,9 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             /// Or set a path on your machine
             //string meshPath = @"C:\Users\Serafeim\Desktop\Presentation\cantilever.msh";
 
-            (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(meshPath);
-            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateUniformMesh();
-            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshManually();
+            (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) = GenerateMeshFromGmsh(meshPath);
+            //(IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) = GenerateUniformMesh();
+            //(IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) = GenerateMeshManually();
 
             PreprocessorModel model = CreateModel(nodes, elements);
             if (dynamic) ApplyLoadsDynamic(model);
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Only upper left corner
             double tol = 1E-10;
             model.ApplyNodalLoads(
-                node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol)), 
+                node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol)),
                 DOFType.X, horizontalLoad);
         }
 
@@ -79,12 +79,12 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             model.SetGroundMotion(accelerogramPath, magnifications, 0.02, 53.74);
         }
 
-        private static PreprocessorModel CreateModel(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements)
+        private static PreprocessorModel CreateModel(IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements)
         {
             PreprocessorModel model = PreprocessorModel.Create2DPlaneStress(thickness);
 
             // Materials properties
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            ElasticMaterial2D_v2 material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Prescribed displacements: all nodes at the bottom
             double tol = 1E-10;
-            IEnumerable<Node2D> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
+            IEnumerable<Node_v2> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
             model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
 
@@ -116,50 +116,50 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             return output;
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshManually()
+        private static (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) GenerateMeshManually()
         {
-            Node2D[] nodes =
+            Node_v2[] nodes =
             {
-                new Node2D(0, 0.0, 0.0),
-                new Node2D(1, length, 0.0),
-                new Node2D(2, 0.0, 0.25 * height),
-                new Node2D(3, length, 0.25 * height),
-                new Node2D(4, 0.0, 0.50 * height),
-                new Node2D(5, length, 0.50 * height),
-                new Node2D(6, 0.0, 0.75 * height),
-                new Node2D(7, length, 0.75 * height),
-                new Node2D(8, 0.0, height),
-                new Node2D(9, length, height)
+                new Node_v2 { ID = 0, X = 0.0,    Y = 0.0 },
+                new Node_v2 { ID = 1, X = length, Y = 0.0 },
+                new Node_v2 { ID = 2, X = 0.0,    Y = 0.25 * height },
+                new Node_v2 { ID = 3, X = length, Y = 0.25 * height },
+                new Node_v2 { ID = 4, X = 0.0,    Y = 0.50 * height },
+                new Node_v2 { ID = 5, X = length, Y = 0.50 * height },
+                new Node_v2 { ID = 6, X = 0.0,    Y = 0.75 * height },
+                new Node_v2 { ID = 7, X = length, Y = 0.75 * height },
+                new Node_v2 { ID = 8, X = 0.0,    Y = height },
+                new Node_v2 { ID = 9, X = length, Y = height }
             };
 
             CellType2D[] cellTypes = { CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4 };
 
-            CellConnectivity2D[] elements =
+            CellConnectivity_v2[] elements =
             {
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[6], nodes[7], nodes[9], nodes[8]})
+                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
+                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
+                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
+                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[6], nodes[7], nodes[9], nodes[8]})
             };
 
             return (nodes, elements);
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshFromGmsh(string path)
+        private static (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) GenerateMeshFromGmsh(string path)
         {
-            using (var reader = new GmshReader2D(path))
+            using (var reader = new GmshReader_v2(path))
             {
                 return reader.CreateMesh();
             }
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateUniformMesh()
+        private static (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) GenerateUniformMesh()
         {
-            var meshGen = new UniformMeshGenerator(0.0, 0.0, length, height, 4, 20);
+            var meshGen = new UniformMeshGenerator_v2(0.0, 0.0, length, height, 4, 20);
             return meshGen.CreateMesh();
         }
 
-        private static void PrintMeshOnly(Model model)
+        private static void PrintMeshOnly(Model_v2 model)
         {
             var mesh = new VtkMesh2D(model);
             using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))

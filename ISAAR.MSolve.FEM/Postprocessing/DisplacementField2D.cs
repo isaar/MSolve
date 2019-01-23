@@ -1,9 +1,9 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Postprocessing
 {
@@ -13,29 +13,29 @@ namespace ISAAR.MSolve.FEM.Postprocessing
     /// </summary>
     public class DisplacementField2D
     {
-        private readonly Dictionary<Node, double[]> data;
-        private readonly Model model;
+        private readonly Dictionary<Node_v2, double[]> data;
+        private readonly Model_v2 model;
 
-        public DisplacementField2D(Model model)
+        public DisplacementField2D(Model_v2 model)
         {
             this.model = model;
-            this.data = new Dictionary<Node, double[]>(model.Nodes.Count);
+            this.data = new Dictionary<Node_v2, double[]>(model.Nodes.Count);
         }
 
-        public void FindNodalDisplacements(IVector solution)
+        public void FindNodalDisplacements(IVectorView solution)
         {
             foreach (var idxNodePair in model.NodesDictionary)
             {
-                Dictionary<DOFType, int> nodalDofs = model.NodalDOFsDictionary[idxNodePair.Key];
-                if (nodalDofs.Count != 2) throw new Exception("There must be exactly 2 dofs per node, X and Y");
-                int dofXIdx = nodalDofs[DOFType.X];
+                Node_v2 node = idxNodePair.Value;
+                //if (nodalDofs.Count != 2) throw new Exception("There must be exactly 2 dofs per node, X and Y");
+                int dofXIdx = model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.X];
                 double ux = (dofXIdx != Model.constrainedDofIdx) ? solution[dofXIdx] : 0.0;
-                int dofYIdx = nodalDofs[DOFType.Y];
+                int dofYIdx = model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.Y];
                 double uy = (dofYIdx != Model.constrainedDofIdx) ? solution[dofYIdx] : 0.0;
                 data.Add(idxNodePair.Value, new double[] { ux, uy });
             }
         }
 
-        public double[] this[Node node] => data[node];
+        public double[] this[Node_v2 node] => data[node];
     }
 }

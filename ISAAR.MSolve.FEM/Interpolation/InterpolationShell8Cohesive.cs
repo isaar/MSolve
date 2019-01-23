@@ -12,7 +12,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationShell8Cohesive: IsoparametricInterpolation2DBase
+    public class InterpolationShell8Cohesive: IsoparametricInterpolation2DBase_OLD
     {
         private static readonly InterpolationShell8Cohesive uniqueInstance = new InterpolationShell8Cohesive();
 

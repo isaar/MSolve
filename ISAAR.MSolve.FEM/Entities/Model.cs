@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
-    public class Model:IStructuralModel
+    public class Model : IStructuralModel
     {
         public const int constrainedDofIdx = -1;
         private int totalDOFs = 0;
@@ -17,6 +19,7 @@ namespace ISAAR.MSolve.FEM.Entities
         private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();
         private readonly Dictionary<int, Cluster> clustersDictionary = new Dictionary<int, Cluster>();
         private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();//TODOMaria: maybe it's useless in model class
         private readonly IList<Load> loads = new List<Load>();
         private readonly IList<ElementMassAccelerationLoad> elementMassAccelerationLoads = new List<ElementMassAccelerationLoad>();
         private readonly IList<MassAccelerationLoad> massAccelerationLoads = new List<MassAccelerationLoad>();
@@ -44,18 +47,18 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return subdomainsDictionary; }
         }
 
-	    public Dictionary<int, ISubdomain> ISubdomainsDictionary
-	    {
-		    get
-		    {
-			    var a = new Dictionary<int, ISubdomain>();
-			    foreach (var subdomain in subdomainsDictionary.Values)
-				    a.Add(subdomain.ID,subdomain);
-				return a;
-		    }
-	    }
+        public Dictionary<int, ISubdomain> ISubdomainsDictionary
+        {
+            get
+            {
+                var a = new Dictionary<int, ISubdomain>();
+                foreach (var subdomain in subdomainsDictionary.Values)
+                    a.Add(subdomain.ID, subdomain);
+                return a;
+            }
+        }
 
-		public Dictionary<int, Cluster> ClustersDictionary
+        public Dictionary<int, Cluster> ClustersDictionary
         {
             get { return clustersDictionary; }
         }
@@ -78,6 +81,11 @@ namespace ISAAR.MSolve.FEM.Entities
         public IList<Cluster> Clusters
         {
             get { return clustersDictionary.Values.ToList<Cluster>(); }
+        }
+
+        public Dictionary<int, Dictionary<DOFType, double>> Constraints
+        {
+            get { return this.constraintsDictionary; }
         }
 
         public IList<Load> Loads
@@ -132,7 +140,7 @@ namespace ISAAR.MSolve.FEM.Entities
                     element.Subdomain = subdomain;
         }
 
-        private void BuildInterconnectionData()
+        private void BuildInterconnectionData()//TODOMaria: maybe I have to generate the constraints dictionary for each subdomain here
         {
             BuildSubdomainOfEachElement();
             DuplicateInterSubdomainEmbeddedElements();
@@ -193,9 +201,20 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
                 {
                     int dofID = 0;
-                    foreach (DOFType constraint in node.Constraints)
+                    #region removeMaria
+                    //foreach (DOFType constraint in node.Constraints)
+                    //{
+                    //    if (constraint == dofType)
+                    //    {
+                    //        dofID = -1;
+                    //        break;
+                    //    }
+                    //}
+                    #endregion
+
+                    foreach (var constraint in node.Constraints)
                     {
-                        if (constraint == dofType)
+                        if (constraint.DOF == dofType)
                         {
                             dofID = -1;
                             break;
@@ -233,6 +252,22 @@ namespace ISAAR.MSolve.FEM.Entities
                 subdomain.EnumerateDOFs();
                 subdomain.AssignGlobalNodalDOFsFromModel(nodalDOFsDictionary);
             }
+        }
+
+        private void BuildConstraintDisplacementDictionary()
+        {
+            foreach (Node node in nodesDictionary.Values)
+            {
+                if (node.Constraints == null) continue;
+                constraintsDictionary[node.ID] = new Dictionary<DOFType, double>();
+                foreach (Constraint constraint in node.Constraints)
+                {
+                    constraintsDictionary[node.ID][constraint.DOF] = constraint.Amount;
+                }
+            }
+
+            foreach (Subdomain subdomain in subdomainsDictionary.Values)
+                subdomain.BuildConstraintDisplacementDictionary();
         }
 
         private void AssignNodalLoads()
@@ -303,7 +338,11 @@ namespace ISAAR.MSolve.FEM.Entities
             EnumerateDOFs();
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
+
+            //TODOMaria: Here is where the element loads are assembled
             AssignLoads();
+
+            BuildConstraintDisplacementDictionary();
         }
         #endregion
 
@@ -315,6 +354,7 @@ namespace ISAAR.MSolve.FEM.Entities
             elementsDictionary.Clear();
             nodesDictionary.Clear();
             nodalDOFsDictionary.Clear();
+            constraintsDictionary.Clear();
             elementMassAccelerationHistoryLoads.Clear();
             elementMassAccelerationLoads.Clear();
             massAccelerationHistoryLoads.Clear();

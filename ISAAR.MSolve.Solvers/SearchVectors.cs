@@ -11,6 +11,8 @@ namespace ISAAR.MSolve.Solvers
 {
     public static class SearchVectors
     {
+        //TODO: I think this method should also update the ps, qs caches, by popping the oldest one and adding the new p, q.
+        //      There should also be  p*q cache, since they are used multiple times and are cheap to store. 
         public static void CalculateReorthogonalizedSearchVector(IVector z, IVector p, IList<IVector> ps, IList<IVector> qs)
         {
             int procs = VectorExtensions.AffinityCount;
@@ -80,6 +82,9 @@ namespace ISAAR.MSolve.Solvers
             }
         }
 
+        //TODO: If this works correctly, it returns a = (p*r) / (p*q). Provided this is the line search operation of CG, I think 
+        //      the correct would be alpha = (r*r) / (p*q) in CG or alpa = (z*r) / (p*q) in PCG. In addition, reorthogonalization
+        //      should not affect this operation.
         public static double CalculateReorthogonalizedGradient(IVector p, IVector q, IVector r, IList<IVector> ps, IList<IVector> qs)
         {
             ps.Add(new Vector(p.Length));
@@ -95,7 +100,7 @@ namespace ISAAR.MSolve.Solvers
             {
                 //Array.Copy(p.Data, limit.Item2, ps[ps.Count - 1].Data, limit.Item2, limit.Item3 - limit.Item2);
                 //Array.Copy(q.Data, limit.Item2, qs[qs.Count - 1].Data, limit.Item2, limit.Item3 - limit.Item2);
-                p.CopyFrom(limit.Item2, limit.Item3 - limit.Item2, ps[ps.Count - 1], limit.Item2);
+                p.CopyFrom(limit.Item2, limit.Item3 - limit.Item2, ps[ps.Count - 1], limit.Item2); //TODO: Aren't ps[ps.Count - 1] and qs[ps.Count - 1] zero vectors at this point?
                 q.CopyFrom(limit.Item2, limit.Item3 - limit.Item2, qs[ps.Count - 1], limit.Item2);
                 for (int j = limit.Item2; j < limit.Item3; j++)
                 {
@@ -111,14 +116,14 @@ namespace ISAAR.MSolve.Solvers
                 a += aTemp[i];
                 b += bTemp[i];
             }
-            return a / b;
+            return a / b; 
         }
 
         public static bool InitializeStartingVectorFromReorthogonalizedSearchVectors(IVector x, IVector b, IList<IVector> ps, IList<IVector> qs)
         {
             if (ps.Count == 0) return false;
 
-            ps.RemoveAt(ps.Count - 1);
+            ps.RemoveAt(ps.Count - 1); // Why remove the last one?
             qs.RemoveAt(qs.Count - 1);
             var xx = x;
             xx.Clear();

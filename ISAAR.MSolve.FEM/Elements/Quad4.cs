@@ -422,6 +422,9 @@ namespace ISAAR.MSolve.FEM.Elements
             //	CalcQ4GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             //	CalcQ4Forces(ref iInt, faB, faWeight, faStresses, faForces);
 
+            double[] localdForces = new double[localdDisplacements.Length];
+            StiffnessMatrix(element).Multiply(new Vector(localdDisplacements), localdForces);
+
             return faForces;
         }
 
