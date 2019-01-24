@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -38,7 +39,7 @@ namespace ISAAR.MSolve.Problems
 
                 //double[] localSolution = subdomain.CalculateElementNodalDisplacements(element, solution);
                 //double[] localdSolution = subdomain.CalculateElementIcrementalConstraintDisplacements(element, constraintScalingFactor);
-                Vector localdSolution = 
+                double[] localdSolution = 
                     subdomain.CalculateElementIncrementalConstraintDisplacements(element, constraintScalingFactor);
 
                 var elementEquivalentForces = elementK.Multiply(localdSolution);

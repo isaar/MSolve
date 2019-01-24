@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -19,7 +16,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable FreeDofs { get; }
         public int NumFreeDofs { get; }
 
-        public void AddVectorElementToSubdomain(IElement_v2 element, IVectorView elementVector, IVector subdomainVector)
+        public void AddVectorElementToSubdomain(IElement_v2 element, double[] elementVector, IVector subdomainVector)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
@@ -49,7 +46,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return numElementDofs;
         }
 
-        public Vector ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
+        public double[] ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
@@ -71,7 +68,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
                 }
             }
 
-            return Vector.CreateFromArray(elementVector);
+            return elementVector;
         }
 
         public void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector)

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -19,7 +17,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         int NumFreeDofs { get; }
 
         //TODO: What should it contain for constrained dofs?
-        void AddVectorElementToSubdomain(IElement_v2 element, IVectorView elementVector, IVector subdomainVector);
+        void AddVectorElementToSubdomain(IElement_v2 element, double[] elementVector, IVector subdomainVector);
 
         int CountElementDofs(IElement_v2 element);
 
@@ -28,7 +26,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         //TODO: Should the element vector be passed in and modified instead. So far in all usecases the vector was created by 
         //      the client using CountElementDofs() immediately before passing it to this method.
         //TODO: should the returned type be IVector?
-        Vector ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector); 
+        double[] ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector); 
 
         (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement_v2 element);
 

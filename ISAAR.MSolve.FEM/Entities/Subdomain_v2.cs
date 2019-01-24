@@ -59,16 +59,16 @@ namespace ISAAR.MSolve.FEM.Entities
 
         //TODO: This belongs in EquivalentLoadsAssembler
         //TODO: the constraintScalingFactor parameter is not used.
-        public Vector CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            var elementNodalDisplacements = Vector.CreateZero(DofOrdering.CountElementDofs(element));
+            var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
             ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }
 
-        public Vector CalculateElementDisplacements(Element_v2 element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public double[] CalculateElementDisplacements(Element_v2 element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            Vector elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+            double[] elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
             ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }
@@ -171,12 +171,12 @@ namespace ISAAR.MSolve.FEM.Entities
                 //var localdSolution = GetLocalVectorFromGlobal(element, dSolution);//removeMaria
 
                 //TODO: ElementType should operate with Vector instead of double[]. Then the ToRawArray() calls can be removed
-                double[] localSolution = CalculateElementDisplacements(element, solution).ToRawArray();
-                double[] localdSolution = CalculateElementDisplacements(element, dSolution).ToRawArray();
+                double[] localSolution = CalculateElementDisplacements(element, solution);
+                double[] localdSolution = CalculateElementDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
-                var f = Vector.CreateFromArray(element.ElementType.CalculateForces(element, localSolution, localdSolution));
+                var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 DofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }
             return forces;
@@ -201,7 +201,7 @@ namespace ISAAR.MSolve.FEM.Entities
         //      by various analyzer classes and as such does not need rewriting for IGA, XFEM or other problem types. Also it 
         //      can perform optimizations, such as using a prescribed displacements vector and element constrained dof maps,
         //      similarly to how free displacements are handled by ISubdomainFreeDofOrdering
-        private static void ApplyConstraintDisplacements(IElement_v2 element, Vector elementNodalDisplacements,
+        private static void ApplyConstraintDisplacements(IElement_v2 element, double[] elementNodalDisplacements,
             Table<INode, DOFType, double> constraints)
         {
             int elementDofIdx = 0;

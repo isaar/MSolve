@@ -68,8 +68,7 @@ namespace ISAAR.MSolve.FEM.Entities
                     foreach (Element_v2 element in subdomain.Elements)
                     {
                         double[] accelerationForces = element.ElementType.CalculateAccelerationForces(element, m);
-                        subdomain.DofOrdering.AddVectorElementToSubdomain(element,
-                            Vector.CreateFromArray(accelerationForces), subdomain.Forces);
+                        subdomain.DofOrdering.AddVectorElementToSubdomain(element, accelerationForces, subdomain.Forces);
                     }
                 }
             }
@@ -82,8 +81,8 @@ namespace ISAAR.MSolve.FEM.Entities
                 };
                 Element_v2 element = load.Element;
                 ISubdomain_v2 subdomain = element.Subdomain;
-                var accelerationForces = Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(
-                    load.Element, (new MassAccelerationLoad[] { hl }).ToList()));
+                var accelerationForces = element.ElementType.CalculateAccelerationForces(
+                    load.Element, (new MassAccelerationLoad[] { hl }).ToList());
                 globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
                     subdomain.Forces);
             }
@@ -137,8 +136,8 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (ElementMassAccelerationLoad_v2 load in ElementMassAccelerationLoads)
             {
                 ISubdomain_v2 subdomain = load.Element.Subdomain;
-                var accelerationForces = Vector.CreateFromArray(
-                    load.Element.ElementType.CalculateAccelerationForces(load.Element, MassAccelerationLoads));
+                var accelerationForces = load.Element.ElementType.CalculateAccelerationForces(
+                    load.Element, MassAccelerationLoads);
                 globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
                     accelerationForces, subdomain.Forces);
             }
@@ -153,7 +152,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (Element_v2 element in subdomain.Elements)
                 {
                     subdomain.DofOrdering.AddVectorElementToSubdomain(element,
-                        Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads)),
+                        element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads),
                         subdomain.Forces);
                 }
             }
