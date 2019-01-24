@@ -14,13 +14,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
         private static readonly double pivotTolerance = 1E-7;
 
         [Fact]
-        private static void TestFullUpper1()
+        private static void TestFactorizeFullUpper1()
         {
             // positive definite
             var A1 = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
             var expectedU1 = Matrix.CreateFromArray(SymmPosDef10by10.FactorU);
 
-            int errorCode = CholeskyFactorizations.FullUpper1(A1.NumColumns, A1, pivotTolerance);
+            int errorCode = CholeskyFactorizations.FactorizeFullUpper1(A1.NumColumns, A1, pivotTolerance);
             Assert.True(errorCode == 0);
 
             var computedU1 = Matrix.CreateFromArray(Conversions.FullUpperColMajorToArray2D(A1.RawData, false));
@@ -28,13 +28,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
         }
 
         [Fact]
-        private static void TestFullUpper2()
+        private static void TestFactorizeFullUpper2()
         {
             // positive definite
             var A1 = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
             var U1Expected = Matrix.CreateFromArray(SymmPosDef10by10.FactorU);
 
-            int errorCode = CholeskyFactorizations.FullUpper2(A1.NumColumns, A1, pivotTolerance);
+            int errorCode = CholeskyFactorizations.FactorizeFullUpper2(A1.NumColumns, A1, pivotTolerance);
             Assert.True(errorCode == 0);
 
             var U1Computed = Matrix.CreateFromArray(Conversions.FullUpperColMajorToArray2D(A1.RawData, false));
@@ -44,19 +44,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
         [Fact]
         private static void TestSystemSolutionFullUpper()
         {
-            // positive definite
             int n = SymmPosDef10by10.Order;
-            var A1 = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
-            var b1 = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
-            var x1Expected = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
+            var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            var b = SymmPosDef10by10.Rhs;
+            var xExpected = SymmPosDef10by10.Lhs;
 
-            int errorCode = CholeskyFactorizations.FullUpper2(A1.NumColumns, A1, pivotTolerance);
+            // Factorization
+            int errorCode = CholeskyFactorizations.FactorizeFullUpper2(A.NumColumns, A, pivotTolerance);
             Assert.True(errorCode == 0);
 
-            var x1Computed = Vector.CreateZero(n);
-            CholeskyFactorizations.SolveSystemFullUpper(n, A1, b1.RawData, x1Computed.RawData);
+            // Forward substitution
+            var x1Computed = new double[n];
+            var x2Computed = new double[n];
+            CholeskyFactorizations.ForwardSubstitutionFullUpper(n, A, b, x1Computed);
+            CholeskyFactorizations.ForwardSubstitutionFullUpper(n, A, b, x2Computed);
 
-            comparer.AssertEqual(x1Expected, x1Computed);
+            // Back substitution - column / vector version
+            CholeskyFactorizations.BackSubstitutionFullUpper1(n, A, x1Computed);
+            comparer.AssertEqual(xExpected, x1Computed);
+
+            // Back substitution - dot version
+            CholeskyFactorizations.BackSubstitutionFullUpper2(n, A, x2Computed);
+            comparer.AssertEqual(xExpected, x2Computed);
         }
     }
 }
