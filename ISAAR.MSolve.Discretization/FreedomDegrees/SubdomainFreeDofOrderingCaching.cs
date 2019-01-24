@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -23,10 +20,11 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable FreeDofs { get; }
         public int NumFreeDofs { get; }
 
-        public void AddVectorElementToSubdomain(IElement_v2 element, IVectorView elementVector, IVector subdomainVector)
+        public void AddVectorElementToSubdomain(IElement_v2 element, double[] elementVector, IVector subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-            subdomainVector.AddNonContiguouslyFrom(subdomainDofIndices, elementVector, elementDofIndices);
+            subdomainVector.AddNonContiguouslyFrom(
+                subdomainDofIndices, Vector.CreateFromArray(elementVector), elementDofIndices);
         }
 
         public int CountElementDofs(IElement_v2 element)
@@ -35,11 +33,12 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return numAllDofs;
         }
 
-        public Vector ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
+        public double[] ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-            var elementVector = Vector.CreateZero(numAllDofs);
-            elementVector.CopyNonContiguouslyFrom(elementDofIndices, subdomainVector, subdomainDofIndices);
+            var elementVector = new double[numAllDofs];
+            Vector.CreateFromArray(elementVector).CopyNonContiguouslyFrom(
+                elementDofIndices, subdomainVector, subdomainDofIndices);
             return elementVector;
 
             //double[] elementVector = new double[numAllDofs];

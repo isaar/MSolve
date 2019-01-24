@@ -7,7 +7,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
@@ -31,10 +30,10 @@ namespace ISAAR.MSolve.FEM.Elements
         protected readonly double initialLength;
         protected double currentLength;
         protected Matrix currentRotationMatrix;
-        protected Vector naturalDeformations;
-        protected Vector beamAxisX;
-        protected Vector beamAxisY;
-        protected Vector beamAxisZ;
+        protected double[] naturalDeformations;
+        protected double[] beamAxisX;
+        protected double[] beamAxisY;
+        protected double[] beamAxisZ;
 
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
@@ -49,9 +48,9 @@ namespace ISAAR.MSolve.FEM.Elements
             this.initialLength = Math.Sqrt(Math.Pow(nodes[0].X - nodes[1].X, 2) + Math.Pow(nodes[0].Y - nodes[1].Y, 2));
             this.currentLength = this.initialLength;
             this.currentRotationMatrix = Matrix.CreateZero(AXIS_COUNT, AXIS_COUNT);
-            this.naturalDeformations = Vector.CreateZero(NATURAL_DEFORMATION_COUNT);
-            this.beamAxisX = Vector.CreateZero(AXIS_COUNT);
-            this.beamAxisY = Vector.CreateZero(AXIS_COUNT);
+            this.naturalDeformations = new double[NATURAL_DEFORMATION_COUNT];
+            this.beamAxisX = new double[AXIS_COUNT];
+            this.beamAxisY = new double[AXIS_COUNT];
         }
 
         public int ID => 100;
@@ -138,19 +137,19 @@ namespace ISAAR.MSolve.FEM.Elements
             return constitutiveStiffness.CopyToFullMatrix();
         }
 
-        private Vector CalculateForcesInGlobalSystem()
+        private double[] CalculateForcesInGlobalSystem()
         {
-            Vector forcesNatural = this.CalculateForcesInNaturalSystem();
+            double[] forcesNatural = this.CalculateForcesInNaturalSystem();
             Matrix transformationMatrix = this.CalculateNaturalToLocalTranformMatrix();
-            Vector forcesLocal = transformationMatrix * forcesNatural;            
+            double[] forcesLocal = transformationMatrix.Multiply(forcesNatural);            
             Matrix blockRotationMatrix = this.CalculateBlockRotationMatrix();
-            Vector forcesGlobal = blockRotationMatrix * forcesLocal;
+            double[] forcesGlobal = blockRotationMatrix.Multiply(forcesLocal);
             return forcesGlobal;
         }
 
-        private Vector CalculateForcesInNaturalSystem()
+        private double[] CalculateForcesInNaturalSystem()
         {
-            var forcesNatural = Vector.CreateZero(NATURAL_DEFORMATION_COUNT);
+            var forcesNatural = new double[NATURAL_DEFORMATION_COUNT];
             double E = this.material.YoungModulus;
             double G = E / (2d * (1d + this.material.PoissonRatio));
             double I = this.beamSection.Inertia;
@@ -263,7 +262,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             var internalForces = this.CalculateForcesInGlobalSystem();
-            return internalForces.ToRawArray();
+            return internalForces;
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
