@@ -3,7 +3,6 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using Xunit;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
@@ -20,9 +19,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
             var A1 = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
             var expectedU1 = Matrix.CreateFromArray(SymmPosDef10by10.FactorU);
 
-            int errorCode = CholeskyFactorizations.FactorizeFullUpper1(A1.NumColumns, A1, pivotTolerance);
-            Assert.True(errorCode == 0);
-
+            CholeskyFactorizations.FactorizeFullUpper1(A1.NumColumns, A1, pivotTolerance);
             var computedU1 = Matrix.CreateFromArray(Conversions.FullUpperColMajorToArray2D(A1.RawData, false));
             comparer.AssertEqual(expectedU1, computedU1);
         }
@@ -34,8 +31,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
             var A1 = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
             var U1Expected = Matrix.CreateFromArray(SymmPosDef10by10.FactorU);
 
-            int errorCode = CholeskyFactorizations.FactorizeFullUpper2(A1.NumColumns, A1, pivotTolerance);
-            Assert.True(errorCode == 0);
+            CholeskyFactorizations.FactorizeFullUpper2(A1.NumColumns, A1, pivotTolerance);
 
             var U1Computed = Matrix.CreateFromArray(Conversions.FullUpperColMajorToArray2D(A1.RawData, false));
             comparer.AssertEqual(U1Expected, U1Computed);
@@ -50,8 +46,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
             var xExpected = SymmPosDef10by10.Lhs;
 
             // Factorization
-            int errorCode = CholeskyFactorizations.FactorizeFullUpper2(A.NumColumns, A, pivotTolerance);
-            Assert.True(errorCode == 0);
+            CholeskyFactorizations.FactorizeFullUpper2(A.NumColumns, A, pivotTolerance);
 
             // Forward substitution
             var x1Computed = new double[n];

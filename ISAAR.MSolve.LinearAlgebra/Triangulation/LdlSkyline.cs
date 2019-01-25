@@ -63,7 +63,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                     K = n - KH; // index of top entry in column n
                     //int IC = 0;
                     int KLT = KU; // Offset of non-zero entries in column n. Starts from the top (KU-1) and goes down till the diagonal.
-                    for (int j = 0; j < KH; j++)
+
+                    // Dot product of parts of columns n, j: sum(U[k,n]*U[k,j]). The formula is usually: 
+                    // sum(L[i,n]*L[k,j]/D[k,k]), but the diagonal entries will be processed in the next nested loop.
+                    for (int j = 0; j < KH; j++) 
                     {
                         //IC++;
                         KLT--;
@@ -86,8 +89,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                 for (int KK = KL; KK <= KU; KK++)
                 {
                     K--;
-                    int KI = skyDiagOffsets[K];
-                    if (Math.Abs(skyValues[KI]) < pivotTolerance)
+                    int KI = skyDiagOffsets[K]; // offset of diagonal entry of previous column: D[k,k] in the original algorithm
+
+                    //TODO: values[diagOffsets[K]] (K<n) is the diagonal entry of a previous column and was updated in a 
+                    //      previous iteration. When that happened, if it was near-zero, it was set to 1 and column K was added 
+                    //      to the nullspace. Therefore this check is useless. Moreover it doesn't make sense, since this 
+                    //      semidefinite-LDL algorithm is supposed to work for singular matrices too.
+                    if (Math.Abs(skyValues[KI]) < pivotTolerance) 
                     {
                         throw new SingularMatrixException($"Near-zero element in diagonal at index {KI}."); //TODO: Not sure if this happens only to singular matrices.
                     }

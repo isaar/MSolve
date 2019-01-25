@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
@@ -20,7 +21,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
         /// Returns 0 if the factorization was successful. If the matrix is not positive definite, returns the column index 
         /// where a negative subroot appears first.
         /// </summary>
-        internal static int FactorizeFullUpper1(int n, Matrix A, double pivotTolerance) 
+        internal static void FactorizeFullUpper1(int n, Matrix A, double pivotTolerance) 
         {
             // I think this is called jik dot form
             //TODO: Efficiency can be improved by incrementing the offsets and using temp variables for some array reads.
@@ -50,17 +51,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
 
                 // if A[j,j] = sqrt(A[j,j]-dotColsJJ), but if the subroot is <= 0, then the matrix is not positive definite
                 double subroot = A[j, j] - dotColsJJ;
-                if (subroot <= pivotTolerance) return j;
+                if (subroot <= pivotTolerance) throw new IndefiniteMatrixException(
+                    $"Leading minor of order {j} is not positive and the factorization could not be completed.");
                 A[j, j] = Math.Sqrt(subroot);
             }
-            return 0;
         }
 
         /// <summary>
         /// Returns 0 if the factorization was successful. If the matrix is not positive definite, returns the column index 
         /// where a negative subroot appears first.
         /// </summary>
-        internal static int FactorizeFullUpper2(int n, Matrix A, double pivotTolerance)
+        internal static void FactorizeFullUpper2(int n, Matrix A, double pivotTolerance)
         {
             // This version can be found in 
             // https://algowiki-project.org/en/Cholesky_decomposition#Software_implementation_of_the_algorithm.
@@ -79,7 +80,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
 
                 // if A[i,i] = sqrt(A[i,i]-dotII), but if the subroot is <= 0, then the matrix is not positive definite
                 double subroot = A[i, i] - dotColsII;
-                if (subroot < pivotTolerance) return i;
+                if (subroot < pivotTolerance) throw new IndefiniteMatrixException(
+                    $"Leading minor of order {i} is not positive and the factorization could not be completed.");
                 A[i, i] = Math.Sqrt(subroot);
 
                 // Update each A[i,j] by traversing the row i from the diagonal to the right
@@ -94,7 +96,71 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
                     A[i, j] = (A[i, j] - dotColsIJ) / A[i, i];
                 }
             }
-            return 0;
+        }
+
+        /// <summary>
+        /// Returns 0 if the factorization was successful. If the matrix is not positive definite, returns the column index 
+        /// where a negative subroot appears first.
+        /// </summary>
+        internal static (List<int> dependentColumns, List<double[]> nullSpaceBasis) FactorizeSemiDefiniteFullUpper1(int n, 
+            Matrix A, double pivotTolerance)
+        {
+            var dependentColumns = new List<int>();
+            var nullSpaceBasis = new List<double[]>();
+
+            // Process column j
+            for (int j = 0; j < n; ++j)
+            {
+                // Update each A[i,j] by traversing the column j from top until the diagonal.
+                for (int i = 0; i < j; ++i)
+                {
+                    // Dot product of the parts of columns j, i (i < j) between: [row 0, row i) 
+                    double dotColsIJ = 0.0;
+                    for (int k = 0; k < i; ++k)
+                    {
+                        dotColsIJ += A[k, i] * A[k, j];
+                    }
+                    A[i, j] = (A[i, j] - dotColsIJ) / A[i, i];
+                }
+
+                // Update the diagonal term
+                // Dot product with itself of the part of column j: between: [row 0, row j) 
+                double dotColsJJ = 0.0;
+                for (int k = 0; k < j; ++k)
+                {
+                    dotColsJJ += Math.Pow(A[k, j], 2);
+                }
+
+                // if A[j,j] = sqrt(A[j,j]-dotColsJJ), but if the subroot is <= 0, then the matrix is not positive definite
+                double subroot = A[j, j] - dotColsJJ;
+                if (subroot > pivotTolerance) A[j, j] = Math.Sqrt(subroot); // positive definite
+                else if (subroot < -pivotTolerance) throw new IndefiniteMatrixException(
+                    $"Leading minor of order {j} is negative positive and the factorization could not be completed.");
+                else // positive semidefinite with rank deficiency
+                {
+                    // Set the dependent column to identity and partially calculate a new basis vector of the null space.
+                    dependentColumns.Add(j);
+                    var basisVector = new double[n];
+                    nullSpaceBasis.Add(basisVector);
+
+                    // Copy and negate the dependent factorized column (except for the diagonal) to the null space basis vector.
+                    for (int i = 0; i < n; ++i) basisVector[i] = -A[i, j];
+                    basisVector[j] = 1.0;
+
+                    // Set the dependent column to identity.
+                    for (int i = 0; i < n; ++i) A[i, j] = 0.0;
+                    A[j, j] = 1.0;
+
+                    // The diagonal entries of the skyline column and the null space basis vector are set to 1. 
+                    basisVector[j] = 1.0;
+                    A[j, j] = 1.0;
+                }
+            }
+
+            // The independent columns have been factorized successfully. Apply back substitution to finish the calculation
+            // of each vector in the null space basis.
+            foreach (var basisVector in nullSpaceBasis) BackSubstitutionFullUpper2(n, A, basisVector);
+            return (dependentColumns, nullSpaceBasis);
         }
 
         internal static void ForwardSubstitutionFullUpper(int n, Matrix U, double[] b, double[] x)
