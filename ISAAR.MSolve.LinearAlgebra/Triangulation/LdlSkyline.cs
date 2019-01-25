@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //also implement ISymmetricSparseMatrix.
@@ -17,47 +16,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
     /// is indefinite, but generally pivoting is required, which is not implemented by <see cref="LdlSkyline"/>. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class LdlSkyline : IIndexable2D, ISparseMatrix, ITriangulation
+    public class LdlSkyline : SkylineFactorizationBase
     {
         /// <summary>
         /// The default value under which a diagonal entry (pivot) is considered to be 0 during LDL factorization.
         /// </summary>
         public const double PivotTolerance = 1e-15;
 
-        private readonly double[] values;
-        private readonly int[] diagOffsets;
-
-        private LdlSkyline(int order, double[] values, int[] diagOffsets)
-        {
-            this.NumColumns = order;
-            this.values = values;
-            this.diagOffsets = diagOffsets;
-        }
-
-        /// <summary>
-        /// The number of columns of the matrix. 
-        /// </summary>
-        public int NumColumns { get; }
-
-        /// <summary>
-        /// The number of rows of the matrix.
-        /// </summary>
-        public int NumRows { get { return NumColumns; } }
-
-        /// <summary>
-        /// See <see cref="IIndexable2D.this[int, int]"/>.
-        /// </summary>
-        public double this[int rowIdx, int colIdx]
-        {
-            get
-            {
-                SkylineMatrix.ProcessIndices(ref rowIdx, ref colIdx);
-                int entryHeight = colIdx - rowIdx; // excluding diagonal
-                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffsets[colIdx] - 1; // excluding diagonal
-                if (entryHeight > maxColumnHeight) return 0.0; // outside stored non zero pattern
-                else return values[diagOffsets[colIdx] + entryHeight];
-            }
-        }
+        private LdlSkyline(int order, double[] values, int[] diagOffsets) : base(order, values, diagOffsets)
+        { }
 
         /// <summary>
         /// Calculates the LDL factorization of a symmetric matrix, such that A = transpose(U) * D * U. 
@@ -138,17 +105,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                     zemCols.Add(n);
                     int j1 = n;
                     zems.Add(new double[order]);
-                    zems[kFix][j1] = 1;
-                    for (int i1 = KN + 1; i1 <= KU; i1++)
+                    zems[kFix][j1] = 1; // the diagonal becomes 1
+                    for (int i1 = KN + 1; i1 <= KU; i1++) // The other entries of column n become 0
                     {
                         j1--;
-                        zems[kFix][j1] = -skyValues[i1];
+                        zems[kFix][j1] = -skyValues[i1]; // partial calculation of the zero energy mode
                         skyValues[i1] = 0;
                     }
-                    for (int irest = n + 1; irest < order; irest++)
+                    for (int irest = n + 1; irest < order; irest++) // The other entries of row n become 0
                     {
                         int m1 = skyDiagOffsets[irest] + irest - n;
-                        if (m1 <= skyDiagOffsets[irest + 1]) skyValues[m1] = 0;
+                        if (m1 <= skyDiagOffsets[irest + 1]) skyValues[m1] = 0; //TODO: Why <= instead of < ?
                     }
                     kFix++;
                 }
@@ -189,27 +156,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// <summary>
         /// See <see cref="ITriangulation.CalcDeterminant"/>.
         /// </summary>
-        public double CalcDeterminant()
+        public override double CalcDeterminant()
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>
-        /// See <see cref="ISparseMatrix.CountNonZeros"/>.
-        /// </summary>
-        public int CountNonZeros() => values.Length;
-
-        /// <summary>
-        /// See <see cref="ISparseMatrix.EnumerateNonZeros"/>.
-        /// </summary>
-        public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
-            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).EnumerateNonZeros();
-
-        /// <summary>
-        /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
-        /// </summary>
-        public bool Equals(IIndexable2D other, double tolerance = 1E-13)
-            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).Equals(other, tolerance);
 
         /// <summary>
         /// Copies the upper triangular matrix U and diagonal matrix D that resulted from the Cholesky factorization: 
@@ -236,15 +186,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         }
 
         /// <summary>
-        /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
-        /// </summary>
-        public SparseFormat GetSparseFormat()
-            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
-
-        /// <summary>
         /// See <see cref="ITriangulation.SolveLinearSystem(Vector, Vector)"/>.
         /// </summary>
-        public void SolveLinearSystem(Vector rhs, Vector solution)
+        public override void SolveLinearSystem(Vector rhs, Vector solution)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
             Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);

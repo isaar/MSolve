@@ -29,11 +29,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </param>
         /// <param name="solution">
         /// Output vector that will be overwritten with the solution of the linear system. Its <see cref="IIndexable1D.Length"/>  
-        /// must be equal to <see cref="Matrices.IIndexable2D.NumRows"/> of the original matrix A.
+        /// must be equal to <see cref="Matrices.IIndexable2D.NumColumns"/> of the original matrix A.
         /// </param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">
-        /// Thrown if the length of <paramref name="rhs"/> or <paramref name="solution"/> are different than
-        /// <see cref="Matrices.IIndexable2D.NumRows"/> of the original matrix A.
+        /// Thrown if <paramref name="rhs"/> or <paramref name="solution"/> violate the described constraints.
         /// </exception>
         void SolveLinearSystem(Vector rhs, Vector solution);
     }

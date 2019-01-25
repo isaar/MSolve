@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
 
                 // if A[j,j] = sqrt(A[j,j]-dotColsJJ), but if the subroot is <= 0, then the matrix is not positive definite
                 double subroot = A[j, j] - dotColsJJ;
-                if (subroot < pivotTolerance) return j;
+                if (subroot <= pivotTolerance) return j;
                 A[j, j] = Math.Sqrt(subroot);
             }
             return 0;
