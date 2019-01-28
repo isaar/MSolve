@@ -7,6 +7,11 @@ using Xunit;
 
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation.SampleImplementations
 {
+    /// <summary>
+    /// Tests for the basic implementations of cholesky factorization and related operations found in 
+    /// <see cref="CholeskyFactorizations"/>.
+    /// AuthorsL Serafeim Bakalakos
+    /// </summary>
     public static class CholeskyFactorizationTests
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
