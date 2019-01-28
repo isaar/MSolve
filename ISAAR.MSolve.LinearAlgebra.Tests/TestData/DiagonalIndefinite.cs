@@ -12,10 +12,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.TestData
     internal static class DiagonalIndefinite
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="evenOrder">The number of rows/columns. It must be even.</param>
-        /// <returns></returns>
+        internal static double[,] BuildeIndefiniteMatrix(int evenOrder)
+        {
+            int n = evenOrder;
+            var A = new double[n, n];
+            for (int i = 0; i < n / 2; ++i) A[i, i] = n / 2 - i;
+            for (int i = 0; i < n / 2; ++i) A[n / 2 + i, n / 2 + i] = -1 - i;
+            return A;
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="evenOrder">The number of rows/columns. It must be even.</param>
         internal static (Matrix A, Vector b, Vector x, IPreconditioner M) BuildIndefiniteSystem(int evenOrder)
         {
             // Example taken from Matlab docs. Creates a diagonal matrix with half its entries being negative.

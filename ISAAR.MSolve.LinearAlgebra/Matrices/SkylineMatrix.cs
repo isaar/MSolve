@@ -134,6 +134,52 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// Initializes a new <see cref="SkylineMatrix"/> that contains the non zero entries of the upper triangle of 
+        /// <paramref name="original"/>. In skyline format, some zero entries will be explicitly stored.
+        /// </summary>
+        /// <param name="original">The matrix that will be copied. It must be symmetric.</param>
+        /// <param name="tolerance">
+        /// The tolerance used to determine if an entry is zero. It will also be used to check, if <paramref name="original"/>
+        /// is symmetric (<paramref name="original"/>[i, j] == <paramref name="original"/>[j, i]).
+        /// </param>
+        public static SkylineMatrix CreateFromMatrix(IIndexable2D original, double tolerance = 1E-10)
+        {
+            Preconditions.CheckSquare(original);
+            if (!original.IsSymmetric(tolerance)) throw new ArgumentException("The original matrix must be symmetric.");
+            
+            // Indexing array
+            var comparer = new ValueComparer(tolerance);
+            int order = original.NumColumns;
+            var diagOffsets = new int[order + 1];
+            //diagOffsets[0] = 0; // by default;
+            for (int j = 0; j < order; ++j)
+            {
+                int colHeight = 0;
+                for (int i = j - 1; i >= 0; --i)
+                {
+                    if (!comparer.AreEqual(0.0, original[i, j])) colHeight = j - i;
+                }
+                diagOffsets[j+1] = diagOffsets[j] + colHeight + 1;
+            }
+
+            // Values array
+            int nnz = diagOffsets[order];
+            var values = new double[nnz];
+            for (int j = 0; j < order; ++j)
+            {
+                int colHeight = diagOffsets[j + 1] - diagOffsets[j] - 1;
+                for (int t = 0; t <= colHeight; ++t)
+                {
+                    int i = j - t; // row index of Aij
+                    int offsetAij = diagOffsets[j] + t;
+                    values[offsetAij] = original[i, j];
+                }
+            }
+
+            return new SkylineMatrix(order, values, diagOffsets);
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="SkylineMatrix"/> with the specified dimensions and the sparsity pattern defined by 
         /// <paramref name="diagOffsets"/>. The stored entries will initially be 0.
         /// </summary>
