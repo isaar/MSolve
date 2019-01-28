@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.SamplesConsole
             //CNTExamples.CNT_4_4_NewtonRaphson();   
             //Tests.FEM.Shell8andCohesiveNonLinear.RunTest_v2();
 
-            //Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalLoadControl();            
+            //Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalDisplacementControl();
             //CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_NewtonRaphson();
             //CNTembeddedInMatrixExample.EmbeddedCNTinMatrix_DisplacementControl();
             EmbeddedEBEmodelInMatrix.EmbeddedEBEinMatrix_NewtonRaphson();

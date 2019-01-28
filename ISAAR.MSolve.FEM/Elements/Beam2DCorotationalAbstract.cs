@@ -299,7 +299,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
         {
-            throw new NotImplementedException();
+            return CalculateForces(element, localDisplacements, null);
         }
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)

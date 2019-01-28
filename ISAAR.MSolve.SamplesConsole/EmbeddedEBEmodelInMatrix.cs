@@ -237,6 +237,18 @@ namespace ISAAR.MSolve.SamplesConsole
                     }
                 }
 
+                // Boundary Conditions - Bottom End [End-5]
+                for (int iNode = 1; iNode <= 43; iNode += 2)
+                {
+                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                }
+
+                // Boundary Conditions - Bottom End [End-6]
+                for (int iNode = 2; iNode <= 44; iNode += 2)
+                {
+                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                }
+                
                 // Add nodal load values at the top nodes of the model
                 //for (int iNode = 161; iNode <= 164; iNode++) //(int iNode = 338001; iNode <= 338026; iNode++) //(int iNode = 3601; iNode <= 3606; iNode++) //(int iNode = 2603551; iNode < 2603601; iNode++)
                 //{
