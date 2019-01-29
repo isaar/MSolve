@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
-    /// Cholesky-like factorization of a symmetric positive semi-definite matrix: A = L * transpose(L) = transpose(U) * U.
-    /// This factorization will apply the Cholesky algorithm on the independent columns of the matrix, set the dependent ones 
+    /// LDL-like factorization of a symmetric positive semi-definite matrix: A = L * D * transpose(L) = transpose(U) * D * U.
+    /// This factorization will apply the LDL algorithm on the independent columns of the matrix, set the dependent ones 
     /// equal to columns of the identity matrix and return the nullspace of the matrix.
-    /// The matrix is stored in full column major format. Only the upper triangle will be factorized though.
+    /// The matrix is stored in skyline format. Only the active columns of the upper triangle part of the matrix is stored and 
+    /// factorized. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SemidefiniteCholeskyFull
+    public class SemidefiniteLdlSkyline
     {
         /// <summary>
         /// The default value under which a diagonal entry (pivot) is considered to be 0 during Cholesky factorization.
@@ -23,47 +23,56 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </summary>
         public const double PivotTolerance = 1e-7; //
 
-        private readonly Matrix upperFactorized;
-        private readonly List<double[]> nullSpaceBasis;
+        private readonly double[] values;
+        private readonly int[] diagOffsets;
+        private readonly List<double[]> nullSpaceBasis; //TODO: should these be sparse vectors?
 
-        private SemidefiniteCholeskyFull(int order, Matrix upperFactorized, 
+        private SemidefiniteLdlSkyline(int order, double[] values, int[] diagOffsets, 
             List<int> dependentColumns, List<double[]> nullSpaceBasis)
         {
             this.Order = order;
-            this.upperFactorized = upperFactorized;
+            this.values = values;
+            this.diagOffsets = diagOffsets;
             this.DependentColumns = dependentColumns;
             this.nullSpaceBasis = nullSpaceBasis;
         }
-
-        /// <summary>
-        /// The number of rows/columns of the original square matrix.
-        /// </summary>
-        public int Order { get; }
 
         public IReadOnlyList<int> DependentColumns { get; }
 
         public IReadOnlyList<double[]> NullSpaceBasis => nullSpaceBasis; //TODO: return IVectorView
 
         /// <summary>
-        /// Applies the Cholesky factorization to the independent columns of a symmetric positive semi-definite matrix,
+        /// The number of rows/columns of the original square matrix.
+        /// </summary>
+        public int Order { get; }
+
+        /// <summary>
+        /// Applies the LDL factorization to the independent columns of a symmetric positive semi-definite matrix,
         /// sets the dependent ones equal to columns of the identity matrix and return the nullspace of the matrix. Requires 
         /// extra memory for the basis vectors of the nullspace.
         /// </summary>
         /// <param name="order">The number of rows/ columns of the square matrix.</param>
-        /// <param name="matrix">The matrix to factorize. It will be overwritten with the factorization data.</param>
+        /// <param name="skyValues">
+        /// The non-zero entries of the original <see cref="SkylineMatrix"/>. This array will be overwritten during the 
+        /// factorization.
+        /// </param>
+        /// <param name="skyDiagOffsets">
+        /// The indexes of the diagonal entries into <paramref name="skyValues"/>. The new 
+        /// <see cref="SemidefiniteLdlSkyline"/> instance will hold a reference to <paramref name="skyDiagOffsets"/>. 
+        /// However they do not need copying, since they will not be altered during or after the factorization.
+        /// </param>
         /// <param name="pivotTolerance">
         /// If a diagonal entry is &lt;= <paramref name="pivotTolerance"/> it means that the corresponding column is dependent 
         /// on the rest. The Cholesky factorization only applies to independent column, while dependent ones are used to compute
         /// the nullspace. Therefore it is important to select a tolerance that will identify small pivots that result from 
         /// singularity, but not from ill-conditioning.
         /// </param>
-        public static SemidefiniteCholeskyFull Factorize(Matrix matrix, double pivotTolerance = PivotTolerance)
+        public static SemidefiniteLdlSkyline Factorize(int order, double[] skyValues, int[] skyDiagOffsets,
+            double pivotTolerance = SemidefiniteLdlSkyline.PivotTolerance)
         {
-            Preconditions.CheckSquare(matrix);
-            int order = matrix.NumColumns;
-            (List<int> dependentColumns, List<double[]> nullSpaceBasis) =
-                CholeskyFactorizations.FactorizeSemiDefiniteFullUpper1(order, matrix, pivotTolerance);
-            return new SemidefiniteCholeskyFull(order, matrix, dependentColumns, nullSpaceBasis);
+            (List<int> dependentColumns, List<double[]> nullSpaceBasis) = 
+                LdlSkyline.FactorizeInternal(order, skyValues, skyDiagOffsets, pivotTolerance);
+            return new SemidefiniteLdlSkyline(order, skyValues, skyDiagOffsets, dependentColumns, nullSpaceBasis);
         }
 
         /// <summary>
@@ -72,7 +81,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         public double CalcDeterminant()
         {
             if (DependentColumns.Count > 0) return 0.0;
-            else throw new NotImplementedException(); //TODO: call the code of the regular CholeskyFull
+            else throw new NotImplementedException(); //TODO: call the code of the regular CholeskyLdl
         }
 
         /// <summary>
@@ -96,9 +105,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             Preconditions.CheckSystemSolutionDimensions(Order, vector.Length);
             Preconditions.CheckMultiplicationDimensions(Order, result.Length);
 
-            // TODO: Is this correct?
-            CholeskyFactorizations.ForwardSubstitutionFullUpper(Order, upperFactorized, vector.RawData, result.RawData);
-            CholeskyFactorizations.BackSubstitutionFullUpper1(Order, upperFactorized, result.RawData);
+            LdlSkyline.Solve(Order, values, diagOffsets, vector.RawData, result.RawData);
         }
     }
 }

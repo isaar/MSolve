@@ -105,6 +105,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
         internal static (List<int> dependentColumns, List<double[]> nullSpaceBasis) FactorizeSemiDefiniteFullUpper1(int n, 
             Matrix A, double pivotTolerance)
         {
+            //TODO: In the examples tested so far, the dependent columns turn out to be the last 3 or 6 columns. Does this 
+            //      always happen? Does this factorization work even if a dependent column is found before an independent one?
+
             var dependentColumns = new List<int>();
             var nullSpaceBasis = new List<double[]>();
 
@@ -138,17 +141,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
                     $"Leading minor of order {j} is negative positive and the factorization could not be completed.");
                 else // positive semidefinite with rank deficiency
                 {
-                    // Set the dependent column to identity and partially calculate a new basis vector of the null space.
+                    // Set the dependent column and row to identity and partially calculate a new basis vector of the null space.
                     dependentColumns.Add(j);
                     var basisVector = new double[n];
                     nullSpaceBasis.Add(basisVector);
 
-                    // Copy and negate the dependent factorized column (except for the diagonal) to the null space basis vector.
-                    for (int i = 0; i < n; ++i) basisVector[i] = -A[i, j];
+                    // Copy and negate the dependent factorized column above the diagonal to the null space basis vector.
+                    for (int i = 0; i < j; ++i) basisVector[i] = -A[i, j];
                     basisVector[j] = 1.0;
 
-                    // Set the dependent column to identity.
-                    for (int i = 0; i < n; ++i) A[i, j] = 0.0;
+                    // Set the dependent column and row to identity.
+                    for (int i = 0; i < n; ++i)
+                    {
+                        A[i, j] = 0.0;
+                        A[j, i] = 0.0;
+                    }
                     A[j, j] = 1.0;
 
                     // The diagonal entries of the skyline column and the null space basis vector are set to 1. 

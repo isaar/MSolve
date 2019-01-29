@@ -42,122 +42,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         public static LdlSkyline Factorize(int order, double[] skyValues, int[] skyDiagOffsets, 
             double pivotTolerance = LdlSkyline.PivotTolerance)
         {
-            // Copied from Stavroulakis code.
-            var zemCols = new List<int>();
-            var zems = new List<double[]>();
+            (List<int> dependentColumns, List<double[]> nullSpaceBasis) = 
+                FactorizeInternal(order, skyValues, skyDiagOffsets, pivotTolerance);
 
-            int kFix = 0;
-
-            #region factorization of positive definite matrix
-            for (int n = 0; n < order; n++)
-            {
-                int KN = skyDiagOffsets[n];
-                int KL = KN + 1;
-                int KU = skyDiagOffsets[n + 1] - 1;
-                int KH = KU - KL; // height of current column
-                if (KH < 0) continue; // TODO: Shouldn't this throw an exception? The height of Skyline columns should be at least 0
-
-                int K;
-                if (KH > 0)
-                {
-                    K = n - KH; // index of top entry in column n
-                    //int IC = 0;
-                    int KLT = KU; // Offset of non-zero entries in column n. Starts from the top (KU-1) and goes down till the diagonal.
-
-                    // Dot product of parts of columns n, j: sum(U[k,n]*U[k,j]). The formula is usually: 
-                    // sum(L[i,n]*L[k,j]/D[k,k]), but the diagonal entries will be processed in the next nested loop.
-                    for (int j = 0; j < KH; j++) 
-                    {
-                        //IC++;
-                        KLT--;
-                        int KI = skyDiagOffsets[K];
-                        int ND = skyDiagOffsets[K + 1] - KI - 1;
-                        if (ND > 0)
-                        {
-                            //int KK = Math.Min(IC, ND);
-                            int KK = Math.Min(j + 1, ND);
-                            double C = 0;
-                            for (int l = 1; l <= KK; l++)
-                                C += skyValues[KI + l] * skyValues[KLT + l];
-                            skyValues[KLT] -= C;
-                        }
-                        K++;
-                    }
-                }
-                K = n;
-                double B = 0;
-                for (int KK = KL; KK <= KU; KK++)
-                {
-                    K--;
-                    int KI = skyDiagOffsets[K]; // offset of diagonal entry of previous column: D[k,k] in the original algorithm
-
-                    //TODO: values[diagOffsets[K]] (K<n) is the diagonal entry of a previous column and was updated in a 
-                    //      previous iteration. When that happened, if it was near-zero, it was set to 1 and column K was added 
-                    //      to the nullspace. Therefore this check is useless. Moreover it doesn't make sense, since this 
-                    //      semidefinite-LDL algorithm is supposed to work for singular matrices too.
-                    if (Math.Abs(skyValues[KI]) < pivotTolerance) 
-                    {
-                        throw new SingularMatrixException($"Near-zero element in diagonal at index {KI}."); //TODO: Not sure if this happens only to singular matrices.
-                    }
-                    double C = skyValues[KK] / skyValues[KI];
-                    B += C * skyValues[KK];
-                    skyValues[KK] = C;
-                }
-                skyValues[KN] -= B;
-                #endregion
-
-                #region partial extraction of zero energy modes (aka rigid body motions / nullspace) during factorization
-                if (Math.Abs(skyValues[KN]) < pivotTolerance)
-                {
-                    skyValues[KN] = 1;
-                    zemCols.Add(n);
-                    int j1 = n;
-                    zems.Add(new double[order]);
-                    zems[kFix][j1] = 1; // the diagonal becomes 1
-                    for (int i1 = KN + 1; i1 <= KU; i1++) // The other entries of column n become 0
-                    {
-                        j1--;
-                        zems[kFix][j1] = -skyValues[i1]; // partial calculation of the zero energy mode
-                        skyValues[i1] = 0;
-                    }
-                    for (int irest = n + 1; irest < order; irest++) // The other entries of row n become 0
-                    {
-                        int m1 = skyDiagOffsets[irest] + irest - n;
-                        if (m1 <= skyDiagOffsets[irest + 1]) skyValues[m1] = 0; //TODO: Why <= instead of < ?
-                    }
-                    kFix++;
-                }
-                #endregion
-            }
-            //isFactorized = true; // not needed here
-            if (order < 2) return new LdlSkyline(order, skyValues, skyDiagOffsets);
-
-            #region back substitution to finish the calculation of the zero energy modes
-            for (int ifl = 0; ifl < kFix; ifl++)
-            {
-                int n = order - 1;
-                for (int l = 1; l < order; l++)
-                {
-                    int KL = skyDiagOffsets[n] + 1;
-                    int KU = skyDiagOffsets[n + 1] - 1;
-                    if (KU - KL >= 0)
-                    {
-                        int k = n;
-                        for (int KK = KL; KK <= KU; KK++)
-                        {
-                            k--;
-                            zems[ifl][k] -= skyValues[KK] * zems[ifl][n];
-                        }
-                    }
-                    n--;
-                }
-            }
-            if (zemCols.Count > 0)
-            {
-                throw new SingularMatrixException("The matrix is singular.");
-            }
-            #endregion
-
+            if (dependentColumns.Count > 0) throw new SingularMatrixException("The matrix is singular.");
             return new LdlSkyline(order, skyValues, skyDiagOffsets);
         }
 
@@ -236,7 +124,125 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             }
         }
 
-        private static void Solve(int order, double[] valuesA, int[] diagOffsetsA, double[] vectorB, double[] vectorX)
+        internal static (List<int> dependentColumns, List<double[]> nullSpaceBasis) FactorizeInternal(int order, double[] values,
+            int[] diagOffsets, double pivotTolerance)
+        {
+            // Copied from Stavroulakis code.
+            var zemCols = new List<int>();
+            var zems = new List<double[]>();
+
+            int kFix = 0;
+
+            #region factorization of positive definite matrix
+            for (int n = 0; n < order; n++)
+            {
+                int KN = diagOffsets[n];
+                int KL = KN + 1;
+                int KU = diagOffsets[n + 1] - 1;
+                int KH = KU - KL; // height of current column
+                if (KH < 0) continue; // TODO: Shouldn't this throw an exception? The height of Skyline columns should be at least 0
+
+                int K;
+                if (KH > 0)
+                {
+                    K = n - KH; // index of top entry in column n
+                    //int IC = 0;
+                    int KLT = KU; // Offset of non-zero entries in column n. Starts from the top (KU-1) and goes down till the diagonal.
+
+                    // Dot product of parts of columns n, j: sum(U[k,n]*U[k,j]). The formula is usually: 
+                    // sum(L[i,n]*L[k,j]/D[k,k]), but the diagonal entries will be processed in the next nested loop.
+                    for (int j = 0; j < KH; j++)
+                    {
+                        //IC++;
+                        KLT--;
+                        int KI = diagOffsets[K];
+                        int ND = diagOffsets[K + 1] - KI - 1;
+                        if (ND > 0)
+                        {
+                            //int KK = Math.Min(IC, ND);
+                            int KK = Math.Min(j + 1, ND);
+                            double C = 0;
+                            for (int l = 1; l <= KK; l++)
+                                C += values[KI + l] * values[KLT + l];
+                            values[KLT] -= C;
+                        }
+                        K++;
+                    }
+                }
+                K = n;
+                double B = 0;
+                for (int KK = KL; KK <= KU; KK++)
+                {
+                    K--;
+                    int KI = diagOffsets[K]; // offset of diagonal entry of previous column: D[k,k] in the original algorithm
+
+                    //TODO: values[diagOffsets[K]] (K<n) is the diagonal entry of a previous column and was updated in a 
+                    //      previous iteration. When that happened, if it was near-zero, it was set to 1 and column K was added 
+                    //      to the nullspace. Therefore this check is useless. Moreover it doesn't make sense, since this 
+                    //      semidefinite-LDL algorithm is supposed to work for singular matrices too.
+                    if (Math.Abs(values[KI]) < pivotTolerance)
+                    {
+                        throw new SingularMatrixException($"Near-zero element in diagonal at index {KI}."); //TODO: Not sure if this happens only to singular matrices.
+                    }
+                    double C = values[KK] / values[KI];
+                    B += C * values[KK];
+                    values[KK] = C;
+                }
+                values[KN] -= B;
+                #endregion
+
+                #region partial extraction of zero energy modes (aka rigid body motions / nullspace) during factorization
+                if (Math.Abs(values[KN]) < pivotTolerance)
+                {
+                    values[KN] = 1;
+                    zemCols.Add(n);
+                    int j1 = n;
+                    zems.Add(new double[order]);
+                    zems[kFix][j1] = 1; // the diagonal becomes 1
+                    for (int i1 = KN + 1; i1 <= KU; i1++) // The other entries of column n become 0
+                    {
+                        j1--;
+                        zems[kFix][j1] = -values[i1]; // partial calculation of the zero energy mode
+                        values[i1] = 0;
+                    }
+                    for (int irest = n + 1; irest < order; irest++) // The other entries of row n become 0
+                    {
+                        int m1 = diagOffsets[irest] + irest - n;
+                        if (m1 <= diagOffsets[irest + 1]) values[m1] = 0; //TODO: Why <= instead of < ?
+                    }
+                    kFix++;
+                }
+                #endregion
+            }
+            //isFactorized = true; // not needed here
+            if (order < 2) return (zemCols, zems);
+
+            #region back substitution to finish the calculation of the zero energy modes
+            for (int ifl = 0; ifl < kFix; ifl++)
+            {
+                int n = order - 1;
+                for (int l = 1; l < order; l++)
+                {
+                    int KL = diagOffsets[n] + 1;
+                    int KU = diagOffsets[n + 1] - 1;
+                    if (KU - KL >= 0)
+                    {
+                        int k = n;
+                        for (int KK = KL; KK <= KU; KK++)
+                        {
+                            k--;
+                            zems[ifl][k] -= values[KK] * zems[ifl][n];
+                        }
+                    }
+                    n--;
+                }
+            }
+            #endregion
+
+            return (zemCols, zems);
+        }
+
+        internal static void Solve(int order, double[] valuesA, int[] diagOffsetsA, double[] vectorB, double[] vectorX)
         {
             // Copied from Stavroulakis code.
 

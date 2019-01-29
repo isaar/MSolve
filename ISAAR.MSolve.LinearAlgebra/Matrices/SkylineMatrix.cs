@@ -537,6 +537,43 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// Calculate the Cholesky factorization. The matrix must be positive definite, otherwise an
+        /// <see cref="IndefiniteMatrixException"/> will be thrown. If <paramref name="inPlace"/> is set to true, this object 
+        /// must not be used again, otherwise a <see cref="NullReferenceException"/> will be thrown.
+        /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal non zero entries before factorization. True, to overwrite them with the factorized data, 
+        /// thus saving memory and time. However, that will make this object unusable, so you MUST NOT call any other members 
+        /// afterwards.
+        /// </param>
+        /// <param name="pivotTolerance">
+        /// If a diagonal entry is closer to zero than this tolerance, an <see cref="IndefiniteMatrixException"/> exception will
+        /// be thrown.
+        /// </param>
+        /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not positive definite.</exception>
+        /// <exception cref="NullReferenceException">
+        /// Thrown if a member of his instance is accessed after this method is called.
+        /// </exception>"
+        public CholeskySkyline FactorCholesky(bool inPlace, double tolerance = CholeskySkyline.PivotTolerance)
+        {
+            if (inPlace)
+            {
+                var factor = CholeskySkyline.Factorize(NumColumns, values, diagOffsets, tolerance);
+                // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                values = null;
+                diagOffsets = null;
+                return factor;
+            }
+            else
+            {
+                double[] valuesCopy = new double[values.Length];
+                Array.Copy(values, valuesCopy, values.Length);
+                return CholeskySkyline.Factorize(NumColumns, values, diagOffsets, tolerance);
+            }
+        }
+
+        /// <summary>
         /// Calculate the LDL factorization. The matrix must be invertible, otherwise a <see cref="SingularMatrixException"/> 
         /// will be thrown. This method succeeds for all symmetric positive definite matrices, but not for all symmetric ones. 
         /// If <paramref name="inPlace"/> is set to true, this object must not be used again, otherwise a 
@@ -559,7 +596,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             if (inPlace)
             {
-                var factor = LdlSkyline.Factorize(NumColumns, values, diagOffsets);
+                var factor = LdlSkyline.Factorize(NumColumns, values, diagOffsets, tolerance);
                 // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
@@ -570,13 +607,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 double[] valuesCopy = new double[values.Length];
                 Array.Copy(values, valuesCopy, values.Length);
-                return LdlSkyline.Factorize(NumColumns, values, diagOffsets);
+                return LdlSkyline.Factorize(NumColumns, values, diagOffsets, tolerance);
             }
         }
 
         /// <summary>
-        /// Calculate the Cholesky factorization. The matrix must be positive definite, otherwise an
-        /// <see cref="IndefiniteMatrixException"/> will be thrown. If <paramref name="inPlace"/> is set to true, this object 
+        /// Applies the Cholesky factorization to the independent columns of a symmetric positive semi-definite matrix,
+        /// sets the dependent ones equal to columns of the identity matrix and return the nullspace of the matrix. Requires 
+        /// extra memory for the basis vectors of the nullspace. If <paramref name="inPlace"/> is set to true, this object 
         /// must not be used again, otherwise a <see cref="NullReferenceException"/> will be thrown.
         /// </summary>
         /// <param name="inPlace">
@@ -584,19 +622,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// thus saving memory and time. However, that will make this object unusable, so you MUST NOT call any other members 
         /// afterwards.
         /// </param>
-        /// <param name="tolerance">
-        /// If a diagonal entry is closer to zero than this tolerance, an <see cref="IndefiniteMatrixException"/> exception will
-        /// be thrown.
+        /// <param name="pivotTolerance">
+        /// If a diagonal entry is &lt;= <paramref name="pivotTolerance"/> it means that the corresponding column is dependent 
+        /// on the rest. The Cholesky factorization only applies to independent column, while dependent ones are used to compute
+        /// the nullspace. Therefore it is important to select a tolerance that will identify small pivots that result from 
+        /// singularity, but not from ill-conditioning.
         /// </param>
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not positive definite.</exception>
         /// <exception cref="NullReferenceException">
         /// Thrown if a member of his instance is accessed after this method is called.
         /// </exception>"
-        public CholeskySkyline FactorCholesky(bool inPlace, double tolerance = CholeskySkyline.PivotTolerance)
+        public SemidefiniteCholeskySkyline FactorSemidefiniteCholesky(bool inPlace, 
+            double pivotTolerance = SemidefiniteCholeskySkyline.PivotTolerance)
         {
             if (inPlace)
             {
-                var factor = CholeskySkyline.Factorize(NumColumns, values, diagOffsets);
+                var factor = SemidefiniteCholeskySkyline.Factorize(NumColumns, values, diagOffsets, pivotTolerance);
                 // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
@@ -607,7 +648,48 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 double[] valuesCopy = new double[values.Length];
                 Array.Copy(values, valuesCopy, values.Length);
-                return CholeskySkyline.Factorize(NumColumns, values, diagOffsets);
+                return SemidefiniteCholeskySkyline.Factorize(NumColumns, values, diagOffsets, pivotTolerance);
+            }
+        }
+
+        /// <summary>
+        /// Applies the LDL factorization to the independent columns of a symmetric positive semi-definite matrix,
+        /// sets the dependent ones equal to columns of the identity matrix and return the nullspace of the matrix. Requires 
+        /// extra memory for the basis vectors of the nullspace. If <paramref name="inPlace"/> is set to true, this object 
+        /// must not be used again, otherwise a <see cref="NullReferenceException"/> will be thrown.
+        /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal non zero entries before factorization. True, to overwrite them with the factorized data, 
+        /// thus saving memory and time. However, that will make this object unusable, so you MUST NOT call any other members 
+        /// afterwards.
+        /// </param>
+        /// <param name="pivotTolerance">
+        /// If a diagonal entry is &lt;= <paramref name="pivotTolerance"/> it means that the corresponding column is dependent 
+        /// on the rest. The Cholesky factorization only applies to independent column, while dependent ones are used to compute
+        /// the nullspace. Therefore it is important to select a tolerance that will identify small pivots that result from 
+        /// singularity, but not from ill-conditioning.
+        /// </param>
+        /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not positive definite.</exception>
+        /// <exception cref="NullReferenceException">
+        /// Thrown if a member of his instance is accessed after this method is called.
+        /// </exception>"
+        public SemidefiniteLdlSkyline FactorSemidefiniteLdl(bool inPlace,
+            double pivotTolerance = SemidefiniteLdlSkyline.PivotTolerance)
+        {
+            if (inPlace)
+            {
+                var factor = SemidefiniteLdlSkyline.Factorize(NumColumns, values, diagOffsets, pivotTolerance);
+                // Set the skyline arrays to null to force NullReferenceException if they are accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                values = null;
+                diagOffsets = null;
+                return factor;
+            }
+            else
+            {
+                double[] valuesCopy = new double[values.Length];
+                Array.Copy(values, valuesCopy, values.Length);
+                return SemidefiniteLdlSkyline.Factorize(NumColumns, values, diagOffsets, pivotTolerance);
             }
         }
 

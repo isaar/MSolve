@@ -12,6 +12,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: The implementations of the factorization, forward and back substitution belong to SparseBLAS, SparseLAPACK providers.
 //TODO: The nullspace should be a different class and the user should choose if he wants to calculate it.
 //TODO: Reduce code duplication between this and CholeskySkyline
+//TODO: In the examples tested so far, the dependent columns turn out to be the last 3 or 6 columns. Does this always happen?
+//      Does this factorization work even if a dependent column is found before an independent one?
 namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
@@ -32,7 +34,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 
         private readonly double[] values;
         private readonly int[] diagOffsets;
-        private readonly List<int> dependentColumns;
         private readonly List<double[]> nullSpaceBasis; //TODO: should these be sparse vectors?
 
         private SemidefiniteCholeskySkyline(int order, double[] values, int[] diagOffsets, 
@@ -41,9 +42,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             this.Order = order;
             this.values = values;
             this.diagOffsets = diagOffsets;
-            this.dependentColumns = dependentColumns;
+            this.DependentColumns = dependentColumns;
             this.nullSpaceBasis = nullSpaceBasis;
         }
+
+        public IReadOnlyList<int> DependentColumns { get; }
+
+        public IReadOnlyList<double[]> NullSpaceBasis => nullSpaceBasis; //TODO: return IVectorView
 
         /// <summary>
         /// The number of rows/columns of the original square matrix.
@@ -61,9 +66,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// factorization.
         /// </param>
         /// <param name="skyDiagOffsets">
-        /// The indexes of the diagonal entries into <paramref name="skyValues"/>. The new <see cref="CholeskySkyline"/> 
-        /// instance will hold a reference to <paramref name="skyDiagOffsets"/>. However they do not need copying, since they 
-        /// will not be altered during or after the factorization.
+        /// The indexes of the diagonal entries into <paramref name="skyValues"/>. The new 
+        /// <see cref="SemidefiniteCholeskySkyline"/> instance will hold a reference to <paramref name="skyDiagOffsets"/>. 
+        /// However they do not need copying, since they will not be altered during or after the factorization.
         /// </param>
         /// <param name="pivotTolerance">
         /// If a diagonal entry is &lt;= <paramref name="pivotTolerance"/> it means that the corresponding column is dependent 
@@ -84,7 +89,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </summary>
         public double CalcDeterminant()
         {
-            if (dependentColumns.Count > 0) return 0.0;
+            if (DependentColumns.Count > 0) return 0.0;
             else throw new NotImplementedException(); //TODO: call the code of the regular CholeskySkyline
         }
 
@@ -191,7 +196,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                     values[offsetAjj] = 1.0;
 
                     // Superdiagonal entries are set to 0 after copying them to the nullspace (and negating them). 
-                    for (int t = 1; t < heightColJ; ++t) //TODO: indexing could be written more efficiently
+                    for (int t = 1; t <= heightColJ; ++t) //TODO: indexing could be written more efficiently
                     {
                         basisVector[j - t] = -values[offsetAjj + t];
                         values[offsetAjj + t] = 0;
