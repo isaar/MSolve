@@ -17,11 +17,21 @@
         public static readonly Array2DFormat Brackets = new Array2DFormat("\n[", "]\n", "[ ", " ]");
 
         /// <summary>
+        /// E.g. (notice the comma after the last row)
+        /// {
+        ///     { 1 2 3 },
+        ///     { 4 5 6 },
+        /// }
+        /// </summary>
+        public static readonly Array2DFormat CSharpArray = new Array2DFormat("{", "}\n", "\t{ ", " },", "\n", ", ");
+
+        /// <summary>
         /// E.g.
         /// 1 2 3
         /// 4 5 6
         /// </summary>
         public static readonly Array2DFormat Plain = new Array2DFormat("", "", "", "");
+        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Array2DFormat"/> with the provided properties.
@@ -33,7 +43,7 @@
         /// <param name="rowSeparator">A string to write between two consecutive rows.</param>
         /// <param name="colSeparator">A string to write between two consecutive entries of the same row.</param>
         public Array2DFormat(string arrayStart, string arrayEnd, string rowStart, string rowEnd, 
-            string rowSeparator = "\n", string colSeparator = " ")
+            string rowSeparator = "\n", string colSeparator = " ") //TODO: rowSeparator and rowEnd should be one
         {
             this.ArrayStart = arrayStart;
             this.ArrayEnd = arrayEnd;

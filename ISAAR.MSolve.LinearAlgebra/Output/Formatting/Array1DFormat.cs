@@ -14,6 +14,12 @@
 
         /// <summary>
         /// E.g. 
+        /// [ 1 2 3 ]
+        /// </summary>
+        public static readonly Array1DFormat CSharpArray = new Array1DFormat("{ ", " }", ", ");
+
+        /// <summary>
+        /// E.g. 
         /// 1 2 3
         /// </summary>
         public static readonly Array1DFormat PlainHorizontal = new Array1DFormat("", "", " ");
