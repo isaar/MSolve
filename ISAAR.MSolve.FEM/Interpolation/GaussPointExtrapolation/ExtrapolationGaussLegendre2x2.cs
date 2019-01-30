@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 
             // Shape functions of the imaginary "Gauss element". 
             // Each shape function corresponds to an integration point of Gauss-Legendre 2x2. Therefore their order is the same
-            // as the one defined by GaussLegendre2D.Order2x2, namely Xi major/Eta minor, instead of the usual Quad4 order.
+            // as the one defined by GaussLegendre2D.Order2x2, namely Xi minor/Eta major, instead of the usual Quad4 order.
             var shapeFunctions = new double[4];             // The usual Quad4 shape function would be:
             shapeFunctions[0] = 0.25 * (1 - r) * (1 - s);   // N0
             shapeFunctions[1] = 0.25 * (1 + r) * (1 - s);   // N1
