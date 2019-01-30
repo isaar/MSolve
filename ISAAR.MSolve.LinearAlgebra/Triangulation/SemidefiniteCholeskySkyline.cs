@@ -209,13 +209,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                         if (offsetAij < diagOffsets[i + 1]) values[offsetAij] = 0; //TODO: originally this was <= ? Which is the correct one?
                     }
                 }
+            }
 
-                // The independent columns have been factorized successfully. Apply back substitution to finish the calculation
-                // of each vector in the null space basis.
-                foreach (var basisVector in nullSpaceBasis)
-                {
-                    CholeskySkyline.SubstituteBack(order, values, diagOffsets, basisVector);
-                }
+            // The independent columns have been factorized successfully. Apply back substitution to finish the calculation
+            // of each vector in the null space basis.
+            foreach (var basisVector in nullSpaceBasis)
+            {
+                CholeskySkyline.SubstituteBack(order, values, diagOffsets, basisVector);
             }
             return (dependentColumns, nullSpaceBasis);
         }

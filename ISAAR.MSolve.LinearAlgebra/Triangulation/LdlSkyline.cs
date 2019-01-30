@@ -192,6 +192,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                 #endregion
 
                 #region partial extraction of zero energy modes (aka rigid body motions / nullspace) during factorization
+                //double pivot = Math.Abs(values[KN]); //TODO: for debugging
                 if (Math.Abs(values[KN]) < pivotTolerance)
                 {
                     values[KN] = 1;

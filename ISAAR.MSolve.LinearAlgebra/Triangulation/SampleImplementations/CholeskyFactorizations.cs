@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation.SampleImplementations
 
             // The independent columns have been factorized successfully. Apply back substitution to finish the calculation
             // of each vector in the null space basis.
-            foreach (var basisVector in nullSpaceBasis) BackSubstitutionFullUpper2(n, A, basisVector);
+            foreach (var basisVector in nullSpaceBasis) BackSubstitutionFullUpper1(n, A, basisVector);
             return (dependentColumns, nullSpaceBasis);
         }
 
