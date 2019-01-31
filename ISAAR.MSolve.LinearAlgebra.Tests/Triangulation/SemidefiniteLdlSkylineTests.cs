@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Input;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData.FiniteElementMatrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -16,30 +18,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
     /// </summary>
     public static class SemidefiniteLdlSkylineTests
     {
+        private static void CheckFactorization(SkylineMatrix originalMatrix, int expectedNullity, double tolerance)
+        {
+            var factorization = originalMatrix.FactorSemidefiniteLdl(false, tolerance);
+            Assert.True(factorization.DependentColumns.Count == expectedNullity,
+                $"Nullity = {factorization.DependentColumns.Count} != {expectedNullity} (expected)");
+            SemidefiniteCholeskyFullTests.CheckNullSpace(originalMatrix, factorization.NullSpaceBasis, tolerance);
+        }
+
         [Fact]
         private static void TestFactorizationOfBeam2DStiffness()
         {
             double tolerance = 1E-11;
 
-            // Unconstrained beam
-            var beam2DFreeK = Matrix.CreateFromArray(Beam2DElementMatrix.UnconstrainedStiffness);
-            SemidefiniteLdlSkyline factorFreeK =
-                SkylineMatrix.CreateFromMatrix(beam2DFreeK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorFreeK.DependentColumns.Count == 3); // 2D problem: 3 rigid body modes, 0 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(beam2DFreeK, factorFreeK.NullSpaceBasis, tolerance);
+            // Unconstrained beam. 2D problem: 3 rigid body modes, 0 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Beam2DElementMatrix.UnconstrainedStiffness), 3, tolerance);
 
-            // Pinned beam
-            var beam2DPinnedK = Matrix.CreateFromArray(Beam2DElementMatrix.PinnedStiffness);
-            SemidefiniteLdlSkyline factorPinnedK =
-                SkylineMatrix.CreateFromMatrix(beam2DPinnedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorPinnedK.DependentColumns.Count == 1); // 2D problem: 3 rigid body modes, 2 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(beam2DPinnedK, factorPinnedK.NullSpaceBasis, tolerance);
+            // Pinned beam. 2D problem: 3 rigid body modes, 2 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Beam2DElementMatrix.PinnedStiffness), 1, tolerance);
 
-            // Clamped beam
-            var beam2DClampedK = Matrix.CreateFromArray(Beam2DElementMatrix.ClampedStiffness);
-            SemidefiniteLdlSkyline factorClampedK =
-                SkylineMatrix.CreateFromMatrix(beam2DClampedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorClampedK.DependentColumns.Count == 0); // 2D problem: 3 rigid body modes, 3 are constrained
+            // Clamped beam. 2D problem: 3 rigid body modes, 3 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Beam2DElementMatrix.ClampedStiffness), 0, tolerance);
         }
 
         [Fact]
@@ -47,25 +46,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
         {
             double tolerance = double.Epsilon;
 
-            // Unconstrained beam
-            var beam3DFreeK = Matrix.CreateFromArray(Beam3DElementMatrix.UnconstrainedStiffness);
-            SemidefiniteLdlSkyline factorFreeK = 
-                SkylineMatrix.CreateFromMatrix(beam3DFreeK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorFreeK.DependentColumns.Count == 6); // 3D problem: 6 rigid body modes, 0 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(beam3DFreeK, factorFreeK.NullSpaceBasis, tolerance);
+            // Unconstrained beam. 3D problem: 6 rigid body modes, 0 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Beam3DElementMatrix.UnconstrainedStiffness), 6, tolerance);
 
-            // Pinned beam
-            var beam3DPinnedK = Matrix.CreateFromArray(Beam3DElementMatrix.PinnedStiffness);
-            SemidefiniteLdlSkyline factorPinnedK =
-                SkylineMatrix.CreateFromMatrix(beam3DPinnedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorPinnedK.DependentColumns.Count == 3); // 3D problem: 6 rigid body modes, 3 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(beam3DPinnedK, factorPinnedK.NullSpaceBasis, tolerance);
+            // Pinned beam. 3D problem: 6 rigid body modes, 3 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Beam3DElementMatrix.PinnedStiffness), 3, tolerance);
 
-            // Clamped beam
-            var beam3DClampedK = Matrix.CreateFromArray(Beam3DElementMatrix.ClampedStiffness);
-            SemidefiniteLdlSkyline factorClampedK =
-                SkylineMatrix.CreateFromMatrix(beam3DClampedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorClampedK.DependentColumns.Count == 0); // 3D problem: 6 rigid body modes, 6 are constrained
+            // Clamped beam. 3D problem: 6 rigid body modes, 6 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Beam3DElementMatrix.ClampedStiffness), 0, tolerance);
         }
 
         [Fact]
@@ -73,59 +61,61 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Triangulation
         {
             double tolerance = 1E-7;
 
-            // Unconstrained
-            var quad4FreeK = Matrix.CreateFromArray(Quad4ElementMatrix.UnconstrainedStiffness);
-            SemidefiniteLdlSkyline factorFreeK =
-                SkylineMatrix.CreateFromMatrix(quad4FreeK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorFreeK.DependentColumns.Count == 3); // 2D problem: 3 rigid body modes, 0 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(quad4FreeK, factorFreeK.NullSpaceBasis, tolerance);
+            // Unconstrained beam. 2D problem: 3 rigid body modes, 0 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Quad4ElementMatrix.UnconstrainedStiffness), 3, tolerance);
 
-            // Pinned
-            var quad4PinnedK = Matrix.CreateFromArray(Quad4ElementMatrix.PinnedStiffness);
-            SemidefiniteLdlSkyline factorPinnedK =
-                SkylineMatrix.CreateFromMatrix(quad4PinnedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorPinnedK.DependentColumns.Count == 1); // 2D problem: 3 rigid body modes, 2 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(quad4PinnedK, factorPinnedK.NullSpaceBasis, tolerance);
+            // Pinned beam. 2D problem: 3 rigid body modes, 2 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Quad4ElementMatrix.PinnedStiffness), 1, tolerance);
 
-            // Clamped
-            var quad4ClampedK = Matrix.CreateFromArray(Quad4ElementMatrix.ClampedStiffness);
-            SemidefiniteLdlSkyline factorClampedK =
-                SkylineMatrix.CreateFromMatrix(quad4ClampedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorClampedK.DependentColumns.Count == 0); // 2D problem: 3 rigid body modes, 3 are constrained
+            // Clamped beam. 2D problem: 3 rigid body modes, 3 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Quad4ElementMatrix.ClampedStiffness), 0, tolerance);
         }
 
         [Fact]
         private static void TestFactorizationOfHexa8Stiffness()
         {
-            double tolerance = 1E-2;
+            double toleranceMSolve = 1E-2;
             double toleranceAbaqus = 1E-4;
 
-            // Unconstrained
-            var hexa8FreeK = Matrix.CreateFromArray(Hexa8ElementMatrix.UnconstrainedStiffness);
-            SemidefiniteLdlSkyline factorFreeK =
-                SkylineMatrix.CreateFromMatrix(hexa8FreeK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorFreeK.DependentColumns.Count == 6); // 3D problem: 6 rigid body modes, 0 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(hexa8FreeK, factorFreeK.NullSpaceBasis, tolerance);
+            // Unconstrained beam. 3D problem: 6 rigid body modes, 0 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Hexa8ElementMatrix.UnconstrainedStiffness), 6, toleranceMSolve);
 
-            // Pinned
-            var hexa8PinnedK = Matrix.CreateFromArray(Hexa8ElementMatrix.PinnedStiffness);
-            SemidefiniteLdlSkyline factorPinnedK =
-                SkylineMatrix.CreateFromMatrix(hexa8PinnedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorPinnedK.DependentColumns.Count == 3); // 3D problem: 6 rigid body modes, 3 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(hexa8PinnedK, factorPinnedK.NullSpaceBasis, tolerance);
+            // Pinned beam. 3D problem: 6 rigid body modes, 3 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Hexa8ElementMatrix.PinnedStiffness), 3, toleranceMSolve);
 
-            // Clamped
-            var hexa8ClampedK = Matrix.CreateFromArray(Hexa8ElementMatrix.ClampedStiffness);
-            SemidefiniteLdlSkyline factorClampedK =
-                SkylineMatrix.CreateFromMatrix(hexa8ClampedK).FactorSemidefiniteLdl(true, tolerance);
-            Assert.True(factorClampedK.DependentColumns.Count == 0); // 3D problem: 6 rigid body modes, 6 are constrained
+            // Clamped beam. 3D problem: 6 rigid body modes, 6 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Hexa8ElementMatrix.ClampedStiffness), 0, toleranceMSolve);
 
-            // Abaqus unconstrained
-            var hexa8AbaqusK = Matrix.CreateFromArray(Hexa8ElementMatrixAbaqus.UnconstrainedStiffness);
-            SemidefiniteLdlSkyline factorAbaqusK =
-                SkylineMatrix.CreateFromMatrix(hexa8AbaqusK).FactorSemidefiniteLdl(true, toleranceAbaqus);
-            Assert.True(factorAbaqusK.DependentColumns.Count == 6); // 3D problem: 6 rigid body modes, 0 are constrained
-            SemidefiniteCholeskyFullTests.CheckNullSpace(hexa8AbaqusK, factorAbaqusK.NullSpaceBasis, toleranceAbaqus);
+            // Unconstrained beam. 3D problem: 6 rigid body modes, 0 are constrained
+            CheckFactorization(SkylineMatrix.CreateFromArray(Hexa8ElementMatrixAbaqus.UnconstrainedStiffness), 6, toleranceAbaqus);
+        }
+
+        [Fact]
+        private static void TestFactorizationOf2DStructureStiffness() // 2D problem: 3 rigid body modes, 0 are constrained
+        {
+            string resourcesPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Resources";
+            string valuesPath = resourcesPath + "\\Quad4_20x20_stiffness_values.txt";
+            string diagOffsetsPath = resourcesPath + "\\Quad4_20x20_stiffness_diagonal_offsets.txt";
+            var reader = new RawArraysReader();
+            SkylineMatrix unconstrainedK = reader.ReadSkylineMatrixFromSeparateFiles(valuesPath, diagOffsetsPath, true);
+
+            double tolerance = 1E-2;
+            CheckFactorization(unconstrainedK, 3, tolerance);
+            CheckFactorization(unconstrainedK.Scale(1E-6), 3, 1E-8); //TODO: Normalization is required when comparing the pivot with the tolerance.
+        }
+
+        [Fact]
+        private static void TestFactorizationOf3DStructureStiffness() // 3D problem: 6 rigid body modes, 0 are constrained
+        {
+            string resourcesPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\Resources";
+            string valuesPath = resourcesPath + "\\Hexa8_10x10x10_stiffness_values.txt";
+            string diagOffsetsPath = resourcesPath + "\\Hexa8_10x10x10_stiffness_diagonal_offsets.txt";
+            var reader = new RawArraysReader();
+            SkylineMatrix unconstrainedK = reader.ReadSkylineMatrixFromSeparateFiles(valuesPath, diagOffsetsPath, true);
+
+            double tolerance = 1E-3;
+            CheckFactorization(unconstrainedK, 6, tolerance);
+            CheckFactorization(unconstrainedK.Scale(1E-5), 6, 1E-8); //TODO: Normalization is required when comparing the pivot with the tolerance.
         }
     }
 }

@@ -43,8 +43,9 @@ namespace ISAAR.MSolve.SamplesConsole
             //SuiteSparseBenchmarks.MemoryConsumptionDebugging();
             //SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
 
+            //MeshGeneration.UniformMeshGeneratorExamples.Generate3DMesh();
             //FloatingSubdomainMatrices.WriteStiffnessOfContinuum2DStructure();
-            MeshGeneration.UniformMeshGeneratorExamples.Generate3DMesh();
+            FloatingSubdomainMatrices.WriteStiffnessOfContinuum3DStructure();
         }
 
         private static void SolveBuildingInNoSoilSmall()
