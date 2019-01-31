@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     Its length is <paramref name="order"/> + 1, with the last entry being equal to nnz.</param>
         /// <param name="checkInput">If true, the provided arrays will be checked to make sure they are valid Skyline arrays, 
         ///     which is safer. If false, no such check will take place, which is faster.</param>
-        /// <param name="copyArrays">If true, the provides arrays will be copied and the new <see cref="SkylineMatrix"/> instance 
+        /// <param name="copyArrays">If true, the provided arrays will be copied and the new <see cref="SkylineMatrix"/> instance 
         ///     will have references to the copies, which is safer. If false, the new matrix will have references to the 
         ///     provided arrays themselves, which is faster.</param>
         public static SkylineMatrix CreateFromArrays(int order, double[] values, int[] diagOffsets, 

@@ -311,7 +311,7 @@ namespace ISAAR.MSolve.Analyzers
 
             foreach (var linearSystem in linearSystems)
             {
-                SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
+                SkylineMatrix m = SkylineMatrixReader.ReadFromSimilarlyNamedFiles(
                     String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, linearSystem.Key, matrixNo));
                 LdlSkyline factor = m.FactorLdl(true, 1e-8);
                 if (FactorizedMatrices.ContainsKey(linearSystem.Key)) FactorizedMatrices[linearSystem.Key] = factor;
@@ -394,7 +394,7 @@ namespace ISAAR.MSolve.Analyzers
             foreach (var linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
-                SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
+                SkylineMatrix m = SkylineMatrixReader.ReadFromSimilarlyNamedFiles(
                     String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, id, simulation));
                 linearSystem.Matrix = m;
 
