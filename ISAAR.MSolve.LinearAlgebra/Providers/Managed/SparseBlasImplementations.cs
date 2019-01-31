@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
             for (int j = 0; j < order; ++j)
             {
                 int diagOffset = diagOffsetsA[j];
-                int columnTop = j - diagOffsetsA[j + 1] + diagOffset + 1;
+                int columnTop = j - (diagOffsetsA[j + 1] - diagOffset - 1);
                 double linearCombinationCoeff = vectorX[j];
                 // Dot product of the (L+D) part of the row * vector
                 double dotLower = valuesA[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]

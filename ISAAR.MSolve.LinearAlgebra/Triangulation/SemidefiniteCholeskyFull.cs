@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -63,6 +64,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             int order = matrix.NumColumns;
             (List<int> dependentColumns, List<double[]> nullSpaceBasis) =
                 CholeskyFactorizations.FactorizeSemiDefiniteFullUpper1(order, matrix, pivotTolerance);
+            Debug.Assert(dependentColumns.Count == nullSpaceBasis.Count);
             return new SemidefiniteCholeskyFull(order, matrix, dependentColumns, nullSpaceBasis);
         }
 

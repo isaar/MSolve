@@ -124,6 +124,29 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return true;
         }
 
+        /// <summary>
+        /// Returns true if <paramref name="matrix"/>[i, j] and <paramref name="matrix"/>[j, i] are equal or at least within the 
+        /// specified <paramref name="tolerance"/> for all 0 &lt;= i &lt; numRows, 0 &lt;= j &lt; numColumns. 
+        /// </summary>
+        /// <param name="matrix">The matrix that will be checked for symmetry.</param>
+        /// <param name="tolerance">The entries at (i, j), (j, i) the matrix will be considered equal, if
+        ///     (<paramref name="matrix"/>[i, j] - <paramref name="matrix"/>[i, j]) / <paramref name="matrix"/>[i, j] 
+        ///         &lt;= <paramref name="tolerance"/>. 
+        ///     Setting <paramref name="tolerance"/> = 0, will check if these entries are exactly the same.</param>
+        public static bool IsSymmetric(this double[,] matrix, double tolerance = double.Epsilon) //TODO: Move this to the array extensions file.
+        {
+            var comparer = new ValueComparer(tolerance);
+            if (matrix.GetLength(0) != matrix.GetLength(1)) return false;
+            for (int i = 0; i < matrix.GetLength(0); ++i)
+            {
+                for (int j = 0; j < i; ++j)
+                {
+                    if (!comparer.AreEqual(matrix[i, j], matrix[j, i])) return false;
+                }
+            }
+            return true;
+        }
+
         public static double[] Multiply(this IMatrixView matrix, double[] vector, bool transposeMatrix = false)
         {
             var result = new double[transposeMatrix ? matrix.NumColumns : matrix.NumRows];

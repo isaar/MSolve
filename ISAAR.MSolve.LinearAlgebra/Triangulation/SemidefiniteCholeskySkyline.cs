@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -81,6 +82,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         {
             (List<int> dependentColumns, List<double[]> nullSpaceBasis) = 
                 FactorizeInternal(order, skyValues, skyDiagOffsets, pivotTolerance);
+            Debug.Assert(dependentColumns.Count == nullSpaceBasis.Count);
             return new SemidefiniteCholeskySkyline(order, skyValues, skyDiagOffsets, dependentColumns, nullSpaceBasis);
         }
 

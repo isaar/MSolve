@@ -45,8 +45,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             foreach (double[,] matrix in matrices)
             {
                 var full = Matrix.CreateFromArray(matrix);
-                var skyline = SkylineMatrix.CreateFromMatrix(full);
-                comparer.AssertEqual(full, skyline);
+                var skylineFromArray = SkylineMatrix.CreateFromArray(matrix);
+                var skylineFromFull = SkylineMatrix.CreateFromMatrix(full);
+                comparer.AssertEqual(full, skylineFromArray);
+                comparer.AssertEqual(full, skylineFromFull);
             }
         }
 
