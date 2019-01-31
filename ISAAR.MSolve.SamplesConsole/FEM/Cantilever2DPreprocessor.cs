@@ -155,7 +155,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
         private static (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) GenerateUniformMesh()
         {
-            var meshGen = new UniformMeshGenerator_v2(0.0, 0.0, length, height, 4, 20);
+            var meshGen = new UniformMeshGenerator2D_v2(0.0, 0.0, length, height, 4, 20);
             return meshGen.CreateMesh();
         }
 

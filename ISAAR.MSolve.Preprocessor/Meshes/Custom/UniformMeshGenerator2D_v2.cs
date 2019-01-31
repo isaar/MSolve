@@ -10,29 +10,28 @@ using ISAAR.MSolve.Geometry.Shapes;
 namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
 {
     /// <summary>
-    /// Creates meshes based on uniform rectilinear grids: the distance between two consecutive vertices for the same axis is 
+    /// Creates 2D meshes based on uniform rectilinear grids: the distance between two consecutive vertices for the same axis is 
     /// constant. This distance may be different for each axis though. For now the cells are quadrilateral with 4 vertices 
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator_v2 : IMeshProvider2D<Node_v2, CellConnectivity_v2>
+    public class UniformMeshGenerator2D_v2 : IMeshProvider2D<Node_v2, CellConnectivity_v2>
     {
-        private readonly double minX;
-        private readonly double minY;
-        private readonly double dx;
-        private readonly double dy;
-        private readonly int vertexRows, vertexColumns, cellRows, cellColumns;
+        private readonly double minX, minY;
+        private readonly double dx, dy;
+        private readonly int cellsPerX, cellsPerY;
+        private readonly int verticesPerX, verticesPerY;
 
-        public UniformMeshGenerator_v2(double minX, double minY, double maxX, double maxY, int cellsPerX, int cellsPerY)
+        public UniformMeshGenerator2D_v2(double minX, double minY, double maxX, double maxY, int cellsPerX, int cellsPerY)
         {
             this.minX = minX;
             this.minY = minY;
             this.dx = (maxX - minX) / cellsPerX;
             this.dy = (maxY - minY) / cellsPerY;
-            this.cellRows = cellsPerY;
-            this.cellColumns = cellsPerX;
-            this.vertexRows = cellRows + 1;
-            this.vertexColumns = cellColumns + 1;
+            this.cellsPerX = cellsPerX;
+            this.cellsPerY = cellsPerY;
+            this.verticesPerX = this.cellsPerX + 1;
+            this.verticesPerY = this.cellsPerY + 1;
         }
 
         /// <summary>
@@ -48,13 +47,13 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
 
         private Node_v2[] CreateVertices()
         {
-            var vertices = new Node_v2[vertexRows * vertexColumns];
+            var vertices = new Node_v2[verticesPerY * verticesPerX];
             int id = 0;
-            for (int row = 0; row < vertexRows; ++row)
+            for (int j = 0; j < verticesPerY; ++j)
             {
-                for (int col = 0; col < vertexColumns; ++col)
+                for (int i = 0; i < verticesPerX; ++i)
                 {
-                    vertices[id] = new Node_v2 { ID = id, X = minX + col * dx , Y = minY + row * dy };
+                    vertices[id] = new Node_v2 { ID = id, X = minX + i * dx , Y = minY + j * dy };
                     ++id;
                 }
             }
@@ -63,15 +62,19 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
 
         private CellConnectivity_v2[] CreateCells(Node_v2[] allVertices)
         {
-            var cells = new CellConnectivity_v2[cellRows * cellColumns];
-            for (int row = 0; row < cellRows; ++row)
+            var cells = new CellConnectivity_v2[cellsPerY * cellsPerX];
+            for (int j = 0; j < cellsPerY; ++j)
             {
-                for (int col = 0; col < cellColumns; ++col)
+                for (int i = 0; i < cellsPerX; ++i)
                 {
-                    int firstVertex = row * vertexColumns + col;
-                    Node_v2[] verticesOfCell = { allVertices[firstVertex], allVertices[firstVertex+1],
-                        allVertices[firstVertex + vertexColumns + 1], allVertices[firstVertex + vertexColumns] };
-                    cells[row * cellColumns + col] = new CellConnectivity_v2(CellType2D.Quad4, verticesOfCell); // row major
+                    int cell = j * cellsPerX + i;
+                    int firstVertex = j * verticesPerX + i;
+                    Node_v2[] verticesOfCell = 
+                    {
+                        allVertices[firstVertex], allVertices[firstVertex+1],
+                        allVertices[firstVertex + verticesPerX + 1], allVertices[firstVertex + verticesPerX]
+                    };
+                    cells[cell] = new CellConnectivity_v2(CellType2D.Quad4, verticesOfCell); // row major
                 }
             }
             return cells;

@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            TrussExample.Run();
+            //TrussExample.Run();
             //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
@@ -42,6 +42,9 @@ namespace ISAAR.MSolve.SamplesConsole
 
             //SuiteSparseBenchmarks.MemoryConsumptionDebugging();
             //SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
+
+            //FloatingSubdomainMatrices.WriteStiffnessOfContinuum2DStructure();
+            MeshGeneration.UniformMeshGeneratorExamples.Generate3DMesh();
         }
 
         private static void SolveBuildingInNoSoilSmall()
