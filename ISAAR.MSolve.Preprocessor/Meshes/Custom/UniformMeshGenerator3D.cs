@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                             firstVertex + verticesPerX * verticesPerY + verticesPerY + 1,   // ( 1,  1,  1)
                             firstVertex + verticesPerX * verticesPerY + verticesPerY        // (-1,  1,  1)
                         };
-                        cells[cell] = new CellConnectivity_v2(CellType2D.Quad4, 
+                        cells[cell] = new CellConnectivity_v2(CellType.Hexa8, 
                             verticesOfCell.Select(idx => allVertices[idx]).ToArray()); // row major
                     }
                 }

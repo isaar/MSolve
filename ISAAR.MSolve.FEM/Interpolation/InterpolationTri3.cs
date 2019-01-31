@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationTri3 uniqueInstance = new InterpolationTri3();
 
-        private InterpolationTri3() : base(CellType2D.Tri3, 3)
+        private InterpolationTri3() : base(CellType.Tri3, 3)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {

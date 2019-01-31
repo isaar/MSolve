@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                         allVertices[firstVertex], allVertices[firstVertex+1],
                         allVertices[firstVertex + verticesPerX + 1], allVertices[firstVertex + verticesPerX]
                     };
-                    cells[cell] = new CellConnectivity_v2(CellType2D.Quad4, verticesOfCell); // row major
+                    cells[cell] = new CellConnectivity_v2(CellType.Quad4, verticesOfCell); // row major
                 }
             }
             return cells;

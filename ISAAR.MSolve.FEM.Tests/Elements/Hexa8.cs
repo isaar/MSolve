@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffnessMatrix0()
         {
             var factory = new ContinuumElement3DFactory(Material0, DynamicMaterial0);
-            var hexa8 = factory.CreateElement(CellType3D.Hexa8, AbaqusToMSolveHexa8Nodes(NodeSet0));
+            var hexa8 = factory.CreateElement(CellType.Hexa8, AbaqusToMSolveHexa8Nodes(NodeSet0));
             var computedK = hexa8.BuildStiffnessMatrix();
 
             var expectedK = AbaqusToMSolveHexa8StructuralMatrix(Matrix.CreateFromArray(new double[24, 24]
@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffnessMatrix1()
         {
             var factory = new ContinuumElement3DFactory(Material1, DynamicMaterial1);
-            var hexa8 = factory.CreateElement(CellType3D.Hexa8, AbaqusToMSolveHexa8Nodes(NodeSet1));
+            var hexa8 = factory.CreateElement(CellType.Hexa8, AbaqusToMSolveHexa8Nodes(NodeSet1));
             var computedK = hexa8.BuildStiffnessMatrix();
 
             //string output = @"C:\Users\Serafeim\Desktop\hexa8.txt";

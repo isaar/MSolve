@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationQuad8 uniqueInstance = new InterpolationQuad8();
 
-        private InterpolationQuad8() : base(CellType2D.Quad8, 8)
+        private InterpolationQuad8() : base(CellType.Quad8, 8)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {

@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 		private static void TestStiffnessMatrix0()
 		{
 			var factory = new ContinuumElement3DFactory(Material0, DynamicMaterial0);
-			var tet4 = factory.CreateElement(CellType3D.Tet4, NodeSet0);
+			var tet4 = factory.CreateElement(CellType.Tet4, NodeSet0);
 			IMatrix K = tet4.BuildStiffnessMatrix();
 
 			double[,] expectedK =
