@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.Tests.Solvers
                 model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
                 // Generate mesh
-                var meshGenerator = new UniformMeshGenerator_v2(0.0, 0.0, Length, Height, 
+                var meshGenerator = new UniformMeshGenerator2D_v2(0.0, 0.0, Length, Height, 
                     numElementsAlongLength, numElementsAlongHeight);
                 (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
 

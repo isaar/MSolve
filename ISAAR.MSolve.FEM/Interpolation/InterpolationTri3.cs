@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationTri3 uniqueInstance = new InterpolationTri3();
 
-        private InterpolationTri3() : base(CellType2D.Tri3, 3)
+        private InterpolationTri3() : base(CellType.Tri3, 3)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
@@ -63,12 +63,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
         protected override sealed Matrix EvaluateGradientsAt(double xi, double eta)
         {
             var derivatives = Matrix.CreateZero(3, 2);
+
             derivatives[0, 0] = +1.0;
-            derivatives[0, 1] = +0.0;
             derivatives[1, 0] = +0.0;
-            derivatives[1, 1] = +1.0;
             derivatives[2, 0] = -1.0;
+
+            derivatives[0, 1] = +0.0;
+            derivatives[1, 1] = +1.0;
             derivatives[2, 1] = -1.0;
+
             return derivatives;
         }
     }

@@ -60,7 +60,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             {
                 writer.Write(ArrayFormat.ColSeparator + string.Format(numberFormat, matrix[0, j]));
             }
-            writer.Write(ArrayFormat.RowEnd);
 
             // Subsequent rows
             for (int i = 1; i < matrix.NumRows; ++i)
@@ -71,7 +70,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
                 {
                     writer.Write(ArrayFormat.ColSeparator + string.Format(numberFormat, matrix[i, j]));
                 }
-                writer.Write(ArrayFormat.RowEnd);
             }
             writer.Write(ArrayFormat.RowSeparator + ArrayFormat.ArrayEnd);
         }

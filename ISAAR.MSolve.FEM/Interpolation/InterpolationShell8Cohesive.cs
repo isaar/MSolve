@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>> cachedN3AtGPs;
 
-        private InterpolationShell8Cohesive() : base(CellType2D.Quad8,8)
+        private InterpolationShell8Cohesive() : base(CellType.Quad8,8)
         {
             cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>>();
             NodalNaturalCoordinates = new NaturalPoint2D[]

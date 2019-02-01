@@ -132,14 +132,14 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
                 new Node_v2 { ID = 9, X = length, Y = height }
             };
 
-            CellType2D[] cellTypes = { CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4 };
+            CellType[] cellTypes = { CellType.Quad4, CellType.Quad4, CellType.Quad4, CellType.Quad4 };
 
             CellConnectivity_v2[] elements =
             {
-                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
-                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
-                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
-                new CellConnectivity_v2(CellType2D.Quad4, new Node_v2[] { nodes[6], nodes[7], nodes[9], nodes[8]})
+                new CellConnectivity_v2(CellType.Quad4, new Node_v2[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
+                new CellConnectivity_v2(CellType.Quad4, new Node_v2[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
+                new CellConnectivity_v2(CellType.Quad4, new Node_v2[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
+                new CellConnectivity_v2(CellType.Quad4, new Node_v2[] { nodes[6], nodes[7], nodes[9], nodes[8]})
             };
 
             return (nodes, elements);
@@ -155,7 +155,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
         private static (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements) GenerateUniformMesh()
         {
-            var meshGen = new UniformMeshGenerator_v2(0.0, 0.0, length, height, 4, 20);
+            var meshGen = new UniformMeshGenerator2D_v2(0.0, 0.0, length, height, 4, 20);
             return meshGen.CreateMesh();
         }
 

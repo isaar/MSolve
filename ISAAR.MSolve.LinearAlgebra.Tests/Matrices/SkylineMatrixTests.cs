@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -30,6 +31,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
                 SparsePosDef10by10.SkylineValues, SparsePosDef10by10.SkylineDiagOffsets, true, true);
             skyline.Clear();
             comparer.AssertEqual(zero, skyline);
+        }
+
+        [Fact]
+        private static void TestFullToSkylineConversion()
+        {
+            var matrices = new List<double[,]>
+            {
+                DiagonalIndefinite.BuildeIndefiniteMatrix(20), GlobalMatrixAssembly.GlobalMatrix, SparsePosDef10by10.Matrix,
+                SparseSymm5by5.Matrix, SymmPosDef10by10.Matrix, SymmSingular10by10.Matrix
+            };
+
+            foreach (double[,] matrix in matrices)
+            {
+                var full = Matrix.CreateFromArray(matrix);
+                var skylineFromArray = SkylineMatrix.CreateFromArray(matrix);
+                var skylineFromFull = SkylineMatrix.CreateFromMatrix(full);
+                comparer.AssertEqual(full, skylineFromArray);
+                comparer.AssertEqual(full, skylineFromFull);
+            }
         }
 
         [Fact]

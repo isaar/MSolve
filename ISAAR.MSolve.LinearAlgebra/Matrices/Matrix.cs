@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
+using ISAAR.MSolve.LinearAlgebra.Orthogonalization;
 
 //TODO: align data using mkl_malloc
 //TODO: add inplace option for factorizations and leave all subsequent operations (determinant, system solution, etc.) to them
@@ -107,6 +108,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 return new Matrix(array1D, numRows, numColumns);
             }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="Matrix"/> that contains the entries of <paramref name="original"/>.
+        /// </summary>
+        /// <param name="original">The original matrix that will be copied.</param>
+        public static Matrix CreateFromMatrix(IIndexable2D original)
+        {
+            int m = original.NumRows;
+            int n = original.NumColumns;
+            var clone = new double[m * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i) clone[j * m + i] = original[i, j];
+            }
+            return new Matrix(clone, m, n);
         }
 
         /// <summary>

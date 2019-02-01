@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Input;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly List<double> matrixMagnitudes = new List<double>();
         private Dictionary<int, double[]> vrfs;
 
-        public IDictionary<int, CholeskySkyline> FactorizedMatrices { get; } = new Dictionary<int, CholeskySkyline>();
+        public IDictionary<int, LdlSkyline> FactorizedMatrices { get; } = new Dictionary<int, LdlSkyline>();
 
         public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
@@ -303,9 +303,9 @@ namespace ISAAR.MSolve.Analyzers
 
             foreach (var linearSystem in linearSystems)
             {
-                SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
+                SkylineMatrix m = SkylineMatrixReader.ReadFromSimilarlyNamedFiles(
                     String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, linearSystem.Key, matrixNo));
-                CholeskySkyline factor = m.FactorCholesky(true, 1e-8);
+                LdlSkyline factor = m.FactorLdl(true, 1e-8);
                 if (FactorizedMatrices.ContainsKey(linearSystem.Key)) FactorizedMatrices[linearSystem.Key] = factor;
                 else FactorizedMatrices.Add(linearSystem.Key, factor);
             }

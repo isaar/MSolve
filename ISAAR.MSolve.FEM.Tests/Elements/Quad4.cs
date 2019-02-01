@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet0);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet0);
             IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -166,7 +166,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         public static void TestStrainsStresses0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet0);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet0);
 
             // Abaqus results
             double[] displacements =
@@ -257,7 +257,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness1()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet2);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet2);
             IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -277,7 +277,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness2()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet1);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet1);
             IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness3()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet3);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet3);
             IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -316,7 +316,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness4()
         {
             var factory = new ContinuumElement2DFactory(thickness, material1, dynamicMaterial);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet3);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet3);
             IMatrix K = quad4.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -336,7 +336,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         public static void TestStrainsStresses1()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D quad4 = factory.CreateElement(CellType2D.Quad4, nodeSet2);
+            ContinuumElement2D quad4 = factory.CreateElement(CellType.Quad4, nodeSet2);
 
             // Abaqus results
             double[] displacements =

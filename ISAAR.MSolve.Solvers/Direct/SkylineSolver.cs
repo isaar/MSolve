@@ -1,8 +1,7 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.Solvers.Assemblers;
-using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
@@ -19,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
         private bool factorizeInPlace = true;
         private bool mustFactorize = true;
-        private CholeskySkyline factorizedMatrix;
+        private LdlSkyline factorizedMatrix;
 
         private SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
             base(model, dofOrderer, new SkylineAssembler(), "SkylineSolver")
@@ -47,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky(factorizeInPlace, factorizationPivotTolerance); 
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance); 
                 mustFactorize = false;
             }
 

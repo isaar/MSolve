@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public Matrix BuildStiffnessMatrix()
         {
             int numberOfDofs = 3 * Nodes.Count;
-            var stiffness=Matrix.CreateZero(numberOfDofs, numberOfDofs);
+            var stiffness = Matrix.CreateZero(numberOfDofs, numberOfDofs);
             IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
                 Matrix partial = deformation.ThisTransposeTimesOtherTimesThis(constitutive);
                 double dA = jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight;
-                stiffness.AxpyIntoThis(partial,dA);
+                stiffness.AxpyIntoThis(partial, dA);
             }
 
             return stiffness;

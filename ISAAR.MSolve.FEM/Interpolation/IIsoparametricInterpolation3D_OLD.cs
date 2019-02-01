@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// The shape of a cell. Useful for interacting with other modules and software.
         /// </summary>
-        CellType3D CellType { get; }
+        CellType CellType { get; }
 
         /// <summary>
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
