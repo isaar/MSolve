@@ -7,16 +7,16 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
 using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Optimization.Problems;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.Solvers.Direct;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
+namespace ISAAR.MSolve.Optimization.Structural.Benchmarks
 {
     public class Truss10Benchmark : OptimizationProblem
     {
+        private const int subdomainID = 0;
+
         public Truss10Benchmark()
         {
             this.Dimension = 10;
@@ -60,8 +60,8 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
             public Truss10Design(double[] x)
             {
                 // Perform simulation
-                Model model;
-                LinearAnalyzer childAnalyzer;
+                Model_v2 model;
+                LinearAnalyzer_v2 childAnalyzer;
                 Rod2DResults rodResults;
                 Solve(x, out model, out childAnalyzer, out rodResults);
 
@@ -72,42 +72,39 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 this.ConstraintValues = EvaluateConstraints(model, childAnalyzer, rodResults);
             }
 
-            private void Solve(double[] x, out Model model, out LinearAnalyzer childAnalyzer,
+            private void Solve(double[] x, out Model_v2 model, out LinearAnalyzer_v2 childAnalyzer,
                 out Rod2DResults rodResults)
             {
-                VectorExtensions.AssignTotalAffinityCount();
-
                 model = BuildModel(x);
 
-                var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-                linearSystems[1] = new SkylineLinearSystem(1, model.SubdomainsDictionary[1].Forces);
-                var solver = new SolverSkyline(linearSystems[1]);
-                ProblemStructural provider = new ProblemStructural(model, linearSystems);
-                childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-                StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+                var solverBuilder = new SkylineSolver.Builder();
+                SkylineSolver solver = solverBuilder.BuildSolver(model);
+                var provider = new ProblemStructural_v2(model, solver);
+                childAnalyzer = new LinearAnalyzer_v2(solver);
+                var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
                 CreateLogs(model, childAnalyzer);
-                rodResults = new Rod2DResults(model.SubdomainsDictionary[1], linearSystems[1]); // Let's hope this is the one!
+                rodResults = new Rod2DResults(model.SubdomainsDictionary[subdomainID], solver.LinearSystems[subdomainID]); // Let's hope this is the one!
 
                 parentAnalyzer.BuildMatrices();
                 parentAnalyzer.Initialize();
                 parentAnalyzer.Solve();
             }
 
-            private Model BuildModel(double[] x)
+            private Model_v2 BuildModel(double[] x)
             {
                 double youngModulus = 10e4;
                 double poissonRatio = 0.3;
                 double loadP = 100;
 
-                Model model = new Model();
+                var model = new Model_v2();
 
-                IList<Node> nodes = new List<Node>();
-                Node node1 = new Node { ID = 1, X = 720, Y = 360 };
-                Node node2 = new Node { ID = 2, X = 720, Y = 0 };
-                Node node3 = new Node { ID = 3, X = 360, Y = 360 };
-                Node node4 = new Node { ID = 4, X = 360, Y = 0 };
-                Node node5 = new Node { ID = 5, X = 0, Y = 360 };
-                Node node6 = new Node { ID = 6, X = 0, Y = 0 };
+                IList<Node_v2> nodes = new List<Node_v2>();
+                var node1 = new Node_v2 { ID = 1, X = 720, Y = 360 };
+                var node2 = new Node_v2 { ID = 2, X = 720, Y = 0 };
+                var node3 = new Node_v2 { ID = 3, X = 360, Y = 360 };
+                var node4 = new Node_v2 { ID = 4, X = 360, Y = 0 };
+                var node5 = new Node_v2 { ID = 5, X = 0, Y = 360 };
+                var node6 = new Node_v2 { ID = 6, X = 0, Y = 0 };
 
                 nodes.Add(node1);
                 nodes.Add(node2);
@@ -121,18 +118,18 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                     model.NodesDictionary.Add(i + 1, nodes[i]);
                 }
 
-                IList<Element> elements = new List<Element>();
+                IList<Element_v2> elements = new List<Element_v2>();
 
-                var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[0] } };
-                var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[1] } };
-                var element3 = new Element() { ID = 3, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[2] } };
-                var element4 = new Element() { ID = 4, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[3] } };
-                var element5 = new Element() { ID = 5, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[4] } };
-                var element6 = new Element() { ID = 6, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[5] } };
-                var element7 = new Element() { ID = 7, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[6] } };
-                var element8 = new Element() { ID = 8, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[7] } };
-                var element9 = new Element() { ID = 9, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[8] } };
-                var element10 = new Element() { ID = 10, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[9] } };
+                var element1 = new Element_v2() { ID = 1, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[0] } };
+                var element2 = new Element_v2() { ID = 2, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[1] } };
+                var element3 = new Element_v2() { ID = 3, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[2] } };
+                var element4 = new Element_v2() { ID = 4, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[3] } };
+                var element5 = new Element_v2() { ID = 5, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[4] } };
+                var element6 = new Element_v2() { ID = 6, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[5] } };
+                var element7 = new Element_v2() { ID = 7, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[6] } };
+                var element8 = new Element_v2() { ID = 8, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[7] } };
+                var element9 = new Element_v2() { ID = 9, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[8] } };
+                var element10 = new Element_v2() { ID = 10, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[9] } };
 
                 element1.AddNode(model.NodesDictionary[3]);
                 element1.AddNode(model.NodesDictionary[5]);
@@ -166,52 +163,52 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 model.ElementsDictionary.Add(element9.ID, element9);
                 model.ElementsDictionary.Add(element10.ID, element10);
 
-                model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+                model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element1.ID, element1);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element2.ID, element2);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element3.ID, element3);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element4.ID, element4);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element5.ID, element5);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element6.ID, element6);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element7.ID, element7);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element8.ID, element8);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element9.ID, element9);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element10.ID, element10);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element1);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element2);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element3);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element4);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element5);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element6);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element7);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element8);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element9);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(element10);
 
                 model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = DOFType.X });
                 model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = DOFType.Y });
                 model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.X });
                 model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Y });
 
-                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = DOFType.Y });
-                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = DOFType.Y });
+                model.Loads.Add(new Load_v2() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+                model.Loads.Add(new Load_v2() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = DOFType.Y });
 
                 model.ConnectDataStructures();
                 return model;
             }
 
-            private void CreateLogs(Model model, LinearAnalyzer childAnalyzer)
+            private void CreateLogs(Model_v2 model, LinearAnalyzer_v2 childAnalyzer)
             {
                 int[] monitoredDOFs = new int[] {
-                    model.NodalDOFsDictionary[1][DOFType.Y],
-                    model.NodalDOFsDictionary[2][DOFType.Y],
-                    model.NodalDOFsDictionary[3][DOFType.Y],
-                    model.NodalDOFsDictionary[4][DOFType.Y]
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[1], DOFType.Y],
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], DOFType.Y],
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[3], DOFType.Y],
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[4], DOFType.Y]
                 };
-                childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(monitoredDOFs);
-                //Element[] stressElements = model.ElementsDictionary.Values.ToArray<Element>();
+                childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory_v2(monitoredDOFs);
+                //Element[] stressElements = model.ElementsDictionary.Values.ToArray<Element_v2>();
                 //childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(monitoredDOFs,
                 //    stressElements, new Element[0]);
             }
 
-            private double[] EvaluateObjective(double[] x, Model model)
+            private double[] EvaluateObjective(double[] x, Model_v2 model)
             {
                 double weight = 0;
-
+                IList<Element_v2> allElements = model.Elements;
                 for (int i = 0; i < x.Length; i++)
                 {
-                    var element_i = model.Elements[i].ElementType as Rod2D;
+                    var element_i = (Rod2D_v2)allElements[i].ElementType;
                     var nodeStart = model.Nodes[0];
                     var nodeEnd = model.Nodes[1];
                     var Length_i = Math.Sqrt(Math.Pow(nodeEnd.X - nodeStart.X, 2) + Math.Pow(nodeEnd.Y - nodeStart.Y, 2));
@@ -221,7 +218,7 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 return new double[] { weight };
             }
 
-            private double[] EvaluateConstraints(Model model, LinearAnalyzer childAnalyzer,
+            private double[] EvaluateConstraints(Model_v2 model, LinearAnalyzer_v2 childAnalyzer,
                 Rod2DResults rodResults)
             {
                 var constraints = new LinkedList<double>();

@@ -2,7 +2,7 @@
 using ISAAR.MSolve.Optimization.Problems;
 using System.Linq;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical
+namespace ISAAR.MSolve.Optimization.Benchmarks.Unconstrained
 {
     /// <summary>
     /// Class for the Styblinski-Tang's optimization problem.

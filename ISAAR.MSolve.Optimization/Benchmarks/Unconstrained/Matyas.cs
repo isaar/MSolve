@@ -1,21 +1,20 @@
 ﻿using System;
 using ISAAR.MSolve.Optimization.Problems;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical
+namespace ISAAR.MSolve.Optimization.Benchmarks.Unconstrained
 {
     /// <summary>
-    /// Class for the Holder's table optimization problem.
+    /// Class for the Matyas's optimization problem.
     /// <see href="https://en.wikipedia.org/wiki/Test_functions_for_optimization">Wikipedia: Test functions for optimization</see>
     /// </summary>
-    public class HolderTable : SingleObjectiveUnconstrained
+    public class Matyas : SingleObjectiveUnconstrained
     {
-        public HolderTable()
+        public Matyas()
         {
             this.Dimension = 2;
             this.LowerBound = new double[] { -10, -10 };
             this.UpperBound = new double[] { 10, 10 };
-            this.ObjectiveFunction = (x) => -Math.Abs(Math.Sin(x[0]) * Math.Cos(x[1]) *
-                    Math.Exp(Math.Abs(1 - (Math.Sqrt(Math.Pow(x[0], 2) + Math.Pow(x[1], 2)) / Math.PI))));
+            this.ObjectiveFunction = (x) => 0.26 * (Math.Pow(x[0], 2) + Math.Pow(x[1], 2)) + 0.48 * x[0] * x[1];
         }
     }
 }

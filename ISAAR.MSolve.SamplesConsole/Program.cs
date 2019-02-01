@@ -10,6 +10,7 @@ using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Optimization.Structural.Benchmarks;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.SamplesConsole.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -45,7 +46,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             //MeshGeneration.UniformMeshGeneratorExamples.Generate3DMesh();
             //FloatingSubdomainMatrices.WriteStiffnessOfContinuum2DStructure();
-            FloatingSubdomainMatrices.WriteStiffnessOfContinuum3DStructure();
+            //FloatingSubdomainMatrices.WriteStiffnessOfContinuum3DStructure();
         }
 
         private static void SolveBuildingInNoSoilSmall()

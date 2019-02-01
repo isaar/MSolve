@@ -1,7 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.Optimization.Problems;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical.Constrained
+namespace ISAAR.MSolve.Optimization.Benchmarks.Constrained
 {
     public class S_CRES : SingleObjectiveConstrained
     {

@@ -2,15 +2,15 @@
 using ISAAR.MSolve.Optimization.Problems;
 using System.Linq;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical
+namespace ISAAR.MSolve.Optimization.Benchmarks.Unconstrained
 {
     /// <summary>
-    /// Class for the Sphere's optimization problem.
+    /// Class for the Rosenbrock's optimization problem.
     /// <see href="https://en.wikipedia.org/wiki/Test_functions_for_optimization">Wikipedia: Test functions for optimization</see>
     /// </summary>
-    public class Sphere : SingleObjectiveUnconstrained
+    public class Rosenbrock : SingleObjectiveUnconstrained
     {
-        public Sphere()
+        public Rosenbrock()
         {
             this.Dimension = 10;
 
@@ -23,10 +23,16 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical
             this.ObjectiveFunction = (x) =>
             {
                 double f = 0.0;
-                for (int i = 0; i < x.Length; i++)
+                double t1;
+                double t2;
+
+                for (int i = 0; i < (x.Length - 1); i++)
                 {
-                    f += x[i] * x[i];
+                    t1 = (x[i + 1] - x[i] * x[i]) * (x[i + 1] - x[i] * x[i]);
+                    t2 = (1 - x[i]) * (1 - x[i]);
+                    f += 100.0 * t1 + t2;
                 }
+
                 return f;
             };
         }

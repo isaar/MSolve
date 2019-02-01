@@ -14,6 +14,8 @@
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Optimization.Structural\ISAAR.MSolve.Optimization.Structural.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Optimization\ISAAR.MSolve.Optimization.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Preprocessor\ISAAR.MSolve.Preprocessor.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />

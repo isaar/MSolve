@@ -2,7 +2,7 @@
 using System.Linq;
 using ISAAR.MSolve.Optimization.Problems;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical
+namespace ISAAR.MSolve.Optimization.Benchmarks.Unconstrained
 {
     /// <summary>
     /// Class for the Ackley's optimization problem.

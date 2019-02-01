@@ -3,8 +3,8 @@ using ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolution;
 using ISAAR.MSolve.Optimization.Constraints.Penalties;
 using ISAAR.MSolve.Optimization.Convergence;
 using ISAAR.MSolve.Optimization.Problems;
-using ISAAR.MSolve.Optimization.Benchmarks.Structural;
 using System;
+using ISAAR.MSolve.Optimization.Structural.Benchmarks;
 
 namespace ISAAR.MSolve.OptimizationTests
 {

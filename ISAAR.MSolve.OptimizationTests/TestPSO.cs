@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.Optimization;
 using ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptimization;
-using ISAAR.MSolve.Optimization.Benchmarks.Mathematical;
+using ISAAR.MSolve.Optimization.Benchmarks.Unconstrained;
 using ISAAR.MSolve.Optimization.Convergence;
 using ISAAR.MSolve.Optimization.Logging;
 using ISAAR.MSolve.Optimization.Problems;

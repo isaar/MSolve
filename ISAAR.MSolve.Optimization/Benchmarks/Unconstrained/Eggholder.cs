@@ -1,7 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.Optimization.Problems;
 
-namespace ISAAR.MSolve.Optimization.Benchmarks.Mathematical
+namespace ISAAR.MSolve.Optimization.Benchmarks.Unconstrained
 {
     /// <summary>
     /// Class for the Eggholder's optimization problem.

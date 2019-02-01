@@ -10,7 +10,7 @@ using ISAAR.MSolve.Optimization.Convergence;
 using ISAAR.MSolve.Optimization.Logging;
 using ISAAR.MSolve.Optimization.Problems;
 using ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.Mutations.Gaussian;
-using ISAAR.MSolve.Optimization.Benchmarks.Mathematical;
+using ISAAR.MSolve.Optimization.Benchmarks.Unconstrained;
 
 namespace ISAAR.MSolve.OptimizationTests
 {

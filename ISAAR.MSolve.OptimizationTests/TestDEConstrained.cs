@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Optimization;
 using ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolution;
-using ISAAR.MSolve.Optimization.Benchmarks.Mathematical.Constrained;
+using ISAAR.MSolve.Optimization.Benchmarks.Constrained;
 using ISAAR.MSolve.Optimization.Constraints.Penalties;
 using ISAAR.MSolve.Optimization.Convergence;
 using ISAAR.MSolve.Optimization.Problems;
