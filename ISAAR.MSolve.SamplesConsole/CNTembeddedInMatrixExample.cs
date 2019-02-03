@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.SamplesConsole
             VectorExtensions.AssignTotalAffinityCount();
 
             // No. of increments
-            int increments = 100;
+            int increments = 1000;
 
             // Model creation
             var model = new Model_v2();
@@ -72,11 +72,11 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
             }
 
-            // Boundary Conditions - Left End [End-6]
-            for (int iNode = 10; iNode <= 10100; iNode += 10)
-            {
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
-            }
+            //// Boundary Conditions - Left End [End-6]
+            //for (int iNode = 10; iNode <= 10100; iNode += 10)
+            //{
+            //    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+            //}
 
             //Compression Loading
             double nodalLoad = -1.0; //0.40;
