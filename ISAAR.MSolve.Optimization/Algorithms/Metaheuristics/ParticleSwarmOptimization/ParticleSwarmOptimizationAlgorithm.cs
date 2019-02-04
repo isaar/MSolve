@@ -58,13 +58,12 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptim
             get; private set;
         }
 
-
         public int CurrentIteration
         {
             get; private set;
         }
 
-        public double CurrentFunctionEvaluations
+        public int CurrentFunctionEvaluations
         {
             get; private set;
         }

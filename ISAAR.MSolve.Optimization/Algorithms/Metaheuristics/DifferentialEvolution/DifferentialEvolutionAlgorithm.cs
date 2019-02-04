@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
             get; private set;
         }
 
-        public double CurrentFunctionEvaluations
+        public int CurrentFunctionEvaluations
         {
             get; protected set;
         }
