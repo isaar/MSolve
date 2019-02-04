@@ -8,20 +8,22 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Optimization.Logging;
 
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 {
     public static class TopologySimp99Lines
     {
-        public static void TopologyOptimization(int nelx, int nely, double volfrac, double penal, double rmin)
+        public static (double compliance, Matrix densities, ObjectiveFunctionLogger logger) TopologyOptimization(
+            int nelx, int nely, double volfrac, double penal, double rmin)
         {
             // Initialize
             var x = Matrix.CreateWithValue(nely, nelx, volfrac); // design variables: element densities
             var dc = Matrix.CreateZero(nely, nelx); // compliance sensitivities
             int loop = 0;
             double change = 1.0;
-            var writer = new FullMatrixWriter();
             double c = double.MaxValue;
+            var logger = new ObjectiveFunctionLogger();
 
             // Start iterations
             while (change > 0.01)
@@ -55,16 +57,18 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 
                 // Design update by the optimality criteria method
                 x = OptimalityCriteriaUpdate(nelx, nely, x, volfrac, dc);
+                change = (x - xold).MaxAbsolute();
 
                 // Print results
-                change = (x - xold).MaxAbsolute();
                 Console.WriteLine($"Iteration = {loop}, Compliance = {c}, Volume = {x.Sum() / (nelx*nely)}, Change = {change}");
-
-                // Print densities
-                Console.WriteLine("Densities:");
-                writer.WriteToConsole(x);
-                Console.WriteLine("-----------------------------------");
+                //Console.WriteLine("Densities:");
+                //var writer = new FullMatrixWriter();
+                //writer.WriteToConsole(x);
+                //Console.WriteLine("-----------------------------------");
+                logger.Log(c);
             }
+
+            return (c, x, logger);
         }
 
         private static Matrix OptimalityCriteriaUpdate(int nelx, int nely, Matrix x, double volfrac, Matrix dc)
