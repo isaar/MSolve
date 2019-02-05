@@ -12,13 +12,61 @@ using ISAAR.MSolve.Optimization.Logging;
 
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 {
-    public static class TopologySimp99Lines
+    /// <summary>
+    /// C# translation of the Matlab code published in "A 99 line topology optimization code written in Matlab, O. Sigmund, 1991".
+    /// I tried to keep the code structure and variable names as close to the original as possible, with the exception of the
+    /// extensions presented in the paper, which required some structural changes.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class TopologySimp99Lines
     {
-        public static (double compliance, Matrix densities, ObjectiveFunctionLogger logger) TopologyOptimization(
-            int nelx, int nely, double volfrac, double penal, double rmin)
+        public enum BoundaryConditions
+        {
+            MbbBeam, ShortCantilever, Cantilever2LoadCases
+        }
+
+        public enum PassiveElements
+        {
+            No, HoleInCantilever
+        }
+
+        // Number of elements along the x, y axes
+        private readonly int nelx, nely;
+
+        /// <summary>The prescribed volume fraction.</summary>
+        private readonly double volfrac;
+
+        /// <summary>The exponent of the penalty function.</summary>
+        private readonly double penal;
+
+        /// <summary>The radius outside which the convolution operator of the filer is zero.</summary>
+        private readonly double rmin;
+
+        private readonly Func<Matrix, IList<Vector>> feAnalysis;
+        private readonly Func<Matrix, bool[,]> applyPassiveElements;
+
+        public TopologySimp99Lines(int nelx, int nely, double volfrac, double penal, double rmin, 
+            BoundaryConditions bc, PassiveElements passive)
+        {
+            this.nelx = nelx;
+            this.nely = nely;
+            this.volfrac = volfrac;
+            this.penal = penal;
+            this.rmin = rmin;
+
+            if (bc == BoundaryConditions.MbbBeam) feAnalysis = FEAnalysisHalfMbbBeam;
+            else if (bc == BoundaryConditions.ShortCantilever) feAnalysis = FEAnalysisCantilever;
+            else if (bc == BoundaryConditions.Cantilever2LoadCases) feAnalysis = FEAnalysisCantilever2LoadCases;
+
+            if (passive == PassiveElements.No) applyPassiveElements = NoPassiveElements;
+            else if (passive == PassiveElements.HoleInCantilever) applyPassiveElements = PassiveElementsForHoleInCantilever;
+        }
+
+        public (double compliance, Matrix densities, ObjectiveFunctionLogger logger) TopologyOptimization()
         {
             // Initialize
             var x = Matrix.CreateWithValue(nely, nelx, volfrac); // design variables: element densities
+            bool[,] passive = applyPassiveElements(x); // extension for passive elements
             var dc = Matrix.CreateZero(nely, nelx); // compliance sensitivities
             int loop = 0;
             double change = 1.0;
@@ -32,7 +80,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
                 Matrix xold = x.Copy();
 
                 // FE analysis
-                Vector U = FEAnalysis(nelx, nely, x, penal);
+                IList<Vector> U = feAnalysis(x);
 
                 // Objective function and sensitivity analysis
                 Matrix Ke = ElementStiffness(); // common for all elements
@@ -43,20 +91,24 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
                     {
                         int n1 = (nely + 1) * (elx - 1) + ely;
                         int n2 = (nely + 1) * elx + ely;
-                        int[] elementDofs = GetElementDofs(nelx, nely, elx, ely);
-                        Vector Ue = U.GetSubvector(elementDofs);
-                        double unitCompliance = Ue * (Ke * Ue);
-                        double xe = x[ely - 1, elx - 1];
-                        c += Math.Pow(xe, penal) * unitCompliance;
-                        dc[ely - 1, elx - 1] = - Math.Pow(xe, penal - 1) * unitCompliance * penal;
+                        dc[ely - 1, elx - 1] = 0.0;
+                        int[] elementDofs = GetElementDofs(elx, ely);
+                        foreach (Vector Ui in U)
+                        {
+                            Vector Ue = Ui.GetSubvector(elementDofs);
+                            double unitCompliance = Ue * (Ke * Ue);
+                            double xe = x[ely - 1, elx - 1];
+                            c += Math.Pow(xe, penal) * unitCompliance;
+                            dc[ely - 1, elx - 1] -= Math.Pow(xe, penal - 1) * unitCompliance * penal;
+                        }
                     }
                 }
 
                 // Filtering of sensitivities
-                dc = MeshIndependencyFilter(nelx, nely, rmin, x, dc);
+                dc = MeshIndependencyFilter(x, dc);
 
                 // Design update by the optimality criteria method
-                x = OptimalityCriteriaUpdate(nelx, nely, x, volfrac, dc);
+                x = OptimalityCriteriaUpdate(x, dc, passive);
                 change = (x - xold).MaxAbsolute();
 
                 // Print results
@@ -71,7 +123,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
             return (c, x, logger);
         }
 
-        private static Matrix OptimalityCriteriaUpdate(int nelx, int nely, Matrix x, double volfrac, Matrix dc)
+        private Matrix OptimalityCriteriaUpdate(Matrix x, Matrix dc, bool[,] passive)
         {
             double l1 = 0.0;
             double l2 = 1E5;
@@ -93,7 +145,16 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
                     else if (xeBe < xPlus) return xeBe;
                     else return xPlus;
                 });
-                
+
+                // Extension for passive elements
+                for (int ely = 0; ely < nely; ++ely)
+                {
+                    for (int elx = 0; elx < nelx; ++elx)
+                    {
+                        if (passive[ely, elx]) xnew[ely, elx] = 0.001;
+                    }
+                }
+
                 // Bi-sectioning
                 if (xnew.Sum() - volfrac * nelx * nely > 0) l1 = lmid;
                 else l2 = lmid;
@@ -101,54 +162,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
             return xnew;
         }
 
-        private static Vector FEAnalysis(int nelx, int nely, Matrix x, double penal)
-        {
-            //TODO: Use sparse matrix DOK -> Skyline or DOK -> CSC and use CSparse.NET
-
-            int numAllDofs = 2 * (nelx + 1) * (nely + 1);
-            var K = DokSymmetric.CreateEmpty(numAllDofs);
-            var F = Vector.CreateZero(numAllDofs);
-            var U = Vector.CreateZero(numAllDofs);
-
-            Matrix Ke = ElementStiffness();
-            int numElementDofs = Ke.NumRows;
-            int[] elementDofsLocal = Enumerable.Range(0, numElementDofs).ToArray();
-
-            // Global stiffness matrix assembly
-            for (int ely = 1; ely <= nely; ++ely)
-            {
-                for (int elx = 1; elx <= nelx; ++elx)
-                {
-                    int[] elementDofsGlobal = GetElementDofs(nelx, nely, elx, ely);
-                    double density = Math.Pow(x[ely - 1, elx - 1], penal);
-                    K.AddSubmatrixSymmetric(density * Ke, elementDofsLocal, elementDofsGlobal);
-                    //for (int i = 0; i < numElementDofs; ++i)
-                    //{
-                    //    for (int j = 0; j < numElementDofs; ++j)
-                    //    {
-                    //        K.AddToEntry(elementDofsGlobal[i], elementDofsGlobal[j], density * Ke[i, j]); 
-                    //    }
-                    //}
-                }
-            }
-
-            // Define loads and supports (half MBB-beam)
-            F[1] = -1;
-            var fixedDofs = new HashSet<int>(); //TODO: Use LINQ to simplify this madness
-            for (int i = 0; i < 2 * (nely + 1); i += 2) fixedDofs.Add(i);
-            fixedDofs.Add(numAllDofs - 1);
-            int[] freeDofs = Enumerable.Range(0, numAllDofs).Except(fixedDofs).ToArray();
-            DokSymmetric Kf = K.GetSubmatrix(freeDofs);
-            Vector Ff = F.GetSubvector(freeDofs);
-            Vector Uf = CholeskyCSparseNet.Factorize(Kf.BuildSymmetricCscMatrix(true)).SolveLinearSystem(Ff);
-            for (int i = 0; i < freeDofs.Length; ++i) U[freeDofs[i]] = Uf[i];
-            U.CopyNonContiguouslyFrom(freeDofs, Uf, Enumerable.Range(0, freeDofs.Length).ToArray()); // alternative way, but probably slower.
-            foreach (int i in fixedDofs) U[i] = 0.0; // They are 0 by default
-
-            return U;
-        }
-
-        private static Matrix MeshIndependencyFilter(int nelx, int nely, double rmin, Matrix x, Matrix dc)
+        private Matrix MeshIndependencyFilter(Matrix x, Matrix dc)
         {
             var dcn = Matrix.CreateZero(nely, nelx);
             int rminRounded = (int)Math.Round(rmin);
@@ -165,11 +179,11 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
                             if (fac > 0)
                             {
                                 sum += fac;
-                                dcn[j-1, i-1] += fac * x[m-1, k-1] * dc[m-1, k-1];
+                                dcn[j - 1, i - 1] += fac * x[m - 1, k - 1] * dc[m - 1, k - 1];
                             }
                         }
                     }
-                    dcn[j-1, i-1] /= x[j-1, i-1] * sum; 
+                    dcn[j - 1, i - 1] /= x[j - 1, i - 1] * sum;
                 }
             }
             return dcn;
@@ -199,14 +213,157 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
             return Ke;
         }
 
+        private IList<Vector> FEAnalysisHalfMbbBeam(Matrix x)
+        {
+            int numAllDofs = 2 * (nelx + 1) * (nely + 1);
+            var K = DokSymmetric.CreateEmpty(numAllDofs);
+            var F = Vector.CreateZero(numAllDofs);
+            var U = Vector.CreateZero(numAllDofs);
+
+            Matrix Ke = ElementStiffness();
+            int numElementDofs = Ke.NumRows;
+            int[] elementDofsLocal = Enumerable.Range(0, numElementDofs).ToArray();
+
+            // Global stiffness matrix assembly
+            for (int ely = 1; ely <= nely; ++ely)
+            {
+                for (int elx = 1; elx <= nelx; ++elx)
+                {
+                    int[] elementDofsGlobal = GetElementDofs(elx, ely);
+                    double density = Math.Pow(x[ely - 1, elx - 1], penal);
+                    K.AddSubmatrixSymmetric(density * Ke, elementDofsLocal, elementDofsGlobal);
+                }
+            }
+
+            // Define loads and supports for half MBB beam
+            F[1] = -1.0;
+            var fixedDofs = new HashSet<int>(); //TODO: Use LINQ to simplify this madness
+            for (int i = 0; i < 2 * (nely + 1); i += 2) fixedDofs.Add(i);
+            fixedDofs.Add(numAllDofs - 1);
+            int[] freeDofs = Enumerable.Range(0, numAllDofs).Except(fixedDofs).ToArray();
+
+            // Solve linear system
+            DokSymmetric Kf = K.GetSubmatrix(freeDofs);
+            Vector Ff = F.GetSubvector(freeDofs);
+            Vector Uf = CholeskyCSparseNet.Factorize(Kf.BuildSymmetricCscMatrix(true)).SolveLinearSystem(Ff);
+            for (int i = 0; i < freeDofs.Length; ++i) U[freeDofs[i]] = Uf[i];
+            //U.CopyNonContiguouslyFrom(freeDofs, Uf, Enumerable.Range(0, freeDofs.Length).ToArray()); // alternative way, but probably slower.
+            //foreach (int i in fixedDofs) U[i] = 0.0; // They are 0 by default
+
+            return new Vector[] { U };
+        }
+
+        private IList<Vector> FEAnalysisCantilever(Matrix x)
+        {
+            int numAllDofs = 2 * (nelx + 1) * (nely + 1);
+            var K = DokSymmetric.CreateEmpty(numAllDofs);
+            var F = Vector.CreateZero(numAllDofs);
+            var U = Vector.CreateZero(numAllDofs);
+
+            Matrix Ke = ElementStiffness();
+            int numElementDofs = Ke.NumRows;
+            int[] elementDofsLocal = Enumerable.Range(0, numElementDofs).ToArray();
+
+            // Global stiffness matrix assembly
+            for (int ely = 1; ely <= nely; ++ely)
+            {
+                for (int elx = 1; elx <= nelx; ++elx)
+                {
+                    int[] elementDofsGlobal = GetElementDofs(elx, ely);
+                    double density = Math.Pow(x[ely - 1, elx - 1], penal);
+                    K.AddSubmatrixSymmetric(density * Ke, elementDofsLocal, elementDofsGlobal);
+                }
+            }
+
+            // Define loads and supports for cantilever beam
+            F[numAllDofs - 1] = -1.0;
+            IEnumerable<int> fixedDofs = Enumerable.Range(0, 2 * (nely + 1));
+            int[] freeDofs = Enumerable.Range(0, numAllDofs).Except(fixedDofs).ToArray();
+
+            // Solve linear system
+            DokSymmetric Kf = K.GetSubmatrix(freeDofs);
+            Vector Ff = F.GetSubvector(freeDofs);
+            Vector Uf = CholeskyCSparseNet.Factorize(Kf.BuildSymmetricCscMatrix(true)).SolveLinearSystem(Ff);
+            for (int i = 0; i < freeDofs.Length; ++i) U[freeDofs[i]] = Uf[i];
+            //U.CopyNonContiguouslyFrom(freeDofs, Uf, Enumerable.Range(0, freeDofs.Length).ToArray()); // alternative way, but probably slower.
+            //foreach (int i in fixedDofs) U[i] = 0.0; // They are 0 by default
+
+            return new Vector[] { U };
+        }
+
+        private IList<Vector> FEAnalysisCantilever2LoadCases(Matrix x)
+        {
+            int numLoadCases = 2;
+            int numAllDofs = 2 * (nelx + 1) * (nely + 1);
+            var K = DokSymmetric.CreateEmpty(numAllDofs);
+            var F = new Vector[] { Vector.CreateZero(numAllDofs), Vector.CreateZero(numAllDofs) };
+            var U = new Vector[] { Vector.CreateZero(numAllDofs), Vector.CreateZero(numAllDofs) };
+
+            Matrix Ke = ElementStiffness();
+            int numElementDofs = Ke.NumRows;
+            int[] elementDofsLocal = Enumerable.Range(0, numElementDofs).ToArray();
+
+            // Global stiffness matrix assembly
+            for (int ely = 1; ely <= nely; ++ely)
+            {
+                for (int elx = 1; elx <= nelx; ++elx)
+                {
+                    int[] elementDofsGlobal = GetElementDofs(elx, ely);
+                    double density = Math.Pow(x[ely - 1, elx - 1], penal);
+                    K.AddSubmatrixSymmetric(density * Ke, elementDofsLocal, elementDofsGlobal);
+                }
+            }
+
+            // Define supports for cantilever beam
+            IEnumerable<int> fixedDofs = Enumerable.Range(0, 2 * (nely + 1));
+            int[] freeDofs = Enumerable.Range(0, numAllDofs).Except(fixedDofs).ToArray();
+
+            // Load case 1: unit load towards -y at bottom right corner
+            F[0][2 * (nelx + 1) * (nely + 1) - 1] = -1.0;
+
+            // Load case 2: unit load towards +y at top right corner
+            F[1][2 * (nelx) * (nely + 1) + 1] = 1.0;
+
+            // Solve linear system
+            CholeskyCSparseNet factorizedKf = CholeskyCSparseNet.Factorize(
+                K.GetSubmatrix(freeDofs).BuildSymmetricCscMatrix(true)); // only factorize the matrix once
+            for (int c = 0; c < numLoadCases; ++c)
+            {
+                Vector Ff = F[c].GetSubvector(freeDofs);
+                Vector Uf = factorizedKf.SolveLinearSystem(Ff);
+                for (int i = 0; i < freeDofs.Length; ++i) U[c][freeDofs[i]] = Uf[i];
+                //U[c].CopyNonContiguouslyFrom(freeDofs, Uf, Enumerable.Range(0, freeDofs.Length).ToArray()); // alternative way, but probably slower.
+                //foreach (int i in fixedDofs) U[c][i] = 0.0; // They are 0 by default
+            }
+            return U;
+        }
+
+        private bool[,] NoPassiveElements(Matrix x) => new bool[nely, nelx];
+
+        private bool[,] PassiveElementsForHoleInCantilever(Matrix x)
+        {
+            var passive = new bool[nely, nelx];
+            for (int ely = 1; ely <= nely; ++ely)
+            {
+                for (int elx = 1; elx <= nelx; ++elx)
+                {
+                    double distance = Math.Sqrt(Math.Pow(ely - nely / 2.0, 2) + Math.Pow(elx - nelx / 3.0, 2));
+                    if (distance < nely / 3.0)
+                    {
+                        passive[ely - 1, elx - 1] = true;
+                        x[ely - 1, elx - 1] = 0.001;
+                    }
+                }
+            }
+            return passive;
+        }
+
         /// <summary>
         /// The global indices of the element's dofs, in 0-based numbering.
         /// </summary>
-        /// <param name="nelx"></param>
-        /// <param name="nely"></param>
         /// <param name="elx">1-based numbering</param>
         /// <param name="ely">1-based numbering</param>
-        private static int[] GetElementDofs(int nelx, int nely, int elx, int ely)
+        private int[] GetElementDofs(int elx, int ely)
         {
             int n1 = (nely + 1) * (elx - 1) + ely;
             int n2 = (nely + 1) * elx + ely;
