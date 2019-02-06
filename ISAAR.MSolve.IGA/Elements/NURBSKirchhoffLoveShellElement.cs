@@ -7,6 +7,7 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -17,7 +18,7 @@ namespace ISAAR.MSolve.IGA.Elements
 	{
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 
 
 
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
-		public IElementDOFEnumerator DOFEnumerator
+		public IElementDofEnumerator_v2 DofEnumerator
 		{
 			get => dofEnumerator;
 			set => this.dofEnumerator = value;
@@ -73,12 +74,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			var nurbsElement = (NURBSKirchhoffLoveShellElement)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -89,7 +90,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
@@ -99,7 +100,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D StiffnessMatrix(IElement element)
+		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
 			var shellElement = (NURBSKirchhoffLoveShellElement) element;
 			
@@ -128,9 +129,9 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				Matrix2D constitutiveMatrix = CalculateConstitutiveMatrix(shellElement, surfaceBasisVector1, surfaceBasisVector2);
 
-				var Bmembrane = CalculateMembraneDeformationMatrix(nurbs, j, surfaceBasisVector1, surfaceBasisVector2);
+				 var Bmembrane = CalculateMembraneDeformationMatrix(nurbs, j, surfaceBasisVector1, surfaceBasisVector2,shellElement);
 
-				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, nurbs, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12);
+				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, nurbs, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
 
 				double membraneStiffness = ((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).YoungModulus * shellElement.Patch.Thickness /
 				                           (1 - Math.Pow(((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).PoissonRatio, 2));
@@ -148,7 +149,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				stiffnessMatrixElement.Add(Kmembrane);
 				stiffnessMatrixElement.Add(Kbending);
 			}
-			return stiffnessMatrixElement;
+			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 		}
 
 		private Matrix2D CalculateConstitutiveMatrix(NURBSKirchhoffLoveShellElement element,Vector surfaceBasisVector1, Vector surfaceBasisVector2)
@@ -184,10 +185,10 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, NURBS2D nurbs, int j,
 			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
-			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12)
+			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, NURBSKirchhoffLoveShellElement element)
 		{
-			Matrix2D Bbending = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int column = 0; column < ControlPoints.Count * 3; column+=3)
+			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				#region BI1
 
@@ -272,10 +273,10 @@ namespace ISAAR.MSolve.IGA.Elements
 		}
 
 		private Matrix2D CalculateMembraneDeformationMatrix(NURBS2D nurbs, int j, Vector surfaceBasisVector1,
-			Vector surfaceBasisVector2)
+			Vector surfaceBasisVector2, NURBSKirchhoffLoveShellElement element)
 		{
-			Matrix2D dRIa = new Matrix2D(3, ControlPoints.Count );
-			for (int i = 0; i < ControlPoints.Count ; i++)
+			Matrix2D dRIa = new Matrix2D(3, element.ControlPoints.Count );
+			for (int i = 0; i < element.ControlPoints.Count ; i++)
 			{
 				for (int m = 0; m < 3; m++)
 				{
@@ -284,8 +285,8 @@ namespace ISAAR.MSolve.IGA.Elements
 				}
 			}
 
-			Matrix2D Bmembrane = new Matrix2D(3, ControlPoints.Count * 3);
-			for (int column = 0; column < ControlPoints.Count * 3; column+=3)
+			Matrix2D Bmembrane = new Matrix2D(3, element.ControlPoints.Count * 3);
+			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				Bmembrane[0, column] = nurbs.NurbsDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[0];
 				Bmembrane[0, column + 1] = nurbs.NurbsDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[1];
@@ -351,6 +352,27 @@ namespace ISAAR.MSolve.IGA.Elements
 		{
 			GaussQuadrature gauss = new GaussQuadrature();
 			return gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Knots);
+		}
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			var nurbsElement = (NURBSKirchhoffLoveShellElement)element;
+			var knotParametricCoordinatesKsi = new Vector(new double[] { element.Knots[0].Ksi, element.Knots[2].Ksi });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { element.Knots[0].Heta, element.Knots[1].Heta });
+			NURBS2D nurbs = new NURBS2D(nurbsElement, nurbsElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+			var knotDisplacements = new double[4, 3];
+			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };
+			for (int j = 0; j < element.Knots.Count; j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += nurbs.NurbsValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += nurbs.NurbsValues[i, j] * localDisplacements[i, 1];
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += nurbs.NurbsValues[i, j] * localDisplacements[i, 2];
+				}
+			}
+
+			return knotDisplacements;
 		}
 	}
 }

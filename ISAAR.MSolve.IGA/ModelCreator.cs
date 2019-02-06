@@ -64,7 +64,6 @@ namespace ISAAR.MSolve.IGA
                 Patch patch = new Patch()
                 {
                     NumberOfDimensions = this.NumberOfDimensions,
-                    ID = patchID,
                     DegreeKsi = DegreeKsiDictionary[patchID],
                     DegreeHeta = DegreeHetaDictionary[patchID],
                     DegreeZeta = (NumberOfDimensions == 2) ? 0 : DegreeZetaDictionary[patchID],
@@ -79,11 +78,11 @@ namespace ISAAR.MSolve.IGA
                 };
                 
                 for (int j = 0; j < ControlPointIDsDictionary[patchID].Length; j++)
-                    patch.ControlPointsDictionary.Add(j,ControlPointsDictionary[ControlPointIDsDictionary[patchID][j]]);
+                    ((List<ControlPoint>)patch.ControlPoints).Add(ControlPointsDictionary[ControlPointIDsDictionary[patchID][j]]);
                 patch.CreatePatchData();
-                foreach (var element in patch.ElementsDictionary.Values)
+                foreach (var element in patch.Elements)
                     Model.ElementsDictionary.Add(counterElementID++, element);
-                foreach (var controlPoint in patch.ControlPointsDictionary.Values)
+                foreach (var controlPoint in patch.ControlPoints)
                     Model.ControlPointsDictionary.Add(counterCPID++, controlPoint);
 
                 this.Model.PatchesDictionary.Add(patchID, patch);
@@ -128,7 +127,6 @@ namespace ISAAR.MSolve.IGA
                             Patch patch = new Patch()
                             {
                                 NumberOfDimensions = this.NumberOfDimensions,
-                                ID = counterPatch,
                                 DegreeKsi = DegreeKsiDictionary[patchID],
                                 DegreeHeta = DegreeHetaDictionary[patchID],
                                 DegreeZeta = (NumberOfDimensions == 2) ? 0 : DegreeZetaDictionary[patchID],
@@ -144,7 +142,7 @@ namespace ISAAR.MSolve.IGA
 
                             for (int m = 0; m < controlPointIDs[i,j,k].Length; m++)
                             {
-                                patch.ControlPointsDictionary.Add(m, ControlPointsDictionary[ControlPointIDsDictionary[patchID][controlPointIDs[i, j, k][m]]]);
+                                ((List<ControlPoint>)patch.ControlPoints).Add(ControlPointsDictionary[ControlPointIDsDictionary[patchID][controlPointIDs[i, j, k][m]]]);
                             }
                             patch.CreatePatchData();
                             this.Model.PatchesDictionary.Add(counterPatch++, patch);

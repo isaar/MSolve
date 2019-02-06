@@ -11,6 +11,7 @@ namespace ISAAR.MSolve.Materials.Interfaces
         IMatrix2D ConstitutiveMatrix { get; }
         new IShellMaterial Clone();
         double[] NormalVectorV3 { get; set; } 
+		double[] TangentVectorV2 { get; set; }
         double[] TangentVectorV1 { get; set; }
         void UpdateMaterial(double[] GLvec);
     }

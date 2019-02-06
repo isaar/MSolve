@@ -245,3 +245,5 @@ ModelManifest.xml
 .fake/
 *.iga
 *.dat
+*.vtu
+*.vts
